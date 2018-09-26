@@ -18,9 +18,9 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,20 +29,22 @@ import java.io.File;
 public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
     private static final Logger LOGGER = LoggerFactory.getLogger(RebuildIncrementalTaskInputs.class);
 
-    private final FileCollection inputFiles;
+    private final CurrentTaskExecution execution;
 
-    public RebuildIncrementalTaskInputs(Task task, TaskProperties taskProperties) {
+    public RebuildIncrementalTaskInputs(Task task, CurrentTaskExecution execution) {
         LOGGER.info("All input files are considered out-of-date for incremental {}.", task);
-        this.inputFiles = taskProperties.getInputFiles();
+        this.execution = execution;
     }
 
     public boolean isIncremental() {
         return false;
     }
 
-    public void doOutOfDate(Action<? super InputFileDetails> outOfDateAction) {
-        for (File file : inputFiles) {
-            outOfDateAction.execute(new RebuildInputFile(file));
+    public void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
+        for (CurrentFileCollectionFingerprint fingerprint : execution.getInputFingerprints().values()) {
+            for (String path : fingerprint.getFingerprints().keySet()) {
+                outOfDateAction.execute(new RebuildInputFile(new File(path)));
+            }
         }
     }
 

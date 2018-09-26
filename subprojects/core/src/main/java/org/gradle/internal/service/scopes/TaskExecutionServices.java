@@ -217,6 +217,7 @@ public class TaskExecutionServices {
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
             instantiator,
+            taskHistoryRepository,
             new DefaultTaskArtifactStateRepository(
                 taskHistoryRepository,
                 instantiator,

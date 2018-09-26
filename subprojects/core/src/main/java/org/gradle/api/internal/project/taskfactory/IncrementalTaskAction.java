@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -29,7 +28,6 @@ import java.lang.reflect.Method;
 class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
 
     private TaskArtifactState taskArtifactState;
-    private TaskProperties taskProperties;
 
     public IncrementalTaskAction(Class<? extends Task> type, Method method) {
         super(type, method);
@@ -37,16 +35,14 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
 
     public void contextualise(TaskExecutionContext context) {
         this.taskArtifactState = context.getTaskArtifactState();
-        this.taskProperties = context.getTaskProperties();
     }
 
     @Override
     public void releaseContext() {
         this.taskArtifactState = null;
-        this.taskProperties = null;
     }
 
     protected void doExecute(Task task, String methodName) {
-        JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges(taskProperties));
+        JavaReflectionUtil.method(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, taskArtifactState.getInputChanges());
     }
 }

@@ -27,9 +27,9 @@ public interface PropertySpecFactory {
 
     DeclaredTaskOutputFileProperty createOutputFileSpec(ValidatingValue path);
 
-    DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue path);
+    DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue dirPath);
 
     DeclaredTaskOutputFileProperty createOutputFilesSpec(ValidatingValue paths);
 
-    DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths);
+    DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue dirPaths);
 }
