@@ -113,6 +113,7 @@ fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
             ProjectSchema(
                 extensions = entries.projectSchemaEntriesOf(EntryKind.Extension),
                 conventions = entries.projectSchemaEntriesOf(EntryKind.Convention),
+                tasks = entries.projectSchemaEntriesOf(EntryKind.Task),
                 containerElements = entries.projectSchemaEntriesOf(EntryKind.ContainerElement),
                 configurations = emptyList()
             )
@@ -123,6 +124,7 @@ private
 fun <T> ProjectSchema<T>.entriesPairedWithEntryKind() =
     (extensions.map { it to EntryKind.Extension }
         + conventions.map { it to EntryKind.Convention }
+        + tasks.map { it to EntryKind.Task }
         + containerElements.map { it to EntryKind.ContainerElement })
 
 
@@ -132,7 +134,7 @@ fun <T> List<Pair<ProjectSchemaEntry<T>, EntryKind>>.projectSchemaEntriesOf(entr
 
 
 private
-enum class EntryKind { Extension, Convention, ContainerElement }
+enum class EntryKind { Extension, Convention, Task, ContainerElement }
 
 
 internal
@@ -588,6 +590,7 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
         appendln("import org.gradle.api.Incubating")
         appendln("import org.gradle.api.NamedDomainObjectProvider")
         appendln("import org.gradle.api.Project")
+        appendln("import org.gradle.api.Task")
         appendln("import org.gradle.api.artifacts.Configuration")
         appendln("import org.gradle.api.artifacts.ConfigurationContainer")
         appendln("import org.gradle.api.artifacts.Dependency")
@@ -596,6 +599,8 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
         appendln("import org.gradle.api.artifacts.ModuleDependency")
         appendln("import org.gradle.api.artifacts.dsl.DependencyConstraintHandler")
         appendln("import org.gradle.api.artifacts.dsl.DependencyHandler")
+        appendln("import org.gradle.api.tasks.TaskContainer")
+        appendln("import org.gradle.api.tasks.TaskProvider")
         newLine()
         appendln("import org.gradle.kotlin.dsl.*")
         newLine()

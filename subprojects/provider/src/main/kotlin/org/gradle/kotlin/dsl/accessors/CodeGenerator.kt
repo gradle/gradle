@@ -48,6 +48,13 @@ fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = se
         }
     }
 
+    tasks.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
+        existingTaskAccessorFor(spec)?.let {
+            yield(it)
+            seen.add(spec)
+        }
+    }
+
     containerElements.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
         existingContainerElementAccessorFor(spec)?.let {
             yield(it)
@@ -186,6 +193,45 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
          */
         fun $targetType.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
             configure(`$stringLiteral`)
+
+    """
+}
+
+
+private
+fun existingTaskAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
+    codeForAccessor(name) {
+        when (typeAccess) {
+            is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, typeAccess.type)
+            is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, typeAccess)
+        }
+    }
+}
+
+
+private
+fun accessibleExistingTaskAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][$type] task.
+         */
+        val TaskContainer.`$kotlinIdentifier`: TaskProvider<$type>
+            get() = named<$type>("$stringLiteral")
+
+    """
+}
+
+
+private
+fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][${typeAccess.type}] task.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
+         */
+        val TaskContainer.`$kotlinIdentifier`: TaskProvider<Task>
+            get() = named("$stringLiteral")
 
     """
 }
