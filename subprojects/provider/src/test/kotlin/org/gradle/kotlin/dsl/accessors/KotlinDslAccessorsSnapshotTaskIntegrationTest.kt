@@ -268,7 +268,11 @@ val kotlinDslProjectSchema: ProjectSchema<String> = listOf(
             existingTaskContainerElement("mainClasses"),
             existingTaskContainerElement("compileKotlin", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"),
             existingTaskContainerElement("compileTestKotlin", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"),
-            existingTaskContainerElement("inspectClassesForKotlinIC", "org.jetbrains.kotlin.gradle.tasks.InspectClassesForMultiModuleIC")
+            existingTaskContainerElement("generateScriptPluginAdapters"),
+            existingTaskContainerElement("inspectClassesForKotlinIC", "org.jetbrains.kotlin.gradle.tasks.InspectClassesForMultiModuleIC"),
+            existingTaskContainerElement("pluginDescriptors", "org.gradle.plugin.devel.tasks.GeneratePluginDescriptors"),
+            existingTaskContainerElement("pluginUnderTestMetadata", "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata"),
+            existingTaskContainerElement("validateTaskProperties", "org.gradle.plugin.devel.tasks.ValidateTaskProperties")
         ),
         containerElements = configurationNames.map(::existingConfigurationContainerElement) + listOf(
             ProjectSchemaEntry("org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>", "main", "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet"),
