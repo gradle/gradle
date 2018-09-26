@@ -309,10 +309,8 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
-- Removed the method `configureForSourceSet` from `JavaBasePlugin`
-- Removed the property `classesDir` from `JDepend`.
-- Removed the property `testClassesDir` from `Test`.
-- Removed the property `classesDir` from `SourceSetOutput`.
+- Removed `JavaBasePlugin.configureForSourceSet`
+- Removed `JDepend.classesDir`
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.

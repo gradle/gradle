@@ -17,8 +17,8 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.SourceDirectorySet;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 
@@ -83,6 +83,40 @@ import java.util.Map;
 public interface SourceSetOutput extends FileCollection {
 
     /**
+     * Returns the directory to assemble the compiled classes into.
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @return The classes dir.
+     * @deprecated Use {@link #getClassesDirs()} or {@link SourceDirectorySet#getOutputDir()}
+     */
+    @Deprecated
+    File getClassesDir();
+
+    /**
+     * Sets the directory to assemble the compiled classes into.
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @param classesDir the classes dir. Should not be null.
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.tasks.compile.AbstractCompile} task
+     * @since 4.0
+     */
+    @Deprecated
+    void setClassesDir(File classesDir);
+
+    /**
+     * Sets the directory to assemble the compiled classes into.
+     * <p>
+     * See example at {@link SourceSetOutput}
+     *
+     * @param classesDir the classes dir. Should not be null.
+     * @deprecated Set the output directory for the particular {@link org.gradle.api.tasks.compile.AbstractCompile} task
+     */
+    @Deprecated
+    void setClassesDir(Object classesDir);
+
+    /**
      * Returns the directories containing compiled classes.
      *
      * @return The classes directories. Never returns null.
@@ -94,9 +128,7 @@ public interface SourceSetOutput extends FileCollection {
      * Source set uses the legacy layout (single classes directory for the entire source set).
      * @return true if the source set has a single classes directory
      * @since 4.0
-     * @deprecated This method always returns false starting from Gradle 5.0.
      */
-    @Deprecated
     boolean isLegacyLayout();
 
     /**
@@ -106,7 +138,6 @@ public interface SourceSetOutput extends FileCollection {
      *
      * @return The dir resources are copied to.
      */
-    @Nullable
     File getResourcesDir();
 
     /**

@@ -443,7 +443,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    java.outputDir = file("build/classes/moreTests")
+                    output.classesDir = file("build/classes/moreTests")
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }
@@ -451,7 +451,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                testClassesDirs = sourceSets.moreTests.output.classesDirs
+                testClassesDir = sourceSets.moreTests.output.classesDir
             }
 
             build.dependsOn secondTest

@@ -96,7 +96,7 @@ public interface SourceSet extends ExtensionAware {
      * @since 4.6
      */
     @Incubating
-    void setAnnotationProcessorPath(FileCollection annotationProcessorPath);
+    void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath);
 
     /**
      * Returns the classpath used to execute this source.
@@ -144,7 +144,7 @@ public interface SourceSet extends ExtensionAware {
      * @param configureClosure The closure to use to configure the resources.
      * @return this
      */
-    SourceSet resources(@Nullable Closure configureClosure);
+    SourceSet resources(Closure configureClosure);
 
     /**
      * Configures the non-Java resources for this set.
@@ -171,7 +171,7 @@ public interface SourceSet extends ExtensionAware {
      * @param configureClosure The closure to use to configure the Java source.
      * @return this
      */
-    SourceSet java(@Nullable Closure configureClosure);
+    SourceSet java(Closure configureClosure);
 
     /**
      * Configures the Java source for this set.

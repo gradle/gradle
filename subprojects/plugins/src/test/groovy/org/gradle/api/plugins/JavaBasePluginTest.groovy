@@ -198,7 +198,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
-        project.sourceSets.custom.java.outputDir = classesDir
+        project.sourceSets.custom.output.classesDir = classesDir
         project.sourceSets.custom.output.resourcesDir = resourcesDir
 
         then:
@@ -359,7 +359,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         given:
         project.sourceSets {
             custom {
-                java.outputDir = project.file("classes")
+                output.classesDir = project.file("classes")
                 output.resourcesDir = project.file("resources")
             }
         }
@@ -385,8 +385,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         project.sourceSets {
             custom {
-                output.classesDirs.from = project.files("classes")
-                output.resourcesDir = project.files("resources")
+                output.classesDir = project.file("classes")
+                output.resourcesDir = project.file("resources")
             }
         }
         project.prepareForRuleBasedPlugins()

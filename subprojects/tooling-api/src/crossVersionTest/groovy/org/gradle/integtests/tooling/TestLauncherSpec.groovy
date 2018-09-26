@@ -176,7 +176,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    java.outputDir = file("build/classes/moreTests")
+                    output.classesDir = file("build/classes/moreTests")
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }
@@ -184,7 +184,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                testClassesDirs = sourceSets.moreTests.output.classesDirs
+                testClassesDir = sourceSets.moreTests.output.classesDir
             }
 
             build.dependsOn secondTest
