@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.ExtensionAware
 
+import org.gradle.kotlin.dsl.support.unsafeLazy
+
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -418,7 +420,9 @@ data class AccessorNameSpec(val original: String) {
     val kotlinIdentifier
         get() = original
 
-    val stringLiteral by lazy { stringLiteralFor(original) }
+    val stringLiteral by unsafeLazy {
+        stringLiteralFor(original)
+    }
 }
 
 
