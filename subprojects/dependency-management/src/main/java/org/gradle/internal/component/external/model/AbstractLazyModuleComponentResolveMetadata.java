@@ -112,12 +112,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (populated != null) {
             return populated;
         }
-        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions);
         configurations.put(name, md);
         return md;
     }
 
-    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
+    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
         if (descriptorConfiguration == null) {
             return null;
