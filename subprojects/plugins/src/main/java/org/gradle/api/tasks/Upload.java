@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.internal.Transformers;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
@@ -119,7 +120,7 @@ public class Upload extends ConventionTask {
     /**
      * Configures the set of repositories to upload to.
      */
-    public RepositoryHandler repositories(Closure configureClosure) {
+    public RepositoryHandler repositories(@Nullable Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
@@ -141,7 +142,7 @@ public class Upload extends ConventionTask {
     @InputFiles
     public FileCollection getArtifacts() {
         Configuration configuration = getConfiguration();
-        return configuration == null ? null : configuration.getAllArtifacts().getFiles();
+        return configuration.getAllArtifacts().getFiles();
     }
 
 }

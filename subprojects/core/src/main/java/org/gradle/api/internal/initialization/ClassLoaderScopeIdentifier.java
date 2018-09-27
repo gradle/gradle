@@ -111,8 +111,13 @@ class ClassLoaderScopeIdentifier {
         }
 
         @Override
+        public String getDisplayName() {
+            return identifier.getPath() + "(" + (export ? "export" : "local") + ")";
+        }
+
+        @Override
         public String toString() {
-            return "ClassLoaderScopeIdentifier.Id{" + identifier.getPath() + "(" + (export ? "export" : "local") + ")}";
+            return "ClassLoaderScopeIdentifier.Id{" + getDisplayName() + "}";
         }
     }
 }

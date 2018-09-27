@@ -75,6 +75,6 @@ trait ToolingApiClasspathProvider {
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
-        return new VisitableURLClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+        return new VisitableURLClassLoader("test", parentClassLoader, testClassPath.collect { it.toURI().toURL() })
     }
 }

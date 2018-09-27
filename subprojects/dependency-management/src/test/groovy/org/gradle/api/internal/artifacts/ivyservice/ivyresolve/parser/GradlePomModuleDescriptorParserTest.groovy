@@ -1929,7 +1929,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         MavenDependencyDescriptor dep = single(metadata.dependencies) as MavenDependencyDescriptor
         dep.selector == moduleId('group-relocated', 'relocated', 'version-one')
-        dep.scope == MavenScope.Runtime
+        dep.scope == MavenScope.Compile
         dep.dependencyArtifact == null
     }
 

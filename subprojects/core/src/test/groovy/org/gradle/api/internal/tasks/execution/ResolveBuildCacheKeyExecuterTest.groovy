@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -135,23 +136,19 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.inputHashes == [a: "000000aa", b: "000000bb", c: "000000cc"]
 
         when:
-        inputs.inputPropertiesLoadedByUnknownClassLoader >> ImmutableSortedSet.of("bean", "someOtherBean")
+        inputs.nonCacheableInputProperties >> ImmutableSortedMap.of("bean", "Implementation loaded by unknown classloader.", "someOtherBean", "Implementation implemented by Java Lambda.")
         then:
         adapter.inputPropertiesLoadedByUnknownClassLoader == ["bean", "someOtherBean"] as SortedSet
 
         when:
-        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
+        inputs.taskImplementation >> ImplementationSnapshot.of("org.gradle.TaskType", HashCode.fromInt(0x000000cc))
         then:
         adapter.classLoaderHash == "000000cc"
 
         when:
-        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromInt(0x000000ee), HashCode.fromInt(0x000000dd)])
+        inputs.actionImplementations >> ImmutableList.copyOf([ImplementationSnapshot.of("foo", HashCode.fromInt(0x000000ee)), ImplementationSnapshot.of("bar", HashCode.fromInt(0x000000dd))])
         then:
         adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
-
-        when:
-        inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
-        then:
         adapter.actionClassNames == ["foo", "bar"]
 
         when:

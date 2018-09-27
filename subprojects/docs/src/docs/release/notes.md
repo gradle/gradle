@@ -206,6 +206,13 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Checkstyle plugin config directory in multi-project builds
+
+Gradle will now, by convention, only look for Checkstyle configuration files in the root project's _config/checkstyle_ directory.
+Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path
+via [`checkstyle.configDir`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:configDir)
+or [`checkstyle.config`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config).
+
 ### Updated default tool versions
 
 The default tool versions of the following code quality plugins have been updated:
@@ -309,9 +316,12 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
-- Removed `JavaBasePlugin.configureForSourceSet`
-- Removed `JDepend.classesDir`
+- Removed the method `configureForSourceSet` from `JavaBasePlugin`
+- Removed the property `classesDir` from `JDepend`.
+- Removed the property `testClassesDir` from `Test`.
+- Removed the property `classesDir` from `SourceSetOutput`.
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
+- Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
@@ -330,11 +340,11 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 Classes in the internal `org.gradle.util` package are no longer implicitly imported by default.
 Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.
 
-### System properties `test.single` and `test.debug` have been removed
+### Removed system properties
 
-The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
-
-The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+- The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+- The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed. You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+- The `org.gradle.readLoggingConfigFile` system property no longer does anything — please update affected tests to work with your `java.util.logging` settings.
 
 ### Replacing built-in tasks
 
@@ -362,12 +372,13 @@ We would like to thank the following community members for making contributions 
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Fix nullability of the CreateStartScripts task properties (gradle/gradle#6704)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Make Settings implement ExtensionAware (gradle/gradle#6685)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Remove `@Incubating` from LifecycleBasePlugin (gradle/gradle#6901)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, OSGI Plugin and Organizing Gradle Projects user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539, gradle/gradle#6621)
 - [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit, Multi Projects Builds, Managing Transitive Dependencies, Custom Plugins, Init Scripts, Scala Plugin, Managing Dependency Configurations, Groovy Plugin and Groovy Quickstart user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687, gradle/gradle#6588, gradle/gradle#6633, gradle/gradle#6637, gradle/gradle#6689, gradle/gradle#6509, gradle/gradle#6645)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit, Multi Projects Builds, Managing Transitive Dependencies, Custom Plugins, Init Scripts, Scala Plugin, Managing Dependency Configurations, Groovy Plugin, Groovy Quickstart and Customizing Dependency Resolution Behavior user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687, gradle/gradle#6588, gradle/gradle#6633, gradle/gradle#6637, gradle/gradle#6689, gradle/gradle#6509, gradle/gradle#6645, gradle/gradle#6596)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Add documentation how to make a task cacheable using the runtime api (gradle/gradle#6691)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)

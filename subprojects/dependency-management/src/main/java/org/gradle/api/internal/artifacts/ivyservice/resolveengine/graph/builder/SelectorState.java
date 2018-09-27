@@ -178,23 +178,26 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     private ComponentIdResolveResult resolve(VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
-        if (!requiresResolve(previousResult, rejector)) {
-            return previousResult;
-        }
+        try {
+            if (!requiresResolve(previousResult, rejector)) {
+                return previousResult;
+            }
 
-        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        if (dependencyState.failure != null) {
-            idResolveResult.failed(dependencyState.failure);
-        } else {
-            resolver.resolve(firstSeenDependency, selector, rejector, idResolveResult);
-        }
+            BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
+            if (dependencyState.failure != null) {
+                idResolveResult.failed(dependencyState.failure);
+            } else {
+                resolver.resolve(firstSeenDependency, selector, rejector, idResolveResult);
+            }
 
-        if (idResolveResult.getFailure() != null) {
-            failure = idResolveResult.getFailure();
-        }
+            if (idResolveResult.getFailure() != null) {
+                failure = idResolveResult.getFailure();
+            }
 
-        this.resolved = true;
-        return idResolveResult;
+            return idResolveResult;
+        } finally {
+            this.resolved = true;
+        }
     }
 
     @Override

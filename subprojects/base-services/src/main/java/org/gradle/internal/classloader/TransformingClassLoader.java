@@ -38,12 +38,12 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
         }
     }
 
-    public TransformingClassLoader(ClassLoader parent, ClassPath classPath) {
-        super(parent, classPath);
+    public TransformingClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+        super(name, parent, classPath);
     }
 
-    public TransformingClassLoader(ClassLoader parent, Collection<URL> urls) {
-        super(parent, urls);
+    public TransformingClassLoader(String name, ClassLoader parent, Collection<URL> urls) {
+        super(name, parent, urls);
     }
 
     @Override

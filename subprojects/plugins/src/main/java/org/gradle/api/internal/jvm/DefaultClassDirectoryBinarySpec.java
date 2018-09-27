@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -39,7 +38,6 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -114,21 +112,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
     }
 
     public File getClassesDir() {
-        return SingleMessageLogger.whileDisabled(new Factory<File>() {
-            @Override
-            public File create() {
-                return sourceSet.getOutput().getClassesDir();
-            }
-        });
+        return sourceSet.getJava().getOutputDir();
     }
 
     public void setClassesDir(final File classesDir) {
-        SingleMessageLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                sourceSet.getOutput().setClassesDir(classesDir);
-            }
-        });
+        sourceSet.getJava().setOutputDir(classesDir);
     }
 
     public File getResourcesDir() {

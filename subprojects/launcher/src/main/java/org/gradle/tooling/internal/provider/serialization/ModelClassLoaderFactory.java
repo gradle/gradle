@@ -50,7 +50,7 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
         ClassLoader parent = parents.get(0);
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec clSpec = (VisitableURLClassLoader.Spec) spec;
-            return new VisitableURLClassLoader(parent, clSpec.getClasspath());
+            return new VisitableURLClassLoader(clSpec.getName(), parent, clSpec.getClasspath());
         }
         if (spec instanceof CachingClassLoader.Spec) {
             return new CachingClassLoader(parent);

@@ -171,7 +171,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
         @Override
         public void appendToHasher(Hasher hasher) {
-            hasher.markAsInvalid();
+            hasher.markAsInvalid(getUnknownReason());
         }
 
         @Override
@@ -201,7 +201,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         @Override
         @Nullable
         public String getUnknownReason() {
-            return "was implemented by a Java lambda";
+            return "was implemented by the Java lambda '" + getTypeName() + "'. Using Java lambdas is not supported, use an (anonymous) inner class instead.";
         }
 
         @Override
@@ -228,7 +228,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
         @Override
         public void appendToHasher(Hasher hasher) {
-            hasher.markAsInvalid();
+            hasher.markAsInvalid(getUnknownReason());
         }
 
         @Override
@@ -258,7 +258,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         @Override
         @Nullable
         public String getUnknownReason() {
-            return "was loaded with an unknown classloader";
+            return "was loaded with an unknown classloader (class '" + getTypeName() + "').";
         }
 
         @Override
