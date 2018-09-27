@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DisambiguationRule;
@@ -39,8 +38,6 @@ import java.util.Set;
  */
 public class PreferJavaRuntimeVariant extends EmptySchema {
     private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
-    private static final Usage API_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_API);
-    private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(API_USAGE, RUNTIME_USAGE);
     private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Usage.USAGE_ATTRIBUTE);
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
 
@@ -75,15 +72,7 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
         public void execute(MultipleCandidatesResult<Usage> details) {
             if (details.getConsumerValue() == null) {
                 Set<Usage> candidates = details.getCandidateValues();
-                if (DEFAULT_JAVA_USAGES.equals(candidates)) {
-                    details.closestMatch(RUNTIME_USAGE);
-                } else {
-                    // slower path: let's see if the candidates are either null (missing) or one of the standard usages
-                    for (Usage candidate : candidates) {
-                        if (candidate != null && !DEFAULT_JAVA_USAGES.contains(candidate)) {
-                            return;
-                        }
-                    }
+                if (candidates.contains(RUNTIME_USAGE)) {
                     details.closestMatch(RUNTIME_USAGE);
                 }
             }
