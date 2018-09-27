@@ -38,13 +38,13 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "subproject names must not contain forbidden characters"() {
         given:
-        settingsFile << "include 'folder:name with spaces'"
+        settingsFile << "include 'folder:name|with|pipes'"
 
         when:
         fails 'help'
 
         then:
-        assertFailureContainsForbiddenCharacterMessage('project name', 'name with spaces',
+        assertFailureContainsForbiddenCharacterMessage('project name', 'name|with|pipes',
             " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
@@ -98,7 +98,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not assign an invalid project name from folder names"() {
         given:
-        def buildFolder = file(".folder  name")
+        def buildFolder = file(".folder|name")
         inDirectory(buildFolder)
         buildFolder.file("build.gradle") << "println rootProject.name"
 
@@ -106,7 +106,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        assertFailureContainsForbiddenCharacterMessage('project name', '.folder  name',
+        assertFailureContainsForbiddenCharacterMessage('project name', '.folder|name',
             " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
@@ -139,7 +139,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void assertFailureContainsForbiddenCharacterMessage(String nameDescription, String deprecatedName, String suggestion = '') {
-        assertFailureDescriptionOrCauseContains("The $nameDescription '$deprecatedName' must not contain any of the following characters: [ , /, \\, :, <, >, \", ?, *, |].", suggestion)
+        assertFailureDescriptionOrCauseContains("The $nameDescription '$deprecatedName' must not contain any of the following characters: [/, \\, :, <, >, \", ?, *, |].", suggestion)
     }
 
     void assertFailureContainsForbiddenStartOrEndCharacterMessage(String nameDescription, String deprecatedName, String suggestion = '') {

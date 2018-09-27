@@ -112,7 +112,7 @@ class NameValidatorTest extends Specification {
         } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
             assert message.contains("' must not start or end with a '.'.")
         } else {
-            assert message.contains("""' must not contain any of the following characters: [ , /, \\, :, <, >, ", ?, *, |].""")
+            assert message.contains("""' must not contain any of the following characters: [/, \\, :, <, >, ", ?, *, |].""")
         }
     }
 }
