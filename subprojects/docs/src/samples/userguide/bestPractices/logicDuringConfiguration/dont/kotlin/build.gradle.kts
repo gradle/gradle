@@ -19,7 +19,7 @@ dependencies {
 
 task("printArtifactNames") {
     // always executed
-    val libraryNames = configurations.compileClasspath.map { it.name }
+    val libraryNames = configurations["compileClasspath"].map { it.name }
 
     doLast {
         logger.quiet(libraryNames.toString())
