@@ -20,7 +20,6 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
