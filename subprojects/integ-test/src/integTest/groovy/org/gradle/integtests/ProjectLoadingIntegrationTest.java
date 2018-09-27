@@ -177,16 +177,16 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void buildFailsWhenSpecifiedSettingsFileDoesNotContainMatchingProject() {
         TestFile settingsFile = testFile("settings.gradle");
-        settingsFile.write("// empty");
+        settingsFile.write("rootProject.name = 'foo'");
 
         TestFile projectDir = testFile("project dir");
         TestFile buildFile = projectDir.file("build.gradle").createFile();
 
         ExecutionFailure result = usingProjectDir(projectDir).usingSettingsFile(settingsFile).runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have project directory '%s'.", projectDir));
+        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", projectDir, settingsFile));
 
         result = usingBuildFile(buildFile).usingSettingsFile(settingsFile).runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have build file '%s'.", buildFile));
+        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", buildFile, settingsFile));
     }
 
     @Test
@@ -229,20 +229,20 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void buildFailsWhenNestedBuildHasNoSettingsFile() {
-        testFile("settings.gradle").write("include 'another'");
+        TestFile settingsFile = testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
         TestFile subBuildFile = subDirectory.file("sub.gradle").write("");
         subDirectory.file("build.gradle").write("");
 
         ExecutionFailure result = inDirectory(subDirectory).withTasks("help").runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have project directory '%s'.", subDirectory));
+        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
 
         result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have build file '%s'.", subBuildFile));
+        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", subBuildFile, settingsFile));
 
         result = usingProjectDir(subDirectory).withTasks("help").runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have project directory '%s'.", subDirectory));
+        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
    }
 
     @Test

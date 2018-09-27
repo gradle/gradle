@@ -43,8 +43,8 @@ public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
         }
     }
 
-    protected String formatNoMatchesMessage() {
-        return String.format("No projects in this build have project directory '%s'.", currentDir);
+    protected String formatNoMatchesMessage(String settings) {
+        return String.format("Project directory '%s' is not part of the build defined by %s.",  currentDir, settings);
     }
 
     protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {

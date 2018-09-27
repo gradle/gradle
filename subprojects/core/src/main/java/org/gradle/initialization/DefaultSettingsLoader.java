@@ -85,7 +85,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
-        settings.setDefaultProject(spec.selectProject(settings.getProjectRegistry()));
+        settings.setDefaultProject(spec.selectProject(settings.getSettingsScript().getDisplayName(), settings.getProjectRegistry()));
     }
 
     /**

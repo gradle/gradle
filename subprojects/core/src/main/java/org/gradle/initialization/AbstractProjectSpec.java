@@ -30,12 +30,12 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return !matches.isEmpty();
     }
 
-    public <T extends ProjectIdentifier> T selectProject(ProjectRegistry<? extends T> registry) {
+    public <T extends ProjectIdentifier> T selectProject(String settingsDescription, ProjectRegistry<? extends T> registry) {
         checkPreconditions(registry);
         List<T> matches = new ArrayList<T>();
         select(registry, matches);
         if (matches.isEmpty()) {
-            throw new InvalidUserDataException(formatNoMatchesMessage());
+            throw new InvalidUserDataException(formatNoMatchesMessage(settingsDescription));
         }
         if (matches.size() != 1) {
             throw new InvalidUserDataException(formatMultipleMatchesMessage(matches));
@@ -48,7 +48,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
 
     protected abstract String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches);
 
-    protected abstract String formatNoMatchesMessage();
+    protected abstract String formatNoMatchesMessage(String settings);
 
     protected abstract <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches);
 }
