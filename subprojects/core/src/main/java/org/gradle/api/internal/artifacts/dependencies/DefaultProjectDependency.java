@@ -38,19 +38,17 @@ import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private final ProjectInternal dependencyProject;
-    private final boolean buildProjectDependencies;
     private final ProjectAccessListener projectAccessListener;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
-        this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
+    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener) {
+        this(dependencyProject, null, projectAccessListener);
     }
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration,
-                                    ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
+                                    ProjectAccessListener projectAccessListener) {
         super(configuration);
         this.dependencyProject = dependencyProject;
         this.projectAccessListener = projectAccessListener;
-        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public Project getDependencyProject() {
@@ -82,7 +80,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-            getTargetConfiguration(), projectAccessListener, buildProjectDependencies);
+            getTargetConfiguration(), projectAccessListener);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -152,15 +150,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             : that.getTargetConfiguration() != null) {
             return false;
         }
-        if (this.buildProjectDependencies != that.buildProjectDependencies) {
-            return false;
-        }
         return true;
     }
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31) ^ (buildProjectDependencies ? 1 : 0);
+        return getDependencyProject().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31);
     }
 
     @Override
@@ -172,9 +167,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private class TaskDependencyImpl extends AbstractTaskDependency {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            if (!buildProjectDependencies) {
-                return;
-            }
             projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
 
             Configuration configuration = findProjectConfiguration();

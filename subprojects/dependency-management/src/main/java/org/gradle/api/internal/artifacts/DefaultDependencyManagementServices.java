@@ -294,7 +294,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             repositories,
                             metadataHandler,
                             resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies(),
                             attributesSchema,
                             new DefaultArtifactTransforms(
                                 new ConsumerProvidedVariantFinder(

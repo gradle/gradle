@@ -48,7 +48,6 @@ public class StartParameterBuildOptions {
         options.add(new RefreshDependenciesOption());
         options.add(new DryRunOption());
         options.add(new ContinuousOption());
-        options.add(new NoProjectDependenciesRebuildOption());
         options.add(new BuildFileOption());
         options.add(new SettingsFileOption());
         options.add(new InitScriptOption());
@@ -172,21 +171,6 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setContinuous(true);
-        }
-    }
-
-    public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
-        private static final String LONG_OPTION = "no-rebuild";
-        private static final String SHORT_OPTION = "a";
-
-        public NoProjectDependenciesRebuildOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Do not rebuild project dependencies.").deprecated());
-        }
-
-        @Override
-        public void applyTo(StartParameterInternal settings, Origin origin) {
-            settings.setBuildProjectDependencies(false);
-            settings.addDeprecation(String.format("--%s/-%s", LONG_OPTION, SHORT_OPTION));
         }
     }
 

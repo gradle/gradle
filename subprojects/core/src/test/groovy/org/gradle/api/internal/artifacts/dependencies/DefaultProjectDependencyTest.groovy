@@ -36,7 +36,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     private projectDependency
 
     def setup() {
-        projectDependency = new DefaultProjectDependency(project, null, false)
+        projectDependency = new DefaultProjectDependency(project, null)
         project.version = "1.2"
         project.group = "org.gradle"
     }
@@ -61,7 +61,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         conf.dependencies.add(dep1)
         superConf.dependencies.add(dep2)
 
-        projectDependency = new DefaultProjectDependency(project, "conf", null, true)
+        projectDependency = new DefaultProjectDependency(project, "conf", null)
 
         when:
         projectDependency.resolve(context)
@@ -75,7 +75,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "if resolution context is not transitive it will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency = new DefaultProjectDependency(project, null)
 
         when:
         projectDependency.resolve(context)
@@ -87,7 +87,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "if dependency is not transitive the resolution context will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency = new DefaultProjectDependency(project, null)
         projectDependency.setTransitive(false)
 
         when:
@@ -102,7 +102,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
         def conf = project.configurations.create('conf')
         def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener)
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
@@ -121,7 +121,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
             canBeConsumed = false
         }
         def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener)
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
@@ -131,22 +131,10 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         e.message == "Selected configuration 'conf' on 'root project 'test'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 
-    void "does not build project dependencies if configured so"() {
-         def context = Mock(TaskDependencyResolveContext)
-         project.configurations.create('conf')
-         projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
-
-         when:
-         projectDependency.buildDependencies.visitDependencies(context)
-
-         then:
-         0 * _
-     }
-
     void "is self resolving dependency"() {
         def conf = project.configurations.create('conf')
         def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener)
 
         when:
         def files = projectDependency.resolve()
@@ -185,28 +173,26 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     }
 
     private createProjectDependency() {
-        def out = new DefaultProjectDependency(project, "conf", listener, true)
+        def out = new DefaultProjectDependency(project, "conf", listener)
         out.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"))
         out
     }
 
     void "knows if is equal"() {
         expect:
-        assertThat(new DefaultProjectDependency(project, listener, true),
-                strictlyEqual(new DefaultProjectDependency(project, listener, true)))
+        assertThat(new DefaultProjectDependency(project, listener),
+                strictlyEqual(new DefaultProjectDependency(project, listener)))
 
-        assertThat(new DefaultProjectDependency(project, "conf1", listener, false),
-                strictlyEqual(new DefaultProjectDependency(project, "conf1", listener, false)))
+        assertThat(new DefaultProjectDependency(project, "conf1", listener),
+                strictlyEqual(new DefaultProjectDependency(project, "conf1", listener)))
 
         when:
-        def base = new DefaultProjectDependency(project, "conf1", listener, true)
-        def differentConf = new DefaultProjectDependency(project, "conf2", listener, true)
-        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", listener, false)
-        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", listener, true)
+        def base = new DefaultProjectDependency(project, "conf1", listener)
+        def differentConf = new DefaultProjectDependency(project, "conf2", listener)
+        def differentProject = new DefaultProjectDependency(Stub(ProjectInternal), "conf1", listener)
 
         then:
         base != differentConf
-        base != differentBuildDeps
         base != differentProject
     }
 }

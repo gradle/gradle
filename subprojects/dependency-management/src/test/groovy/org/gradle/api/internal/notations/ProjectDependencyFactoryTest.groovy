@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.notations;
+package org.gradle.api.internal.notations
 
 
 import org.gradle.api.InvalidUserDataException
@@ -25,24 +25,24 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.GUtil
 import spock.lang.Specification
 
-public class ProjectDependencyFactoryTest extends Specification {
+class ProjectDependencyFactoryTest extends Specification {
 
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
 
-    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), DirectInstantiator.INSTANCE, true)
+    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), DirectInstantiator.INSTANCE)
     def factory = new ProjectDependencyFactory(depFactory)
 
     def "creates project dependency with map notation"() {
         given:
-        boolean expectedTransitive = false;
-        final Map<String, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
+        boolean expectedTransitive = false
+        final Map<String, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive)
 
         and:
         projectFinder.getProject(':foo:bar') >> projectDummy
 
         when:
-        def projectDependency = factory.createFromMap(projectFinder, mapNotation);
+        def projectDependency = factory.createFromMap(projectFinder, mapNotation)
 
         then:
         projectDependency.getDependencyProject() == projectDummy
@@ -55,7 +55,7 @@ public class ProjectDependencyFactoryTest extends Specification {
         projectFinder.getProject(':foo:bar') >> projectDummy
 
         when:
-        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"));
+        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"))
 
         then:
         def ex = thrown(InvalidUserDataException)

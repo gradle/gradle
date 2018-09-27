@@ -83,7 +83,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final RepositoryHandler repositories;
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ResolutionResultsStoreFactory storeFactory;
-    private final boolean buildProjectDependencies;
     private final AttributesSchemaInternal attributesSchema;
     private final ArtifactTransforms artifactTransforms;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -96,7 +95,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
                                         ResolutionResultsStoreFactory storeFactory,
-                                        boolean buildProjectDependencies,
                                         AttributesSchemaInternal attributesSchema,
                                         ArtifactTransforms artifactTransforms,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -109,7 +107,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.repositories = repositories;
         this.metadataHandler = metadataHandler;
         this.storeFactory = storeFactory;
-        this.buildProjectDependencies = buildProjectDependencies;
         this.attributesSchema = attributesSchema;
         this.artifactTransforms = artifactTransforms;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -124,7 +121,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
-        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(currentBuild, buildProjectDependencies, resolutionStrategy.getSortOrder());
+        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(currentBuild, resolutionStrategy.getSortOrder());
         resolver.resolve(configuration, ImmutableList.<ResolutionAwareRepository>of(), metadataHandler, IS_LOCAL_EDGE, failureCollector, artifactsVisitor, attributesSchema, artifactTypeRegistry);
         result.graphResolved(new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.<UnresolvedDependency>emptySet()), artifactsVisitor.complete(), artifactTransforms));
     }
@@ -146,7 +143,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
 
         ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
-        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(currentBuild, buildProjectDependencies, resolutionStrategy.getSortOrder());
+        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(currentBuild, resolutionStrategy.getSortOrder());
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(newModelBuilder, localComponentsVisitor, failureCollector);

@@ -104,7 +104,6 @@ public class BuildActionSerializer {
             stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());
 
             // Flags
-            encoder.writeBoolean(startParameter.isBuildProjectDependencies());
             encoder.writeBoolean(startParameter.isDryRun());
             encoder.writeBoolean(startParameter.isRerunTasks());
             encoder.writeBoolean(startParameter.isProfile());
@@ -175,7 +174,6 @@ public class BuildActionSerializer {
             startParameter.setLockedDependenciesToUpdate(stringListSerializer.read(decoder));
 
             // Flags
-            startParameter.setBuildProjectDependencies(decoder.readBoolean());
             startParameter.setDryRun(decoder.readBoolean());
             startParameter.setRerunTasks(decoder.readBoolean());
             startParameter.setProfile(decoder.readBoolean());
