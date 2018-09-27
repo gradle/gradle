@@ -19,6 +19,8 @@ task<Jar>("uberJar") {
     appendix = "uber"
 
     from(sourceSets["main"].output)
+
+    dependsOn(configurations.runtimeClasspath)
     from(Callable {
         configurations.runtimeClasspath.filter { it.name.endsWith("jar") }.map { zipTree(it) }
     })
