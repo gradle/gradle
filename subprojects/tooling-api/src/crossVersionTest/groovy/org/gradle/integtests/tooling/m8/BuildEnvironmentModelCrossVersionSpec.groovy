@@ -64,7 +64,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about gradle version as in the build script"() {
         given:
-        file('build.gradle') << "description = GradleVersion.current().getVersion()"
+        file('build.gradle') << "description = org.gradle.util.GradleVersion.current().getVersion()"
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }

@@ -27,6 +27,18 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
+import java.net.URLEncoder
+
+
+const val serverUrl = "https://e.grdev.net"
+
+
+private
+const val gitCommitName = "Git Commit ID"
+
+
+private
+const val ciBuildTypeName = "CI Build Type"
 
 
 @Suppress("unused") // consumed as plugin gradlebuild.buildscan
@@ -93,10 +105,14 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                tag(System.getenv("TEAMCITY_BUILDCONF_NAME"))
                 link("TeamCity Build", System.getenv("BUILD_URL"))
                 value("Build ID", System.getenv("BUILD_ID"))
                 setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+
+                whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
+                    value(ciBuildTypeName, buildType)
+                    link("Build Type Scans", customValueSearchUrl(mapOf(ciBuildTypeName to buildType)))
+                }
             }
         } else {
             buildScan.tag("LOCAL")
@@ -104,12 +120,22 @@ open class BuildScanPlugin : Plugin<Project> {
     }
 
     private
+    fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
+        val envValue: String? = System.getenv(envName)
+        if (!envValue.isNullOrEmpty()) {
+            action(envValue!!)
+        }
+    }
+
+    private
     fun Project.extractVcsData() {
         buildScan {
 
-            background {
-                system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
-                    setCommitId(commitId)
+            if (!isCiServer) {
+                background {
+                    system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
+                        setCommitId(commitId)
+                    }
                 }
             }
 
@@ -177,8 +203,10 @@ open class BuildScanPlugin : Plugin<Project> {
 
     private
     fun BuildScanExtension.setCommitId(commitId: String) {
-        value("Git Commit ID", commitId)
+        value(gitCommitName, commitId)
         link("Source", "https://github.com/gradle/gradle/commit/$commitId")
+        link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
+        link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
     }
 
     private
@@ -197,3 +225,17 @@ fun Project.system(vararg args: String): String =
             assert(waitFor() == 0)
             inputStream.bufferedReader().use { it.readText().trim() }
         }
+
+
+private
+fun customValueSearchUrl(search: Map<String, String>): String {
+    val query = search.map { (name, value) ->
+        "search.names=${name.urlEncode()}&search.values=${value.urlEncode()}"
+    }.joinToString("&")
+
+    return "$serverUrl/scans?$query"
+}
+
+
+private
+fun String.urlEncode() = URLEncoder.encode(this, Charsets.UTF_8.name())

@@ -206,6 +206,13 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Checkstyle plugin config directory in multi-project builds
+
+Gradle will now, by convention, only look for Checkstyle configuration files in the root project's _config/checkstyle_ directory.
+Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path
+via [`checkstyle.configDir`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:configDir)
+or [`checkstyle.config`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config).
+
 ### Updated default tool versions
 
 The default tool versions of the following code quality plugins have been updated:
@@ -291,6 +298,10 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 In previous Gradle versions the `source` filed in `SourceTask` was accessible from subclasses.
 This is not the case anymore as the `source` filed is now declared as `private`.
 
+### The left shift operator on the Task interface is no longer supported
+
+The left shift (`<<`) operator acted as an alias for adding a `doLast` action to an existing task. It was deprecated since Gradle 3.2 and has now been removed.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
@@ -306,6 +317,7 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed the method `property` from `ProviderFactory`.
 - Removed the method `property` from `Project`.
 - Removed the method `property` from `Script`.
+- Removed the method `leftShift` from `Task`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
@@ -328,11 +340,16 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - `BasePluginConvention` is now abstract.
 - `ProjectReportsPluginConvention` is now abstract.
 
-### System properties `test.single` and `test.debug` have been removed
+### Implicit imports for internal classes have been removed
 
-The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+Classes in the internal `org.gradle.util` package are no longer implicitly imported by default.
+Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.
 
-The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+### Removed system properties
+
+- The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+- The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed. You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+- The `org.gradle.readLoggingConfigFile` system property no longer does anything — please update affected tests to work with your `java.util.logging` settings.
 
 ### Replacing built-in tasks
 
@@ -360,6 +377,7 @@ We would like to thank the following community members for making contributions 
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Fix nullability of the CreateStartScripts task properties (gradle/gradle#6704)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Make Settings implement ExtensionAware (gradle/gradle#6685)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Remove `@Incubating` from LifecycleBasePlugin (gradle/gradle#6901)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)

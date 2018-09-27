@@ -36,7 +36,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         def handle = executer.start()
 
         // Select 'basic'
-        ConcurrentTestUtil.poll(20) {
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
             assert handle.standardOutput.contains(basicType)
             assert !handle.standardOutput.contains("pom")
