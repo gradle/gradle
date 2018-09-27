@@ -50,6 +50,7 @@ class Test extends Specification {
 
     def 'task runs successfully'() {
         setup:
+        temporaryFolder.newFile('settings.gradle') << "rootProject.name = 'checkstyle-test'"
         temporaryFolder.newFile('build.gradle') << '''
 apply plugin: 'java'
 apply plugin: 'checkstyle'
