@@ -291,6 +291,14 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 In previous Gradle versions the `source` filed in `SourceTask` was accessible from subclasses.
 This is not the case anymore as the `source` filed is now declared as `private`.
 
+### `JavaCompile` task path sensitivity change
+
+Previously `JavaCompile` used to ignore the path of its source files, only caring about the file names.
+While the `NAME_ONLY` sensitivity used in the past was more correct in the sense that `javac` ignores its input files' paths, the current `RELATIVE` sensitivity has some advantages.
+For one, it is more in line with other compilation tasks like `GroovyCompile` and `CppCompile`.
+In the vast majority of cases Java classes should be organized according to their package hierarchy, which means `RELATIVE` behavior is expected.
+Due to some recent optimizations in task input handling using `RELATIVE` sensitivity also means Gradle can be faster in detecting changes and accessing cached results.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
