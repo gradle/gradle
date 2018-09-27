@@ -26,15 +26,16 @@ class ScenarioBuildResultData {
     String webUrl
     String testFailure
     boolean successful
+    boolean crossBuild
     List<ExecutionData> currentCommitExecutions = []
     List<ExecutionData> recentExecutions = []
 
     boolean isAboutToRegress() {
-        return executions.any { it.confidentToSayWorse() }
+        return !crossBuild && executions.any { it.confidentToSayWorse() }
     }
 
     boolean isImproved() {
-        return executionsToDisplayInRow.every { it.confidentToSayBetter() }
+        return !crossBuild && executionsToDisplayInRow.every { it.confidentToSayBetter() }
     }
 
     boolean isBuildFailed() {
