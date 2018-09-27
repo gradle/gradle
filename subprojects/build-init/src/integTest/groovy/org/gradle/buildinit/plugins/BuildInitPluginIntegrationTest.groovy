@@ -29,6 +29,9 @@ import static org.hamcrest.Matchers.not
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "init shows up on tasks overview "() {
+        given:
+        targetDir.file("settings.gradle").touch()
+
         when:
         run 'tasks'
 

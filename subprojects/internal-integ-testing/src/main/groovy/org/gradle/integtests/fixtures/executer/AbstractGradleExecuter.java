@@ -130,6 +130,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File buildScript;
     private File projectDir;
     private File settingsFile;
+    private boolean ignoreMissingSettingsFile;
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
@@ -202,6 +203,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         projectDir = null;
         buildScript = null;
         settingsFile = null;
+        ignoreMissingSettingsFile = false;
         quiet = false;
         taskList = false;
         dependencyList = false;
@@ -285,6 +287,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (settingsFile != null) {
             executer.usingSettingsFile(settingsFile);
+        }
+        if (ignoreMissingSettingsFile) {
+            executer.ignoreMissingSettingsFile();
         }
         if (javaHome != null) {
             executer.withJavaHome(javaHome);
@@ -898,7 +903,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("dependencies");
         }
 
-        if (settingsFile == null) {
+        if (settingsFile == null && !ignoreMissingSettingsFile) {
             ensureSettingsFileAvailable();
         }
 
@@ -923,6 +928,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
+    }
+
+    @Override
+    public GradleExecuter ignoreMissingSettingsFile() {
+        ignoreMissingSettingsFile = true;
+        return this;
     }
 
     private void ensureSettingsFileAvailable() {

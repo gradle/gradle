@@ -473,4 +473,6 @@ public interface GradleExecuter extends Stoppable {
      * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
      */
     GradleExecuter withPluginRepositoryMirror();
+
+    GradleExecuter ignoreMissingSettingsFile();
 }
