@@ -28,10 +28,10 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "handles properties which are not String when calling GradleBuild"() {
         given:
+        settingsFile << "rootProject.name = 'parent'"
         buildFile << """
             task buildInBuild(type:GradleBuild) {
                 buildFile = 'other.gradle'
-                startParameter.searchUpwards = false
                 startParameter.projectProperties['foo'] = true // not a String
             }
         """
@@ -47,10 +47,10 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
     def "nested build can use Gradle home directory that is different to outer build"() {
         given:
         def dir = file("other-home")
+        settingsFile << "rootProject.name = 'parent'"
         buildFile << """
             task otherBuild(type:GradleBuild) {
                 buildFile = 'other.gradle'
-                startParameter.searchUpwards = false
                 startParameter.gradleUserHomeDir = file("${dir.toURI()}")
             }
         """
@@ -73,9 +73,9 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         buildFile << """
             task otherBuild(type:GradleBuild) {
                 dir = 'other'
-                startParameter.searchUpwards = false
             }
         """
+        file('other/settings.gradle') << "rootProject.name = 'other'"
         file('other/buildSrc/src/main/java/Thing.java') << "class Thing { }"
         file('other/build.gradle') << """
             new Thing()
@@ -188,7 +188,6 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
                 task otherBuild(type:GradleBuild) {
                     dir = "\${rootProject.file('subprojects')}"
                     tasks = ['log']
-                    startParameter.searchUpwards = false
                 }
                 otherBuild.doFirst {
                     ${barrier.callFromBuildUsingExpression('project.name + "-started"')}
@@ -200,7 +199,6 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             task otherBuild(type:GradleBuild) {
                 dir = "main"
                 tasks = ['log']
-                startParameter.searchUpwards = false
             }
         """
         file('main/settings.gradle') << """
@@ -211,6 +209,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             assert gradle.parent.rootProject.name == 'root'
             task log { }
         """
+        file('subprojects/settings.gradle') << ""
         file('subprojects/build.gradle') << """
             assert gradle.parent.rootProject.name == 'root'
             task log { }
