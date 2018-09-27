@@ -21,6 +21,8 @@ import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.internal.metaobject.ConfigureDelegate
+import org.gradle.util.ConfigureUtil
 import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Specification
@@ -1434,19 +1436,16 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         setupContainerDefaults()
         container.add(a)
         String methodUnderTest = mutatingMethods.key
-        Closure method = mutatingMethods.value
+        Closure method = bind(mutatingMethods.value)
+
         when:
-        container.configureEach {
-            method(this)
-        }
+        container.configureEach(method)
         then:
         def ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
 
         when:
-        container.withType(container.type).configureEach {
-            method(this)
-        }
+        container.withType(container.type).configureEach(method)
         then:
         ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
@@ -1460,13 +1459,13 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         // "addLater(Provider)"    | { it.addLater(Providers.of(b)) }
         // "addAllLater(Provider)" | { it.addAllLater(Providers.collectionOf(b)) }
         return [
-            "add(T)": { it.container.add(b) },
-            "addAll(Collection<T>)": { it.container.addAll([b]) },
-            "clear()": { it.container.clear() },
-            "remove(Object)": { it.container.remove(b) },
-            "removeAll(Collection)": { it.container.removeAll([b]) },
-            "retainAll(Collection)": { it.container.retainAll([b]) },
-            "iterator().remove()": { def iter = it.container.iterator(); iter.next(); iter.remove() },
+            "add(T)": { container.add(b) },
+            "addAll(Collection<T>)": { container.addAll([b]) },
+            "clear()": { container.clear() },
+            "remove(Object)": { container.remove(b) },
+            "removeAll(Collection)": { container.removeAll([b]) },
+            "retainAll(Collection)": { container.retainAll([b]) },
+            "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
         ]
     }
 
@@ -1484,19 +1483,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     def "allow common querying methods when #queryMethods.key"() {
         setupContainerDefaults()
         container.add(a)
-        String methodUnderTest = queryMethods.key
-        Closure method = queryMethods.value
+        Closure method = bind(queryMethods.value)
+
         when:
-        container.configureEach {
-            method(this)
-        }
+        container.configureEach(method)
         then:
         noExceptionThrown()
 
         when:
-        container.withType(container.type).configureEach {
-            method(this)
-        }
+        container.withType(container.type).configureEach(method)
         then:
         noExceptionThrown()
 
@@ -1504,10 +1499,77 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         queryMethods << getQueryMethods()
     }
 
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key on filtered container by type"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.withType(container.type).all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key on filtered container by spec"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.matching({ it in container.type }).all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
     protected Map<String, Closure> getQueryMethods() {
         return [
-            "contains(Object)": { it.container.contains(it.getB()) },
-            "iterator().next()": { def iter = it.container.iterator(); iter.next() },
+            "contains(Object)": { container.contains(b) },
+            "iterator().next()": { def iter = container.iterator(); iter.next() },
         ]
+    }
+
+    protected Closure bind(Closure delegateClosure) {
+        def thiz = this
+        return {
+            ConfigureUtil.configureSelf(delegateClosure, it, new ConfigureDelegate(delegateClosure, thiz))
+        }
+    }
+
+    protected Closure noReentry(Closure delegateClosure) {
+        boolean entryAllowed = true
+        return {
+            if (entryAllowed) {
+                boolean oldEntryAllowed = entryAllowed
+                entryAllowed = false
+                try {
+                    ConfigureUtil.configure(delegateClosure, it)
+                } finally {
+                    entryAllowed = oldEntryAllowed
+                }
+            }
+        }
     }
 }

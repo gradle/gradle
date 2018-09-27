@@ -27,10 +27,11 @@ class ClientSidePayloadClassLoaderFactoryTest extends Specification {
         def url2 = new URL("http://localhost/file2.jar")
 
         when:
-        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec([url1, url2]), [null])
+        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec("test", [url1, url2]), [null])
 
         then:
         cl instanceof VisitableURLClassLoader
+        cl.name == "test-client-payload-loader"
         cl.URLs == [url1, url2] as URL[]
     }
 }

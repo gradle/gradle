@@ -88,6 +88,11 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
         resources.clear();
     }
 
+    @Override
+    public String toString() {
+        return CachingClassLoader.class.getSimpleName() + "(" + getParent() + ")";
+    }
+
     public static class Spec extends ClassLoaderSpec {
         @Override
         public boolean equals(Object obj) {

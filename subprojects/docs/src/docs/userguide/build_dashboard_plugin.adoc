@@ -31,13 +31,11 @@ The Build Dashboard plugin can be used to generate a single HTML dashboard that 
 
 To use the Build Dashboard plugin, include the following in your build script:
 
-=== Example: Using the Build Dashboard plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/buildDashboard/build.gradle[tag=use-build-dashboard-plugin]
-----
+.Using the Build Dashboard plugin
+====
+include::sample[dir="buildDashboard/groovy",files="build.gradle[tags=use-build-dashboard-plugin]"]
+include::sample[dir="buildDashboard/kotlin",files="build.gradle.kts[tags=use-build-dashboard-plugin]"]
+====
 
 Applying the plugin adds the `buildDashboard` task to your project. The task aggregates the reports for all tasks that implement the link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] interface from _all projects_ in the build. It is typically only applied to the root project.
 

@@ -111,8 +111,8 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, String> getMutationMethods() {
         [
-            "create(String)":   "testContainer.create('c')",
-            "register(String)": "testContainer.register('c')",
+            "create(String)":   "testContainer.create('mutate')",
+            "register(String)": "testContainer.register('mutate')",
         ]
     }
 
@@ -184,4 +184,37 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
+    @Unroll
+    def "can execute query and mutating methods #method.key from all"() {
+        buildFile << """
+            testContainer.all {
+                if (it.name == "realized") {
+                    ${method.value}
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from withType.all"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).all {
+                if (it.name == "realized") {
+                    ${method.value}
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
 }

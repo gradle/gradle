@@ -58,7 +58,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         if (implementationHash == null) {
             implementationHash = classpathHasher.hash(classPath);
         }
-        ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(parent, classPath, implementationHash, filterSpec);
+        ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(id.toString(), parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
@@ -110,7 +110,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = classLoaderFactory.createChildClassLoader(spec.parent, classPath, spec.implementationHash);
+                classLoader = classLoaderFactory.createChildClassLoader(spec.name, spec.parent, classPath, spec.implementationHash);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -149,12 +149,14 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     }
 
     private static class ManagedClassLoaderSpec extends ClassLoaderSpec {
+        private final String name;
         private final ClassLoader parent;
         private final ClassPath classPath;
         private final HashCode implementationHash;
         private final FilteringClassLoader.Spec filterSpec;
 
-        public ManagedClassLoaderSpec(ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
+        public ManagedClassLoaderSpec(String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash, FilteringClassLoader.Spec filterSpec) {
+            this.name = name;
             this.parent = parent;
             this.classPath = classPath;
             this.implementationHash = implementationHash;
@@ -162,7 +164,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         }
 
         public ManagedClassLoaderSpec unfiltered() {
-            return new ManagedClassLoaderSpec(parent, classPath, implementationHash, null);
+            return new ManagedClassLoaderSpec(name, parent, classPath, implementationHash, null);
         }
 
         public boolean isFiltered() {

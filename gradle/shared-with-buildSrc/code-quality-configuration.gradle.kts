@@ -72,7 +72,6 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
         if (ruleClass != null) {
             "codenarc"(files(ruleClass.protectionDomain!!.codeSource!!.location))
             "codenarc"(embeddedKotlin("stdlib"))
-            "codenarc"(embeddedKotlin("runtime"))
         }
     }
 
