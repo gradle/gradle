@@ -26,7 +26,6 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class TaskMutator {
     private final TaskInternal task;
-    private boolean executingleftShiftAction;
 
     public TaskMutator(TaskInternal task) {
         this.task = task;
@@ -82,9 +81,6 @@ public class TaskMutator {
     }
 
     private String format(String method) {
-        if (executingleftShiftAction) {
-            return String.format("Cannot call %s on %s after task has started execution. Check the configuration of %s as you may have misused '<<' at task declaration.", method, task, task);
-        }
         return String.format("Cannot call %s on %s after task has started execution.", method, task);
     }
 }
