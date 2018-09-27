@@ -12,12 +12,10 @@ repositories {
     jcenter()
 }
 
-val mainSourceSet = sourceSets["main"]
-
 tasks {
-    "compileKotlin2Js"(Kotlin2JsCompile::class) {
+    compileKotlin2Js {
         kotlinOptions {
-            outputFile = "${mainSourceSet.output.resourcesDir}/output.js"
+            outputFile = "${sourceSets.main.get().output.resourcesDir}/output.js"
             sourceMap = true
         }
     }
@@ -25,11 +23,10 @@ tasks {
         group = "build"
         description = "Unpack the Kotlin JavaScript standard library"
         val outputDir = file("$buildDir/$name")
-        val compileClasspath = configurations["compileClasspath"]
-        inputs.property("compileClasspath", compileClasspath)
+        inputs.property("compileClasspath", configurations.compileClasspath.get())
         outputs.dir(outputDir)
         doLast {
-            val kotlinStdLibJar = compileClasspath.single {
+            val kotlinStdLibJar = configurations.compileClasspath.get().single {
                 it.name.matches(Regex("kotlin-stdlib-js-.+\\.jar"))
             }
             copy {
@@ -46,12 +43,12 @@ tasks {
         description = "Assemble the web application"
         includeEmptyDirs = false
         from(unpackKotlinJsStdlib)
-        from(mainSourceSet.output) {
+        from(sourceSets.main.get().output) {
             exclude("**/*.kjsm")
         }
         into("$buildDir/web")
     }
-    "assemble" {
+    assemble {
         dependsOn(assembleWeb)
     }
 }
