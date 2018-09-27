@@ -32,7 +32,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
@@ -77,10 +76,7 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
@@ -913,11 +909,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("dependencies");
         }
 
-        if (!searchUpwards) {
-            // needed for cross-version tests with older versions
-            if (!isSettingsFileAvailable() && distribution.getVersion().getBaseVersion().compareTo(GradleVersion.version("4.5")) < 0) {
-                allArgs.add("--no-search-upward");
-            }
+        if (!searchUpwards && settingsFile == null) {
+            ensureSettingsFileAvailable();
         }
 
         // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
@@ -943,17 +936,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return allArgs;
     }
 
-    private boolean isSettingsFileAvailable() {
-        boolean settingsFoundAboveInTestDir = false;
-        TestFile dir = new TestFile(getWorkingDir());
+    private void ensureSettingsFileAvailable() {
+        TestFile workingDir = new TestFile(getWorkingDir());
+        TestFile dir = workingDir;
         while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
             if (dir.file("settings.gradle").isFile()) {
-                settingsFoundAboveInTestDir = true;
-                break;
+                return;
             }
             dir = dir.getParentFile();
         }
-        return settingsFoundAboveInTestDir;
+        workingDir.createFile("settings.gradle");
     }
 
     /**
@@ -1007,12 +999,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (interactive) {
             properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
-        }
-
-        if (!searchUpwards) {
-            if (!isSettingsFileAvailable()) {
-                properties.put(BuildLayoutParameters.NO_SEARCH_UPWARDS_PROPERTY_KEY, "true");
-            }
         }
 
         properties.put(CommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
