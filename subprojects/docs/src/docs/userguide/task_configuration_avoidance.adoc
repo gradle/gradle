@@ -161,7 +161,7 @@ The code would become:
 [source,groovy]
 ----
 def check = tasks.register("check")
-tasks.register("verificationTask") {
+def verificationTask = tasks.register("verificationTask") {
     // Configure verificationTask
 }
 check.configure {
