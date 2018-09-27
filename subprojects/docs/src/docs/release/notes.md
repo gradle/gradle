@@ -369,11 +369,6 @@ The full list of built-in tasks that cannot be replaced:
 - Removed the internal class `SimpleWorkResult`.
 - Removed the internal method `getAddAction` from `BroadcastingCollectionEventRegister`.
 
-### Gradle TestKit will search upwards for `settings.gradle`
-
-When invoking a build, Gradle TestKit now behaves like a regular Gradle invocation, and will search upwards for a `settings.gradle` file that defines the build. 
-Please ensure that all builds being executed with Gradle TestKit define `settings.gradle`, even if this is an empty file.
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

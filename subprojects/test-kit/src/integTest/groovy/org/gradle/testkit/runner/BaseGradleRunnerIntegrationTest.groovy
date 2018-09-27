@@ -146,10 +146,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         DaemonLogsAnalyzer.newAnalyzer(daemonDir, version.version)
     }
 
-    def setup() {
-        settingsFile.createFile()
-    }
-
     def cleanup() {
         if (requireIsolatedTestKitDir) {
             testKitDaemons().killAll()
