@@ -47,11 +47,11 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can define tasks using task keyword and identifier"() {
         buildFile << """
             task nothing
-            task withAction { }
+            task withAction { doLast {} }
             task emptyOptions()
             task task
             task withOptions(dependsOn: [nothing, withAction, emptyOptions, task])
-            task withOptionsAndAction(dependsOn: withOptions) { }
+            task withOptionsAndAction(dependsOn: withOptions) { doLast {} }
         """
 
         expect:
@@ -62,10 +62,10 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ext.v = 'Task'
             task "nothing\$v"
-            task "withAction\$v" { }
+            task "withAction\$v" { doLast {} }
             task "emptyOptions\$v"()
             task "withOptions\$v"(dependsOn: [nothingTask, withActionTask, emptyOptionsTask])
-            task "withOptionsAndAction\$v"(dependsOn: withOptionsTask) { }
+            task "withOptionsAndAction\$v"(dependsOn: withOptionsTask) { doLast {} }
         """
 
         expect:
@@ -75,10 +75,10 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can define tasks using task keyword and String"() {
         buildFile << """
             task 'nothing'
-            task 'withAction' { }
+            task 'withAction' { doLast {} }
             task 'emptyOptions'()
             task 'withOptions'(dependsOn: [nothing, withAction, emptyOptions])
-            task 'withOptionsAndAction'(dependsOn: withOptions) { }
+            task 'withOptionsAndAction'(dependsOn: withOptions) { doLast {} }
         """
 
         expect:
@@ -102,17 +102,17 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define tasks using task method expression"() {
         buildFile << """
-            ext.a = 'a' == 'b' ? null: task(withAction) { }
+            ext.a = 'a' == 'b' ? null: task(withAction) { doLast {} }
             a = task(nothing)
             a = task(emptyOptions())
             ext.taskName = 'dynamic'
-            a = task("\$taskName") { }
+            a = task("\$taskName") { doLast {} }
             a = task('string')
-            a = task('stringWithAction') { }
+            a = task('stringWithAction') { doLast {} }
             a = task('stringWithOptions', description: 'description')
-            a = task('stringWithOptionsAndAction', description: 'description') { }
+            a = task('stringWithOptionsAndAction', description: 'description') { doLast {} }
             a = task(withOptions, description: 'description')
-            a = task(withOptionsAndAction, description: 'description') { }
+            a = task(withOptionsAndAction, description: 'description') { doLast {} }
             a = task(anotherWithAction).doFirst\n{}
             task all(dependsOn: [":anotherWithAction", ":dynamic", ":emptyOptions",
             ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
