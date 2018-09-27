@@ -76,14 +76,11 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
     }
 
     def "does not realize all possible tasks"() {
-        Assume.assumeFalse(pluginName in [
-            'swift-library',
-            'swift-application',
-            'xctest',
+        // TODO: This isn't done yet, we still realize many tasks
+        // Eventually, this should only realize "help"
 
-            'cpp-unit-test',
-            'cpp-library',
-            'cpp-application',
+        Assume.assumeFalse(pluginName in [
+            'xctest', // Almost, still realizes compileTestSwift
 
             'visual-studio',
             'xcode',
@@ -93,8 +90,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
         applyPlugin()
 
-        // TODO: This isn't done yet, we still realize many tasks
-        // Eventually, this should only realize "help"
         buildFile << """
             def configuredTasks = []
             tasks.configureEach {

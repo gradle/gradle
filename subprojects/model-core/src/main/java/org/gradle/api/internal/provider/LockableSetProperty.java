@@ -30,4 +30,10 @@ public class LockableSetProperty<T> extends LockableCollectionProperty<T, Set<T>
     protected Set<T> immutableCopy(Set<T> value) {
         return ImmutableSet.copyOf(value);
     }
+
+    @Override
+    public LockableSetProperty<T> empty() {
+        super.empty();
+        return this;
+    }
 }

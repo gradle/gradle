@@ -45,7 +45,7 @@ class FeaturePreviewsTest extends Specification {
         then:
         previews.isFeatureEnabled(feature)
         where:
-        feature << [IMPROVED_POM_SUPPORT, GRADLE_METADATA]
+        feature << [GRADLE_METADATA]
     }
 
     @Unroll
@@ -57,7 +57,7 @@ class FeaturePreviewsTest extends Specification {
         then:
         previews.isFeatureEnabled(feature)
         where:
-        feature << ['IMPROVED_POM_SUPPORT', 'GRADLE_METADATA']
+        feature << ['GRADLE_METADATA']
     }
 
     def 'fails when enabling an unknown feature'() {
@@ -84,6 +84,6 @@ class FeaturePreviewsTest extends Specification {
         given:
         def previews = new FeaturePreviews()
         expect:
-        previews.getActiveFeatures() == [IMPROVED_POM_SUPPORT, GRADLE_METADATA, STABLE_PUBLISHING] as Set
+        previews.getActiveFeatures() == [GRADLE_METADATA, STABLE_PUBLISHING] as Set
     }
 }

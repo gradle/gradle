@@ -17,13 +17,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 
-/**
- * This also tests maven's optional dependencies for the cases where we only have pom metadata available.
- */
 class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     boolean featureAvailable() {
-        gradleMetadataEnabled || (/*maven optional:*/ useMaven() && experimentalEnabled)
+        gradleMetadataEnabled
     }
 
     void "dependency constraint is ignored when feature is not enabled"() {
@@ -61,10 +58,11 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         run 'checkDeps'
 
         then:
-        resolve.expectGraph {
+        def expectedVariant = useMaven() ? 'runtime' : 'default'
+        resolve.expectDefaultConfiguration(expectedVariant).expectGraph {
             root(":", ":test:") {
-                module("org:first-level:1.0:default")
-                module("org:foo:1.0:default")
+                module("org:first-level:1.0")
+                module("org:foo:1.0")
             }
         }
     }

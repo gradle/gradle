@@ -12,7 +12,7 @@ jacoco {
     applyTo(tasks["run"] as JavaExec)
 }
 
-task("applicationCodeCoverageReport", JacocoReport::class) {
+task<JacocoReport>("applicationCodeCoverageReport") {
     executionData(tasks["run"])
     sourceSets(sourceSets["main"])
 }

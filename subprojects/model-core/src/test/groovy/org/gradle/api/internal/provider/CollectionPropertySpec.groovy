@@ -24,9 +24,7 @@ import spock.lang.Unroll
 abstract class CollectionPropertySpec<C extends Collection<String>> extends ProviderSpec<C> {
     @Override
     Provider<C> providerWithNoValue() {
-        def p = property()
-        p.set((C) null)
-        return p
+        return property()
     }
 
     Provider<C> providerWithValue(C value) {
@@ -52,6 +50,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     def property = property()
 
     protected void assertValueIs(Collection<String> expected) {
+        assert property.present
         def actual = property.get()
         assert actual instanceof ImmutableCollection
         assert immutableCollectionType.isInstance(actual)
@@ -68,15 +67,28 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
 
     protected abstract Class<? extends ImmutableCollection<?>> getImmutableCollectionType()
 
-    def "defaults to empty collection"() {
+    def "has no value by default"() {
         expect:
-        property.present
-        property.get() as List == []
-        property.getOrNull() as List == []
-        property.getOrElse(someValue()) as List == []
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someValue()) == someValue()
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
     }
 
-    def "can set value to empty collection"() {
+    def "can change value to empty collection"() {
+        property.empty()
+
+        expect:
+        assertValueIs([])
+    }
+
+    def "can set value using empty collection"() {
         expect:
         property.set(toMutable([]))
         assertValueIs([])
@@ -182,56 +194,51 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         actual == toMutable(["123"])
     }
 
-    def "can add values to property with initial value"() {
-        property.set(toMutable(["123"]))
-
-        expect:
-        property.add("abc")
-        assertValueIs(["123", "abc"])
-
-        property.add(Providers.of("def"))
-        assertValueIs(["123", "abc", "def"])
-
-        property.addAll(Providers.of(["hij"]))
-        assertValueIs(["123", "abc", "def", "hij"])
-
-        property.add("klm")
-        assertValueIs(["123", "abc", "def", "hij", "klm"])
-
-        property.add(Providers.of("nop"))
-        assertValueIs(["123", "abc", "def", "hij", "klm", "nop"])
-    }
-
     def "appends a single value using add"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.add("123")
         property.add("456")
-        assertValueIs(["123", "456"])
+
+        expect:
+        assertValueIs(["abc", "123", "456"])
     }
 
     def "appends a single value to string property using GString"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.add("${'321'.substring(2)}")
-        assertValueIs(["1"])
+
+        expect:
+        assertValueIs(["abc", "1"])
     }
 
     def "appends a single value from provider using add"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.add(Providers.of("123"))
         property.add(Providers.of("456"))
-        assertValueIs(["123", "456"])
+
+        expect:
+        assertValueIs(["abc", "123", "456"])
     }
 
     def "appends a single value to string property from provider with GString value using add"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.add(Providers.of("${'321'.substring(2)}"))
-        assertValueIs(["1"])
+
+        expect:
+        assertValueIs(["abc", "1"])
     }
 
     @Unroll
     def "appends zero or more values from array #value using addAll"() {
-        expect:
+        given:
+        property.empty()
         property.addAll(value as String[])
+
+        expect:
         assertValueIs(expectedValue)
 
         where:
@@ -242,15 +249,21 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     }
 
     def "appends value to string property from array with GString value using addAll"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.addAll("${'321'.substring(2)}")
-        assertValueIs(["1"])
+
+        expect:
+        assertValueIs(["abc", "1"])
     }
 
     @Unroll
     def "appends zero or more values from provider #value using addAll"() {
-        expect:
+        given:
+        property.empty()
         property.addAll(Providers.of(value))
+
+        expect:
         assertValueIs(expectedValue)
 
         where:
@@ -266,21 +279,28 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         _ * provider.get() >>> [["abc"], ["def"]]
 
         expect:
+        property.empty()
         property.addAll(provider)
         assertValueIs(["abc"])
         assertValueIs(["def"])
     }
 
     def "appends value to string property from provider with GString value using addAll"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.addAll(Providers.of(["${'321'.substring(2)}"]))
-        assertValueIs(["1"])
+
+        expect:
+        assertValueIs(["abc", "1"])
     }
 
     @Unroll
     def "appends zero or more values from collection #value using addAll"() {
-        expect:
+        given:
+        property.empty()
         property.addAll(value)
+
+        expect:
         assertValueIs(expectedValue)
 
         where:
@@ -293,6 +313,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     def "queries values of collection on every call to get()"() {
         expect:
         def value = ["abc"]
+        property.empty()
         property.addAll(value)
         assertValueIs(["abc"])
         value.add("added")
@@ -300,16 +321,21 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     }
 
     def "appends value to string property from collection with GString value using addAll"() {
-        expect:
+        given:
+        property.set(toMutable(["abc"]))
         property.addAll(["${'321'.substring(2)}"])
-        assertValueIs(["1"])
+
+        expect:
+        assertValueIs(["abc", "1"])
     }
 
     def "providers only called once per query"() {
+        def valueProvider = Mock(ProviderInternal)
         def addProvider = Mock(Provider)
         def addAllProvider = Mock(Provider)
 
         given:
+        property.set(valueProvider)
         property.add(addProvider)
         property.addAll(addAllProvider)
 
@@ -317,6 +343,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         property.present
 
         then:
+        1 * valueProvider.present >> true
         1 * addProvider.present >> true
         1 * addAllProvider.present >> true
         0 * _
@@ -325,25 +352,50 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         property.get()
 
         then:
-        1 * addProvider.get() >> "123"
-        1 * addAllProvider.get() >> ["abc"]
+        1 * valueProvider.get() >> ["1"]
+        1 * addProvider.get() >> "2"
+        1 * addAllProvider.get() >> ["3"]
         0 * _
 
         when:
         property.getOrNull()
 
         then:
-        1 * addProvider.getOrNull() >> "123"
-        1 * addAllProvider.getOrNull() >> ["abc"]
+        1 * valueProvider.getOrNull() >> ["1"]
+        1 * addProvider.getOrNull() >> "2"
+        1 * addAllProvider.getOrNull() >> ["3"]
         0 * _
+    }
+
+    def "property has no value when value not set and values appended"() {
+        given:
+        property.add("1")
+        property.add(Providers.of("2"))
+        property.addAll(["3"])
+        property.addAll(Providers.of(["4"]))
+
+        expect:
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(toMutable(["other"])) == toMutable(["other"])
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == Providers.NULL_VALUE
     }
 
     def "property has no value when set to null and other values appended"() {
         given:
         property.set((C) null)
-        property.add("123")
-        property.add(Providers.of("456"))
-        property.addAll(Providers.of(["789"]))
+
+        and:
+        property.add("1")
+        property.add(Providers.of("2"))
+        property.addAll(["3"])
+        property.addAll(Providers.of(["4"]))
 
         expect:
         !property.present
@@ -361,9 +413,12 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     def "property has no value when set to provider with no value and other values appended"() {
         given:
         property.set(Providers.notDefined())
-        property.add("123")
-        property.add(Providers.of("456"))
-        property.addAll(Providers.of(["789"]))
+
+        and:
+        property.add("1")
+        property.add(Providers.of("2"))
+        property.addAll(["3"])
+        property.addAll(Providers.of(["4"]))
 
         expect:
         !property.present
@@ -430,7 +485,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         property.getOrElse(null) == null
     }
 
-    def "can set value to override added values"() {
+    def "can set value to replace added values"() {
         property.add("abc")
         property.add(Providers.of("def"))
         property.addAll("ghi")
@@ -442,9 +497,24 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         assertValueIs(["123", "456"])
     }
 
+    def "can make empty to replace added values"() {
+        property.add("abc")
+        property.add(Providers.of("def"))
+        property.addAll("ghi")
+        property.addAll(["jkl"])
+        property.addAll(Providers.of(["mno"]))
+
+        expect:
+        property.empty()
+        assertValueIs([])
+    }
+
     def "throws NullPointerException when provider returns list with null to property"() {
-        when:
+        given:
+        property.empty()
         property.addAll(Providers.of([null]))
+
+        when:
         property.get()
 
         then:

@@ -11,5 +11,7 @@ dependencies {
         // don't need it at runtime
         exclude(module = "lombok")
     }
+    implementation("commons-io:commons-io:2.6")
     implementation("javax.activation:activation:1.1.1")
+    implementation("javax.xml.bind:jaxb-api:2.2.12")
 }

@@ -294,7 +294,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.useTestFramework(testFrameworkMock)
         test.setTestExecuter(testExecuterMock)
 
-        test.setTestClassesDir(classesDir)
+        test.setTestClassesDirs(ImmutableFileCollection.of(classesDir))
         test.getReports().getJunitXml().setDestination(resultsDir)
         test.setBinResultsDir(binResultsDir)
         test.getReports().getHtml().setDestination(reportDir)

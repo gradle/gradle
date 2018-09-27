@@ -203,10 +203,8 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 expectedTargetVariant = 'compile'
                                 // the format attribute is added by the rule
                                 expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
-                                if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                                    // when experimental resolve is on, the "compile" configuration is mapped to the "java-api" usage
-                                    expectedAttributes['org.gradle.usage'] = 'java-api'
-                                }
+                                expectedAttributes['org.gradle.usage'] = 'java-api'
+                                expectedAttributes['org.gradle.component.category'] = 'library'
                             }
                         }
                         variant(expectedTargetVariant, expectedAttributes)
@@ -303,6 +301,12 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "rule is applied only once"() {
         given:
         withDefaultVariantToTest()
+        int invalidCount = 2
+        if (GradleMetadataResolveRunner.useMaven() && !GradleMetadataResolveRunner.gradleMetadataEnabled) {
+            // for Maven with experimental, we use variant aware matching which will (today) involve another round
+            // of execution of the rule
+            invalidCount++
+        }
         buildFile << """
             int cpt
             dependencies {
@@ -310,8 +314,8 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                     withModule('org.test:moduleB') {
                         withVariant("$variantToTest") { 
                             attributes {
-                                if (++cpt == 2) {
-                                    throw new IllegalStateException("rule should only be applied once")
+                                if (++cpt == $invalidCount) {
+                                    throw new IllegalStateException("rule should only be applied once on variant $variantToTest")
                                 }
                             }
                         }

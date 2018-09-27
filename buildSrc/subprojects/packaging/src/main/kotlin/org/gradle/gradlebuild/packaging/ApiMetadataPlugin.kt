@@ -52,6 +52,11 @@ open class ApiMetadataExtension(project: Project) {
     val includes = project.objects.listProperty<String>()
     val excludes = project.objects.listProperty<String>()
     val classpath = project.files()
+
+    init {
+        includes.set(listOf())
+        excludes.set(listOf())
+    }
 }
 
 
@@ -125,7 +130,7 @@ open class ParameterNamesResourceTask : DefaultTask() {
 
     @OutputFile
     @PathSensitive(PathSensitivity.NONE)
-    val destinationFile = project.layout.fileProperty()
+    val destinationFile = project.objects.fileProperty()
 
     @TaskAction
     fun generate() {

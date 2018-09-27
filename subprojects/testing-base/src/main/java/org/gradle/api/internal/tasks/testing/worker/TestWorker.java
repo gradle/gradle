@@ -26,6 +26,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.ContextClassLoaderProxy;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -42,7 +43,7 @@ import java.io.Serializable;
 import java.security.AccessControlException;
 import java.util.concurrent.CountDownLatch;
 
-public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable {
+public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     private final WorkerTestClassProcessorFactory factory;
@@ -70,7 +71,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             try {
                 completed.await();
             } catch (InterruptedException e) {
-                throw new UncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());

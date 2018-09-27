@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -42,8 +44,6 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.normalizedLineSeparators
@@ -98,10 +98,17 @@ class AbstractIntegrationSpec extends Specification {
         buildFile
     }
 
+    @CompileStatic
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle')
     }
 
+    @CompileStatic
+    protected TestFile getSettingsKotlinFile() {
+        testDirectory.file('settings.gradle.kts')
+    }
+
+    @CompileStatic
     protected TestFile getPropertiesFile() {
         testDirectory.file('gradle.properties')
     }
@@ -179,6 +186,7 @@ class AbstractIntegrationSpec extends Specification {
     /**
      * Synonym for succeeds()
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     protected ExecutionResult run(String... tasks) {
         succeeds(*tasks)
     }
@@ -390,18 +398,6 @@ class AbstractIntegrationSpec extends Specification {
     void postBuildOutputContains(String string) {
         assertHasResult()
         result.assertHasPostBuildOutput(string.trim())
-    }
-
-    void useRepositoryMirrors() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
-    }
-
-    void usePluginRepositoryMirror() {
-        executer.beforeExecute {
-            executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
-        }
     }
 
     void outputDoesNotContain(String string) {

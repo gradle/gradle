@@ -117,6 +117,10 @@ public class GenerateMavenPom extends DefaultTask {
             pomGenerator.addRuntimeDependencyManagement(mavenDependency);
         }
 
+        for (MavenDependency mavenDependency : pomInternal.getImportDependencyManagement()) {
+            pomGenerator.addImportDependencyManagement(mavenDependency);
+        }
+
         for (MavenDependencyInternal runtimeDependency : pomInternal.getApiDependencies()) {
             pomGenerator.addApiDependency(runtimeDependency);
         }

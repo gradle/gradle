@@ -33,19 +33,20 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
+    @Override
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof ClientOwnedClassLoaderSpec) {
             ClientOwnedClassLoaderSpec clientSpec = (ClientOwnedClassLoaderSpec) spec;
-            return createClassLoaderForClassPath(parents, clientSpec.getClasspath());
+            return createClassLoaderForClassPath("client-owned-daemon-payload-loader", parents, clientSpec.getClasspath());
         }
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec urlSpec = (VisitableURLClassLoader.Spec) spec;
-            return createClassLoaderForClassPath(parents, urlSpec.getClasspath());
+            return createClassLoaderForClassPath(urlSpec.getName() + "-daemon-payload-loader", parents, urlSpec.getClasspath());
         }
         return delegate.getClassLoaderFor(spec, parents);
     }
 
-    private ClassLoader createClassLoaderForClassPath(List<? extends ClassLoader> parents, List<URL> classpath) {
+    private ClassLoader createClassLoaderForClassPath(String name, List<? extends ClassLoader> parents, List<URL> classpath) {
         if (parents.size() != 1) {
             throw new IllegalStateException("Expected exactly one parent ClassLoader");
         }
@@ -53,6 +54,6 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         // convert the file urls to cached jar files
         Collection<URL> cachedClassPathUrls = cachedClasspathTransformer.transform(classpath);
 
-        return new VisitableURLClassLoader(parents.get(0), cachedClassPathUrls);
+        return new VisitableURLClassLoader(name, parents.get(0), cachedClassPathUrls);
     }
 }

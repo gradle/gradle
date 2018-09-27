@@ -25,6 +25,7 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collection;
@@ -43,7 +44,9 @@ import java.util.concurrent.Callable;
  *
  * @see FindBugs
  * @see FindBugsExtension
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
+@Deprecated
 public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
 
     public static final String DEFAULT_FINDBUGS_VERSION = "3.0.1";
@@ -61,6 +64,7 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
 
     @Override
     protected void beforeApply() {
+        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("findbugs", "com.github.spotbugs");
         configureFindBugsConfigurations();
     }
 

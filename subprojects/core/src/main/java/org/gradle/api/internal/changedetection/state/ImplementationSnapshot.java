@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -94,7 +94,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         @Override
-        public void appendToHasher(BuildCacheHasher hasher) {
+        public void appendToHasher(Hasher hasher) {
             hasher.putString(ImplementationSnapshot.class.getName());
             hasher.putString(getTypeName());
             hasher.putHash(classLoaderHash);
@@ -170,8 +170,8 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         @Override
-        public void appendToHasher(BuildCacheHasher hasher) {
-            hasher.markAsInvalid();
+        public void appendToHasher(Hasher hasher) {
+            hasher.markAsInvalid(getUnknownReason());
         }
 
         @Override
@@ -201,7 +201,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         @Override
         @Nullable
         public String getUnknownReason() {
-            return "was implemented by a Java lambda";
+            return "was implemented by the Java lambda '" + getTypeName() + "'. Using Java lambdas is not supported, use an (anonymous) inner class instead.";
         }
 
         @Override
@@ -227,8 +227,8 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         @Override
-        public void appendToHasher(BuildCacheHasher hasher) {
-            hasher.markAsInvalid();
+        public void appendToHasher(Hasher hasher) {
+            hasher.markAsInvalid(getUnknownReason());
         }
 
         @Override
@@ -258,7 +258,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         @Override
         @Nullable
         public String getUnknownReason() {
-            return "was loaded with an unknown classloader";
+            return "was loaded with an unknown classloader (class '" + getTypeName() + "').";
         }
 
         @Override

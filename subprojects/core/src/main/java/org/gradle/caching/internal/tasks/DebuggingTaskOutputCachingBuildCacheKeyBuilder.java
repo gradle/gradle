@@ -64,9 +64,9 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
     }
 
     @Override
-    public void inputPropertyImplementationUnknown(String propertyName) {
-        LOGGER.lifecycle("The implementation of '{}' cannot be determined. It was probably loaded by an unknown classloader.", propertyName);
-        delegate.inputPropertyImplementationUnknown(propertyName);
+    public void inputPropertyNotCacheable(String propertyName, String nonCacheableReason) {
+        LOGGER.lifecycle("Non-cacheable inputs: property '{}' {}.", propertyName, nonCacheableReason);
+        delegate.inputPropertyNotCacheable(propertyName, nonCacheableReason);
     }
 
     @Override

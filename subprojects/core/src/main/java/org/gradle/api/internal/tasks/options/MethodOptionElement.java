@@ -33,13 +33,6 @@ public class MethodOptionElement extends AbstractOptionElement {
         assertValidOptionName();
     }
 
-    MethodOptionElement(org.gradle.api.internal.tasks.options.Option option, Method method, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
-        super(option.option(), option, optionType, method.getDeclaringClass(), notationParser);
-        this.method = method;
-        assertMethodTypeSupported(getOptionName(), method);
-        assertValidOptionName();
-    }
-
     private void assertValidOptionName() {
         if (getOptionName()== null || getOptionName().length() == 0) {
             throw new OptionValidationException(String.format("No option name set on '%s' in class '%s'.", getElementName(), getDeclaredClass().getName()));
@@ -69,13 +62,6 @@ public class MethodOptionElement extends AbstractOptionElement {
         NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
         return new MethodOptionElement(option, method, optionType, notationParser);
     }
-
-    public static MethodOptionElement create(org.gradle.api.internal.tasks.options.Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory){
-        Class<?> optionType = calculateOptionType(method);
-        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
-        return new MethodOptionElement(option, method, optionType, notationParser);
-    }
-
 
     private static Class<?> calculateOptionType(Method optionMethod) {
         if (optionMethod.getParameterTypes().length == 0) {

@@ -16,9 +16,12 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenJavaModule
+import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -331,9 +334,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                         }
                     }
                 }
-                implementation("commons-collections:commons-collections") {
+                implementation("commons-collections:commons-collections:[3.2, 4)") {
                     version { 
-                        prefer '[3.2, 4)'
                         reject '3.2.1', '[3.2.2,)'
                     }
                 }
@@ -368,9 +370,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:') {
+            dependency('commons-collections:commons-collections:[3.2, 4)') {
                 noMoreExcludes()
-                prefers '[3.2, 4)'
                 rejects '3.2.1', '[3.2.2,)'
             }
             constraint('commons-logging:commons-logging:') {
@@ -846,6 +847,117 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
 $append
 """
+
+    }
+
+    @Unroll
+    def 'can publish java library with a #config dependency on a published BOM platform"'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            dependencies {
+                ${config} "org.test:bar"
+                ${config} platform("org.test:bom:1.0")
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        def mavenModule = javaLibrary.mavenModule
+        mavenModule.parsedPom.scopes['import'].expectDependencyManagement('org.test:bom:1.0').hasType('pom')
+        mavenModule.parsedPom.scopes[scope].assertDependsOn('org.test:bar:')
+
+        and:
+        if (config == "api") {
+            javaLibrary.parsedModuleMetadata.variant('api') {
+                dependency('org.test:bar:').exists()
+                dependency('org.test:bom:1.0') {
+                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                }
+                noMoreDependencies()
+            }
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:').exists()
+            dependency('org.test:bom:1.0') {
+                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+            }
+            noMoreDependencies()
+        }
+
+        where:
+        config           | scope
+        "api"            | "compile"
+        "implementation" | "runtime"
+
+    }
+
+    @ToBeImplemented("Currently we cannot detect that a platform is in fact a virtual one during publication")
+    @Ignore
+    def 'can publish a java library using a virtual platform by ignoring it'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            dependencies {
+                api "org.test:bar:1.0"
+                api platform("org.test:platform:1.0")
+                components.withModule('org.test:bar', VirtualPlatform)
+            }
+            
+            class VirtualPlatform implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        belongsTo("org.test:platform:\${id.version}")
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.javaLibraryPlatform
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = javaLibrary.mavenModule
+
+        mavenModule.assertPublished()
+        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
+        mavenModule.parsedPom.scopes['import'].assertDependencyManagement([] as String[])
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.test:bar:1.0').exists()
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:1.0').exists()
+            noMoreDependencies()
+        }
 
     }
 

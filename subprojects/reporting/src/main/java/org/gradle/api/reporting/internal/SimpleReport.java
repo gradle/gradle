@@ -52,7 +52,7 @@ public class SimpleReport implements ConfigurableReport {
         this.fileResolver = fileResolver;
         this.outputType = outputType;
         destination = project.getObjects().property(File.class);
-        enabled = project.getObjects().property(Boolean.class);
+        enabled = project.getObjects().property(Boolean.class).value(false);
         this.project = project;
     }
 

@@ -40,8 +40,14 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return getSystemClassLoader().getParent();
     }
 
+    @Deprecated
     @Override
     public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
+        return createIsolatedClassLoader("unnamed-loader", classPath);
+    }
+
+    @Override
+    public ClassLoader createIsolatedClassLoader(String name, ClassPath classPath) {
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
         //
         // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a
@@ -61,7 +67,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
             classPath = addToClassPath(classPath, getClasspathForClass("org.w3c.dom.ElementTraversal"));
         }
 
-        return doCreateClassLoader(getIsolatedSystemClassLoader(), classPath);
+        return doCreateClassLoader(name, getIsolatedSystemClassLoader(), classPath);
     }
 
     private ClassPath addToClassPath(ClassPath classPath, File file) {
@@ -83,8 +89,8 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return doCreateFilteringClassLoader(parent, classLoaderSpec);
     }
 
-    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath) {
-        return new VisitableURLClassLoader(parent, classPath);
+    protected ClassLoader doCreateClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+        return new VisitableURLClassLoader(name, parent, classPath);
     }
 
     protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {

@@ -18,6 +18,7 @@ package org.gradle.execution
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Path

@@ -461,7 +461,7 @@ task show {
       - Required flavor 'preview' and found incompatible value 'paid'.
       - Required usage 'compile' and found compatible value 'compile'.""")
 
-        failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes: test:test:1.2 configuration default:
+        failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes: test:test:1.2 configuration runtime:
   - Required artifactType 'dll' and found incompatible value 'jar'.
   - Required flavor 'preview' but no value provided.
   - Required usage 'compile' but no value provided.""")

@@ -77,7 +77,7 @@ open class CiReportingPlugin : Plugin<Project> {
     private
     fun Task.attachedReportLocations() = when (this) {
         is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName) to project.name)
-        is DistributedPerformanceTest -> listOf(scenarioReport.parentFile to project.name)
+        is DistributedPerformanceTest -> listOf(reportDir.parentFile to project.name)
         else -> emptyList()
     }
 

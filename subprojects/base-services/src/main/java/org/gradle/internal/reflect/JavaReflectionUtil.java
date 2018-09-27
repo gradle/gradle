@@ -338,7 +338,7 @@ public class JavaReflectionUtil {
         try {
             return object.getClass().getMethod("toString").getDeclaringClass() == Object.class;
         } catch (java.lang.NoSuchMethodException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

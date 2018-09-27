@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
@@ -49,7 +50,7 @@ class IvyConfigurationHelper {
         this.componentId = componentId;
     }
 
-    ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
+    ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, Collection<String> hierarchy) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
@@ -71,7 +72,7 @@ class IvyConfigurationHelper {
         }
     }
 
-    ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
+    ImmutableList<ExcludeMetadata> filterExcludes(ImmutableSet<String> hierarchy) {
         ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {
             for (String config : exclude.getConfigurations()) {

@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.HttpRepository
@@ -29,7 +28,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         'default':          '',
         'runtime':          'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))',
         'api':              'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
-        'api+experimental': 'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
     ]
 
     private static boolean leaksRuntime(testVariant, repoType, prevRepoType = null) {
@@ -37,12 +35,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
             // the runtime variant is supposed to include everything
             return true
         }
-        if (testVariant == 'api' && (repoType == 'maven' || repoType == 'ivy')) {
-            // classic maven and ivy metadata interpretation does not honor api/runtime separation
-            return true
-        }
-        if (testVariant == 'api+experimental' && repoType == 'ivy') {
-            // With improved POM support, Maven does not leak runtime when 'api' variant is requested
+        if (testVariant == 'api' && repoType == 'ivy') {
+            // classic ivy metadata interpretation does not honor api/runtime separation
             return true
         }
         return false
@@ -55,8 +49,13 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
             }
             return 'runtime'
         }
-        if (repoType == 'maven' && testVariant == 'api+experimental') {
-            return 'compile'
+        if (repoType == 'maven') {
+            switch (testVariant) {
+                case 'api':
+                    return 'compile'
+                default:
+                    return 'runtime'
+            }
         }
         return 'default'
     }
@@ -138,7 +137,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
     }
 
-    def expectChainInteractions(repoTypes, chain, testVariant = 'api') {
+    def expectChainInteractions(repoTypes, chain, testVariant = 'api', configuration = null) {
         String prevRepoType = null
         chain.each { repoType ->
             repositoryInteractions(repoType) {
@@ -150,7 +149,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                if (leaksRuntime(testVariant, repoType, prevRepoType)) {
+                if (leaksRuntime(testVariant, repoType, prevRepoType) || (prevRepoType==null && configuration in ['test', 'runtime'])) {
                     "org:$repoType-runtime-dependency:1.0" {
                         expectGetMetadata()
                         expectGetArtifact()
@@ -194,9 +193,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     def "selects #testVariant variant of each dependency in every repo supporting it #chain"() {
         given:
         setupRepositories(REPO_TYPES)
-        if (testVariant.contains('+experimental')) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        }
         setupModuleChain(chain)
 
         when:
@@ -235,12 +231,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         [chain, testVariant] << [REPO_TYPES.permutations(), TEST_VARIANTS.keySet()].combinations()
     }
 
-    @Unroll
-    def "explicit compile configuration selection works for a chain of pure maven dependencies (experimental=#experimental)"() {
+    def "explicit compile configuration selection works for a chain of pure maven dependencies"() {
         given:
-        if (experimental) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        }
         def modules = ['mavenCompile1', 'mavenCompile2', 'mavenCompile3']
         setupRepositories(modules)
         setupModuleChain(modules)
@@ -248,7 +240,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         when:
         buildFile << """
             dependencies {
-                configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API)) //without this, the experimental=true case will break
+                configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 conf group: 'org', name: 'mavenCompile1', version: '1.0', configuration: 'compile'
             }
         """
@@ -269,12 +261,9 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                 }
             }
         }
-
-        where:
-        experimental << [false, true]
     }
 
-    def "explicit compile configuration selection is broken up by dependency with Gradle metadata"() {
+    def "explicit compile configuration selection with Gradle metadata is propagates to Maven dependencies"() {
         given:
         def modules = ['mavenCompile1', 'mavenCompile2', 'maven-gradle', 'maven']
         setupRepositories(modules)
@@ -299,10 +288,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                         module "org:mavenCompile2-api-dependency:1.0"
                         module("org:maven-gradle:1.0") { // Attribute matching is used here
                             module "org:maven-gradle-api-dependency:1.0"
-                            // here the selection of 'compile' broke off
                             module("org:maven:1.0") {
                                 module "org:maven-api-dependency:1.0"
-                                module "org:maven-runtime-dependency:1.0"
                             }
                         }
                     }
@@ -312,9 +299,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     }
 
     @Unroll
-    def "with experimental resolve behavior, explicit #conf configuration selection still works for maven dependencies"() {
+    def "explicit #conf configuration selection still works for maven dependencies"() {
         given:
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         def modules = ['maven', 'mavenCompile1', 'maven-gradle', 'mavenCompile2']
         setupRepositories(modules)
         setupModuleChain(modules)
@@ -326,7 +312,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                 conf group: 'org', name: 'maven', version: '1.0', configuration: '$conf'
             }
         """
-        expectChainInteractions(modules, modules)
+        expectChainInteractions(modules, modules, 'api', conf)
 
         then:
         succeeds 'checkDep'
@@ -354,11 +340,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     }
 
     @Unroll
-    def "explicit configuration selection in ivy modules is supported=#supported if targeting a #target module (experimental=#experimental)"() {
+    def "explicit configuration selection in ivy modules is supported=#supported if targeting a #target module"() {
         given:
-        if (experimental) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        }
         String targetRepoName = supported? "$target-select" : target //use a different name if selection is supported to not follow the default expectations defined in leaksRuntime()
         setupRepositories([targetRepoName, 'ivy'])
         repository('ivy') {
@@ -395,11 +378,10 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        target         | supported | experimental
-        'maven'        | true      | false
-        'ivy'          | true      | false
-        'maven-gradle' | false     | false
-        'ivy-gradle'   | false     | false
-        'maven'        | false     | true
+        target         | supported
+        'maven'        | false
+        'ivy'          | true
+        'maven-gradle' | false
+        'ivy-gradle'   | false
     }
 }

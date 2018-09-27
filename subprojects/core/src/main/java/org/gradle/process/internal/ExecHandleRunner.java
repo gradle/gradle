@@ -51,8 +51,12 @@ public class ExecHandleRunner implements Runnable {
     public void abortProcess() {
         lock.lock();
         try {
+            if (aborted) {
+                return;
+            }
             aborted = true;
             if (process != null) {
+                streamsHandler.disconnect();
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
                 process.destroy();
             }
@@ -63,10 +67,7 @@ public class ExecHandleRunner implements Runnable {
 
     public void run() {
         try {
-            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-            Process process = processLauncher.start(processBuilder);
-            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
-            setProcess(process);
+            startProcess();
 
             execHandle.started();
 
@@ -86,9 +87,15 @@ public class ExecHandleRunner implements Runnable {
         }
     }
 
-    private void setProcess(Process process) {
+    private void startProcess() {
         lock.lock();
         try {
+            if (aborted) {
+                throw new IllegalStateException("Process has already been aborted");
+            }
+            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+            Process process = processLauncher.start(processBuilder);
+            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
             this.process = process;
         } finally {
             lock.unlock();

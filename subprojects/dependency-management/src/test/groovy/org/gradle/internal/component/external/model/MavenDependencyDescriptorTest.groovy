@@ -31,6 +31,7 @@
  */
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -130,7 +131,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromRuntime2.name >> "provided"
         toComponent.getConfiguration("runtime") >> toRuntime
         toComponent.getConfiguration("master") >> toMaster
-        toRuntime.hierarchy >> ["runtime", "compile"]
+        toRuntime.hierarchy >> ImmutableSet.of("runtime", "compile")
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
@@ -148,7 +149,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromRuntime.name >> "runtime"
         toComponent.getConfiguration("runtime") >> toRuntime
         toComponent.getConfiguration("master") >> null
-        toRuntime.hierarchy >> ["compile", "runtime"]
+        toRuntime.hierarchy >> ImmutableSet.of("compile", "runtime")
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
@@ -165,7 +166,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromRuntime.name >> "runtime"
         toComponent.getConfiguration("runtime") >> toRuntime
         toComponent.getConfiguration("master") >> toMaster
-        toRuntime.hierarchy >> ["compile", "runtime"]
+        toRuntime.hierarchy >> ImmutableSet.of("compile", "runtime")
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
@@ -201,7 +202,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toComponent.getConfiguration("runtime") >> null
         toComponent.getConfiguration("default") >> toDefault
         toComponent.getConfiguration("master") >> toMaster
-        toDefault.hierarchy >> ["compile", "default"]
+        toDefault.hierarchy >> ImmutableSet.of("compile", "default")
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])

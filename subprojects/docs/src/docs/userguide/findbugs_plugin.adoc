@@ -17,6 +17,7 @@
 
 The FindBugs plugin performs quality checks on your project's Java source files using http://findbugs.sourceforge.net[FindBugs] and generates reports from these checks.
 
+WARNING: Since FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above, the FindBugs plugin has been deprecated and is scheduled to be removed in Gradle 6.0. Please consider using the https://plugins.gradle.org/plugin/com.github.spotbugs[SpotBugs plugin] instead.
 
 [[sec:findbugs_usage]]
 == Usage

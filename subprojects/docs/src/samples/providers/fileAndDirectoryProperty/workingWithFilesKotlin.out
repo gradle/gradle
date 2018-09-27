@@ -1,9 +1,7 @@
 
-> Task :print
-foo.someDirectory = /home/user/gradle/samples/kotlin/some-directory
-foo.someFiles contains someDirectory? true
-foo.someFile = /home/user/gradle/samples/kotlin/build/some-file
-foo.someFiles contains someFile? true
+> Task :generate
+configuration file = /home/user/gradle/samples/kotlin/src/config.txt
+output dir = /home/user/gradle/samples/kotlin/output/generated-source
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

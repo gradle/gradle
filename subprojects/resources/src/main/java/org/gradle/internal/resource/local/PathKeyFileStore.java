@@ -23,5 +23,5 @@ import javax.annotation.Nullable;
  */
 public interface PathKeyFileStore extends FileStore<String>, FileStoreSearcher<String> {
     @Nullable
-    LocallyAvailableResource get(String key);
+    LocallyAvailableResource get(String... path);
 }

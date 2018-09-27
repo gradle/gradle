@@ -31,14 +31,6 @@ public abstract class AbstractDependency implements ResolvableDependency, Depend
     }
 
     @Override
-    public int hashCode() {
-        int result = getGroup() != null ? getGroup().hashCode() : 0;
-        result = 31 * result + getName().hashCode();
-        result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String getReason() {
         return reason;
     }

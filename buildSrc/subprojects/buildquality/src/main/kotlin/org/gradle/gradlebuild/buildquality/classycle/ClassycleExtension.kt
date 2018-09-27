@@ -26,7 +26,11 @@ open class ClassycleExtension(project: Project) {
 
     val excludePatterns: ListProperty<String> = project.objects.listProperty()
 
-    val reportResourcesZip: RegularFileProperty = project.layout.fileProperty().also {
+    val reportResourcesZip: RegularFileProperty = project.objects.fileProperty().also {
         it.set(project.rootProject.file("config/classycle_report_resources.zip"))
+    }
+
+    init {
+        excludePatterns.set(listOf())
     }
 }

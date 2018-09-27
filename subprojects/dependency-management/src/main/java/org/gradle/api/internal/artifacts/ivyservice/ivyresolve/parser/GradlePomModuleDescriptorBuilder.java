@@ -253,7 +253,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        dependencies.add(new MavenDependencyDescriptor(MavenScope.Runtime, MavenDependencyType.RELOCATION, selector, null, ImmutableList.<ExcludeMetadata>of()));
+        dependencies.add(new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.RELOCATION, selector, null, ImmutableList.<ExcludeMetadata>of()));
     }
 
     private String getDefaultVersion(PomDependencyMgt dep) {

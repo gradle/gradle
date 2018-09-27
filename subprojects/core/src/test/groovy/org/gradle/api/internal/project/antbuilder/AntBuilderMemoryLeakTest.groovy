@@ -81,7 +81,7 @@ class AntBuilderMemoryLeakTest extends Specification {
 
                 }
 
-                classes[classes.length - 1] = Proxy.getProxyClass(classLoaderFactory.createIsolatedClassLoader([]), Serializable)
+                classes[classes.length - 1] = Proxy.getProxyClass(classLoaderFactory.createIsolatedClassLoader("test", []), Serializable)
                 4.times {
                     // exponential grow to make it fail faster
                     Class[] dup = new Class[classes.length * 2]

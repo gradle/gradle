@@ -32,4 +32,9 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
         return ImmutableList.copyOf(values);
     }
 
+    @Override
+    public ListProperty<T> empty() {
+        super.empty();
+        return this;
+    }
 }

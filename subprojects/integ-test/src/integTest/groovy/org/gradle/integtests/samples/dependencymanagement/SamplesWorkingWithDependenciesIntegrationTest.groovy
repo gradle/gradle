@@ -21,13 +21,11 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-@Ignore('work in progress')
 @Requires(KOTLIN_SCRIPT)
 class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,7 +33,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Unroll

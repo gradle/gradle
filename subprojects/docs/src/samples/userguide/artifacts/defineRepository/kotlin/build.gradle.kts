@@ -203,10 +203,8 @@ repositories {
 repositories {
     ivy {
         url = uri("http://repo.mycompany.com/repo")
-        layout("pattern") {
-            (this as IvyPatternRepositoryLayout).apply {
-                artifact("[module]/[revision]/[type]/[artifact].[ext]")
-            }
+        patternLayout {
+            artifact("[module]/[revision]/[type]/[artifact].[ext]")
         }
     }
 }
@@ -216,11 +214,9 @@ repositories {
 repositories {
     ivy {
         url = uri("http://repo.mycompany.com/repo")
-        layout("pattern") {
-            (this as IvyPatternRepositoryLayout).apply {
-                artifact("[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
-                setM2compatible(true)
-            }
+        patternLayout {
+            artifact("[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            setM2compatible(true)
         }
     }
 }
@@ -230,12 +226,10 @@ repositories {
 repositories {
     ivy {
         url = uri("http://repo.mycompany.com/repo")
-        layout("pattern") {
-            (this as IvyPatternRepositoryLayout).apply {
-                artifact("3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
-                artifact("company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
-                ivy("ivy-files/[organisation]/[module]/[revision]/ivy.xml")
-            }
+        patternLayout {
+            artifact("3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            artifact("company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+            ivy("ivy-files/[organisation]/[module]/[revision]/ivy.xml")
         }
     }
 }

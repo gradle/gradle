@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-import groovy.util.slurpersupport.NodeChildren
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
@@ -55,7 +54,7 @@ class JUnitXmlTestEventsGenerator {
     }
 
     @CompileStatic
-    void processTestSuite(JUnitTestSuite testSuite, Object build) {
+    void processTestSuite(JUnitTestSuite testSuite, Map buildResult) {
         String suiteName = testSuite.name
         DecoratingTestDescriptor testSuiteDescriptor = new DecoratingTestDescriptor(new DefaultTestClassDescriptor(0, suiteName), createWorkerSuite())
         testListener.beforeSuite(testSuiteDescriptor.parent.parent)
@@ -72,7 +71,7 @@ class JUnitXmlTestEventsGenerator {
 
             if (failures && failures.size() > 0) {
                 testListener.beforeTest(testCaseDescriptor)
-                publishAdditionalMetadata(testCaseDescriptor, build)
+                publishAdditionalMetadata(testCaseDescriptor, buildResult)
                 try {
                     String systemErr = testSuite.systemErr
                     if (systemErr) {
@@ -81,12 +80,12 @@ class JUnitXmlTestEventsGenerator {
                 } catch (Exception e) {
                     e.printStackTrace()
                 }
-                String failureText = failures.collect { it.message } .join('\n')
+                String failureText = failures.collect { it.value } .join('\n')
                 failureText = failureText.replace("java.lang.AssertionError: ", "")
                 testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText) as Throwable]))
             } else if (notSkipped(testCase)) {
                 testListener.beforeTest(testCaseDescriptor)
-                publishAdditionalMetadata(testCaseDescriptor, build)
+                publishAdditionalMetadata(testCaseDescriptor, buildResult)
                 testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime, 1, 1, 0, []))
             }
         }
@@ -104,25 +103,24 @@ class JUnitXmlTestEventsGenerator {
         return testCase.skipped == null
     }
 
-    private void publishAdditionalMetadata(DecoratingTestDescriptor testCaseDescriptor, Object build) {
+    private void publishAdditionalMetadata(DecoratingTestDescriptor testCaseDescriptor, Map buildResult) {
         List<String> outputs = []
-        def scenarioId = getScenarioId(build)
+        def scenarioId = getScenarioId(buildResult)
         outputs.add("Scenario: ${scenarioId}")
         if (coordinatorBuild) {
             outputs.add("Performance report: " +
                 "https://builds.gradle.org/repository/download/${coordinatorBuild.buildTypeId}/${coordinatorBuild.id}:id/results/performance/build/performance-tests/" +
                 "report/tests/${scenarioId.replaceAll(" ", "-")}.html")
         }
-        def buildUrl = build.@webUrl
+        def buildUrl = buildResult.webUrl
         if (buildUrl) {
             outputs.add("Worker build url: ${buildUrl}")
         }
         testOutputListener.onOutput(testCaseDescriptor, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, outputs.join("\n")))
     }
 
-    private String getScenarioId(Object build) {
-        NodeChildren properties = build.properties.children()
-        properties.find { it.@name == 'scenario' }.@value.text()
+    private String getScenarioId(Map buildResult) {
+        return buildResult.properties.property.find { it.name == 'scenario'} .value
     }
 
     /**

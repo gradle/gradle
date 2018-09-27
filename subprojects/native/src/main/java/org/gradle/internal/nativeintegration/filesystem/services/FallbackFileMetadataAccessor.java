@@ -37,7 +37,6 @@ public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     }
 
     @Override
-    @SuppressWarnings("Since15")
     public FileMetadataSnapshot stat(Path path) throws IOException {
         return stat(path.toFile());
     }

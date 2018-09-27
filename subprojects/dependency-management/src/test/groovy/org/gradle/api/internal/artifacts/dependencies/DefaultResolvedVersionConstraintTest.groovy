@@ -33,7 +33,8 @@ class DefaultResolvedVersionConstraintTest extends Specification {
         def e = new DefaultResolvedVersionConstraint('', '', strictVersion, [], versionSelectorScheme)
 
         then:
-        e.preferredSelector.selector == strictVersion
+        e.preferredSelector == null
+        e.requiredSelector.selector == strictVersion
         e.rejectedSelector instanceof InverseVersionSelector
         e.rejectedSelector.selector == complement
         !e.rejectAll

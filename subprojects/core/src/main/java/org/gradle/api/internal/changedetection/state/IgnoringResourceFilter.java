@@ -19,8 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.Hasher;
 
 import java.util.Set;
 
@@ -48,7 +48,7 @@ public class IgnoringResourceFilter implements ResourceFilter {
     }
 
     @Override
-    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
         for (String ignore : ignores) {
             hasher.putString(ignore);

@@ -105,7 +105,6 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                     // Mark this version as rejected
                     result.rejectedByRule(rejectedByRules);
 
-                    // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
                     if (requestedVersionMatcher.matchesUniqueVersion()) {
                         // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
                         break;
@@ -193,7 +192,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
-        ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
+        ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier, metadataProvider);
         rulesProcessor.apply(selection, rules, metadataProvider);
         if (selection.isRejected()) {
             return new RejectedByRuleVersion(candidateIdentifier, selection.getRejectionReason());

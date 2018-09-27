@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -107,6 +108,15 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         runTasksOps[0].parentId == root.id
         runTasksOps[1].displayName == "Run tasks (:${buildName})"
         runTasksOps[1].parentId == root.id
+
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps.size() == 2
+        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners'
+        graphNotifyOps[0].details.buildPath == ':'
+        graphNotifyOps[0].parentId == runTasksOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:${buildName})"
+        graphNotifyOps[1].details.buildPath == ":${buildName}"
+        graphNotifyOps[1].parentId == runTasksOps[1].id
 
         where:
         settings                     | buildName | display

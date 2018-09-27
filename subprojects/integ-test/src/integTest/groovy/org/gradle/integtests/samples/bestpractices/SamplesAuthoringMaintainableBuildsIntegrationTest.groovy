@@ -65,7 +65,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
-    def "can execute logic during #lifecyclePhase with #dsl dsl"() {
+    def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 
         when:
@@ -75,11 +75,26 @@ generateDocs - Generates the HTML documentation for this project.""")
         outputContains('log4j-1.2.17.jar')
 
         where:
-        dsl      | subDirName | lifecyclePhase
-        'groovy' | 'dont'     | 'configuration phase'
-        'kotlin' | 'dont'     | 'configuration phase'
-        'groovy' | 'do'       | 'execution phase'
-        'kotlin' | 'do'       | 'execution phase'
+        dsl      | subDirName
+        'groovy' | 'do'
+        'kotlin' | 'do'
+    }
+
+    @Unroll
+    @UsesSample('userguide/bestPractices/logicDuringConfiguration')
+    def "throw exception when executing logic during configuration phrase with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
+
+        when:
+        fails 'printArtifactNames'
+
+        then:
+        failureCauseContains("You shouldn't resolve configurations during configuration phase")
+
+        where:
+        dsl      | subDirName
+        'groovy' | 'dont'
+        'kotlin' | 'dont'
     }
 
     @Unroll

@@ -37,22 +37,20 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 it.details.buildPath == ":"
         }
 
-        plugins.details*.pluginClass == [
-            "org.gradle.api.plugins.HelpTasksPlugin",
-            "org.gradle.api.plugins.JavaPlugin",
-            "org.gradle.api.plugins.JavaBasePlugin",
-            "org.gradle.api.plugins.BasePlugin",
-            "org.gradle.language.base.plugins.LifecycleBasePlugin",
-            "org.gradle.api.plugins.ReportingBasePlugin",
+        def pluginIdByClass = plugins.details.collectEntries ( { [it.pluginClass, it.pluginId ] })
+        def expectedPlugins = [
+            "org.gradle.api.plugins.HelpTasksPlugin": "org.gradle.help-tasks",
+            "org.gradle.buildinit.plugins.BuildInitPlugin": "org.gradle.build-init",
+            "org.gradle.buildinit.plugins.WrapperPlugin": "org.gradle.wrapper",
+            "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
+            "org.gradle.api.plugins.JavaBasePlugin": null,
+            "org.gradle.api.plugins.BasePlugin": null,
+            "org.gradle.language.base.plugins.LifecycleBasePlugin": null,
+            "org.gradle.api.plugins.ReportingBasePlugin": null,
         ]
-        plugins.details*.pluginId == [
-            "org.gradle.help-tasks",
-            "org.gradle.java",
-            null,
-            null,
-            null,
-            null,
-        ]
+
+        pluginIdByClass.size() == expectedPlugins.size()
+        pluginIdByClass.entrySet().containsAll(expectedPlugins.entrySet())
     }
 
     def "captures gradle plugin"() {

@@ -59,8 +59,8 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
 
     def setupGpgCmd() {
         TestFile sampleDir = new IntegrationTestBuildContext().getSamplesDir()
-        sampleDir.file('signing/gnupg-signatory/gnupg-home').copyTo(file('gnupg-home'))
-        sampleDir.file('signing/gnupg-signatory/gradle.properties').copyTo(file('gradle.properties'))
+        sampleDir.file('signing/gnupg-signatory/groovy/gnupg-home').copyTo(file('gnupg-home'))
+        sampleDir.file('signing/gnupg-signatory/groovy/gradle.properties').copyTo(file('gradle.properties'))
         GpgCmdFixture.setupGpgCmd(temporaryFolder.testDirectory)
     }
 

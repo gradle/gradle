@@ -31,4 +31,10 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     protected Set<T> fromValue(Collection<T> values) {
         return ImmutableSet.copyOf(values);
     }
+
+    @Override
+    public SetProperty<T> empty() {
+        super.empty();
+        return this;
+    }
 }

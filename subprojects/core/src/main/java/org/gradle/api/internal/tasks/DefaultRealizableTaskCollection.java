@@ -43,7 +43,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultRealizableTaskCollection<T extends Task> implements RealizableTaskCollection<T> {
+public class DefaultRealizableTaskCollection<T extends Task> implements TaskCollection<T>, TaskDependencyContainer {
 
     private final TaskCollection<T> delegate;
     private final Class<T> type;
@@ -61,7 +61,7 @@ public class DefaultRealizableTaskCollection<T extends Task> implements Realizab
     }
 
     @Override
-    public void realizeRuleTaskTypes() {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         // Task dependencies may be calculated more than once.
         // This guard is purely an optimisation.
         if (modelNode != null && realized.compareAndSet(false, true)) {
@@ -70,9 +70,12 @@ public class DefaultRealizableTaskCollection<T extends Task> implements Realizab
                 node.ensureAtLeast(ModelNode.State.GraphClosed);
             }
         }
+        for (T t : this) {
+            context.add(t);
+        }
     }
 
-    private <S extends T> RealizableTaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
+    private <S extends T> TaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
         return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, collection, modelNode, instantiator));
     }
 
@@ -289,6 +292,21 @@ public class DefaultRealizableTaskCollection<T extends Task> implements Realizab
     @Override
     public TaskProvider<T> named(String name) throws InvalidUserDataException {
         return delegate.named(name);
+    }
+
+    @Override
+    public TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException {
+        return delegate.named(name, configurationAction);
+    }
+
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
+        return delegate.named(name, type);
+    }
+
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
+        return delegate.named(name, type, configurationAction);
     }
 
     @Override

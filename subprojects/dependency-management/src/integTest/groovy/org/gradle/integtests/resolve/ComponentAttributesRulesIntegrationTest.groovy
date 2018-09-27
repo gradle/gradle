@@ -472,11 +472,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             if (GradleMetadataResolveRunner.useIvy()) {
                 variant = 'default'
             } else {
-                if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-                    variant = 'compile'
-                } else {
-                    variant = 'default'
-                }
+                variant = 'compile'
             }
         }
         variant
@@ -486,7 +482,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
             return "variant"
         }
-        if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled && !GradleMetadataResolveRunner.useIvy()) {
+        if (!GradleMetadataResolveRunner.useIvy()) {
             return "variant"
         }
         return "configuration"

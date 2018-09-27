@@ -62,7 +62,15 @@ class JUnitXmlTestEventsGeneratorTest extends Specification {
         TestOutputListener testOutputListener = Mock()
         TestDescriptorInternal testDescriptor = null
         TestResult testResult = null
-        Object build = new XmlSlurper().parseText("""<build webUrl="http://some.url"><properties><property name="scenario" value="configuration of ktsManyProjects (--recompile-scripts)" inherited="false"/></properties></build>""")
+        Map build = [
+            webUrl: "http://some.url",
+            properties: [
+                count: 1,
+                property: [[name: 'scenario',
+                           value: 'configuration of ktsManyProjects (--recompile-scripts)',
+                           inherited: 'false']]
+            ]
+        ]
 
         when:
         new JUnitXmlTestEventsGenerator(testListenerBroadcast, testOutputListenerBroadcast).processTestSuite(testSuite, build)

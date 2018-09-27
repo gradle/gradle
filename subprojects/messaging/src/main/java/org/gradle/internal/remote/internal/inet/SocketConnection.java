@@ -89,7 +89,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (IOException e) {
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
     }
@@ -121,7 +121,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (IOException e) {
             throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         }
     }
@@ -131,7 +131,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         try {
             encoder.flush();
             outstr.flush();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not write '%s'.", remoteAddress), e);
         }
     }

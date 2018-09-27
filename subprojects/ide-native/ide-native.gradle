@@ -28,11 +28,11 @@ dependencies {
     compile project(':testingNative')
     compile libraries.plist.coordinates
 
-    testFixturesCompile project(':internalTesting')
+    testFixturesApi project(':internalTesting')
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

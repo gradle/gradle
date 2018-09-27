@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -91,7 +92,7 @@ class SelectorStateResolverResults {
     boolean alreadyHaveResolutionForSelector(ResolvableSelectorState selector) {
         for (Registration registration : results) {
             ComponentIdResolveResult discovered = registration.result;
-            if (included(selector, discovered)) {
+            if (included(selector, discovered, registration.selector.isFromLock())) {
                 register(selector, discovered);
                 selector.markResolved();
                 return true;
@@ -100,12 +101,12 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult resolveResult) {
+    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult resolveResult, boolean isFromLock) {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
         for (Registration registration : results) {
-            if (sameVersion(registration.result, resolveResult) ||
-                (included(registration.selector, resolveResult) && lowerVersion(registration.result, resolveResult))) {
+            if (emptyVersion(registration.result) || sameVersion(registration.result, resolveResult) ||
+                (included(registration.selector, resolveResult, isFromLock) && lowerVersion(registration.result, resolveResult))) {
                 registration.result = resolveResult;
                 replaces = true;
             }
@@ -117,15 +118,22 @@ class SelectorStateResolverResults {
         results.add(new Registration(selector, resolveResult));
     }
 
+    private boolean emptyVersion(ComponentIdResolveResult existing) {
+        if (existing.getFailure() == null) {
+            return existing.getModuleVersionId().getVersion().isEmpty();
+        }
+        return false;
+    }
+
     private boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
-        if (existing.getFailure()==null && resolveResult.getFailure() == null) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             return existing.getId().equals(resolveResult.getId());
         }
         return false;
     }
 
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
-        if (existing.getFailure()==null && resolveResult.getFailure() == null) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
             Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
 
@@ -135,7 +143,7 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate) {
+    private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
         if (candidate.getFailure() != null) {
             return false;
         }
@@ -143,11 +151,18 @@ class SelectorStateResolverResults {
         if (versionConstraint == null) {
             return dep.getSelector().matchesStrictly(candidate.getId());
         }
-        VersionSelector preferredSelector = versionConstraint.getPreferredSelector();
-        if (preferredSelector == null || !preferredSelector.canShortCircuitWhenVersionAlreadyPreselected()) {
-            return false;
+        VersionSelector versionSelector = versionConstraint.getRequiredSelector();
+        if (versionSelector != null &&
+            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+
+            if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
+                // Always assume a candidate from a lock will satisfy the latest version selector
+                return true;
+            }
+
+            return versionSelector.accept(candidate.getModuleVersionId().getVersion());
         }
-        return preferredSelector.accept(candidate.getModuleVersionId().getVersion());
+        return false;
     }
 
     public boolean isEmpty() {

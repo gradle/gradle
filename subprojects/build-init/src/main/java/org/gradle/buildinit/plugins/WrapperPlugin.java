@@ -16,16 +16,24 @@
 
 package org.gradle.buildinit.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildinit.tasks.internal.TaskConfiguration;
+import org.gradle.api.tasks.wrapper.Wrapper;
 
 /**
  * The wrapper plugin.
  */
 public class WrapperPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        TaskConfiguration.addWrapperPlaceholder((ProjectInternal) project);
+        if (project.getParent() == null) {
+            project.getTasks().register("wrapper", Wrapper.class, new Action<Wrapper>() {
+                @Override
+                public void execute(Wrapper wrapper) {
+                    wrapper.setGroup("Build Setup");
+                    wrapper.setDescription("Generates Gradle wrapper files.");
+                }
+            });
+        }
     }
 }

@@ -223,7 +223,7 @@ class NodeState implements DependencyGraphNode {
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
      */
     private void visitDependencies(ModuleExclusion resolutionFilter, Collection<EdgeState> discoveredEdges) {
-        PendingDependenciesHandler.Visitor pendingDepsVisitor = resolveState.getPendingDependenciesHandler().start();
+        PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
@@ -255,6 +255,7 @@ class NodeState implements DependencyGraphNode {
     private void visitOwners(Collection<EdgeState> discoveredEdges) {
         ImmutableList<? extends ComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
+            PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
             for (ComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
@@ -264,8 +265,10 @@ class NodeState implements DependencyGraphNode {
                     // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
                     addPlatformEdges(discoveredEdges, platformId, cs);
+                    visitor.markNotPending(platformId.getModuleIdentifier());
                 }
             }
+            visitor.complete();
         }
     }
 
@@ -279,7 +282,7 @@ class NodeState implements DependencyGraphNode {
         }
         if (metadata == null) {
             // the platform doesn't exist, so we're building a lenient one
-            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState);
+            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setMetadata(metadata);
         }
         if (virtualEdges == null) {
@@ -407,7 +410,7 @@ class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
-                resolveState.getPendingDependenciesHandler().removeHardEdge(outgoingDependency);
+                outgoingDependency.maybeDecreaseHardEdgeCount();
             }
         }
         outgoingEdges.clear();
@@ -455,7 +458,7 @@ class NodeState implements DependencyGraphNode {
             previousTraversalExclusions = null;
             outgoingEdges.clear();
             virtualEdges = null;
-            resolveState.onMoreSelected(this);
+            resolveState.onFewerSelected(this);
         }
     }
 

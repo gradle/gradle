@@ -68,7 +68,7 @@ public class JdkTools {
                                                 + " contains a valid JDK installation.");
             }
             ClassPath defaultClassPath = DefaultClassPath.of(toolsJar);
-            isolatedToolsLoader = new VisitableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
+            isolatedToolsLoader = new VisitableURLClassLoader("jdk-tools", filteringClassLoader, defaultClassPath.getAsURLs());
             isJava9Compatible = false;
         } else {
             isolatedToolsLoader = filteringClassLoader;

@@ -33,7 +33,8 @@ public interface ConditionalExecution<T> {
     Runnable getExecution();
 
     /**
-     * Blocks waiting for this execution to complete.  Returns a result provided by the execution.
+     * Blocks waiting for this execution to complete. Returns a result provided by the execution.
+     * When this method returns, the resource lock of this execution has been unlocked.
      */
     T await();
 
@@ -48,7 +49,7 @@ public interface ConditionalExecution<T> {
     boolean isComplete();
 
     /**
-     * If a failure occurs during execution, this method will be called with the exception.
+     * Cancels this execution.
      */
-    void registerFailure(Throwable t);
+    void cancel();
 }

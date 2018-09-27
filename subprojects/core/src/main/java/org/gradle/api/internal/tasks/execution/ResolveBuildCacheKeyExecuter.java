@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -26,6 +25,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -55,7 +55,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
@@ -291,31 +291,34 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         @Nullable
         @Override
         public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
-            SortedSet<String> inputPropertiesLoadedByUnknownClassLoader = key.getInputs().getInputPropertiesLoadedByUnknownClassLoader();
-            if (inputPropertiesLoadedByUnknownClassLoader == null || inputPropertiesLoadedByUnknownClassLoader.isEmpty()) {
+            SortedMap<String, String> invalidInputProperties = key.getInputs().getNonCacheableInputProperties();
+            if (invalidInputProperties == null || invalidInputProperties.isEmpty()) {
                 return null;
             }
-            return inputPropertiesLoadedByUnknownClassLoader;
+            return invalidInputProperties.keySet();
         }
 
         @Nullable
         @Override
         public String getClassLoaderHash() {
-            HashCode classLoaderHash = key.getInputs().getClassLoaderHash();
-            return classLoaderHash == null ? null : classLoaderHash.toString();
+            ImplementationSnapshot taskImplementation = key.getInputs().getTaskImplementation();
+            if (taskImplementation == null || taskImplementation.getClassLoaderHash() == null) {
+                return null;
+            }
+            return taskImplementation.getClassLoaderHash().toString();
         }
 
         @Nullable
         @Override
         public List<String> getActionClassLoaderHashes() {
-            List<HashCode> actionClassLoaderHashes = key.getInputs().getActionClassLoaderHashes();
-            if (actionClassLoaderHashes == null || actionClassLoaderHashes.isEmpty()) {
+            List<ImplementationSnapshot> actionImplementations = key.getInputs().getActionImplementations();
+            if (actionImplementations == null || actionImplementations.isEmpty()) {
                 return null;
             } else {
-                return Lists.transform(actionClassLoaderHashes, new Function<HashCode, String>() {
+                return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, String>() {
                     @Override
-                    public String apply(HashCode input) {
-                        return input == null ? null : input.toString();
+                    public String apply(ImplementationSnapshot input) {
+                        return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toString();
                     }
                 });
             }
@@ -324,11 +327,16 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         @Nullable
         @Override
         public List<String> getActionClassNames() {
-            ImmutableList<String> actionClassNames = key.getInputs().getActionClassNames();
-            if (actionClassNames == null || actionClassNames.isEmpty()) {
+            List<ImplementationSnapshot> actionImplementations = key.getInputs().getActionImplementations();
+            if (actionImplementations == null || actionImplementations.isEmpty()) {
                 return null;
             } else {
-                return actionClassNames;
+                return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, String>() {
+                    @Override
+                    public String apply(ImplementationSnapshot input) {
+                        return input.getTypeName();
+                    }
+                });
             }
         }
 

@@ -75,7 +75,6 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -83,7 +82,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
-        super(parent, classPath);
+        super("legacy-mixin-loader", parent, classPath);
         this.legacyTypesSupport = legacyTypesSupport;
     }
 

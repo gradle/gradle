@@ -32,6 +32,11 @@ public interface StreamsHandler extends Stoppable {
     void start();
 
     /**
+     * Disconnects from the process without waiting for further work.
+     */
+    void disconnect();
+
+    /**
      * Stops doing work with the process's streams. Should block until no further asynchronous work is happening on the streams.
      */
     @Override

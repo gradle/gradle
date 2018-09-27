@@ -114,6 +114,7 @@ class CppBasePluginTest extends Specification {
         library.baseName >> baseName
         library.targetPlatform >> Stub(CppPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.linkFile >> project.objects.fileProperty()
         library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:

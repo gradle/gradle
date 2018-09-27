@@ -26,6 +26,7 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvider {
     private static final String VS2017_METADATA_FILE_PATH = "VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt";
@@ -68,7 +69,7 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
             return null;
         }
         try {
-            String versionString = FileUtils.readFileToString(msvcVersionFile).trim();
+            String versionString = FileUtils.readFileToString(msvcVersionFile, StandardCharsets.UTF_8).trim();
             File visualCppDir = new File(installDir, VS2017_COMPILER_PATH_PREFIX + "/" + versionString);
             return new DefaultVisualCppMetadata(visualCppDir, VersionNumber.parse(versionString));
         } catch (IOException e) {

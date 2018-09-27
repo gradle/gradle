@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
-import org.gradle.api.DomainObjectCollection
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.internal.AbstractNamedDomainObjectCollectionSpec
+import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
@@ -47,7 +48,7 @@ import org.gradle.util.Path
 import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
 
-class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<Task> {
+class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Task> {
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
@@ -62,6 +63,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
             getIdentityPath() >> Path.path(":")
         }
         getServices() >> Mock(ServiceRegistry)
+        getObjects() >> Stub(ObjectFactory)
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
@@ -78,7 +80,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     ).create()
 
     @Override
-    final DomainObjectCollection<Task> getContainer() {
+    final NamedDomainObjectCollection<Task> getContainer() {
         return container
     }
 
@@ -534,18 +536,12 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         def bTask = addTask("b")
         aTask.dependsOn(bTask)
 
-        addPlaceholderTask("c")
-        def cTask = this.task("c", DefaultTask)
-
         when:
         container.realize()
 
         then:
-        1 * taskFactory.create(_ as TaskIdentity) >> { cTask }
         0 * aTask.getTaskDependencies()
         0 * bTask.getTaskDependencies()
-        0 * cTask.getTaskDependencies()
-        container.getByName("c") == cTask
     }
 
     void "invokes rule at most once when locating a task"() {
@@ -1263,48 +1259,6 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         0 * action._
     }
 
-    void "can add task via placeholder action"() {
-        when:
-        addPlaceholderTask("task")
-        1 * taskFactory.create(_ as TaskIdentity) >> { TaskIdentity identity, Object[] args -> task(identity.name, identity.type) }
-
-        then:
-        container.getByName("task") != null
-    }
-
-    void "placeholder is ignored when task already exists"() {
-        given:
-        Task task = addTask("task")
-        def placeholderAction = addPlaceholderTask("task")
-
-        when:
-        container.getByName("task") == task
-
-        then:
-        0 * placeholderAction.execute(_)
-    }
-
-    void "placeholder is ignored when task later defined"() {
-        given:
-        def placeholderAction = addPlaceholderTask("task")
-        Task task = addTask("task")
-
-        when:
-        container.getByName("task") == task
-
-        then:
-        0 * placeholderAction.execute(_)
-    }
-
-    void "getNames contains task and placeholder action names"() {
-        when:
-        addTask("task1")
-        def placeholderAction = addPlaceholderTask("task2")
-        0 * placeholderAction.execute(_)
-        then:
-        container.names == ['task1', 'task2'] as SortedSet
-    }
-
     void "maybeCreate creates new task"() {
         given:
         def task = task("task")
@@ -1472,8 +1426,9 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     }
 
     void "can remove eager created task and named provider update his state"() {
+        def task = task("task", CustomTask)
         given:
-        taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
+        taskFactory.create(_ as TaskIdentity) >> task
 
         and:
         def customTask = container.create("task", CustomTask)
@@ -1498,7 +1453,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'task' (Task) for this provider is no longer present in its container."
+        ex.message == "The domain object 'task' (${task.class.simpleName}) for this provider is no longer present in its container."
     }
 
     void "lazy task that is realized and then removed is not recreated on iteration"() {
@@ -1549,6 +1504,14 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
     final Class<SomeTask> type = SomeTask
     final Class<SomeOtherTask> otherType = SomeOtherTask
+
+    @Override
+    void setupContainerDefaults() {
+        taskFactory.create(_ as TaskIdentity) >> { args ->
+            def taskIdentity = args[0]
+            task(taskIdentity.name)
+        }
+    }
 
     @Override
     List<Task> iterationOrder(Task... elements) {
@@ -1988,12 +1951,6 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
             getTaskDependency() >> Mock(TaskDependency)
             getTaskIdentity() >> TaskIdentity.create(name, type, project)
         }
-    }
-
-    private Action addPlaceholderTask(String placeholderName) {
-        def action = Mock(Action)
-        container.addPlaceholderAction(placeholderName, DefaultTask, action)
-        action
     }
 
     private Task addTask(String name) {
