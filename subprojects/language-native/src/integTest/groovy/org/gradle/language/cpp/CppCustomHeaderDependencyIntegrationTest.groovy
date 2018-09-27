@@ -28,7 +28,6 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
         buildFile << """
             import javax.inject.Inject
-            import org.gradle.api.internal.file.FileOperations
 
             apply plugin: 'cpp-application'
             
