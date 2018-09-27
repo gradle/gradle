@@ -165,6 +165,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void configureEach(Action<? super T> action) {
+        assertMutable("configureEach(Action)");
         Action<? super T> wrappedAction = getMutationGuard().withMutationDisabled(action);
         eventRegister.registerLazyAddAction(wrappedAction);
 
