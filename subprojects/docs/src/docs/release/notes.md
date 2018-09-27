@@ -326,6 +326,7 @@ The left shift (`<<`) operator acted as an alias for adding a `doLast` action to
 - Removed the property `testClassesDir` from `Test`.
 - Removed the property `classesDir` from `SourceSetOutput`.
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
+- Removed `ConfigurableReport.setDestination(Object)`
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
