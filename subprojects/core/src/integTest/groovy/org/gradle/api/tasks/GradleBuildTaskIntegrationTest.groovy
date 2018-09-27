@@ -99,6 +99,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
             }
             classes.dependsOn(otherBuild)
         """
+        file('other/settings.gradle') << ""
         file('other/build.gradle') << """
             task build
         """
@@ -120,12 +121,14 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
                 tasks = ['otherBuild']
             }
         """
+        file('other/settings.gradle').touch()
         file('other/build.gradle') << """
             task otherBuild(type:GradleBuild) {
                 dir = '../other2'
                 tasks = ['build']
             }
         """
+        file('other2/settings.gradle').touch()
         file('other2/build.gradle') << """
             task build
         """

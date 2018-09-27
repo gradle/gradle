@@ -76,6 +76,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.disableConsistentWorkspaceIdCheck = true
 
         when:
+        file("other/settings.gradle").touch()
         buildScript """
             task t(type: GradleBuild) {
                 dir = file("other")
@@ -125,8 +126,8 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
     def "different project roots have different workspace ids"() {
         when:
-        file("a/build.gradle") << ""
-        file("b/build.gradle") << ""
+        file("a/settings.gradle") << ""
+        file("b/settings.gradle") << ""
         succeeds("help", "-p", "a")
         succeeds("help", "-p", "b")
 

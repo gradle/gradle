@@ -48,6 +48,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
                 throw new IllegalStateException("Couldn't delete file " + jarFile);
             }
         }
+        rootDir.file("settings.gradle").touch();
         rootDir.file("build.gradle").writelns(
                 "apply plugin: 'java'",
                 "dependencies { compile gradleApi() }",
