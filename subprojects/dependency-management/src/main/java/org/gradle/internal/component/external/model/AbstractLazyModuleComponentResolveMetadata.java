@@ -70,8 +70,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
      */
     protected void copyCachedState(AbstractLazyModuleComponentResolveMetadata metadata) {
         // Copy built-on-demand state
-        configurations.putAll(metadata.configurations);
+        metadata.copyCachedConfigurations(this.configurations);
         this.graphVariants = metadata.graphVariants;
+    }
+
+    private synchronized void copyCachedConfigurations(Map<String, ConfigurationMetadata> target) {
+        target.putAll(configurations);
     }
 
     protected VariantMetadataRules getVariantMetadataRules() {
