@@ -1,0 +1,10 @@
+task buildInfo(type: BuildInfo) {
+    version = project.version
+    outputFile = file("$buildDir/generated-resources/build-info.properties")
+}
+
+sourceSets {
+    main {
+        output.dir(buildInfo.outputFile.parentFile, builtBy: buildInfo)
+    }
+}

@@ -47,7 +47,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
     }
 
     private class Visitor extends ClassLoaderVisitor {
-        private final Hasher hasher = Hashing.md5().newHasher();
+        private final Hasher hasher = Hashing.newHasher();
         private boolean foundUnknown;
 
         @Override

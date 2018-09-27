@@ -2,6 +2,18 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
+
+<% if (binding.hasVariable("manyPlugins")) { (1..25).findAll { it % 3 == 0 }.each { %>
+    apply plugin: "org.gradle.build.gen${it}"
+    <% } %>
+    <% } %>
+
+
+<% if (binding.hasVariable("manyScripts")) { (1..30).findAll { it % 5 == 0 }.each { %>
+    apply from: "\${rootProject.projectDir.absolutePath}/gradle/script-plugin${it}.gradle"
+    <% } %>
+    <% } %>
+
 repositories {
 <% if (repository) { %>
     maven {
@@ -16,6 +28,7 @@ repositories {
         compile.extendsFrom projectsConfiguration
     }
 <% } %>
+
 
 <% if (binding.hasVariable("springDmPluginVersion")) {%>
 apply plugin: "io.spring.dependency-management"
@@ -40,7 +53,7 @@ dependencies {
     compile "${it.shortNotation()}" <% } %>
     <% } %>
     <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
-    projectsConfiguration project(":project${it}") <% } %>
+        projectsConfiguration project(":project${it}") <% } %>
     <% } %>
 }
 
@@ -52,40 +65,4 @@ test {
         }
     <% } %>
     maxParallelForks 2
-}
-
-<% if (groovyProject) { %>
-apply plugin: 'groovy'
-dependencies {
-    compile 'org.codehaus:groovy:groovy-all:2.4.10'
-}
-<% } %>
-
-<% if (scalaProject) { %>
-apply plugin: 'scala'
-dependencies {
-    compile 'org.scala-lang:scala-library:2.9.2'
-}
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.with {
-        useAnt = false
-        fork = true
-        forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
-    }
-}
-<% } %>
-
-<% if (binding.hasVariable("resolveDependenciesTask")) { %>
-task resolveDependencies {
-    dependsOn configurations.testRuntime
-    // Need this to ensure that configuration is actually resolved
-    doLast {
-        configurations.testRuntime.files.size()
-    }
-}
-<% } %>
-
-task dependencyReport(type: DependencyReportTask) {
-    outputs.upToDateWhen { false }
-    outputFile = new File(buildDir, "dependencies.txt")
 }

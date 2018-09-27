@@ -38,6 +38,7 @@ dependencies {
     compile(library("junit"))
     testLibraries("jmock").forEach { compile(it) }
     compile(testLibrary("spock"))
+    runtime(testLibrary("bytebuddy"))
     compile(testLibrary("jsoup"))
 }
 

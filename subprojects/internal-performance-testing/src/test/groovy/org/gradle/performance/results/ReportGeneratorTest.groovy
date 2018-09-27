@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.util.Git
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -28,6 +27,11 @@ class ReportGeneratorTest extends ResultSpecification {
     final ReportGenerator generator = new ReportGenerator()
     final dbFile = tmpDir.file("results")
     final reportDir = tmpDir.file("report")
+    final resultsJson = tmpDir.file('results.json')
+
+    def setup() {
+        resultsJson << '[]'
+    }
 
     def "generates report"() {
         setup:
@@ -38,64 +42,10 @@ class ReportGeneratorTest extends ResultSpecification {
         store.report(result2)
 
         when:
-        generator.generate(store, reportDir)
+        generator.generate(store, reportDir, resultsJson)
 
         then:
         reportDir.file("index.html").isFile()
-
-        cleanup:
-        store.close()
-    }
-
-    def "does not show tests without results for most recent commit in summary"() {
-        given:
-        long now = Calendar.getInstance().time.time
-        String currentCommitId = Git.current().commitId
-        def store = new CrossVersionResultsStore(dbFile.name)
-        def resultPrevOld = crossVersionResults()
-        def resultPrevExisting = crossVersionResults()
-        def resultExisting = crossVersionResults()
-        def resultNew = crossVersionResults()
-
-        resultPrevOld.vcsCommits = ['0001']
-        resultPrevOld.testId = 'Old Test'
-        resultPrevOld.current << operation()
-        resultPrevOld.current << operation()
-        resultPrevOld.startTime = now - 600
-        resultPrevOld.endTime = now - 400
-        store.report(resultPrevOld)
-
-        resultPrevExisting.vcsCommits = ['0001']
-        resultPrevExisting.testId = 'Existing Test'
-        resultPrevExisting.current << operation()
-        resultPrevExisting.current << operation()
-        resultPrevExisting.startTime = now - 600
-        resultPrevExisting.endTime = now - 400
-        store.report(resultPrevExisting)
-
-        resultExisting.vcsCommits = [currentCommitId]
-        resultExisting.testId = 'Existing Test'
-        resultExisting.current << operation()
-        resultExisting.current << operation()
-        resultExisting.startTime = now - 200
-        resultExisting.endTime = now
-        store.report(resultExisting)
-
-        resultNew.vcsCommits = [currentCommitId]
-        resultNew.testId = 'New Test'
-        resultNew.current << operation()
-        resultNew.current << operation()
-        resultNew.startTime = now - 300
-        resultNew.endTime = now - 100
-        store.report(resultNew)
-
-        when:
-        generator.generate(store, reportDir)
-
-        then:
-        !reportDir.file("index.html").text.contains('Test: Old Test')
-        reportDir.file("index.html").text.contains('Test: Existing Test')
-        reportDir.file("index.html").text.contains('Test: New Test')
 
         cleanup:
         store.close()

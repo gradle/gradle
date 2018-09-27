@@ -236,14 +236,6 @@ public class GFileUtils {
         }
     }
 
-    public static void writeStringToFile(File file, String data) {
-        try {
-            FileUtils.writeStringToFile(file, data);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public static void forceDelete(File file) {
         try {
             FileUtils.forceDelete(file);

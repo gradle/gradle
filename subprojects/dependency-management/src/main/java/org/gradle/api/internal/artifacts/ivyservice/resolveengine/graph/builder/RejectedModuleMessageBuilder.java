@@ -69,20 +69,22 @@ public class RejectedModuleMessageBuilder {
             return;
         }
 
-        VersionSelector preferredSelector = constraint.getPreferredSelector();
+        VersionSelector requiredSelector = constraint.getRequiredSelector();
         VersionSelector rejectedSelector = constraint.getRejectedSelector();
 
         if (rejectedSelector instanceof InverseVersionSelector) {
-            sb.append("' strictly '").append(preferredSelector.getSelector()).append("'");
+            sb.append("' strictly '").append(requiredSelector.getSelector()).append("'");
             return;
         }
 
-        if (!constraint.isPrefer()) {
-            sb.append(':');
-        } else {
-            sb.append("' prefers '");
+        if (requiredSelector != null) {
+            sb.append(':').append(requiredSelector.getSelector());
         }
-        sb.append(preferredSelector.getSelector()).append("'");
+        sb.append("'");
+
+        if (constraint.getPreferredSelector() != null) {
+            sb.append(" prefers '").append(constraint.getPreferredSelector().getSelector()).append("'");
+        }
 
         if (rejectedSelector == null) {
             return;

@@ -29,11 +29,14 @@ import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.*
 
 import accessors.base
+import org.gradle.api.file.FileCollection
+import org.gradle.api.model.ObjectFactory
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.kotlin.dsl.support.serviceOf
 
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.collections.set
 
 import java.io.File
@@ -50,7 +53,7 @@ class DistributionTestingPlugin : Plugin<Project> {
 
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
-            configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base)
+            configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base, rootProject.objects)
             addSetUpAndTearDownActions(gradle)
         }
     }
@@ -76,14 +79,21 @@ class DistributionTestingPlugin : Plugin<Project> {
     }
 
     private
-    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention) {
+    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention, objects: ObjectFactory) {
+
+        val projectDirectory = layout.projectDirectory
+
         // TODO: Replace this with something in the Gradle API to make this transition easier
-        fun dirWorkaround(directory: () -> File): Provider<Directory> =
-            layout.directoryProperty(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
+        fun dirWorkaround(directory: () -> File): Provider<Directory> = objects.directoryProperty().also {
+            it.set(projectDirectory.dir(providers.provider { directory().absolutePath }))
+        }
 
         gradleInstallationForTest.apply {
             val intTestImage: Sync by project.tasks
-            gradleUserHomeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
+            gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir"))
+            gradleGeneratedApiJarCacheDir.set(providers.provider {
+                projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$classpathHash")
+            })
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
             toolingApiShadedJarDir.set(dirWorkaround {
@@ -93,13 +103,21 @@ class DistributionTestingPlugin : Plugin<Project> {
             })
         }
 
-        libsRepository.dir.set(layout.projectDirectory.dir("build/repo"))
+        libsRepository.dir.set(projectDirectory.dir("build/repo"))
 
         binaryDistributions.apply {
-            distsDir.set(dirWorkaround({ basePluginConvention.distsDir }))
+            distsDir.set(dirWorkaround { basePluginConvention.distsDir })
             distZipVersion = project.version.toString()
         }
     }
+
+    private
+    val DistributionTest.classpathHash
+        get() = project.classPathHashOf(classpath)
+
+    private
+    fun Project.classPathHashOf(files: FileCollection) =
+        serviceOf<ClasspathHasher>().hash(DefaultClassPath.of(files))
 
     private
     fun DistributionTest.setJvmArgsOfTestJvm() {

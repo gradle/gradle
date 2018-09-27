@@ -1442,4 +1442,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     public FileCollection immutableFiles(Object... paths) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public ProjectState getMutationState() {
+        return services.get(ProjectStateRegistry.class).stateFor(this);
+    }
 }

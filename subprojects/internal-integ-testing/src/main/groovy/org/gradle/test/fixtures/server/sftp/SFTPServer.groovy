@@ -23,12 +23,14 @@ import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider
 import org.apache.sshd.common.subsystem.sftp.SftpConstants
 import org.apache.sshd.common.util.buffer.Buffer
 import org.apache.sshd.common.util.buffer.ByteArrayBuffer
-import org.apache.sshd.server.Command
 import org.apache.sshd.server.SshServer
 import org.apache.sshd.server.auth.password.PasswordAuthenticator
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
+import org.apache.sshd.server.command.Command
 import org.apache.sshd.server.scp.ScpCommandFactory
 import org.apache.sshd.server.session.ServerSession
+import org.apache.sshd.server.subsystem.sftp.SftpErrorStatusDataHandler
+import org.apache.sshd.server.subsystem.sftp.SftpFileSystemAccessor
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystem
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory
 import org.apache.sshd.server.subsystem.sftp.UnsupportedAttributePolicy
@@ -288,15 +290,12 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     class TestSftpSubsystem extends SftpSubsystem {
 
         TestSftpSubsystem() {
-            super(null, true, UnsupportedAttributePolicy.ThrowException)
+            super(null, true, UnsupportedAttributePolicy.ThrowException, SftpFileSystemAccessor.DEFAULT, SftpErrorStatusDataHandler.DEFAULT)
         }
 
         @Override
-        protected void process(Buffer buffer) throws IOException {
+        protected void doProcess(Buffer buffer, int length, int type, int id) throws IOException {
             int originalBufferPosition = buffer.rpos()
-            int length = buffer.getInt()
-            int type = buffer.getByte()
-            int id = buffer.getInt()
 
             int pos = buffer.rpos()
             def command = commandMessage(buffer, type)
@@ -306,18 +305,18 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
             def matched = expectations.find { it.matches(buffer, type, id) }
             if (matched) {
                 if (matched.failing) {
-                    sendStatus(new ByteArrayBuffer(), id, SftpConstants.SSH_FX_FAILURE, "Failure")
+                    sendStatus(prepareReply(new ByteArrayBuffer()), id, SftpConstants.SSH_FX_FAILURE, "Failure")
                     buffer.rpos(originalBufferPosition + length)
                 } else if (matched.missing) {
-                    sendStatus(new ByteArrayBuffer(), id, SftpConstants.SSH_FX_NO_SUCH_FILE, "No such file")
+                    sendStatus(prepareReply(new ByteArrayBuffer()), id, SftpConstants.SSH_FX_NO_SUCH_FILE, "No such file")
                     buffer.rpos(originalBufferPosition + length)
                 } else {
                     buffer.rpos(originalBufferPosition)
-                    super.process(buffer)
+                    super.doProcess(buffer, length, type, id)
                 }
             } else {
                 onFailure(new AssertionError("Unexpected SFTP command: $command"))
-                sendStatus(buffer, id, SftpConstants.SSH_FX_FAILURE, "Unexpected command")
+                sendStatus(prepareReply(new ByteArrayBuffer()), id, SftpConstants.SSH_FX_FAILURE, "Unexpected command")
                 buffer.rpos(originalBufferPosition + length)
             }
         }

@@ -16,16 +16,18 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+
 import javax.annotation.Nullable;
 
-public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractLockableProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private PropertyInternal<T> delegate;
     private boolean locked;
     private T value;
     private Class<T> type;
     private String realizedToString;
 
-    public AbstractLockableProperty(PropertyInternal<T> delegate) {
+    protected AbstractLockableProperty(PropertyInternal<T> delegate) {
         this.delegate = delegate;
     }
 
@@ -41,10 +43,37 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
         return locked ? type : delegate.getType();
     }
 
+    @Override
+    public T get() {
+        if (locked) {
+            if (value == null) {
+                throw new IllegalStateException(Providers.NULL_VALUE);
+            }
+            return value;
+        } else {
+            return delegate.get();
+        }
+    }
+
+    @Override
+    public boolean isPresent() {
+        return locked ? value != null : delegate.isPresent();
+    }
+
     @Nullable
     @Override
     public T getOrNull() {
         return locked ? value : delegate.getOrNull();
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return delegate.maybeVisitBuildDependencies(context);
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        delegate.visitDependencies(context);
     }
 
     public void lockNow() {

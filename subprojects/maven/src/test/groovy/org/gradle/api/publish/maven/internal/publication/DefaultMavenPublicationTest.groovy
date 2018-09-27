@@ -28,7 +28,9 @@ import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
@@ -44,6 +46,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultMavenPublicationTest extends Specification {
     @Rule
@@ -241,6 +244,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
+        moduleDependency.attributes >> ImmutableAttributes.EMPTY
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -270,6 +274,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> false
+        moduleDependency.attributes >> ImmutableAttributes.EMPTY
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -286,6 +291,38 @@ class DefaultMavenPublicationTest extends Specification {
             excludeRules[0].group == '*'
             excludeRules[0].module == '*'
         }
+    }
+
+    @Unroll
+    def 'adopts platform in #scope declaration from added components'() {
+        given:
+        def publication = createPublication()
+        def moduleDependency = Mock(ModuleDependency)
+
+        when:
+        moduleDependency.group >> "group"
+        moduleDependency.name >> "name"
+        moduleDependency.version >> "version"
+        moduleDependency.artifacts >> []
+        moduleDependency.excludeRules >> []
+        moduleDependency.transitive >> true
+        moduleDependency.attributes >> platformAttribute()
+
+        and:
+        publication.from(createComponent([], [moduleDependency], scope))
+
+        then:
+        publication.importDependencyConstraints.size() == 1
+        with(publication.importDependencyConstraints.asList().first()) {
+            groupId == "group"
+            artifactId == "name"
+            version == "version"
+            artifacts == []
+            excludeRules == []
+        }
+
+        where:
+        scope << ['runtime', 'api']
     }
 
     def "maps project dependency to maven dependency"() {
@@ -468,8 +505,12 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies) {
+        return createComponent(artifacts, dependencies, 'runtime')
+    }
+
+    def createComponent(def artifacts, def dependencies, def scope) {
         def usage = Stub(UsageContext) {
-            getName() >> "runtime"
+            getName() >> scope
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
         }
@@ -484,5 +525,9 @@ class DefaultMavenPublicationTest extends Specification {
         pub.name >> name
         pub.coordinates >> new DefaultModuleVersionIdentifier(group, artifactId, version)
         return pub
+    }
+
+    def platformAttribute() {
+        return TestUtil.attributes([(PlatformSupport.COMPONENT_CATEGORY.name) : PlatformSupport.REGULAR_PLATFORM])
     }
 }

@@ -9,7 +9,7 @@ dependencyLocking {
 // end::locking-all[]
 
 // tag::resolve-all[]
-tasks.create("resolveAndLockAll") {
+task("resolveAndLockAll") {
     doFirst {
         require(gradle.startParameter.isWriteDependencyLocks)
     }

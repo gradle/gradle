@@ -37,7 +37,7 @@ import java.util.Set;
  */
 @NonNullApi
 public class SourceTask extends ConventionTask implements PatternFilterable {
-    protected final List<Object> source = new ArrayList<Object>();
+    private final List<Object> source = new ArrayList<Object>();
     private final PatternFilterable patternSet;
 
     public SourceTask() {

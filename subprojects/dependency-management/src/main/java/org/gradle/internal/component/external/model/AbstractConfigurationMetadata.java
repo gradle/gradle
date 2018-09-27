@@ -23,13 +23,13 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -39,17 +39,19 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
-    private final ImmutableList<String> hierarchy;
+    private final ImmutableSet<String> hierarchy;
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
+
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
+    private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableList<String> hierarchy,
-                                         ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
+                                  ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+                                  ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+                                  ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
 
         this.componentId = componentId;
         this.name = name;
@@ -60,6 +62,24 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.excludes = excludes;
         this.attributes = attributes;
         this.configDependencies = configDependencies;
+        this.capabilities = capabilities;
+    }
+
+    AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+                                  ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+                                  ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+                                  Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+                                  ImmutableCapabilities capabilities) {
+
+        this.componentId = componentId;
+        this.name = name;
+        this.transitive = transitive;
+        this.visible = visible;
+        this.artifacts = artifacts;
+        this.hierarchy = hierarchy;
+        this.excludes = excludes;
+        this.attributes = attributes;
+        this.configDependenciesFactory = configDependenciesFactory;
         this.capabilities = capabilities;
     }
 
@@ -79,7 +99,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     }
 
     @Override
-    public Collection<String> getHierarchy() {
+    public ImmutableSet<String> getHierarchy() {
         return hierarchy;
     }
 
@@ -108,8 +128,14 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.configDependencies = ImmutableList.copyOf(dependencies);
     }
 
+    public void setConfigDependenciesFactory(Factory<List<ModuleDependencyMetadata>> dependenciesFactory) {
+        assert this.configDependencies == null; // Can only set once: should really be part of the constructor
+        assert this.configDependenciesFactory == null; // Can only set once: should really be part of the constructor
+        this.configDependenciesFactory = dependenciesFactory;
+    }
+
     @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifacts() {
+    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifacts() {
         return artifacts;
     }
 
@@ -139,6 +165,10 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     }
 
     ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {
+        if (configDependenciesFactory != null) {
+            configDependencies = ImmutableList.copyOf(configDependenciesFactory.create());
+            configDependenciesFactory = null;
+        }
         return configDependencies;
     }
 

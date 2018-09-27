@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsInternal;
@@ -90,6 +90,6 @@ public class DaemonForkOptions {
     }
 
     public String toString() {
-        return Objects.toStringHelper(this).add("executable", forkOptions.getExecutable()).add("minHeapSize", forkOptions.getMinHeapSize()).add("maxHeapSize", forkOptions.getMaxHeapSize()).add("jvmArgs", forkOptions.getJvmArgs()).add("classpath", classpath).add("keepAliveMode", keepAliveMode).toString();
+        return MoreObjects.toStringHelper(this).add("executable", forkOptions.getExecutable()).add("minHeapSize", forkOptions.getMinHeapSize()).add("maxHeapSize", forkOptions.getMaxHeapSize()).add("jvmArgs", forkOptions.getJvmArgs()).add("classpath", classpath).add("keepAliveMode", keepAliveMode).toString();
     }
 }

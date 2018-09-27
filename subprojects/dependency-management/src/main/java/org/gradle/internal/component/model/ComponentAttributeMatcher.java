@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -27,8 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -36,6 +39,13 @@ import java.util.List;
  */
 public class ComponentAttributeMatcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentAttributeMatcher.class);
+
+    /**
+     * Attribute matching can be very expensive. In case there are multiple candidates, we
+     * cache the result of the query, because it's often the case that we ask for the same
+     * disambiguation of attributes several times in a row (but with different candidates).
+     */
+    private CachedQuery lastQuery;
 
     /**
      * Determines whether the given candidate is compatible with the requested criteria, according to the given schema.
@@ -119,12 +129,104 @@ public class ComponentAttributeMatcher {
         }
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
-
+        CachedQuery query = CachedQuery.of(schema, requestedAttributes, candidates);
+        if (query.equals(lastQuery)) {
+            return lastQuery.select(candidates);
+        }
         List<T> matches = new MultipleCandidateMatcher<T>(schema, candidates, requestedAttributes).getMatches();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidates, requested);
         }
+        cacheMatchingResult(candidates, query, matches);
         return matches;
     }
 
+    private synchronized <T extends HasAttributes> void cacheMatchingResult(Collection<? extends T> candidates, CachedQuery query, List<T> matches) {
+        int[] queryResult;
+        if (matches.isEmpty()) {
+            queryResult = new int[0];
+        } else {
+            queryResult = new int[matches.size()];
+            int i = 0;
+            int j = 0;
+            Iterator<T> resultIterator = matches.iterator();
+            T next = resultIterator.next();
+            for (T candidate : candidates) {
+                if (candidate == next) {
+                    queryResult[i++] = j;
+                    if (resultIterator.hasNext()) {
+                        next = resultIterator.next();
+                    } else {
+                        break;
+                    }
+                }
+                j++;
+            }
+        }
+        query.index = queryResult;
+        lastQuery = query;
+    }
+
+    private static class CachedQuery {
+        private final AttributeSelectionSchema schema;
+        private final ImmutableAttributes requestedAttributes;
+        private final ImmutableAttributes[] candidates;
+
+        private volatile int[] index;
+
+        private CachedQuery(AttributeSelectionSchema schema, ImmutableAttributes requestedAttributes, ImmutableAttributes[] candidates) {
+            this.schema = schema;
+            this.requestedAttributes = requestedAttributes;
+            this.candidates = candidates;
+        }
+
+        public static <T extends HasAttributes> CachedQuery of(AttributeSelectionSchema schema, ImmutableAttributes requestedAttributes, Collection<T> candidates) {
+            ImmutableAttributes[] attributes = new ImmutableAttributes[candidates.size()];
+            int i = 0;
+            for (T candidate : candidates) {
+                attributes[i++] = ((AttributeContainerInternal)candidate.getAttributes()).asImmutable();
+            }
+            return new CachedQuery(schema, requestedAttributes, attributes);
+        }
+
+        public <T extends HasAttributes> List<T> select(Collection<? extends T> unfiltered) {
+            if (index.length == 0) {
+                return Collections.emptyList();
+            }
+            List<T> result = Lists.newArrayListWithCapacity(index.length);
+            int i = 0;
+            int j = 0;
+            int k = index[j];
+            for (T t : unfiltered) {
+                if (i == k) {
+                    result.add(t);
+                    if (result.size() == index.length) {
+                        break;
+                    }
+                    k = index[++j];
+                }
+                i++;
+            }
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            CachedQuery that = (CachedQuery) o;
+            return schema.equals(that.schema) &&
+                requestedAttributes.equals(that.requestedAttributes) &&
+                Arrays.equals(candidates, that.candidates);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(schema, requestedAttributes, candidates);
+        }
+    }
 }

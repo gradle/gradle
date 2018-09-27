@@ -41,11 +41,11 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     VersionConstraint version(String version) {
-        DefaultImmutableVersionConstraint.of(version, version, '', [])
+        DefaultImmutableVersionConstraint.of(version)
     }
 
     VersionConstraint requires(String version) {
-        DefaultImmutableVersionConstraint.of(version, version, '', [])
+        DefaultImmutableVersionConstraint.of(version)
     }
 
     VersionConstraint prefers(String version) {
@@ -53,7 +53,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     VersionConstraint strictly(String version) {
-        DefaultImmutableVersionConstraint.of(version, version, version, [])
+        DefaultImmutableVersionConstraint.of('', version, version, [])
     }
 
     VersionConstraint prefersAndStrictly(String prefers, String strictly) {
@@ -61,7 +61,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
-        DefaultImmutableVersionConstraint.of(version, '', "", rejects)
+        DefaultImmutableVersionConstraint.of(version, version, "", rejects)
     }
 
     List<Exclude> excludes(String... input) {
@@ -241,7 +241,7 @@ class ModuleMetadataParserTest extends Specification {
                 "dependencies": [ 
                     { "module": "m3", "group": "g3", "version": { "prefers": "v3" }},
                     { "module": "m4", "version": { "strictly": "v5" }, "group": "g4"},
-                    { "module": "m5", "version": { "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
+                    { "module": "m5", "version": { "prefers": "v5", "requires": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
                     { "module": "m6", "group": "g6", "version": { "strictly": "v6" }, "reason": "v5 is buggy"}
                 ],
                 "name": "runtime"
@@ -291,8 +291,8 @@ class ModuleMetadataParserTest extends Specification {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "dependencyConstraints": [ 
                     { "module": "m3", "group": "g3", "version": { "prefers": "v3" }},
-                    { "module": "m4", "version": { "prefers": "v4", "rejects": ["v5"] }, "group": "g4"},
-                    { "module": "m5", "version": { "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
+                    { "module": "m4", "version": { "prefers": "v4", "requires": "v4", "rejects": ["v5"] }, "group": "g4"},
+                    { "module": "m5", "version": { "requires": "v5", "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
                     { "module": "m6", "group": "g6", "version": { "prefers": "v6" }, "reason": "v5 is buggy"}
                 ],
                 "name": "runtime"

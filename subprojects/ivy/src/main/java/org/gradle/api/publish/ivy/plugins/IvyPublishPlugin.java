@@ -134,7 +134,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
             }
         });
-        tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME).configure(new Action<Task>() {
+        tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(publishTaskName);

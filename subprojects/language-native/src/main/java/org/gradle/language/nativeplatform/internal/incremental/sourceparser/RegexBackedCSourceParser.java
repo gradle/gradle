@@ -19,7 +19,6 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
@@ -48,13 +47,8 @@ import java.util.Set;
 public class RegexBackedCSourceParser implements CSourceParser {
     @Override
     public IncludeDirectives parseSource(File sourceFile) {
-        try {
-            Reader fileReader = new FileReader(sourceFile);
-            try {
-                return parseSource(fileReader);
-            } finally {
-                IOUtils.closeQuietly(fileReader);
-            }
+        try (Reader fileReader = new FileReader(sourceFile)) {
+            return parseSource(fileReader);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not extract includes from source file %s.", sourceFile), e);
         }

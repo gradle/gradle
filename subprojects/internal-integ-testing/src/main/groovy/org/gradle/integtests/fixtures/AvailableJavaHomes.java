@@ -80,6 +80,11 @@ public abstract class AvailableJavaHomes {
     }
 
     @Nullable
+    public static Jvm getJdk9() {
+        return getJdk(JavaVersion.VERSION_1_9);
+    }
+
+    @Nullable
     public static Jvm getJdk(final JavaVersion version) {
         return Iterables.getFirst(getAvailableJdks(version), null);
     }

@@ -305,7 +305,7 @@ class TestCapability implements Capability {
             dependencies {
                 implementation("org:foo") {
                     version {
-                        prefer '1.0'
+                        require '1.0'
                         reject '1.1', '[1.3,1.4]'
                     }
                 }
@@ -336,8 +336,7 @@ class TestCapability implements Capability {
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == null
-        variant.dependencies[0].prefers == '1.0'
+        variant.dependencies[0].version == '1.0'
         variant.dependencies[0].rejectsVersion == ['1.1', '[1.3,1.4]']
 
         variant.dependencies[1].group == 'org'

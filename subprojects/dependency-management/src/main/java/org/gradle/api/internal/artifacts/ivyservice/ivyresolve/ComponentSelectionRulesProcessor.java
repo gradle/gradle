@@ -42,7 +42,7 @@ public class ComponentSelectionRulesProcessor {
     };
     private final Spec<SpecRuleAction<? super ComponentSelection>> withInputs = Specs.negate(withNoInputs);
 
-    public void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
+    void apply(ComponentSelectionInternal selection, Collection<SpecRuleAction<? super ComponentSelection>> specRuleActions, MetadataProvider metadataProvider) {
         if (processRules(specRuleActions, withNoInputs, selection, metadataProvider)) {
             processRules(specRuleActions, withInputs, selection, metadataProvider);
         }

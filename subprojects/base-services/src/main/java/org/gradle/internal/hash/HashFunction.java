@@ -17,11 +17,27 @@
 package org.gradle.internal.hash;
 
 /**
- * Hash function that can create new {@link Hasher}s on demand.
+ * Hash function that can create new {@link Hasher}s and {@link PrimitiveHasher}s on demand.
  * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public interface HashFunction {
+    /**
+     * Returns a primitive hasher using the hash function.
+     */
+    PrimitiveHasher newPrimitiveHasher();
+
+    /**
+     * Returns a prefixing hasher using the hash function.
+     */
     Hasher newHasher();
+
+    /**
+     * Hash the given bytes using the hash function.
+     */
     HashCode hashBytes(byte[] bytes);
+
+    /**
+     * Hash the given string using the hash function.
+     */
     HashCode hashString(CharSequence string);
 }

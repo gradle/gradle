@@ -20,13 +20,16 @@ import accessors.eclipse
 import accessors.idea
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
+import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
+import org.gradle.gradlebuild.ProjectGroups.projectsRequiringLanguageLevel8
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.kotlin.dsl.*
@@ -35,8 +38,22 @@ import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModule
+import org.gradle.plugins.ide.idea.model.IdeaProject
+import org.jetbrains.gradle.ext.Application
+import org.jetbrains.gradle.ext.CodeStyleConfig
+import org.jetbrains.gradle.ext.CopyrightConfiguration
+import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
+import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
+import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
+import org.jetbrains.gradle.ext.Inspection
+import org.jetbrains.gradle.ext.JUnit
+import org.jetbrains.gradle.ext.Make
+import org.jetbrains.gradle.ext.ProjectSettings
+import org.jetbrains.gradle.ext.Remote
+import org.jetbrains.gradle.ext.RunConfiguration
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -47,6 +64,36 @@ import java.io.File
 
 private
 const val ideConfigurationBaseName = "ideConfiguration"
+
+
+private
+const val javaCompilerHeapSpace = 3072
+
+
+// Disable Java 7 inspections because some parts of the codebase still need
+// to run on Java 6
+private
+val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
+
+
+object GradleCopyright {
+    val profileName = "ASL2"
+    val keyword = "Copyright"
+    val notice =
+        """Copyright ${"$"}{today.year} the original author or authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License."""
+}
 
 
 open class IdePlugin : Plugin<Project> {
@@ -93,6 +140,7 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureIdeaForAllProjects() = allprojects {
         apply(plugin = "idea")
+        apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
         idea {
             module {
                 configureLanguageLevel(this)
@@ -112,6 +160,7 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun Project.configureIdeaForRootProject() {
+        val rootProject = this
         idea {
             module {
                 excludeDirs = excludeDirs + rootExcludeDirs
@@ -133,6 +182,8 @@ open class IdePlugin : Plugin<Project> {
                             // In doing so, tags in the code style settings are ignored.
                             projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
                                 .configureCodeStyleSettings()
+                            projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
+                                .configureInspectionSettings()
 
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
@@ -153,17 +204,33 @@ open class IdePlugin : Plugin<Project> {
                             withJsoup { document ->
                                 val projectElement = document.getElementsByTag("project").first()
                                 projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                    .option("COMPILER_PROCESS_HEAP_SIZE", "2048")
+                                    .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
-                                configureJunitRunConfiguration(runManagerComponent)
+                                updateJUnitRunConfigurationsOf(runManagerComponent)
                                 configureGradleRunConfigurations(runManagerComponent)
                             }
                         }
                     }
                 }
+
+                settings {
+                    configureCompilerSettings(rootProject)
+                    configureCopyright()
+                    configureCodeStyle()
+                    // TODO The idea-ext plugin does not yet support customizing inspections.
+                    // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
+                    // configureInspections()
+                    configureRunConfigurations(rootProject)
+                    doNotDetectFrameworks("android", "web")
+                    delegateActions {
+                        delegateBuildRunToGradle = false
+                        testRunner = ActionDelegationConfig.TestRunner.PLATFORM
+                    }
+                }
             }
         }
+        configureJUnitDefaults()
     }
 
     private
@@ -213,15 +280,83 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureJunitRunConfiguration(runManagerComponent: org.jsoup.nodes.Element) {
-        val junitConfiguration = runManagerComponent.select("configuration[type=JUnit]").first()
-        val junitVmParametersOption = junitConfiguration.select("option[name=VM_PARAMETERS]").first()
-        junitVmParametersOption.attr("value", getDefaultJunitVmParameter(project("docs")))
-        val lang = System.getenv("LANG") ?: "en_US.UTF-8"
-        junitConfiguration.select("envs").first()
-            .createOrEmptyOutChildElement("env")
-            .attr("name", "LANG")
-            .attr("value", lang)
+    fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
+        runConfigurations {
+            val gradleRunners = mapOf(
+                "Regenerate IDEA metadata" to "idea",
+                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
+            )
+            gradleRunners.forEach { (name, tasks) ->
+                create<Application>(name) {
+                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
+                    programParameters = tasks
+                    workingDirectory = rootProject.projectDir.absolutePath
+                    moduleName = "internalTesting"
+                    envs = mapOf("TERM" to "xterm")
+                    beforeRun {
+                        create<Make>("make") {
+                            enabled = false
+                        }
+                    }
+                }
+            }
+            create<Remote>("Remote debug port 5005") {
+                mode = Remote.RemoteMode.ATTACH
+                transport = Remote.RemoteTransport.SOCKET
+                sharedMemoryAddress = "javadebug"
+                host = "localhost"
+                port = 5005
+            }
+        }
+    }
+
+    private
+    fun Project.updateJUnitRunConfigurationsOf(runManagerComponent: org.jsoup.nodes.Element) {
+        val junitVmParameters = getDefaultJunitVmParameters(docsProject())
+        runManagerComponent.select("configuration[type=JUnit]").forEach {
+            updateJUnitRunConfiguration(it, junitVmParameters)
+        }
+    }
+
+    private
+    fun updateJUnitRunConfiguration(junitConfiguration: Element, junitVmParameters: String) {
+        junitConfiguration.apply {
+            select("option[name=VM_PARAMETERS]").first()
+                .attr("value", junitVmParameters)
+            select("envs").first()
+                .createOrEmptyOutChildElement("env")
+                .attr("name", "LANG")
+                .attr("value", lang)
+        }
+    }
+
+    private
+    fun Project.docsProject() =
+        project(":docs")
+
+    private
+    val lang: String
+        get() = System.getenv("LANG") ?: "en_US.UTF-8"
+
+    private
+    fun Project.configureJUnitDefaults() {
+        val rootProject = this
+        val docsProject = docsProject()
+        docsProject.afterEvaluate {
+            rootProject.idea {
+                project {
+                    settings {
+                        runConfigurations {
+                            create<JUnit>("defaults") {
+                                defaults = true
+                                vmParameters = getDefaultJunitVmParameters(docsProject)
+                                envs = mapOf("LANG" to lang)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private
@@ -244,9 +379,9 @@ open class IdePlugin : Plugin<Project> {
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
         val ideaLanguageLevel =
-            if (ideaModule.project in projectsRequiringJava8) "1.8"
-            else "1.6"
-        // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
+            if (ideaModule.project in projectsRequiringLanguageLevel8) "1.8"
+            else "1.7"
+        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
@@ -316,16 +451,29 @@ open class IdePlugin : Plugin<Project> {
     fun configureCopyright(root: Element) {
         val options = mapOf(
             // TODO Get rid of {newline} and the replacement hack by using a better XML parser / writer
-            "notice" to "Copyright ${'$'}{today.year} the original author or authors.{newline}{newline}Licensed under the Apache License, Version 2.0 (the \"License\");{newline}you may not use this file except in compliance with the License.{newline}You may obtain a copy of the License at{newline}{newline}     http://www.apache.org/licenses/LICENSE-2.0{newline}{newline}Unless required by applicable law or agreed to in writing, software{newline}distributed under the License is distributed on an \"AS IS\" BASIS,{newline}WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.{newline}See the License for the specific language governing permissions and{newline}limitations under the License.",
-            "keyword" to "Copyright",
+            "notice" to GradleCopyright.notice.replace("\n", "{newline}"),
+            "keyword" to GradleCopyright.keyword,
             "allowReplaceKeyword" to "",
-            "myName" to "ASL2",
+            "myName" to GradleCopyright.profileName,
             "myLocal" to "true")
         val copyrightManager = root.select("component[name=CopyrightManager]").first()
-        copyrightManager.attr("default", "ASL2")
+        copyrightManager.attr("default", GradleCopyright.profileName)
         copyrightManager.createOrEmptyOutChildElement("copyright").let {
             options.forEach { name, value ->
                 it.option(name, value)
+            }
+        }
+    }
+
+    private
+    fun ProjectSettings.configureCopyright() {
+        copyright {
+            useDefault = GradleCopyright.profileName
+            profiles {
+                create(GradleCopyright.profileName) {
+                    notice = GradleCopyright.notice
+                    keyword = GradleCopyright.keyword
+                }
             }
         }
     }
@@ -335,9 +483,22 @@ open class IdePlugin : Plugin<Project> {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
         compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
-            .option("BUILD_PROCESS_HEAP_SIZE", "2048")
+            .option("BUILD_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
         compilerConfiguration.removeBySelector("option[name=USE_RELEASE_OPTION]")
             .option("USE_RELEASE_OPTION", "false")
+    }
+
+    private
+    fun ProjectSettings.configureCompilerSettings(project: Project) {
+        compiler {
+            processHeapSize = javaCompilerHeapSpace
+            useReleaseOption = false
+        }
+        groovyCompiler {
+            excludes {
+                file("${project.rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
+            }
+        }
     }
 
     private
@@ -366,7 +527,7 @@ open class IdePlugin : Plugin<Project> {
 
     @Suppress("UNCHECKED_CAST")
     private
-    fun getDefaultJunitVmParameter(docsProject: Project): String {
+    fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
         val releaseNotesMarkdown: PegDown by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
@@ -376,6 +537,7 @@ open class IdePlugin : Plugin<Project> {
             "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.destinationDir.resolve(releaseNotes.property("fileName") as String)}",
             "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
             "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
+            "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",
             "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
             "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
             "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
@@ -393,7 +555,7 @@ open class IdePlugin : Plugin<Project> {
             vmParameter.add("-XX:MaxPermSize=512m")
         }
         return vmParameter.joinToString(" ") {
-            if (it.contains(" ")) "\"$it\""
+            if (it.contains(" ") || it.contains("\$")) "\"$it\""
             else it
         }
     }
@@ -406,6 +568,34 @@ val Project.rootExcludeDirs
         file("intTestHomeDir"),
         file("buildSrc/build"),
         file("buildSrc/.gradle"))
+
+
+fun IdeaProject.settings(configuration: ProjectSettings.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.compiler(configuration: IdeaCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
+    this.apply(configuration)
+}
+
+
+fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
+    (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
+}
 
 
 private
@@ -483,6 +673,77 @@ fun Element.configureCodeStyleSettings() {
         "JD_KEEP_EMPTY_RETURN" to "false"
     ).forEach { (name, value) ->
         javaCodeStyleSettings.option(name, value)
+    }
+}
+
+
+private
+fun Element.configureInspectionSettings() {
+    val config = appendElement("component")
+        .attr("name", "InspectionProjectProfileManager")
+
+    val profile = config.appendElement("profile")
+        .attr("version", "1.0")
+    profile.option("myName", "Project Default")
+
+    disabledInspections.forEach { profile.inspectionTool(it) }
+
+    config.appendElement("version")
+        .attr("value", "1.0")
+}
+
+
+private
+fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled: Boolean = false) {
+    appendElement("inspection_tool")
+        .attr("class", clazz)
+        .attr("enabled", enabled.toString())
+        .attr("level", level)
+        .attr("enabled_by_default", "false")
+}
+
+
+private
+fun ProjectSettings.configureCodeStyle() {
+    codeStyle {
+        @Suppress("DEPRECATION")
+        USE_SAME_INDENTS = true // deprecated!
+        hardWrapAt = 200
+        java {
+            classCountToUseImportOnDemand = 999
+            alignParameterDescriptions = false
+            alignThrownExceptionDescriptions = false
+            keepEmptyParamTags = false
+            keepEmptyThrowsTags = false
+            keepEmptyReturnTags = false
+            wrapCommentsAtRightMargin = true
+            keepControlStatementInOneLine = false
+            generatePTagOnEmptyLines = false
+            ifForceBraces = FORCE_BRACES_ALWAYS
+            doWhileForceBraces = FORCE_BRACES_ALWAYS
+            whileForceBraces = FORCE_BRACES_ALWAYS
+            forForceBraces = FORCE_BRACES_ALWAYS
+        }
+        groovy {
+            classCountToUseImportOnDemand = 999
+            alignMultilineNamedArguments = false
+            ifForceBraces = FORCE_BRACES_ALWAYS
+            doWhileForceBraces = FORCE_BRACES_ALWAYS
+            whileForceBraces = FORCE_BRACES_ALWAYS
+            forForceBraces = FORCE_BRACES_ALWAYS
+        }
+    }
+}
+
+
+private
+fun ProjectSettings.configureInspections() {
+    inspections {
+        disabledInspections.forEach { name ->
+            create(name) {
+                enabled = false
+            }
+        }
     }
 }
 

@@ -29,7 +29,6 @@ import java.util.Set;
  * timestamp, files and directory at the supplied depth within the supplied base
  * directory.
  */
-@SuppressWarnings("Since15")
 public class SingleDepthFileAccessTracker implements FileAccessTracker {
 
     private final Path baseDir;

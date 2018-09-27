@@ -18,12 +18,20 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.internal.metaobject.ConfigureDelegate
+import org.gradle.util.ConfigureUtil
+import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
+import static org.hamcrest.Matchers.startsWith
+import static org.junit.Assert.assertThat
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     abstract DomainObjectCollection<T> getContainer()
@@ -52,6 +60,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     void containerAllowsExternalProviders() {
         Assume.assumeTrue("the container doesn't allow external provider to be added", isExternalProviderAllowed())
+    }
+
+    Class<? extends DomainObjectCollection<T>> getContainerPublicType() {
+        return new DslObject(container).publicType.concreteClass
     }
 
     def setup() {
@@ -1295,21 +1307,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(a)
     }
 
-    def "can mutate the container inside a configureEach action"() {
-        given:
-        container.add(a)
-        container.add(b)
-        container.add(c)
-
-        when:
-        container.configureEach {
-            container.add(d)
-        }
-
-        then:
-        toList(container) == [a, b, c, d]
-    }
-
     def "provider of iterable is queried but elements not configured when lazy action is registered on non-matching filter"() {
         containerAllowsExternalProviders()
         def action = Mock(Action)
@@ -1430,5 +1427,149 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         and:
         1 * action.execute(a)
         0 * action.execute(_)
+    }
+
+    void setupContainerDefaults() {}
+
+    @Unroll
+    def "disallow mutating from common methods when #mutatingMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        String methodUnderTest = mutatingMethods.key
+        Closure method = bind(mutatingMethods.value)
+
+        when:
+        container.configureEach(method)
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).configureEach(method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        where:
+        mutatingMethods << getMutatingMethods()
+    }
+
+    protected Map<String, Closure> getMutatingMethods() {
+        // TODO:
+        // "addLater(Provider)"    | { it.addLater(Providers.of(b)) }
+        // "addAllLater(Provider)" | { it.addAllLater(Providers.collectionOf(b)) }
+        return [
+            "add(T)": { container.add(b) },
+            "addAll(Collection<T>)": { container.addAll([b]) },
+            "clear()": { container.clear() },
+            "remove(Object)": { container.remove(b) },
+            "removeAll(Collection)": { container.removeAll([b]) },
+            "retainAll(Collection)": { container.retainAll([b]) },
+            "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
+        ]
+    }
+
+    protected void assertDoesNotAllowMethod(Throwable exception, String methodUnderTest) {
+        String message = "${containerPublicType.simpleName}#${methodUnderTest} on ${container.toString()} cannot be executed in the current context."
+        List<Throwable> causes = new ArrayList<Throwable>()
+        while (exception != null) {
+            causes.add(exception)
+            exception = exception.cause
+        }
+        assertThat(causes, Matchers.hasItem(hasMessage(startsWith(message))))
+    }
+
+    @Unroll
+    def "allow common querying methods when #queryMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(queryMethods.value)
+
+        when:
+        container.configureEach(method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).configureEach(method)
+        then:
+        noExceptionThrown()
+
+        where:
+        queryMethods << getQueryMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key on filtered container by type"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.withType(container.type).all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key on filtered container by spec"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.matching({ it in container.type }).all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    protected Map<String, Closure> getQueryMethods() {
+        return [
+            "contains(Object)": { container.contains(b) },
+            "iterator().next()": { def iter = container.iterator(); iter.next() },
+        ]
+    }
+
+    protected Closure bind(Closure delegateClosure) {
+        def thiz = this
+        return {
+            ConfigureUtil.configureSelf(delegateClosure, it, new ConfigureDelegate(delegateClosure, thiz))
+        }
+    }
+
+    protected Closure noReentry(Closure delegateClosure) {
+        boolean entryAllowed = true
+        return {
+            if (entryAllowed) {
+                boolean oldEntryAllowed = entryAllowed
+                entryAllowed = false
+                try {
+                    ConfigureUtil.configure(delegateClosure, it)
+                } finally {
+                    entryAllowed = oldEntryAllowed
+                }
+            }
+        }
     }
 }

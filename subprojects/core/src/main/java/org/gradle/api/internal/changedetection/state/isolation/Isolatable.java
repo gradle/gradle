@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.isolation;
 
-import org.gradle.api.internal.changedetection.state.Hashable;
+import org.gradle.internal.hash.Hashable;
 
 import javax.annotation.Nullable;
 

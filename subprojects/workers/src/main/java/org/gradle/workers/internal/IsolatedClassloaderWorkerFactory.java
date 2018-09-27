@@ -95,7 +95,6 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
-
         ClassLoader workerClassLoader = createWorkerClassLoader(actionClasspathLoader, forkOptions.getSharedPackages(), spec.getClass());
 
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
@@ -107,14 +106,13 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            // Eventually shutdown any leaky groovy runtime loaded from action classpath loader
             actionClasspathGroovy.shutdown();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
 
     private ClassLoader createActionClasspathLoader(DaemonForkOptions forkOptions) {
-        return classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(forkOptions.getClasspath()));
+        return classLoaderFactory.createIsolatedClassLoader("worker-action-loader", DefaultClassPath.of(forkOptions.getClasspath()));
     }
 
     private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<?> actionClass) {
@@ -138,7 +136,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
         ClassLoader actionAndGradleApiLoader = new CachingClassLoader(new MultiParentClassLoader(gradleApiLoader, actionFilteredClasspathLoader));
 
-        return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
+        return new VisitableURLClassLoader("worker-loader", actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
     private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
@@ -170,7 +170,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         return ImmutableSet.copyOf(elements);
     }
 
-    private class SingleElementProvider<S> extends AbstractProvider<S> implements BinaryProvider<S> {
+    private class SingleElementProvider<S> extends AbstractReadOnlyProvider<S> implements BinaryProvider<S> {
         private final Class<S> type;
         private Spec<? super S> spec;
         private S match;

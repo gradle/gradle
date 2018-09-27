@@ -21,21 +21,18 @@ task("printTaskProperties") {
 // tag::extraProperties[]
 
 val springVersion by extra("3.1.0.RELEASE")
-val emailNotification by extra("build@master.org")
+val emailNotification by extra { "build@master.org" }
 
 sourceSets.all { extra["purpose"] = null }
 
-(sourceSets) {
-    "main" {
-        this as ExtensionAware
+sourceSets {
+    getByName("main") {
         extra["purpose"] = "production"
     }
-    "test" {
-        this as ExtensionAware
+    getByName("test") {
         extra["purpose"] = "test"
     }
     create("plugin") {
-        this as ExtensionAware
         extra["purpose"] = "production"
     }
 }
@@ -44,7 +41,7 @@ task("printProperties") {
     doLast {
         println(springVersion)
         println(emailNotification)
-        sourceSets.matching { (it as ExtensionAware).extra["purpose"] == "production" }.forEach { println(it.name) }
+        sourceSets.matching { it.extra["purpose"] == "production" }.forEach { println(it.name) }
     }
 }
 // end::extraProperties[]

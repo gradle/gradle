@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -343,81 +342,6 @@ dependencies {
                 }
             }
         }
-    }
-
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false")
-    ])
-    def 'changing IMPROVED_POM_SUPPORT invalidates cache entry'() {
-        repository {
-            'org.test:projectB:1.0'()
-            'org.test:projectA:1.0' {
-                variant('runtime') {
-                    dependsOn 'org.test:projectB:1.0'
-                }
-            }
-        }
-
-        buildFile << """
-@CacheableRule
-class DependencyCachedRule implements ComponentMetadataRule {
-
-    void execute(ComponentMetadataContext context) {
-        println 'Dependency rule executed'
-        def details = context.details
-        details.withVariant('runtime') {
-            withDependencies { deps ->
-                deps.removeAll { it.name == 'projectB' }
-            }
-        }
-    }
-}
-
-dependencies {
-    conf 'org.test:projectA:1.0'
-    components {
-        all(DependencyCachedRule)
-    }
-}
-"""
-        when:
-        repositoryInteractions {
-            'org.test:projectA:1.0' {
-                allowAll()
-            }
-            'org.test:projectB:1.0' {
-                allowAll()
-            }
-        }
-
-        then:
-        succeeds 'checkDeps'
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org.test:projectA:1.0') {
-                    module('org.test:projectB:1.0')
-                }
-            }
-        }
-        outputContains('Dependency rule executed')
-
-        when:
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        repositoryInteractions {
-            'org.test:projectA:1.0' {
-                allowAll()
-            }
-        }
-
-        then:
-        succeeds 'checkDeps'
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org.test:projectA:1.0:runtime')
-            }
-        }
-        outputContains('Dependency rule executed')
     }
 
     def 'changing rule implementation invalidates cache'() {

@@ -227,7 +227,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
         task.call()
-        def cl = new VisitableURLClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir))
+        def cl = new VisitableURLClassLoader("groovy-loader", groovyClassLoader, DefaultClassPath.of(classesDir))
         cl.loadClass(className)
     }
 }

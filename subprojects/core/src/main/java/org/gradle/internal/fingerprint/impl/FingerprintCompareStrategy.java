@@ -20,10 +20,10 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -60,7 +60,7 @@ public enum FingerprintCompareStrategy {
 
     interface Impl {
         boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
-        void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
+        void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
     }
 
     /**
@@ -75,7 +75,7 @@ public enum FingerprintCompareStrategy {
         return delegate.visitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
     }
 
-    public void appendToHasher(BuildCacheHasher hasher, Map<String, FileSystemLocationFingerprint> fingerprints) {
+    public void appendToHasher(Hasher hasher, Map<String, FileSystemLocationFingerprint> fingerprints) {
         delegate.appendToHasher(hasher, fingerprints.values());
     }
 

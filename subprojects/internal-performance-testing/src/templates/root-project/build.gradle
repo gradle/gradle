@@ -24,6 +24,6 @@ buildscript {
 }
 <% if (binding.hasVariable("buildScanPluginVersion")) { %>
 apply plugin: 'com.gradle.build-scan'
-buildScan { licenseAgreementUrl = 'https://gradle.com/terms-of-service'; licenseAgree = 'yes' }
+buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }
 <% }%>
 <% } %>

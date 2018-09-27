@@ -43,7 +43,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
     }
 
     def setup() {
-        usePluginRepositoryMirror()
+        executer.withPluginRepositoryMirror()
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {

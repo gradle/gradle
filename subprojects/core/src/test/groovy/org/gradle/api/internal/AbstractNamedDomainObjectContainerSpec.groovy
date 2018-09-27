@@ -16,8 +16,20 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.NamedDomainObjectContainer
+
+import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.internal.Actions
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
-    abstract NamedDomainObjectContainer<T> getContainer()
+    abstract NamedDomainObjectCollection<T> getContainer()
+
+    @Override
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "create(String)": { container.create("b") },
+            "create(String, Action)": { container.create("b", Actions.doNothing()) },
+            "register(String)": { container.register("b") },
+            "register(String, Action)": { container.register("b", Actions.doNothing()) },
+        ]
+    }
 }

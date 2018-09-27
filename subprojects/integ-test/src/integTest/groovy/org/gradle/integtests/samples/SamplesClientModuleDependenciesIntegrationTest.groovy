@@ -24,7 +24,7 @@ class SamplesClientModuleDependenciesIntegrationTest extends AbstractIntegration
     @Rule Sample sample = new Sample(temporaryFolder, "clientModuleDependencies")
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "resolve shared"() {

@@ -23,6 +23,7 @@ import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
+import org.gradle.util.GradleVersion
 
 plugins {
     `java-base`
@@ -131,6 +132,11 @@ buildTypes {
     create("soakTest") {
         tasks("soak:soakTest")
         projectProperties("testAllVersions" to true)
+    }
+
+    // Used to run the dependency management engine in "force component realization" mode
+    create("forceRealizeDependencyManagementTest") {
+        tasks("integForceRealizeTest")
     }
 }
 
@@ -278,6 +284,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
     coreModules = coreRuntime
     modulesToPatch = this@Build_gradle.externalModules
     destination = patchedExternalModulesDir
+    outputs.doNotCacheIfSlowInternetConnection()
 }
 
 evaluationDependsOn(":distributions")

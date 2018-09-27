@@ -25,12 +25,9 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class DefaultStreamHasher implements StreamHasher {
-    private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
-    private final ContentHasherFactory hasherFactory;
+    private static final HashCode SIGNATURE = Hashing.signature(DefaultStreamHasher.class);
 
-    public DefaultStreamHasher(ContentHasherFactory hasherFactory) {
-        this.hasherFactory = hasherFactory;
-    }
+    private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
 
     @Override
     public HashCode hash(InputStream inputStream) {
@@ -49,7 +46,8 @@ public class DefaultStreamHasher implements StreamHasher {
     private HashCode doHash(InputStream inputStream, OutputStream outputStream) throws IOException {
         byte[] buffer = takeBuffer();
         try {
-            Hasher hasher = hasherFactory.create();
+            PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
+            hasher.putHash(SIGNATURE);
             while (true) {
                 int nread = inputStream.read(buffer);
                 if (nread < 0) {

@@ -46,6 +46,6 @@ public class CacheRepositoryServices {
     }
 
     protected CacheKeyBuilder createCacheKeyBuilder(FileHasher fileHasher, ClasspathHasher classpathHasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultCacheKeyBuilder(Hashing.md5(), fileHasher, classpathHasher, classLoaderHierarchyHasher);
+        return new DefaultCacheKeyBuilder(Hashing.defaultFunction(), fileHasher, classpathHasher, classLoaderHierarchyHasher);
     }
 }

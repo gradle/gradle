@@ -27,7 +27,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     void setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def recompilesSourceWhenPropertiesChange() {

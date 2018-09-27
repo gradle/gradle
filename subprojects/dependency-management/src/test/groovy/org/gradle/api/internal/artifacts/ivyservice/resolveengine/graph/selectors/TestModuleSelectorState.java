@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
@@ -38,7 +39,8 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     private final DependencyToComponentIdResolver resolver;
     private final DefaultResolvedVersionConstraint resolvedVersionConstraint;
     private final VersionConstraint versionConstraint;
-    public ComponentIdResolveResult resolved;
+    public ComponentIdResolveResult requireResult;
+    public ComponentIdResolveResult preferResult;
 
     public TestModuleSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
         this.resolver = resolver;
@@ -56,12 +58,6 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         throw new UnsupportedOperationException();
     }
 
-    private ComponentIdResolveResult resolveVersion(ResolvedVersionConstraint mergedConstraint) {
-        BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
-        resolver.resolve(null, mergedConstraint, result);
-        return result;
-    }
-
     @Override
     public String toString() {
         return versionConstraint.toString();
@@ -69,13 +65,33 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
 
     @Override
     public ComponentIdResolveResult resolve(VersionSelector allRejects) {
-        if (resolved != null) {
-            return resolved;
+        requireResult = doResolve(resolvedVersionConstraint.getRequiredSelector(), allRejects, requireResult);
+        return requireResult;
+    }
+
+    @Override
+    public ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
+        VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
+        if (preferredSelector == null) {
+            return null;
+        }
+        preferResult = doResolve(preferredSelector, allRejects, preferResult);
+        return preferResult;
+    }
+
+    private ComponentIdResolveResult doResolve(VersionSelector acceptor, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+        if (previousResult != null) {
+            return previousResult;
         }
 
-        ResolvedVersionConstraint mergedConstraint = resolvedVersionConstraint.withRejectSelector(allRejects);
-        resolved = resolveVersion(mergedConstraint);
-        return resolved;
+        BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
+        resolver.resolve(null, acceptor, rejector, result);
+        return result;
+    }
+
+    @Override
+    public void failed(ModuleVersionResolveException failure) {
+        throw new UnsupportedOperationException("To be implemented");
     }
 
     @Override
@@ -84,6 +100,11 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
 
     @Override
     public boolean isForce() {
+        return false;
+    }
+
+    @Override
+    public boolean isFromLock() {
         return false;
     }
 

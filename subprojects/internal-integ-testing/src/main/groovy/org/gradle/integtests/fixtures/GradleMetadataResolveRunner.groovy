@@ -34,7 +34,7 @@ class GradleMetadataResolveRunner extends BehindFlagFeatureRunner {
     }
 
     def isInvalidCombination(Map<String, String> values) {
-        values[(GRADLE_METADATA)] == 'true' && values[(EXPERIMENTAL_RESOLVE_BEHAVIOR)] == 'false'
+        (values[(GRADLE_METADATA)] == 'true' && values[(EXPERIMENTAL_RESOLVE_BEHAVIOR)] == 'false')
     }
 
     static boolean isGradleMetadataEnabled() {

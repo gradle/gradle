@@ -59,9 +59,16 @@ dependencies {
     asciidoclet("org.asciidoctor:asciidoclet:1.+")
 }
 
+task("configureJavadoc") {
+    doLast {
+        val javadoc = tasks.getByName<Javadoc>("javadoc")
+        javadoc.options.doclet = "org.asciidoctor.Asciidoclet"
+        javadoc.options.docletpath = asciidoclet.files.toList()
+    }
+}
+
 tasks.getByName<Javadoc>("javadoc") {
-    options.docletpath = asciidoclet.files.toList()
-    options.doclet = "org.asciidoctor.Asciidoclet"
+    dependsOn("configureJavadoc")
 }
 // end::using-custom-doclet[]
 
@@ -79,7 +86,7 @@ tasks.getByName<JavaCompile>("compileJava") {
 // end::java-compiler-options[]
 
 // tag::integ-test-task[]
-val integrationTest = task("integrationTest", Test::class) {
+val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
 
@@ -92,7 +99,7 @@ tasks["check"].dependsOn(integrationTest)
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
-task("sourcesJar", Jar::class) {
+task<Jar>("sourcesJar") {
     classifier = "sources"
     from(sourceSets["main"].allJava)
 }
@@ -100,7 +107,7 @@ task("sourcesJar", Jar::class) {
 
 
 // tag::defining-custom-javadoc-task[]
-task("testJavadoc", Javadoc::class) {
+task<Javadoc>("testJavadoc") {
     source = sourceSets["test"].allJava
 }
 // end::defining-custom-javadoc-task[]

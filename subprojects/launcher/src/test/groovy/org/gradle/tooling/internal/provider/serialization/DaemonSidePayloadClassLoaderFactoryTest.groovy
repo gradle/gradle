@@ -38,7 +38,7 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         classpathTransformer.transform(_) >> [ url1, url2 ]
 
         when:
-        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec([url1, url2]), [null])
+        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec("test", [url1, url2]), [null])
 
         then:
         cl instanceof VisitableURLClassLoader
@@ -56,7 +56,7 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         classpathTransformer.transform(_) >> [ cached, url2 ]
 
         when:
-        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec([url1, url2]), [null])
+        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec("test", [url1, url2]), [null])
 
         then:
         cl instanceof VisitableURLClassLoader

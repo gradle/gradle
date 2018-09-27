@@ -80,7 +80,7 @@ import java.util.Set;
  */
 public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
-    private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util."};
+    private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."};
     private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
 
     private ClassNode currentClass;
@@ -99,8 +99,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private ImportNode currImportNode;
     private MethodNode currentMethod;
     private ClassNodeResolver classNodeResolver;
-
-    private Set<String> deprecatedImports = new HashSet<String>();
 
     /**
      * A ConstructedNestedClass consists of an outer class and a name part, denoting a nested class with an unknown number of levels down. This allows resolve tests to skip this node for further inner
@@ -220,10 +218,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
     public void startResolving(ClassNode node, SourceUnit source) {
         this.source = source;
         visitClass(node);
-    }
-
-    Set<String> getDeprecatedImports(){
-        return deprecatedImports;
     }
 
     protected void visitConstructorOrMethod(MethodNode node, boolean isConstructor) {
@@ -569,10 +563,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     type.setRedirect(tmp.redirect());
                     return true;
                 }
-            }
-            if (resolveFromResolver(type, "org.gradle.util." + name)) {
-                deprecatedImports.add(name);
-                return true;
             }
             if (name.equals("BigInteger")) {
                 type.setRedirect(ClassHelper.BigInteger_TYPE);

@@ -28,7 +28,7 @@ public class ExceptionTrackingFailureHandler implements DispatchFailureHandler<O
     }
 
     public void dispatchFailed(Object message, Throwable failure) {
-        if (this.failure != null) {
+        if (this.failure != null && !Thread.currentThread().isInterrupted()) {
             logger.error(failure.getMessage(), failure);
         } else {
             this.failure = new DispatchException(String.format("Could not dispatch message %s.", message), failure);

@@ -22,13 +22,13 @@
                 <tr>
                     <td>Name</td>
                 </tr>
-                <tr>
-                    <td>requested</td>
-                </tr>
-                <tr>
-                    <td>candidate</td>
-                </tr>
             </thead>
+            <tr>
+                <td>candidate</td>
+            </tr>
+            <tr>
+                <td>metadata</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -41,6 +41,9 @@
             </thead>
             <tr>
                 <td>reject</td>
+            </tr>
+            <tr>
+                <td>getDescriptor</td>
             </tr>
         </table>
     </section>

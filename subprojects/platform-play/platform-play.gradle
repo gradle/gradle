@@ -16,8 +16,8 @@ dependencies {
 
     integTestRuntime project(":compositeBuilds")
     integTestRuntime project(":idePlay")
-    testFixturesCompile project(":internalIntegTesting")
-    testFixturesCompile libraries.commons_httpclient.coordinates
+    testFixturesApi project(":internalIntegTesting")
+    testFixturesApi libraries.commons_httpclient.coordinates
 }
 
 gradlebuildJava {

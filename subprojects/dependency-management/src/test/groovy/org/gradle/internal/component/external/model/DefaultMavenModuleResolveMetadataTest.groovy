@@ -25,7 +25,10 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenImmutableAttributesFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
@@ -40,7 +43,8 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentResolveMetadataTest {
 
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    private
+    final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     @Override
     ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {
@@ -139,42 +143,43 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
     }
 
     @Unroll
-    def "recognises java library for packaging=#packaging and improvedPomSupport=#improvedPomSupport"() {
+    def "recognises java library for packaging=#packaging"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), improvedPomSupport)
+        def componentTypeAttribute = PlatformSupport.COMPONENT_CATEGORY
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], new DefaultMavenImmutableAttributesFactory(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE), TestUtil.objectInstantiator())
         metadata.packaging = packaging
 
         when:
         def immutableMetadata = metadata.asImmutable()
+        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orNull()
         def compileConf = immutableMetadata.getConfiguration("compile")
         def runtimeConf = immutableMetadata.getConfiguration("runtime")
-        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orNull()
 
         then:
         assertHasOnlyStatusAttribute(compileConf.attributes)
         assertHasOnlyStatusAttribute(runtimeConf.attributes)
 
-        if (isJavaLibrary) {
-            assert variantsForGraphTraversal.size() == 2
-            assert variantsForGraphTraversal[0].name == "compile"
-            assert variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"
-            assert variantsForGraphTraversal[1].name == "runtime"
-            assert variantsForGraphTraversal[1].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
-        } else {
-            assert !variantsForGraphTraversal
-        }
+        variantsForGraphTraversal.size() == 6
+        variantsForGraphTraversal[0].name == "compile"
+        variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"
+        variantsForGraphTraversal[1].name == "runtime"
+        variantsForGraphTraversal[1].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        variantsForGraphTraversal[2].name == "platform-compile"
+        variantsForGraphTraversal[2].attributes.getAttribute(stringUsageAttribute) == "java-api"
+        variantsForGraphTraversal[2].attributes.getAttribute(componentTypeAttribute) == "platform"
+        variantsForGraphTraversal[3].name == "platform-runtime"
+        variantsForGraphTraversal[3].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        variantsForGraphTraversal[3].attributes.getAttribute(componentTypeAttribute) == "platform"
+        variantsForGraphTraversal[4].name == "enforced-platform-compile"
+        variantsForGraphTraversal[4].attributes.getAttribute(stringUsageAttribute) == "java-api"
+        variantsForGraphTraversal[4].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
+        variantsForGraphTraversal[5].name == "enforced-platform-runtime"
+        variantsForGraphTraversal[5].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        variantsForGraphTraversal[5].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
 
         where:
-        packaging      | improvedPomSupport | isJavaLibrary
-        "pom"          | false              | false
-        "jar"          | false              | false
-        "maven-plugin" | false              | false
-        "war"          | false              | false
-        "pom"          | true               | true
-        "jar"          | true               | true
-        "maven-plugin" | true               | true
-        "war"          | true               | false
+        packaging << ["pom", "jar", "maven-plugin", "war", "aar"]
     }
 
     def dependency(String org, String module, String version, String scope) {

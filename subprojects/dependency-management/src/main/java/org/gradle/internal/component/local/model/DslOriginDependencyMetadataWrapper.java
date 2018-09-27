@@ -91,6 +91,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
+    public boolean isFromLock() {
+        return delegate.isFromLock();
+    }
+
+    @Override
     public String getReason() {
         return delegate.getReason();
     }
@@ -115,4 +120,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.getSelector();
     }
 
+    @Override
+    public LocalOriginDependencyMetadata forced() {
+        return new DslOriginDependencyMetadataWrapper(delegate.forced(), source);
+    }
 }

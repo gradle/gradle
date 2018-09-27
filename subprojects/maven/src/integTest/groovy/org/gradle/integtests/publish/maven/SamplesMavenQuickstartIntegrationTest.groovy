@@ -14,53 +14,71 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
+
 import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
-    @Rule public Resources resources = new Resources();
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'maven/quickstart')
+class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
-    private TestFile pomProjectDir
+    @Rule
+    public Resources resources = new Resources();
 
-    @Before
-    void setUp() {
-        pomProjectDir = sample.dir
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'maven/quickstart')
+
+    def setup() {
+        executer.requireGradleDistribution()
         using m2
     }
 
-    @Test
-    void "can publish to a local repository"() {
+    @Unroll
+    def "can publish to a local repository with #dsl dsl"() {
+        given:
+        def pomProjectDir = sample.dir.file(dsl)
+
+        when:
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
+        then:
         def repo = maven(pomProjectDir.file('pomRepo'))
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.assertArtifactsPublished('quickstart-1.0.jar', 'quickstart-1.0.pom')
         compareXmlWithIgnoringOrder(expectedPom('1.0', "gradle"), module.pomFile.text)
         module.moduleDir.file("quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void "can install to local repository"() {
+    @Unroll
+    def "can install to local repository with #dsl dsl"() {
+        given:
+        def pomProjectDir = sample.dir.file(dsl)
+
+        and:
         def module = m2.mavenRepo().module('gradle', 'quickstart', '1.0')
         module.moduleDir.deleteDir()
 
+        when:
         executer.inDirectory(pomProjectDir).withTasks('install').run()
 
+        then:
         module.moduleDir.file("quickstart-1.0.jar").assertIsFile()
         module.moduleDir.file("quickstart-1.0.pom").assertIsFile()
         module.moduleDir.file("quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
 
+        and:
         compareXmlWithIgnoringOrder(expectedPom('1.0', 'gradle'), module.pomFile.text)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     private String expectedPom(String version, String groupId) {

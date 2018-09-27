@@ -133,7 +133,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private void configureJarTask(Project project, final GradlePluginDevelopmentExtension extension) {
-        project.getTasks().withType(Jar.class).named(JAR_TASK).configure(new Action<Jar>() {
+        project.getTasks().named(JAR_TASK, Jar.class, new Action<Jar>() {
             @Override
             public void execute(Jar jarTask) {
                 List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>();
@@ -209,7 +209,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 generatePluginDescriptors.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(generatePluginDescriptors.getName()));
             }
         });
-        project.getTasks().withType(Copy.class).named(PROCESS_RESOURCES_TASK).configure(new Action<Copy>() {
+        project.getTasks().named(PROCESS_RESOURCES_TASK, Copy.class, new Action<Copy>() {
             @Override
             public void execute(Copy processResources) {
                 CopySpec copyPluginDescriptors = processResources.getRootSpec().addChild();
@@ -251,7 +251,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task check) {
                 check.dependsOn(validator);

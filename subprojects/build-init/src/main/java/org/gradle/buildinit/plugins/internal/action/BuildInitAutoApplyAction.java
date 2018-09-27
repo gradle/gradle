@@ -17,13 +17,12 @@
 package org.gradle.buildinit.plugins.internal.action;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
 public class BuildInitAutoApplyAction implements ProjectConfigureAction {
 
-    public void execute(final ProjectInternal projectInternal) {
-        TaskConfiguration.addInitPlaceholder(projectInternal);
+    public void execute(final ProjectInternal project) {
+        project.getPluginManager().apply("org.gradle.build-init");
     }
 
 }

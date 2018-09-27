@@ -39,13 +39,11 @@ A build depending on both `module-a` and `module-b` will obtain different versio
 
 Dependency resolve rules give you the power to enforce releasable units in your build. Imagine a releasable unit defined by all libraries that have `org.gradle` group. We can force all of these libraries to use a consistent version:
 
-==== Example: Forcing a consistent version for a group of libraries
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=releasable-unit]
-----
+.Forcing a consistent version for a group of libraries
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=releasable-unit]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=releasable-unit]"]
+====
 
 [[sec:custom_versioning_scheme]]
 === Implementing a custom versioning scheme
@@ -57,13 +55,11 @@ In some corporate environments, the list of module versions that can be declared
 
 This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
 
-==== Example: Using a custom versioning scheme
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=custom-versioning-scheme]
-----
+.Using a custom versioning scheme
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+====
 
 [[sec:blacklisting_version]]
 === Blacklisting a particular version with a replacement
@@ -72,26 +68,22 @@ Dependency resolve rules provide a mechanism for blacklisting a particular versi
 
 In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`. The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`. Note that this is different from a forced version as described above, in that any other versions of this module would not be affected. This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
 
-==== Example: Blacklisting a version with a replacement
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=blacklisting_version]
-----
+.Example: Blacklisting a version with a replacement
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
+====
 
 [[sec:module_substitution]]
 === Substituting a dependency module with a compatible replacement
 
 At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `groovy` in place of `groovy-all`, or using `log4j-over-slf4j` instead of `log4j`. You can perform these substitutions using dependency resolve rules:
 
-==== Example: Changing dependency group and/or name during resolution
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=module_substitution]
-----
+.Changing dependency group and/or name during resolution
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=module_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=module_substitution]"]
+====
 
 [[sec:dependency_substitution_rules]]
 == Using dependency substitution rules
@@ -116,13 +108,11 @@ One use case for dependency substitution is to use a locally developed version o
 
 The module to be replaced can be declared with or without a version specified.
 
-==== Example: Substituting a module with a project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/substitutionRule/build.gradle[tag=module_to_project_substitution]
-----
+.Substituting a module with a project
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
+====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
 
@@ -133,13 +123,11 @@ Another way to use substitution rules is to replace a project dependency with a 
 
 The module to be used as a replacement must be declared with a version specified.
 
-==== Example: Substituting a project with a module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/substitutionRule/build.gradle[tag=project_to_module_substitution]
-----
+.Substituting a project with a module
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
+====
 
 When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build. However, tasks to build the replaced dependency will not be executed in order to build the resolve the depending `Configuration`.
 
@@ -150,13 +138,11 @@ A common use case for dependency substitution is to allow more flexible assembly
 
 The following example uses a dependency substitution rule to replace any module dependency with the group `org.example`, but only if a local project matching the dependency name can be located.
 
-==== Example: Conditionally substituting a dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/build.gradle[tag=project_substitution]
-----
+.Conditionally substituting a dependency
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/groovy",files="build.gradle[tags=project_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
+====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build
 
@@ -169,13 +155,11 @@ One piece of module metadata that Gradle understands is a module's _status schem
 
 A module's status and status scheme are taken into consideration when a `latest` version selector is resolved. Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status. For example, with the default status scheme in place, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status), whereas `latest.release` will select the highest module version with status `release`. Here is what this looks like in code:
 
-=== Example: 'Latest' version selector
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=latest-selector]
-----
+.'Latest' version selector
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=latest-selector]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=latest-selector]"]
+====
 
 .Output of **`gradle -q listConfigs`**
 ----
@@ -185,34 +169,28 @@ include::{samplesPath}/userguide/dependencyManagement/customizingResolution/meta
 
 The next example demonstrates `latest` selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
 
-=== Example: Custom status scheme
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=custom-status-scheme]
-----
+.Custom status scheme
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=custom-status-scheme]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme]"]
+====
 
 Component metadata rules can be applied to a specified module. Modules must be specified in the form of `group:module`.
 
-=== Example: Custom status scheme by module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=custom-status-scheme-module]
-----
+.Custom status scheme by module
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=custom-status-scheme-module]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme-module]"]
+====
 
 Gradle can also provide to component metadata rules the Ivy-specific metadata for modules resolved from an Ivy repository.
 Values from the Ivy descriptor are made available via the link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor] interface.
 
-=== Example: Ivy component metadata rule
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=ivy-component-metadata-rule]
-----
+.Ivy component metadata rule
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+====
 
 Note that while any rule can request the link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor], only components sourced from an Ivy repository will have a non-null value for it.
 
@@ -220,13 +198,11 @@ As can be seen in the examples above, component metadata rules are defined by im
 
 The next example shows how you can configure the `ComponentMetadataRule` through an link:{javadocPath}/org/gradle/api/ActionConfiguration.html[ActionConfiguration].
 
-=== Example: Configuration of ComponentMetadataRule
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=config-component-metadata-rule]
-----
+.Configuration of ComponentMetadataRule
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=config-component-metadata-rule]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=config-component-metadata-rule]"]
+====
 
 This happens by having a constructor in your implementation of `ComponentMetadataRule` accepting the parameters that were configured and the services that need injecting.
 
@@ -249,54 +225,52 @@ Rules are configured via the link:{groovyDslPath}/org.gradle.api.artifacts.Compo
 
 The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate.
 
-=== Example: Component selection rule
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=reject-version-1-1]
-----
+.Component selection rule
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
+====
 
 Note that version selection is applied starting with the highest version first. The version selected will be the first version found that all component selection rules accept. A version is considered accepted if no rule explicitly rejects it.
 
 Similarly, rules can be targeted at specific modules. Modules must be specified in the form of `group:module`.
 
-=== Example: Component selection rule with module target
+.Component selection rule with module target
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=targeted-component-selection]
-----
+Component selection rules can also consider component metadata when selecting a version.
+Possible additional metadata that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+Note that this extra information may not always be available and thus should be checked for `null` values.
 
-Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+.Component selection rule with metadata
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
+====
 
-=== Example: Component selection rule with metadata
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=component-selection-with-metadata]
-----
-
-Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as the first parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any order.
+Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as parameter when declaring a component selection rule.
 
 Lastly, component selection rules can also be defined using a _rule source_ object. A rule source object is any object that contains exactly one method that defines the rule action and is annotated with `@Mutate`.
 
 This method:
 
 * must return void.
-* must have link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] as the first argument.
-* may have additional parameters of type link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and/or link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+* must have link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] as its argument.
 
-=== Example: Component selection rule using a rule source object
+.Component selection rule using a rule source object
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=api-component-selection]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=api-component-selection]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=api-component-selection]
-----
-
+[NOTE]
+====
+Declaring additional arguments on component selection rules is deprecated and scheduled for removal in Gradle 6.0.
+Use instead the added methods on link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection].
+====
 
 [[sec:module_replacement]]
 == Using module replacement rules
@@ -312,13 +286,11 @@ To explain the impact on conflict resolution, let's consider the `google-collect
 
 Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the `google-collections` -&gt; `guava` conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
 
-=== Example: Declaring a module replacement
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/replacementRule/build.gradle[tag=module_replacement_declaration]
-----
+.Declaring a module replacement
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
+====
 
 For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
 
@@ -331,13 +303,11 @@ Currently it is not possible to declare that a given module is replaced by a set
 
 A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration. A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override. By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
 
-=== Example: Specifying default dependencies on a configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/defaultDependency/build.gradle[tag=configuration-default-dependencies]
-----
+.Specifying default dependencies on a configuration
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+====
 
 [[sec:ivy_dynamic_resolve_mode]]
 == Enabling Ivy dynamic resolve mode
@@ -346,10 +316,8 @@ Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic 
 
 To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
 
-=== Example: Enabling dynamic resolve mode
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/ivyDynamicMode/build.gradle[tag=ivy-repo-dynamic-mode]
-----
+.Enabling dynamic resolve mode
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+====

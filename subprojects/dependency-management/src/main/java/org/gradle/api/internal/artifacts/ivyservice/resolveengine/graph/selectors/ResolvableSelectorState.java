@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 public interface ResolvableSelectorState {
@@ -38,6 +39,18 @@ public interface ResolvableSelectorState {
     ComponentIdResolveResult resolve(VersionSelector allRejects);
 
     /**
+     * Resolve the prefer constraint of the selector to a component identifier.
+     */
+    ComponentIdResolveResult resolvePrefer(VersionSelector allRejects);
+
+    /**
+     * Marks the selector as resolved with the passed in failure.
+     *
+     * @param failure the failure to record
+     */
+    void failed(ModuleVersionResolveException failure);
+
+    /**
      * Mark the selector as resolved.
      * This is used when another selector resolved to a component identifier that satisfies this selector.
      * In that case, a call to {@link #resolve(VersionSelector)} is not required.
@@ -45,5 +58,7 @@ public interface ResolvableSelectorState {
     void markResolved();
 
     boolean isForce();
+
+    boolean isFromLock();
 
 }

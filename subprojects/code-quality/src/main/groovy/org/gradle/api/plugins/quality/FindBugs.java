@@ -65,7 +65,10 @@ import java.util.Collection;
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>. See the <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information on configuration
  * options.
+ *
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
+@Deprecated
 @CacheableTask
 public class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBugsReports> {
 

@@ -34,12 +34,12 @@ dependencies {
     testCompile 'nl.jqno.equalsverifier:equalsverifier:2.1.6'
     testCompile project(':dependencyManagement')
 
-    testFixturesCompile project(':internalTesting')
-    testFixturesCompile project(':internalIntegTesting')
+    testFixturesApi project(':internalTesting')
+    testFixturesApi project(':internalIntegTesting')
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
