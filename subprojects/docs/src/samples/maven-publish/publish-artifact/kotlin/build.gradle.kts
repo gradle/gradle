@@ -16,10 +16,10 @@ val rpmArtifact = artifacts.add("archives", rpmFile) {
 
 task("rpm") {
     outputs.file(rpmFile)
-        doLast {
-            // produce real RPM here
-            rpmFile.writeText("file contents")
-        }
+    doLast {
+        // produce real RPM here
+        rpmFile.writeText("file contents")
+    }
 }
 
 // tag::custom-artifact-publication[]
