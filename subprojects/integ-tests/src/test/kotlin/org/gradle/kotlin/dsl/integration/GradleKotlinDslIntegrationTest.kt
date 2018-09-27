@@ -271,26 +271,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `can apply plugin portal plugin via plugins block`() {
-
-        withBuildScript("""
-            plugins {
-                id("org.gradle.hello-world") version "0.2"
-            }
-
-            task("plugins") {
-                doLast {
-                    println(plugins.map { "*" + it.javaClass.simpleName + "*" })
-                }
-            }
-        """)
-
-        assertThat(
-            build("plugins").output,
-            containsString("*HelloWorldPlugin*"))
-    }
-
-    @Test
     fun `can use Closure only APIs`() {
 
         withBuildScript("""
