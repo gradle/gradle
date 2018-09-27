@@ -94,12 +94,12 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Override
         public IncrementalTaskInputs getInputChanges() {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getInputFileFingerprints());
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
         }
 
         @Override
-        public Iterable<? extends FileCollectionFingerprint> getInputFileFingerprints() {
-            return delegate.getInputFileFingerprints();
+        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
+            return delegate.getCurrentInputFileFingerprints();
         }
 
         @Override

@@ -100,7 +100,7 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public Iterable<? extends FileCollectionFingerprint> getInputFileFingerprints() {
+    public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
         throw new UnsupportedOperationException();
     }
 

@@ -39,9 +39,15 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate(Collection<String> messages);
 
+    /**
+     * Returns the incremental task inputs for the current execution.
+     */
     IncrementalTaskInputs getInputChanges();
 
-    Iterable<? extends FileCollectionFingerprint> getInputFileFingerprints();
+    /**
+     * Returns fingerprints of all the current input files.
+     */
+    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
