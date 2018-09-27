@@ -298,6 +298,10 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 In previous Gradle versions the `source` filed in `SourceTask` was accessible from subclasses.
 This is not the case anymore as the `source` filed is now declared as `private`.
 
+### The left shift operator on the Task interface is no longer supported
+
+The left shift (`<<`) operator acted as an alias for adding a `doLast` action to an existing task. It was deprecated since Gradle 3.2 and has now been removed.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
@@ -313,6 +317,7 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed the method `property` from `ProviderFactory`.
 - Removed the method `property` from `Project`.
 - Removed the method `property` from `Script`.
+- Removed the method `leftShift` from `Task`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.

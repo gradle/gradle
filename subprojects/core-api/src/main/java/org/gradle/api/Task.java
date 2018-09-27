@@ -398,18 +398,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Task doLast(Closure action);
 
     /**
-     * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter
-     * when executed. You can call this method from your build script using the &lt;&lt; left shift operator.</p>
-     *
-     * @param action The action closure to execute.
-     * @return This task.
-     *
-     * @deprecated Use {@link #doLast(Closure action)}
-     */
-    @Deprecated
-    Task leftShift(Closure action);
-
-    /**
      * <p>Returns if this task is enabled or not.</p>
      *
      * @see #setEnabled(boolean)

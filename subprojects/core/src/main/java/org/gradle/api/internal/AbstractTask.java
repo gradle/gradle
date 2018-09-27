@@ -72,7 +72,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
 
@@ -566,22 +565,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
             public void run() {
                 getTaskActions().add(convertClosureToAction(action, "doLast {} action"));
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public Task leftShift(final Closure action) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.leftShift(Closure)", "Please use Task.doLast(Action) instead.");
-
-        hasCustomActions = true;
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        taskMutator.mutate("Task.leftShift(Closure)", new Runnable() {
-            public void run() {
-                getTaskActions().add(taskMutator.leftShift(convertClosureToAction(action, "doLast {} action")));
             }
         });
         return this;

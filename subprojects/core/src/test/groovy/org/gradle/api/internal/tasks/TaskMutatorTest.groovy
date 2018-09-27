@@ -53,25 +53,4 @@ class TaskMutatorTest extends Specification {
         IllegalStateException e = thrown()
         e.message == 'Cannot call Task.thing() on <task> after task has started execution.'
     }
-
-    def "includes hint when executing an action added using left shift"() {
-        def action = Mock(Runnable)
-        def taskAction = Mock(ContextAwareTaskAction)
-
-        given:
-        state.configurable >> false
-        taskAction.execute(_) >> {
-            nagger.mutate("Task.thing()", action)
-        }
-
-        and:
-        def wrappedAction = nagger.leftShift(taskAction)
-
-        when:
-        wrappedAction.execute(task)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot call Task.thing() on <task> after task has started execution. Check the configuration of <task> as you may have misused \'<<\' at task declaration.'
-    }
 }
