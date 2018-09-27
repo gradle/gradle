@@ -28,38 +28,31 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
 public class AnnotationProcessorPathFactory {
-    public static final String COMPILE_CLASSPATH_DEPRECATION_SUMMARY = "Annotation processors were detected on the compile classpath.";
-    public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "The following annotation processors were detected on the compile classpath:";
     public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
 
     private final FileCollectionFactory fileCollectionFactory;
-    private final AnnotationProcessorDetector annotationProcessorDetector;
 
-    public AnnotationProcessorPathFactory(FileCollectionFactory fileCollectionFactory, AnnotationProcessorDetector annotationProcessorDetector) {
+    public AnnotationProcessorPathFactory(FileCollectionFactory fileCollectionFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        this.annotationProcessorDetector = annotationProcessorDetector;
     }
 
     /**
      * Calculates the annotation processor path to use given some compile options and compile classpath.
      *
-     * For backwards compatibility we still support the -processorpath option and we also look for processors
-     * on the compile classpath if the processor path was an empty {@link DefaultProcessorPath}. In Gradle 5.0 we will ignore
-     * -processorpath and the compile classpath. We will then use the annotationProcessorPath as the single source of truth.
+     * For backwards compatibility we still support the -processorpath option if the processor path was an empty {@link DefaultProcessorPath}.
+     * In Gradle 5.0 we will ignore -processorpath. We will then use the annotationProcessorPath as the single source of truth.
      *
      * @return An empty collection when annotation processing should not be performed, non-empty when it should.
      */
-    public FileCollection getEffectiveAnnotationProcessorClasspath(final CompileOptions compileOptions, final FileCollection compileClasspath) {
+    public FileCollection getEffectiveAnnotationProcessorClasspath(final CompileOptions compileOptions) {
         if (compileOptions.getAllCompilerArgs().contains("-proc:none")) {
-            return fileCollectionFactory.empty("annotation processor path");
+            return emptyAnnotationProcessorPath();
         }
         final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
         if (annotationProcessorPath != null && !(annotationProcessorPath instanceof DefaultProcessorPath)) {
@@ -69,10 +62,7 @@ public class AnnotationProcessorPathFactory {
         if (processorPathFromCompilerArguments != null) {
             return processorPathFromCompilerArguments;
         }
-        if (compileClasspath == null) {
-            return annotationProcessorPath;
-        }
-        return getProcessorPathWithCompileClasspathFallback(compileOptions, compileClasspath, annotationProcessorPath);
+        return annotationProcessorPath == null ? emptyAnnotationProcessorPath() : annotationProcessorPath;
     }
 
     private FileCollection getProcessorPathFromCompilerArguments(final CompileOptions compileOptions) {
@@ -123,58 +113,7 @@ public class AnnotationProcessorPathFactory {
         return files;
     }
 
-    private FileCollection getProcessorPathWithCompileClasspathFallback(CompileOptions compileOptions, final FileCollection compileClasspath, final FileCollection annotationProcessorPath) {
-        final boolean hasExplicitProcessor = checkExplicitProcessorOption(compileOptions);
-        return fileCollectionFactory.create(
-            new AbstractTaskDependency() {
-                @Override
-                public void visitDependencies(TaskDependencyResolveContext context) {
-                    if (annotationProcessorPath != null) {
-                        context.add(annotationProcessorPath);
-                    }
-                    context.add(compileClasspath);
-                }
-            },
-            new MinimalFileSet() {
-                @Override
-                public Set<File> getFiles() {
-                    if (annotationProcessorPath != null && !annotationProcessorPath.isEmpty()) {
-                        return annotationProcessorPath.getFiles();
-                    }
-                    if (hasExplicitProcessor) {
-                        return compileClasspath.getFiles();
-                    }
-                    Map<String, AnnotationProcessorDeclaration> processors = annotationProcessorDetector.detectProcessors(compileClasspath);
-                    if (!processors.isEmpty()) {
-                        DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
-                            "Detecting annotation processors on the compile classpath",
-                            "Gradle 5.0 will ignore annotation processors on the compile classpath.",
-                            "Please add them to the annotation processor path instead. " +
-                            "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them.",
-                            COMPILE_CLASSPATH_DEPRECATION_MESSAGE + " '" + Joiner.on("' and '").join(processors.keySet()) + "'. "
-                        );
-                        return compileClasspath.getFiles();
-                    }
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public final String getDisplayName() {
-                    return "annotation processor path";
-                }
-            });
-    }
-
-    private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
-        boolean hasExplicitProcessor = false;
-        List<String> compilerArgs = compileOptions.getAllCompilerArgs();
-        int pos = compilerArgs.indexOf("-processor");
-        if (pos >= 0) {
-            if (pos == compilerArgs.size() - 1) {
-                throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
-            }
-            hasExplicitProcessor = true;
-        }
-        return hasExplicitProcessor;
+    private FileCollection emptyAnnotationProcessorPath() {
+        return fileCollectionFactory.empty("annotation processor path");
     }
 }

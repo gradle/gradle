@@ -399,6 +399,11 @@ A new behavior that made its evaluation eager (like for any other block) was int
 Now, the old behavior has been removed and switching on the new one is no longer necessary. 
 If you need to defer evaluation, please use `afterEvaluate {}`.
 
+### Annotation processors on the compile classpath are now ignored
+
+Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
+Please add them to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.

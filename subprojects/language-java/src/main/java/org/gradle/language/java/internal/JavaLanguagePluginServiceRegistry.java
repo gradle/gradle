@@ -59,8 +59,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
             return new AnnotationProcessorDetector(cacheFactory, Logging.getLogger(AnnotationProcessorDetector.class), loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS);
         }
 
-        public AnnotationProcessorPathFactory createAnnotationProcessorPathFactory(FileCollectionFactory fileCollectionFactory, AnnotationProcessorDetector annotationProcessorDetector) {
-            return new AnnotationProcessorPathFactory(fileCollectionFactory, annotationProcessorDetector);
+        public AnnotationProcessorPathFactory createAnnotationProcessorPathFactory(FileCollectionFactory fileCollectionFactory) {
+            return new AnnotationProcessorPathFactory(fileCollectionFactory);
         }
     }
 

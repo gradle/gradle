@@ -131,7 +131,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/java/main/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "fromOptions"; }}'
     }
 
-    def "processors in the compile classpath are respected, but deprecation warning is emitted"() {
+    def "processors in the compile classpath are ignored"() {
 
         buildFile << """
             dependencies {
@@ -140,11 +140,11 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+        fails('compileJava')
 
         then:
-        file('build/classes/java/main/TestAppHelper.class').exists()
-        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        failureCauseContains('Compilation failed')
+        file('build/classes/java/main/TestAppHelper.class').assertDoesNotExist()
     }
 
     def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {

@@ -528,8 +528,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Could not read annotation processor declarations'
-
+        errorOutput.contains('error in opening zip file')
     }
 
     @Issue("gradle/gradle#1581")

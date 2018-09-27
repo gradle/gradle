@@ -85,7 +85,7 @@ class ScalaCompileTest extends AbstractCompileTest {
 
         given:
         setUpMocksAndAttributes(scalaCompile)
-        processorDetector.getEffectiveAnnotationProcessorClasspath(scalaCompile.getOptions(), scalaCompile.getClasspath()) >> processorClasspath
+        processorDetector.getEffectiveAnnotationProcessorClasspath(scalaCompile.getOptions()) >> processorClasspath
 
         when:
         execute(scalaCompile)

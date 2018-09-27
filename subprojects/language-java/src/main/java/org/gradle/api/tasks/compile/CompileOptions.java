@@ -453,9 +453,9 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery. If set to {@code null}, it means use the compile classpath.
+     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @return The annotation processor path, or {@code null} to use the compile classpath.
+     * @return The annotation processor path; {@code null} or empty means annotation processing is disabled.
      * @since 3.4
      */
     @Nullable
@@ -465,9 +465,9 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery. The value can be {@code null}, which means use the compile classpath.
+     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to use the compile classpath.
+     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
      * @since 3.4
      */
     public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {

@@ -196,6 +196,6 @@ public class JavaCompile extends AbstractCompile {
     @Classpath
     public FileCollection getEffectiveAnnotationProcessorPath() {
         AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
-        return annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        return annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions);
     }
 }

@@ -116,7 +116,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private List<File> calculateAnnotationProcessorClasspath() {
         AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
-        FileCollection processorClasspath = annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        FileCollection processorClasspath = annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions);
         return Lists.newArrayList(processorClasspath);
     }
 

@@ -18,6 +18,8 @@ package org.gradle.java.compile.incremental
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,6 +32,7 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
     }
 
     @NotYetImplemented
+    @Requires(TestPrecondition.JDK9_OR_LATER) // Java 9 compiler throws error: 'zip END header not found'
     def "handles malformed jars"() {
         buildFile << """
             apply plugin: 'java'
