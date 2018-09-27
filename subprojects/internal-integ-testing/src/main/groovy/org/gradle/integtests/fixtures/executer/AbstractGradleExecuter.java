@@ -121,7 +121,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean quiet;
     private boolean taskList;
     private boolean dependencyList;
-    private boolean searchUpwards;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
@@ -206,7 +205,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         quiet = false;
         taskList = false;
         dependencyList = false;
-        searchUpwards = false;
         executable = null;
         javaHome = null;
         environmentVars.clear();
@@ -355,9 +353,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (requireDaemon) {
             executer.requireDaemon();
-        }
-        if (searchUpwards) {
-            executer.withSearchUpwards();
         }
 
         executer.startBuildProcessInDebugger(debug);
@@ -607,12 +602,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public Locale getDefaultLocale() {
         return defaultLocale;
-    }
-
-    @Override
-    public GradleExecuter withSearchUpwards() {
-        searchUpwards = true;
-        return this;
     }
 
     public boolean isQuiet() {
@@ -909,7 +898,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("dependencies");
         }
 
-        if (!searchUpwards && settingsFile == null) {
+        if (settingsFile == null) {
             ensureSettingsFileAvailable();
         }
 
@@ -940,12 +929,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         TestFile workingDir = new TestFile(getWorkingDir());
         TestFile dir = workingDir;
         while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
-            if (dir.file("settings.gradle").isFile()) {
+            if (hasSettingsFile(dir) || hasSettingsFile(dir.file("master"))) {
                 return;
             }
             dir = dir.getParentFile();
         }
         workingDir.createFile("settings.gradle");
+    }
+
+    private boolean hasSettingsFile(TestFile dir) {
+        if (dir.isDirectory()) {
+            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile();
+        }
+        return false;
     }
 
     /**
