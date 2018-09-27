@@ -26,7 +26,6 @@ import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
 import org.gradle.internal.Factories
-import org.gradle.internal.Factory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
@@ -43,7 +42,7 @@ class DefaultReportContainerTest extends Specification {
 
             c.delegate = new Object() {
                 Report createReport(String name) {
-                    add(SimpleReport, name, { name } as Factory, Report.OutputType.FILE, DefaultReportContainerTest.project)
+                    add(SimpleReport, name, Factories.constant(name), Report.OutputType.FILE, DefaultReportContainerTest.project)
                 }
             }
 
