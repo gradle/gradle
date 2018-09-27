@@ -21,12 +21,12 @@ gradlePlugin {
 
 val sourcesJar by tasks.registering(Jar::class) {
     classifier = "sources"
-    from(sourceSets["main"].allSource)
+    from(sourceSets.main.get().allSource)
 }
 
 publishing {
     publications {
-        register("mavenSources", MavenPublication::class) {
+        register<MavenPublication>("mavenSources") {
             from(components["java"])
             artifact(sourcesJar.get())
         }
