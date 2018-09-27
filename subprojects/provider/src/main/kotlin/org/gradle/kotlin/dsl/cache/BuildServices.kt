@@ -38,7 +38,6 @@ object BuildServices {
         return ScriptCache(
             cacheRepository,
             cacheKeyBuilder,
-            startParameters.isRecompileScripts,
             hasBuildCacheIntegration
         )
     }
