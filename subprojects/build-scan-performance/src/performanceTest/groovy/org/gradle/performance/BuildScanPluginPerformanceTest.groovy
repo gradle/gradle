@@ -83,7 +83,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def jobArgs = ['--continue', '--parallel', '--max-workers=2'] + scenarioArgs
-        def opts = ['-Xms512m', '-Xmx512m']
+        def opts = ['-Xms1024m', '-Xmx1024m']
 
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without plugin application ($scenario)"

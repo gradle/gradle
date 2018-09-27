@@ -55,7 +55,6 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
             def maybeApplyNestedScript = nestedScriptId ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ''
             new File(gradleFolder, "script-plugin${scriptPluginId}.gradle").text = """ 
                 ${maybeApplyNestedScript}
-//                println "project \${project.path} applies 'script-plugin${scriptPluginId}.gradle'"
             """
         }
     }
