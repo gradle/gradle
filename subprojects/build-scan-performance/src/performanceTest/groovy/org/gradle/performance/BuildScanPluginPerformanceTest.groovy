@@ -139,8 +139,8 @@ class BuildScanPluginPerformanceTest extends Specification {
         }
 
         where:
-        scenario                       | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                         | ['help']           | false       | []                | null
+        scenario                         | tasks              | withFailure | scenarioArgs      | buildExperimentListener
+        "help"                           | ['help']           | false       | []                | null
         "clean build - partially cached" | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
     }
 
