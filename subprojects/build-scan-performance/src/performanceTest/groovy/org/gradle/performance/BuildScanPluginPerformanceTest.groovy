@@ -34,6 +34,7 @@ import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.AutoCleanup
@@ -41,6 +42,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Ignore
 @Category(PerformanceRegressionTest)
 class BuildScanPluginPerformanceTest extends Specification {
 
@@ -53,8 +55,8 @@ class BuildScanPluginPerformanceTest extends Specification {
     @Shared
     def resultStore = new BuildScanResultsStore()
 
-    private static final String WITHOUT_PLUGIN_LABEL = "#1 without plugin"
-    private static final String WITH_PLUGIN_LABEL = "#2 with plugin"
+    private static final String WITHOUT_PLUGIN_LABEL = "1 without plugin"
+    private static final String WITH_PLUGIN_LABEL = "2 with plugin"
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
