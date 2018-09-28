@@ -16,7 +16,7 @@ publishing {
                 }
                 author {
                     name.set("Jane Doe")
-                    name.set("http://example.com/users/jane")
+                    url.set("http://example.com/users/jane")
                 }
                 description {
                     text.set("A concise description of my library")
