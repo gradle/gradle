@@ -55,7 +55,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
 
         then:
-        result.assertOutputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
+        outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
     }
 
     def "deprecation warning when configuration is resolved from a non-gradle thread"() {
@@ -98,7 +98,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
 
         then:
-        result.assertOutputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
+        outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
     }
 
     def "deprecation warning when configuration is resolved while evaluating a different project"() {
@@ -135,6 +135,97 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":bar:help")
 
         then:
-        result.assertOutputContains("The configuration :baz:baz was resolved without accessing the project in a safe manner.")
+        outputContains("The configuration :baz:baz was resolved without accessing the project in a safe manner.")
+    }
+
+    def "no deprecation warning when configuration is resolved while evaluating same project"() {
+        mavenRepo.module("test", "test-jar", "1.0").publish()
+
+        settingsFile << """
+            rootProject.name = "foo"
+            include ":bar"
+        """
+
+        buildFile << """
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+            
+            configurations {
+                foo
+            }
+            
+            dependencies {
+                foo "test:test-jar:1.0"
+            }
+            
+            println configurations.foo.files      
+        """
+
+        expect:
+        executer.withArgument("--parallel")
+        succeeds(":bar:help")
+    }
+
+    def "no deprecation warning when configuration is resolved while evaluating afterEvaluate block"() {
+        mavenRepo.module("test", "test-jar", "1.0").publish()
+
+        settingsFile << """
+            rootProject.name = "foo"
+        """
+
+        buildFile << """
+            repositories {
+                maven { url '${mavenRepo.uri}' }
+            }
+            
+            configurations {
+                foo
+            }
+            
+            dependencies {
+                foo "test:test-jar:1.0"
+            }
+            
+            afterEvaluate {
+                println configurations.foo.files      
+            }
+        """
+
+        expect:
+        executer.withArgument("--parallel")
+        succeeds(":help")
+    }
+
+    def "no deprecation warning when configuration is resolved while evaluating beforeEvaluate block"() {
+        mavenRepo.module("test", "test-jar", "1.0").publish()
+
+        settingsFile << """
+            rootProject.name = "foo"
+        """
+
+        file('init-script.gradle') << """
+            allprojects {
+                beforeEvaluate {
+                    repositories {
+                        maven { url '${mavenRepo.uri}' }
+                    }
+                    
+                    configurations {
+                        foo
+                    }
+                    
+                    dependencies {
+                        foo "test:test-jar:1.0"
+                    }
+                
+                    println configurations.foo.files      
+                }
+            }
+        """
+
+        expect:
+        executer.withArguments("--parallel", "-I", "init-script.gradle")
+        succeeds(":help")
     }
 }

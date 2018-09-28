@@ -92,33 +92,37 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
 
         @Override
-        public void run(BuildOperationContext context) {
-            // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
-
-            try {
-                state.toBeforeEvaluate();
-                buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
-
-                if (!state.hasFailure()) {
-                    state.toEvaluate();
+        public void run(final BuildOperationContext context) {
+            project.getMutationState().withMutableState(new Runnable() {
+                @Override
+                public void run() {
+                    // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
                     try {
-                        delegate.evaluate(project, state);
-                    } catch (Exception e) {
-                        addConfigurationFailure(project, state, e, context);
+                        state.toBeforeEvaluate();
+                        buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
+
+                        if (!state.hasFailure()) {
+                            state.toEvaluate();
+                            try {
+                                delegate.evaluate(project, state);
+                            } catch (Exception e) {
+                                addConfigurationFailure(project, state, e, context);
+                            } finally {
+                                state.toAfterEvaluate();
+                                buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
+                            }
+                        }
+
+                        if (state.hasFailure()) {
+                            state.rethrowFailure();
+                        } else {
+                            context.setResult(ConfigureProjectBuildOperationType.RESULT);
+                        }
                     } finally {
-                        state.toAfterEvaluate();
-                        buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
+                        state.configured();
                     }
                 }
-
-                if (state.hasFailure()) {
-                    state.rethrowFailure();
-                } else {
-                    context.setResult(ConfigureProjectBuildOperationType.RESULT);
-                }
-            } finally {
-                state.configured();
-            }
+            });
         }
 
         @Override
