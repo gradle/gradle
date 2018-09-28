@@ -1090,7 +1090,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (project != null) {
                 ProjectState projectState = projectStateRegistry.stateFor(project);
                 if (!projectState.hasMutableState()) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This can happen because the configuration was resolved from a thread not managed by Gradle or because the configuration resides in a project other than the one that contains this task.");
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.");
                 }
             }
         }
