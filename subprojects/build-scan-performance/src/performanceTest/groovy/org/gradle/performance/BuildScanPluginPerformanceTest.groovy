@@ -34,7 +34,6 @@ import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.AutoCleanup
@@ -42,7 +41,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@Ignore
 @Category(PerformanceRegressionTest)
 class BuildScanPluginPerformanceTest extends Specification {
 
