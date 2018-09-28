@@ -27,6 +27,7 @@ import org.gradle.api.reporting.internal.TaskReportContainer;
 
 import javax.inject.Inject;
 
+@SuppressWarnings("deprecation")
 public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> implements FindBugsReportsInternal {
     @Inject
     public FindBugsReportsImpl(Task task) {
