@@ -193,7 +193,7 @@ project(':c') {
         failure.assertHasCause 'failure in b'
 
         and:
-        jarsNotBuilt 'a', 'b'
+        jarsNotBuilt 'a', 'b', 'c', 'd'
     }
 
     def "project dependency a->[b,c] and c->d and b fails with run with --continue"() {
