@@ -156,6 +156,21 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @Override
+        public Map<String, byte[]> getInputValueHashesBytes() {
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
+            if (inputHashes == null || inputHashes.isEmpty()) {
+                return null;
+            } else {
+                return Maps.transformValues(inputHashes, new Function<HashCode, byte[]>() {
+                    @Override
+                    public byte[] apply(HashCode input) {
+                        return input.toByteArray();
+                    }
+                });
+            }
+        }
+
+        @Override
         public Map<String, String> getInputHashes() {
             ImmutableSortedMap.Builder<String, String> builder = ImmutableSortedMap.naturalOrder();
             Map<String, String> inputValueHashes = getInputValueHashes();
@@ -174,6 +189,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
         @NonNullApi
         private static class State implements VisitState, FileSystemSnapshotVisitor {
+
             final InputFilePropertyVisitor visitor;
 
             Map<String, FileSystemLocationFingerprint> fingerprints;
@@ -195,8 +211,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public String getPropertyHash() {
-                return propertyHash.toString();
+            public byte[] getPropertyHashBytes() {
+                return propertyHash.toByteArray();
             }
 
             @Override
@@ -215,8 +231,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public String getHash() {
-                return hash.toString();
+            public byte[] getHashBytes() {
+                return hash.toByteArray();
             }
 
             @Override
@@ -308,6 +324,15 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             return taskImplementation.getClassLoaderHash().toString();
         }
 
+        @Override
+        public byte[] getClassLoaderHashBytes() {
+            ImplementationSnapshot taskImplementation = key.getInputs().getTaskImplementation();
+            if (taskImplementation == null || taskImplementation.getClassLoaderHash() == null) {
+                return null;
+            }
+            return taskImplementation.getClassLoaderHash().toByteArray();
+        }
+
         @Nullable
         @Override
         public List<String> getActionClassLoaderHashes() {
@@ -319,6 +344,21 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                     @Override
                     public String apply(ImplementationSnapshot input) {
                         return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toString();
+                    }
+                });
+            }
+        }
+
+        @Override
+        public List<byte[]> getActionClassLoaderHashesBytes() {
+            List<ImplementationSnapshot> actionImplementations = key.getInputs().getActionImplementations();
+            if (actionImplementations == null || actionImplementations.isEmpty()) {
+                return null;
+            } else {
+                return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, byte[]>() {
+                    @Override
+                    public byte[] apply(ImplementationSnapshot input) {
+                        return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray();
                     }
                 });
             }
@@ -350,6 +390,11 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             } else {
                 return ImmutableSortedSet.copyOf(outputPropertyNames).asList();
             }
+        }
+
+        @Override
+        public byte[] getHashBytes() {
+            return key.isValid() ? key.getHashCodeBytes() : null;
         }
 
         @Nullable
@@ -442,7 +487,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
                 @Override
                 public void preProperty(VisitState state) {
-                    property = new Property(state.getPropertyHash(), state.getPropertyNormalizationStrategyName());
+                    property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName());
                     fileProperties.put(state.getPropertyName(), property);
                 }
 
@@ -467,7 +512,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 @Override
                 public void file(VisitState state) {
                     boolean isRoot = dirStack.isEmpty();
-                    FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), state.getHash());
+                    FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
                     if (isRoot) {
                         property.roots.add(file);
                     } else {

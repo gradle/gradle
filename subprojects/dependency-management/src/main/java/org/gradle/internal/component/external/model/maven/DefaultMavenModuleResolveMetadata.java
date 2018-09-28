@@ -128,8 +128,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
-        DefaultConfigurationMetadata md = (DefaultConfigurationMetadata) super.populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
+        DefaultConfigurationMetadata md = (DefaultConfigurationMetadata) super.populateConfigurationFromDescriptor(name, configurationDefinitions);
         if (filterConstraints && md != null) {
             // if the first call to getConfiguration is done before getDerivedVariants() is called
             // then it means we're using the legacy matching, without attributes, and that the metadata

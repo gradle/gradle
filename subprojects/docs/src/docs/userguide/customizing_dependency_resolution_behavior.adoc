@@ -129,7 +129,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/substi
 include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
 ====
 
-When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build. However, tasks to build the replaced dependency will not be executed in order to build the resolve the depending `Configuration`.
+When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build. However, tasks to build the replaced dependency will not be executed in order to resolve the depending `Configuration`.
 
 [[sec:conditional_dependency_substitution]]
 === Conditionally substituting a dependency
@@ -144,7 +144,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/condit
 include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
 ====
 
-Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build
+Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
 
 [[sec:component_metadata_rules]]
 == Using component metadata rules

@@ -130,6 +130,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         }
 
         @Override
+        public byte[] getHashCodeBytes() {
+            return hashCode == null ? null : hashCode.toByteArray();
+        }
+
+        @Override
         public boolean isValid() {
             return hashCode != null;
         }
