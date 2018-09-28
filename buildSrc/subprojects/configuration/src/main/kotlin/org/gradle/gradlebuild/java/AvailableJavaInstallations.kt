@@ -120,7 +120,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     fun validateCompilationJdks(): Map<String, Boolean> =
         mapOf(
             "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}. " +
-                "You can either run the build on JDK 9+ or set a project or system property '$java9HomePropertyName' to a Java9-compatible JDK home path" to
+                "You can either run the build on JDK 9+ or set a project, system property, or environment variable '$java9HomePropertyName' to a Java9-compatible JDK home path" to
                 !javaInstallationForCompilation.javaVersion.isJava9Compatible
         )
 
@@ -145,10 +145,6 @@ open class AvailableJavaInstallations(private val project: Project, private val 
             }).joinToString("\n")
 
     private
-    fun validationMessage(propertyName: String, javaInstallation: JavaInstallation?, requiredVersion: String) =
-        "Must set project or system property '$propertyName' to the path of an $requiredVersion, is currently ${javaInstallation?.vendorAndMajorVersion} at ${javaInstallation?.javaHome}."
-
-    private
     fun detectJavaInstallation(javaHomePath: String) =
         Jvm.forHome(File(javaHomePath)).let {
             JavaInstallation(false, Jvm.forHome(File(javaHomePath)), jvmVersionDetector.getJavaVersion(it), javaInstallationProbe)
@@ -158,6 +154,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     fun resolveJavaHomePath(propertyName: String): String? = when {
         project.hasProperty(propertyName) -> project.property(propertyName) as String
         System.getProperty(propertyName) != null -> System.getProperty(propertyName)
+        System.getenv(propertyName) != null -> System.getenv(propertyName)
         else -> null
     }
 }
