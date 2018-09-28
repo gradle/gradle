@@ -29,7 +29,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
