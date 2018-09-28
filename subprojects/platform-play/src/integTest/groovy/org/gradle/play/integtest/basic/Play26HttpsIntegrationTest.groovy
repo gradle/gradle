@@ -33,7 +33,7 @@ class Play26HttpsIntegrationTest extends AbstractMultiVersionPlayContinuousBuild
     PlayApp playApp = new BasicPlayApp(versionNumber)
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def 'can enable https.port'() {
