@@ -344,7 +344,7 @@ public class DependencyGraphBuilder {
                 }
             }
         }
-        attachFailureToEdges(new GradleException("Multiple competing force for virtual platform " + module.getId()), forcedEdges);
+        attachFailureToEdges(new GradleException("Multiple forces on different versions for virtual platform " + module.getId()), forcedEdges);
     }
 
     /**

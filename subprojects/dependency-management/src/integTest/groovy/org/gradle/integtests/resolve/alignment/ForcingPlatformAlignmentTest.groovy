@@ -117,7 +117,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
 
         where:
         dep1                 | dep2
@@ -159,7 +159,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "fails if forcing a virtual platform version and forcing a leaf with different version"() {
@@ -195,7 +195,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "fails if forcing a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
@@ -234,7 +234,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
@@ -282,7 +282,7 @@ include 'other'
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version"() {
