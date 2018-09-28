@@ -883,10 +883,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public I getOrNull() {
             return Cast.uncheckedCast(findByNameWithoutRules(getName()));
         }
-
-        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
-            return getMutationGuard().withMutationDisabled(action);
-        }
     }
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
@@ -920,10 +916,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
             // Collect any container level add actions then add the object specific action
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
-        }
-
-        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
-            return getMutationGuard().withMutationDisabled(action);
         }
 
         @Override
