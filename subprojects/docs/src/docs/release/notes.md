@@ -1,3 +1,38 @@
+The Gradle team is pleased to announce Gradle 5.0. 
+
+See also:
+ * [What's new from Gradle 4.0 to 5.0](http://gradle.org/whats-new/5)
+ * [Upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html)
+
+We are excited to share some great new features and improvements with you in this release:
+
+First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0) with it's 1.0 release!
+Authoring your build logic using Kotlin provides significant additional editing assistance in IDEs, including: improved completion, error highlighting, and refactoring tools.
+Please follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
+If you prefer the flexibility and dynamic nature of Groovy, that's totally okay — the Groovy DSL will _never_ be deprecated.
+
+Next, you can now specify a timeout duration for a task, after which it will be interrupted.
+Read more [about task timeouts](userguide/more_about_tasks.html#task_timeouts) in the docs.
+
+Gradle's [`init` functionality has been upgraded](#build-init-plugin-improvements) in this release: is now optionally _interactive_, includes new `kotlin-library` and `kotlin-application` project types, provides options for configuring project and package names, and more.
+
+<!--- TODO: init GIF -->
+
+Search for Gradle Docs is back.
+The kind folks at Algolia have kindly provided hosted search, and it's awesome. 
+
+<!--- TODO: search pic -->
+
+This release introduces [useful changes for plugin and custom task authors](#plugin-authoring-features), including an API for creating `SourceDirectorySet`s, improvements to the `Provider` API, and improved build cache compatibility.
+
+Finally, because this is a new major version of Gradle, many of the things that were deprecated in the Gradle 4.x versions have been removed.
+For example, running Gradle now requires Java 8 or higher (though tests can be run using Java 6 or 7).
+It is recommended that you: read the [upgrading from Gradle 4.0 document](userguide/upgrading_version_4.html), upgrade to Gradle 4.10.2, and run your build using the [deprecations view in the build scan plugin](https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality) 0.16+ to find and fix all deprecated build logic.
+
+<!--- TODO: deprecations screenshot --> 
+
+We hope you will build happiness with Gradle 5.0, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
