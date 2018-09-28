@@ -53,8 +53,8 @@ class BuildScanPluginPerformanceTest extends Specification {
     @Shared
     def resultStore = new BuildScanResultsStore()
 
-    private static final String WITHOUT_PLUGIN_LABEL = "1) without plugin"
-    private static final String WITH_PLUGIN_LABEL = "2) with plugin"
+    private static final String WITHOUT_PLUGIN_LABEL = "#1 without plugin"
+    private static final String WITH_PLUGIN_LABEL = "#2 with plugin"
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
@@ -89,7 +89,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         def opts = ['-Xms2048m', '-Xmx2048m']
 
         runner.testGroup = "build scan plugin"
-        runner.testId = "large java project with and without plugin application ($scenario)"
+        runner.testId = "large java project with and without using scan plugin ($scenario)"
         runner.baseline {
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
@@ -131,12 +131,9 @@ class BuildScanPluginPerformanceTest extends Specification {
         then:
         def withoutResults = buildBaselineResults(results, WITHOUT_PLUGIN_LABEL)
         def withResults = results.buildResult(WITH_PLUGIN_LABEL)
-
-        then:
         def speedStats = withoutResults.getSpeedStatsAgainst(withResults.name, withResults)
         println(speedStats)
 
-        and:
         def shiftedResults = buildShiftedResults(results, WITHOUT_PLUGIN_LABEL)
         if (shiftedResults.significantlyFasterThan(withResults)) {
             throw new AssertionError(speedStats)
@@ -144,9 +141,10 @@ class BuildScanPluginPerformanceTest extends Specification {
 
         where:
         scenario                       | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                         | ['help']           | false       | []                | null
-        "clean build partially cached" | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
+//        "help"                         | ['help']           | false       | []                | null
+        "clean build - partially cached" | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
     }
+
 
     def partiallyBuildCacheClean() {
         return new BuildExperimentListenerAdapter() {
@@ -165,6 +163,7 @@ class BuildScanPluginPerformanceTest extends Specification {
 
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                assert !new File(invocationInfo.projectDir, 'error.log').exists()
                 def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
                 def cacheEntries = buildCacheDirectory.listFiles().sort()
                 cacheEntries.eachWithIndex { TestFile entry, int i ->
@@ -182,7 +181,6 @@ class BuildScanPluginPerformanceTest extends Specification {
         baselineResults.results.addAll(results.buildResult(name))
         return baselineResults
     }
-
 
     private static BaselineVersion buildShiftedResults(CrossBuildPerformanceResults results, String name) {
         def baselineResults = new BaselineVersion(name)
