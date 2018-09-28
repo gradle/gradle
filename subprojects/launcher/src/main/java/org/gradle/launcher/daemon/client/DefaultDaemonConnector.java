@@ -43,6 +43,7 @@ import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GradleVersion;
 
 import java.util.Collection;
 import java.util.Date;
@@ -208,7 +209,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     private DaemonClientConnection doStartDaemon(ExplainingSpec<DaemonContext> constraint, boolean singleRun) {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
-            .start("Starting Gradle Daemon", "Starting Daemon");
+            .start("Starting Gradle Daemon (" + GradleVersion.current().getVersion() + ")", "Starting Daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon(singleRun);
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         CountdownTimer timer = Time.startCountdownTimer(connectTimeout);
