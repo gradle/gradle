@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -36,18 +37,22 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     protected final ProjectInternal project;
 
-    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project) {
+    private final MutationGuard parentMutationGuard;
+
+    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
         super(type, instantiator, NAMER);
         this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
     }
 
-    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project) {
+    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
         super(collection, filter, instantiator, NAMER);
         this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project);
+        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
     }
 
     @Override
@@ -112,6 +117,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
         // TODO: This isn't quite right. We're leaking the _implementation_ type here.  But for tasks, this is usually right.
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType()));
+    }
+
+    @Override
+    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
+        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
     }
 
     // Cannot be private due to reflective instantiation

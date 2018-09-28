@@ -18,8 +18,8 @@ package org.gradle.api
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Override
-    String disallowMutationMessage(String assertingMethod) {
-        return "NamedDomainObjectContainer#$assertingMethod on SomeType container cannot be executed in the current context."
+    String getContainerStringRepresentation() {
+        return "SomeType container"
     }
 
     @Override
@@ -27,8 +27,12 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
         return "project.container(SomeType)"
     }
 
+    static String getContainerType() {
+        return "NamedDomainObjectContainer"
+    }
+
     def setup() {
-        buildFile << """
+        settingsFile << """
             class SomeType implements Named {
                 final String name
 
@@ -37,5 +41,24 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
                 }
             } 
         """
+    }
+
+    def "can mutate the task container from named container"() {
+        buildFile << """
+            testContainer.configureEach {
+                tasks.create(it.name)
+            }
+            toBeRealized.get()
+
+            task verify {
+                doLast {
+                    assert tasks.findByName("realized") != null
+                    assert tasks.findByName("toBeRealized") != null
+                }
+            }
+        """
+
+        expect:
+        succeeds "verify"
     }
 }
