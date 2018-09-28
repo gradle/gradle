@@ -208,7 +208,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
                 if (!artifacts.getArtifacts().isEmpty()) {
                     NativeDependencyCache cache = getNativeDependencyCache();
                     for (ResolvedArtifactResult artifact : artifacts) {
-                        if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                        if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier && artifact.getFile().isFile()) {
                             // Unzip the headers into cache
                             ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
                             File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());

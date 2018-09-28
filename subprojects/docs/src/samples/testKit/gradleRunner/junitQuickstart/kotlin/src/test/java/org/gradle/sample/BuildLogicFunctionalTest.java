@@ -37,15 +37,18 @@ import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class BuildLogicFunctionalTest {
     @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    private File settingsFile;
     private File buildFile;
 
     @Before
     public void setup() throws IOException {
+        settingsFile = testProjectDir.newFile("settings.gradle");
         buildFile = testProjectDir.newFile("build.gradle");
     }
 
     @Test
     public void testHelloWorldTask() throws IOException {
+        writeFile(settingsFile, "rootProject.name = 'hello-world'");
         String buildFileContent = "task helloWorld {" +
                                   "    doLast {" +
                                   "        println 'Hello world!'" +

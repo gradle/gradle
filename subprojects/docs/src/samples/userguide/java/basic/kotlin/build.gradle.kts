@@ -42,10 +42,10 @@ sourceSets {
 }
 
 val intTestImplementation = configurations.getByName("intTestImplementation") {
-    extendsFrom(configurations.implementation)
+    extendsFrom(configurations["implementation"])
 }
 
-configurations["intTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly)
+configurations["intTestRuntimeOnly"].extendsFrom(configurations["runtimeOnly"])
 
 dependencies {
     intTestImplementation("junit:junit:4.12")
