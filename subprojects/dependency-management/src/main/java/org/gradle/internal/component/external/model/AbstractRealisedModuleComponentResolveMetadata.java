@@ -68,6 +68,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
     }
 
     @Override
+    public VariantMetadataRules getVariantMetadataRules() {
+        return VariantMetadataRules.noOp();
+    }
+
+    @Override
     public Set<String> getConfigurationNames() {
         return configurations.keySet();
     }

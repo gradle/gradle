@@ -21,9 +21,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -34,6 +32,7 @@ import org.gradle.internal.component.external.model.DefaultConfigurationMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -108,21 +107,14 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
-        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants());
+        return Optional.<ImmutableList<? extends ConfigurationMetadata>>fromNullable(getDerivedVariants());
     }
 
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
-        if (derivedVariants == null) {
+        VariantDerivationStrategy strategy = getVariantMetadataRules().getVariantDerivationStrategy();
+        if (derivedVariants == null && strategy.derivesVariants()) {
             filterConstraints = false;
-            DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) getConfiguration("compile");
-            DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) getConfiguration("runtime");
-            derivedVariants = ImmutableList.of(
-                libraryWithUsageAttribute(compileConfiguration, Usage.JAVA_API),
-                libraryWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME),
-                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, false),
-                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, false),
-                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, true),
-                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, true));
+            derivedVariants = strategy.derive(this);
         }
         return derivedVariants;
     }
@@ -139,22 +131,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
             return md.withoutConstraints();
         }
         return md;
-    }
-
-    private ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, String usage) {
-        ImmutableAttributes attributes = mavenImmutableAttributesFactory.libraryWithUsage(getAttributes().asImmutable(), usage);
-        return conf.withAttributes(attributes).withoutConstraints();
-    }
-
-    private ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, boolean enforcedPlatform) {
-        ImmutableAttributes attributes = mavenImmutableAttributesFactory.platformWithUsage(getAttributes().asImmutable(), usage, enforcedPlatform);
-        String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
-        DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
-        metadata = metadata.withConstraintsOnly();
-        if (enforcedPlatform) {
-            metadata = metadata.withForcedDependencies();
-        }
-        return metadata;
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -264,12 +240,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
-    }
-
-    @Override
-    protected VariantMetadataRules getVariantMetadataRules() {
-        // Added for package visibility
-        return super.getVariantMetadataRules();
     }
 
     @Override

@@ -160,6 +160,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     @Override
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
+        metadata.getVariantMetadataRules().setVariantDerivationStrategy(metadataRuleContainer.getVariantDerivationStrategy());
         ModuleComponentResolveMetadata updatedMetadata;
         if (metadataRuleContainer.isEmpty()) {
             updatedMetadata = maybeForceRealisation(metadata);

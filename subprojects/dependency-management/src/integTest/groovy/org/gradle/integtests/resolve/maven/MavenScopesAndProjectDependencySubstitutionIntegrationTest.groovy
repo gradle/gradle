@@ -24,6 +24,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         resolve.expectDefaultConfiguration("runtime")
         settingsFile << """
             rootProject.name = 'testproject'

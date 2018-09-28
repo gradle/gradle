@@ -30,6 +30,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
     def setup() {
         settingsFile << "rootProject.name = 'test'"
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }

@@ -47,9 +47,18 @@ public class VariantMetadataRules {
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
     private CapabilitiesRules capabilitiesRules;
+    private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
 
     public VariantMetadataRules(ImmutableAttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
+    }
+
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return variantDerivationStrategy;
+    }
+
+    public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
+        this.variantDerivationStrategy = variantDerivationStrategy;
     }
 
     public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal source) {
@@ -137,6 +146,11 @@ public class VariantMetadataRules {
 
         private ImmutableRules() {
             super(null);
+        }
+
+        @Override
+        public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
+            throw new UnsupportedOperationException("You are probably to set the derivation strategy to something that wasn't supposed to be mutable");
         }
 
         @Override

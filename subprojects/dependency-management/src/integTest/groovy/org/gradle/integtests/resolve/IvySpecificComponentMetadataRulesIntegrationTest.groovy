@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
@@ -47,6 +48,7 @@ task resolve {
     }
 }
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     def "can access Ivy metadata"() {
@@ -138,7 +140,7 @@ dependencies {
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(47)
+        failure.assertHasLineNumber(51)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")

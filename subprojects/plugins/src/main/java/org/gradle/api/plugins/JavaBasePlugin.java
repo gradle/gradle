@@ -36,6 +36,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.ReusableAction;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -50,6 +51,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -97,6 +99,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureBuildDependents(project);
         configureSchema(project);
         bridgeToSoftwareModelIfNecessary(project);
+        configureVariantDerivationStrategy(project);
+    }
+
+    private void configureVariantDerivationStrategy(ProjectInternal project) {
+        ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
+        metadataHandler.setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy());
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {

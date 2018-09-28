@@ -26,6 +26,7 @@ class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependen
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'testproject'
         """
