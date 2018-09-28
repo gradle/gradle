@@ -21,7 +21,6 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.UnknownDomainObjectException
 
 import org.gradle.kotlin.dsl.support.illegalElementType
-import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty

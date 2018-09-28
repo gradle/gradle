@@ -191,9 +191,9 @@ class TaskContainerExtensionsTest {
 
         // given:
         val task = mock<Delete>()
-        val taskProvider = mockTaskProviderFor<Task>(task)
+        val taskProvider = mockTaskProviderFor(task)
         val tasks = mock<TaskContainer> {
-            on { named("clean") } doReturn taskProvider
+            on { named("clean", Delete::class.java) } doReturn taskProvider
         }
 
         // then:
@@ -202,8 +202,7 @@ class TaskContainerExtensionsTest {
             val clean by existing(Delete::class)
 
             inOrder(container, taskProvider) {
-                verify(container).named("clean")
-                verify(taskProvider).configure(any<Action<Task>>())
+                verify(container).named("clean", Delete::class.java)
                 verifyNoMoreInteractions()
             }
 
@@ -228,9 +227,11 @@ class TaskContainerExtensionsTest {
 
         // given:
         val task = mock<Delete>()
-        val taskProvider = mockTaskProviderFor<Task>(task)
+        val taskProvider = mockTaskProviderFor(task)
         val tasks = mock<TaskContainer> {
-            on { named("clean") } doReturn taskProvider
+            @Suppress("unchecked_cast")
+            on { named("clean") }.thenReturn(taskProvider as TaskProvider<Task>)
+            on { named("clean", Delete::class.java) }.thenReturn(taskProvider)
         }
 
         // when:
@@ -252,8 +253,10 @@ class TaskContainerExtensionsTest {
 
         // then:
         inOrder(tasks, taskProvider, task) {
-            verify(tasks, times(2)).named("clean")
-            verify(taskProvider, times(2)).configure(any())
+            verify(tasks, times(1)).named("clean")
+            verify(taskProvider, times(1)).configure(any())
+            verify(tasks, times(1)).named("clean", Delete::class.java)
+            verify(taskProvider, times(1)).configure(any())
             verifyNoMoreInteractions()
         }
     }
