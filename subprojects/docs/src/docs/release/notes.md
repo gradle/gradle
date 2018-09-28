@@ -324,6 +324,11 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 
 The left shift (`<<`) operator acted as an alias for adding a `doLast` action to an existing task. It was deprecated since Gradle 3.2 and has now been removed.
 
+### Invalid project and domain object names are no longer supported
+
+Previously, it was deprecated for project and domain object names to be empty, start or end with `.` or contain any of the following characters: `/\:<>"?*|`.
+The use of such names now causes the build to fail.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
