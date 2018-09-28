@@ -1336,6 +1336,7 @@ div.screenshot {
 
 .site-header {
     background-color: white;
+    padding: 5px 12px;
 }
 
 /* Override javadoc styles */
@@ -1480,6 +1481,7 @@ div.screenshot {
     }
 
     .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        padding: 0 1rem 0.5rem 1.5rem;
         display: block;
         top: 30px !important;
         left: 0 !important;

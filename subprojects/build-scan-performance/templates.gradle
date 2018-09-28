@@ -34,9 +34,9 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     }
 
     buildSrcTemplate = 'buildsrc-plugins'
-    projects = 200
+    projects = 250
     sourceFiles = 100
-    testSourceFiles = 25 // verbose tests are time consuming
+    testSourceFiles = 50 // verbose tests are time consuming
     filesPerPackage = 25
     linesOfCodePerSourceFile = 150
     rootProjectTemplates = ['root']
@@ -55,7 +55,6 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
             def maybeApplyNestedScript = nestedScriptId ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ''
             new File(gradleFolder, "script-plugin${scriptPluginId}.gradle").text = """ 
                 ${maybeApplyNestedScript}
-//                println "project \${project.path} applies 'script-plugin${scriptPluginId}.gradle'"
             """
         }
     }

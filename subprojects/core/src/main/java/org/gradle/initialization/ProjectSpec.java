@@ -31,5 +31,5 @@ public interface ProjectSpec {
      * @throws InvalidUserDataException When project cannot be selected due to some user input mismatch, or when there are no matching projects
      * or multiple matching projects.
      */
-    <T extends ProjectIdentifier> T selectProject(ProjectRegistry<? extends T> registry) throws InvalidUserDataException;
+    <T extends ProjectIdentifier> T selectProject(String settingsDescription, ProjectRegistry<? extends T> registry) throws InvalidUserDataException;
 }

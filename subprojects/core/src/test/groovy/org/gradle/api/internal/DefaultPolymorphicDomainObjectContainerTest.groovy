@@ -339,17 +339,54 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         bob.get().age == 50
     }
 
-    def "can extract schema from container that mixes register and create"() {
+    def "can extract schema from container that mixes register, create and add"() {
         given:
         container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
 
         when:
+        container.register("mike")
         container.register("fred", Person)
+        container.register("alice", AgeAwarePerson)
+        container.create("kate")
         container.create("bob", Person)
+        container.create("mary", AgeAwarePerson)
+        container.add(new DefaultPerson(name: "john"))
+        container.add(new DefaultAgeAwarePerson(name: "janis"))
+        container.add(new DefaultCtorNamedPerson("robert"))
+
         then:
         assertSchemaIs(
+            mike: "DefaultPolymorphicDomainObjectContainerTest.Person",
             fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson"
+            alice: "DefaultPolymorphicDomainObjectContainerTest.AgeAwarePerson",
+            kate: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson", // TODO should be Person
+            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson", // TODO should be Person
+            mary: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson", // TODO should be AgeAwarePerson
+            john: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson", // TODO could be Person
+            janis: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson", // TODO could be AgeAwarePerson
+            robert: "DefaultPolymorphicDomainObjectContainerTest.DefaultCtorNamedPerson"
+        )
+
+        when: "realizing pending elements"
+        container.getByName("mike")
+        container.getByName("fred")
+        container.getByName("alice")
+
+        // TODO this should be fixed
+        //      performance killer: invalidating generated accessors
+        //      surprising behavior: script suddenly don't compile anymore
+        then: "schema is the same"
+        assertSchemaIs(
+            mike: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            fred: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            alice: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
+            kate: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            mary: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
+            john: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            janis: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
+            robert: "DefaultPolymorphicDomainObjectContainerTest.DefaultCtorNamedPerson"
         )
     }
 
@@ -418,14 +455,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
             [ schema.name, schema.publicType.simpleName ]
-        }
-        // Same size
-        assert expectedSchema.size() == actualSchemaMap.size()
-        // Same keys
-        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
-        // Keys have the same values
-        expectedSchema.each { entry ->
-            assert entry.value == actualSchemaMap[entry.key]
-        }
+        }.sort()
+        def expectedSchemaMap = expectedSchema.sort()
+        assert expectedSchemaMap == actualSchemaMap
     }
 }

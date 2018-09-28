@@ -140,6 +140,34 @@ Be mindful of <<#task_configuration_avoidance_pitfall_build_scan_plugin, the pit
 
 2. [[task_configuration_avoidance_guideline_only_mutate_task_object]] **Only mutate the current task inside configuration action.**
 Because the task configuration action can now run immediately, later or never, mutating anything other than the current task will expose flaky-like behavior in your build.
+Consider the following code:
++
+[source,groovy]
+----
+def check = tasks.register("check")
+tasks.register("verificationTask") { verificationTask ->
+    // Configure verificationTask
+
+    // Run verificationTask when someone runs check
+    check.get().dependsOn verificationTask
+}
+----
+Executing the `gradle check` task should execute `verificationTask`, but with this example, it won't.
+This is because the dependency between `verificationTask` and `check` only happens when `verificationTask` is realized.
+To avoid issues like this, you must only modify the task associated with the configuration action.
+Other tasks should be modified in their own configuration action outside of any other possibly "lazy" configuration actions.
+The code would become:
++
+[source,groovy]
+----
+def check = tasks.register("check")
+def verificationTask = tasks.register("verificationTask") {
+    // Configure verificationTask
+}
+check.configure {
+    dependsOn verificationTask
+}
+----
 In the future, Gradle will consider these flaky-mutations as failures.
 It also means the configuration needs to flow from the extensions to the tasks.
 Thus, the task should be configured by the extension and not the other way around.

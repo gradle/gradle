@@ -70,6 +70,8 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
                     def buildSrcDir = testProjectDir.newFolder('buildSrc', 'src', 'main', 'java')
                     def pluginFile = new File(buildSrcDir, 'BuildScanPlugin.java')
                     pluginFile << '''${buildScanPlugin()}'''
+                    def settingsFile = testProjectDir.newFile('settings.gradle')
+                    settingsFile << "rootProject.name = 'test'"
                     buildFile = testProjectDir.newFile('build.gradle')
                     buildFile << '''${buildScanPluginApplication()}'''
                 }

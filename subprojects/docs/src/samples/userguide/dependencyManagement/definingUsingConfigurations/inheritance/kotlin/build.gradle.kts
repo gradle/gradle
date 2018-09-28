@@ -8,7 +8,7 @@ repositories {
 
 // tag::configuration-definition[]
 val smokeTest by configurations.creating {
-    extendsFrom(configurations.testImplementation)
+    extendsFrom(configurations["testImplementation"])
 }
 
 dependencies {

@@ -268,15 +268,9 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
             [ schema.name, schema.publicType.simpleName ]
-        }
-        // Same size
-        assert expectedSchema.size() == actualSchemaMap.size()
-        // Same keys
-        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
-        // Keys have the same values
-        expectedSchema.each { entry ->
-            assert entry.value == actualSchemaMap[entry.key]
-        }
+        }.sort()
+        def expectedSchemaMap = expectedSchema.sort()
+        assert expectedSchemaMap == actualSchemaMap
     }
 
     static class Bean {

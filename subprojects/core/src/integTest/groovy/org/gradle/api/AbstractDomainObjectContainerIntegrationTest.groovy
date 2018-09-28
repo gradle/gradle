@@ -21,6 +21,7 @@ import spock.lang.Unroll
 
 abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractIntegrationSpec {
     abstract String makeContainer()
+
     abstract String disallowMutationMessage(String assertingMethod)
 
     def setup() {
@@ -35,13 +36,13 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, String> getQueryMethods() {
         [
-            "getByName(String)":    "testContainer.getByName('unrealized')",
-            "named(String)":        "testContainer.named('unrealized')",
+            "getByName(String)": "testContainer.getByName('unrealized')",
+            "named(String)": "testContainer.named('unrealized')",
             "named(String, Class)": "testContainer.named('unrealized', testContainer.type)",
-            "findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
-            "findByName(String)":   "testContainer.findByName('unrealized')",
-            "TaskProvider.get()":   "unrealized.get()",
-            "iterator()":           "for (def element : testContainer) { println element.name }",
+            "findAll(Closure)": "testContainer.findAll { it.name == 'unrealized' }",
+            "findByName(String)": "testContainer.findByName('unrealized')",
+            "TaskProvider.get()": "unrealized.get()",
+            "iterator()": "for (def element : testContainer) { println element.name }",
         ]
     }
 
@@ -65,6 +66,22 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     def "can execute query method #queryMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
+                ${queryMethod.value}
+            }
+            toBeRealized.get()
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        queryMethod << getQueryMethods()
+    }
+
+    @Unroll
+    def "can execute query method #queryMethod.key from matching.configureEach"() {
+        buildFile << """
+            testContainer.matching({ it in testContainer.type }).configureEach {
                 ${queryMethod.value}
             }
             toBeRealized.get()
@@ -109,10 +126,28 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         queryMethod << getQueryMethods()
     }
 
+    def "can execute query method #queryMethod.key from register"() {
+        buildFile << """
+            testContainer.register("a") {
+                ${queryMethod.value}
+            }.get()
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        queryMethod << getQueryMethods()
+    }
+
     Map<String, String> getMutationMethods() {
         [
-            "create(String)":   "testContainer.create('mutate')",
+            "create(String)": "testContainer.create('mutate')",
             "register(String)": "testContainer.register('mutate')",
+            "getByName(String, Action)": "testContainer.getByName('realized') {}",
+            "configureEach(Action)": "testContainer.configureEach {}",
+            "NamedDomainObjectProvider.configure(Action)": "toBeRealized.configure {}",
+            "named(String, Action)": "testContainer.named('realized') {}"
         ]
     }
 
@@ -137,6 +172,23 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     def "cannot execute mutation method #mutationMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
+                ${mutationMethod.value}
+            }
+            toBeRealized.get()
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
+
+        where:
+        mutationMethod << getMutationMethods()
+    }
+
+    @Unroll
+    def "cannot execute mutation method #mutationMethod.key from matching.configureEach"() {
+        buildFile << """
+            testContainer.matching({ it in testContainer.type }).configureEach {
                 ${mutationMethod.value}
             }
             toBeRealized.get()
@@ -185,6 +237,22 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     }
 
     @Unroll
+    def "cannot execute mutation method #mutationMethod.key from register"() {
+        buildFile << """
+            testContainer.register("a") {
+                ${mutationMethod.value}
+            }.get()
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
+
+        where:
+        mutationMethod << getMutationMethods()
+    }
+
+    @Unroll
     def "can execute query and mutating methods #method.key from all"() {
         buildFile << """
             testContainer.all {
@@ -208,6 +276,51 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
                 if (it.name == "realized") {
                     ${method.value}
                 }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutation methods #method.key from getByName"() {
+        buildFile << """
+            testContainer.getByName("realized") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutation methods #method.key from withType.getByName"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).getByName("realized") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from create(String)"() {
+        buildFile << """
+            testContainer.create("a") {
+                ${method.value}
             }
         """
 

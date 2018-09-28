@@ -22,11 +22,11 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import java.io.File;
 import java.util.List;
 
-public class DefaultProjectSpec extends AbstractProjectSpec {
+public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     private final boolean useRootWhenNoMatch;
     private final File currentDir;
 
-    public DefaultProjectSpec(File currentDir, SettingsInternal settings) {
+    public CurrentDirectoryProjectSpec(File currentDir, SettingsInternal settings) {
         this.currentDir = currentDir;
         this.useRootWhenNoMatch = currentDir.equals(settings.getSettingsDir());
     }
@@ -43,8 +43,8 @@ public class DefaultProjectSpec extends AbstractProjectSpec {
         }
     }
 
-    protected String formatNoMatchesMessage() {
-        return String.format("No projects in this build have project directory '%s'.", currentDir);
+    protected String formatNoMatchesMessage(String settings) {
+        return String.format("Project directory '%s' is not part of the build defined by %s.",  currentDir, settings);
     }
 
     protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {

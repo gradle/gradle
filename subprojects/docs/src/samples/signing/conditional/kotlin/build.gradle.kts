@@ -19,7 +19,7 @@ signing {
     setRequired(Callable {
         (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("uploadArchives")
     })
-    sign(configurations.archives)
+    sign(configurations["archives"])
 }
 // end::conditional-signing[]
 

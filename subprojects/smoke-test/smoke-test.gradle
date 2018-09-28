@@ -27,6 +27,7 @@ dependencies {
     smokeTestRuntimeOnly project(':jacoco')
     smokeTestRuntimeOnly project(':maven')
     smokeTestRuntimeOnly project(':plugins')
+    smokeTestRuntimeOnly project(':pluginDevelopment')
     smokeTestRuntimeOnly project(':toolingApiBuilders')
 }
 

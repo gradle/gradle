@@ -1,6 +1,7 @@
 plugins {
     `java-library`
 }
+
 repositories {
     jcenter()
 }
@@ -12,7 +13,7 @@ dependencies {
 
 task("printArtifactNames") {
     doLast {
-        val libraryNames = configurations.compileClasspath.map { it.name }
+        val libraryNames = configurations["compileClasspath"].map { it.name }
         logger.quiet(libraryNames.toString())
     }
 }

@@ -67,7 +67,7 @@ task("checkProjectDependency") {
             from(sharedJarTask.archivePath)
             into(cachedSharedJarDir)
         }
-        val sharedJar = configurations.compileClasspath.first { file: File -> file.name.startsWith("shared") }
+        val sharedJar = configurations.compileClasspath.files.first { file: File -> file.name.startsWith("shared") }
         require(sharedJar.absolutePath == sharedJarTask.archivePath.absolutePath)
     }
 }
