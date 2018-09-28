@@ -215,8 +215,9 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  *
  * @see [NamedDomainObjectCollection.named]
  */
+@Suppress("unchecked_cast")
 fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>): NamedDomainObjectProvider<T> =
-    named(name, type) {}
+    (this as NamedDomainObjectCollection<T>).named(name, type.java)
 
 
 /**
@@ -225,10 +226,9 @@ fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KCl
  * @see [NamedDomainObjectCollection.named]
  * @see [NamedDomainObjectProvider.configure]
  */
+@Suppress("unchecked_cast")
 inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String, noinline configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
-    named<T>(name).apply {
-        configure(configuration)
-    }
+    (this as NamedDomainObjectCollection<T>).named(name, T::class.java, configuration)
 
 
 /**
@@ -237,15 +237,9 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  * @see [NamedDomainObjectCollection.named]
  * @see [NamedDomainObjectProvider.configure]
  */
+@Suppress("unchecked_cast")
 fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
-    uncheckedCast(named(name).also { provider ->
-        provider.configure { obj ->
-            configuration(
-                type.safeCast(obj)
-                    ?: throw illegalElementType(this@named, name, type, obj::class)
-            )
-        }
-    })
+    (this as NamedDomainObjectCollection<T>).named(name, type.java, configuration)
 
 
 /**

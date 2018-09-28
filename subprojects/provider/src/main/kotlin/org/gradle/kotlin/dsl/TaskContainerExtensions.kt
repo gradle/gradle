@@ -20,12 +20,8 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
-import org.gradle.kotlin.dsl.support.illegalElementType
-import org.gradle.kotlin.dsl.support.uncheckedCast
-
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.safeCast
 
 
 /**
@@ -199,8 +195,9 @@ inline fun <reified T : Task> TaskCollection<out Task>.named(name: String): Task
  *
  * @see [TaskCollection.named]
  */
+@Suppress("unchecked_cast")
 fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): TaskProvider<T> =
-    named(name, type) {}
+    (this as TaskCollection<T>).named(name, type.java)
 
 
 /**
@@ -209,15 +206,9 @@ fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): Ta
  * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
  */
+@Suppress("unchecked_cast")
 fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
-    uncheckedCast(named(name).also { provider ->
-        provider.configure { obj ->
-            configuration(
-                type.safeCast(obj)
-                    ?: throw illegalElementType(this@named, name, type, obj::class)
-            )
-        }
-    })
+    (this as TaskCollection<T>).named(name, type.java, configuration)
 
 
 /**
@@ -226,10 +217,9 @@ fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, con
  * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
  */
+@Suppress("unchecked_cast")
 inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
-    named<T>(name).apply {
-        configure(configuration)
-    }
+    (this as TaskCollection<T>).named(name, T::class.java, configuration)
 
 
 /**
