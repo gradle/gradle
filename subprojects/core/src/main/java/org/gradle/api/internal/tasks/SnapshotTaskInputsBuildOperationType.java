@@ -52,9 +52,33 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * The overall hash value for the inputs.
          *
          * Null if the overall key was not calculated because the inputs were invalid.
+         *
+         * @deprecated replaced by {@link #getHashBytes()}
          */
         @Nullable
+        @Deprecated
+        @UsedByScanPlugin("2.0")
         String getBuildCacheKey();
+
+        /**
+         * The overall hash value for the inputs.
+         *
+         * Null if the overall key was not calculated because the inputs were invalid.
+         */
+        @Nullable
+        byte[] getHashBytes();
+
+        /**
+         * The hash of the the classloader that loaded the task implementation.
+         *
+         * Null if the classloader is not managed by Gradle.
+         *
+         * @deprecated replaced by {@link #getClassLoaderHashBytes()}
+         */
+        @Nullable
+        @Deprecated
+        @UsedByScanPlugin("2.0")
+        String getClassLoaderHash();
 
         /**
          * The hash of the the classloader that loaded the task implementation.
@@ -62,7 +86,22 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Null if the classloader is not managed by Gradle.
          */
         @Nullable
-        String getClassLoaderHash();
+        byte[] getClassLoaderHashBytes();
+
+        /**
+         * The hashes of the classloader that loaded each of the task's actions.
+         *
+         * May contain duplicates.
+         * Order corresponds to execution order of the actions.
+         * Never empty.
+         * May contain nulls (non Gradle managed classloader)
+         *
+         * @deprecated replaced by {@link #getActionClassLoaderHashesBytes()}
+         */
+        @Nullable
+        @Deprecated
+        @UsedByScanPlugin("2.0")
+        List<String> getActionClassLoaderHashes();
 
         /**
          * The hashes of the classloader that loaded each of the task's actions.
@@ -73,7 +112,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * May contain nulls (non Gradle managed classloader)
          */
         @Nullable
-        List<String> getActionClassLoaderHashes();
+        List<byte[]> getActionClassLoaderHashesBytes();
 
         /**
          * The class names of each of the task's actions.
@@ -100,7 +139,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          */
         @Nullable
         @Deprecated
-        @UsedByScanPlugin("1.6 - 1.15")
+        @UsedByScanPlugin("2.0")
         Map<String, String> getInputHashes();
 
         /**
@@ -113,9 +152,16 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * No null keys or values.
          * Never empty.
          * Null if the task has no inputs.
+         *
+         * @deprecated replaced by {@link #getInputValueHashesBytes()}
          */
         @Nullable
+        @Deprecated
+        @UsedByScanPlugin("2.0")
         Map<String, String> getInputValueHashes();
+
+        @Nullable
+        Map<String, byte[]> getInputValueHashesBytes();
 
         /**
          * The consuming visitor for file property inputs.
@@ -181,7 +227,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         interface VisitState {
             String getPropertyName();
 
-            String getPropertyHash();
+            byte[] getPropertyHashBytes();
 
             String getPropertyNormalizationStrategyName();
 
@@ -189,7 +235,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
             String getName();
 
-            String getHash();
+            byte[] getHashBytes();
         }
 
         /**
