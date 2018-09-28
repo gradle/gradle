@@ -27,7 +27,7 @@ import java.util.List;
  */
 public interface ArtifactTransformer extends Describable {
 
-    /*
+    /**
      * Transforms the given input file. May call the underlying user-provided transform or retrieve a cached value.
      */
     List<File> transform(File input);

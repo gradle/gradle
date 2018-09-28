@@ -67,7 +67,7 @@ public class ConsumerProvidedVariantFinder {
             if (matchAttributes(transform.getTo(), requested)) {
                 if (matchAttributes(actual, transform.getFrom())) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), transform.getTo().asImmutable());
-                    result.matched(variantAttributes, transform.getArtifactTransform(), 1);
+                    result.matched(variantAttributes, transform.getArtifactTransformer(), 1);
                 }
                 candidates.add(transform);
             }
@@ -84,7 +84,7 @@ public class ConsumerProvidedVariantFinder {
             }
             for (final ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
-                ArtifactTransformer transformer = new ChainedTransformer(inputVariant.transformer, candidate.getArtifactTransform());
+                ArtifactTransformer transformer = new ChainedTransformer(inputVariant.transformer, candidate.getArtifactTransformer());
                 result.matched(variantAttributes, transformer, inputVariant.depth + 1);
             }
         }

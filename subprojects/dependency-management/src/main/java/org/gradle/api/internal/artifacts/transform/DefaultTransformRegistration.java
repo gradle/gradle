@@ -73,7 +73,7 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
     }
 
     @Override
-    public ArtifactTransformer getArtifactTransform() {
+    public ArtifactTransformer getArtifactTransformer() {
         return cachingTransformInvocation;
     }
 }

@@ -76,7 +76,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.artifactTransform.transform(TEST_INPUT)
+        def transformed = registration.artifactTransformer.transform(TEST_INPUT)
 
         then:
         transformed.size() == 1
@@ -113,7 +113,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.artifactTransform.transform(TEST_INPUT)
+        def transformed = registration.artifactTransformer.transform(TEST_INPUT)
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -146,7 +146,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        registration.artifactTransform.transform(TEST_INPUT)
+        registration.artifactTransformer.transform(TEST_INPUT)
 
         then:
         def e = thrown(TransformInvocationException)
@@ -183,7 +183,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        registration.artifactTransform.transform(TEST_INPUT)
+        registration.artifactTransformer.transform(TEST_INPUT)
 
         then:
         def e = thrown(TransformInvocationException)
@@ -217,7 +217,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        registration.artifactTransform.transform(TEST_INPUT)
+        registration.artifactTransformer.transform(TEST_INPUT)
 
         then:
         def e = thrown(TransformInvocationException)

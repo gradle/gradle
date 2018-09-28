@@ -46,6 +46,6 @@ public interface VariantTransformRegistry {
         /**
          * Transformer for artifacts of the variant.
          */
-        ArtifactTransformer getArtifactTransform();
+        ArtifactTransformer getArtifactTransformer();
     }
 }
