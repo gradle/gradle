@@ -17,7 +17,6 @@ package org.gradle.api.internal.component;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 
 import java.util.Collection;
 
@@ -32,6 +31,4 @@ public interface BuildableJavaComponent {
     FileCollection getRuntimeClasspath();
 
     Configuration getCompileDependencies();
-
-    ProjectInternal getProject();
 }

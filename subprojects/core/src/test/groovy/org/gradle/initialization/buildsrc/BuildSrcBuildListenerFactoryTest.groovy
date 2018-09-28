@@ -37,9 +37,6 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
     }
     def component = Stub(BuildableJavaComponent) {
         getRuntimeClasspath() >> Stub(FileCollection)
-        getProject() >> Mock(ProjectInternal) {
-            getMutationState() >> projectState
-        }
     }
     def services = Mock(ServiceRegistry) {
         get(ComponentRegistry) >> Stub(ComponentRegistry) {
@@ -48,6 +45,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
     }
     def project = Mock(ProjectInternal) {
         getServices() >> services
+        getMutationState() >> projectState
     }
     def gradle = Mock(GradleInternal) {
         getStartParameter() >> startParameter
