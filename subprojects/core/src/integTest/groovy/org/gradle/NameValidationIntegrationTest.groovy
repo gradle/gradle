@@ -96,23 +96,10 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
     }
 
-    def "does not assign an invalid project name from folder names"() {
-        given:
-        def buildFolder = file(".folder|name")
-        inDirectory(buildFolder)
-        buildFolder.file("build.gradle") << "println rootProject.name"
-
-        when:
-        fails 'help'
-
-        then:
-        assertFailureContainsForbiddenCharacterMessage('project name', '.folder|name',
-            " Set the 'rootProject.name' or adjust the 'include' statement (see https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[]) for more details).")
-    }
-
+    @Requires(TestPrecondition.UNIX_DERIVATIVE) // all forbidden characters are illegal on Windows
     def "does not fail when project name overrides an invalid folder name"() {
         given:
-        def buildFolder = file(".folder  name")
+        def buildFolder = file(".folder: name")
         inDirectory(buildFolder)
         buildFolder.file('settings.gradle') << "rootProject.name = 'customName'"
         buildFolder.file("build.gradle") << "println rootProject.name"
@@ -124,8 +111,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         output.contains("customName")
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    def "does not assign an invalid project name from unix folder names"() {
+    @Requires(TestPrecondition.UNIX_DERIVATIVE) // all forbidden characters are illegal on Windows
+    def "does not assign an invalid project name from folder names"() {
         given:
         def buildFolder = file(".folder: name.")
         inDirectory(buildFolder)
