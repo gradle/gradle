@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformException
+import org.gradle.api.artifacts.transform.TransformInvocationException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.reflect.ObjectInstantiationException
@@ -100,7 +100,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * isolatableFactory.isolate(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray);
+        1 * isolatableFactory.isolate(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
         1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
 
         and:
@@ -149,8 +149,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.artifactTransform.transform(TEST_INPUT)
 
         then:
-        def e = thrown(ArtifactTransformException)
-        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
+        def e = thrown(TransformInvocationException)
+        e.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
         e.cause instanceof ObjectInstantiationException
         e.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
 
@@ -186,8 +186,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.artifactTransform.transform(TEST_INPUT)
 
         then:
-        def e = thrown(ArtifactTransformException)
-        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.TestArtifactTransformWithParams"
+        def e = thrown(TransformInvocationException)
+        e.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.TestArtifactTransformWithParams"
         e.cause instanceof ObjectInstantiationException
         e.cause.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
         e.cause.cause instanceof IllegalArgumentException
@@ -220,8 +220,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.artifactTransform.transform(TEST_INPUT)
 
         then:
-        def e = thrown(ArtifactTransformException)
-        e.message == "Failed to transform file 'input' to match attributes {TEST=TO} using transform DefaultVariantTransformRegistryTest.BrokenTransform"
+        def e = thrown(TransformInvocationException)
+        e.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.BrokenTransform"
         e.cause instanceof RuntimeException
         e.cause.message == 'broken'
 
