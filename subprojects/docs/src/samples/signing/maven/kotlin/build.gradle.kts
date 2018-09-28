@@ -19,7 +19,7 @@ extra["signing.secretKeyRingFile"] = file("secKeyRingFile.gpg").absolutePath
 
 // tag::sign-archives[]
 signing {
-    sign(configurations.archives)
+    sign(configurations["archives"])
 }
 // end::sign-archives[]
 
