@@ -51,6 +51,7 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
         ])
 
         when:
+        mavenMetadata.variantMetadataRules.setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy())
         mavenMetadata.variantMetadataRules.addDependencyAction(instantiator, notationParser, constraintNotationParser, variantAction("default", {
             assert it.size() == 1
             assert it[0].name == "notOptional"

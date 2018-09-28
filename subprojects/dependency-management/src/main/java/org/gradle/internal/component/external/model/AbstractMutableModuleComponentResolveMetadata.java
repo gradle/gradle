@@ -90,6 +90,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
+        this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {

@@ -28,6 +28,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         server.start()
 
         settingsFile << "rootProject.name = 'test'"

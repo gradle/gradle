@@ -28,6 +28,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'test'
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
 
@@ -1693,9 +1694,7 @@ task checkDeps(dependsOn: configurations.compile) {
         bom.publish()
 
         buildFile << """
-plugins {
-    id 'java'
-}
+apply plugin: 'java'
 
 repositories {
     maven {

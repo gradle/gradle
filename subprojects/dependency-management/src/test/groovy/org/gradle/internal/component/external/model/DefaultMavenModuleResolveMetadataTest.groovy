@@ -149,6 +149,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         def componentTypeAttribute = PlatformSupport.COMPONENT_CATEGORY
         def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], new DefaultMavenImmutableAttributesFactory(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE), TestUtil.objectInstantiator())
         metadata.packaging = packaging
+        metadata.variantMetadataRules.variantDerivationStrategy = new JavaEcosystemVariantDerivationStrategy()
 
         when:
         def immutableMetadata = metadata.asImmutable()

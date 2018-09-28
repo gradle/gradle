@@ -164,6 +164,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
                 $testConfiguration
             }
         """
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {

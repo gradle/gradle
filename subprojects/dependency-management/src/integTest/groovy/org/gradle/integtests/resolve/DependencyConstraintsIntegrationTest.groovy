@@ -37,6 +37,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
         """
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "dependency constraint is not included in resolution without a hard dependency"() {
