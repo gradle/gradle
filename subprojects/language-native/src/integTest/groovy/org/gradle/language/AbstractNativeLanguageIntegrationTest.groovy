@@ -247,6 +247,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         def firstCopy = file("firstDir")
         def secondCopy = file("secondDir")
         [ firstCopy, secondCopy ].each { projectDir ->
+            projectDir.file("settings.gradle").touch()
             def buildFile = projectDir.file("build.gradle")
             buildFile << helloWorldApp.pluginScript
             buildFile << helloWorldApp.extraConfiguration

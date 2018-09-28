@@ -368,6 +368,10 @@ The use of such names now causes the build to fail.
 - `BasePluginConvention` is now abstract.
 - `ProjectReportsPluginConvention` is now abstract.
 
+### Removal of deprecated CLI options
+
+- Removed `--no-search-upward` (`-u`) option.
+
 ### Implicit imports for internal classes have been removed
 
 Classes in the internal `org.gradle.util` package are no longer implicitly imported by default.
