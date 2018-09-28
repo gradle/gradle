@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -100,7 +100,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
             return fingerprints;
         } finally {
-            IOUtils.closeQuietly(fileInputStream);
+            IoActions.closeQuietly(fileInputStream);
         }
     }
 

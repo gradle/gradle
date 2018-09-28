@@ -17,6 +17,7 @@
 package org.gradle.util;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.internal.IoActions;
 
 import java.io.*;
 import java.util.zip.ZipEntry;
@@ -48,8 +49,8 @@ public class JarUtil {
                 }
             }
         } finally {
-            IOUtils.closeQuietly(zipStream);
-            IOUtils.closeQuietly(extractTargetStream);
+            IoActions.closeQuietly(zipStream);
+            IoActions.closeQuietly(extractTargetStream);
         }
 
         return entryExtracted;
