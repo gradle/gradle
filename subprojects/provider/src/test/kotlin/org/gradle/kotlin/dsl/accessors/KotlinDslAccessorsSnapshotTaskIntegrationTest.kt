@@ -240,6 +240,7 @@ val kotlinDslProjectSchema: ProjectSchema<String> = listOf(
     "kaptTest",
     "kotlinCompilerClasspath",
     "kotlinCompilerPluginClasspath",
+    "kotlinNativeCompilerPluginClasspath",
     "kotlinScriptDef", "testKotlinScriptDef",
     "runtimeOnlyDependenciesMetadata",
     "testApi", "testApiDependenciesMetadata",
