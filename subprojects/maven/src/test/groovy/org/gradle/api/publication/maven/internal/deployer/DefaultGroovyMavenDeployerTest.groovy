@@ -21,91 +21,86 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.util.JUnit4GroovyMockery
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.junit.Assert.assertEquals
-
-@RunWith (org.jmock.integration.junit4.JMock.class)
-class DefaultGroovyMavenDeployerTest {
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    protected ArtifactPomContainer artifactPomContainerMock = context.mock(ArtifactPomContainer)
-    protected PomFilterContainer pomFilterContainerMock = context.mock(PomFilterContainer);
-    protected LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal);
-    protected MavenSettingsProvider mavenSettingsProvider = context.mock(MavenSettingsProvider)
-    protected LocalMavenRepositoryLocator mavenRepositoryLocator = context.mock(LocalMavenRepositoryLocator)
+class DefaultGroovyMavenDeployerTest extends Specification {
+    protected ArtifactPomContainer artifactPomContainerMock = Mock()
+    protected PomFilterContainer pomFilterContainerMock = Mock()
+    protected LoggingManagerInternal loggingManagerMock = Mock()
+    protected MavenSettingsProvider mavenSettingsProvider = Mock()
+    protected LocalMavenRepositoryLocator mavenRepositoryLocator = Mock()
     private DefaultGroovyMavenDeployer groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock, mavenSettingsProvider, mavenRepositoryLocator)
 
-    protected PomFilterContainer createPomFilterContainerMock() {
-        context.mock(PomFilterContainer.class);
-    }
-
-    @Test
-    void repositoryBuilder() {
+    def repositoryBuilder() {
+        expect:
         checkRepositoryBuilder("repository")
     }
 
-    @Test
-    void snapshotRepositoryBuilder() {
+    def snapshotRepositoryBuilder() {
+        expect:
         checkRepositoryBuilder("snapshotRepository")
     }
     
-    void checkRepositoryBuilder(String repositoryName) {
+    private void checkRepositoryBuilder(String repositoryName) {
         String testUrl = 'testUrl'
         String testProxyHost = 'hans'
         String testUserName = 'userId'
         String testSnapshotUpdatePolicy = 'always'
         String testReleaseUpdatePolicy = 'never'
+
         groovyMavenDeployer."$repositoryName"(url: testUrl) {
             authentication(userName: testUserName)
             proxy(host: testProxyHost)
             releases(updatePolicy: testReleaseUpdatePolicy)
             snapshots(updatePolicy: testSnapshotUpdatePolicy)
         }
-        assertEquals(testUrl, groovyMavenDeployer."$repositoryName".url)
-        assertEquals(testUserName, groovyMavenDeployer."$repositoryName".authentication.userName)
-        assertEquals(testProxyHost, groovyMavenDeployer."$repositoryName".proxy.host)
-        assertEquals(testReleaseUpdatePolicy, groovyMavenDeployer."$repositoryName".releases.updatePolicy)
-        assertEquals(testSnapshotUpdatePolicy, groovyMavenDeployer."$repositoryName".snapshots.updatePolicy)
+
+        assert groovyMavenDeployer."$repositoryName".url == testUrl
+        assert groovyMavenDeployer."$repositoryName".authentication.userName == testUserName
+        assert groovyMavenDeployer."$repositoryName".proxy.host == testProxyHost
+        assert groovyMavenDeployer."$repositoryName".releases.updatePolicy == testReleaseUpdatePolicy
+        assert groovyMavenDeployer."$repositoryName".snapshots.updatePolicy == testSnapshotUpdatePolicy
     }
 
-    @Test
-    void filter() {
+    def filter() {
         Closure testClosure = {}
-        context.checking {
-            one(pomFilterContainerMock).filter(testClosure)
-        }
+        when:
         groovyMavenDeployer.filter(testClosure)
+
+        then:
+        1 * pomFilterContainerMock.filter(testClosure)
     }
 
-    @Test
-    void pom() {
+    def pom() {
         Closure testClosure = {}
-        context.checking {
-            one(pomFilterContainerMock).pom(testClosure)
-        }
+
+        when:
         groovyMavenDeployer.pom(testClosure)
+
+        then:
+        1 * pomFilterContainerMock.pom(testClosure)
     }
 
-    @Test
-    void pomWithName() {
+    def pomWithName() {
         Closure testClosure = {}
         String testName = 'somename'
-        context.checking {
-            one(pomFilterContainerMock).pom(testName, testClosure)
-        }
+
+        when:
         groovyMavenDeployer.pom(testName, testClosure)
+
+        then:
+        1 * pomFilterContainerMock.pom(testName, testClosure)
     }
 
-    @Test
-    void addFilter() {
+    def addFilter() {
         Closure testClosure = {}
         String testName = 'somename'
-        context.checking {
-            one(pomFilterContainerMock).addFilter(testName, testClosure)
-        }
+
+        when:
         groovyMavenDeployer.addFilter(testName, testClosure)
+
+        then:
+        1 * pomFilterContainerMock.addFilter(testName, testClosure)
     }
 }
 
