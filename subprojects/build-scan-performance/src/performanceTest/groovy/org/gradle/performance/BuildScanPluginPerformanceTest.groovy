@@ -76,7 +76,6 @@ class BuildScanPluginPerformanceTest extends Specification {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
-
             }
         }
     }
@@ -141,7 +140,7 @@ class BuildScanPluginPerformanceTest extends Specification {
 
         where:
         scenario                       | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-//        "help"                         | ['help']           | false       | []                | null
+        "help"                         | ['help']           | false       | []                | null
         "clean build - partially cached" | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
     }
 
