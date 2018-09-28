@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
@@ -29,9 +30,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
+    private final MutationGuard parentMutationGuard;
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer);
+        this.parentMutationGuard = MutationGuards.identity();
     }
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
@@ -40,7 +43,12 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
 
     // should be protected, but use of the class generator forces it to be public
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
+        this(collection, filter, instantiator, namer, MutationGuards.identity());
+    }
+
+    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
         super(collection, filter, instantiator, namer);
+        this.parentMutationGuard = parentMutationGuard;
     }
 
     @Override
@@ -71,5 +79,10 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Override
     public Set<T> findAll(Closure cl) {
         return findAll(cl, new LinkedHashSet<T>());
+    }
+
+    @Override
+    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
+        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
     }
 }
