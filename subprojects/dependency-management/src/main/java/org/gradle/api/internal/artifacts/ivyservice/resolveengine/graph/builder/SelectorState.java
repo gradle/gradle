@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -96,7 +97,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionConstraint = resolveVersionConstraint(firstSeenDependency.getSelector());
         this.attributesFactory = resolveState.getAttributesFactory();
-        this.forced = isForced(firstSeenDependency);
+        this.forced = isForced(dependencyState);
         this.fromLock = isFromLock(firstSeenDependency);
         addDependencyMetadata(firstSeenDependency);
     }
@@ -296,7 +297,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return AttributeDesugaring.desugarSelector(selector, attributesFactory);
     }
 
-    private static boolean isForced(DependencyMetadata dependencyMetadata) {
+    private static boolean isForced(DependencyState dependencyState) {
+        if (dependencyState.getRuleDescriptor() != null && dependencyState.getRuleDescriptor().getCause() == ComponentSelectionCause.FORCED) {
+            return true;
+        }
+        DependencyMetadata dependencyMetadata = dependencyState.getDependency();
         return dependencyMetadata instanceof ForcingDependencyMetadata
             && ((ForcingDependencyMetadata) dependencyMetadata).isForce();
     }
@@ -309,7 +314,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
             DependencyMetadata dependency = dependencyState.getDependency();
-            if (!forced && isForced(dependency)) {
+            if (!forced && isForced(dependencyState)) {
                 forced = true;
                 resolved = false; // when a selector changes from non forced to forced, we must reselect
             }

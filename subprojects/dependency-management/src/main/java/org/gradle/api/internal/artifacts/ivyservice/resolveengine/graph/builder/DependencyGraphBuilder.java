@@ -43,7 +43,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -340,12 +339,7 @@ public class DependencyGraphBuilder {
                 if (incomingEdge.getSelector().isForce()) {
                     // Filter out platform originating edges
                     if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
-                        // Only account for force coming from metadata
-                        if (incomingEdge.getDependencyMetadata() instanceof ForcingDependencyMetadata) {
-                            if (((ForcingDependencyMetadata) incomingEdge.getDependencyMetadata()).isForce()) {
-                                forcedEdges.add(incomingEdge);
-                            }
-                        }
+                        forcedEdges.add(incomingEdge);
                     }
                 }
             }
