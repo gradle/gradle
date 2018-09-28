@@ -1550,6 +1550,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private <T> T withMutableProject(final Factory<T> factory) {
             if (domainObjectContext.getProjectPath() != null) {
                 Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+                // Project should only be null if we are resolving a configuration in places where we are running single
+                // threaded anyways, like evaluating buildSrc or in an init script.
                 if (project != null) {
                     ProjectState projectState = projectStateRegistry.stateFor(project);
                     return projectState.withMutableState(factory);
