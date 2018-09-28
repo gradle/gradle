@@ -27,8 +27,11 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.BuildScanResultsStore
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,10 +41,10 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.Duration.millis
-
 @Category(PerformanceRegressionTest)
 class BuildScanPluginPerformanceTest extends Specification {
+
+    private static final int MEDIAN_PERCENTAGES_HIFT = 15
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -50,8 +53,8 @@ class BuildScanPluginPerformanceTest extends Specification {
     @Shared
     def resultStore = new BuildScanResultsStore()
 
-    private static final String WITH_PLUGIN_LABEL = "with plugin"
-    private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
+    private static final String WITHOUT_PLUGIN_LABEL = "1) without plugin"
+    private static final String WITH_PLUGIN_LABEL = "2) with plugin"
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
@@ -126,16 +129,18 @@ class BuildScanPluginPerformanceTest extends Specification {
         def results = runner.run()
 
         then:
-        def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
+        def withoutResults = buildBaselineResults(results, WITHOUT_PLUGIN_LABEL)
+        def withResults = results.buildResult(WITH_PLUGIN_LABEL)
 
-        println "\nspeed statistics ${without.name}: "
-        println without.getSpeedStats()
+        then:
+        def speedStats = withoutResults.getSpeedStatsAgainst(withResults.name, withResults)
+        println(speedStats)
 
-        println "\nspeed statistics ${with.name}: "
-        println with.getSpeedStats()
-
-        // cannot be more than 1s slower (TODO probably convert that into a percentage value)
-        with.totalTime.average - without.totalTime.average < millis(1000)
+        and:
+        def shiftedResults = buildShiftedResults(results, WITHOUT_PLUGIN_LABEL)
+        if (shiftedResults.significantlyFasterThan(withResults)) {
+            throw new AssertionError(speedStats)
+        }
 
         where:
         scenario                       | tasks              | withFailure | scenarioArgs      | buildExperimentListener
@@ -170,4 +175,24 @@ class BuildScanPluginPerformanceTest extends Specification {
             }
         }
     }
+
+    private static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {
+        def baselineResults = new BaselineVersion(name)
+        baselineResults.results.name = name
+        baselineResults.results.addAll(results.buildResult(name))
+        return baselineResults
+    }
+
+
+    private static BaselineVersion buildShiftedResults(CrossBuildPerformanceResults results, String name) {
+        def baselineResults = new BaselineVersion(name)
+        baselineResults.results.name = name
+        def rawResults = results.buildResult(name)
+        def shift = rawResults.totalTime.median.value * MEDIAN_PERCENTAGES_HIFT / 100
+        baselineResults.results.addAll(rawResults.collect {
+            new MeasuredOperation([start: it.start, end: it.end, totalTime: Amount.valueOf(it.totalTime.value + shift, it.totalTime.units), exception: it.exception])
+        })
+        return baselineResults
+    }
+
 }
