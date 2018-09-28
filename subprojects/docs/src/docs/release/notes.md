@@ -397,6 +397,11 @@ The full list of built-in tasks that cannot be replaced:
 When invoking a build, Gradle TestKit now behaves like a regular Gradle invocation, and will search upwards for a `settings.gradle` file that defines the build. 
 Please ensure that all builds being executed with Gradle TestKit define `settings.gradle`, even if this is an empty file.
 
+### Cannot specify `--source-path` directly as a Java compiler arg
+
+Adding `-sourcepath` or `--source-path` to the `CompileOptions.compilerArgs` list is now prohibited. 
+The source path for a `JavaCompile` task should be set via the `CompileOptions.sourcePath` property.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
