@@ -27,6 +27,7 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
  *
  * <p>Used for providers >= 1.6 and <= 1.8</p>
  */
+@SuppressWarnings("deprecation")
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelProducer modelProducer;
     private final ActionRunner actionRunner;
