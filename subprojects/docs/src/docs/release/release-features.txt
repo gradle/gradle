@@ -2,4 +2,3 @@
  - Task timeouts
  - Dependency alignment aka BOM support
  - Interactive `gradle init`
-
