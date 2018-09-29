@@ -243,8 +243,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     tr();
                         th().text("Date").end();
                         th().text("Commit").end();
-                        th().colspan("2").text(scenario.getExecutions().get(0).getBaseVersion().getName()).end();
-                        th().colspan("2").text(scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
+                        th().colspan("2").text(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getBaseVersion().getName()).end();
+                        th().colspan("2").text(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
                         th().text("Difference").end();
                         th().text("Confidence").end();
                     end();
