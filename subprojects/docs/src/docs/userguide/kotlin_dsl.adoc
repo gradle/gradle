@@ -140,6 +140,7 @@ All `gradle.kts` script has implicit imports comprised of:
 [[sec:configuring_plugins]]
 == Configuring plugins
 
+[[type-safe-accessors]]
 === Type-safe model accessors
 
 Gradle Plugins contribute reusable and configurable models to a build.
@@ -307,21 +308,22 @@ The Gradle Kotlin DSL provides the `withConvention(T::class) {}` extension funct
 include::sample[dir="kotlinDsl/sourceSetConvention",files="build.gradle.kts[tags=source-set-convention]"]
 ====
 
+// TODO Keeping build scripts declarative
 
-[[sec:collections]]
-== Working with collections
+// [[sec:collections]]
+// == TODO Working with collections
+//
+// ** overview & api
+// ** delegated properties
+// ** string invoke
 
-** overview & api
-** delegated properties
-** string invoke
 
-
-[[sec:properties]]
-== Working with properties
-
-** Gradle, Settings & Project properties
-** Extra properties
-** `Property` and `Provider`
+// [[sec:properties]]
+// == TODO Working with properties
+//
+// ** Gradle, Settings & Project properties
+// ** Extra properties
+// ** `Property` and `Provider`
 
 
 [[sec:kotlin-dsl_plugin]]
@@ -341,7 +343,8 @@ The `kotlin-dsl` plugin
 * applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[org.jetbrains.kotlin.jvm] plugin,
 * configures an embedded repository that contains all Kotlin libraries embedded with the Gradle Kotlin DSL, pins them to the embedded Kotlin version,
 * adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations,
-* and, configures the Kotlin compiler with the same set of Kotlin compiler settings that is used for Gradle Kotlin DSL scripts.
+* configures the Kotlin compiler with the same set of Kotlin compiler settings that is used for Gradle Kotlin DSL scripts,
+* and, enables precompiled script plugins, see below.
 
 [CAUTION]
 ====
@@ -357,12 +360,49 @@ You can silence the warning by setting the `experimentalWarning` property of the
 include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
 ====
 
-// TODO See guides on authoring plugins
-
 === Precompiled script plugins
 
-// TODO Precompiled script plugins
-// TODO See sample
+The `kotlin-dsl` plugin can be used to author Gradle plugins as part of your local build logic or for published community or in-house plugins.
+You can write plugins in plain Kotlin (`.kt` files in `src/main/kotlin`) making use of the `gradleKotlinDsl()` API, and, use precompiled script plugins (`.gradle.kts` files in `src/main/kotlin`).
+
+Precompiled script plugins are Gradle Kotlin DSL scripts compiled as part of a regular Kotlin source-set and distributed in the usual way, as java class files packaged in some library, meant to be consumed as a binary Gradle plugin.
+They follow the same <<kotlin_dsl#script_file_names, file name conventions>>, are compiled with the same Kotlin compiler settings, and plugin metadata is generated for each one of them thanks to the integration with the `java-gradle-plugin`. They can then be applied by plugin ID like any other plugin.
+
+The Gradle plugin ID by which the precompiled script can be referenced is derived from its name and optional package declaration.
+
+Thus, the script `src/main/kotlin/java-library-convention.gradle.kts` is exposed as the `java-library-convention`
+plugin (assuming it has no package declaration) whereas the script
+`src/main/kotlin/my/java-library-convention.gradle.kts` is exposed as the `my.java-library-convention`
+plugin, again assuming it has the matching package declaration.
+
+Let's walk through the steps needed to implement a plugin in `buildSrc` using a precompiled script plugin.
+
+First, you need a `buildSrc/build.gradle.kts` file applying the `kotlin-dsl` plugin:
+
+.Apply the `kotlin-dsl` plugin to `buildSrc`
+====
+include::sample[dir="kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/build.gradle.kts[tags=apply]"]
+====
+
+Then create the new `java-library-convention.gradle.kts` file in `buildSrc/src/main/kotlin`:
+
+.A `java-library` convention plugin
+====
+include::sample[dir="kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
+====
+
+[IMPORTANT]
+====
+Precompiled script plugins do not get <<kotlin_dsl#type-safe-accessors, type-safe accessors>>.
+This limitation will be lifted in a future Gradle release.
+====
+
+The precompiled script plugin can then be applied to the root project as follows:
+
+.Apply the `java-library-convention` plugin
+====
+include::sample[dir="kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="build.gradle.kts[]"]
+====
 
 
 [[sec:kotlin]]
