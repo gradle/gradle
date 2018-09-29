@@ -12,14 +12,316 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+:kotlin-reference: https://kotlinlang.org/docs/reference/
+:kotlin-tutorials: https://kotlinlang.org/tutorials/
+:kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
+:kotlin-dsl-issues: https://github.com/gradle/kotlin-dsl/issues/
+
+
 [[kotlin_dsl]]
 = Gradle Kotlin DSL
 
+Gradle's newer Kotlin DSL provides a pleasant editing experience in supported IDEs: content-assist, refactoring, documentation, and more.
+
+image::kotlin-dsl-intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 
 [TIP]
 ====
-If you are looking into migrating an existing build to the Gradle Kotlin DSL, please check out the link:https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/[migration guide].
+This user manual and link:{guidesUrl}[guides] contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
+This is the best place where to find how to do this and what with the Gradle Kotlin DSL ; and it covers all Gradle features from <<plugins#plugins, using plugins>> to <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior, customizing the dependency resolution behavior>>.
+
+If you are looking into migrating an existing build to the Gradle Kotlin DSL, please also check out the link:{guidesUrl}/migrating-build-logic-from-groovy-to-kotlin/[migration guide].
 ====
+
+
+[[sec:prerequisites]]
+== Prerequisites and limitations
+
+* There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{kotlin-dsl-issues}902[are known to be slower].
+The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
+* You must run Gradle with Java 8 or higher. Java 7 is not supported.
+* The embedded Kotlin compiler is known to work on Linux, macOS, Windows, Cygwin, FreeBSD and Solaris on x86-64 architectures.
+* Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
+* Use of the link:{user-manual}plugins.html#sec:plugins_block[plugins {}] block to declare Gradle plugins significantly improves the editing experience, and is highly recommended.
+* The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
+
+If you run to trouble or a suspected bug, please take advantage of the `gradle/kotlin-dsl` link:{kotlin-dsl-issues}[issue tracker].
+
+
+[[sec:ide_support]]
+== IDE support
+
+Kotlin DSL is fully supported in Intellij IDEA and Android Studio. Other IDEs do not yet provide helpful tools for editing Gradle Kotlin DSL files, however, importing and working with Kotlin DSL-based builds work as usual.
+
+.IDE support matrix
+[cols=">.^,^.^,^.^,^.^",frame=none,grid=rows,options="header"]
+|===
+||Build import|Syntax highlighting ^1^|Semantic editor ^2^
+
+|IntelliJ IDEA
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.green]#*✓*#
+
+|Android Studio
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.green]#*✓*#
+
+|CLion
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.red]#✖#
+
+|Eclipse
+|[.green]#*✓*#
+|[.red]#✖#
+|[.red]#✖#
+
+|Netbeans
+|[.green]#*✓*#
+|[.red]#✖#
+|[.red]#✖#
+
+|===
+
+[%hardbreaks]
+^1^ ^Kotlin^ ^syntax^ ^highlighting^ ^in^ ^Gradle^ ^Kotlin^ ^DSL^ ^scripts^
+^2^ ^code^ ^completion,^ ^navigation^ ^to^ ^sources,^ ^documentation,^ ^refactorings^ ^etc...^ ^in^ ^Gradle^ ^Kotlin^ ^DSL^ ^scripts^
+
+In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts.
+
+In addition, IntelliJ IDEA, Android Studio or CLion might spawn up to 3 Gradle daemons when editing scripts; one per each type of script: project scripts, settings scripts and initialization scripts.
+Builds with slow configuration time might affect the IDE responsiveness, please check out the link:https://guides.gradle.org/performance/#configuration[performance guide].
+
+
+[[sec:scripts]]
+== Gradle Kotlin DSL scripts
+
+=== Script file names
+
+[NOTE]
+--
+Groovy DSL script files use the `.gradle` file name extension.
+
+Kotlin DSL script files use the `.gradle.kts` file name extension.
+--
+
+To use the Kotlin DSL, simply name your files `build.gradle.kts` instead of `build.gradle`.
+
+The link:{user-manual}build_lifecycle.html#sec:settings_file[settings file], `settings.gradle`, can also be renamed `settings.gradle.kts`.
+
+In a multi-project build, you can have some modules using the Groovy DSL (with `build.gradle`) and others using the Kotlin DSL (with `build.gradle.kts`).
+
+On top of that, apply the following conventions for better IDE support:
+
+* Name scripts that are applied to `Settings` according to the pattern `*.settings.gradle.kts`,
+* Name link:{user-manual}init_scripts.html[init scripts] according to the pattern `*.init.gradle.kts`.
+
+[TIP]
+.Precompiled script plugins
+====
+The Gradle Kotlin DSL can also be used to author Gradle plugins as part of your local build logic or for published community or in-house plugins.
+
+You can either write plugins in plain Kotlin (`.kt` files in `src/main/kotlin`) and make use of the Gradle Kotlin DSL API, or, use precompiled script plugins (`.gradle.kts` files in `src/main/kotlin`).
+
+See the <<kotlin_dsl#kotlin-dsl_plugin, kotlin-dsl plugin>> section below for more information.
+====
+
+[[sec:implicit_imports]]
+=== Implicit imports
+
+All `gradle.kts` script has implicit imports comprised of:
+
+* the link:{user-manual}writing_build_scripts.html#script-default-imports[default Gradle API imports],
+* the Gradle Kotlin DSL API: `org.gradle.kotlin.dsl.*`.
+
+
+[[sec:configuring_plugins]]
+== Configuring plugins
+
+=== Type-safe model accessors
+
+Gradle Plugins contribute reusable and configurable models to a build.
+For example, the `java` plugin contributes artifact configurations such as `implementation` and `testImplementation`, it also adds a Gradle extension named `sourceSets` that can be used to configure and create source sets, it also registers Gradle tasks such as `compileJava` etc...
+
+Gradle scripts configure what applied plugins contribute to the build model. For example adding dependencies or configuring dependency resolution on the `implementation` artifact configuration, changing the source directories for the `main` and `test` Java source sets, or, making `compileJava` fail on compiler warnings.
+
+The Gradle Kotlin DSL provides a static Kotlin view over the dynamic model contributed by plugins in the form of type-safe model accessors.
+
+[NOTE]
+.Configuration avoidance
+====
+Configuration avoidance was introduced in Gradle 4.9.
+It allows Gradle to avoid configuring unnecessary build logic, leading to faster build configuration time.
+See the corresponding link:https://blog.gradle.org/preview-avoiding-task-configuration-time[Evolving the Gradle API to reduce configuration time] blog post.
+
+The Gradle Kotlin DSL embraces configuration avoidance by making the type-safe model accessors leverage the new APIs.
+====
+
+*Where and when are type-safe model accessors available?*
+
+The Gradle Kotlin DSL currently supports type-safe model accessors for:
+
+* Artifact Configurations
+* Project Extensions and Conventions
+* Elements of the `tasks` container
+* Elements of Project Extensions that are containers
+* Extensions on each of the above
+
+[IMPORTANT]
+====
+Only project build scripts have type-safe model accessors.
+Init scripts, settings scripts and applied script plugins don't.
+Nor do precompiled script plugins.
+Theses limitations will be removed in a future Gradle release.
+====
+
+The set of type-safe model accessors available is calculated right before evaluating the script body, after the `plugins {}` block.
+It means that all model elements contributed after that point can not be reached with a type-safe model accessor.
+It also means that accessors for model elements contributed by plugins applied by parent projects are available.
+
+Let's look at a project build script that makes use of accessors:
+
+.Using type-safe model accessors
+====
+include::sample[dir="kotlinDsl/accessors",files="build.gradle.kts[tags=accessors]"]
+====
+<1> `api`, `implementation` and `testImplementation` artifact configurations contributed by the `java-library` plugin
+<2> the `sourceSets` project extensions contributed by the `java-library` plugin
+<3> the `main` source set created by default by the `java-library` plugin
+<4> the `java` project convention contributed by the `java-library` plugin
+<5> the `test` task contributed by the `java-library` plugin
+
+[TIP]
+--
+Because your IDE knows about the accessors, it will include them when you ask your IDE for suggestions.
+This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block.
+--
+
+*What to do when type-safe model accessors are not available?*
+
+Following up on the sample build script shown above using the `plugins {}` block, here is the exact same build logic but using the imperative `apply(plugin = "some.id")`.
+Note that because imperative plugin application happens in the body of a build script, the model contributed by the plugin can not be made available as type-safe accessors.
+
+.Configuring plugins without type-safe accessors
+====
+include::sample[dir="kotlinDsl/noAccessors",files="build.gradle.kts[tags=no-accessors]"]
+====
+
+[TIP]
+.All models contributed by plugins are reachable via the API.
+====
+Whenever you can't find a type-safe accessor you should fallback to using the API.
+====
+
+Using the API instead of accessors to configure plugins is not that different, a bit more verbose though.
+It also requires knowing names and/or types of the configured model elements.
+We'll now see how those can be discovered by looking at the script above in details.
+
+Let's start with artifact configurations.
+
+.Artifact configurations
+====
+include::sample[dir="kotlinDsl/noAccessors",files="build.gradle.kts[tags=dependencies]"]
+====
+
+Artifact configurations have a name.
+Here, instead of using an accessor we refer to them by name using string literals.
+
+One can discover what artifact configurations are available by either looking at the `java-library` plugin documentation, source code or by running `gradle dependencies`.
+
+Now let's look at `Project` extensions and conventions.
+
+.Project extensions and conventions
+====
+include::sample[dir="kotlinDsl/noAccessors",files="build.gradle.kts[tags=project-extension]"]
+====
+
+`Project` extensions and conventions have a name and a type.
+Here, instead of using the `sourceSets` and `java` accessors we use the `configure<T> {}` function to refer to them by type and apply a configuration block.
+`sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer`.
+`java` is a Gradle convention on `Project` of type `JavaPluginConvention`.
+
+One can discover what extensions and conventions are available by either looking at the applied plugins documentation, source code or by running `gradle kotlinDslAccessorsReport` which prints the Kotlin code for accessing the model elements contributed by applied plugins providing names and types.
+
+Note that you can also use the `the<T>()` function if you only need a reference to the extension or convention or for one liners:
+
+[source,kotlin]
+----
+the<SourceSetContainer>()["main"].srcDir("src/core/java")
+----
+
+The snippet above also configures the existing element of the source set container named `main`:
+
+.Elements of `Project` extensions that are containers
+====
+include::sample[dir="kotlinDsl/noAccessors",files="build.gradle.kts[tags=project-container-extension]"]
+====
+
+Source sets have a name.
+Here, instead of using the `main` accessor we use the Gradle API and refer to it by name using a string literal.
+
+One can discover what source sets, or what existing elements are present in any container, by either looking at the applied plugins documentation, source code or by running `gradle kotlinDslAccessorsReport` which prints the Kotlin code for accessing the model elements contributed by applied plugins providing names and types.
+
+This is very similar to what our sample build script does to configure a task:
+
+.Tasks
+====
+include::sample[dir="kotlinDsl/noAccessors",files="build.gradle.kts[tags=tasks]"]
+====
+
+Gradle tasks have a name and a type.
+Here, instead of using an accessor we use the Gradle API and refer to them by name and type.
+Note that it's necessary to specify the type of the task explicitly.
+Otherwise, the script won't compile because the inferred type will be `Task`, not `Test`, and the `testLogging` property is specific to the `Test` task type.
+You can, however, omit the type if you only need to configure properties or call methods that are common to all tasks, i.e. they are declared on the `Task` interface:
+
+One can discover what tasks are available by running `gradle tasks`, and then to know the type of a given task by running `gradle help --task taskName`:
+
+[source]
+----
+❯ ./gradlew help --task test
+...
+Type
+     Test (org.gradle.api.tasks.testing.Test)
+----
+
+Note that the IDE can assist us with the required imports, so we only need the simple names, i.e. without the full packages.
+In this case, no need for an import, the `Test` task type is part of the Gradle API and of <<kotlin_dsl#sec:implicit_imports, implicit imports>>.
+
+=== About conventions
+
+Some of the Gradle core plugins expose configurability with the help of a so-called `Convention`.
+`Convention` is the preceding concept of an extension and serves a similar purpose.
+Please avoid using the `Convention` concept when writing new plugins.
+The long term plan is to migrate all Gradle core plugins to use extensions and remove the `Convention` concept altogether.
+
+As seen above, the Gradle Kotlin DSL provides accessors only for `Conventions` on `Project`.
+There are situations that require you to interact with a Gradle plugin that uses `Conventions` on other objects.
+The most common example is configuring source sets conventions.
+The Gradle Kotlin DSL provides the `withConvention(T::class) {}` extension function to do so:
+
+.Configuring source set conventions
+====
+include::sample[dir="kotlinDsl/sourceSetConvention",files="build.gradle.kts[tags=source-set-convention]"]
+====
+
+
+[[sec:collections]]
+== Working with collections
+
+** overview & api
+** delegated properties
+** string invoke
+
+
+[[sec:properties]]
+== Working with properties
+
+** Gradle, Settings & Project properties
+** Extra properties
+** `Property` and `Provider`
 
 
 [[sec:kotlin-dsl_plugin]]
@@ -29,21 +331,10 @@ When applied to a project, the `kotlin-dsl` Gradle plugin configures the project
 
 It is useful for all projects implementing build logic: <<organizing_gradle_projects.adoc#sec:build_sources, buildSrc>>, <<composite_builds.adoc#composite_builds, included builds>> for build logic or link:{guidesUrl}/designing-gradle-plugins/[Gradle plugin] builds.
 
-The `kotlin-dsl` plugin can be applied as follows:
-
-[source,kotlin]
-.buildSrc/build.gradle.kts
-----
-plugins {
-    `kotlin-dsl`
-}
-
-repositories {
-    // The org.jetbrains.kotlin.jvm plugin requires a repository
-    // where to download the Kotlin compiler dependencies from.
-    jcenter()
-}
-----
+.Apply the `kotlin-dsl` plugin to `buildSrc`
+====
+include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=apply]"]
+====
 
 The `kotlin-dsl` plugin
 
@@ -61,21 +352,42 @@ See the <<sec:kotlin_compiler_arguments>> section below for more information.
 By default, the `kotlin-dsl` plugin warns about using experimental features of the Kotlin compiler.
 You can silence the warning by setting the `experimentalWarning` property of the `kotlinDslPluginOptions` extension to `false` as follows:
 
-[source,kotlin]
-.buildSrc/build.gradle.kts
-----
-plugins {
-    `kotlin-dsl`
-}
+.Disable experimental Kotlin compiler features warning
+====
+include::sample[dir="kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
+====
 
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
-----
+// TODO See guides on authoring plugins
 
+=== Precompiled script plugins
+
+// TODO Precompiled script plugins
+// TODO See sample
+
+
+[[sec:kotlin]]
+== Embedded Kotlin
+
+Gradle embeds Kotlin in order to provide support for Kotlin based scripts.
+
+=== Kotlin versions
+
+Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries. For example, Gradle 4.3 ships with the Gradle Kotlin DSL v0.12.1 that includes Kotlin 1.1.51 versions of these modules. The `kotlin` package from those modules is visible through the Gradle classpath.
+
+The link:https://kotlinlang.org/docs/reference/compatibility.html[compatibility guarantees] provided by Kotlin apply for both backward and forward compatibility.
+
+==== Backward compatibility
+
+Our approach is to only do backwards-breaking Kotlin upgrades on a major Gradle release. We will always clearly document which Kotlin version we ship and announce upgrade plans before a major release.
+
+Plugin authors who want to stay compatible with older Gradle versions need to limit their API usage to a subset that is compatible with these old versions. It’s not really different from any other new API in Gradle. E.g. if we introduce a new API for dependency resolution and a plugin wants to use that API, then they either need to drop support for older Gradle versions or they need to do some clever organization of their code to only execute the new code path on newer versions.
+
+==== Forward compatibility
+
+The biggest issue is the compatibility between the external `kotlin-gradle-plugin` version and the `kotlin-stdlib` version shipped with Gradle. More generally, between any plugin that transitively depends on `kotlin-stdlib` and its version shipped with Gradle. As long as the combination is compatible everything should work. This will become less of an issue as the language matures.
 
 [[sec:kotlin_compiler_arguments]]
-== Kotlin compiler arguments
+=== Kotlin compiler arguments
 
 These are the Kotlin compiler arguments used for compiling Gradle Kotlin DSL scripts and Kotlin sources and scripts in a project that has the `kotlin-dsl` plugin applied:
 
@@ -116,3 +428,164 @@ kotlinFunctionWithJavaSam(Action {
     // ...
 })
 ----
+
+[[sec:interoperability]]
+== Interoperability
+
+When mixing languages in your build logic, you may have to cross language boundaries.
+An extreme example would be a build that uses tasks and plugins that are implemented in Java, Groovy and Kotlin, while also using both Kotlin DSL and Groovy DSL build scripts.
+
+Quoting the Kotlin reference documentation:
+
+> Kotlin is designed with Java Interoperability in mind. Existing Java code can be called from Kotlin in a natural way, and Kotlin code can be used from Java rather smoothly as well.
+
+Both link:{kotlin-reference}java-interop.html[calling Java from Kotlin] and link:{kotlin-reference}java-to-kotlin-interop.html[calling Kotlin from Java] are very well covered in the Kotlin reference documentation.
+
+The same mostly applies to interoperability with Groovy code.
+In addition, the Kotlin DSL provides several ways to opt into Groovy semantics, which we look at next.
+
+=== Static extensions
+
+Both the Groovy and Kotlin languages support extending existing classes via link:http://groovy-lang.org/metaprogramming.html#_extension_modules[Groovy Extension modules] and link:{kotlin-reference}extensions.html[Kotlin extensions].
+
+To call a Kotlin extension function from Groovy, call it as a static function, passing the receiver as the first parameter:
+
+.Call Kotlin extension from Groovy
+====
+include::sample[dir="kotlinDsl/interoperability/static-extensions",files="build.gradle[tags=kotlin-from-groovy]"]
+====
+
+Kotlin extension functions are package-level functions and you can learn how to locate the name of the type declaring a given Kotlin extension in see the link:{kotlin-reference}java-to-kotlin-interop.html#package-level-functions[Package-Level Functions] section of the Kotlin reference documentation.
+
+To call a Groovy extension method from Kotlin, the same approach applies: call it as a static function passing the receiver as the first parameter.
+Here's an example:
+
+.Call Groovy extension from Kotlin
+====
+include::sample[dir="kotlinDsl/interoperability/static-extensions",files="build.gradle.kts[tags=groovy-from-kotlin]"]
+====
+
+=== Named parameters and default arguments
+
+Both the Groovy and Kotlin languages support named function parameters and default arguments, although they are implemented very differently.
+Kotlin has fully-fledged support for both, as described in the Kotlin language reference under link:{kotlin-reference}functions.html#named-arguments[named arguments] and link:{kotlin-reference}functions.html#default-arguments[default arguments].
+Groovy implements link:http://groovy-lang.org/objectorientation.html#_named_arguments[named arguments] in a non-type-safe way based on a `Map<String, ?>` parameter, which means they cannot be combined with link:http://groovy-lang.org/objectorientation.html#_default_arguments[default arguments].
+In other words, you can only use one or the other in Groovy for any given method.
+
+==== Calling Kotlin from Groovy
+
+To call a Kotlin function that has named arguments from Groovy, just use a normal method call with positional parameters.
+There is no way to provide values by argument name.
+
+To call a Kotlin function that has default arguments from Groovy, always pass values for all the function parameters.
+
+==== Calling Kotlin from Groovy
+
+To call a Groovy function with named arguments from Kotlin, you need to pass a `Map<String, ?>`, as shown in this example:
+
+.Call Groovy function with named arguments from Kotlin
+[.multi-language-sample]
+====
+.build.gradle.kts
+[source, kotlin]
+----
+groovyNamedArgumentTakingMethod(mapOf(
+    "parameterName" to "value",
+    "other" to 42,
+    "and" to aReference))
+----
+====
+
+To call a Groovy function with default arguments from Kotlin, always pass values for all the parameters.
+
+=== Groovy closures from Kotlin
+
+You may sometimes have to call Groovy methods that take link:http://groovy-lang.org/closures.html[Closure] arguments from Kotlin code.
+For example, some third-party plugins written in Groovy expect closure arguments.
+
+[NOTE]
+Gradle plugins written in any language should prefer the type `Action<T>` type in place of closures. Groovy closures and Kotlin lambdas are automatically mapped to arguments of that type.
+
+In order to provide a way to construct closures while preserving Kotlin's strong typing, two helper methods exist:
+
+* `closureOf<T> {}`
+* `delegateClosureOf<T> {}`
+
+Both methods are useful in different circumstances and depend upon the method you are passing the `Closure` instance into.
+
+Some plugins expect simple closures, as with the link:{plugin-portal}plugin/com.jfrog.bintray[Bintray] plugin:
+
+.Use `closureOf<T> {}`
+====
+include::sample[dir="kotlinDsl/interoperability/closure-of",files="build.gradle.kts[tags=closureOf]"]
+====
+
+In other cases, like with the link:{plugin-portal}plugin/org.gretty[Gretty Plugin] when configuring farms, the plugin expects a delegate closure:
+
+.Use `delegateClosureOf<T> {}`
+====
+include::sample[dir="kotlinDsl/interoperability/delegate-closure-of",files="build.gradle.kts[tags=delegateClosureOf]"]
+====
+
+There sometimes isn't a good way to tell, from looking at the source code, which version to use.
+Usually, if you get a `NullPointerException` with `closureOf<T> {}`, using `delegateClosureOf<T> {}`
+will resolve the problem.
+
+Also see the link:{kotlin-dsl-samples}groovy-interop[groovy-interop] sample.
+
+=== The Kotlin DSL Groovy Builder
+
+If some plugin makes heavy use of link:http://groovy-lang.org/metaprogramming.html[Groovy metaprogramming], then using it from Kotlin or Java or any statically-compiled language can be very cumbersome.
+
+The Kotlin DSL provides a `withGroovyBuilder {}` utility extension that attaches the Groovy metaprogramming semantics to objects of type `Any`.
+The following example demonstrates several features of the method on the object `target`:
+
+.Use `withGroovyBuilder {}`
+====
+include::sample[dir="kotlinDsl/interoperability/groovy-builder",files="build.gradle.kts[tags=withGroovyBuilder]"]
+====
+<1> The receiver is a link:http://docs.groovy-lang.org/latest/html/api/groovy/lang/GroovyObject.html[GroovyObject] and provides Kotlin helpers
+<2> The `GroovyObject` API is available
+<3> Invoke the `methodName` method, passing some parameters
+<4> Configure the `blockName` property, maps to a `Closure` taking method invocation
+<5> Invoke `another` method taking named arguments, maps to a Groovy named arguments `Map<String, ?>` taking method invocation
+
+The link:{kotlin-dsl-samples}maven-plugin[maven-plugin] sample demonstrates the use of the `withGroovyBuilder()` utility extensions for configuring the `uploadArchives` task to link:{user-manual}maven_plugin.html#sec:deploying_to_a_maven_repository[deploy to a Maven repository] with a custom POM using Gradle's core {user-manual}maven_plugin.html[Maven Plugin].
+Note that the recommended {user-manual}publishing_maven.html[Maven Publish Plugin] provides a type-safe and Kotlin-friendly DSL that allows you to easily do link:{user-manual}publishing_maven.html#sec:modifying_the_generated_pom[the same and more] without resorting to `withGroovyBuilder()`.
+
+=== Using a Groovy script
+
+Another option when dealing with problematic plugins that assume a Groovy DSL build script is to configure them in a Groovy DSL build script that is applied from the main Kotlin DSL build script:
+
+.Using a Groovy script
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("dynamic-groovy-plugin") version "1.0"               <1>
+}
+apply(from = "dynamic-groovy-plugin-configuration.gradle")  <2>
+----
+=====
+====
+
+====
+[.multi-language-sample]
+=====
+.dynamic-groovy-plugin-configuration.gradle
+[source, groovy]
+----
+native {                                                    <3>
+    dynamic {
+        groovy as Usual
+    }
+}
+----
+=====
+====
+<1> The Kotlin build script requests and applies the plugin
+<2> The Kotlin build script applies the Groovy script
+<3> The Groovy script uses dynamic Groovy to configure plugin
