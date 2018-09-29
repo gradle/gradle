@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
+@SuppressWarnings("deprecation")
 public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;

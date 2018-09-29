@@ -36,6 +36,7 @@ import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
@@ -206,7 +207,7 @@ public class CommandLineActionFactory {
                 } catch (IOException e) {
                     // do not fail the build as feature is non-critical
                 } finally {
-                    IOUtils.closeQuietly(inputStream);
+                    IoActions.closeQuietly(inputStream);
                 }
             }
 

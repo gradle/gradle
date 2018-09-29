@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.IoActions;
 import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
@@ -231,8 +231,8 @@ public class GFileUtils {
         } catch (Exception e) {
             throw new TailReadingException(e);
         } finally {
-            IOUtils.closeQuietly(fileReader);
-            IOUtils.closeQuietly(reader);
+            IoActions.closeQuietly(fileReader);
+            IoActions.closeQuietly(reader);
         }
     }
 

@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+@SuppressWarnings("deprecation")
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
     private final ClassLoader classLoader;
