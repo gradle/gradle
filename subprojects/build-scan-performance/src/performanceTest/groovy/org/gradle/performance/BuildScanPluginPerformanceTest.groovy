@@ -88,7 +88,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         def opts = ['-Xms2048m', '-Xmx2048m']
 
         runner.testGroup = "build scan plugin"
-        runner.testId = "large java project with and without using scan plugin ($scenario)"
+        runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
