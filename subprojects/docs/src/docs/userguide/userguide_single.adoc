@@ -48,6 +48,8 @@ include::gradle_daemon.adoc[leveloffset=+2]
 
 include::init_scripts.adoc[leveloffset=+2]
 
+include::kotlin_dsl.adoc[leveloffset=+2]
+
 include::intro_multi_project_builds.adoc[leveloffset=+2]
 
 include::gradle_wrapper.adoc[leveloffset=+2]
