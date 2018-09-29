@@ -41,11 +41,15 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
         return 0;
     }
 
-    protected void headSection(Html html) {
-        String rootDir = getDepth() == 0 ? "" : "../";
+    protected void metaTag(Html html) {
         html.meta()
             .httpEquiv("Content-Type")
             .content("text/html; charset=utf-8");
+    }
+
+    protected void headSection(Html html) {
+        String rootDir = getDepth() == 0 ? "" : "../";
+        metaTag(html);
         html.link()
             .rel("stylesheet")
             .type("text/css")
