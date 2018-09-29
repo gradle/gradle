@@ -25,7 +25,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
-import testLibraries
 import testLibrary
 import java.util.Locale
 
@@ -129,7 +128,7 @@ open class TestFixturesPlugin : Plugin<Project> {
             testFixturesApi(library("junit"))
             testFixturesApi(testLibrary("spock"))
             testFixturesRuntimeOnly(testLibrary("bytebuddy"))
-            testLibraries("jmock").forEach { testFixturesApi(it) }
+            testFixturesRuntimeOnly(testLibrary("cglib"))
         }
 
         plugins.withType<IdeaPlugin> {
