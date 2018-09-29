@@ -140,7 +140,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
             List<WorkerDaemonClient> sortedClients = CollectionUtils.sort(idleClients, new Comparator<WorkerDaemonClient>() {
                 @Override
                 public int compare(WorkerDaemonClient o1, WorkerDaemonClient o2) {
-                    return new Integer(o1.getUses()).compareTo(o2.getUses());
+                    return Integer.compare(o1.getUses(), o2.getUses());
                 }
             });
             List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
