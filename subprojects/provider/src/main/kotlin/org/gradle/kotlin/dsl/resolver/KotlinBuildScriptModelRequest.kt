@@ -59,9 +59,16 @@ internal
 fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
     modelBuilderCustomization: ModelBuilderCustomization = {}
-): KotlinBuildScriptModel = projectConnectionFor(request).use { connection ->
-    connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
-}
+): KotlinBuildScriptModel =
+
+    projectConnectionFor(request).let { connection ->
+        @Suppress("ConvertTryFinallyToUseCall")
+        try {
+            connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
+        } finally {
+            connection.close()
+        }
+    }
 
 
 private
