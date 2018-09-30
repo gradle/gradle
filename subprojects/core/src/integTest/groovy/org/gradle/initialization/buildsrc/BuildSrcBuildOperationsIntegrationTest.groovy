@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
@@ -29,14 +30,16 @@ import spock.lang.Unroll
 import java.util.regex.Pattern
 
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+    BuildOperationsFixture ops
+    def setup() {
+        ops = new BuildOperationsFixture(executer, temporaryFolder)
+        file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
+    }
+
     @Unroll
     def "includes build identifier in build operations with #display"() {
-        given:
-        def ops = new BuildOperationsFixture(executer, temporaryFolder)
-        file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
-        file("buildSrc/settings.gradle") << settings << "\n"
-
         when:
+        file("buildSrc/settings.gradle") << settings << "\n"
         succeeds()
 
         then:
@@ -101,5 +104,15 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         settings                     | display
         ""                           | "default root project name"
         "rootProject.name='someLib'" | "configured root project name"
+    }
+
+    @Unroll
+    def "does not resolve configurations when configuring buildSrc build"() {
+        when:
+        succeeds()
+
+        then:
+        def buildSrcConfigure = ops.first("Configure build (:buildSrc)")
+        ops.children(buildSrcConfigure, ResolveConfigurationDependenciesBuildOperationType).empty
     }
 }
