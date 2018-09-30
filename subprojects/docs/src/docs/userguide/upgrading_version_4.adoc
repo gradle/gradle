@@ -82,7 +82,6 @@ Running Gradle & build environment::
  * The `-Dtest.single` command-line option has been removed — use <<java_testing.adoc#test_filtering,test filtering>> instead.
  * The `-Dtest.debug` command-line option has been removed — use the <<java_testing#sec:debugging_java_tests,`--debug-jvm` option>> instead.
  * The `-u`/`--no-search-upward` command-line option has been removed — make sure all your builds have a _settings.gradle_ file.
- * The `-a`/`--no-rebuild` command-line option has been removed.
  * The `--recompile-scripts` command-line option has been removed.
  * You can no longer have a Gradle build nested in a subdirectory of another Gradle build unless the nested build has a _settings.gradle_ file.
  * The `DirectoryBuildCache.setTargetSizeInMB(long)` method has been removed — use link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays[DirectoryBuildCache.removeUnusedEntriesAfterDays] instead.
