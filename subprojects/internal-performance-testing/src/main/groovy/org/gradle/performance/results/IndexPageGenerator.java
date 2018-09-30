@@ -119,7 +119,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         link().rel("stylesheet").type("text/css").href("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css").end();
                         script().src("https://code.jquery.com/jquery-3.3.1.min.js").end();
                         script().src("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js").end();
-                        script().raw("$(function enableAllTooltips() { $('[data-toggle=\"tooltip\"]').tooltip() })").end();
+                        script().src("js/anchorControl.js").end();
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
                     body();
@@ -135,7 +135,10 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 long successCount = scenarios.stream().filter(ScenarioBuildResultData::isSuccessful).count();
                 long failureCount = scenarios.size() - successCount;
                 div().classAttr("row alert alert-primary m-0");
-                    div().classAttr("col p-0").text("#").end();
+                    div().classAttr("col p-0");
+                        a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Perfomrance Coordinator Build")
+                            .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
+                    end();
                     div().classAttr("col-9 p-0");
                         text("Scenarios (" + successCount + " successful");
                         if (failureCount > 0) {
@@ -187,10 +190,14 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             }
 
             private void renderScenario(int index, ScenarioBuildResultData scenario) {
-                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario));
+                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario)).id("scenario" + index);
                     div().id("heading" + index).classAttr("card-header");
-                        div().classAttr("row align-items-center");
-                            div().classAttr("col").text(String.valueOf(index)).end();
+                        div().classAttr("row align-items-center data-row").attr("scenario", String.valueOf(index));
+                            div().classAttr("col").text(String.valueOf(index)).
+                                a().attr("data-toggle", "tooltip").classAttr("section-sign").title("Click to copy url of this scenario to clipboard").href("#scenario" + index).style("display:none")
+                                    .id("section-sign-" + index).text("§");
+                                end();
+                            end();
                             div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
                                 if(scenario.isFromCache()) {

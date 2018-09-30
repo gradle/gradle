@@ -57,6 +57,7 @@ public class ReportGenerator {
             copyResource("style.css", outputDirectory);
             copyResource("report.js", outputDirectory);
             copyResource("performanceGraph.js", outputDirectory);
+            copyResource("anchorControl.js", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not generate performance test report to '%s'.", outputDirectory), e);
         }
