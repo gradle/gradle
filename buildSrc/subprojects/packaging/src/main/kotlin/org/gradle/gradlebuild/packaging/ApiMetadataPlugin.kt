@@ -182,7 +182,7 @@ open class ParameterNamesResourceTask : DefaultTask() {
 
     private
     fun isolatedClassLoaderFor(classpath: FileCollection) =
-        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files)) as URLClassLoader
+        classLoaderFactory.createIsolatedClassLoader("parameter names", DefaultClassPath.of(classpath.files)) as URLClassLoader
 
     private
     val classLoaderFactory
