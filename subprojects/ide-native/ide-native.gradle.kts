@@ -16,17 +16,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingBase')
+    compile(library("groovy"))
+    compile(project(":core"))
+    compile(project(":ide"))
+    compile(project(":platformNative"))
+    compile(project(":languageNative"))
+    compile(project(":testingNative"))
+    compile(library("plist"))
 
-    integTestRuntime project(':ideNative')
+    testFixturesApi(project(":internalTesting"))
 }
 
 gradlebuildJava {
@@ -34,10 +36,8 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
-    from(':platformNative')
-    from(':diagnostics')
-    from(':platformBase')
-    from(':testingBase')
-    from(':languageNative')
+    from(":core")
+    from(":platformNative")
+    from(":versionControl")
+    from(":ide", "testFixtures")
 }
