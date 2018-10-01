@@ -150,7 +150,7 @@ public class VariantMetadataRules {
 
         @Override
         public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
-            throw new UnsupportedOperationException("You are probably to set the derivation strategy to something that wasn't supposed to be mutable");
+            throw new UnsupportedOperationException("You are probably trying to set the derivation strategy to something that wasn't supposed to be mutable");
         }
 
         @Override
