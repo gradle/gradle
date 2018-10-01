@@ -117,7 +117,6 @@ val groovyBuildScriptProjects = listOf(
     "process-services",
     "core",
     "wrapper",
-    "cli",
     "launcher",
     "resources",
     "resources-http",

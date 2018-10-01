@@ -23,12 +23,12 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
     It has no dependencies, and should never have any.
 */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.classycle'
+    id("java-library")
+    id("gradlebuild.classycle")
 }
 
 dependencies{
-    compile project(':distributionsDependencies')
+    compile(project(":distributionsDependencies"))
 }
 
 gradlebuildJava {
