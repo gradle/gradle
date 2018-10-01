@@ -32,8 +32,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
     private static final int MEDIAN_PERCENTAGES_SHIFT = 15
 
-    private static final String WITHOUT_PLUGIN_LABEL = "2 without plugin"
-    private static final String WITH_PLUGIN_LABEL = "7 with plugin"
+    private static final String WITHOUT_PLUGIN_LABEL = "1 without plugin"
+    private static final String WITH_PLUGIN_LABEL = "2 with plugin"
 
     @Unroll
     def "large java project with and without plugin application (#scenario)"() {
