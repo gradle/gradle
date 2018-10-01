@@ -132,7 +132,6 @@ val groovyBuildScriptProjects = listOf(
     "javascript",
     "reporting",
     "publish",
-    "jacoco",
     "platform-base",
     "platform-jvm",
     "language-jvm",

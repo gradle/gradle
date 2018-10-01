@@ -17,12 +17,12 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':reporting')
-    testCompile testLibraries.jsoup
-    testCompile project(':internalIntegTesting')
+    compile(library("groovy"))
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":reporting"))
+    testCompile(testLibrary("jsoup"))
+    testCompile(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {
@@ -30,5 +30,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
