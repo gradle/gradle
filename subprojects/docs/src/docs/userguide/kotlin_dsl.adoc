@@ -73,12 +73,22 @@ Kotlin DSL is fully supported in Intellij IDEA and Android Studio. Other IDEs do
 |[.green]#*✓*#
 |[.red]#✖#
 
-|Eclipse
+|Eclipse IDE
+|[.green]#*✓*#
 |[.green]#*✓*#
 |[.red]#✖#
+
+|Apache Netbeans
+|[.green]#*✓*#
+|[.green]#*✓*#
 |[.red]#✖#
 
-|Netbeans
+|Visual Studio Code ^(LSP)^
+|[.green]#*✓*#
+|[.green]#*✓*#
+|[.red]#✖#
+
+|Visual Studio
 |[.green]#*✓*#
 |[.red]#✖#
 |[.red]#✖#
