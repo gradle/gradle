@@ -19,6 +19,7 @@ package org.gradle.internal.logging.slf4j;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.config.LoggingConfigurer;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -39,7 +40,13 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
             return;
         }
 
-        OutputEventListenerBackedLoggerContext context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory();
+        ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
+        if (!(loggerFactory instanceof OutputEventListenerBackedLoggerContext)) {
+            System.out.println("Gradle cannot configure Slf4j logger of type '" + loggerFactory.getClass().getSimpleName()
+                + "'. This is expected when executing tests with a custom `java.system.class.loader` set.");
+            return;
+        }
+        OutputEventListenerBackedLoggerContext context = (OutputEventListenerBackedLoggerContext) loggerFactory;
 
         if (currentLevel == null) {
             context.setOutputEventListener(outputEventListener);
