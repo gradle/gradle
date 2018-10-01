@@ -155,7 +155,6 @@ val groovyBuildScriptProjects = listOf(
     "soak",
     "smoke-test",
     "persistent-cache",
-    "core-api",
     "version-control")
 
 fun buildFileNameFor(projectDirName: String) =
