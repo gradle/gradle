@@ -204,10 +204,3 @@ Because multiple values for an attribute can be _compatible_ with the requested 
 This is done by implementing an link:{javadocPath}/org.gradle.api.attributes.AttributeDisambiguationRule.html[attribute disambiguation rule].
 
 Attribute disambiguation rules have to be registered via the link:{javadocPath}/org.gradle.api.attributes.AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org.gradle.api.attributes.AttributesSchema.html[attributes schema].
-
-[WARNING]
-====
-It should be noted that adding possible values to existing attributes may break disambiguation rules.
-It's especially true for the `org.gradle.usage` attribute, which is defined by Gradle and assumes a known set of possible values.
-If you add a possible value, you may have to reimplement the disambiguation logic in your own rule.
-====
