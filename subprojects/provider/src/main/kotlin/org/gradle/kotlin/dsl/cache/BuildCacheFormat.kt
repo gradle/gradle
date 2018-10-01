@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.cache
 import org.gradle.internal.id.UniqueId
 
 import org.gradle.kotlin.dsl.support.normalisedPathRelativeTo
+import org.gradle.kotlin.dsl.support.useToRun
 
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -137,11 +138,6 @@ fun DataInputStream.unpackFilesTo(outputDir: File): Long {
 
     return entryCount
 }
-
-
-private
-inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
-    use { run(action) }
 
 
 private
