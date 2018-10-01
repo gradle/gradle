@@ -46,7 +46,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
         where:
         repoType << [
             'maven',
-//            'ivy'
+            'ivy'
         ]
     }
 

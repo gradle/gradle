@@ -107,6 +107,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
 
         buildFile.text = """
+            apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
                 resolve {
                     ${attributes}
