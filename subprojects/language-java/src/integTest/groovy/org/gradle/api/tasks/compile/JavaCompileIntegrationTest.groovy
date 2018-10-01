@@ -789,16 +789,32 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             
             compileJava {
                 options.compilerArgs = ['-sourcepath', files('src/main/java').asPath]
-            }            
+            }
         '''
         file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
-        file('sources1/Rectangle.java') << 'public class Rectangle extends Shape {}'
 
         when:
         fails 'compileJava'
 
         then:
-        failureHasCause("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompilerOptions.sourcepath` property instead.")
+        failureHasCause("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.sourcepath` property instead.")
+    }
+
+    def "fails when processorpath is set on compilerArgs"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-processorpath', files('src/main/java').asPath]
+            }
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+
+        when:
+        fails 'compileJava'
+
+        then:
+        failureHasCause("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })

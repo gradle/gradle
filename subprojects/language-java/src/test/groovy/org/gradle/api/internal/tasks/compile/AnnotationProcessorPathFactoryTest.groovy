@@ -16,19 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
-import org.gradle.api.internal.tasks.compile.processing.DefaultProcessorPath
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -81,40 +78,15 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         'has -processorpath' | ["-processorpath", "ignore-me"]
     }
 
-    @Unroll
-    def "uses path defined using -processorpath compiler arg (where options.annotationProcessorPath is #scenario)"() {
+    def "ignores path defined using -processorpath compiler arg"() {
         def procPath = files("processor.jar", "proc-lib.jar")
 
         given:
-        options.annotationProcessorPath = annotationProcessorPath
+        options.annotationProcessorPath = null
         options.compilerArgs = ["-processorpath", procPath.asPath]
 
         expect:
-        factory.getEffectiveAnnotationProcessorClasspath(options).files == procPath.files
-
-        where:
-        scenario                          | annotationProcessorPath
-        'null'                            | null
-        'an empty default processor path' | Mock(DefaultProcessorPath) { isEmpty() >> true }
-    }
-
-    @Unroll
-    def "fails when -processorpath is the last compiler arg (where options.annotationProcessorPath is #scenario)"() {
-        given:
-        options.annotationProcessorPath = annotationProcessorPath
-        options.compilerArgs = ["-Xthing", "-processorpath"]
-
-        when:
-        factory.getEffectiveAnnotationProcessorClasspath(options)
-
-        then:
-        def e = thrown(InvalidUserDataException)
-        e.message == 'No path provided for compiler argument -processorpath in requested compiler args: -Xthing -processorpath'
-
-        where:
-        scenario                          | annotationProcessorPath
-        'null'                            | null
-        'an empty default processor path' | Mock(DefaultProcessorPath) { isEmpty() >> true }
+        factory.getEffectiveAnnotationProcessorClasspath(options).empty
     }
 
     def "uses empty path when processing disabled"() {
@@ -126,25 +98,6 @@ class AnnotationProcessorPathFactoryTest extends Specification {
 
         expect:
         factory.getEffectiveAnnotationProcessorClasspath(options).empty
-    }
-
-    @Issue("gradle/gradle#1471")
-    @Unroll
-    def "uses processorpath when -processor is found in compile options and explicit processor path is defined (where options.annotationProcessorPath is #scenario)"() {
-        given:
-        def procPath = files("processor.jar", "proc-lib.jar")
-
-        when:
-        options.compilerArgs = ['-processor', 'com.foo.Processor']
-        options.compilerArgs = ["-processorpath", procPath.asPath]
-
-        then:
-        factory.getEffectiveAnnotationProcessorClasspath(options).files == procPath.files
-
-        where:
-        scenario                 | annotationProcessorPath
-        'null'                   | null
-        'an empty configuration' | Mock(Configuration) { isEmpty() >> true }
     }
 
     @Unroll

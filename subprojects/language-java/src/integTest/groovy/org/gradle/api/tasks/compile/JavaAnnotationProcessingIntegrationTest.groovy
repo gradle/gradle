@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.HelperProcessorFixture
 import spock.lang.Issue
@@ -224,31 +223,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "compileJava"
         !file('build/classes/java/main/TestAppHelper.class').exists()
-    }
-
-    def "processorpath is respected even when specified from compilerArgs, but deprecation warning is emitted"() {
-        buildFile << """
-            configurations {
-                processor
-            }
-            
-            dependencies {
-                compile project(":annotation")
-                processor project(":processor")
-            }
-            
-            compileJava {
-                inputs.files configurations.processor
-                options.compilerArgs += [ "-processorpath", configurations.processor.asPath ]
-            }
-        """
-
-        when:
-        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
-
-        then:
-        file('build/classes/java/main/TestAppHelper.class').exists()
-        outputContains(AnnotationProcessorPathFactory.PROCESSOR_PATH_DEPRECATION_MESSAGE)
     }
 
     def "explicit -processor option overrides automatic detection"() {
