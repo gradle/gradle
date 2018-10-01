@@ -28,15 +28,16 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.*;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     public static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90;
@@ -65,6 +66,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
+            .thenComparing(comparing(ScenarioBuildResultData::isCrossBuild).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
@@ -74,12 +76,14 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(Collectors.toList());
+        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
         if (currentCommitExecutions.isEmpty()) {
-            scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(Collectors.toList()));
+            scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         } else {
-            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(Collectors.toList()));
+            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList()));
         }
+
+        scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
 
         return scenario;
     }
@@ -89,7 +93,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             .getScenarios()
             .stream()
             .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
-            .collect(Collectors.toList());
+            .collect(toList());
         if (nonEmptyExecutions.size() > 1) {
             int size = nonEmptyExecutions.size();
             return new ScenarioBuildResultData.ExecutionData(performanceTestExecution.getStartTime(), getCommit(performanceTestExecution), nonEmptyExecutions.get(size - 2), nonEmptyExecutions.get(size - 1));
@@ -119,13 +123,14 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         link().rel("stylesheet").type("text/css").href("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css").end();
                         script().src("https://code.jquery.com/jquery-3.3.1.min.js").end();
                         script().src("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js").end();
-                        script().src("js/anchorControl.js").end();
+                        script().src("js/performanceReport.js").end();
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
                     body();
                         div().id("acoordion").classAttr("mx-auto");
                         renderHeader();
                         renderTable();
+                        renderPopoverDiv();
                     end();
                 footer(this);
                 endAll();
@@ -139,13 +144,16 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Perfomrance Coordinator Build")
                             .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
                     end();
-                    div().classAttr("col-9 p-0");
+                    div().classAttr("col-8 p-0");
                         text("Scenarios (" + successCount + " successful");
                         if (failureCount > 0) {
                             text(", " + failureCount + " failed");
                         }
                         text(")");
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/"+ commitId).small().classAttr("text-muted").text(commitId).end().end();
+                    end();
+                    div().classAttr("col text-right mt-1");
+                        i().classAttr("fa fa-filter").attr("data-toggle", "popover", "data-placement", "bottom").title("Filter by tag").style("cursor: pointer").text(" ").end();
                     end();
                     div().classAttr("col p-0")
                         .attr("data-toggle", "tooltip")
@@ -159,6 +167,23 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         .text("Confidence");
                             i().classAttr("fa fa-info-circle").text(" ").end()
                     .end();
+                end();
+            }
+
+            private void renderPopoverDiv() {
+                div().id("filter-popover").style("display: none");
+                    Stream.of(Tag.values()).forEach(tag -> {
+                        div().classAttr("form-check");
+                            label().classAttr("form-check-label");
+                                input().classAttr("form-check-input").type("checkbox").checked("true").value(tag.name).end();
+                                if(tag.isValid()) {
+                                    span().classAttr(tag.classAttr).text(tag.name).end();
+                                } else {
+                                    span().text(tag.name).end();
+                                }
+                            end();
+                        end();
+                    });
                 end();
             }
 
@@ -179,7 +204,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 }
             }
 
-            private String getTextColorCss(ScenarioBuildResultData.ExecutionData executionData) {
+            private String getTextColorCss(ScenarioBuildResultData scenario, ScenarioBuildResultData.ExecutionData executionData) {
+                if(scenario.isCrossBuild()) {
+                    return "text-dark";
+                }
+
                 if (executionData.confidentToSayBetter()) {
                     return "text-success";
                 } else if (executionData.confidentToSayWorse()) {
@@ -190,7 +219,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             }
 
             private void renderScenario(int index, ScenarioBuildResultData scenario) {
-                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario)).id("scenario" + index);
+                Set<Tag> tags = Tag.determineTags(scenario);
+                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario)).attr("tag", tags.stream().map(Tag::getName).collect(joining(","))).id("scenario" + index);
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center data-row").attr("scenario", String.valueOf(index));
                             div().classAttr("col").text(String.valueOf(index)).
@@ -200,18 +230,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             end();
                             div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
-                                if(scenario.isFromCache()) {
-                                    span().classAttr("badge badge-info").attr("data-toggle", "tooltip").title("The test is not really executed - its results are fetched from build cache.").text("FROM-CACHE").end();
-                                }
-                                if(scenario.isBuildFailed()) {
-                                    span().classAttr("badge badge-danger").attr("data-toggle", "tooltip").title("The build failed and doesn't generate any execution data.").text("FAILED").end();
-                                } else if(!scenario.isSuccessful()) {
-                                    span().classAttr("badge badge-danger").attr("data-toggle", "tooltip").title("Regression confidence > 99% despite retries.").text("REGRESSED").end();
-                                } else if(scenario.isAboutToRegress()) {
-                                    span().classAttr("badge badge-warning").attr("data-toggle", "tooltip").title("Regression confidence > 90%, we're going to fail soon.").text("NEARLY-FAILED").end();
-                                } else if(scenario.isImproved()) {
-                                    span().classAttr("badge badge-success").attr("data-toggle", "tooltip").title("Improvement confidence > 90%, rebaseline it to keep this improvement! :-)").text("IMPROVED").end();
-                                }
+                                tags.stream().filter(Tag::isValid).forEach(tag -> span().classAttr(tag.classAttr).attr("data-toggle", "tooltip").title(tag.title).text(tag.name).end());
                             end();
                             div().classAttr("col-2");
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("Build").end();
@@ -224,8 +243,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 } else {
                                     scenario.getExecutionsToDisplayInRow().forEach(execution -> {
                                         div().classAttr("row p-0");
-                                            div().classAttr("p-0 col " + getTextColorCss(execution)).text(execution.getDifferenceDisplay()).end();
-                                            div().classAttr("p-0 col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
+                                            div().classAttr("p-0 col " + getTextColorCss(scenario, execution)).text(execution.getDifferenceDisplay()).end();
+                                            div().classAttr("p-0 col " + getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
                                         end();
                                     });
                                 }
@@ -265,13 +284,65 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + currentVersion.getStandardError().format()).end();
-                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedDifferencePercentage()).end();
-                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
+                            td().classAttr(getTextColorCss(scenario, execution)).text(execution.getFormattedDifferencePercentage()).end();
+                            td().classAttr(getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
                         end();
                 });
                 end();
             }
             // @formatter:on
         };
+    }
+
+    private enum Tag {
+        FROM_CACHE("FROM-CACHE", "badge badge-info", "The test is not really executed - its results are fetched from build cache."),
+        CROSS_BUILD("CROSS-BUILD", "badge badge-info", "This scenario is comparing two builds' performance difference, not versions'. Therefore, it's not seen as regression."),
+        FAILED("FAILED", "badge badge-danger", "Regression confidence > 99% despite retries."),
+        NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
+        REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
+        IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
+        UNTAGGED("UNTAGGED", null, null);
+
+        private String name;
+        private String classAttr;
+        private String title;
+
+        Tag(String name, String classAttr, String title) {
+            this.name = name;
+            this.classAttr = classAttr;
+            this.title = title;
+        }
+
+        private boolean isValid() {
+            return this != UNTAGGED;
+        }
+
+        private String getName() {
+            return name;
+        }
+
+        private static Set<Tag> determineTags(ScenarioBuildResultData scenario) {
+            Set<Tag> result = new HashSet<>();
+            if (scenario.isFromCache()) {
+                result.add(FROM_CACHE);
+            }
+            if (scenario.isCrossBuild()) {
+                result.add(CROSS_BUILD);
+            }
+            if (scenario.isBuildFailed()) {
+                result.add(FAILED);
+            } else if (!scenario.isSuccessful()) {
+                result.add(REGRESSED);
+            } else if (scenario.isAboutToRegress()) {
+                result.add(NEARLY_FAILED);
+            } else if (scenario.isImproved()) {
+                result.add(IMPROVED);
+            }
+
+            if (result.isEmpty()) {
+                result.add(UNTAGGED);
+            }
+            return result;
+        }
     }
 }
