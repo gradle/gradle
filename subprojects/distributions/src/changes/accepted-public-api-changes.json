@@ -19,6 +19,7 @@
                 "org.gradle.api.internal.AbstractTask.execute()",
                 "org.gradle.api.internal.AbstractTask.getExecuter()",
                 "org.gradle.api.internal.AbstractTask.getValidators()",
+                "org.gradle.api.internal.AbstractTask.leftShift(groovy.lang.Closure)",
                 "org.gradle.api.internal.AbstractTask.setExecuter(org.gradle.api.internal.tasks.TaskExecuter)"
             ]
         },

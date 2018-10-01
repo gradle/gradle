@@ -1480,6 +1480,7 @@ div.screenshot {
     }
 
     .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        padding: 0 1rem 0.5rem 1.5rem;
         display: block;
         top: 30px !important;
         left: 0 !important;
@@ -1488,6 +1489,10 @@ div.screenshot {
     .site-header__navigation-item,
     .site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
         font-size: 18px;
+    }
+
+    .site-header {
+        padding: 5px 12px;
     }
 
     .site-header-version {

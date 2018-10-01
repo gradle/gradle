@@ -207,7 +207,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("resourcesDir", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 String classesDirName = "resources/" + sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
             }
@@ -285,12 +285,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("sourceCompatibility", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return javaConvention.getSourceCompatibility().toString();
                     }
                 });
                 conventionMapping.map("targetCompatibility", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return javaConvention.getTargetCompatibility().toString();
                     }
                 });
@@ -302,12 +302,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().withType(Javadoc.class).configureEach(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return new File(convention.getDocsDir(), "javadoc");
                     }
                 });
                 javadoc.getConventionMapping().map("title", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
                 });
@@ -358,17 +358,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
 
         xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(convention.getTestResultsDir(), test.getName());
             }
         });
         htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(convention.getTestReportDir(), test.getName());
             }
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(convention.getTestResultsDir(), test.getName() + "/binary");
             }
         });

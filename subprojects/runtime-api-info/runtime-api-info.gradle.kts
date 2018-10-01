@@ -37,7 +37,7 @@ val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generat
 }
 
 val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
-    classpath = project(":testKit").configurations.compileClasspath
+    classpath = project(":testKit").configurations["compileClasspath"] // TODO:kotlin-dsl revert to accessor
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }
 

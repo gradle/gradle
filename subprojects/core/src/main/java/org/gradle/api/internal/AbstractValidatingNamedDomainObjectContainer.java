@@ -29,16 +29,20 @@ import org.gradle.util.NameValidator;
  */
 public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
 
+    private final String nameDescription;
+
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
+        nameDescription = type.getSimpleName() + " name";
     }
 
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         super(type, instantiator);
+        nameDescription = type.getSimpleName() + " name";
     }
 
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
-        NameValidator.validate(name, "name", "");
+        NameValidator.validate(name, nameDescription, "");
         return super.create(name, configureAction);
     }
 }

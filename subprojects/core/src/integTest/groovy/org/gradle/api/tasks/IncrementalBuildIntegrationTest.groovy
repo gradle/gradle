@@ -831,7 +831,6 @@ task b(dependsOn: a)
 task otherBuild(type: GradleBuild) {
     buildFile = 'build.gradle'
     tasks = ['generate']
-    startParameter.searchUpwards = false
 }
 task transform(type: TransformerTask) {
     dependsOn otherBuild

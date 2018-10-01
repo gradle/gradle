@@ -38,7 +38,7 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     sourceFiles = 100
     testSourceFiles = 50 // verbose tests are time consuming
     filesPerPackage = 25
-    linesOfCodePerSourceFile = 250
+    linesOfCodePerSourceFile = 150
     rootProjectTemplates = ['root']
     subProjectTemplates = ['project-with-source']
     templateArgs = [fullTestLogging: true, failedTests: true, projectDependencies:true, manyPlugins:true, manyScripts:true]
@@ -55,11 +55,33 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
             def maybeApplyNestedScript = nestedScriptId ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ''
             new File(gradleFolder, "script-plugin${scriptPluginId}.gradle").text = """ 
                 ${maybeApplyNestedScript}
-//                println "project \${project.path} applies 'script-plugin${scriptPluginId}.gradle'"
             """
         }
-
-        // copy test categories
-
     }
+}
+
+tasks.register("manyInputFilesProject", JvmProjectGeneratorTask) {
+    doFirst {
+        templateArgs.buildScanPluginVersion = {
+            def pluginInfo = file("$rootDir/incoming/plugin.json")
+            assert pluginInfo.exists()
+            def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
+            assert json.versionNumber
+            json.versionNumber
+        }()
+    }
+
+    dependencyGraph {
+        size = 500
+        depth = 5
+        useSnapshotVersions = false // snapshots should not have a build scan specific performance impact
+    }
+
+    projects = 200
+    sourceFiles = 300
+    filesPerPackage = 25
+    linesOfCodePerSourceFile = 50
+    subProjectTemplates = ['project-with-source']
+    templateArgs = [projectDependencies:true]
+
 }

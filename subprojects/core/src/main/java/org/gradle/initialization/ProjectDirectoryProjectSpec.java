@@ -29,8 +29,8 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
         this.dir = dir;
     }
 
-    protected String formatNoMatchesMessage() {
-        return String.format("No projects in this build have project directory '%s'.", dir);
+    protected String formatNoMatchesMessage(String settings) {
+        return String.format("Project directory '%s' is not part of the build defined by %s.", dir, settings);
     }
 
     protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {

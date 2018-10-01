@@ -16,76 +16,32 @@
 
 package org.gradle.performance
 
-import groovy.json.JsonSlurper
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
-import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
-import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import org.junit.experimental.categories.Category
-import spock.lang.AutoCleanup
-import spock.lang.Shared
-import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.Duration.millis
-
 @Category(PerformanceRegressionTest)
-class BuildScanPluginPerformanceTest extends Specification {
+class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
-    @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    private static final int MEDIAN_PERCENTAGES_SHIFT = 15
 
-    @AutoCleanup
-    @Shared
-    def resultStore = new BuildScanResultsStore()
-
-    private static final String WITH_PLUGIN_LABEL = "with plugin"
-    private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
-
-    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    CrossBuildPerformanceTestRunner runner
-
-    private int warmupBuilds = 2
-    private int measuredBuilds = 7
-
-    void setup() {
-        def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
-        assert incomingDir: "'incomingArtifactDir' system property is not set"
-        def buildStampJsonFile = new File(incomingDir, "buildStamp.json")
-        assert buildStampJsonFile.exists()
-
-        def versionJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
-        assert versionJsonData.commitId
-        def pluginCommitId = versionJsonData.commitId as String
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
-            @Override
-            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-                super.defaultSpec(builder)
-                builder.workingDirectory = tmpDir.testDirectory
-
-            }
-        }
-    }
+    private static final String WITHOUT_PLUGIN_LABEL = "2 without plugin"
+    private static final String WITH_PLUGIN_LABEL = "7 with plugin"
 
     @Unroll
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def jobArgs = ['--continue', '--parallel', '--max-workers=2'] + scenarioArgs
-        def opts = ['-Xms512m', '-Xmx512m']
+        def opts = ['-Xms4096m', '-Xms4096m']
 
-        runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
             warmUpCount warmupBuilds
@@ -95,6 +51,7 @@ class BuildScanPluginPerformanceTest extends Specification {
             invocation {
                 args(*jobArgs)
                 tasksToRun(*tasks)
+                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -112,6 +69,7 @@ class BuildScanPluginPerformanceTest extends Specification {
                 args(*jobArgs)
                 args("--scan", "-DenableScan=true", "-Dscan.dump")
                 tasksToRun(*tasks)
+                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -124,21 +82,20 @@ class BuildScanPluginPerformanceTest extends Specification {
         def results = runner.run()
 
         then:
-        def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
+        def withoutResults = buildBaselineResults(results, WITHOUT_PLUGIN_LABEL)
+        def withResults = results.buildResult(WITH_PLUGIN_LABEL)
+        def speedStats = withoutResults.getSpeedStatsAgainst(withResults.name, withResults)
+        println(speedStats)
 
-        println "\nspeed statistics ${without.name}: "
-        println without.getSpeedStats()
-
-        println "\nspeed statistics ${with.name}: "
-        println with.getSpeedStats()
-
-        // cannot be more than 1s slower (TODO probably convert that into a percentage value)
-        with.totalTime.average - without.totalTime.average < millis(1000)
+        def shiftedResults = buildShiftedResults(results, WITHOUT_PLUGIN_LABEL, MEDIAN_PERCENTAGES_SHIFT)
+        if (shiftedResults.significantlyFasterThan(withResults)) {
+            throw new AssertionError(speedStats)
+        }
 
         where:
-        scenario                       | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                         | ['help']           | false       | []                | null
-        "clean build partially cached" | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
+        scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
+        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | null
+        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
     }
 
     def partiallyBuildCacheClean() {
@@ -158,6 +115,7 @@ class BuildScanPluginPerformanceTest extends Specification {
 
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                assert !new File(invocationInfo.projectDir, 'error.log').exists()
                 def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
                 def cacheEntries = buildCacheDirectory.listFiles().sort()
                 cacheEntries.eachWithIndex { TestFile entry, int i ->
@@ -168,4 +126,5 @@ class BuildScanPluginPerformanceTest extends Specification {
             }
         }
     }
+
 }

@@ -131,6 +131,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         projects.each {
             def projectName = "project$it"
             populateProject(projectName)
+            projectDir(projectName).file('settings.gradle') << "rootProject.name = '${projectName}'"
             projectBuildFile(projectName) << isolatedZincCacheHome
             projectBuildFile(projectName) << blockUntilAllCompilersAreReady(':$project.name:$name')
             projectBuildFile(projectName) << userProvidedZincDirSystemProperty
@@ -339,7 +340,6 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         File projectDir = projectDir(projectName)
         return """
                 task("${projectName}Build", type: GradleBuild) {
-                    startParameter.searchUpwards = false
                     startParameter.projectDir = file("${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
                     startParameter.currentDir = file("${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
                     startParameter.taskNames = [ "build" ]

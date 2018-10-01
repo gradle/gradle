@@ -17,6 +17,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
@@ -169,6 +170,15 @@ class DefaultJavaPluginConventionTest extends Specification {
     def createsEmptyManifest() {
         expect:
         convention.manifest() instanceof DefaultManifest
+    }
+
+    def cannotCreateSourceSetWithEmptyName() {
+        when:
+        convention.sourceSets.create('')
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The SourceSet name must not be empty."
     }
 
 }

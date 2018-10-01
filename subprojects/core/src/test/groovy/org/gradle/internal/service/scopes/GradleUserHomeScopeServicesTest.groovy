@@ -102,7 +102,7 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
             _ * it.decorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
-            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) {
+            _ * it.open(_, _, _, _, _, _, _) >> Mock(PersistentCache) {
                 getBaseDir() >> file("caches").createDir().absoluteFile
                 useCache(_) >> { Factory<?> factory -> factory.create() }
             }

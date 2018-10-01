@@ -775,7 +775,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         noExceptionThrown()
-        outputContains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
+        outputContains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Ignoring sourcepath.")
         file("build/classes/java/main/example/module-info.class").exists()
         file("build/classes/java/main/example/io/example/Example.class").exists()
         file("build/classes/java/main/another/module-info.class").exists()
@@ -784,49 +784,22 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         !file("build/classes/java/main/ignored/io/ignored/IgnoredExample.class").exists()
     }
 
-    def "sourcepath is merged from compilerArgs, but deprecation warning is emitted"() {
+    def "fails when sourcepath is set on compilerArgs"() {
         buildFile << '''
             apply plugin: 'java'
             
             compileJava {
-                options.compilerArgs = ['-sourcepath', files('sources1').asPath]
-                options.sourcepath = files('sources2')
-            }            
-        '''
-        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
-        file('sources2/Rectangle.java') << 'public class Rectangle extends Shape {}'
-        file('sources1/Shape.java') << 'public class Shape {}'
-
-        when:
-        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
-
-        then:
-        file('build/classes/java/main/Square.class').exists()
-        file('build/classes/java/main/Rectangle.class').exists()
-        file('build/classes/java/main/Shape.class').exists()
-        outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
-    }
-
-    def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
-        buildFile << '''
-            apply plugin: 'java'
-            
-            compileJava {
-                options.compilerArgs = ['-sourcepath', files('sources1').asPath]
+                options.compilerArgs = ['-sourcepath', files('src/main/java').asPath]
             }            
         '''
         file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
         file('sources1/Rectangle.java') << 'public class Rectangle extends Shape {}'
-        file('sources1/Shape.java') << 'public class Shape {}'
 
         when:
-        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+        fails 'compileJava'
 
         then:
-        file('build/classes/java/main/Square.class').exists()
-        file('build/classes/java/main/Rectangle.class').exists()
-        file('build/classes/java/main/Shape.class').exists()
-        outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        failureHasCause("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompilerOptions.sourcepath` property instead.")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })

@@ -64,6 +64,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 File buildFile
 
                 def setup() {
+                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
                     buildFile = testProjectDir.newFile('build.gradle')
                     def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
@@ -117,6 +118,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 List<File> pluginClasspath
 
                 def setup() {
+                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
                     buildFile = testProjectDir.newFile('build.gradle')
                     pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()

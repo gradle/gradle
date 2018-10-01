@@ -13,18 +13,14 @@ dependencies {
     implementation 'commons-io:commons-io:2.6'
 }
 
-task configureUberJar {
-    doLast {
-        // Don't do this during configuration phase!
-        uberJar.from(configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) })
-    }
-}
-
 task uberJar(type: Jar) {
-    dependsOn configureUberJar
-
     appendix = 'uber'
 
     from sourceSets.main.output
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
 }
 // end::create-uber-jar-example[]

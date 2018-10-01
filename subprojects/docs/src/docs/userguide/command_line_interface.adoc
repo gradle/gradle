@@ -484,9 +484,6 @@ Specifies the start directory for Gradle. Defaults to current directory.
 `--project-cache-dir`::
 Specifies the project-specific cache directory. Default value is `.gradle` in the root project directory.
 
-`-u`, `--no-search-upward` (deprecated)::
-Don't search in parent directories for a `settings.gradle` file.
-
 `-D`, `--system-prop`::
 Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<build_environment.adoc#sec:gradle_system_properties,System Properties>>.
 

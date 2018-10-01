@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -116,7 +117,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             long entryCount = pack(propertySpecs, outputFingerprints, tarOutput);
             return new PackResult(entryCount + 1);
         } finally {
-            IOUtils.closeQuietly(tarOutput);
+            IoActions.closeQuietly(tarOutput);
         }
     }
 
@@ -166,7 +167,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         try {
             return unpack(propertySpecs, tarInput, readOrigin);
         } finally {
-            IOUtils.closeQuietly(tarInput);
+            IoActions.closeQuietly(tarInput);
         }
     }
 
@@ -271,7 +272,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             hash = streamHasher.hashCopy(input, output);
             chmodUnpackedFile(entry, outputFile);
         } finally {
-            IOUtils.closeQuietly(output);
+            IoActions.closeQuietly(output);
         }
         String outputPath = stringInterner.intern(absolutePath);
         String outputFileName = stringInterner.intern(fileName);
@@ -454,7 +455,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 try {
                     IOUtils.copyLarge(input, tarOutput, COPY_BUFFERS.get());
                 } finally {
-                    IOUtils.closeQuietly(input);
+                    IoActions.closeQuietly(input);
                 }
                 tarOutput.closeArchiveEntry();
             } catch (IOException e) {

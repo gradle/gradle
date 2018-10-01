@@ -349,6 +349,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
     def "can use relative files as part of injected classpath"() {
         given:
+        file("changed/settings.gradle").createFile()
         file("changed/build.gradle") << plugin.build().useDeclaration
         def relClasspath = plugin.implClasspath.collect {
             def path = new File("").toURI().relativize(it.toURI()).getPath()

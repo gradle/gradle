@@ -18,14 +18,10 @@ package ${packageName};
 
 import static org.junit.Assert.*;
 
-public interface PassingTests { /* category marker */ }
-public interface FailingTests{ /* category marker */ }
-
 public class ${testClassName} {
 
     private final ${productionClassName} production = new ${productionClassName}("value");
 
-    @Category(Passing)
     @org.junit.Test
     public void testOne() throws Exception {
         for (int i = 0; i < 500; i++) {

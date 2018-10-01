@@ -16,32 +16,25 @@
 
 package org.gradle.external.javadoc;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
-import org.gradle.external.javadoc.internal.JavadocOptionFile;
-import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
 public class StandardJavadocDocletOptionsTest {
 
-    private final JUnit4Mockery context = new JUnit4Mockery();
     private StandardJavadocDocletOptions options;
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-
         options = new StandardJavadocDocletOptions();
     }
 
@@ -98,67 +91,6 @@ public class StandardJavadocDocletOptionsTest {
         assertEmpty(options.getNoQualifiers());
         assertFalse(options.isNoTimestamp());
         assertFalse(options.isNoComment());
-    }
-
-    @Test
-    public void testConstructor() {
-        final JavadocOptionFile optionFileMock = context.mock(JavadocOptionFile.class);
-
-        context.checking(new Expectations(){{
-            // core options
-            oneOf(optionFileMock).addStringOption("overview");
-            oneOf(optionFileMock).addEnumOption("memberLevel");
-            oneOf(optionFileMock).addStringOption("doclet");
-            oneOf(optionFileMock).addPathOption("docletclasspath");
-            oneOf(optionFileMock).addStringOption("source");
-            oneOf(optionFileMock).addPathOption("sourcepath");
-            oneOf(optionFileMock).addPathOption("classpath");
-            oneOf(optionFileMock).addStringsOption("subpackages", ";");
-            oneOf(optionFileMock).addStringsOption("exclude", ":");
-            oneOf(optionFileMock).addPathOption("bootclasspath");
-            oneOf(optionFileMock).addPathOption("extdirs");
-            oneOf(optionFileMock).addEnumOption("outputLevel", JavadocOutputLevel.QUIET);
-            oneOf(optionFileMock).addBooleanOption("breakiterator");
-            oneOf(optionFileMock).addStringOption("locale");
-            oneOf(optionFileMock).addStringOption("encoding");
-            // standard doclet options
-            oneOf(optionFileMock).addFileOption("d");
-            oneOf(optionFileMock).addBooleanOption("use");
-            oneOf(optionFileMock).addBooleanOption("version");
-            oneOf(optionFileMock).addBooleanOption("author");
-            oneOf(optionFileMock).addBooleanOption("splitindex");
-            oneOf(optionFileMock).addStringOption("windowtitle");
-            oneOf(optionFileMock).addStringOption("doctitle");
-            oneOf(optionFileMock).addStringOption("footer");
-            oneOf(optionFileMock).addStringOption("bottom");
-            oneOf(optionFileMock).addStringOption("link");
-            allowing(optionFileMock).addOption(new LinksOfflineJavadocOptionFileOption("linkoffline", Lists.<JavadocOfflineLink>newArrayList()));
-            oneOf(optionFileMock).addBooleanOption("linksource");
-            oneOf(optionFileMock).addOption(new GroupsJavadocOptionFileOption("group", Maps.<String, List<String>>newLinkedHashMap()));
-            oneOf(optionFileMock).addBooleanOption("nodeprecated");
-            oneOf(optionFileMock).addBooleanOption("nodeprecatedlist");
-            oneOf(optionFileMock).addBooleanOption("nosince");
-            oneOf(optionFileMock).addBooleanOption("notree");
-            oneOf(optionFileMock).addBooleanOption("noindex");
-            oneOf(optionFileMock).addBooleanOption("nohelp");
-            oneOf(optionFileMock).addBooleanOption("nonavbar");
-            oneOf(optionFileMock).addFileOption("helpfile");
-            oneOf(optionFileMock).addFileOption("stylesheetfile");
-            oneOf(optionFileMock).addBooleanOption("serialwarn");
-            oneOf(optionFileMock).addStringOption("charset");
-            oneOf(optionFileMock).addStringOption("docencoding");
-            oneOf(optionFileMock).addBooleanOption("keywords");
-            oneOf(optionFileMock).addStringOption("tags");
-            oneOf(optionFileMock).addStringOption("taglets");
-            oneOf(optionFileMock).addPathOption("tagletpath");
-            oneOf(optionFileMock).addBooleanOption("docfilessubdirs");
-            oneOf(optionFileMock).addStringsOption("excludedocfilessubdir", ":");
-            oneOf(optionFileMock).addStringsOption("noqualifier", ":");
-            oneOf(optionFileMock).addBooleanOption("notimestamp");
-            oneOf(optionFileMock).addBooleanOption("nocomment");
-        }});
-
-        options = new StandardJavadocDocletOptions();
     }
 
     @Test

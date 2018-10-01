@@ -70,7 +70,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     /**
      * Sets the URL of the cache. The URL must end in a '/'.
      */
-    public void setUrl(URI url) {
+    public void setUrl(@Nullable URI url) {
         this.url = url;
     }
 

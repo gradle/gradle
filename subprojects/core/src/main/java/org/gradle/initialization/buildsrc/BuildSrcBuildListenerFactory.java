@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
@@ -28,7 +29,6 @@ import org.gradle.internal.InternalBuildAdapter;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 public class BuildSrcBuildListenerFactory {
 
@@ -46,8 +46,12 @@ public class BuildSrcBuildListenerFactory {
         return new Listener(buildSrcRootProjectConfiguration);
     }
 
+    /**
+     * Inspects the build when configured, and adds the appropriate task to build the "main" `buildSrc` component.
+     * On build completion, makes the runtime classpath of the main `buildSrc` component available.
+     */
     public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
-        private Set<File> classpath;
+        private FileCollection classpath;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
         private Listener(Action<ProjectInternal> rootProjectConfiguration) {
@@ -63,11 +67,11 @@ public class BuildSrcBuildListenerFactory {
         public void onConfigure(GradleInternal gradle) {
             BuildableJavaComponent mainComponent = mainComponentOf(gradle);
             gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
-            classpath = mainComponent.getRuntimeClasspath().getFiles();
+            classpath = mainComponent.getRuntimeClasspath();
         }
 
         public Collection<File> getRuntimeClasspath() {
-            return classpath;
+            return classpath.getFiles();
         }
 
         private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {

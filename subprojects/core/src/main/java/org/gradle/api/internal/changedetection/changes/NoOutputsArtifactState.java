@@ -77,6 +77,11 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
         }
 
         @Override
+        public byte[] getHashCodeBytes() {
+            return null;
+        }
+
+        @Override
         public String getDisplayName() {
             return toString();
         }

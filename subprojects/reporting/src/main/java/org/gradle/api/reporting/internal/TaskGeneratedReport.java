@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Factory;
 
 public abstract class TaskGeneratedReport extends SimpleReport {
@@ -32,7 +31,7 @@ public abstract class TaskGeneratedReport extends SimpleReport {
             public String create() {
                 return getDisplayName(name, task);
             }
-        }, outputType, ((ProjectInternal) (task.getProject())).getFileResolver(), task.getProject());
+        }, outputType, task.getProject());
     }
 
 }

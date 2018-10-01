@@ -49,6 +49,7 @@ Read the sections relevant to the version of Gradle you're upgrading from in ord
 == Upgrading from 4.10 and earlier
 
  * The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` flag is no longer necessary
+ * The `enableFeaturePreview('STABLE_PUBLISHING')` flag is no longer necessary
 
 === Potential breaking changes
 
@@ -59,6 +60,8 @@ There is only one change that was not previously deprecated:
  * Optional dependency declarations in POMs no longer influence the version of a dependency that Gradle picks.
 +
 This change is only applicable if you had the `IMPROVED_POM_SUPPORT` preview feature enabled.
+ * The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
+   Please use `afterEvaluate {}` if you need to defer evaluation.
 
 The following breaking changes will appear as deprecation warnings with Gradle 4.10:
 
@@ -79,7 +82,6 @@ Running Gradle & build environment::
  * The `-Dtest.single` command-line option has been removed — use <<java_testing.adoc#test_filtering,test filtering>> instead.
  * The `-Dtest.debug` command-line option has been removed — use the <<java_testing#sec:debugging_java_tests,`--debug-jvm` option>> instead.
  * The `-u`/`--no-search-upward` command-line option has been removed — make sure all your builds have a _settings.gradle_ file.
- * The `-a`/`--no-rebuild` command-line option has been removed.
  * The `--recompile-scripts` command-line option has been removed.
  * You can no longer have a Gradle build nested in a subdirectory of another Gradle build unless the nested build has a _settings.gradle_ file.
  * The `DirectoryBuildCache.setTargetSizeInMB(long)` method has been removed — use link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays[DirectoryBuildCache.removeUnusedEntriesAfterDays] instead.
