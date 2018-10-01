@@ -59,3 +59,29 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
         }
     }
 }
+
+tasks.register("manyInputFilesProject", JvmProjectGeneratorTask) {
+    doFirst {
+        templateArgs.buildScanPluginVersion = {
+            def pluginInfo = file("$rootDir/incoming/plugin.json")
+            assert pluginInfo.exists()
+            def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
+            assert json.versionNumber
+            json.versionNumber
+        }()
+    }
+
+    dependencyGraph {
+        size = 500
+        depth = 5
+        useSnapshotVersions = false // snapshots should not have a build scan specific performance impact
+    }
+
+    projects = 200
+    sourceFiles = 300
+    filesPerPackage = 25
+    linesOfCodePerSourceFile = 50
+    subProjectTemplates = ['project-with-source']
+    templateArgs = [projectDependencies:true]
+
+}
