@@ -65,7 +65,10 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
 
     private
     fun isolatedClassLoaderFor(classPath: List<File>) =
-        DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath.of(classPath))
+        DefaultClassLoaderFactory().createIsolatedClassLoader(
+            "kotlin-dsl-script-templates",
+            DefaultClassPath.of(classPath)
+        )
 
     private
     fun stop(loader: ClassLoader) {
