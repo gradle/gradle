@@ -24,6 +24,7 @@ dependencies {
     compile project(':core')
     compile project(':platformNative')
     compile project(':maven')
+    compile project(':ivy')
     compile project(':toolingApi')
 
     implementation project(':versionControl')
@@ -33,7 +34,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

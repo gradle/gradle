@@ -14,14 +14,16 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":performance"))
     implementation("org.owasp:dependency-check-gradle:3.1.0")
-    implementation("org.codenarc:CodeNarc:1.0")
+    implementation("org.codenarc:CodeNarc:1.0") {
+        exclude(group = "org.codehaus.groovy")
+    }
 }
 
 gradlePlugin {
     plugins {
         register("addVerifyProductionEnvironmentTask") {
             id = "gradlebuild.add-verify-production-environment-task"
-            implementationClass = "org.gradle.gradlebuild.buildquality.AddVerifyProductionEnvironmentTaskPlugin"
+            implementationClass = "org.gradle.gradlebuild.buildquality.VerifyBuildEnvironmentPlugin"
         }
         register("ciReporting") {
             id = "gradlebuild.ci-reporting"

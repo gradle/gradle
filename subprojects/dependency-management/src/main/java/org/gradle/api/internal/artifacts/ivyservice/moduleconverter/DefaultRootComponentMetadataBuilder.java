@@ -35,7 +35,6 @@ import org.gradle.internal.component.local.model.BuildableLocalConfigurationMeta
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 
 import javax.annotation.Nullable;
 
@@ -48,13 +47,14 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
+    private DependencyLockingProvider dependencyLockingProvider;
 
     public DefaultRootComponentMetadataBuilder(DependencyMetaDataProvider metadataProvider,
                                                ComponentIdentifierFactory componentIdentifierFactory,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                ProjectFinder projectFinder,
                                                LocalComponentMetadataBuilder localComponentMetadataBuilder,
-                                               ConfigurationsProvider configurationsProvider, ProjectStateRegistry projectStateRegistry) {
+                                               ConfigurationsProvider configurationsProvider, ProjectStateRegistry projectStateRegistry, DependencyLockingProvider dependencyLockingProvider) {
         this.metadataProvider = metadataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -62,6 +62,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.localComponentMetadataBuilder = localComponentMetadataBuilder;
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
+        this.dependencyLockingProvider = dependencyLockingProvider;
         this.holder = new MetadataHolder();
     }
 
@@ -83,17 +84,16 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         if (project != null) {
             final AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-            final DependencyLockingProvider dependencyLockingHandler = project.getServices().get(DependencyLockingProvider.class);
             ProjectState projectState = projectStateRegistry.stateFor(project);
             return projectState.withMutableState(new Factory<DefaultLocalComponentMetadata>() {
                 @Nullable
                 @Override
                 public DefaultLocalComponentMetadata create() {
-                    return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingHandler);
+                    return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingProvider);
                 }
             });
         } else {
-            return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, null, NoOpDependencyLockingProvider.getInstance());
+            return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, null, dependencyLockingProvider);
         }
     }
 
@@ -115,7 +115,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider alternateProvider) {
         return new DefaultRootComponentMetadataBuilder(
             metadataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, alternateProvider,
-            projectStateRegistry);
+            projectStateRegistry, dependencyLockingProvider);
     }
 
     public MutationValidator getValidator() {

@@ -18,9 +18,9 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public abstract class AbstractPathOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {

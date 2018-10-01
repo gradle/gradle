@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
@@ -35,23 +34,9 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setDestinationDir(File destinationDir);
 
-    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
-    @Deprecated
-    FileCollection getSource();
-
-    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
-    @Deprecated
-    void setSource(FileCollection source);
-
     Iterable<File> getSourceFiles();
 
     void setSourceFiles(Iterable<File> sourceFiles);
-
-    @Deprecated
-    Iterable<File> getClasspath();
-
-    @Deprecated
-    void setClasspath(Iterable<File> classpath);
 
     List<File> getCompileClasspath();
 

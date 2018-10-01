@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
@@ -36,6 +37,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
+    final boolean externalProviderAllowed = true
 
     def setup() {
         container.clear()
@@ -152,19 +154,109 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         result.get().value == "changed"
     }
 
+    def "can remove element using named provider"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean')
+
+        then:
+        provider.present
+        provider.orNull == bean
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'bean' (Bean) for this provider is no longer present in its container."
+    }
+
+    def "can find object by name and type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean', Bean)
+        then:
+        provider.present
+        provider.orNull == bean
+    }
+
+    def "can configure object by name and type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean', Bean) {
+            it.value = "changed"
+        }
+        then:
+        provider.present
+        provider.orNull == bean
+        provider.get().value == "changed"
+    }
+
+    def "can configure object by name"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean') {
+            it.value = "changed"
+        }
+        then:
+        provider.present
+        provider.orNull == bean
+        provider.get().value == "changed"
+    }
+
+    def "gets useful error when trying to find object by name and improper type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        container.named('bean', String)
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The domain object 'bean' (${Bean.class.canonicalName}) is not a subclass of the given type (java.lang.String)."
+    }
+
     def "can extract schema from collection with domain objects"() {
         container.add(a)
         expect:
         assertSchemaIs(
-            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+            a: "DefaultNamedDomainObjectCollectionTest.Bean"
         )
         // schema isn't cached
         container.add(b)
         container.add(d)
+        // TODO maybe should be based on the type of the add?
         assertSchemaIs(
-            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
-            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
-            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+            a: "DefaultNamedDomainObjectCollectionTest.Bean",
+            b: "DefaultNamedDomainObjectCollectionTest.Bean",
+            d: "DefaultNamedDomainObjectCollectionTest.Bean"
         )
     }
 
@@ -177,15 +269,9 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
             [ schema.name, schema.publicType.simpleName ]
-        }
-        // Same size
-        assert expectedSchema.size() == actualSchemaMap.size()
-        // Same keys
-        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
-        // Keys have the same values
-        expectedSchema.each { entry ->
-            assert entry.value == actualSchemaMap[entry.key]
-        }
+        }.sort()
+        def expectedSchemaMap = expectedSchema.sort()
+        assert expectedSchemaMap == actualSchemaMap
     }
 
     static class Bean {

@@ -30,7 +30,7 @@ dependencies {
 
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation project(":internalIntegTesting")
-    testFixturesCompile libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
+    testFixturesApi libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 }
 
 gradlebuildJava {

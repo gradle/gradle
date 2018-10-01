@@ -225,6 +225,10 @@ public class MavenPomFileGenerator {
         addDependencyManagement(dependency, "runtime");
     }
 
+    public void addImportDependencyManagement(MavenDependency dependency) {
+        addDependencyManagement(dependency, "import");
+    }
+
     public void addRuntimeDependency(MavenDependencyInternal dependency) {
         addDependency(dependency, "runtime");
     }
@@ -267,6 +271,10 @@ public class MavenPomFileGenerator {
         mavenDependency.setGroupId(dependency.getGroupId());
         mavenDependency.setArtifactId(dependency.getArtifactId());
         mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
+        String type = dependency.getType();
+        if (type != null) {
+            mavenDependency.setType(type);
+        }
         mavenDependency.setScope(scope);
 
         DependencyManagement dependencyManagement = model.getDependencyManagement();

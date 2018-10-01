@@ -17,19 +17,18 @@
 
 The JDepend plugin performs quality checks on your project's source files using http://clarkware.com/software/JDepend.html[JDepend] and generates reports from these checks.
 
+WARNING: Since JDepend is unmaintained and does not support bytecode compiled for Java 8 and above, the JDepend plugin has been deprecated and is scheduled to be removed in Gradle 6.0.
 
 [[sec:jdepend_usage]]
 == Usage
 
 To use the JDepend plugin, include the following in your build script:
 
-=== Example: Using the JDepend plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/codeQuality/build.gradle[tag=use-jdepend-plugin]
-----
+.Using the JDepend plugin
+====
+include::sample[dir="codeQuality/groovy",files="build.gradle[tags=use-jdepend-plugin]"]
+include::sample[dir="codeQuality/kotlin",files="build.gradle.kts[tags=use-jdepend-plugin]"]
+====
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 
@@ -76,4 +75,4 @@ The JDepend libraries to use
 [[sec:jdepend_configuration]]
 == Configuration
 
-See the link:{groovyDslPath}/org.gradle.api.plugins.quality.()JDependExtension.html[JDependExtension] class in the API documentation.
+See the link:{groovyDslPath}/org.gradle.api.plugins.quality.JDependExtension.html[JDependExtension] class in the API documentation.

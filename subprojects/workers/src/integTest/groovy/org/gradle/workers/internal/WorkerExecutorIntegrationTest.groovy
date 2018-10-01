@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Unroll
 
-@IntegrationTestTimeout(60)
+@IntegrationTestTimeout(120)
 @Unroll
 class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 

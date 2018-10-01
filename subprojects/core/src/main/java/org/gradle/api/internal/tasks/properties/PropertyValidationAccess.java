@@ -34,7 +34,9 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.event.DefaultListenerManager;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -60,10 +62,11 @@ public class PropertyValidationAccess {
 
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
-        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
+        DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
+        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
-        ));
+        ), cacheFactory);
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
@@ -217,7 +220,6 @@ public class PropertyValidationAccess {
     }
 
     private static class InputOnFileTypeValidator implements PropertyValidator {
-        @SuppressWarnings("Since15")
         @Nullable
         @Override
         public String validate(boolean cacheable, PropertyMetadata metadata) {

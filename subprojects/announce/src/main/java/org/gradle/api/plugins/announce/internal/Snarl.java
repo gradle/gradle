@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.announce.internal;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.internal.UncheckedException;
@@ -53,28 +52,15 @@ public class Snarl implements Announcer {
     }
 
     private void send(InetAddress host, final String title, final String message) {
-        Socket socket = null;
-        try {
-            try {
-                socket = new Socket(host, 9887);
-            } catch (ConnectException e) {
-                // Snarl is not running
-                throw new AnnouncerUnavailableException("Snarl is not running on host " + String.valueOf(host) + ".", e);
-            }
-            PrintWriter printWriter = null;
-            try {
-                final OutputStream outputStream = socket.getOutputStream();
-                printWriter = new PrintWriter(outputStream, true);
-                printWriter.println(formatMessage(title, message));
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } finally {
-                IOUtils.closeQuietly(printWriter);
-            }
+        try (Socket socket = new Socket(host, 9887);
+             OutputStream outputStream = socket.getOutputStream();
+             PrintWriter printWriter = new PrintWriter(outputStream, true)) {
+            printWriter.println(formatMessage(title, message));
+        } catch (ConnectException e) {
+            // Snarl is not running
+            throw new AnnouncerUnavailableException("Snarl is not running on host " + String.valueOf(host) + ".", e);
         } catch (IOException ioException) {
             throw new UncheckedIOException(ioException);
-        } finally {
-            IOUtils.closeQuietly(socket);
         }
     }
 

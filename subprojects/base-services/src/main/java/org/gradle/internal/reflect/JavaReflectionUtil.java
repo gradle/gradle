@@ -244,8 +244,21 @@ public class JavaReflectionUtil {
             handlerClass = fallbackType;
         }
         try {
-            return Cast.uncheckedCast(handlerClass.newInstance());
+            return Cast.uncheckedCast(handlerClass.getConstructor().newInstance());
         } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * This is intended to be a equivalent of deprecated {@link Class#newInstance()}.
+     */
+    public static <T> T newInstance(Class<T> c) {
+        try {
+            Constructor<T> constructor = c.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (Throwable e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
@@ -325,7 +338,7 @@ public class JavaReflectionUtil {
         try {
             return object.getClass().getMethod("toString").getDeclaringClass() == Object.class;
         } catch (java.lang.NoSuchMethodException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

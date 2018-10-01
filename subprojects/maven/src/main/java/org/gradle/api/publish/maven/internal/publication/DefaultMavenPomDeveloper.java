@@ -43,7 +43,7 @@ public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomCont
         url = objectFactory.property(String.class);
         organization = objectFactory.property(String.class);
         organizationUrl = objectFactory.property(String.class);
-        roles = objectFactory.setProperty(String.class);
+        roles = objectFactory.setProperty(String.class).empty();
         timezone = objectFactory.property(String.class);
         properties = (Property) objectFactory.property(Map.class);
     }

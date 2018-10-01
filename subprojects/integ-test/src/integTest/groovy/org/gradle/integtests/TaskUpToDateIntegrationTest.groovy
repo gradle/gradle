@@ -17,6 +17,8 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -303,6 +305,45 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped(':myTask')
     }
 
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/4204")
+    def "changing path of empty root directory makes task out of date for #inputAnnotation"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @${inputAnnotation}
+                File input
+                @OutputFile
+                File output
+                
+                @TaskAction
+                void doStuff() {
+                    output.text = input.list().join('\\n')
+                }
+            }           
+            
+            task myTask(type: MyTask) {
+                input = file(inputDir)
+                output = project.file("build/output.txt")
+            }          
+
+            myTask.input.mkdirs()
+        """
+        String myTask = ':myTask'
+
+        when:
+        run myTask, '-PinputDir=inputDir1'
+        then:
+        executedAndNotSkipped(myTask)
+
+        when:
+        run myTask, '-PinputDir=inputDir2'
+        then:
+        executedAndNotSkipped(myTask)
+
+        where:
+        inputAnnotation << [InputFiles.name, InputDirectory.name]
+    }
+    
     @Issue("https://github.com/gradle/gradle/issues/6592")
     def "missing directory is ignored"() {
         buildFile << """

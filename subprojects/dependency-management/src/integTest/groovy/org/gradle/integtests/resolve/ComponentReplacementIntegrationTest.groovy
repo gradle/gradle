@@ -426,11 +426,12 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : $expected
 
 org:a:1 -> org:b:1""")

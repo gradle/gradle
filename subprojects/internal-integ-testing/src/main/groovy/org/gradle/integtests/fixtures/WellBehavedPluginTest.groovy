@@ -76,33 +76,20 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
     }
 
     def "does not realize all possible tasks"() {
-        Assume.assumeFalse(pluginName in [
-            'swift-library',
-            'swift-application',
-            'xctest',
+        // TODO: This isn't done yet, we still realize many tasks
+        // Eventually, this should only realize "help"
 
-            'cpp-unit-test',
-            'cpp-library',
-            'cpp-application',
+        Assume.assumeFalse(pluginName in [
+            'xctest', // Almost, still realizes compileTestSwift
 
             'visual-studio',
             'xcode',
 
-            'maven-publish',
-            'ivy-publish',
-            'ear',
-            'war',
-            'jacoco',
-            'java-library-distribution',
-            'distribution',
             'play-application',
-            'build-dashboard',
         ])
 
         applyPlugin()
 
-        // TODO: This isn't done yet, we still realize many tasks
-        // Eventually, this should only realize "help"
         buildFile << """
             def configuredTasks = []
             tasks.configureEach {
@@ -112,18 +99,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             gradle.buildFinished {
                 def configuredTaskPaths = configuredTasks*.path
                 
-                if (configuredTaskPaths == [':help']) {
-                    // This plugin is well-behaved
-                    return
-                }
-                
-                assert configuredTasks.size() == 2
-
-                // This should be the only task configured
-                assert ":help" in configuredTaskPaths
-                
-                // This task needs to be able to register publications lazily
-                assert ":jar" in configuredTaskPaths
+                assert configuredTaskPaths == [':help']
             }
         """
         expect:

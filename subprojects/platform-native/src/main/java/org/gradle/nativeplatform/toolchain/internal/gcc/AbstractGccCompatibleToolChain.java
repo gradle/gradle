@@ -221,7 +221,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
-                SearchResult<GccMetadata> gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs());
+                SearchResult<GccMetadata> gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs(), toolSearchPath.getPath());
                 availability.mustBeAvailable(gccMetadata);
                 if (!gccMetadata.isAvailable()) {
                     return;
@@ -343,8 +343,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         @Override
-        public SearchResult<GccMetadata> getCompilerMetaData(File binary, List<String> additionalArgs) {
-            return delegate.getCompilerMetaData(binary, ImmutableList.<String>builder().addAll(compilerProbeArgs).addAll(additionalArgs).build());
+        public SearchResult<GccMetadata> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> searchPath) {
+            return delegate.getCompilerMetaData(binary, ImmutableList.<String>builder().addAll(compilerProbeArgs).addAll(additionalArgs).build(), searchPath);
         }
 
         @Override

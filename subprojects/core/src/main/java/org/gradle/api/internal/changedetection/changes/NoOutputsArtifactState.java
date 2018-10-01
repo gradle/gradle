@@ -47,8 +47,6 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
         null,
         null,
         null,
-        null,
-        null,
         null
     );
 
@@ -76,6 +74,11 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
         @Override
         public BuildCacheKeyInputs getInputs() {
             return NO_CACHE_KEY_INPUTS;
+        }
+
+        @Override
+        public byte[] getHashCodeBytes() {
+            return null;
         }
 
         @Override

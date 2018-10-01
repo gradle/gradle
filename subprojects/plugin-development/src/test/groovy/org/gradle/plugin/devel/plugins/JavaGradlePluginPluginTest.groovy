@@ -78,7 +78,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         classList.contains('com/xxx/TestPlugin.class')
     }
 
-    def "PluginValidationAction finds fully qualified class"(List classList, String fqClass, boolean expectedValue) {
+    def "PluginValidationAction finds fully qualified class"() {
         setup:
         Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction([], [], classList as Set<String>)
 

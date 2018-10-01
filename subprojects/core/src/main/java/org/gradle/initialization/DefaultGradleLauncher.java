@@ -31,7 +31,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -54,7 +54,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
     };
 
     private enum Stage {
-        Load, LoadBuild, Configure, TaskGraph, Build, Finished
+        LoadSettings, Configure, TaskGraph, RunTasks() {
+            @Override
+            String getDisplayName() {
+                return "Build";
+            }
+        }, Finished;
+
+        String getDisplayName() {
+            return name();
+        }
     }
 
     private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
@@ -110,7 +119,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        doBuildStages(Stage.Load);
+        doBuildStages(Stage.LoadSettings);
         return settings;
     }
 
@@ -121,21 +130,21 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     public GradleInternal executeTasks() {
-        doBuildStages(Stage.Build);
+        doBuildStages(Stage.RunTasks);
         return gradle;
     }
 
     @Override
     public void finishBuild() {
         if (stage != null) {
-            finishBuild(new BuildResult(stage.name(), gradle, null));
+            finishBuild(new BuildResult(stage.getDisplayName(), gradle, null));
         }
     }
 
     private void doBuildStages(Stage upTo) {
         try {
             loadSettings();
-            if (upTo == Stage.Load) {
+            if (upTo == Stage.LoadSettings) {
                 return;
             }
             configureBuild();
@@ -147,10 +156,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 return;
             }
             runTasks();
+            if (upTo == Stage.RunTasks) {
+                return;
+            }
             finishBuild();
         } catch (Throwable t) {
             Throwable failure = exceptionAnalyser.transform(t);
-            finishBuild(new BuildResult(upTo.name(), gradle, failure));
+            finishBuild(new BuildResult(upTo.getDisplayName(), gradle, failure));
             throw new ReportedException(failure);
         }
     }
@@ -173,12 +185,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             buildOperationExecutor.run(new LoadBuild());
 
-            stage = Stage.Load;
+            stage = Stage.LoadSettings;
         }
     }
 
     private void configureBuild() {
-        if (stage == Stage.Load) {
+        if (stage == Stage.LoadSettings) {
             buildOperationExecutor.run(new ConfigureBuild());
 
             stage = Stage.Configure;
@@ -218,7 +230,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         buildOperationExecutor.run(new ExecuteTasks());
 
-        stage = Stage.Build;
+        stage = Stage.RunTasks;
     }
 
     /**
@@ -363,9 +375,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public BuildOperationDescriptor.Builder description() {
             BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
             if (gradle.getParent() == null) {
-                builder.operationType(BuildOperationCategory.RUN_TASKS_ROOT_BUILD);
+                builder.operationType(BuildOperationCategory.RUN_WORK_ROOT_BUILD);
             } else {
-                builder.operationType(BuildOperationCategory.RUN_TASKS);
+                builder.operationType(BuildOperationCategory.RUN_WORK);
             }
             builder.totalProgress(gradle.getTaskGraph().size());
             return builder;

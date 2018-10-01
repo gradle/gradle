@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -56,6 +57,8 @@ class ModuleResolveState implements CandidateModule {
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    private SelectorStateResolver<ComponentState> selectorStateResolver;
+    private final PendingDependencies pendingDependencies;
     private ComponentState selected;
     private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
     private AttributeMergingException attributeMergingError;
@@ -67,7 +70,8 @@ class ModuleResolveState implements CandidateModule {
                        VariantNameBuilder variantNameBuilder,
                        ImmutableAttributesFactory attributesFactory,
                        Comparator<Version> versionComparator,
-                       VersionParser versionParser) {
+                       VersionParser versionParser,
+                       SelectorStateResolver<ComponentState> selectorStateResolver) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -75,6 +79,12 @@ class ModuleResolveState implements CandidateModule {
         this.attributesFactory = attributesFactory;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.pendingDependencies = new PendingDependencies();
+        this.selectorStateResolver = selectorStateResolver;
+    }
+
+    void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
+        this.selectorStateResolver = selectorStateResolver;
     }
 
     @Override
@@ -290,5 +300,49 @@ class ModuleResolveState implements CandidateModule {
             platformState = new VirtualPlatformState(versionComparator, versionParser, this);
         }
         return platformState;
+    }
+
+    boolean isVirtualPlatform() {
+        return platformState != null && !platformState.getParticipatingModules().isEmpty();
+    }
+
+    void decreaseHardEdgeCount() {
+        pendingDependencies.decreaseHardEdgeCount();
+    }
+
+    boolean isPending() {
+        return pendingDependencies.isPending();
+    }
+
+    PendingDependencies getPendingDependencies() {
+        return pendingDependencies;
+    }
+
+    void addPendingNode(NodeState node) {
+        pendingDependencies.addNode(node);
+    }
+
+
+    public boolean maybeUpdateSelection() {
+        ComponentState newSelected = selectorStateResolver.selectBest(getId(), getSelectors());
+        if (selected == null) {
+            select(newSelected);
+            return true;
+        } else if (newSelected != selected) {
+            changeSelection(newSelected);
+            return true;
+        }
+        return false;
+    }
+
+    boolean hasCompetingForceSelectors() {
+        if (selectors.size() > 1) {
+            for (SelectorState selector : selectors) {
+                if (selector.isForce() && !selector.getRequested().matchesStrictly(selected.getComponentId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

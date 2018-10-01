@@ -42,9 +42,16 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         buildFile.makeOlder()
 
         when:
+        executer.expectDeprecationWarning()
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
+
+        when:
+        executer.expectDeprecationWarning()
+        run 'myTask'
+        then:
+        skipped(':myTask')
 
         when:
         buildFile.text = """
@@ -52,6 +59,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
                 action = Action { writeText("changed") }
             }                      
         """
+        executer.expectDeprecationWarning()
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -70,9 +78,16 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         buildFile.makeOlder()
 
         when:
+        executer.expectDeprecationWarning()
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
+
+        when:
+        executer.expectDeprecationWarning()
+        run 'myTask'
+        then:
+        skipped(':myTask')
 
         when:
         buildFile.text = """
@@ -80,6 +95,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
                 action = { it.writeText("changed") }
             }
         """
+        executer.expectDeprecationWarning()
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -88,6 +104,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation) {
+        file('buildSrc/settings.gradle.kts') << ""
         file('buildSrc/build.gradle.kts') << KotlinDslTestUtil.kotlinDslBuildSrcScript
         file("buildSrc/src/main/kotlin/TaskWithNestedAction.kt") << """
             import org.gradle.api.DefaultTask
@@ -110,5 +127,4 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
             }
         """
     }
-
 }

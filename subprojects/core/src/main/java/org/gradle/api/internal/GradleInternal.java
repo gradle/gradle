@@ -22,7 +22,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.scan.UsedByScanPlugin;

@@ -81,7 +81,7 @@ class ProviderStartParameterConverter {
                     + "\n" + e.getMessage()
                     + "\nEither it is not a valid build option or it is not supported in the target Gradle version."
                     + "\nNot all of the Gradle command line options are supported build arguments."
-                    + "\nExamples of supported build arguments: '--info', '-u', '-p'."
+                    + "\nExamples of supported build arguments: '--info', '-p'."
                     + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
             }
@@ -93,10 +93,6 @@ class ProviderStartParameterConverter {
 
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
-        }
-
-        if (parameters.getStandardInput() != null) {
-            startParameter.setInteractive(true);
         }
 
         return startParameter;

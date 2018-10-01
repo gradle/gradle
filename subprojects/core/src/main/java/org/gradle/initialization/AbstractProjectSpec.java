@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractProjectSpec implements ProjectSpec {
+    private static final String UNRELATED_BUILD_HINT = " If this is an unrelated build, it must have it's own settings file.";
     public boolean containsProject(ProjectRegistry<? extends ProjectIdentifier> registry) {
         checkPreconditions(registry);
         List<ProjectIdentifier> matches = new ArrayList<ProjectIdentifier>();
@@ -30,12 +31,13 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return !matches.isEmpty();
     }
 
-    public <T extends ProjectIdentifier> T selectProject(ProjectRegistry<? extends T> registry) {
+    public <T extends ProjectIdentifier> T selectProject(String settingsDescription, ProjectRegistry<? extends T> registry) {
         checkPreconditions(registry);
         List<T> matches = new ArrayList<T>();
         select(registry, matches);
         if (matches.isEmpty()) {
-            throw new InvalidUserDataException(formatNoMatchesMessage());
+            String message = formatNoMatchesMessage(settingsDescription) + UNRELATED_BUILD_HINT;
+            throw new InvalidUserDataException(message);
         }
         if (matches.size() != 1) {
             throw new InvalidUserDataException(formatMultipleMatchesMessage(matches));
@@ -48,7 +50,7 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
 
     protected abstract String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches);
 
-    protected abstract String formatNoMatchesMessage();
+    protected abstract String formatNoMatchesMessage(String settings);
 
     protected abstract <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches);
 }

@@ -111,6 +111,7 @@
                                 </g>
                             </g>
                         </svg></a>
+                    <div class="site-header__doc-type sr-only">DSL Reference</div>
                     <div class="site-header-version">
                         <xsl:value-of select="//releaseinfo[1]"/>
                     </div>
@@ -124,45 +125,58 @@
                     <ul class="site-header__navigation-items">
                         <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                             <span class="site-header__navigation-link">
-                                Docs
-                                <svg class="site-header__down-arrow site-header__icon-light" width="19" height="11" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><title>Open Docs Menu</title><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Community
+                                <svg class="site-header__down-arrow site-header__icon-light" width="19" height="11" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><title>Open Community Menu</title><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </span>
                             <div class="site-header__navigation-submenu">
                                 <div class="site-header__navigation-submenu-item" itemprop="name">
-                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="/userguide/userguide.html" itemprop="url">
-                                        <span class="site-header__navigation-submenu-item-link-text">User Manual</span>
+                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/" itemprop="url">
+                                        <span class="site-header__navigation-submenu-item-link-text">Community Home</span>
                                     </a>
                                 </div>
                                 <div class="site-header__navigation-submenu-item" itemprop="name">
-                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="https://guides.gradle.org" itemprop="url">
-                                        <span class="site-header__navigation-submenu-item-link-text">Guides and Tutorials</span>
+                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="https://discuss.gradle.org/" itemprop="url">
+                                        <span class="site-header__navigation-submenu-item-link-text">Community Forums</span>
                                     </a>
                                 </div>
                                 <div class="site-header__navigation-submenu-item" itemprop="name">
-                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="/dsl/" itemprop="url">
-                                        <span class="site-header__navigation-submenu-item-link-text">DSL Reference</span>
-                                    </a>
-                                </div>
-                                <div class="site-header__navigation-submenu-item" itemprop="name">
-                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="/javadoc/" itemprop="url">
-                                        <span class="site-header__navigation-submenu-item-link-text">Javadoc</span>
-                                    </a>
-                                </div>
-                                <div class="site-header__navigation-submenu-item" itemprop="name">
-                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="/release-notes.html" itemprop="url">
-                                        <span class="site-header__navigation-submenu-item-link-text">Release Notes</span>
+                                    <a target="_top" class="site-header__navigation-submenu-item-link" href="https://plugins.gradle.org" itemprop="url">
+                                        <span class="site-header__navigation-submenu-item-link-text">Community Plugins</span>
                                     </a>
                                 </div>
                             </div>
                         </li>
                         <li class="site-header__navigation-item" itemprop="name">
-                            <a target="_top" class="site-header__navigation-link" href="https://discuss.gradle.org/" itemprop="url">Forums</a>
-                        </li>
-                        <li class="site-header__navigation-item" itemprop="name">
                             <a target="_top" class="site-header__navigation-link" href="https://gradle.org/training/" itemprop="url">Training</a>
                         </li>
+                        <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
+                            <span class="site-header__navigation-link">
+                                News
+                                <svg class="site-header__down-arrow site-header__icon-light" width="19" height="11" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><title>Open Community Menu</title><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                            <div class="site-header__navigation-submenu">
+                                <div class="site-header__navigation-submenu-item" itemprop="name">
+                                    <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.com" itemprop="url">
+                                        <span class="site-header__navigation-submenu-item-link-text">Newsletter</span>
+                                    </a>
+                                </div>
+                                <div class="site-header__navigation-submenu-item" itemprop="name">
+                                    <a class="site-header__navigation-submenu-item-link" href="https://blog.gradle.org" itemprop="url">
+                                        <span class="site-header__navigation-submenu-item-link-text">Blog</span>
+                                    </a>
+                                </div>
+                                <div class="site-header__navigation-submenu-item">
+                                    <a class="site-header__navigation-submenu-item-link" href="https://twitter.com/gradle">
+                                        <span class="site-header__navigation-submenu-item-link-text">Twitter</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
                         <li class="site-header__navigation-item" itemprop="name">
-                            <a target="_top" class="site-header__navigation-link" href="https://gradle.com/enterprise" itemprop="url">Try Gradle Enterprise</a>
+                            <a target="_top" class="site-header__navigation-link" href="https://gradle.com/enterprise" itemprop="url">Enterprise</a>
+                        </li>
+                        <li class="site-header__navigation-item">
+                            <a class="site-header__navigation-link" title="Gradle on GitHub" href="https://github.com/gradle/gradle"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>github</title><path d="M10 0C4.477 0 0 4.477 0 10c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0 1 10 4.836c.85.004 1.705.114 2.504.337 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C17.137 18.163 20 14.418 20 10c0-5.523-4.478-10-10-10" fill="#02303A" fill-rule="evenodd"/></svg></a>
                         </li>
                     </ul>
                 </div>
@@ -210,21 +224,39 @@
                         </ul>
                     </div>
                 </section>
-                <section class="site-footer__subscribe-newsletter">
-                    <p>Subscribe for important Gradle updates and news</p>
-                    <form id="newsletter-form" class="newsletter-form" action="https://go.pardot.com/l/68052/2017-12-01/b8dh7j" method="post">
-                        <input id="email" class="email" name="email" type="email" placeholder="name@email.com" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" maxlength="255" required=""/>
-                        <button id="submit" class="submit" type="submit">Subscribe</button>
-                    </form>
+                <section class="site-footer__subscribe-newsletter" id="newsletter-form-container">
+                    <header class="newsletter-form__header"><h5>Stay <code>UP-TO-DATE</code> on new features and news</h5></header>
                     <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.org/terms/">Terms</a> and <a href="https://gradle.org/privacy/">Privacy Policy</a>, including receipt of emails. You can unsubscribe at any time.</p>
+                    <div class="newsletter-form__container">
+                        <form id="newsletter-form" class="newsletter-form" action="https://go.gradle.com/l/68052/2018-09-07/bk6wml" method="post">
+                            <input id="email" class="email" name="email" type="email" placeholder="name@email.com" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" maxlength="255" required=""/>
+                            <button id="submit" class="submit" type="submit">Subscribe</button>
+                        </form>
+                    </div>
                 </section>
             </nav>
             <div class="site-footer-secondary">
                 <div class="site-footer-secondary__contents">
-                    <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc.</a> <time>2018</time> All rights reserved.</div>
-                    <div class="site-footer__logo"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" class="logo-icon"><g style="fill:none;opacity:0.7"><g fill="#11272E"><path d="M37.7 7.1C36.4 4.8 34 4 32.4 4 30.4 4 28.7 5.1 29 5.9 29.1 6 29.5 6.8 29.7 7.2 30 7.7 30.6 7.3 30.9 7.2 31.5 6.9 32.2 6.7 32.9 6.8 33.6 6.9 34.6 7.4 35.3 8.6 36.8 11.6 32.1 17.8 26.2 13.5 20.3 9.3 14.5 10.7 11.9 11.5 9.3 12.4 8.1 13.3 9.2 15.3 10.6 18 10.1 17.1 11.5 19.4 13.6 22.9 18.3 17.7 18.3 17.7 14.8 23 11.8 21.7 10.6 19.9 9.6 18.2 8.8 16.3 8.8 16.3 -0.1 19.5 2.3 33.6 2.3 33.6L6.7 33.6C7.9 28.4 11.9 28.6 12.6 33.6L15.9 33.6C18.9 23.5 26.4 33.6 26.4 33.6L30.8 33.6C29.6 26.7 33.3 24.5 35.6 20.5 37.9 16.4 40.1 11.5 37.7 7.1L37.7 7.1ZM26.3 20.5C24 19.7 24.9 17.3 24.9 17.3 24.9 17.3 26.9 18 29.6 18.9 29.5 19.6 28.1 21 26.3 20.5L26.3 20.5Z"/><path d="M28.4 18.7C28.5 19.3 28 19.9 27.3 20 26.6 20.1 26 19.6 26 18.9 25.9 18.3 26.4 17.7 27.1 17.6 27.7 17.6 28.3 18 28.4 18.7"/><path d="M37.7 7.1C36.4 4.8 34 4 32.4 4 30.4 4 28.7 5.1 29 5.9 29.1 6 29.5 6.8 29.7 7.2 30 7.7 30.6 7.3 30.9 7.2 31.5 6.9 32.2 6.7 32.9 6.8 33.6 6.9 34.6 7.4 35.3 8.6 36.8 11.6 32.1 17.8 26.2 13.5 20.3 9.3 14.5 10.7 11.9 11.5 9.3 12.4 8.1 13.3 9.2 15.3 10.6 18 10.1 17.1 11.5 19.4 13.6 22.9 18.3 17.7 18.3 17.7 14.8 23 11.8 21.7 10.6 19.9 9.6 18.2 8.8 16.3 8.8 16.3 -0.1 19.5 2.3 33.6 2.3 33.6L6.7 33.6C7.9 28.4 11.9 28.6 12.6 33.6L15.9 33.6C18.9 23.5 26.4 33.6 26.4 33.6L30.8 33.6C29.6 26.7 33.3 24.5 35.6 20.5 37.9 16.4 40.1 11.5 37.7 7.1L37.7 7.1ZM26.3 20.5C24 19.7 24.9 17.3 24.9 17.3 24.9 17.3 26.9 18 29.6 18.9 29.5 19.6 28.1 21 26.3 20.5L26.3 20.5Z"/><path d="M28.4 18.7C28.5 19.3 28 19.9 27.3 20 26.6 20.1 26 19.6 26 18.9 25.9 18.3 26.4 17.7 27.1 17.6 27.7 17.6 28.3 18 28.4 18.7"/></g></g></svg></a></div>
+                    <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc.</a>
+                        <time>2018</time>
+                        All rights reserved.
+                    </div>
+                    <div class="site-footer__logo"><a href="/">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" class="logo-icon">
+                            <g style="fill:none;opacity:0.7">
+                                <g fill="#11272E">
+                                    <path
+                                        d="M37.7 7.1C36.4 4.8 34 4 32.4 4 30.4 4 28.7 5.1 29 5.9 29.1 6 29.5 6.8 29.7 7.2 30 7.7 30.6 7.3 30.9 7.2 31.5 6.9 32.2 6.7 32.9 6.8 33.6 6.9 34.6 7.4 35.3 8.6 36.8 11.6 32.1 17.8 26.2 13.5 20.3 9.3 14.5 10.7 11.9 11.5 9.3 12.4 8.1 13.3 9.2 15.3 10.6 18 10.1 17.1 11.5 19.4 13.6 22.9 18.3 17.7 18.3 17.7 14.8 23 11.8 21.7 10.6 19.9 9.6 18.2 8.8 16.3 8.8 16.3 -0.1 19.5 2.3 33.6 2.3 33.6L6.7 33.6C7.9 28.4 11.9 28.6 12.6 33.6L15.9 33.6C18.9 23.5 26.4 33.6 26.4 33.6L30.8 33.6C29.6 26.7 33.3 24.5 35.6 20.5 37.9 16.4 40.1 11.5 37.7 7.1L37.7 7.1ZM26.3 20.5C24 19.7 24.9 17.3 24.9 17.3 24.9 17.3 26.9 18 29.6 18.9 29.5 19.6 28.1 21 26.3 20.5L26.3 20.5Z"/>
+                                    <path d="M28.4 18.7C28.5 19.3 28 19.9 27.3 20 26.6 20.1 26 19.6 26 18.9 25.9 18.3 26.4 17.7 27.1 17.6 27.7 17.6 28.3 18 28.4 18.7"/>
+                                    <path
+                                        d="M37.7 7.1C36.4 4.8 34 4 32.4 4 30.4 4 28.7 5.1 29 5.9 29.1 6 29.5 6.8 29.7 7.2 30 7.7 30.6 7.3 30.9 7.2 31.5 6.9 32.2 6.7 32.9 6.8 33.6 6.9 34.6 7.4 35.3 8.6 36.8 11.6 32.1 17.8 26.2 13.5 20.3 9.3 14.5 10.7 11.9 11.5 9.3 12.4 8.1 13.3 9.2 15.3 10.6 18 10.1 17.1 11.5 19.4 13.6 22.9 18.3 17.7 18.3 17.7 14.8 23 11.8 21.7 10.6 19.9 9.6 18.2 8.8 16.3 8.8 16.3 -0.1 19.5 2.3 33.6 2.3 33.6L6.7 33.6C7.9 28.4 11.9 28.6 12.6 33.6L15.9 33.6C18.9 23.5 26.4 33.6 26.4 33.6L30.8 33.6C29.6 26.7 33.3 24.5 35.6 20.5 37.9 16.4 40.1 11.5 37.7 7.1L37.7 7.1ZM26.3 20.5C24 19.7 24.9 17.3 24.9 17.3 24.9 17.3 26.9 18 29.6 18.9 29.5 19.6 28.1 21 26.3 20.5L26.3 20.5Z"/>
+                                    <path d="M28.4 18.7C28.5 19.3 28 19.9 27.3 20 26.6 20.1 26 19.6 26 18.9 25.9 18.3 26.4 17.7 27.1 17.6 27.7 17.6 28.3 18 28.4 18.7"/>
+                                </g>
+                            </g>
+                        </svg>
+                    </a></div>
                     <div class="site-footer-secondary__links">
-                        <a href="https://gradle.com/careers" >Careers</a> |
+                        <a href="https://gradle.com/careers">Careers</a> |
                         <a href="https://gradle.org/privacy">Privacy</a> |
                         <a href="https://gradle.org/terms">Terms of Service</a> |
                         <a href="https://gradle.org/contact/">Contact</a>

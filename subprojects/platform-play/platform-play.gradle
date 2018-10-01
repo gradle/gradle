@@ -2,6 +2,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
+    id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
 
@@ -15,8 +16,8 @@ dependencies {
 
     integTestRuntime project(":compositeBuilds")
     integTestRuntime project(":idePlay")
-    testFixturesCompile project(":internalIntegTesting")
-    testFixturesCompile libraries.commons_httpclient.coordinates
+    testFixturesApi project(":internalIntegTesting")
+    testFixturesApi libraries.commons_httpclient.coordinates
 }
 
 gradlebuildJava {

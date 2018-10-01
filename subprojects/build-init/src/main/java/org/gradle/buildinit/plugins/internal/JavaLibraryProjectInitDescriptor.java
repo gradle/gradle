@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
@@ -28,28 +27,35 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
         "java-library"
     );
 
-    public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
+    public JavaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory,
+                                            TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
-                                            ProjectInitDescriptor globalSettingsDescriptor,
                                             DocumentationRegistry documentationRegistry) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor, documentationRegistry);
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation() {
-        return fromClazzTemplate("javalibrary/Library.java.template", "main");
+    public String getId() {
+        return "java-library";
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
-        switch (testFramework) {
+    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
+        return fromClazzTemplate("javalibrary/Library.java.template",  settings, "main");
+    }
+
+    @Override
+    protected TemplateOperation testTemplateOperation(InitSettings settings) {
+        switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test", "groovy");
+                return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", "groovy");
             case TESTNG:
-                return fromClazzTemplate("javalibrary/LibraryTestNG.java.template", "test", "java", "LibraryTest.java");
+                return fromClazzTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
+            case JUNIT:
+                return fromClazzTemplate("javalibrary/LibraryTest.java.template", settings, "test");
             default:
-                return fromClazzTemplate("javalibrary/LibraryTest.java.template", "test");
+                throw new IllegalArgumentException();
         }
     }
 
@@ -64,7 +70,7 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.dependency(
             "api",
             "This dependency is exported to consumers, that is to say found on their compile classpath.",

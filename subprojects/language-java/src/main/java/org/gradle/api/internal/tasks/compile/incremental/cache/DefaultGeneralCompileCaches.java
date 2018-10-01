@@ -17,9 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassAnalysisCache;
@@ -39,6 +37,8 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 import java.io.Closeable;
 

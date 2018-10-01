@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -23,6 +24,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -55,6 +57,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
         this.isolatableFactory = isolatableFactory;
+        PlatformSupport.configureSchema(this);
     }
 
     @Override
@@ -265,6 +268,22 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             return attributes;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            MergedSchema that = (MergedSchema) o;
+            return producerSchema.equals(that.producerSchema);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(producerSchema);
+        }
     }
 
     /**

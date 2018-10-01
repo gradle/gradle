@@ -25,7 +25,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
@@ -53,6 +52,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -65,7 +65,10 @@ import java.util.Collection;
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>. See the <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information on configuration
  * options.
+ *
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
+@Deprecated
 @CacheableTask
 public class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBugsReports> {
 

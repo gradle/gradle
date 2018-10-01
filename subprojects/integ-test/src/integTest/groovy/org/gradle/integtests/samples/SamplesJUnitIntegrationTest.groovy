@@ -29,16 +29,16 @@ import org.junit.Test
 class SamplesJUnitIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
-    public final Sample sample = new Sample(testDirectoryProvider, 'testing/junit')
+    public final Sample sample = new Sample(testDirectoryProvider, 'testing/junit/categories')
 
     @Before
     void setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Test
     void categoriesSample() {
-        TestFile projectDir = sample.dir.file("categories")
+        TestFile projectDir = sample.dir.file("groovy")
 
         // Build and test projects
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()

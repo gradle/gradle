@@ -20,8 +20,6 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
-import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
@@ -44,7 +42,6 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
@@ -57,6 +54,8 @@ import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.snapshot.FileSystemMirror
+import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.time.Clock
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -125,7 +124,6 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
         expectParentServiceLocated(CrossBuildInMemoryCacheFactory)
         expectParentServiceLocated(ClassLoaderRegistry)
         expectParentServiceLocated(DirectoryFileTreeFactory)
-        expectParentServiceLocated(ContentHasherFactory)
         expectParentServiceLocated(StreamHasher)
 
         expect:

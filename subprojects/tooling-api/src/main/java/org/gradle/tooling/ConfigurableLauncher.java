@@ -16,6 +16,7 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationType;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 1.0
      */
     @Override
-    T withArguments(String ... arguments);
+    T withArguments(String... arguments);
 
     /**
      * {@inheritDoc}
@@ -44,6 +45,20 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      */
     @Override
     T withArguments(Iterable<String> arguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 5.0
+     */
+    @Incubating
+    T addArguments(String... arguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 5.0
+     */
+    @Incubating
+    T addArguments(Iterable<String> arguments);
 
     /**
      * {@inheritDoc}
@@ -93,6 +108,20 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      */
     @Override
     T setJvmArguments(Iterable<String> jvmArguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 5.0
+     */
+    @Incubating
+    T addJvmArguments(String... jvmArguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 5.0
+     */
+    @Incubating
+    T addJvmArguments(Iterable<String> jvmArguments);
 
     /**
      * {@inheritDoc}

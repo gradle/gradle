@@ -41,39 +41,25 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "expect"
     }
 
-    def "settings classesDir restores old behavior"() {
+    def "jar task is created lazily"() {
         buildFile << """
             apply plugin: 'java'
-            
-            def oldPath = file("build/classes/main")
-            sourceSets.main.output.classesDir = oldPath
-            assert sourceSets.main.java.outputDir == oldPath
-            assert sourceSets.main.output.classesDir == oldPath
-            assert sourceSets.main.output.classesDirs.contains(oldPath) 
-        """
-        file("src/main/java/Main.java") << """
-            public class Main {}
-        """
-        when:
-        executer.expectDeprecationWarning()
-        succeeds("assemble")
-        then:
-        file("build/classes/java/main").assertDoesNotExist()
-        file("build/classes/main/Main.class").assertExists()
-        outputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
-    }
 
-    def "emits deprecation message if something uses classesDir"() {
-        buildFile << """
-            apply plugin: 'java'
+            tasks.named('jar').configure {
+                println "jar task created"
+            }
             
-            def newPath = file("build/classes/java/main")
-            assert sourceSets.main.output.classesDir == newPath
+            task printArtifacts {
+                doLast {
+                    configurations.runtime.artifacts.files.each { println it }
+                }
+            }
         """
+
         when:
-        executer.expectDeprecationWarning()
-        succeeds("help")
+        succeeds("printArtifacts")
+
         then:
-        outputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
+        result.groupedOutput.task(':printArtifacts').output.contains("jar task created")
     }
 }

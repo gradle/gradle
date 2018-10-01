@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -79,6 +80,15 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         runTasksOps[0].parentId == buildSrcOps[0].id
         runTasksOps[1].displayName == "Run tasks"
         runTasksOps[1].parentId == root.id
+
+        def graphNotifyOps = ops.all(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps.size() == 2
+        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
+        graphNotifyOps[0].details.buildPath == ':buildSrc'
+        graphNotifyOps[0].parentId == runTasksOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[1].details.buildPath == ":"
+        graphNotifyOps[1].parentId == runTasksOps[1].id
 
         def taskOps = ops.all(ExecuteTaskBuildOperationType)
         taskOps.size() > 1

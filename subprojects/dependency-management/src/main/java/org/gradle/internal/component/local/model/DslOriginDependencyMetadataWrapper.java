@@ -86,8 +86,13 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public boolean isPending() {
-        return delegate.isPending();
+    public boolean isConstraint() {
+        return delegate.isConstraint();
+    }
+
+    @Override
+    public boolean isFromLock() {
+        return delegate.isFromLock();
     }
 
     @Override
@@ -115,4 +120,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.getSelector();
     }
 
+    @Override
+    public LocalOriginDependencyMetadata forced() {
+        return new DslOriginDependencyMetadataWrapper(delegate.forced(), source);
+    }
 }

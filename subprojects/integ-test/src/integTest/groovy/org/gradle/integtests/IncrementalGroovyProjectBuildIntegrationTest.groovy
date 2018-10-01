@@ -15,38 +15,45 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.test.fixtures.file.TestFile
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTest {
+class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationSpec {
 
-    @Test
-    void doesNotRebuildGroovydocIfSourceHasNotChanged() {
+    def "does not rebuild Groovydoc if source has not changed"() {
+        def indexFile = file("build/docs/groovydoc/index.html");
         file("src/main/groovy/BuildClass.java") << 'public class BuildClass { }'
-        file("build.gradle") << '''
+        buildFile << '''
             apply plugin: 'groovy'
             dependencies { compile localGroovy() }
 
             groovydoc {
                 link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.,org.xml.,javax.,org.xml.')
             }
-'''
+        '''
 
-        executer.withTasks("groovydoc").run();
+        when:
+        run "groovydoc"
+        then:
+        indexFile.exists()
 
-        TestFile indexFile = file("build/docs/groovydoc/index.html");
-        indexFile.assertIsFile();
-        TestFile.Snapshot snapshot = indexFile.snapshot();
+        when:
+        def snapshot = indexFile.snapshot();
+        run "groovydoc"
+        then:
+        skipped ":groovydoc"
+        indexFile.assertHasNotChangedSince(snapshot)
 
-        executer.withTasks("groovydoc").run().assertTaskSkipped(':groovydoc');
+        when:
+        buildFile << '''
+            groovydoc.link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.')
+        '''
+        run "groovydoc"
+        then:
+        executedAndNotSkipped ":groovydoc"
 
-        indexFile.assertHasNotChangedSince(snapshot);
-
-        file("build.gradle").append("groovydoc.link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.')")
-
-        executer.withTasks("groovydoc").run().assertTaskNotSkipped(':groovydoc');
-
-        executer.withTasks("groovydoc").run().assertTaskSkipped(':groovydoc');
+        when:
+        run "groovydoc"
+        then:
+        skipped ":groovydoc"
     }
 }

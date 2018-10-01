@@ -49,7 +49,7 @@ public class SingleUseDaemonClient extends DaemonClient {
         LOGGER.lifecycle("{} Please consider using the daemon: {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
 
         DaemonClientConnection daemonConnection = getConnector().startSingleUseDaemon();
-        Build build = new Build(getIdGenerator().generateId(), daemonConnection.getDaemon().getToken(), action, buildRequestContext.getClient(), buildRequestContext.getStartTime(), parameters);
+        Build build = new Build(getIdGenerator().generateId(), daemonConnection.getDaemon().getToken(), action, buildRequestContext.getClient(), buildRequestContext.getStartTime(), buildRequestContext.isInteractive(), parameters);
 
         return executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer());
     }

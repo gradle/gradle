@@ -37,6 +37,7 @@ import java.io.File;
  * from an instance of {@link org.gradle.tooling.BuildAction}.
  * Used by consumer connections 1.8+.
  */
+@SuppressWarnings("deprecation")
 public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, InternalBuildActionVersion2<T> {
     private final BuildAction<T> action;
     private final File rootDir;

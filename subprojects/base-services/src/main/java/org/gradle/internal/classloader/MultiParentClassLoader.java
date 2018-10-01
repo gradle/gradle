@@ -40,7 +40,6 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -83,6 +82,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         throw new ClassNotFoundException(String.format("%s not found.", name));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {

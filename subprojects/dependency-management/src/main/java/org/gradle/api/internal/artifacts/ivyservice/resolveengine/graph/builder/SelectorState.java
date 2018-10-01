@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -70,11 +71,13 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final ImmutableAttributesFactory attributesFactory;
     private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
 
-    private ComponentIdResolveResult idResolveResult;
+    private ComponentIdResolveResult preferResult;
+    private ComponentIdResolveResult requireResult;
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private boolean resolved;
     private boolean forced;
+    private boolean fromLock;
 
     // An internal counter used to track the number of outgoing edges
     // that use this selector. Since a module resolve state tracks all selectors
@@ -94,6 +97,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionConstraint = resolveVersionConstraint(firstSeenDependency.getSelector());
         this.attributesFactory = resolveState.getAttributesFactory();
         this.forced = isForced(firstSeenDependency);
+        this.fromLock = isFromLock(firstSeenDependency);
         addDependencyMetadata(firstSeenDependency);
     }
 
@@ -114,7 +118,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     private void addDependencyMetadata(DependencyMetadata dependencyMetadata) {
         String reason = dependencyMetadata.getReason();
-        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isConstraint() ? CONSTRAINT : REQUESTED;
         if (reason != null) {
             dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
         }
@@ -157,46 +161,72 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     /**
      * Does the work of actually resolving a component selector to a component identifier.
      */
+    @Override
     public ComponentIdResolveResult resolve(VersionSelector allRejects) {
-        if (!requiresResolve(allRejects)) {
-            return idResolveResult;
-        }
-
-        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        if (dependencyState.failure != null) {
-            idResolveResult.failed(dependencyState.failure);
-        } else {
-            ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : versionConstraint.withRejectSelector(allRejects);
-            resolver.resolve(firstSeenDependency, mergedConstraint, idResolveResult);
-        }
-
-        if (idResolveResult.getFailure() != null) {
-            failure = idResolveResult.getFailure();
-        }
-
-        this.idResolveResult = idResolveResult;
-        this.resolved = true;
-        return idResolveResult;
+        VersionSelector requiredSelector = versionConstraint == null ? null : versionConstraint.getRequiredSelector();
+        requireResult = resolve(requiredSelector, allRejects, requireResult);
+        return requireResult;
     }
 
-    private boolean requiresResolve(VersionSelector allRejects) {
+    @Override
+    public ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
+        if (versionConstraint == null || versionConstraint.getPreferredSelector() == null) {
+            return null;
+        }
+        preferResult = resolve(versionConstraint.getPreferredSelector(), allRejects, preferResult);
+        return preferResult;
+    }
+
+    private ComponentIdResolveResult resolve(VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+        try {
+            if (!requiresResolve(previousResult, rejector)) {
+                return previousResult;
+            }
+
+            BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
+            if (dependencyState.failure != null) {
+                idResolveResult.failed(dependencyState.failure);
+            } else {
+                resolver.resolve(firstSeenDependency, selector, rejector, idResolveResult);
+            }
+
+            if (idResolveResult.getFailure() != null) {
+                failure = idResolveResult.getFailure();
+            }
+
+            return idResolveResult;
+        } finally {
+            this.resolved = true;
+        }
+    }
+
+    @Override
+    public void failed(ModuleVersionResolveException failure) {
+        this.failure = failure;
+        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
+        idResolveResult.failed(failure);
+        this.requireResult = idResolveResult;
+        this.preferResult = idResolveResult;
+    }
+
+    private boolean requiresResolve(ComponentIdResolveResult previousResult, VersionSelector allRejects) {
         // If we've never resolved, must resolve
-        if (idResolveResult == null) {
+        if (previousResult == null) {
             return true;
         }
 
         // If previous resolve failed, no point in re-resolving
-        if (idResolveResult.getFailure() != null) {
+        if (previousResult.getFailure() != null) {
             return false;
         }
 
         // If the previous result was rejected, do not need to re-resolve (new rejects will be a superset of previous rejects)
-        if (idResolveResult.isRejected()) {
+        if (previousResult.isRejected()) {
             return false;
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        if (allRejects == null || !allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
+        if (allRejects == null || !allRejects.accept(previousResult.getModuleVersionId().getVersion())) {
             return false;
         }
 
@@ -221,9 +251,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
         // Target module can change, if this is called as the result of a module replacement conflict.
         this.targetModule = selected.getModule();
-
-        // TODO:DAZ It's not clear that we're setting up the correct state here:
-        // - If the target module changed, we are not updating the set of selectors on the target modules (both current and new)
     }
 
     public ComponentSelectionReasonInternal getSelectionReason() {
@@ -260,19 +287,36 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return forced;
     }
 
+    @Override
+    public boolean isFromLock() {
+        return fromLock;
+    }
+
     private ComponentSelector selectorWithDesugaredAttributes(ComponentSelector selector) {
         return AttributeDesugaring.desugarSelector(selector, attributesFactory);
     }
 
     private static boolean isForced(DependencyMetadata dependencyMetadata) {
+        return dependencyMetadata instanceof ForcingDependencyMetadata
+            && ((ForcingDependencyMetadata) dependencyMetadata).isForce();
+    }
+
+    private static boolean isFromLock(DependencyMetadata dependencyMetadata) {
         return dependencyMetadata instanceof LocalOriginDependencyMetadata
-            && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
+            && ((LocalOriginDependencyMetadata) dependencyMetadata).isFromLock();
     }
 
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
             DependencyMetadata dependency = dependencyState.getDependency();
-            forced |= isForced(dependency);
+            if (!forced && isForced(dependency)) {
+                forced = true;
+                resolved = false; // when a selector changes from non forced to forced, we must reselect
+            }
+            if (!fromLock && isFromLock(dependency)) {
+                fromLock = true;
+                resolved = false; // when a selector changes from non lock to lock, we must reselect
+            }
             addDependencyMetadata(dependency);
         }
     }

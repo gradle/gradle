@@ -130,7 +130,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def result = new DefaultBuildableComponentIdResolveResult()
 
         when:
-        resolver.resolve(metadata, null, result)
+        resolver.resolve(metadata, null, null, result)
 
         then:
         result.hasResult()

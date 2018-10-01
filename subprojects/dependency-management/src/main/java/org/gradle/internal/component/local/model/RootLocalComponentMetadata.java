@@ -17,6 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -47,7 +48,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         addToConfigurations(name, conf);
@@ -63,7 +64,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                                        boolean visible,
                                        boolean transitive,
                                        Set<String> extendsFrom,
-                                       Set<String> hierarchy,
+                                       ImmutableSet<String> hierarchy,
                                        ImmutableAttributes attributes,
                                        boolean canBeConsumed,
                                        boolean canBeResolved,
@@ -87,7 +88,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                         : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
                     result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
-                        Collections.<IvyArtifactName>emptyList(),  Collections.<ExcludeMetadata>emptyList(), false, false, false, true, getLockReason(strict, lockedVersion)));
+                        Collections.<IvyArtifactName>emptyList(),  Collections.<ExcludeMetadata>emptyList(), false, false, false, true, true, getLockReason(strict, lockedVersion)));
                 }
             }
         }

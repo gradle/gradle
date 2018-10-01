@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -440,6 +441,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
+    @Ignore("There is no longer a call to project.getServices so this test no longer breaks the engine and could not find an alternative for now")
     def "a fatal failure is captured in resolution build operation result"() {
         def mod = mavenHttpRepo.module('org', 'a', '1.0').publish()
 

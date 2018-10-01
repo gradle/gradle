@@ -24,6 +24,7 @@ import java.util.Map;
 /**
  * Represents a manifest file for a JAR containing an OSGi bundle.
  */
+@Deprecated
 public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the list of arguments for a particular instruction.

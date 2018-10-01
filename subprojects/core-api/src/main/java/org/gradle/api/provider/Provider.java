@@ -22,9 +22,10 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.Callable;
 
 /**
- * A container object that provides a value of a specific type. The value can be retrieved by the method {@link #get()} or {@link #getOrNull()}.
+ * A container object that provides a value of a specific type. The value can be retrieved using one of the query methods such as {@link #get()} or {@link #getOrNull()}.
  *
  * <p>
  *  A provider may not always have a value available, for example when the value may not yet be known but will be known at some point in the future.
@@ -33,27 +34,33 @@ import javax.annotation.Nullable;
  *
  * <p>
  *  A provider may not always provide the same value. Although there are no methods on this interface to change the value,
- *  the provider implementation may be mutable or use values from some changing source.
+ *  the provider implementation may be mutable or use values from some changing source. A provider may also provide a value that is mutable and that changes over time.
  * </p>
  *
  * <p>
- *  A provider may provide a value that is mutable and that changes over time.
+ *  A provider may be used to represent a task output. Such a provider carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
  * </p>
  *
  * <p>
- *  A typical use of a provider is to pass values from one DSL element to another, e.g. from an extension to a task.
+ *  A typical use of a provider is to pass values from one Gradle model element to another, e.g. from a project extension to a task, or between tasks.
  *  Providers also allow expensive computations to be deferred until their value is actually needed, usually at task execution time.
  * </p>
  *
- * <p>
- *  For a provider whose value can be mutated, see {@link Property}.
- * </p>
+ * <p>There are a number of ways to create a {@link Provider} instance. Some common methods:</p>
+ *
+ * <ul>
+ *     <li>Calling {@link #map(Transformer)} to create a new provider from an existing provider.</li>
+ *     <li>Using the return value of {@link org.gradle.api.tasks.TaskContainer#register(String)}, which is a provider that represents the task instance.</li>
+ *     <li>Using the methods on {@link org.gradle.api.file.Directory} and {@link org.gradle.api.file.DirectoryProperty} to produce file providers.</li>
+ *     <li>Many Gradle types extend {@link Provider} and can be used directly as a provider.</li>
+ *     <li>By calling {@link ProviderFactory#provider(Callable)} or {@link org.gradle.api.Project#provider(Callable)} to create a new provider from a {@link Callable}.</li>
+ * </ul>
  *
  * <p>
- *  Do not use <code>Provider&lt;File&gt;</code>. Use {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile} instead.
+ *  For a provider whose value can be mutated, see {@link Property} and the methods on {@link org.gradle.api.model.ObjectFactory}.
  * </p>
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory methods {@link org.gradle.api.Project#provider(java.util.concurrent.Callable)} or {@link org.gradle.api.provider.ProviderFactory#provider(java.util.concurrent.Callable)}.
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  *
  * @param <T> Type of value represented by provider
  * @since 4.0
@@ -92,12 +99,28 @@ public interface Provider<T> {
      *
      * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result. Whenever this provider has no value, the new provider will also have no value.
      *
-     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer is called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
+     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer will be called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
+     *
+     * <p>When this provider represents a task or the output of a task, the new provider will be considered an output of the task and will carry dependency information that Gradle can use to automatically attach task dependencies to tasks that use the new provider for input values.</p>
      *
      * @param transformer The transformer to apply to values. Should not return {@code null}.
      * @since 4.3
      */
     <S> Provider<S> map(Transformer<? extends S, ? super T> transformer);
+
+    /**
+     * Returns a new {@link Provider} from the value of this provider transformed using the given function.
+     *
+     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result. Whenever this provider has no value, the new provider will also have no value.
+     *
+     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer will be called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
+     *
+     * <p>Any task details associated with this provider are ignored. The new provider will use whatever task details are associated with the return value of the function.</p>
+     *
+     * @param transformer The transformer to apply to values. Should not return {@code null}.
+     * @since 5.0
+     */
+    <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer);
 
     /**
      * Returns {@code true} if there is a value present, otherwise {@code false}.

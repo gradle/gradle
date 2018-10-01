@@ -81,8 +81,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         dependsOn(systemIncludes);
 
         this.source = getTaskFileVarFactory().newInputFileCollection(this);
-        this.objectFileDir = newOutputDirectory();
-        this.compilerArgs = getProject().getObjects().listProperty(String.class);
+        this.objectFileDir = objectFactory.directoryProperty();
+        this.compilerArgs = getProject().getObjects().listProperty(String.class).empty();
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
         this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), toolChain.map(new Transformer<Boolean, NativeToolChain>() {

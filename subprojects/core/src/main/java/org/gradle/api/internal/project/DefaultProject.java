@@ -45,12 +45,12 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.Module;
@@ -58,20 +58,18 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -104,6 +102,7 @@ import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -114,6 +113,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -259,13 +259,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
-        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ObjectFactory.class);
         }
 
         @Hidden @Model
-        ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ITaskFactory.class);
+        NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TaskInstantiator.class);
         }
 
         @Hidden @Model
@@ -926,11 +926,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return getProviders().property(clazz);
-    }
-
-    @Override
     public ResourceHandler getResources() {
         return getFileOperations().getResources();
     }
@@ -981,25 +976,25 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("Project#beforeEvaluate(Action)");
+        assertMutatingMethodAllowed("beforeEvaluate(Action)");
         evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("Project#afterEvaluate(Action)");
+        assertMutatingMethodAllowed("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("Project#beforeEvaluate(Closure)");
+        assertMutatingMethodAllowed("beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", closure)));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("Project#afterEvaluate(Closure)");
+        assertMutatingMethodAllowed("afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
     }
 
@@ -1312,19 +1307,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer());
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), MutationGuards.of(getProjectConfigurator()));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory, MutationGuards.of(getProjectConfigurator()));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, MutationGuards.of(getProjectConfigurator()));
     }
 
     @Override
@@ -1425,7 +1420,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private void assertMutatingMethodAllowed(String methodName) {
-        getProjectConfigurator().assertCrossProjectConfigurationAllowed(methodName, this);
+        MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
@@ -1446,5 +1441,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Deprecated
     public FileCollection immutableFiles(Object... paths) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ProjectState getMutationState() {
+        return services.get(ProjectStateRegistry.class).stateFor(this);
     }
 }

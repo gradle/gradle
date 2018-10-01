@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -46,6 +47,7 @@ import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Path;
@@ -123,8 +125,8 @@ public class IvyPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private void createPublishToRepositoryTask(TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, final IvyArtifactRepository repository, final String repositoryName, String publishTaskName) {
-        tasks.create(publishTaskName, PublishToIvyRepository.class, new Action<PublishToIvyRepository>() {
+    private void createPublishToRepositoryTask(TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, final IvyArtifactRepository repository, final String repositoryName, final String publishTaskName) {
+        tasks.register(publishTaskName, PublishToIvyRepository.class, new Action<PublishToIvyRepository>() {
             public void execute(PublishToIvyRepository publishTask) {
                 publishTask.setPublication(publication);
                 publishTask.setRepository(repository);
@@ -132,13 +134,18 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
             }
         });
-        tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME).dependsOn(publishTaskName);
+        tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(publishTaskName);
+            }
+        });
     }
 
     private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
 
-        GenerateIvyDescriptor generatorTask = tasks.create(descriptorTaskName, GenerateIvyDescriptor.class, new Action<GenerateIvyDescriptor>() {
+        TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, new Action<GenerateIvyDescriptor>() {
             public void execute(final GenerateIvyDescriptor descriptorTask) {
                 descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
                 descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -148,13 +155,14 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 }
             }
         });
-        publication.setIvyDescriptorGenerator(generatorTask);
+        // TODO: Make lazy
+        publication.setIvyDescriptorGenerator(generatorTask.get());
     }
 
     private void createGenerateMetadataTask(Project project, final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
-        GenerateModuleMetadata generatorTask = tasks.create(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
+        TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
             public void execute(final GenerateModuleMetadata generateTask) {
                 generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -166,7 +174,8 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 }
             }
         });
-        publication.setModuleDescriptorGenerator(generatorTask);
+        // TODO: Make lazy
+        publication.setModuleDescriptorGenerator(generatorTask.get());
     }
 
     private class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {

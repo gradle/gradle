@@ -60,6 +60,8 @@ public interface MavenPomInternal extends MavenPom {
 
     Set<MavenDependency> getRuntimeDependencyManagement();
 
+    Set<MavenDependency> getImportDependencyManagement();
+
     Set<MavenDependencyInternal> getApiDependencies();
 
     Set<MavenDependencyInternal> getRuntimeDependencies();

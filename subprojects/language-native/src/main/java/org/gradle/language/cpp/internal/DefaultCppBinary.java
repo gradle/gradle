@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
@@ -60,8 +59,8 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(Names names, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objects, projectLayout, componentImplementation);
+    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objects, componentImplementation);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
         this.targetPlatform = targetPlatform;
@@ -209,7 +208,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
                 if (!artifacts.getArtifacts().isEmpty()) {
                     NativeDependencyCache cache = getNativeDependencyCache();
                     for (ResolvedArtifactResult artifact : artifacts) {
-                        if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier) {
+                        if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier && artifact.getFile().isFile()) {
                             // Unzip the headers into cache
                             ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
                             File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());

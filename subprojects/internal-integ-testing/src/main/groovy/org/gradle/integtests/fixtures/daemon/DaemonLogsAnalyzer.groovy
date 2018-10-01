@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
-import static org.gradle.integtests.fixtures.RetryRuleUtil.daemonStoppedWithSocketExceptionOnWindows
+import static org.gradle.integtests.fixtures.RetryConditions.daemonStoppedWithSocketExceptionOnWindows
 
 class DaemonLogsAnalyzer implements DaemonsFixture {
     private final File daemonLogsDir

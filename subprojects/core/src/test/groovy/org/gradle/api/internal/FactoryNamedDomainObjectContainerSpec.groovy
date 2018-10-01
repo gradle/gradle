@@ -28,7 +28,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     final namer = { it } as Namer
 
     def usesFactoryToCreateContainerElements() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity())
 
         when:
         def result = container.create('a')
@@ -40,7 +40,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     def usesPublicConstructorWhenNoFactorySupplied() {
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, MutationGuards.identity())
 
         when:
         def result = container.create('a')
@@ -52,7 +52,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
 
     def usesClosureToCreateContainerElements() {
         def cl = { name -> "element $name" as String }
-        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, cl, MutationGuards.identity())
 
         when:
         def result = container.create('a')

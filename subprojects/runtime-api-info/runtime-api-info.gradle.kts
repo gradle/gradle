@@ -37,11 +37,11 @@ val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generat
 }
 
 val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
-    classpath = project(":testKit").configurations.compileClasspath
+    classpath = project(":testKit").configurations["compileClasspath"] // TODO:kotlin-dsl revert to accessor
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }
 
-tasks.named("jar").configureAs<Jar> {
+tasks.named<Jar>("jar") {
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateGradleApiPackageList)
         from(generateTestKitPackageList)

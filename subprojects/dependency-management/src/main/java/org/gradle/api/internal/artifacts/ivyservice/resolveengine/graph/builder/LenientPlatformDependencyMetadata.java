@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -34,6 +35,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
@@ -41,19 +43,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata {
+class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
     private final ResolveState resolveState;
     private final NodeState from;
     private final ModuleComponentSelector cs;
     private final ModuleComponentIdentifier componentId;
     private final ComponentIdentifier platformId; // just for reporting
+    private final boolean force;
+    private final boolean transitive;
 
-    LenientPlatformDependencyMetadata(ResolveState resolveState, NodeState from, ModuleComponentSelector cs, ModuleComponentIdentifier componentId, ComponentIdentifier platformId) {
+    LenientPlatformDependencyMetadata(ResolveState resolveState, NodeState from, ModuleComponentSelector cs, ModuleComponentIdentifier componentId, ComponentIdentifier platformId, boolean force, boolean transitive) {
         this.resolveState = resolveState;
         this.from = from;
         this.cs = cs;
         this.componentId = componentId;
         this.platformId = platformId;
+        this.force = force;
+        this.transitive = transitive;
     }
 
     @Override
@@ -103,11 +109,11 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata {
 
     @Override
     public boolean isTransitive() {
-        return true;
+        return transitive;
     }
 
     @Override
-    public boolean isPending() {
+    public boolean isConstraint() {
         return true;
     }
 
@@ -121,13 +127,23 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata {
         return "virtual metadata for " + componentId;
     }
 
-    private class LenientPlatformConfigurationMetadata extends DefaultConfigurationMetadata {
+    @Override
+    public boolean isForce() {
+        return force;
+    }
+
+    @Override
+    public ForcingDependencyMetadata forced() {
+        return new LenientPlatformDependencyMetadata(resolveState, from, cs, componentId, platformId, true, transitive);
+    }
+
+    private class LenientPlatformConfigurationMetadata extends DefaultConfigurationMetadata implements ConfigurationMetadata {
 
         private final VirtualPlatformState platformState;
         private final ComponentIdentifier platformId;
 
         public LenientPlatformConfigurationMetadata(VirtualPlatformState platform, ComponentIdentifier platformId) {
-            super(componentId, "default", true, false, ImmutableList.of("default"), ImmutableList.<ModuleComponentArtifactMetadata>of(), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY);
+            super(componentId, "default", true, false, ImmutableSet.of("default"), ImmutableList.<ModuleComponentArtifactMetadata>of(), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY);
             this.platformState = platform;
             this.platformId = platformId;
         }
@@ -151,23 +167,24 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata {
                         }
                         if (!componentVersion.equals(target)) {
                             // We will only add dependencies to the leaves if there is such a published module
-                            PotentialEdge potentialEdge = PotentialEdge.of(resolveState, from, leafId, leafSelector, platformId);
+                            PotentialEdge potentialEdge = PotentialEdge.of(resolveState, from, leafId, leafSelector, platformId, platformState.isForced(), false);
                             if (potentialEdge.metadata != null) {
-                                result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId);
+                                result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId, platformState.isForced());
                                 break;
                             }
                         } else {
                             // at this point we know the component exists
-                            result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId);
+                            result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId, platformState.isForced());
                             break;
                         }
                     }
+                    platformState.attachOrphanEdges();
                 }
             }
             return result == null ? Collections.<DependencyMetadata>emptyList() : result;
         }
 
-        private List<DependencyMetadata> registerPlatformEdge(List<DependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector, ComponentIdentifier platformId) {
+        private List<DependencyMetadata> registerPlatformEdge(List<DependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector, ComponentIdentifier platformId, boolean force) {
             if (result == null) {
                 result = Lists.newArrayListWithExpectedSize(modules.size());
             }
@@ -176,7 +193,9 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata {
                 from,
                 leafSelector,
                 leafId,
-                platformId
+                platformId,
+                force,
+                false
             ));
             return result;
         }

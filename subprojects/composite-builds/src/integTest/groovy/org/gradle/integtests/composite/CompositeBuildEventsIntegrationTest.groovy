@@ -116,17 +116,14 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         execute()
 
         then:
-        loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('gradle.taskGraphReady', [':', ':pluginD'])
-        loggedOncePerBuild('buildListener.buildFinished', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('gradle.buildFinished', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('gradle.taskGraphReady', [':', ':buildB', ':pluginD'])
+        loggedOncePerBuild('buildListener.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('gradle.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
 
-        // `:buildB` is executed twice
-        loggedAtLeast('buildListener.settingsEvaluated [:buildB]', 2)
-        loggedAtLeast('buildListener.projectsEvaluated [:buildB]', 2)
-        loggedAtLeast('buildListener.buildFinished [:buildB]', 2)
+        logged("Ignoring listeners of task graph ready event, as this build (:buildB) has already executed work.")
     }
 
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
@@ -230,11 +227,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     void logged(String message, int count = 1) {
         outputContains(message)
         assert result.output.count(message) == count
-    }
-
-    void loggedAtLeast(String message, int count = 1) {
-        outputContains(message)
-        assert result.output.count(message) >= count
     }
 
     protected void execute() {

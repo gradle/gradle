@@ -16,12 +16,14 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.test.TestSuiteComponent;
@@ -53,18 +55,29 @@ public class NativeTestingBasePlugin implements Plugin<ProjectInternal> {
 
         // Create test lifecycle task
         TaskContainer tasks = project.getTasks();
-        Task test = tasks.create("test");
-        test.dependsOn(new Callable<Object>() {
+
+        final TaskProvider<Task> test = tasks.register("test", new Action<Task>() {
             @Override
-            public Object call() {
-                TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
-                if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
-                    return unitTestSuite.getTestBinary().get().getRunTask().get();
-                }
-                return null;
+            public void execute(Task test) {
+                test.dependsOn(new Callable<Object>() {
+                    @Override
+                    public Object call() {
+                        TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
+                        if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
+                            return unitTestSuite.getTestBinary().get().getRunTask().get();
+                        }
+                        return null;
+                    }
+                });
             }
         });
 
-        tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(test);
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(test);
+            }
+        });
     }
 }

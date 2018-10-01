@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 public class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean> {
     public static final BooleanValueSnapshot TRUE = new BooleanValueSnapshot(true);
@@ -27,7 +27,7 @@ public class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean>
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putBoolean(getValue());
     }
 }

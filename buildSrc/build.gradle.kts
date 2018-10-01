@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
@@ -24,14 +23,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
 
-
-buildscript {
-    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-}
-
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.14" apply false
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.15" apply false
 }
 
 subprojects {
@@ -48,6 +42,11 @@ subprojects {
         applyKotlinProjectConventions()
     }
 
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    
     apply(plugin = "idea")
     apply(plugin = "eclipse")
 
@@ -72,14 +71,27 @@ subprojects {
             tasks.named("check").configure { dependsOn(validateTaskProperties) }
         }
     }
+
+    tasks.withType<ValidateTaskProperties> {
+        failOnWarning = true
+    }
 }
-var pluginPortalUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("gradleplugins")
 
 allprojects {
     repositories {
-        maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        maven(url = pluginPortalUrl ?: PLUGIN_PORTAL_DEFAULT_URL)
+        gradlePluginPortal()
+        maven {
+            name = "Gradle libs"
+            url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
     }
 }
 
@@ -150,12 +162,12 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
-        testCompile("cglib:cglib:3.2.6")
-        testCompile("org.objenesis:objenesis:2.4")
-        constraints {
-            compile("org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.getVersion()}")
+        val spockGroovyVersion = groovy.lang.GroovySystem.getVersion().substring(0, 3)
+        testCompile("org.spockframework:spock-core:1.2-groovy-${spockGroovyVersion}") {
+            exclude(group = "org.codehaus.groovy")
         }
+        testCompile("net.bytebuddy:byte-buddy:1.8.21")
+        testCompile("org.objenesis:objenesis:2.6")
     }
 
     tasks.withType<GroovyCompile>().configureEach {
@@ -198,7 +210,7 @@ fun Project.applyKotlinProjectConventions() {
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
-//            experimentalWarning.set(false)
+            experimentalWarning.set(false)
         }
     }
 }

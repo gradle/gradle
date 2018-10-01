@@ -1,0 +1,34 @@
+// tag::complete-plugin-publishing[]
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'ivy-publish'
+}
+
+group 'org.gradle.sample'
+version '1.0.0'
+
+gradlePlugin {
+    plugins {
+        hello {
+            id = 'org.gradle.sample.hello'
+            implementationClass = 'org.gradle.sample.hello.HelloPlugin'
+        }
+        goodbye {
+            id = 'org.gradle.sample.goodbye'
+            implementationClass = 'org.gradle.sample.goodbye.GoodbyePlugin'
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url '../../consuming/maven-repo'
+        }
+        ivy {
+            url '../../consuming/ivy-repo'
+        }
+    }
+}
+// end::complete-plugin-publishing[]

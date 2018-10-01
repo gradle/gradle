@@ -19,7 +19,6 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -272,46 +271,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
      \\--- :a (*)
 
 (*) - details omitted (listed previously)"""
-    }
-
-    @Ignore("Re-enable when work on realising only the required tasks instead of the whole task container is finished")
-    def "placeholder actions not triggered when not requested"() {
-        when:
-        buildFile << """
-        task thing
-        tasks.addPlaceholderAction("b", DefaultTask) {
-            throw new RuntimeException()
-        }
-        task otherThing { dependsOn tasks.thing }
-"""
-        then:
-        succeeds 'thing'
-        succeeds 'th'
-        succeeds 'otherThing'
-        succeeds 'oTh'
-    }
-
-    def "explicit tasks are preferred over placeholder tasks"() {
-        buildFile << """
-        task someTask { doLast {println "explicit sometask"} }
-        tasks.addPlaceholderAction("someTask", DefaultTask) {
-            println  "placeholder action triggered"
-            it.doLast { throw new RuntimeException() }
-        }
-"""
-        when:
-        executer.expectDeprecationWarning()
-        succeeds 'sometask'
-
-        then:
-        output.contains("explicit sometask")
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds 'someT'
-
-        then:
-        output.contains("explicit sometask")
     }
 
     def "honours mustRunAfter task ordering"() {
@@ -731,59 +690,5 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         expect:
         succeeds "custom", "--rerun-tasks"
-    }
-
-    def "calling `Task.execute()` is deprecated"() {
-        buildFile << """
-            task myTask
-            
-            task executer {
-                doLast {
-                    myTask.execute()
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "executer"
-
-        then:
-        output.contains("The TaskInternal.execute() method has been deprecated. This is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
-    }
-
-    def "#description `Task.executer` is deprecated"() {
-        buildFile << """
-            task myTask
-
-            myTask${scriptSnippet}            
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "myTask"
-
-        then:
-        output.contains("The TaskInternal.executer property has been deprecated. This is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
-
-        where:
-        description | scriptSnippet
-        "getting" | ".executer"
-        "setting" | ".executer = null"
-    }
-
-    def "calling `Task.deleteAllActions()` is deprecated"() {
-        buildFile << """
-            task myTask {
-                deleteAllActions()
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "myTask"
-
-        then:
-        output.contains("The Task.deleteAllActions() method has been deprecated. This is scheduled to be removed in Gradle 5.0.")
     }
 }

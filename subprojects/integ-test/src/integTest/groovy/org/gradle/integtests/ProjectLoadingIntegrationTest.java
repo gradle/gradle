@@ -17,7 +17,6 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
-import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -178,16 +177,16 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void buildFailsWhenSpecifiedSettingsFileDoesNotContainMatchingProject() {
         TestFile settingsFile = testFile("settings.gradle");
-        settingsFile.write("// empty");
+        settingsFile.write("rootProject.name = 'foo'");
 
         TestFile projectDir = testFile("project dir");
         TestFile buildFile = projectDir.file("build.gradle").createFile();
 
         ExecutionFailure result = usingProjectDir(projectDir).usingSettingsFile(settingsFile).runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have project directory '%s'.", projectDir));
+        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", projectDir, settingsFile));
 
         result = usingBuildFile(buildFile).usingSettingsFile(settingsFile).runWithFailure();
-        result.assertHasDescription(String.format("No projects in this build have build file '%s'.", buildFile));
+        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", buildFile, settingsFile));
     }
 
     @Test
@@ -229,49 +228,29 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void ignoresMultiProjectBuildInParentDirectoryWhichDoesNotMeetDefaultProjectCriteria() {
-        testFile("settings.gradle").write("include 'another'");
-        testFile("gradle.properties").writelns("prop=value2", "otherProp=value");
-
-        TestFile subDirectory = getTestDirectory().file("subdirectory");
-        TestFile buildFile = subDirectory.file("build.gradle");
-        buildFile.writelns("task('do-stuff') {",
-                "doLast {",
-                "assert prop == 'value'",
-                "assert !project.hasProperty('otherProp')",
-                "}",
-                "}");
-        testFile("subdirectory/gradle.properties").write("prop=value");
-
-        inDirectory(subDirectory).withTasks("do-stuff").expectDeprecationWarning().run();
-        usingProjectDir(subDirectory).withTasks("do-stuff").expectDeprecationWarning().run();
-        usingBuildFile(buildFile).withTasks("do-stuff").expectDeprecationWarning().run();
-    }
-
-    @Test
-    public void deprecationWarningAppearsWhenNestedBuildHasNoSettingsFile() {
-        testFile("settings.gradle").write("include 'another'");
+    public void buildFailsWhenNestedBuildHasNoSettingsFile() {
+        TestFile settingsFile = testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
         TestFile subBuildFile = subDirectory.file("sub.gradle").write("");
         subDirectory.file("build.gradle").write("");
 
-        ExecutionResult result = inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated. This is scheduled to be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        ExecutionFailure result = inDirectory(subDirectory).withTasks("help").runWithFailure();
+        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
 
-        result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated. This is scheduled to be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").runWithFailure();
+        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", subBuildFile, settingsFile));
 
-        result = usingProjectDir(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated. This is scheduled to be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
-    }
+        result = usingProjectDir(subDirectory).withTasks("help").runWithFailure();
+        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
+   }
 
     @Test
-    public void noDeprecationWarningAppearsWhenUsingRootProject() {
+    public void canTargetRootProjectDirectoryFromSubDirectory() {
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
-        subDirectory.file("build.gradle").write("");
+        subDirectory.file("build.gradle").write("throw new RuntimeException()");
 
         usingProjectDir(getTestDirectory()).inDirectory(subDirectory).withTasks("help").run();
     }

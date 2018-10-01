@@ -32,19 +32,18 @@ import java.util.Collection;
 public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
         }
     }
 
-    public TransformingClassLoader(ClassLoader parent, ClassPath classPath) {
-        super(parent, classPath);
+    public TransformingClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+        super(name, parent, classPath);
     }
 
-    public TransformingClassLoader(ClassLoader parent, Collection<URL> urls) {
-        super(parent, urls);
+    public TransformingClassLoader(String name, ClassLoader parent, Collection<URL> urls) {
+        super(name, parent, urls);
     }
 
     @Override
@@ -77,7 +76,7 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
         }
 
         String packageName = StringUtils.substringBeforeLast(name, ".");
-        Package p = getPackage(packageName);
+        @SuppressWarnings("deprecation") Package p = getPackage(packageName);
         if (p == null) {
             definePackage(packageName, null, null, null, null, null, null, null);
         }

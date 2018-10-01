@@ -74,7 +74,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
-import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.Collection;
 import java.util.Collections;
@@ -248,7 +247,7 @@ public class HttpClientConfigurer {
 
     private void configureSocketConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
-        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).build());
+        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).setSoKeepAlive(true).build());
     }
 
     private void configureRedirectStrategy(HttpClientBuilder builder) {
@@ -282,7 +281,7 @@ public class HttpClientConfigurer {
             this.alwaysSendAuth = alwaysSendAuth;
         }
 
-        public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
+        public void process(final HttpRequest request, final HttpContext context) throws HttpException {
 
             AuthState authState = (AuthState) context.getAttribute(HttpClientContext.TARGET_AUTH_STATE);
 

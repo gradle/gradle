@@ -16,14 +16,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.objectweb.asm.ClassReader;
 
 import javax.annotation.Nullable;
@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
-@SuppressWarnings("Since15")
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = Logging.getLogger(AbiExtractingClasspathResourceHasher.class);
 
@@ -47,7 +46,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
-                return Hashing.md5().hashBytes(signature);
+                return Hashing.hashBytes(signature);
             }
         }
         return null;
@@ -55,7 +54,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         if (!isClassFile(fileSnapshot.getName())) {
             return null;
         }
@@ -85,7 +84,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
     }
 }

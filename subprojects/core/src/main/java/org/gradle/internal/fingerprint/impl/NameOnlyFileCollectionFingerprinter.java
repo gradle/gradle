@@ -17,9 +17,9 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter {
 

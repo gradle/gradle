@@ -24,6 +24,5 @@ import java.nio.file.Path;
 
 public interface FileMetadataAccessor {
     FileMetadataSnapshot stat(File f);
-    @SuppressWarnings("Since15")
     FileMetadataSnapshot stat(Path path) throws IOException;
 }

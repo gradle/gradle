@@ -291,7 +291,6 @@ class DependencyManagementBuildScopeServices {
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                              VersionSelectorScheme versionSelectorScheme,
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryBlacklister repositoryBlacklister,
@@ -302,7 +301,6 @@ class DependencyManagementBuildScopeServices {
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
-            versionSelectorScheme,
             versionComparator,
             moduleIdentifierFactory,
             repositoryBlacklister,
@@ -385,7 +383,7 @@ class DependencyManagementBuildScopeServices {
                                                                       BuildCommencedTimeProvider timeProvider,
                                                                       ModuleComponentResolveMetadataSerializer serializer,
                                                                       FeaturePreviews featurePreviews) {
-        return new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.IMPROVED_POM_SUPPORT));
+        return new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer);
     }
 
     ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,

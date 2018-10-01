@@ -78,8 +78,8 @@ public class EclipseWtpPlugin extends IdePlugin {
         getLifecycleTask().configure(withDescription("Generates Eclipse wtp configuration files."));
         getCleanTask().configure(withDescription("Cleans Eclipse wtp configuration files."));
 
-        project.getTasks().named(EclipsePlugin.ECLIPSE_TASK_NAME).configure(dependsOn(getLifecycleTask()));
-        project.getTasks().named(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).configure(dependsOn(getCleanTask()));
+        project.getTasks().named(EclipsePlugin.ECLIPSE_TASK_NAME, dependsOn(getLifecycleTask()));
+        project.getTasks().named(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME), dependsOn(getCleanTask()));
 
         EclipseModel model = project.getExtensions().getByType(EclipseModel.class);
 

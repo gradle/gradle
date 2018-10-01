@@ -32,6 +32,6 @@ class ProjectSpecs {
         if (explicitProjectDir != null) {
             return new ProjectDirectoryProjectSpec(explicitProjectDir);
         }
-        return new DefaultProjectSpec(startParameter.getCurrentDir(), settings);
+        return new CurrentDirectoryProjectSpec(startParameter.getCurrentDir(), settings);
     }
 }

@@ -114,12 +114,21 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
             try {
                 item.waitForCompletion();
             } catch (Throwable t) {
+                if (Thread.currentThread().isInterrupted()) {
+                    cancel(workItems);
+                }
                 failures.add(t);
             }
         }
 
         if (failures.size() > 0) {
             throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+        }
+    }
+
+    private void cancel(Iterable<AsyncWorkCompletion> workItems) {
+        for (AsyncWorkCompletion workItem : workItems) {
+            workItem.cancel();
         }
     }
 

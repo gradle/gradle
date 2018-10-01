@@ -40,6 +40,7 @@ dependencies {
     api project(":persistentCache")
     api project(":buildCache")
     api project(":coreApi")
+    api project(":files")
 
     api project(":processServices")
     api project(":jvmServices")
@@ -65,6 +66,7 @@ dependencies {
 
     testImplementation testLibraries.jsoup
     testImplementation libraries.log4j_to_slf4j.coordinates
+    testImplementation libraries.jcl_to_slf4j.coordinates
 
     testRuntimeOnly libraries.xerces.coordinates
     testRuntimeOnly project(":diagnostics")
@@ -73,9 +75,9 @@ dependencies {
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation libraries.ivy.coordinates
 
-    testFixturesRuntime project(':runtimeApiInfo')
-    testFixturesRuntime rootProject.ext.allCoreRuntimeExtensions
-    testFixturesRuntime project(':testingJunitPlatform')
+    testFixturesRuntimeOnly project(':runtimeApiInfo')
+    testFixturesRuntimeOnly rootProject.ext.allCoreRuntimeExtensions
+    testFixturesRuntimeOnly project(':testingJunitPlatform')
 
     integTestImplementation project(":internalIntegTesting")
     integTestImplementation project(":plugins")
@@ -89,7 +91,6 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
     from(':coreApi')
     from(':messaging')
     from(':modelCore')

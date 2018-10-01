@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
+import com.google.common.collect.ImmutableSet
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
@@ -25,7 +27,6 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
@@ -33,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Defau
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
@@ -117,6 +119,7 @@ class DependencyGraphBuilderTest extends Specification {
     def setup() {
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
+        _ * configuration.allDependencies >> Stub(DependencySet)
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
         builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter, TestUtil.attributesFactory(), versionSelectorScheme, Stub(Comparator), new VersionParser())
@@ -1017,16 +1020,16 @@ class DependencyGraphBuilderTest extends Specification {
         // TODO Shouldn't really be using the local component implementation here
         def id = newId("group", name, revision)
         def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release", attributesSchema)
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
     }
 
     def rootProject(String name, String revision = '1.0', List<String> extraConfigs = []) {
         def metaData = new RootLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema, NoOpDependencyLockingProvider.getInstance())
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
+        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
         extraConfigs.each { String config ->
-            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ["default", config] as Set<String>, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
+            metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ImmutableSet.of("default", config), true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
         }
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
@@ -1050,7 +1053,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def doesNotResolve(Map<String, ?> args = [:], def from, ComponentResolveMetadata to) {
         def dependencyMetaData = dependsOn(args, from, to.moduleVersionId)
-        0 * idResolver.resolve(dependencyMetaData, _, _)
+        0 * idResolver.resolve(dependencyMetaData, _, _, _)
         0 * metaDataResolver.resolve(to.id, _, _)
     }
 
@@ -1080,7 +1083,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def brokenSelector(Map<String, ?> args = [:], def from, String to) {
         def dependencyMetaData = dependsOn(args, from, newId("group", to, "1.0"))
-        1 * idResolver.resolve(dependencyMetaData, _, _) >> { DependencyMetadata dep, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(dependencyMetaData, _, _, _) >> { DependencyMetadata dep, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), "broken"))
         }
     }
@@ -1107,7 +1110,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def selectorResolvesTo(DependencyMetadata dependencyMetaData, ComponentIdentifier id, ModuleVersionIdentifier mvId) {
-        1 * idResolver.resolve(dependencyMetaData, _, _) >> { DependencyMetadata dep, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result ->
+        1 * idResolver.resolve(dependencyMetaData, _, _, _) >> { DependencyMetadata dep, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result ->
             result.resolved(id, mvId)
         }
     }

@@ -21,13 +21,11 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 == Usage
 
 
-=== Example: Applying the Base Plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/basePlugin/build.gradle[tag=apply-base-plugin]
-----
+.Applying the Base Plugin
+====
+include::sample[dir="userguide/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
+include::sample[dir="userguide/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
+====
 
 [[sec:base_tasks]]
 == Task

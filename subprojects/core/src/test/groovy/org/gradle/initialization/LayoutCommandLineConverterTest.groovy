@@ -44,7 +44,6 @@ class LayoutCommandLineConverterTest extends Specification {
         expect:
         convert("-p", "foo").projectDir.name == "foo"
         convert("-g", "bar").gradleUserHomeDir.name == "bar"
-        !convert("-u").searchUpwards
     }
 
     def "converts relatively to the target dir"() {

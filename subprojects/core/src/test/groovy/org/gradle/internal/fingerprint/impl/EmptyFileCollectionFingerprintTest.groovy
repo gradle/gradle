@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
@@ -38,8 +37,8 @@ class EmptyFileCollectionFingerprintTest extends Specification {
 
     def "comparing empty snapshot to regular snapshot shows entries added"() {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+            "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
+            "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
         ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
         getChanges(fingerprint, empty, false).empty
@@ -54,8 +53,8 @@ class EmptyFileCollectionFingerprintTest extends Specification {
 
     def "comparing regular snapshot to empty snapshot shows entries removed"() {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+            "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
+            "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
         ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
         getChanges(empty, fingerprint, false).toList() == [

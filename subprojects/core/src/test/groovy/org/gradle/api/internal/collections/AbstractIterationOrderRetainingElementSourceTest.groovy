@@ -16,128 +16,19 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.internal.provider.AbstractProvider
-import org.gradle.api.internal.provider.ProviderInternal
-import spock.lang.Specification
-
-abstract class AbstractIterationOrderRetainingElementSourceTest extends Specification {
-    abstract AbstractIterationOrderRetainingElementSource<CharSequence> getSource()
-
-    def "can add a realized element"() {
-        when:
-        source.add("foo")
-
-        then:
-        source.size() == 1
-        source.contains("foo")
+abstract class AbstractIterationOrderRetainingElementSourceTest extends AbstractElementSourceTest {
+    @Override
+    List<CharSequence> iterationOrder(CharSequence... values) {
+        return values as List
     }
 
-    def "can add a provider"() {
-        when:
-        source.addPending(provider("foo"))
-
-        then:
-        source.size() == 1
-        source.contains("foo")
-    }
-
-    def "iterates elements in the order they were added"() {
-        when:
-        source.addPending(provider("foo"))
-        source.add("bar")
-        source.add("baz")
-        source.addPending(provider("fizz"))
-
-        then:
-        source.iteratorNoFlush().collect() == ["bar", "baz"]
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
-    }
-
-    def "once realized, provided values appear like realized values"() {
-        when:
-        source.addPending(provider("foo"))
-        source.add("bar")
-        source.add("baz")
-        source.addPending(provider("fizz"))
-
-        then:
-        source.iteratorNoFlush().collect() == ["bar", "baz"]
-
-        when:
-        source.realizePending()
-
-        then:
-        source.iteratorNoFlush().collect() == ["foo", "bar", "baz", "fizz"]
-    }
-
-    def "can add only providers"() {
-        when:
-        source.addPending(provider("foo"))
-        source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
-        source.addPending(provider("fizz"))
-
-        then:
-        source.iteratorNoFlush().collect() == []
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
-    }
-
-    def "can add only realized providers"() {
-        when:
-        source.add("foo")
-        source.add("bar")
-        source.add("baz")
-        source.add("fizz")
-
-        then:
-        source.iteratorNoFlush().collect() == ["foo", "bar", "baz", "fizz"]
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
-    }
-
-    def "can remove a realized element"() {
-        given:
-        source.add("foo")
-        source.addPending(provider("bar"))
-        source.add("baz")
-
-        expect:
-        source.remove("foo")
-
-        and:
-        source.size() == 2
-        source.iterator().collect() == ["bar", "baz"]
-
-        and:
-        !source.remove("foo")
-    }
-
-    def "can remove a provider"() {
-        given:
-        def bar = provider("bar")
-        source.add("foo")
-        source.addPending(bar)
-        source.add("baz")
-
-        expect:
-        source.removePending(bar)
-
-        and:
-        source.size() == 2
-        source.iterator().collect() == ["foo", "baz"]
-    }
-
-    def "can realize a filtered set of providers and order is retained"() {
+    def "can realize a filtered set of providers and order is correct"() {
         when:
         source.addPending(provider("foo"))
         source.addPending(provider(new StringBuffer("bar")))
         source.addPending(provider(new StringBuffer("baz")))
         source.addPending(provider("fizz"))
+        source.addPendingCollection(setProvider(new StringBuffer("fuzz"), new StringBuffer("bazz")))
 
         then:
         source.iteratorNoFlush().collect() == []
@@ -146,16 +37,16 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.realizePending(StringBuffer.class)
 
         then:
-        source.iteratorNoFlush().collect { it.toString() } == ["bar", "baz"]
+        source.iteratorNoFlush().collect { it.toString() } == iterationOrder("bar", "baz", "fuzz", "bazz")
 
         and:
-        source.iterator().collect { it.toString() } == ["foo", "bar", "baz", "fizz"]
+        source.iterator().collect { it.toString() } == iterationOrder("foo", "bar", "baz", "fizz", "fuzz", "bazz")
     }
 
     def "can remove elements using iteratorNoFlush"() {
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(setProvider("baz", "fooz"))
         source.add("fizz")
 
         when:
@@ -175,7 +66,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         iterator.remove()
 
         then:
-        source.iteratorNoFlush().collect() == ["fizz"]
+        source.iteratorNoFlush().collect() == iterationOrder("fizz")
 
         when:
         source.addPending(provider("fuzz"))
@@ -219,13 +110,13 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.iteratorNoFlush().collect() == []
 
         and:
-        source.iterator().collect() == ["bar", "baz", "fuzz"]
+        source.iterator().collect() == iterationOrder("bar", "baz", "fooz", "fuzz")
     }
 
     def "can remove elements using iterator"() {
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(setProvider("baz", "fooz"))
         source.add("fizz")
 
         when:
@@ -242,11 +133,10 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         next == "foo"
 
         when:
-        iterator.hasNext()
         iterator.remove()
 
         then:
-        source.iterator().collect() == ["bar", "baz", "fizz"]
+        source.iterator().collect() == ["bar", "baz", "fooz", "fizz"]
 
         when:
         source.addPending(provider("fuzz"))
@@ -261,7 +151,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
 
         then:
         iterator.hasNext()
-        source.iterator().collect() == ["baz", "fizz", "fuzz"]
+        source.iterator().collect() == iterationOrder("baz", "fooz", "fizz", "fuzz")
 
         when:
         source.add("buzz")
@@ -276,7 +166,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
 
         then:
         iterator.hasNext()
-        source.iterator().collect() == ["fizz", "fuzz", "buzz"]
+        source.iterator().collect() == ["fooz", "fizz", "fuzz", "buzz"]
 
         when:
         iterator = source.iterator()
@@ -289,31 +179,18 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.iterator().collect() == []
     }
 
-    ProviderInternal<? extends String> provider(String value) {
-        return new TypedProvider<String>(String, value)
-    }
+    def "comodification of pending elements causes exception"() {
+        given:
+        def provider = provider("bar")
+        source.add("foo")
+        source.addPending(provider)
 
-    ProviderInternal<? extends StringBuffer> provider(StringBuffer value) {
-        return new TypedProvider<StringBuffer>(StringBuffer, value)
-    }
+        when:
+        def iterator = source.iteratorNoFlush()
+        source.removePending(provider)
+        iterator.next()
 
-    private static class TypedProvider<T> extends AbstractProvider<T> {
-        final Class<T> type
-        final T value
-
-        TypedProvider(Class<T> type, T value) {
-            this.type = type
-            this.value = value
-        }
-
-        @Override
-        Class<T> getType() {
-            return type
-        }
-
-        @Override
-        T getOrNull() {
-            return value
-        }
+        then:
+        thrown(ConcurrentModificationException)
     }
 }

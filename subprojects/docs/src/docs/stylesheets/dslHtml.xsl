@@ -62,6 +62,9 @@
                 <xsl:call-template name="header.navigation"></xsl:call-template>
                 <main class="main-content">
                     <nav class="docs-navigation">
+                        <div class="search-container">
+                            <input type="search" name="q" id="search-input" class="search-input" placeholder="Search Docs"/>
+                        </div>
                         <ul>
                             <xsl:apply-templates select="." mode="sidebar"/>
                             <!-- only apply navbar to sections that are not marked with 'noNavBar' -->

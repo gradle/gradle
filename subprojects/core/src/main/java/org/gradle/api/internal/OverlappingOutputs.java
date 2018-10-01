@@ -18,8 +18,8 @@ package org.gradle.api.internal;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -36,17 +36,17 @@ public class OverlappingOutputs {
 
     @Nullable
     public static OverlappingOutputs detect(String propertyName, HistoricalFileCollectionFingerprint previousExecution, FileCollectionFingerprint beforeExecution) {
-        Map<String, NormalizedFileSnapshot> previousSnapshots = previousExecution.getSnapshots();
-        Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+        Map<String, FileSystemLocationFingerprint> previousFingerprints = previousExecution.getFingerprints();
+        Map<String, FileSystemLocationFingerprint> beforeFingerprints = beforeExecution.getFingerprints();
 
-        for (Map.Entry<String, NormalizedFileSnapshot> beforeEntry : beforeSnapshots.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> beforeEntry : beforeFingerprints.entrySet()) {
             String path = beforeEntry.getKey();
-            NormalizedFileSnapshot beforeSnapshot = beforeEntry.getValue();
-            HashCode contentHash = beforeSnapshot.getNormalizedContentHash();
-            NormalizedFileSnapshot previousSnapshot = previousSnapshots.get(path);
-            HashCode previousContentHash = previousSnapshot == null ? null : previousSnapshot.getNormalizedContentHash();
+            FileSystemLocationFingerprint beforeFingerprint = beforeEntry.getValue();
+            HashCode contentHash = beforeFingerprint.getNormalizedContentHash();
+            FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
+            HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
             // Missing files can be ignored
-            if (beforeSnapshot.getType() != FileType.Missing) {
+            if (beforeFingerprint.getType() != FileType.Missing) {
                 if (createdSincePreviousExecution(previousContentHash) || changedSincePreviousExecution(contentHash, previousContentHash)) {
                     return new OverlappingOutputs(propertyName, path);
                 }

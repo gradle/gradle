@@ -17,9 +17,6 @@
 package org.gradle.caching.internal.tasks
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
@@ -30,9 +27,11 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.snapshot.WellKnownFileLocations
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -54,7 +53,7 @@ class TarTaskOutputPackerTest extends Specification {
     def writeOrigin = Stub(TaskOutputOriginWriter)
 
     def fileSystem = Mock(FileSystem)
-    def streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
+    def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
     def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))

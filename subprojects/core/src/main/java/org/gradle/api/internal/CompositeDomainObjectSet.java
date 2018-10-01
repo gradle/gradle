@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
@@ -199,7 +199,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @SuppressWarnings("unchecked")
         public Iterator<T> iterator() {
             if (store.isEmpty()) {
-                return Iterators.emptyIterator();
+                return Collections.emptyIterator();
             }
             if (store.size() == 1) {
                 return (Iterator<T>) store.get(0).iterator();
@@ -287,6 +287,16 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
+        public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void onRealize(Action<T> action) {
 
         }
@@ -294,6 +304,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @Override
         public void realizeExternal(ProviderInternal<? extends T> provider) {
 
+        }
+
+        @Override
+        public MutationGuard getMutationGuard() {
+            throw new UnsupportedOperationException();
         }
     }
 }

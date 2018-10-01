@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.hash.Hashable;
+
 /**
  * An immutable snapshot of the state of some Java object or object graph.
  */

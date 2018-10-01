@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.locking
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
-class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
+class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
 
@@ -217,7 +218,7 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'])
-        outputContains('Dependency lock state for configuration \'lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
+        outputContains('Dependency lock state for configuration \':lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
 
         when:
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
@@ -228,16 +229,13 @@ dependencies {
 
     @Unroll
     def "can update a single lock entry when using #version"() {
-        mavenRepo.module('org', 'bar', '1.0').publish()
-        mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'bar', '2.0').publish()
-        mavenRepo.module('org', 'bar', '2.1').publish()
-        mavenRepo.module('org', 'bar', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
-        mavenRepo.module('org', 'foo', '1.0').publish()
-        mavenRepo.module('org', 'foo', '1.1').publish()
-        mavenRepo.module('org', 'foo', '2.0').publish()
-        mavenRepo.module('org', 'foo', '2.1').publish()
-        mavenRepo.module('org', 'foo', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        ['bar', 'baz', 'foo'].each { artifactId ->
+            mavenRepo.module('org', artifactId, '1.0').publish()
+            mavenRepo.module('org', artifactId, '1.1').publish()
+            mavenRepo.module('org', artifactId, '2.0').publish()
+            mavenRepo.module('org', artifactId, '2.1').publish()
+            mavenRepo.module('org', artifactId, '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        }
 
         buildFile << """
 dependencyLocking {
@@ -254,16 +252,18 @@ configurations {
 }
 dependencies {
     lockedConf 'org:bar:$version'
+    lockedConf 'org:baz:1.0' // Ensure the fact that '1.0' is from a lock isn't masked by a real dependency
+    lockedConf 'org:baz:$version'
     lockedConf 'org:foo:$version'
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', 'org:foo:1.0'])
 
         when:
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', "org:foo:$expectedVersion"])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', "org:foo:$expectedVersion"])
 
         where:
         version              | expectedVersion
@@ -312,6 +312,42 @@ task copyFiles(type: Copy) {
         and:
         succeeds 'copyFiles'
 
+    }
+
+    @ToBeImplemented
+    def "avoids HTTP requests for dynamic version when lock exists"() {
+        def module1 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+        mavenHttpRepo.module('org', 'foo', '1.1').publish()
+        mavenHttpRepo.module('org', 'foo', '2.0').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenHttpRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+}
+"""
+        when:
+        // TODO Should not need to load the maven-metadata to get the version list
+        module1.rootMetaData.expectGet()
+        module1.pom.expectGet()
+
+        then:
+        succeeds 'dependencies'
     }
 
 }

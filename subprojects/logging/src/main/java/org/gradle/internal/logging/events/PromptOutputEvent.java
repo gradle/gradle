@@ -22,22 +22,25 @@ import org.gradle.internal.operations.OperationIdentifier;
 
 public class PromptOutputEvent extends RenderableOutputEvent {
 
-    private final String message;
+    private final String prompt;
 
-    public PromptOutputEvent(long timestamp, String message) {
+    public PromptOutputEvent(long timestamp, String prompt) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
-        this.message = message;
+        this.prompt = prompt;
     }
 
     @Override
     public void render(StyledTextOutput output) {
-        output.text(message);
-        output.println();
+        output.text(prompt);
+    }
+
+    public String getPrompt() {
+        return prompt;
     }
 
     @Override
     public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
+        return "[" + getLogLevel() + "] [" + getCategory() + "] " + prompt;
     }
 
     @Override

@@ -32,7 +32,6 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -87,6 +86,11 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
     public void close() throws IOException {
         loadedClasses.clear();
         resources.clear();
+    }
+
+    @Override
+    public String toString() {
+        return CachingClassLoader.class.getSimpleName() + "(" + getParent() + ")";
     }
 
     public static class Spec extends ClassLoaderSpec {

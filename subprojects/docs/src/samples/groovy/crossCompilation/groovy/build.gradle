@@ -1,0 +1,44 @@
+plugins {
+    id 'groovy'
+}
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:2.4.15'
+    testImplementation 'junit:junit:4.12'
+}
+
+// tag::groovy-cross-compilation[]
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_6
+    targetCompatibility = JavaVersion.VERSION_1_6
+}
+
+assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
+def javaExecutablesPath = new File(java6Home, 'bin')
+def javaExecutables = [:].withDefault { execName ->
+    def executable = new File(javaExecutablesPath, execName)
+    assert executable.exists() : "There is no $execName executable in $javaExecutablesPath"
+    executable
+}
+tasks.withType(AbstractCompile) {
+    options.with {
+        fork = true
+        forkOptions.javaHome = file(java6Home)
+    }
+}
+tasks.withType(Javadoc) {
+    executable = javaExecutables.javadoc
+}
+tasks.withType(Test) {
+    executable = javaExecutables.java
+}
+tasks.withType(JavaExec) {
+    executable = javaExecutables.java
+}
+// end::groovy-cross-compilation[]
+

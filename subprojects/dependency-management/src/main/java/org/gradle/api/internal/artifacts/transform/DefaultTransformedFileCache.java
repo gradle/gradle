@@ -19,9 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -33,12 +31,13 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
@@ -48,6 +47,8 @@ import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
@@ -178,7 +179,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
-        PhysicalSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
+        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
         return new CacheKey(inputsHash, snapshot.getAbsolutePath(), snapshot.getHash());
     }
 
@@ -199,7 +200,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         }
 
         public HashCode getPersistentCacheKey() {
-            DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+            Hasher hasher = Hashing.newHasher();
             hasher.putHash(inputHash);
             hasher.putString(absolutePath);
             hasher.putHash(fileContentHash);

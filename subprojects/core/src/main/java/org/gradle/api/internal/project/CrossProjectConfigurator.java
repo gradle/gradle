@@ -29,18 +29,4 @@ public interface CrossProjectConfigurator {
 
     Project rootProject(Project project, Action<Project> buildOperationExecutor);
 
-    /**
-     * Asserts that cross-project configuration is allowed.
-     */
-    void assertCrossProjectConfigurationAllowed(String methodName, Project target);
-
-    /**
-     * Wraps configuration action to disallow cross-project configuration while executing.
-     *
-     * @param action the delegated action
-     * @param <T> the type the action is mutating
-     * @return action that disallows cross-project configuration.
-     */
-    <T> Action<T> withCrossProjectConfigurationDisabled(Action<? super T> action);
-
 }

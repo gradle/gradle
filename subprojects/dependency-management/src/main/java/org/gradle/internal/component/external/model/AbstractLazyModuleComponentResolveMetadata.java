@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -27,7 +28,6 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,8 +70,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
      */
     protected void copyCachedState(AbstractLazyModuleComponentResolveMetadata metadata) {
         // Copy built-on-demand state
-        configurations.putAll(metadata.configurations);
+        metadata.copyCachedConfigurations(this.configurations);
         this.graphVariants = metadata.graphVariants;
+    }
+
+    private synchronized void copyCachedConfigurations(Map<String, ConfigurationMetadata> target) {
+        target.putAll(configurations);
     }
 
     protected VariantMetadataRules getVariantMetadataRules() {
@@ -108,38 +112,37 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
 
     @Override
     public synchronized ConfigurationMetadata getConfiguration(final String name) {
-        return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
-    }
-
-    private ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
         ConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
+        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions);
+        configurations.put(name, md);
+        return md;
+    }
 
+    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
         if (descriptorConfiguration == null) {
             return null;
         }
 
-        ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
+        ImmutableSet<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(getId(), name, transitive, visible, hierarchy, variantMetadataRules);
-        configurations.put(name, populated);
-        return populated;
+        return createConfiguration(getId(), name, transitive, visible, hierarchy, variantMetadataRules);
     }
 
-    private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {
+    private ImmutableSet<String> constructHierarchy(Configuration descriptorConfiguration) {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
-            return ImmutableList.of(descriptorConfiguration.getName());
+            return ImmutableSet.of(descriptorConfiguration.getName());
         }
-        Set<String> accumulator = new LinkedHashSet<String>();
+        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<String>();
         populateHierarchy(descriptorConfiguration, accumulator);
-        return ImmutableList.copyOf(accumulator);
+        return accumulator.build();
     }
 
-    private void populateHierarchy(Configuration metadata, Set<String> accumulator) {
+    private void populateHierarchy(Configuration metadata, ImmutableSet.Builder<String> accumulator) {
         accumulator.add(metadata.getName());
         for (String parentName : metadata.getExtendsFrom()) {
             Configuration parent = configurationDefinitions.get(parentName);
@@ -150,7 +153,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, VariantMetadataRules componentMetadataRules);
 
     @Override
     public boolean equals(Object o) {

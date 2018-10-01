@@ -19,9 +19,9 @@ package org.gradle.platform.base.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.Model;
@@ -29,6 +29,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.Validate;
 import org.gradle.model.internal.core.Hidden;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedStructNodeInitializerExtractionStrategy;
@@ -61,8 +62,8 @@ public class ComponentBasePlugin implements Plugin<Project> {
 
         @Hidden
         @Model
-        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ITaskFactory taskFactory, SourceDirectorySetFactory sourceDirectorySetFactory) {
-            return new ComponentSpecFactory(projectIdentifier, instantiator, taskFactory, sourceDirectorySetFactory);
+        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ObjectFactory objectFactory, NamedEntityInstantiator<Task> taskInstantiator) {
+            return new ComponentSpecFactory(projectIdentifier, instantiator, taskInstantiator, objectFactory);
         }
 
         @ComponentType

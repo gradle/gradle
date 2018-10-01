@@ -20,14 +20,10 @@ import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibility {
 
-    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("1.8");
+    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("1.13");
     public static final String UNSUPPORTED_PLUGIN_VERSION_MESSAGE =
         "This version of Gradle requires version " + MIN_SUPPORTED_VERSION + " of the build scan plugin or later.\n"
             + "Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.";
-
-    public static final VersionNumber MIN_VERSION_AWARE_OF_VCS_MAPPINGS = VersionNumber.parse("1.11");
-    public static final String UNSUPPORTED_VCS_MAPPINGS_MESSAGE =
-        "Build scans are not supported when using VCS mappings. It may be supported when using newer versions of the build scan plugin.";
 
     public static final VersionNumber MIN_VERSION_FOR_KOTLIN_SCRIPT_BUILD_CACHING = VersionNumber.parse("1.15.2");
     public static final String UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE =
@@ -41,10 +37,6 @@ class BuildScanPluginCompatibility {
     String unsupportedReason(VersionNumber pluginVersion, BuildScanConfig.Attributes attributes) {
         if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
             return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
-        }
-
-        if (isEarlierThan(pluginVersion, MIN_VERSION_AWARE_OF_VCS_MAPPINGS) && attributes.isRootProjectHasVcsMappings()) {
-            return UNSUPPORTED_VCS_MAPPINGS_MESSAGE;
         }
 
         if (isEarlierThan(pluginVersion, MIN_VERSION_FOR_KOTLIN_SCRIPT_BUILD_CACHING) && isKotlinBuildCachingEnabled()) {

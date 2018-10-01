@@ -25,7 +25,7 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestFilter
 import org.gradle.execution.BuildExecutionContext
-import org.gradle.execution.TaskExecutionGraphInternal
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
@@ -79,7 +79,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         buildConfigurationAction.configure(buildContext)
         then:
         0 * projectInternal.getAllprojects() >> [projectInternal]
-        _ * taskGraph.addTasks({ args -> assert args.size() == 0 })
+        _ * taskGraph.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
     @Unroll

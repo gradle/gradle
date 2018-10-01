@@ -27,7 +27,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -249,7 +249,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         getRootSpec().setDuplicatesStrategy(strategy);
     }
 

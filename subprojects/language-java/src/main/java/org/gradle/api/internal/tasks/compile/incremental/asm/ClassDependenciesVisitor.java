@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -35,7 +36,7 @@ import java.util.Set;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
 
-    private final static int API = Opcodes.ASM6;
+    private final static int API = AsmConstants.ASM_LEVEL;
 
     private final MethodVisitor methodVisitor;
     private final FieldVisitor fieldVisitor;

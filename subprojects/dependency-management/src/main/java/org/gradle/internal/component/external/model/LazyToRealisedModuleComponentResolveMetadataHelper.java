@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
@@ -28,9 +29,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Utility class to help transform a lazy {@link ModuleComponentResolveMetadata} into a realised one.
@@ -62,29 +61,30 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         for (ComponentVariant.Dependency dependency : dependencies) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason()));
+            result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), false));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
             result.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes()),
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
-                dependencyConstraint.getReason()
+                dependencyConstraint.getReason(),
+                false
             ));
         }
         return result;
     }
 
-    public static ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration, ImmutableMap<String, Configuration> configurationDefinitions) {
+    public static ImmutableSet<String> constructHierarchy(Configuration descriptorConfiguration, ImmutableMap<String, Configuration> configurationDefinitions) {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
-            return ImmutableList.of(descriptorConfiguration.getName());
+            return ImmutableSet.of(descriptorConfiguration.getName());
         }
-        Set<String> accumulator = new LinkedHashSet<String>();
+        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<String>();
         populateHierarchy(descriptorConfiguration, configurationDefinitions, accumulator);
-        return ImmutableList.copyOf(accumulator);
+        return accumulator.build();
     }
 
-    private static void populateHierarchy(Configuration metadata, ImmutableMap<String, Configuration> configurationDefinitions, Set<String> accumulator) {
+    private static void populateHierarchy(Configuration metadata, ImmutableMap<String, Configuration> configurationDefinitions, ImmutableSet.Builder<String> accumulator) {
         accumulator.add(metadata.getName());
         for (String parentName : metadata.getExtendsFrom()) {
             Configuration parent = configurationDefinitions.get(parentName);

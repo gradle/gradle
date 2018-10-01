@@ -53,7 +53,7 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             }
         """.stripIndent()
 
-        when:
+        given:
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
             @Override
             void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
@@ -100,8 +100,11 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             }
         }
 
+        when:
+        def results = runner.run()
+
         then:
-        runner.run()
+        results
 
         where:
         testProject                   | tasks

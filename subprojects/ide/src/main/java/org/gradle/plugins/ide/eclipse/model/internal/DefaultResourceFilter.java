@@ -20,11 +20,11 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilter;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterType;
+import org.gradle.util.ClosureBackedAction;
 
 public final class DefaultResourceFilter implements ResourceFilter {
     private ResourceFilterAppliesTo appliesTo = ResourceFilterAppliesTo.FILES_AND_FOLDERS;

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
@@ -55,7 +55,7 @@ public class DefaultGradlePublication implements Serializable, GradleProjectIden
     }
 
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .toString();
     }

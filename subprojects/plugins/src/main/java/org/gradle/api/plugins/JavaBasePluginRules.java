@@ -25,7 +25,7 @@ import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -43,6 +43,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -57,14 +58,14 @@ class JavaBasePluginRules implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final JavaToolChain javaToolChain;
-    private final ITaskFactory taskFactory;
+    private final NamedEntityInstantiator<Task> taskInstantiator;
 
     @Inject
-    public JavaBasePluginRules(ModelRegistry modelRegistry, Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory) {
+    public JavaBasePluginRules(ModelRegistry modelRegistry, Instantiator instantiator, JavaToolChain javaToolChain, TaskInstantiator taskInstantiator) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.javaToolChain = javaToolChain;
-        this.taskFactory = taskFactory;
+        this.taskInstantiator = taskInstantiator;
     }
 
     @Override
@@ -87,11 +88,11 @@ class JavaBasePluginRules implements Plugin<Project> {
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
 
-                Provider<ProcessResources> resourcesTask = tasks.withType(ProcessResources.class).named(sourceSet.getProcessResourcesTaskName());
-                Provider<JavaCompile> compileTask = tasks.withType(JavaCompile.class).named(sourceSet.getCompileJavaTaskName());
+                Provider<ProcessResources> resourcesTask = tasks.named(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
+                Provider<JavaCompile> compileTask = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
 
                 DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskInstantiator);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, binaryId.child("java"), sourceSet.getJava(), compileClasspath);

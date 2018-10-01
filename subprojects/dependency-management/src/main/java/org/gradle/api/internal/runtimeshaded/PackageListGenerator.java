@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.util.Trie;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;

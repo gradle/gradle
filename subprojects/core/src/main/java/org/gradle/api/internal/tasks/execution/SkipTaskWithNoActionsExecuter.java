@@ -42,14 +42,10 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
         if (!task.hasTaskActions()) {
             LOGGER.info("Skipping {} as it has no actions.", task);
             boolean upToDate = true;
-            // FIXME: When TaskInternal.execute is removed, the task has to be part of the task graph when it is executed.
-            // Then we can remove this check.
-            if (taskExecutionGraph.hasTask(task)) {
-                for (Task dependency : taskExecutionGraph.getDependencies(task)) {
-                    if (!dependency.getState().getSkipped()) {
-                        upToDate = false;
-                        break;
-                    }
+            for (Task dependency : taskExecutionGraph.getDependencies(task)) {
+                if (!dependency.getState().getSkipped()) {
+                    upToDate = false;
+                    break;
                 }
             }
             state.setActionable(false);

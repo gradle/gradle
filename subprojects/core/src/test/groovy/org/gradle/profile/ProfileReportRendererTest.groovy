@@ -45,6 +45,9 @@ class ProfileReportRendererTest extends Specification {
         model.getDependencySetProfile("runtime").start = time(12, 24, 0)
         model.getDependencySetProfile("runtime").finish = time(12, 24, 30)
 
+        model.getTransformProfile("some transform").start(time(12, 22, 0)).setFinish(time(12, 22, 12))
+        model.getTransformProfile("some other transform").start(time(12, 23, 0)).setFinish(time(12, 23, 19))
+
         model.getProjectProfile("a").configurationOperation.start = time(12, 20, 7)
         model.getProjectProfile("a").configurationOperation.finish = time(12, 20, 10)
         model.getProjectProfile("a").getTaskProfile("a:foo").completed(Stub(TaskState)).setStart(time(12, 25, 0)).setFinish(time(12, 26, 30))
@@ -89,7 +92,10 @@ class ProfileReportRendererTest extends Specification {
 <a href="#tab2">Dependency Resolution</a>
 </li>
 <li>
-<a href="#tab3">Task Execution</a>
+<a href="#tab3">Artifact Transforms</a>
+</li>
+<li>
+<a href="#tab4">Task Execution</a>
 </li>
 </ul>
 <div class="tab" id="tab0">
@@ -120,6 +126,10 @@ class ProfileReportRendererTest extends Specification {
 <tr>
 <td>Configuring Projects</td>
 <td class="numeric">8.000s</td>
+</tr>
+<tr>
+<td>Artifact Transforms</td>
+<td class="numeric">31.000s</td>
 </tr>
 <tr>
 <td>Task Execution</td>
@@ -174,6 +184,29 @@ class ProfileReportRendererTest extends Specification {
 </table>
 </div>
 <div class="tab" id="tab3">
+<h2>Artifact Transforms</h2>
+<table>
+<thead>
+<tr>
+<th>Transform</th>
+<th class="numeric">Duration</th>
+</tr>
+</thead>
+<tr>
+<td>All transforms</td>
+<td class="numeric">31.000s</td>
+</tr>
+<tr>
+<td>some other transform</td>
+<td class="numeric">19.000s</td>
+</tr>
+<tr>
+<td>some transform</td>
+<td class="numeric">12.000s</td>
+</tr>
+</table>
+</div>
+<div class="tab" id="tab4">
 <h2>Task Execution</h2>
 <table>
 <thead>
@@ -218,7 +251,7 @@ class ProfileReportRendererTest extends Specification {
 </div>"""))
     }
 
-    private long time(int hour, int mins, int secs, int ms = 0) {
+    private static long time(int hour, int mins, int secs, int ms = 0) {
         def cal = new GregorianCalendar(2010, 1, 5, hour, mins, secs)
         cal.add(Calendar.MILLISECOND, ms)
         cal.getTimeInMillis()

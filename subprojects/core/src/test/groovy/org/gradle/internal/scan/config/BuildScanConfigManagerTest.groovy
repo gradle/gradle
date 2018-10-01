@@ -72,13 +72,13 @@ class BuildScanConfigManagerTest extends Specification {
         thrown UnsupportedBuildScanPluginVersionException
 
         when:
-        config("1.9")
+        config("1.13")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
 
         when:
-        config("1.8-TIMESTAMP")
+        config("1.13-TIMESTAMP")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
@@ -144,7 +144,7 @@ class BuildScanConfigManagerTest extends Specification {
         System.setProperty(BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE, "true")
 
         then:
-        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+        with(config()) {
             !enabled
             !disabled
             unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE
@@ -154,7 +154,7 @@ class BuildScanConfigManagerTest extends Specification {
         scanEnabled = true
 
         then:
-        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+        with(config()) {
             enabled
             !disabled
             unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE

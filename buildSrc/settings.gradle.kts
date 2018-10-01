@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-fun RepositoryHandler.kotlinDev() =
-    maven(url = "https://dl.bintray.com/kotlin/kotlin-dev")
-
 pluginManagement {
     repositories {
-        kotlinDev()
+        maven {
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
         gradlePluginPortal()
     }
 }
 
-gradle.rootProject {
-    allprojects {
-        repositories {
-            kotlinDev()
-        }
-    }
-}
-
 apply(from = "../gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 

@@ -235,11 +235,10 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                 ${notifications.registerListener()}
             }
         """
-
+        settingsFile << "rootProject.name = 'parent'"
         buildScript """
             task t(type: GradleBuild) {
                 tasks = ["o"]
-                startParameter.searchUpwards = false
             }
             task o
         """

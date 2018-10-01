@@ -30,13 +30,16 @@ import org.gradle.internal.UncheckedException;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
-
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Nested.class;
+    }
+
+    @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return !visitor.visitOutputFilePropertiesOnly();
     }
 
     @Override
@@ -73,6 +76,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
+        public Object getContainerValue() {
+            return null;
+        }
+
+        @Nullable
+        @Override
         public Object call() {
             return null;
         }
@@ -90,9 +99,15 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             return null;
         }
 
+        @Nullable
+        @Override
+        public Object getContainerValue() {
+            return null;
+        }
+
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+            context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
         }
 
     }

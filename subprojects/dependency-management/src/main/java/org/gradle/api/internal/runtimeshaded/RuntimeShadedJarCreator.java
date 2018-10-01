@@ -26,6 +26,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -411,7 +412,7 @@ class RuntimeShadedJarCreator {
 
         @Override
         public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
-            return new MethodVisitor(Opcodes.ASM6, super.visitMethod(access, name, desc, signature, exceptions)) {
+            return new MethodVisitor(AsmConstants.ASM_LEVEL, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {

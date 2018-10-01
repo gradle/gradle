@@ -716,6 +716,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     def 'application ids are unique across gradleBuild builds'() {
         given:
         initFile << ""
+        file('gb/settings.gradle').touch()
         file('gb/build.gradle') << ""
         buildFile << """
             tasks.help.dependsOn tasks.create('gb', GradleBuild) { gbTask ->

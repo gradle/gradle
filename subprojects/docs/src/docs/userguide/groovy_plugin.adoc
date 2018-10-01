@@ -23,14 +23,11 @@ The Groovy plugin extends the Java plugin to add support for Groovy projects. It
 
 To use the Groovy plugin, include the following in your build script:
 
-=== Example: Using the Groovy plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tag=use-plugin]
-----
-
+.Using the Groovy plugin
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 [[sec:groovy_tasks]]
 == Tasks
@@ -98,59 +95,48 @@ Groovy source files for the given source set. May also contain Java source files
 
 Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
 
-=== Example: Custom Groovy source layout
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/customizedLayout/build.gradle[tag=custom-source-locations]
-----
-
+.Custom Groovy source layout
+====
+include::sample[dir="groovy/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="groovy/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+====
 
 [[sec:groovy_dependency_management]]
 == Dependency management
 
 Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
 
-If Groovy is used for production code, the Groovy dependency should be added to the `compile` configuration:
+If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
 
-=== Example: Configuration of Groovy dependency
+.Configuration of Groovy dependency
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=groovy-dependency]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tag=groovy-dependency]
-----
+If Groovy is only used for test code, the Groovy dependency should be added to the `testImplementation` configuration:
 
-If Groovy is only used for test code, the Groovy dependency should be added to the `testCompile` configuration:
-
-=== Example: Configuration of Groovy test dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/groovy/groovyDependency/build.gradle[tag=groovy-test-dependency]
-----
+.Configuration of Groovy test dependency
+====
+include::sample[dir="userguide/groovy/groovyDependency/groovy",files="build.gradle[tags=groovy-test-dependency]"]
+include::sample[dir="userguide/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=groovy-test-dependency]"]
+====
 
 To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
 
-=== Example: Configuration of bundled Groovy dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/groovy/groovyDependency/build.gradle[tag=bundled-groovy-dependency]
-----
+.Configuration of bundled Groovy dependency
+====
+include::sample[dir="userguide/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
+include::sample[dir="userguide/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
+====
 
 The Groovy library doesn't necessarily have to come from a remote repository. It could also come from a local `lib` directory, perhaps checked in to source control:
 
-=== Example: Configuration of Groovy file dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/groovyWithFlatDir/build.gradle[tag=groovy-dependency]
-----
+.Configuration of Groovy file dependency
+====
+include::sample[dir="userguide/tutorial/groovyWithFlatDir/groovy",files="build.gradle[tags=groovy-dependency]"]
+include::sample[dir="userguide/tutorial/groovyWithFlatDir/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
+====
 
 [[sec:automatic_configuration_of_groovyclasspath]]
 == Automatic configuration of groovyClasspath
@@ -244,11 +230,11 @@ The Groovy compiler will always be executed with the same version of Java that w
 [source]
 .gradle.properties
 ----
-include::{samplesPath}/groovy/crossCompilation/gradle.properties[]
+include::{samplesPath}/groovy/crossCompilation/groovy/gradle.properties[]
 ----
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/crossCompilation/build.gradle[tag=groovy-cross-compilation]
-----
+====
+include::sample[dir="groovy/crossCompilation/groovy",files="build.gradle[tags=groovy-cross-compilation]"]
+include::sample[dir="groovy/crossCompilation/kotlin",files="build.gradle.kts[tags=groovy-cross-compilation]"]
+====
+

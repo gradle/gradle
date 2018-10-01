@@ -15,6 +15,11 @@
 [[announce_plugin]]
 = The Announce Plugin
 
+[CAUTION]
+====
+This plugin is deprecated and will be removed in the next major Gradle release. New builds should not use this plugin.
+====
+
 The Gradle announce plugin allows you to send custom announcements during a build. The following notification systems are supported:
 
 * https://twitter.com[Twitter]
@@ -27,13 +32,11 @@ The Gradle announce plugin allows you to send custom announcements during a buil
 
 To use the announce plugin, apply it to your build script:
 
-=== Example: Applying the announce plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/announce/build.gradle[tag=use-plugin]
-----
+.Applying the announce plugin
+====
+include::sample[dir="announce/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="announce/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 [[sec:announce_configuration]]
 == Configuration
@@ -42,23 +45,19 @@ NOTE: See also the link:{groovyDslPath}/org.gradle.api.plugins.announce.Announce
 
 Configure your notification service(s) of choice (see table below for which configuration properties are available):
 
-=== Example: Configure the announce plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/announce/build.gradle[tag=announce-plugin-conf]
-----
+.Configure the announce plugin
+====
+include::sample[dir="announce/groovy",files="build.gradle[tags=announce-plugin-conf]"]
+include::sample[dir="announce/kotlin",files="build.gradle.kts[tags=announce-plugin-conf]"]
+====
 
 Finally, send announcements with the `announce` method:
 
-=== Example: Using the announce plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/announce/build.gradle[tag=announce-usage]
-----
+.Using the announce plugin
+====
+include::sample[dir="announce/groovy",files="build.gradle[tags=announce-usage]"]
+include::sample[dir="announce/kotlin",files="build.gradle.kts[tags=announce-usage]"]
+====
 
 The `announce` method takes two String arguments: The message to be sent, and the notification service to be used. The following list shows supported notification services and their configuration properties.
 

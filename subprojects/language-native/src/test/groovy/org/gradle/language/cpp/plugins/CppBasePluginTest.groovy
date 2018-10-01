@@ -75,7 +75,7 @@ class CppBasePluginTest extends Specification {
         def baseName = project.objects.property(String)
         baseName.set("test_app")
         def executable = Stub(DefaultCppExecutable)
-        def executableFile = project.layout.fileProperty()
+        def executableFile = project.objects.fileProperty()
         executable.name >> name
         executable.names >> Names.of(name)
         executable.baseName >> baseName
@@ -114,6 +114,7 @@ class CppBasePluginTest extends Specification {
         library.baseName >> baseName
         library.targetPlatform >> Stub(CppPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.linkFile >> project.objects.fileProperty()
         library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:

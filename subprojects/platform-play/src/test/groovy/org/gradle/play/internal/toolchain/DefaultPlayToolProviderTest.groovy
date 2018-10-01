@@ -25,7 +25,6 @@ import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.platform.PlayMajorVersion
 import org.gradle.play.internal.run.PlayApplicationRunner
-import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
 import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.internal.run.PlayRunAdapterV25X
@@ -70,7 +69,6 @@ class DefaultPlayToolProviderTest extends Specification {
 
         where:
         playVersion | adapter
-        "2.2.x"     | PlayRunAdapterV22X
         "2.3.x"     | PlayRunAdapterV23X
         "2.4.x"     | PlayRunAdapterV24X
         "2.5.x"     | PlayRunAdapterV25X

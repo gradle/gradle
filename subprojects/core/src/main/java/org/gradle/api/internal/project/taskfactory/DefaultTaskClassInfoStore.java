@@ -16,20 +16,19 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -37,22 +36,21 @@ import java.util.Map;
 
 @NonNullApi
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
+    private final CrossBuildInMemoryCache<Class<?>, TaskClassInfo> classInfos;
+    private final Transformer<TaskClassInfo, Class<?>> taskClassInfoFactory = new Transformer<TaskClassInfo, Class<?>>() {
+        @Override
+        public TaskClassInfo transform(Class<?> aClass) {
+            return createTaskClassInfo(aClass.asSubclass(Task.class));
+        }
+    };
 
-    private final LoadingCache<Class<? extends Task>, TaskClassInfo> classInfos = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<Class<? extends Task>, TaskClassInfo>() {
-            @Override
-            public TaskClassInfo load(@Nonnull Class<? extends Task> type) throws Exception {
-                return createTaskClassInfo(type);
-            }
-        });
-
-    public DefaultTaskClassInfoStore() {
+    public DefaultTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        this.classInfos = cacheFactory.newClassCache();
     }
 
     @Override
     public TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {
-        return classInfos.getUnchecked(type);
+        return classInfos.get(type, taskClassInfoFactory);
     }
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {

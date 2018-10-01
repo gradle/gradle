@@ -19,22 +19,27 @@ package org.gradle.integtests.samples.dependencymanagement
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
+@Requires(KOTLIN_SCRIPT)
 class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateDependencies")
-    def "can iterate over dependencies assigned to a configuration"() {
-        executer.inDirectory(sample.dir)
+    def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds('iterateDeclaredDependencies')
@@ -42,11 +47,15 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
         then:
         outputContains("""org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r
 commons-codec:commons-codec:1.7""")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateArtifacts")
-    def "can iterate over artifacts resolved for a module"() {
-        executer.inDirectory(sample.dir)
+    def "can iterate over artifacts resolved for a module with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds('iterateResolvedArtifacts')
@@ -61,11 +70,15 @@ commons-codec:commons-codec:1.7""")
         normalizedContent.contains('org.slf4j/slf4j-api/1.7.2/81d61b7f33ebeab314e07de0cc596f8e858d97/slf4j-api-1.7.2.jar')
         normalizedContent.contains('org.apache.httpcomponents/httpcore/4.3.3/f91b7a4aadc5cf486df6e4634748d7dd7a73f06d/httpcore-4.3.3.jar')
         normalizedContent.contains('commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/walkGraph")
-    def "can walk the dependency graph of a configuration"() {
-        executer.inDirectory(sample.dir)
+    def "can walk the dependency graph of a configuration with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds('walkDependencyGraph')
@@ -82,18 +95,21 @@ commons-codec:commons-codec:1.7""")
      - org.slf4j:slf4j-api:1.7.2 (requested)
 - commons-codec:commons-codec:1.7 (between versions 1.7 and 1.6)
 - some:unresolved:2.5 (failed)""")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")
-    def "can accessing a module's metadata artifact"() {
-        executer.inDirectory(sample.dir)
+    def "can accessing a module's metadata artifact with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds('printGuavaMetadata')
 
         then:
-        def normalizedContent = normaliseFileSeparators(output)
-        normalizedContent.contains("""com.google.guava/guava/18.0/2ec12f8d27a64e970b8be0fbd1d52dfec51cd41c/guava-18.0.pom
+        output.contains("""guava-18.0.pom
 Guava: Google Core Libraries for Java
 
     Guava is a suite of core and expanded libraries that include
@@ -103,5 +119,8 @@ Guava: Google Core Libraries for Java
     Guava has only one code dependency - javax.annotation,
     per the JSR-305 spec.
 """)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

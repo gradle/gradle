@@ -1,0 +1,34 @@
+digraph javaTestConfigurations {
+
+    rankdir = BT;
+    node [fontname="Sans", shape=box, style=filled, fillcolor=chartreuse];
+    edge [fontname="Sans"];
+
+    /* tasks */
+    test [fillcolor=darkslategray1, fontname="Courier New"]
+    compileTestJava [fillcolor=darkslategray1, fontname="Courier New"]
+
+    /* deprecated confs */
+    compile [fontcolor=gray55]
+    runtime [fontcolor=gray55]
+    testCompile [fontcolor=gray55]
+    testRuntime [fontcolor=gray55]
+
+    testCompileClasspath [fillcolor=lightblue]
+    testRuntimeClasspath [fillcolor=lightblue]
+
+    /* configurations */
+    implementation -> compile;
+    runtime -> compile
+
+    testCompile -> compile
+    testImplementation -> {testCompile implementation}
+    testCompileClasspath -> {testCompile testCompileOnly testImplementation}
+    testRuntime -> {runtime testCompile}
+    testRuntimeOnly -> runtimeOnly
+    testRuntimeClasspath -> {testRuntimeOnly testRuntime testImplementation}
+
+    /* tasks */
+    test -> testRuntimeClasspath [style=dashed label="uses"]
+    compileTestJava -> testCompileClasspath [style=dashed label="uses"]
+}

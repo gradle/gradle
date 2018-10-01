@@ -39,19 +39,22 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
+    private final ArtifactTransformListener transformListener;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
         AttributeContainerInternal requested,
-        boolean ignoreWhenNoMatches
+        boolean ignoreWhenNoMatches,
+        ArtifactTransformListener transformListener
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
+        this.transformListener = transformListener;
     }
 
     @Override
@@ -95,7 +98,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             ArtifactTransformer transformer = result.getRight().transformer;
-            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer);
+            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer, transformListener);
         }
 
         if (!candidates.isEmpty()) {

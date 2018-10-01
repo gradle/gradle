@@ -69,13 +69,19 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
     val testTask = createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {})
+    // Create a variant of the test suite to force realization of component metadata
+    if (testType == TestType.INTEGRATION) {
+        val forceRealizeTestTask = createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType, Action {
+            systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
+        })
+    }
     tasks.named("check").configure { dependsOn(testTask) }
 }
 
 
 internal
-fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> {
-    return tasks.register(name, IntegrationTest::class.java) {
+fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
+    tasks.register(name, IntegrationTest::class) {
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -84,7 +90,6 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         libsRepository.required = testType.libRepoRequired
         extraConfig.execute(this)
     }
-}
 
 
 private
@@ -116,7 +121,8 @@ fun Project.configureIde(testType: TestType) {
     plugins.withType<IdeaPlugin> {
         idea {
             module {
-                testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs + sourceSet.resources.srcDirs
+                testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
+                testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
                 scopes["TEST"]!!["plus"]!!.apply {
                     add(compile)
                     add(runtime)

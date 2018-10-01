@@ -18,9 +18,9 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -33,30 +33,30 @@ import java.util.Set;
 public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String propertyTitle, boolean includeAdded) {
-        Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+        Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
 
-        for (Map.Entry<String, NormalizedFileSnapshot> currentEntry : current.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();
-            NormalizedFileSnapshot currentNormalizedSnapshot = currentEntry.getValue();
-            HashCode currentContentHash = currentNormalizedSnapshot.getNormalizedContentHash();
-            if (unaccountedForPreviousSnapshots.remove(currentAbsolutePath)) {
-                NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
-                HashCode previousContentHash = previousNormalizedSnapshot.getNormalizedContentHash();
+            FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
+            HashCode currentContentHash = currentFingerprint.getNormalizedContentHash();
+            if (unaccountedForPreviousFingerprints.remove(currentAbsolutePath)) {
+                FileSystemLocationFingerprint previousFingerprint = previous.get(currentAbsolutePath);
+                HashCode previousContentHash = previousFingerprint.getNormalizedContentHash();
                 if (!currentContentHash.equals(previousContentHash)) {
-                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousNormalizedSnapshot.getType(), currentNormalizedSnapshot.getType()))) {
+                    if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType()))) {
                         return false;
                     }
                 }
                 // else, unchanged; check next file
             } else if (includeAdded) {
-                if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentNormalizedSnapshot.getType()))) {
+                if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType()))) {
                     return false;
                 }
             }
         }
 
-        for (String previousAbsolutePath : unaccountedForPreviousSnapshots) {
+        for (String previousAbsolutePath : unaccountedForPreviousFingerprints) {
             if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previous.get(previousAbsolutePath).getType()))) {
                 return false;
             }
@@ -65,7 +65,7 @@ public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompar
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<NormalizedFileSnapshot> snapshots) {
-        NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, snapshots);
+    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+        NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
     }
 }

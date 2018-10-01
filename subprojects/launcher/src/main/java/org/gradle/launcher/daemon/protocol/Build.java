@@ -15,10 +15,10 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 import java.util.UUID;
@@ -27,13 +27,15 @@ public class Build extends Command {
     private final BuildAction action;
     private final BuildClientMetaData buildClientMetaData;
     private final long startTime;
+    private final boolean interactive;
     private final BuildActionParameters parameters;
 
-    public Build(UUID identifier, byte[] token, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
+    public Build(UUID identifier, byte[] token, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, boolean interactive, BuildActionParameters parameters) {
         super(identifier, token);
         this.action = action;
         this.buildClientMetaData = buildClientMetaData;
         this.startTime = startTime;
+        this.interactive = interactive;
         this.parameters = parameters;
     }
 
@@ -41,12 +43,16 @@ public class Build extends Command {
         return startTime;
     }
 
+    public boolean isInteractive() {
+        return interactive;
+    }
+
     public BuildClientMetaData getBuildClientMetaData() {
         return buildClientMetaData;
     }
 
     public BuildRequestMetaData getBuildRequestMetaData() {
-        return new DefaultBuildRequestMetaData(buildClientMetaData, startTime);
+        return new DefaultBuildRequestMetaData(buildClientMetaData, startTime, interactive);
     }
 
     public BuildAction getAction() {
@@ -60,8 +66,8 @@ public class Build extends Command {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{"
-                + "id=" + getIdentifier()
-                + ", currentDir=" + parameters.getCurrentDir()
-                + '}';
+            + "id=" + getIdentifier()
+            + ", currentDir=" + parameters.getCurrentDir()
+            + '}';
     }
 }

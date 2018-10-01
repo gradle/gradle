@@ -37,6 +37,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
     val checkStyleConfigDir = codeQualityConfigDir.resolve("checkstyle")
     configure<CheckstyleExtension> {
         configDir = checkStyleConfigDir
+        toolVersion = "8.12"
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
@@ -71,7 +72,6 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
         if (ruleClass != null) {
             "codenarc"(files(ruleClass.protectionDomain!!.codeSource!!.location))
             "codenarc"(embeddedKotlin("stdlib"))
-            "codenarc"(embeddedKotlin("runtime"))
         }
     }
 
@@ -110,8 +110,9 @@ open class CodeNarcRule : ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 removeAll { it.group == "org.codehaus.groovy" }
-                add("org.codehaus.groovy:groovy-all") {
-                    version { prefer(groovy.lang.GroovySystem.getVersion()) }
+                add("org.gradle.groovy:groovy-all") {
+                    // TODO This must match the version number in dependencies.gradle
+                    version { prefer(groovy.lang.GroovySystem.getVersion() + "-0.7") }
                     because("We use groovy-all everywhere")
                 }
             }

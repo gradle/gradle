@@ -27,6 +27,11 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
 
     @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return true;
+    }
+
+    @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
         fileSpec

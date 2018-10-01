@@ -74,11 +74,12 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
     public void finish(DependencyGraphNode root) {
     }
 
-    public Set<UnresolvedDependency> complete() {
-        if (failuresByRevisionId.isEmpty()) {
-            ImmutableSet.of();
+    public Set<UnresolvedDependency> complete(Set<UnresolvedDependency> extraFailures) {
+        if (extraFailures.isEmpty() && failuresByRevisionId.isEmpty()) {
+            return ImmutableSet.of();
         }
         ImmutableSet.Builder<UnresolvedDependency> builder = ImmutableSet.builder();
+        builder.addAll(extraFailures);
         for (Map.Entry<ComponentSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
             Collection<List<ComponentIdentifier>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root);
 

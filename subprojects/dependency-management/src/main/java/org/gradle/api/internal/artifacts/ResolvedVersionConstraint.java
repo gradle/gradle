@@ -19,7 +19,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 
 public interface ResolvedVersionConstraint {
     VersionSelector getPreferredSelector();
+    VersionSelector getRequiredSelector();
     VersionSelector getRejectedSelector();
     boolean isRejectAll();
-    boolean isPrefer();
 }

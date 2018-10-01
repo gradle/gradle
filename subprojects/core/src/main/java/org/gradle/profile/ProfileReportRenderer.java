@@ -70,7 +70,8 @@ public class ProfileReportRenderer {
                             .startElement("li").startElement("a").attribute("href", "#tab0").characters("Summary").endElement().endElement()
                             .startElement("li").startElement("a").attribute("href", "#tab1").characters("Configuration").endElement().endElement()
                             .startElement("li").startElement("a").attribute("href", "#tab2").characters("Dependency Resolution").endElement().endElement()
-                            .startElement("li").startElement("a").attribute("href", "#tab3").characters("Task Execution").endElement().endElement()
+                            .startElement("li").startElement("a").attribute("href", "#tab3").characters("Artifact Transforms").endElement().endElement()
+                            .startElement("li").startElement("a").attribute("href", "#tab4").characters("Task Execution").endElement().endElement()
                         .endElement();
                         htmlWriter.startElement("div").attribute("class", "tab").attribute("id", "tab0");
                             htmlWriter.startElement("h2").characters("Summary").endElement();
@@ -100,6 +101,10 @@ public class ProfileReportRenderer {
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Configuring Projects").endElement();
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(profiledProjectConfiguration.getElapsedTime())).endElement();
+                                htmlWriter.endElement();
+                                htmlWriter.startElement("tr");
+                                    htmlWriter.startElement("td").characters("Artifact Transforms").endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedArtifactTransformTime())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Task Execution").endElement();
@@ -151,6 +156,28 @@ public class ProfileReportRenderer {
                             htmlWriter.endElement()
                         .endElement();
                         htmlWriter.startElement("div").attribute("class", "tab").attribute("id", "tab3");
+                            htmlWriter.startElement("h2").characters("Artifact Transforms").endElement()
+                                .startElement("table")
+                                    .startElement("thead");
+                                    htmlWriter.startElement("tr");
+                                        htmlWriter.startElement("th").characters("Transform").endElement();
+                                        htmlWriter.startElement("th").attribute("class", "numeric").characters("Duration").endElement();
+                                    htmlWriter.endElement();
+                                htmlWriter.endElement();
+                                htmlWriter.startElement("tr");
+                                    htmlWriter.startElement("td").characters("All transforms").endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(model.getElapsedArtifactTransformTime())).endElement();
+                                htmlWriter.endElement();
+
+                                for (Operation operation : model.getTransforms()) {
+                                    htmlWriter.startElement("tr");
+                                        htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(TimeFormatting.formatDurationVeryTerse(operation.getElapsedTime())).endElement();
+                                    htmlWriter.endElement();
+                                }
+                            htmlWriter.endElement()
+                        .endElement();
+                        htmlWriter.startElement("div").attribute("class", "tab").attribute("id", "tab4");
                             htmlWriter.startElement("h2").characters("Task Execution").endElement()
                             .startElement("table")
                                 .startElement("thead")

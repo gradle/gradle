@@ -24,6 +24,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -37,11 +38,18 @@ import java.util.concurrent.Callable;
  *
  * @see JDependExtension
  * @see JDepend
+ * @deprecated JDepend is unmaintained and does not support bytecode compiled for Java 8 and above.
  */
+@Deprecated
 public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
 
     public static final String DEFAULT_JDEPEND_VERSION = "2.9.1";
     private JDependExtension extension;
+
+    @Override
+    protected void beforeApply() {
+        SingleMessageLogger.nagUserOfDeprecatedPlugin("jdepend");
+    }
 
     @Override
     protected String getToolName() {

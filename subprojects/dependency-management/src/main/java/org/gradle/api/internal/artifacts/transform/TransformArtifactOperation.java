@@ -33,17 +33,23 @@ class TransformArtifactOperation implements RunnableBuildOperation {
     private final ComponentArtifactIdentifier artifactId;
     private final File file;
     private final ArtifactTransformer transform;
+    private final ArtifactTransformListener transformListener;
     private Throwable failure;
     private List<File> result;
 
-    TransformArtifactOperation(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformer transform) {
+    TransformArtifactOperation(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformer transform, ArtifactTransformListener transformListener) {
         this.artifactId = artifactId;
         this.file = file;
         this.transform = transform;
+        this.transformListener = transformListener;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
+        boolean hasCachedResult = transform.hasCachedResult(file);
+        if (!hasCachedResult) {
+            transformListener.beforeTransform(transform, artifactId, file);
+        }
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifactId.getDisplayName());
@@ -51,6 +57,9 @@ class TransformArtifactOperation implements RunnableBuildOperation {
             result = transform.transform(file);
         } catch (Throwable t) {
             failure = t;
+        }
+        if (!hasCachedResult) {
+            transformListener.afterTransform(transform, artifactId, file, failure);
         }
     }
 

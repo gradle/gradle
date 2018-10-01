@@ -79,7 +79,8 @@ public class RecompilationSpecProvider {
     private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(previous, sourceToNameConverter);
         AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor = new AnnotationProcessorChangeProcessor(current, previous);
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor);
+        ResourceChangeProcessor resourceChangeProcessor = new ResourceChangeProcessor(current.getAnnotationProcessorPath());
+        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor);
         current.visitChanges(action);
     }
 

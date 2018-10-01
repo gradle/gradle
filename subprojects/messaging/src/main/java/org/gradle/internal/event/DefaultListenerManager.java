@@ -49,6 +49,7 @@ public class DefaultListenerManager implements ListenerManager {
         this.parent = parent;
     }
 
+    @Override
     public void addListener(Object listener) {
         ListenerDetails details = null;
         synchronized (lock) {
@@ -62,6 +63,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public void removeListener(Object listener) {
         ListenerDetails details;
         synchronized (lock) {
@@ -75,6 +77,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public void useLogger(Object logger) {
         ListenerDetails details = null;
         synchronized (lock) {
@@ -88,10 +91,12 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public <T> T getBroadcaster(Class<T> listenerClass) {
         return getBroadcasterInternal(listenerClass).getBroadcaster();
     }
 
+    @Override
     public <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
         ListenerBroadcast<T> broadcast = new ListenerBroadcast(listenerClass);
         broadcast.add(getBroadcasterInternal(listenerClass).getDispatch(true));
@@ -115,6 +120,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public ListenerManager createChild() {
         return new DefaultListenerManager(this);
     }

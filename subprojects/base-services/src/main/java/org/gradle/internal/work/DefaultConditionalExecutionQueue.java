@@ -36,7 +36,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 /**
  * A queueing mechanism that only executes items once certain conditions are reached.
  */
-// TODO This class, DefaultBuildOperationQueue and TaskExecutionPlan have many of the same
+// TODO This class, DefaultBuildOperationQueue and ExecutionPlan have many of the same
 // behavior and concerns - we should look for a way to generalize this pattern.
 public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;
@@ -125,11 +125,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private class ExecutionRunner implements Runnable {
         @Override
         public void run() {
-            ConditionalExecution operation;
-            while ((operation = waitForNextOperation()) != null) {
-                runBatch(operation);
+            try {
+                ConditionalExecution operation;
+                while ((operation = waitForNextOperation()) != null) {
+                    runBatch(operation);
+                }
+            } finally {
+                shutDown();
             }
-            shutDown();
         }
 
         private ConditionalExecution waitForNextOperation() {
@@ -141,7 +144,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
 
@@ -210,8 +213,6 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         private void runExecution(ConditionalExecution execution) {
             try {
                 execution.getExecution().run();
-            } catch (Throwable t) {
-                execution.registerFailure(t);
             } finally {
                 coordinationService.withStateLock(unlock(execution.getResourceLock()));
                 execution.complete();

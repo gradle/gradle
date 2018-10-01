@@ -112,4 +112,25 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
         return DefaultModuleIdentifier.newId(group, name);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractExternalModuleDependency that = (AbstractExternalModuleDependency) o;
+        return isContentEqualsFor(that);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getGroup() != null ? getGroup().hashCode() : 0;
+        result = 31 * result + getName().hashCode();
+        result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
+        return result;
+    }
 }

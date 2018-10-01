@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
-
     final OutputEventListener delegate;
     private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
@@ -38,11 +38,13 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof UserInputRequestEvent) {
-            String prompt = ((UserInputRequestEvent) event).getPrompt();
-            handleUserInputRequestEvent(prompt);
+            handleUserInputRequestEvent();
             return;
         } else if (event instanceof UserInputResumeEvent) {
             handleUserInputResumeEvent();
+            return;
+        } else if (event instanceof PromptOutputEvent) {
+            handlePrompt((PromptOutputEvent) event);
             return;
         }
 
@@ -54,8 +56,8 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         delegate.onOutput(event);
     }
 
-    private void handleUserInputRequestEvent(String prompt) {
-        startInput(prompt);
+    private void handleUserInputRequestEvent() {
+        startInput();
         paused = true;
     }
 
@@ -82,6 +84,9 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         return eventQueue;
     }
 
-    abstract void startInput(String prompt);
+    abstract void startInput();
+
+    abstract void handlePrompt(PromptOutputEvent event);
+
     abstract void finishInput();
 }

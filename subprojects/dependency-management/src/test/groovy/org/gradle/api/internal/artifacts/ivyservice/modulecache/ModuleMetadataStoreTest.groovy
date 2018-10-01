@@ -54,7 +54,7 @@ class ModuleMetadataStoreTest extends Specification {
         when:
         store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier));
         then:
-        1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
+        1 * pathKeyFileStore.get("org.test", "testArtifact", "1.0", "repositoryId", "descriptor.bin") >> null
     }
 
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {

@@ -17,20 +17,25 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
 
 /**
- * Represents some configurable directory location, whose value is mutable and is not necessarily currently known until later.
+ * Represents some configurable directory location, whose value is mutable.
+ *
  * <p>
- * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link ProjectLayout#directoryProperty()} method.
+ * You can create a {@link DirectoryProperty} using {@link ObjectFactory#directoryProperty()}.
+ * </p>
+ *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  *
  * @since 4.3
  */
 @Incubating
-public interface DirectoryProperty extends Provider<Directory>, Property<Directory> {
+public interface DirectoryProperty extends Property<Directory> {
     /**
      * Views the location of this directory as a {@link File}.
      */
@@ -45,6 +50,12 @@ public interface DirectoryProperty extends Provider<Directory>, Property<Directo
      * Sets the location of this directory.
      */
     void set(File dir);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DirectoryProperty value(Directory value);
 
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.

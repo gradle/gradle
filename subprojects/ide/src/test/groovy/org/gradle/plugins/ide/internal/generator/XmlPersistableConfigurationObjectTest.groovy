@@ -32,17 +32,17 @@ class XmlPersistableConfigurationObjectTest extends Specification {
         }
 
         @Override protected void load(Node xml) {
-            rootElement = xml.name() as String
+            rootElement = xml.attributes().get("name") as String
         }
 
         @Override protected void store(Node xml) {
-            xml.name = rootElement
+            xml.attributes().put("name", rootElement)
         }
     }
 
     def loadsFromXmlFile() {
         def inputFile = tmpDir.file('input.xml')
-        inputFile.text = '<some-xml/>'
+        inputFile.text = '<root name="some-xml"/>'
 
         when:
         object.load(inputFile)
@@ -68,7 +68,7 @@ class XmlPersistableConfigurationObjectTest extends Specification {
         object.store(outputFile)
 
         then:
-        outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<modified-xml/>\n')
+        outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<root name="modified-xml"/>\n')
     }
 
     def "can add transform Actions"() {
@@ -84,6 +84,6 @@ class XmlPersistableConfigurationObjectTest extends Specification {
         object.store(outputFile)
 
         then:
-        outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<default-xml some="attribute"/>\n')
+        outputFile.text == TextUtil.toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n<root name="default-xml" some="attribute"/>\n')
     }
 }

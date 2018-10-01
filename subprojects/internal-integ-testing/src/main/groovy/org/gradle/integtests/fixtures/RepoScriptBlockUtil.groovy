@@ -44,7 +44,9 @@ class RepoScriptBlockUtil {
         GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven')
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
+        KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven'),
+        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -88,7 +90,7 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        return """
+        """
             repositories {
                 ${jcenterRepositoryDefinition(dsl)}
             }
@@ -122,6 +124,10 @@ class RepoScriptBlockUtil {
         } else {
             url + '/'
         }
+    }
+
+    static String kotlinEapRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.KOTLIN_EAP.getRepositoryDefinition(dsl)
     }
 
     static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {
@@ -163,6 +169,11 @@ class RepoScriptBlockUtil {
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
+        mirrors << mirrorInitScript()
+        return mirrors
+    }
+
+    static String mirrorInitScript() {
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
                 if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
@@ -170,7 +181,7 @@ class RepoScriptBlockUtil {
                 }
             """
         }.join("")
-        mirrors << """
+        return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
             
@@ -225,6 +236,5 @@ class RepoScriptBlockUtil {
                 }
             }
         """
-        mirrors
     }
 }

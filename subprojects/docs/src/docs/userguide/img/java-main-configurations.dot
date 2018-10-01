@@ -1,0 +1,31 @@
+digraph javaMainConfigurations {
+
+    rankdir = BT;
+    node [fontname="Sans", shape=box, style=filled, fillcolor=chartreuse];
+    edge [fontname="Sans"];
+
+    /* tasks */
+    compileJava [fillcolor=darkslategray1, fontname="Courier New"]
+    jar [fillcolor=darkslategray1, fontname="Courier New"]
+
+    /* deprecated confs */
+    compile [fontcolor=gray55]
+    runtime [fontcolor=gray55]
+
+    /* consumed confs */
+    compileClasspath [fillcolor=lightblue]
+    runtimeClasspath [fillcolor=lightblue]
+
+    /* configurations */
+    implementation -> compile;
+    compileClasspath -> {compileOnly implementation}
+    runtime -> compile
+    runtimeClasspath -> {runtimeOnly runtime implementation}
+
+    /* tasks */
+    jar -> runtime [style=dashed label="adds to"]
+    compileJava -> compileClasspath [style=dashed label="uses"]
+
+    /* control for layout */
+    jar -> runtimeClasspath [style=invis]
+}

@@ -57,7 +57,7 @@ class FinalizerThread extends Thread {
                 removeCacheEntry(key, entry, DONT_CLOSE_CLASSLOADER);
             }
         } catch (InterruptedException ex) {
-            LOG.debug("Shutdown of classloader cache in progress");
+            Thread.currentThread().interrupt();
         }
     }
 

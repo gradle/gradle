@@ -51,6 +51,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
@@ -341,14 +342,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             startParameter.getLogLevel(),
             false,
             startParameter.isContinuous(),
-            interactive,
             ClassPath.EMPTY
         );
     }
 
     private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(new GradleLauncherMetaData()),
+            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), Time.currentTimeMillis(), interactive),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer());
     }
@@ -437,12 +437,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     public static class InProcessExecutionResult implements ExecutionResult {
-        private final List<String> plannedTasks;
+        private final List<String> executedTasks;
         private final Set<String> skippedTasks;
         private final OutputScrapingExecutionResult outputResult;
 
-        public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
-            this.plannedTasks = plannedTasks;
+        public InProcessExecutionResult(List<String> executedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
+            this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
             this.outputResult = outputResult;
         }
@@ -518,33 +518,33 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         public List<String> getExecutedTasks() {
-            return new ArrayList<String>(plannedTasks);
+            return new ArrayList<String>(executedTasks);
         }
 
         public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
-            assertThat(plannedTasks, containsInAnyOrder(expected.toArray()));
+            assertThat(executedTasks, containsInAnyOrder(expected.toArray()));
             outputResult.assertTasksExecutedInOrder(taskPaths);
             return this;
         }
 
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
             Set<String> flattenedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
-            assertThat(plannedTasks, containsInAnyOrder(flattenedTasks.toArray()));
+            assertThat(executedTasks, containsInAnyOrder(flattenedTasks.toArray()));
             outputResult.assertTasksExecuted(flattenedTasks);
             return this;
         }
 
         @Override
         public ExecutionResult assertTaskExecuted(String taskPath) {
-            assertThat(plannedTasks, hasItem(taskPath));
+            assertThat(executedTasks, hasItem(taskPath));
             outputResult.assertTaskExecuted(taskPath);
             return this;
         }
 
         @Override
         public ExecutionResult assertTaskNotExecuted(String taskPath) {
-            assertThat(plannedTasks, not(hasItem(taskPath)));
+            assertThat(executedTasks, not(hasItem(taskPath)));
             outputResult.assertTaskNotExecuted(taskPath);
             return this;
         }
@@ -552,7 +552,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertTaskOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
-            assertThat(plannedTasks, hasItems(expected.toArray(new String[]{})));
+            assertThat(executedTasks, hasItems(expected.toArray(new String[]{})));
             outputResult.assertTaskOrder(taskPaths);
             return this;
         }
@@ -591,7 +591,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private Set<String> getNotSkippedTasks() {
-            Set<String> notSkipped = new TreeSet<String>(plannedTasks);
+            Set<String> notSkipped = new TreeSet<String>(executedTasks);
             notSkipped.removeAll(skippedTasks);
             return notSkipped;
         }

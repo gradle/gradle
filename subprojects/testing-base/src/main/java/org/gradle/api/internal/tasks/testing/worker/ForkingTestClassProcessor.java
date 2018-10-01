@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.worker;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.tasks.testing.JULRedirector;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -81,8 +80,13 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
             if (remoteProcessor == null) {
                 completion = currentWorkerLease.startChild();
-                JULRedirector.checkDeprecatedProperty(options);
-                remoteProcessor = forkProcess();
+                try {
+                    remoteProcessor = forkProcess();
+                } catch (RuntimeException e) {
+                    completion.leaseFinish();
+                    completion = null;
+                    throw e;
+                }
             }
 
             remoteProcessor.processTestClass(testClass);
@@ -139,8 +143,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stop() {
-        if (remoteProcessor != null) {
-            try {
+        try {
+            if (remoteProcessor != null) {
                 lock.lock();
                 try {
                     if (!stoppedNow) {
@@ -150,16 +154,16 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                     lock.unlock();
                 }
                 workerProcess.waitForStop();
-            } catch (ExecException e) {
-                if (!stoppedNow) {
-                    throw new ExecException(e.getMessage()
-                        + "\nThis problem might be caused by incorrect test process configuration."
-                        + "\nPlease refer to the test execution section in the user guide at "
-                        + documentationRegistry.getDocumentationFor("java_plugin", "sec:test_execution"), e.getCause());
-                }
-            } finally {
-                completion.leaseFinish();
             }
+        } catch (ExecException e) {
+            if (!stoppedNow) {
+                throw new ExecException(e.getMessage()
+                    + "\nThis problem might be caused by incorrect test process configuration."
+                    + "\nPlease refer to the test execution section in the user guide at "
+                    + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
+            }
+        } finally {
+            completion.leaseFinish();
         }
     }
 

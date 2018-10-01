@@ -16,12 +16,13 @@
 
 package org.gradle.nativeplatform.internal.prebuilt
 
-import org.gradle.api.internal.file.TestFiles
+
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultPrebuiltLibraryTest extends Specification {
     def "has useful display name"() {
-        def lib = new DefaultPrebuiltLibrary("someLib", TestFiles.sourceDirectorySetFactory())
+        def lib = new DefaultPrebuiltLibrary("someLib", TestUtil.objectFactory())
 
         expect:
         lib.toString() == "prebuilt library 'someLib'"

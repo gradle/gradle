@@ -19,21 +19,21 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import java.util.Collections;
 import java.util.Map;
 
 public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyCurrentFileCollectionFingerprint.class.getName());
+    private static final HashCode SIGNATURE = Hashing.signature(EmptyCurrentFileCollectionFingerprint.class);
 
     private final FingerprintingStrategy.Identifier identifier;
 
@@ -52,12 +52,12 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> getSnapshots() {
+    public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return Collections.emptyMap();
     }
 
     @Override
-    public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotVisitor visitor) {
     }
 
     public Multimap<String, HashCode> getRootHashes() {

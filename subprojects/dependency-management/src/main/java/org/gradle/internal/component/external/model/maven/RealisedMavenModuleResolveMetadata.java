@@ -20,15 +20,13 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
@@ -53,7 +51,6 @@ import java.util.Map;
 
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
-import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.USAGE_ATTRIBUTE;
 
 /**
  * {@link AbstractRealisedModuleComponentResolveMetadata Realised version} of a {@link MavenModuleResolveMetadata}.
@@ -71,12 +68,30 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     public static RealisedMavenModuleResolveMetadata transform(DefaultMavenModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
         ImmutableList<? extends ComponentVariant> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
-
-
-        boolean computeDerivedVariants = metadata.getVariants().size() == 0;
-        List<ConfigurationMetadata> derivedVariants = Lists.newArrayListWithCapacity(2);
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
-        for (String configurationName: metadata.getConfigurationNames()) {
+        Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants = metadata.maybeDeriveVariants();
+        List<ConfigurationMetadata> derivedVariants = ImmutableList.of();
+        if (maybeDeriveVariants.isPresent()) {
+            ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+            for (ConfigurationMetadata derivedVariant : maybeDeriveVariants.get()) {
+                ImmutableList<ModuleDependencyMetadata> dependencies = Cast.uncheckedCast(derivedVariant.getDependencies());
+                RealisedConfigurationMetadata derivedVariantMetadata = new RealisedConfigurationMetadata(
+                    metadata.getId(),
+                    derivedVariant.getName(),
+                    derivedVariant.isTransitive(),
+                    derivedVariant.isVisible(),
+                    derivedVariant.getHierarchy(),
+                    Cast.<ImmutableList<? extends ModuleComponentArtifactMetadata>>uncheckedCast(derivedVariant.getArtifacts()),
+                    derivedVariant.getExcludes(),
+                    derivedVariant.getAttributes(),
+                    (ImmutableCapabilities) derivedVariant.getCapabilities(),
+                    dependencies
+                );
+                builder.add(derivedVariantMetadata);
+            }
+            derivedVariants = builder.build();
+        }
+        for (String configurationName : metadata.getConfigurationNames()) {
             ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
             Configuration configuration = configurationDefinitions.get(configurationName);
 
@@ -84,35 +99,22 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, metadata.getAttributes());
             CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, ImmutableCapabilities.EMPTY);
 
-
             RealisedConfigurationMetadata realisedConfiguration = createConfiguration(variantMetadataRules, metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions), metadata.getDependencies(), metadata.isImprovedPomSupportEnabled(),
+                LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions), metadata.getDependencies(),
                 variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()));
             configurations.put(configurationName, realisedConfiguration);
 
-            if (computeDerivedVariants) {
-                if (configurationName.equals("compile")) {
-                    derivedVariants.add(withUsageAttribute(realisedConfiguration, Usage.JAVA_API, metadata.getAttributesFactory(), variantAttributes, metadata.getObjectInstantiator()));
-                } else if (configurationName.equals("runtime")) {
-                    derivedVariants.add(withUsageAttribute(realisedConfiguration, Usage.JAVA_RUNTIME, metadata.getAttributesFactory(), variantAttributes, metadata.getObjectInstantiator()));
-                }
-            }
         }
         return new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<MavenDependencyDescriptor> dependencies, boolean improvedPomSupport, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
+    private static RealisedConfigurationMetadata createConfiguration(VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<MavenDependencyDescriptor> dependencies, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(componentId, name);
         RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.<ExcludeMetadata>of(), attributes, capabilities);
-        ImmutableList<ModuleDependencyMetadata> dependencyMetadata = filterDependencies(componentId, configuration, dependencies, improvedPomSupport);
+        ImmutableList<ModuleDependencyMetadata> dependencyMetadata = filterDependencies(componentId, configuration, dependencies);
         dependencyMetadata = ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata));
         configuration.setDependencies(dependencyMetadata);
         return configuration;
-    }
-
-    static ConfigurationMetadata withUsageAttribute(RealisedConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, ImmutableAttributes additionalAttributes, NamedObjectInstantiator instantiator) {
-        ImmutableAttributes attributes = attributesFactory.concat(additionalAttributes, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, instantiator));
-        return conf.withAttributes(attributes);
     }
 
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(ModuleComponentIdentifier id, String name) {
@@ -125,25 +127,23 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return artifacts;
     }
 
-    private static ImmutableList<ModuleDependencyMetadata> filterDependencies(ModuleComponentIdentifier componentId, ConfigurationMetadata config, ImmutableList<MavenDependencyDescriptor> dependencies, boolean improvedPomSupport) {
+    private static ImmutableList<ModuleDependencyMetadata> filterDependencies(ModuleComponentIdentifier componentId, ConfigurationMetadata config, ImmutableList<MavenDependencyDescriptor> dependencies) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         boolean isOptionalConfiguration = "optional".equals(config.getName());
 
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
                 filteredDependencies.add(new DefaultMavenModuleResolveMetadata.OptionalConfigurationDependencyMetadata(config, componentId, dependency));
-            } else if (include(dependency, config.getHierarchy(), improvedPomSupport)) {
-                filteredDependencies.add(contextualize(config, componentId, dependency, improvedPomSupport));
+            } else if (include(dependency, config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, componentId, dependency));
             }
         }
         return filteredDependencies.build();
     }
 
-    static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming, boolean improvedPomSupport) {
+    static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
         ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        if (improvedPomSupport) {
-            dependency.alwaysUseAttributeMatching();
-        }
+        dependency.alwaysUseAttributeMatching();
         return dependency;
     }
 
@@ -155,15 +155,14 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             && dependencyScope != MavenScope.System;
     }
 
-    private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy, boolean improvedPomSupport) {
+    private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
         MavenScope dependencyScope = dependency.getScope();
-        if (dependency.isOptional() && !improvedPomSupport) {
+        if (dependency.isOptional()) {
             return false;
         }
         return hierarchy.contains(dependencyScope.getLowerName());
     }
 
-    private final boolean improvedPomSupportEnabled;
     private final NamedObjectInstantiator objectInstantiator;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
@@ -175,9 +174,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     private final ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
     RealisedMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
-                                              List<ConfigurationMetadata> derivedVariants, Map<String, ConfigurationMetadata> configurations) {
+                                       List<ConfigurationMetadata> derivedVariants, Map<String, ConfigurationMetadata> configurations) {
         super(metadata, variants, configurations);
-        this.improvedPomSupportEnabled = metadata.isImprovedPomSupportEnabled();
         this.objectInstantiator = metadata.getObjectInstantiator();
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
@@ -189,7 +187,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        this.improvedPomSupportEnabled = metadata.improvedPomSupportEnabled;
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
@@ -201,7 +198,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     @Override
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
-        return isJavaLibrary() ? Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants()) : Optional.<ImmutableList<? extends ConfigurationMetadata>>absent();
+        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants());
     }
 
     ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
@@ -232,10 +229,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
-    }
-
-    private boolean isJavaLibrary() {
-        return improvedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
     }
 
     @Nullable

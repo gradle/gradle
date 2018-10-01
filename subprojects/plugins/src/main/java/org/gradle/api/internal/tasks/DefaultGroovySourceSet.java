@@ -18,10 +18,12 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.GroovySourceSet;
+
+import javax.annotation.Nullable;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.ConfigureUtil.configure;
@@ -30,10 +32,10 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     private final SourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
-    public DefaultGroovySourceSet(String name, String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        groovy = sourceDirectorySetFactory.create(name, displayName +  " Groovy source");
+    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory) {
+        groovy = objectFactory.sourceDirectorySet(name, displayName +  " Groovy source");
         groovy.getFilter().include("**/*.java", "**/*.groovy");
-        allGroovy = sourceDirectorySetFactory.create(displayName + " Groovy source");
+        allGroovy = objectFactory.sourceDirectorySet("all" + name, displayName + " Groovy source");
         allGroovy.source(groovy);
         allGroovy.getFilter().include("**/*.groovy");
     }
@@ -42,7 +44,7 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
         return groovy;
     }
 
-    public GroovySourceSet groovy(Closure configureClosure) {
+    public GroovySourceSet groovy(@Nullable Closure configureClosure) {
         configure(configureClosure, getGroovy());
         return this;
     }

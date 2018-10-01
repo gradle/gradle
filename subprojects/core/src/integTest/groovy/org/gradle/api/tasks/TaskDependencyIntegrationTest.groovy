@@ -36,11 +36,15 @@ class TaskDependencyIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
+        executer.expectDeprecationWarning()
         succeeds "foo"
 
         then:
         result.assertTasksExecuted(":foo")
         result.assertTaskNotExecuted(":bar")
+
+        and:
+        outputContains("Do not remove a task dependency from a Task instance. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.")
     }
 
     def "can remove a Task instance from task dependencies containing a Provider to the Task instance"() {
@@ -66,6 +70,9 @@ class TaskDependencyIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksExecuted(":foo")
         result.assertTaskNotExecuted(":bar")
+
+        and:
+        outputContains("Do not remove a task dependency from a Task instance. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.")
     }
 
     def "can remove a Provider instance from task dependencies containing the Provider"() {
@@ -85,10 +92,14 @@ class TaskDependencyIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
+        executer.expectDeprecationWarning()
         succeeds "foo"
 
         then:
         result.assertTasksExecuted(":foo")
         result.assertTaskNotExecuted(":bar")
+
+        and:
+        outputContains("Do not remove a task dependency from a Task instance. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.")
     }
 }

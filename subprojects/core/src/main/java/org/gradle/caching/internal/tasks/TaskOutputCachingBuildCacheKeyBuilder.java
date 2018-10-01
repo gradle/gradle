@@ -35,5 +35,5 @@ public interface TaskOutputCachingBuildCacheKeyBuilder {
 
     TaskOutputCachingBuildCacheKey build();
 
-    void inputPropertyLoadedByUnknownClassLoader(String propertyName);
+    void inputPropertyNotCacheable(String propertyName, String nonCacheableReason);
 }

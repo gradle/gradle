@@ -38,7 +38,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
-        runner.targetVersions = ["4.10-20180814092840+0000"]
+        runner.targetVersions = ["5.0-20180930035444+0000"]
         runner.args = ["-Djava9Home=${System.getProperty('java9Home')}"]
 
         when:

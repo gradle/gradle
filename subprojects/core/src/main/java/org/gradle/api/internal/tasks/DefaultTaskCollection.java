@@ -15,17 +15,21 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
@@ -33,23 +37,31 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Map;
+
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
     private static final Task.Namer NAMER = new Task.Namer();
 
     protected final ProjectInternal project;
 
-    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project) {
+    private final MutationGuard parentMutationGuard;
+
+    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
         super(type, instantiator, NAMER);
         this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
     }
 
-    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project) {
+    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
         super(collection, filter, instantiator, NAMER);
         this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project);
+        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
     }
 
     @Override
@@ -86,69 +98,100 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
+    protected InvalidUserDataException createWrongTypeException(String name, Class expected, Class actual) {
+        return new InvalidUserDataException(String.format("The task '%s' (%s) is not a subclass of the given type (%s).", name, actual.getCanonicalName(), expected.getCanonicalName()));
+    }
+
+    @Override
     public TaskProvider<T> named(String name) throws UnknownTaskException {
         return (TaskProvider<T>) super.named(name);
     }
 
     @Override
-    protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
-        TaskInternal taskInternal = (TaskInternal) object;
-        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object, taskIdentity));
+    public TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException {
+        return (TaskProvider<T>) super.named(name, configurationAction);
     }
 
-    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
+        return (TaskProvider<S>) super.named(name, type);
+    }
 
-        final TaskIdentity<I> identity;
-        boolean removed = false;
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
+        return (TaskProvider<S>) super.named(name, type, configurationAction);
+    }
 
-        DefaultTaskProvider(TaskIdentity<I> identity) {
-            this.identity = identity;
-        }
+    @Override
+    protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
+        // TODO: This isn't quite right. We're leaking the _implementation_ type here.  But for tasks, this is usually right.
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType()));
+    }
 
-        @Override
-        public String getName() {
-            return identity.name;
-        }
+    @Override
+    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
+        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    }
 
-        @Override
-        public Class<I> getType() {
-            return identity.type;
-        }
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return new NamedDomainObjectCollectionSchema() {
+            @Override
+            public Iterable<? extends NamedDomainObjectSchema> getElements() {
+                return Iterables.concat(
+                    Iterables.transform(index.asMap().entrySet(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
 
-        @Override
-        public boolean isPresent() {
-            return findDomainObject(identity.name) != null;
-        }
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    // TODO: This returns the wrong public type for domain objects
+                                    // created with the eager APIs or added directly to the container.
+                                    // This can leak internal types.
+                                    // We do not currently keep track of the type used when creating
+                                    // a domain object (via create) or the type of the container when
+                                    // a domain object is added directly (via add).
+                                    return new DslObject(e.getValue()).getPublicType();
+                                }
+                            };
+                        }
+                    }),
+                    Iterables.transform(index.getPendingAsMap().entrySet(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
 
-        @Override
-        public String toString() {
-            return String.format("provider(task %s, %s)", identity.name, identity.type);
-        }
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    return typeOf(e.getValue().getType());
+                                }
+                            };
+                        }
+                    })
+                );
+            }
+        };
     }
 
     // Cannot be private due to reflective instantiation
-    public class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
-
-        private final I task;
-
-        public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
-            super(identity);
-            this.task = task;
+    public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
+        public ExistingTaskProvider(String name, Class type) {
+            super(name, type);
         }
 
         @Override
-        public void configure(Action<? super I> action) {
-            action.execute(task);
-        }
-
-        @Override
-        public boolean isPresent() {
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
             return true;
-        }
-
-        public I getOrNull() {
-            return task;
         }
     }
 }

@@ -21,15 +21,11 @@ plugins {
 
 apply from: 'templates.gradle'
 
-tasks.named("performanceReport").configure {
-    resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
-}
-
 dependencies {
     // so that all Gradle features are available
     performanceTestRuntime allTestRuntimeDependencies
 
-    testFixturesCompile project(':internalPerformanceTesting')
+    testFixturesApi project(':internalPerformanceTesting')
 }
 
 gradlebuildJava {
@@ -39,5 +35,3 @@ gradlebuildJava {
 tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
-
-tasks.named("performanceAdhocTest").configure { enabled = false }

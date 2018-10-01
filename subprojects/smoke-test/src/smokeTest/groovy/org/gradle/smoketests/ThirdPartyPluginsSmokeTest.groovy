@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -234,6 +235,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.gosu-lang.gosu')
+    @Ignore("Relies on SourceTask.source - https://github.com/gosu-lang/gradle-gosu-plugin/issues/47")
     def 'gosu plugin'() { // Requires JDK 8 or later
         given:
         buildFile << """
@@ -265,36 +267,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':compileGosu').outcome == SUCCESS
-    }
-
-    @Issue('https://plugins.gradle.org/plugin/org.xtext.xtend')
-    def 'xtend plugin'() {
-        given:
-        buildFile << """
-            plugins {
-                id "org.xtext.xtend" version "${TestedVersions.xtend}"
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
-            }
-            """.stripIndent()
-
-        file('src/main/java/HelloWorld.xtend') << """
-            class HelloWorld {
-                def static void main(String[] args) {
-                    println("Hello World")
-                }
-            }
-            """
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':generateXtext').outcome == SUCCESS
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')

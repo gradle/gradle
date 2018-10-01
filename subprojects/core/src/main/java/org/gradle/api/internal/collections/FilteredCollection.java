@@ -16,8 +16,11 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -92,6 +95,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int estimatedSize() {
         return collection.estimatedSize();
+    }
+
+    @Override
+    public MutationGuard getMutationGuard() {
+        return collection.getMutationGuard();
     }
 
     private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
@@ -193,6 +201,18 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public boolean removePending(ProviderInternal<? extends S> provider) {
         return collection.removePending(provider);
+    }
+
+    @Override
+    public boolean addPendingCollection(CollectionProviderInternal<S, ? extends Iterable<S>> provider) {
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerOfT = Cast.uncheckedCast(provider);
+        return collection.addPendingCollection(providerOfT);
+    }
+
+    @Override
+    public boolean removePendingCollection(CollectionProviderInternal<S, ? extends Iterable<S>> provider) {
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerOfT = Cast.uncheckedCast(provider);
+        return collection.removePendingCollection(providerOfT);
     }
 
     @Override

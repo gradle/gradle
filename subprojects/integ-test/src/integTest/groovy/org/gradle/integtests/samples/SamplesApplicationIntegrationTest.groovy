@@ -19,66 +19,81 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'application')
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
-    def canRunTheApplicationUsingRunTask() {
+    @Unroll
+    def "can run the application using run task with #dsl dsl"() {
         when:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
         succeeds('run')
 
         then:
         outputContains('Greetings from the sample application.')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
-    def canBuildAndRunTheInstalledApplication() {
+    def "can build and run the installed application with #dsl dsl"() {
         when:
-        appendExecutableDir(executableDir)
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        appendExecutableDir(dslDir, executableDir)
+        executer.inDirectory(dslDir)
         succeeds('installDist')
 
         then:
-        def installDir = sample.dir.file('build/install/application')
+        def installDir = dslDir.file('build/install/application')
         installDir.assertIsDir()
 
         checkApplicationImage(installDir, executableDir)
 
         where:
         executableDir << ['bin', 'customBin']
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
-    def canBuildAndRunTheZippedDistribution() {
+    def "can build and run the zipped distribution with #dsl dsl"() {
         when:
-        appendExecutableDir(executableDir)
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        appendExecutableDir(dslDir, executableDir)
+        executer.inDirectory(dslDir)
         succeeds('distZip')
 
         then:
-        def distFile = sample.dir.file('build/distributions/application-1.0.2.zip')
+        def distFile = dslDir.file('build/distributions/application-1.0.2.zip')
         distFile.assertIsFile()
 
-        def installDir = sample.dir.file('unzip')
+        def installDir = dslDir.file('unzip')
         distFile.usingNativeTools().unzipTo(installDir)
 
         checkApplicationImage(installDir.file('application-1.0.2'), executableDir)
 
         where:
+        dsl << ['groovy', 'kotlin']
         executableDir << ['bin', 'customBin']
     }
 
-    private void appendExecutableDir(String executableDir) {
-        sample.dir.file('build.gradle') << """
-executableDir = '${executableDir}' 
+    private void appendExecutableDir(TestFile dslDir, String executableDir) {
+        def extension = dslDir.name == 'groovy' ? 'gradle' : 'gradle.kts'
+        dslDir.file("build.$extension") << """
+application {
+    executableDir = "${executableDir}" 
+}
 """
     }
 

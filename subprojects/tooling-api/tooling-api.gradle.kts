@@ -22,6 +22,7 @@ import org.gradle.gradlebuild.packaging.ShadedJarExtension
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     id("gradlebuild.shaded-jar")
@@ -47,8 +48,8 @@ dependencies {
     publishCompile(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
     compile(library("jcip"))
 
-    testFixturesCompile(project(":baseServicesGroovy"))
-    testFixturesCompile(project(":internalIntegTesting"))
+    testFixturesApi(project(":baseServicesGroovy"))
+    testFixturesApi(project(":internalIntegTesting"))
 
     integTestRuntime(project(":toolingApiBuilders"))
     integTestRuntime(project(":ivy"))
@@ -73,10 +74,11 @@ testFixtures {
 
 apply(from = "buildship.gradle")
 
-tasks.named("sourceJar").configureAs<Jar> {
+tasks.named<Jar>("sourceJar") {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
+        val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        from(sourceSet.groovy.srcDirs)
+        from(sourceSet.java.srcDirs)
     }
 }
 
@@ -84,15 +86,15 @@ eclipse {
     classpath {
         file.whenMerged(Action<Classpath> {
             //**TODO
-            entries.removeAll { path.contains("src/test/groovy") }
-            entries.removeAll { path.contains("src/integTest/groovy") }
+            entries.removeAll { it is SourceFolder && it.path.contains("src/test/groovy") }
+            entries.removeAll { it is SourceFolder && it.path.contains("src/integTest/groovy") }
         })
     }
 }
 
 tasks.register<Upload>("publishLocalArchives") {
     val repoBaseDir = rootProject.file("build/repo")
-    configuration = configurations.publishRuntime
+    configuration = configurations["publishRuntime"] // TODO:kotlin-dsl revert to accessor
     isUploadDescriptor = false
     repositories {
         ivy {

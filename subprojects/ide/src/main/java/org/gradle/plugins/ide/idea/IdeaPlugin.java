@@ -60,7 +60,6 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -139,12 +138,6 @@ public class IdeaPlugin extends IdePlugin {
         configureForWarPlugin(project);
         configureForScalaPlugin();
         linkCompositeBuildDependencies((ProjectInternal) project);
-    }
-
-    // No one should be calling this.
-    @Deprecated
-    public void performPostEvaluationActions() {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("performPostEvaluationActions");
     }
 
     private void configureIdeaWorkspace(final Project project) {
@@ -375,14 +368,14 @@ public class IdeaPlugin extends IdePlugin {
             @Override
             public Set<File> call() {
                 SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                return sourceSets.getByName("main").getAllSource().getSrcDirs();
+                return sourceSets.getByName("main").getAllJava().getSrcDirs();
             }
         });
         convention.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
                 SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                return sourceSets.getByName("test").getAllSource().getSrcDirs();
+                return sourceSets.getByName("test").getAllJava().getSrcDirs();
             }
         });
         convention.map("resourceDirs", new Callable<Set<File>>() {
@@ -507,7 +500,7 @@ public class IdeaPlugin extends IdePlugin {
 
     private void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
-        project.getTasks().named(IDEA_MODULE_TASK_NAME).configure(dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
+        project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {

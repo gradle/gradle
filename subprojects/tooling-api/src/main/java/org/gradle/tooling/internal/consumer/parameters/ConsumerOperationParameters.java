@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("deprecation")
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
 
     public static Builder builder() {
@@ -113,9 +114,30 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
+        public Builder addJvmArguments(List<String> jvmArguments) {
+            this.jvmArguments = concat(this.jvmArguments, jvmArguments);
+            return this;
+        }
+
         public Builder setArguments(List<String> arguments) {
             this.arguments = arguments;
             return this;
+        }
+
+        public Builder addArguments(List<String> arguments) {
+            this.arguments = concat(this.arguments, arguments);
+            return this;
+        }
+
+        private static List<String> concat(List<String> first, List<String> second) {
+            List<String> result = new ArrayList<String>();
+            if (first  != null) {
+                result.addAll(first);
+            }
+            if (second != null) {
+                result.addAll(second);
+            }
+            return result;
         }
 
         public Builder setEnvironmentVariables(Map<String, String> envVariables) {

@@ -46,14 +46,21 @@ public interface MutableVersionConstraint extends VersionConstraint {
     void setBranch(@Nullable String branch);
 
     /**
-     * Sets the preferred version of this module. Any other rejection/strict constraint will be overriden.
+     * Sets the required version of this module. Any other version constraints will be overriden.
+     * @param version the required version of this module
+     * @since 5.0
+     */
+    void require(String version);
+
+    /**
+     * Sets the preferred version of this module. Any other version constraints will be overriden.
      * @param version the preferred version of this module
      */
     void prefer(String version);
 
     /**
      * Sets the version as strict, meaning that if any other dependency version for this module disagrees with
-     * this version, resolution will fail.
+     * this version, resolution will fail. Any other version constraints will be overriden.
      *
      * @param version the strict version to be used for this module
      */

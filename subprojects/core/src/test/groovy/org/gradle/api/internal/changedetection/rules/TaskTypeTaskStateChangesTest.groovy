@@ -37,9 +37,6 @@ class TaskTypeTaskStateChangesTest extends Specification {
     def task = Stub(TaskInternal) {
         getIdentityPath() >> Path.path(":test")
     }
-    def hasher = Mock(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(taskLoader) >> taskLoaderHash
-    }
 
     TaskExecution mockExecution(ImplementationSnapshot impl, ImplementationSnapshot... actions) {
         return Mock(TaskExecution) {
@@ -134,7 +131,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' was loaded with an unknown classloader"]
+        changes == ["Task ':test' was loaded with an unknown classloader (class 'SimpleTask')."]
     }
 
     def "not up-to-date when task action is loaded with an unknown classloader"() {
@@ -144,7 +141,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' has an additional action that was loaded with an unknown classloader"]
+        changes == ["Task ':test' has an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$TestAction')."]
     }
 
     def "not up-to-date when task was previously loaded with an unknown classloader"() {
@@ -154,7 +151,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' was loaded with an unknown classloader during the previous execution"]
+        changes == ["During the previous execution of the task ':test', it was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$SimpleTask')."]
     }
 
     def "not up-to-date when task action was previously loaded with an unknown classloader"() {
@@ -164,7 +161,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' had an additional action that was loaded with an unknown classloader during the previous execution"]
+        changes == ["During the previous execution of the task ':test', it had an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$TestAction')."]
     }
 
     List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {
@@ -174,7 +171,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {
-        new ImplementationSnapshot(type.getName(), classLoaderHash)
+        ImplementationSnapshot.of(type.getName(), classLoaderHash)
     }
 
     private class SimpleTask extends DefaultTask {}
@@ -186,18 +183,6 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     private static class TestAction implements ContextAwareTaskAction {
-        final ClassLoader classLoader
-        final String actionClassName
-
-        TestAction() {
-            this(TestAction, TestAction.classLoader)
-        }
-
-        TestAction(Class<?> actionType, ClassLoader classLoader) {
-            this.actionClassName = actionType.name
-            this.classLoader = classLoader
-        }
-
         @Override
         void contextualise(TaskExecutionContext context) {
         }
@@ -213,6 +198,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
         @Override
         String getDisplayName() {
             return "Execute test action"
+        }
+
+        @Override
+        ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            return ImplementationSnapshot.of(getClass(), hasher)
         }
     }
 }

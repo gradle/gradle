@@ -26,7 +26,7 @@ class ClasspathUtilTest extends Specification {
 
     def "filters non-file URLs from classpath"() {
         given:
-        def classLoader = factory.createIsolatedClassLoader(DefaultClassPath.of([]))
+        def classLoader = factory.createIsolatedClassLoader("test", DefaultClassPath.of([]))
         def urlClassLoader = new URLClassLoader([JAR_URL, HTTP_URL, FILE_URL] as URL[], classLoader)
 
         when:

@@ -1,0 +1,27 @@
+// tag::use-plugin[]
+// tag::use-task[]
+buildscript {
+    repositories {
+        maven {
+// end::use-task[]
+// end::use-plugin[]
+            def producerName = findProperty('producerName') ?: 'plugin'
+            def repoLocation = "../$producerName/build/repo"
+// tag::use-plugin[]
+// tag::use-task[]
+            url = uri(repoLocation)
+        }
+    }
+    dependencies {
+        classpath 'org.gradle:customPlugin:1.0-SNAPSHOT'
+    }
+}
+// end::use-task[]
+apply plugin: 'org.samples.greeting'
+// end::use-plugin[]
+// tag::use-task[]
+
+task greeting(type: org.gradle.GreetingTask) {
+    greeting = 'howdy!'
+}
+// end::use-task[]

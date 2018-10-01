@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -39,14 +39,14 @@ public class CachingResourceHasher implements ResourceHasher {
     public CachingResourceHasher(ResourceHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.newHasher();
         delegate.appendConfigurationToHasher(hasher);
         this.delegateConfigurationHash = hasher.hash();
     }
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         return resourceSnapshotterCacheService.hashFile(fileSnapshot, delegate, delegateConfigurationHash);
     }
 
@@ -56,7 +56,7 @@ public class CachingResourceHasher implements ResourceHasher {
     }
 
     @Override
-    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(Hasher hasher) {
         delegate.appendConfigurationToHasher(hasher);
     }
 }

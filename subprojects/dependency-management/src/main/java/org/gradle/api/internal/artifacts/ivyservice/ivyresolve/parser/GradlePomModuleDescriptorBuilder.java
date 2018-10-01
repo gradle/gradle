@@ -34,6 +34,7 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MavenDependencyType;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -101,16 +102,17 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(PomDependencyData dep) {
-        doAddDependency(dep, dep.isOptional(), false);
+        MavenDependencyType type = dep.isOptional() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY;
+        doAddDependency(dep, type);
     }
 
     public void addConstraint(PomDependencyMgt dep) {
-        doAddDependency(dep, true, true);
+        doAddDependency(dep, MavenDependencyType.DEPENDENCY_MANAGEMENT);
     }
 
-    private void doAddDependency(PomDependencyMgt dep, boolean optional, boolean useCompileScope) {
+    private void doAddDependency(PomDependencyMgt dep, MavenDependencyType dependencyType) {
         MavenScope scope;
-        if (useCompileScope) {
+        if (dependencyType == MavenDependencyType.DEPENDENCY_MANAGEMENT) {
             scope = MavenScope.Compile;
         } else {
             String scopeString = dep.getScope();
@@ -164,7 +166,7 @@ public class GradlePomModuleDescriptorBuilder {
             excludes.add(rule);
         }
 
-        dependencies.add(new MavenDependencyDescriptor(scope, optional, selector, dependencyArtifact, excludes));
+        dependencies.add(new MavenDependencyDescriptor(scope, dependencyType, selector, dependencyArtifact, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {
@@ -251,7 +253,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        dependencies.add(new MavenDependencyDescriptor(MavenScope.Runtime, false, selector, null, ImmutableList.<ExcludeMetadata>of()));
+        dependencies.add(new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.RELOCATION, selector, null, ImmutableList.<ExcludeMetadata>of()));
     }
 
     private String getDefaultVersion(PomDependencyMgt dep) {

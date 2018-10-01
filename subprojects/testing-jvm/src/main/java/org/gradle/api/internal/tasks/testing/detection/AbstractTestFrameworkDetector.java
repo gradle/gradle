@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.internal.IoActions;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
@@ -125,7 +126,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         } catch (Throwable e) {
             throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);
         } finally {
-            IOUtils.closeQuietly(classStream);
+            IoActions.closeQuietly(classStream);
         }
 
         return classVisitor;

@@ -20,6 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskState;
 
+import javax.annotation.Nullable;
+
 public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean actionable = true;
@@ -44,6 +46,7 @@ public class TaskStateInternal implements TaskState {
         return !getExecuted() && !executing;
     }
 
+    @Nullable
     public TaskExecutionOutcome getOutcome() {
         return outcome;
     }
@@ -60,6 +63,11 @@ public class TaskStateInternal implements TaskState {
         assert this.failure == null;
         this.outcome = TaskExecutionOutcome.EXECUTED;
         this.failure = failure;
+    }
+
+    public void setAborted(String message) {
+        this.outcome = TaskExecutionOutcome.EXECUTED;
+        this.failure = new GradleException(message);
     }
 
     public boolean getExecuting() {

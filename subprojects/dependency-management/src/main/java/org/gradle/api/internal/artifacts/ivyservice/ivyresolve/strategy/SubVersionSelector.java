@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 /**
  * Version matcher for dynamic version selectors ending in '+'.
  */
-public class SubVersionSelector extends AbstractStringVersionSelector implements LockingAwareSelector {
+public class SubVersionSelector extends AbstractStringVersionSelector {
     private final String prefix;
 
     public SubVersionSelector(String selector) {
@@ -51,19 +51,4 @@ public class SubVersionSelector extends AbstractStringVersionSelector implements
         return false;
     }
 
-    @Override
-    public VersionSelector forLocking() {
-        return new LockingAwareSubVersionSelector(getSelector());
-    }
-
-    private static class LockingAwareSubVersionSelector extends SubVersionSelector {
-        public LockingAwareSubVersionSelector(String selector) {
-            super(selector);
-        }
-
-        @Override
-        public boolean canShortCircuitWhenVersionAlreadyPreselected() {
-            return true;
-        }
-    }
 }

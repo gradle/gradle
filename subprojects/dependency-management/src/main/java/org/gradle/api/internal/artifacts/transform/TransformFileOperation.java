@@ -31,16 +31,22 @@ class TransformFileOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
     private final File file;
     private final ArtifactTransformer transform;
+    private final ArtifactTransformListener transformListener;
     private Throwable failure;
     private List<File> result;
 
-    TransformFileOperation(File file, ArtifactTransformer transform) {
+    TransformFileOperation(File file, ArtifactTransformer transform, ArtifactTransformListener transformListener) {
         this.file = file;
         this.transform = transform;
+        this.transformListener = transformListener;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
+        boolean hasCachedResult = transform.hasCachedResult(file);
+        if (!hasCachedResult) {
+            transformListener.beforeTransform(transform, null, file);
+        }
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
@@ -48,6 +54,9 @@ class TransformFileOperation implements RunnableBuildOperation {
             result = transform.transform(file);
         } catch (Throwable t) {
             failure = t;
+        }
+        if (!hasCachedResult) {
+            transformListener.afterTransform(transform, null, file, failure);
         }
     }
 

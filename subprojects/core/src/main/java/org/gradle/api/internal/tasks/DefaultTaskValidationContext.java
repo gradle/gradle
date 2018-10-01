@@ -23,12 +23,10 @@ import java.util.Collection;
 public class DefaultTaskValidationContext implements TaskValidationContext {
     private final FileResolver resolver;
     private final Collection<String> messages;
-    private Severity highestSeverity;
 
     public DefaultTaskValidationContext(FileResolver resolver, Collection<String> messages) {
         this.resolver = resolver;
         this.messages = messages;
-        this.highestSeverity = Severity.WARNING;
     }
 
     @Override
@@ -37,15 +35,7 @@ public class DefaultTaskValidationContext implements TaskValidationContext {
     }
 
     @Override
-    public void recordValidationMessage(Severity severity, String message) {
-        if (severity.compareTo(highestSeverity) > 0) {
-            highestSeverity = severity;
-        }
+    public void recordValidationMessage(String message) {
         messages.add(message);
-    }
-
-    @Override
-    public Severity getHighestSeverity() {
-        return highestSeverity;
     }
 }

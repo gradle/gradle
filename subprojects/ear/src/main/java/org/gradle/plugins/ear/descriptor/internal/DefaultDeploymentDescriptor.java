@@ -19,13 +19,13 @@ import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import groovy.xml.QName;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.xml.XmlTransformer;
@@ -257,7 +257,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             }
             return parser;
         } catch (Exception ex) {
-            throw new UncheckedException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 
@@ -327,9 +327,9 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         } catch (SAXException ex) {
-            throw new UncheckedException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         } finally {
-            IOUtils.closeQuietly(reader);
+            IoActions.closeQuietly(reader);
         }
         return this;
     }

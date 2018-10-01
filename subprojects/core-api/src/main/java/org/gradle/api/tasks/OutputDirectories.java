@@ -31,14 +31,14 @@ import java.lang.annotation.Target;
  * <p>This will cause the task to be considered out-of-date when the directory paths or task
  * output to those directories have been modified since the task was last run.</p>
  *
- * <p>When the annotated property is a {@link java.util.Map}, then each output directory
- * will be associated with an identity. For cacheable tasks this is a requirement.
- * The keys of the map must be non-empty strings.
+ * <p>When the annotated property is a {@link java.util.Map}, the keys of the map must be non-empty strings.
  * The values of the map will be evaluated to individual directories as per
  * {@link org.gradle.api.Project#file(Object)}.</p>
  *
- * <p>Otherwise the given directories will be evaluated as per {@link org.gradle.api.Project#files(Object...)},
- * and task output caching will be disabled for the task.</p>
+ * <p>
+ * Otherwise the given directories will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+ * Task output caching will be disabled if the outputs contain file trees.
+ * </p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

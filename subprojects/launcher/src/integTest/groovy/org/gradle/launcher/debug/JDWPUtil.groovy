@@ -16,11 +16,8 @@
 
 package org.gradle.launcher.debug
 
-import com.sun.jdi.Bootstrap
-import com.sun.jdi.VMDisconnectedException
-import com.sun.jdi.VirtualMachine
-import com.sun.jdi.VirtualMachineManager
-import com.sun.jdi.connect.AttachingConnector
+import org.gradle.util.ports.DefaultPortDetector
+import org.junit.Assume
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -31,10 +28,11 @@ import org.junit.runners.model.Statement
 class JDWPUtil implements TestRule {
     String host
     Integer port
-    VirtualMachine vm
+    def vm
 
     JDWPUtil(Integer port) {
-        this.port = port
+        this("127.0.0.1", port)
+        Assume.assumeTrue(new DefaultPortDetector().isAvailable(port))
     }
 
     JDWPUtil(String host, Integer port) {
@@ -53,25 +51,29 @@ class JDWPUtil implements TestRule {
         }
     }
 
-    public VirtualMachine connect() {
+    def connect() {
         if (vm == null) {
-            VirtualMachineManager vmm = Bootstrap.virtualMachineManager()
-            AttachingConnector connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
+            def vmm = Class.forName("com.sun.jdi.Bootstrap").virtualMachineManager()
+            def connection = vmm.attachingConnectors().find { "dt_socket".equalsIgnoreCase(it.transport().name()) }
             def connectionArgs = connection.defaultArguments()
             connectionArgs.get("port").setValue(port as String)
-            connectionArgs.get("hostname").setValue(host ?: "127.0.0.1")
-            vm = connection.attach(connectionArgs)
+            connectionArgs.get("hostname").setValue(host)
+            this.vm = connection.attach(connectionArgs)
         }
         return vm
     }
 
-    public void close() {
+    void close() {
         if (vm != null) {
             try {
                 vm.dispose()
-            } catch (VMDisconnectedException e) {
-                // This is ok - we're just trying to make sure all resources are released and threads
-                // have been resumed - this implies the VM has exited already.
+            } catch (Exception e) {
+                if (e.class.getName() == "com.sun.jdi.VMDisconnectedException") {
+                    // This is ok - we're just trying to make sure all resources are released and threads
+                    // have been resumed - this implies the VM has exited already.
+                } else {
+                    throw e
+                }
             }
         }
     }

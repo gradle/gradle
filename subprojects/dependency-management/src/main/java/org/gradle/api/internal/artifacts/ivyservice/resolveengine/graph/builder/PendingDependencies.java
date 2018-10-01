@@ -17,41 +17,45 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Sets;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class PendingDependencies {
-    private boolean noLongerPending;
     private final Set<NodeState> affectedComponents;
+    private int hardEdges;
 
-    public static PendingDependencies pending() {
-        return new PendingDependencies(Sets.<NodeState>newLinkedHashSet(), false);
-    }
-
-    public static PendingDependencies notPending() {
-        return new PendingDependencies(Collections.<NodeState>emptySet(), true);
-    }
-
-    private PendingDependencies(Set<NodeState> nodeStates, boolean noLongerPending) {
-        this.affectedComponents = nodeStates;
-        this.noLongerPending = noLongerPending;
+    PendingDependencies() {
+        this.affectedComponents = Sets.newLinkedHashSet();
+        this.hardEdges = 0;
     }
 
     void addNode(NodeState state) {
-        if (noLongerPending) {
+        if (hardEdges != 0) {
             throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");
         }
         affectedComponents.add(state);
     }
 
     void turnIntoHardDependencies() {
-        noLongerPending = true;
         for (NodeState affectedComponent : affectedComponents) {
             affectedComponent.resetSelectionState();
         }
+        affectedComponents.clear();
     }
 
     public boolean isPending() {
-        return !noLongerPending;
+        return hardEdges == 0;
+    }
+
+    boolean hasPendingComponents() {
+        return !affectedComponents.isEmpty();
+    }
+
+    void increaseHardEdgeCount() {
+        hardEdges++;
+    }
+
+    void decreaseHardEdgeCount() {
+        assert hardEdges > 0 : "Cannot remove a hard edge when none recorded";
+        hardEdges--;
     }
 }

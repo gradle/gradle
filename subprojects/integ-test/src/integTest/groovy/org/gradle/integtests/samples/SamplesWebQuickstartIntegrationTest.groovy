@@ -23,11 +23,11 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 
 class SamplesWebQuickstartIntegrationTest extends AbstractPluginIntegrationTest {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart/groovy')
     @Rule ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "can build a war"() {

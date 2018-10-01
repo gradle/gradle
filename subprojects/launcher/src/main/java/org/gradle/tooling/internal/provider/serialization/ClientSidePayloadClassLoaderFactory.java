@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -40,13 +41,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         this.classLoaderFactory = classLoaderFactory;
     }
 
+    @Override
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec clSpec = (VisitableURLClassLoader.Spec) spec;
             if (parents.size() != 1) {
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
-            return new MixInClassLoader(parents.get(0), clSpec.getClasspath());
+            return new MixInClassLoader(clSpec.getName() + "-client-payload-loader", parents.get(0), clSpec.getClasspath());
         }
         return classLoaderFactory.getClassLoaderFor(spec, parents);
     }
@@ -54,15 +56,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
     private static class MixInClassLoader extends TransformingClassLoader {
         static {
             try {
-                //noinspection Since15
                 ClassLoader.registerAsParallelCapable();
             } catch (NoSuchMethodError ignore) {
                 // Not supported on Java 6
             }
         }
 
-        public MixInClassLoader(ClassLoader parent, List<URL> classPath) {
-            super(parent, classPath);
+        public MixInClassLoader(String name, ClassLoader parent, List<URL> classPath) {
+            super(name, parent, classPath);
         }
 
         @Override
@@ -97,14 +98,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private boolean found;
 
             private AnnotationDetector() {
-                super(Opcodes.ASM6);
+                super(AsmConstants.ASM_LEVEL);
             }
 
             public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 if (desc.equals(ANNOTATION_DESCRIPTOR)) {
                     found = true;
                 }
-                return new AnnotationVisitor(Opcodes.ASM6) {
+                return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
 
                     @Override
                     public void visit(String name, Object value) {
@@ -120,7 +121,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private final String mixInInterface;
 
             public TransformingAdapter(ClassWriter classWriter, String mixInInterface) {
-                super(Opcodes.ASM6, classWriter);
+                super(AsmConstants.ASM_LEVEL, classWriter);
                 this.mixInInterface = mixInInterface;
             }
 

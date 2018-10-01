@@ -31,7 +31,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
-import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
@@ -50,10 +49,12 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -68,9 +69,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -80,7 +79,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
@@ -154,19 +152,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         patternSet = getFileResolver().getPatternSetFactory().create();
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
-
-        // TODO: This can go away when we remove -Dtest.single
-        String singleTest = getTestSingleSystemPropertyValue();
-        if (singleTest==null) {
-            getInputs().files(new Callable<FileTree>() {
-                @Override
-                public FileTree call() throws Exception {
-                    return getCandidateClassFiles();
-                }
-            }).withPropertyName("nonEmptyCandidateClassFiles").withPathSensitivity(PathSensitivity.RELATIVE).skipWhenEmpty();
-        } else {
-            addTestListener(new NoMatchingTestsReporter("Could not find matching test for pattern: " + singleTest));
-        }
     }
 
     @Inject
@@ -450,7 +435,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     public boolean getDebug() {
-        checkBackwardsCompatibilitySystemPropertyDebugFlag();
         return forkOptions.getDebug();
     }
 
@@ -724,35 +708,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the root folder for the compiled test sources.
-     *
-     * @return All test class directories to be used.
-     * @deprecated Use {@link #getTestClassesDirs()}.
-     */
-    @Deprecated
-    @Internal
-    @Nullable
-    public File getTestClassesDir() {
-        SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
-        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
-            return null;
-        }
-        return getProject().file(CollectionUtils.first(testClassesDirs));
-    }
-
-    /**
-     * Sets the root folder for the compiled test sources.
-     *
-     * @param testClassesDir The root folder
-     * @deprecated Use {@link #setTestClassesDirs(FileCollection)}.
-     */
-    @Deprecated
-    public void setTestClassesDir(File testClassesDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
-        setTestClassesDirs(getProject().files(testClassesDir));
-    }
-
-    /**
      * Returns the directories for the compiled test sources.
      *
      * @return All test class directories to be used.
@@ -973,7 +928,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param testFrameworkConfigure An action used to configure the TestNG options.
      * @since 3.5
      */
-    public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
+    public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
     }
 
@@ -1054,8 +1009,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    @SkipWhenEmpty
     public FileTree getCandidateClassFiles() {
-        checkBackwardsCompatibilitySystemPropertySingleTest();
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
 
@@ -1077,49 +1032,5 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
-    }
-
-    private void checkBackwardsCompatibilitySystemPropertyDebugFlag() {
-        String debugProp = getTaskPrefixedProperty("debug", "Use --debug-jvm to enable remote debugging of tests.");
-        if (debugProp != null) {
-            setDebug(true);
-        }
-    }
-
-    private void checkBackwardsCompatibilitySystemPropertySingleTest() {
-        String singleTest = getTestSingleSystemPropertyValue();
-        if (singleTest != null) {
-            setIncludes(Collections.singletonList("**/" + singleTest + "*.class"));
-        }
-    }
-
-    @Nullable
-    private String getTestSingleSystemPropertyValue() {
-        return getTaskPrefixedProperty("single", "Use --tests to filter which tests to run instead.");
-    }
-
-    /**
-     * This returns the value of a system property named
-     * ${path}.${propertyName} or ${name}.${propertyName}
-     * which would look like:
-     * :subproject:test.debug or test.debug
-     */
-    @Nullable
-    private String getTaskPrefixedProperty(String propertyName, String replacement) {
-        String suffix = '.' + propertyName;
-        String value = getPrefixedProperty(getPath() + suffix, replacement);
-        if (value == null) {
-            return getPrefixedProperty(getName() + suffix, replacement);
-        }
-        return value;
-    }
-
-    @Nullable
-    private String getPrefixedProperty(String propertyName, String replacement) {
-        String value = System.getProperty(propertyName);
-        if (value != null) {
-            SingleMessageLogger.nagUserWithDeprecatedBuildInvocationFeature("System property '" + propertyName + "'", replacement);
-        }
-        return value;
     }
 }

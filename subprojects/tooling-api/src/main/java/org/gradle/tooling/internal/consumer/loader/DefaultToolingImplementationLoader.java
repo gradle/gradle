@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+@SuppressWarnings("deprecation")
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
     private final ClassLoader classLoader;
@@ -132,6 +133,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader, filterSpec);
-        return new VisitableURLClassLoader(filteringClassLoader, implementationClasspath);
+        return new VisitableURLClassLoader("tooling-implementation-loader", filteringClassLoader, implementationClasspath);
     }
 }

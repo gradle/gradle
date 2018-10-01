@@ -28,6 +28,7 @@ class MavenProfileResolveIntegrationTest extends AbstractHttpDependencyResolutio
         settingsFile << "rootProject.name = 'test' "
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+        resolve.expectDefaultConfiguration('runtime')
     }
 
     def "uses properties from active profile to resolve dependency"() {

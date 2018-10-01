@@ -35,14 +35,21 @@ import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -52,6 +59,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
@@ -74,8 +82,6 @@ import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.hash.ContentHasherFactory;
-import org.gradle.internal.hash.DefaultContentHasherFactory;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -237,7 +243,7 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
-        return new CrossBuildInMemoryCacheFactory(listenerManager);
+        return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
     }
 
     InMemoryCacheDecoratorFactory createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
@@ -314,8 +320,13 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
-        return new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(services), NamedObjectInstantiator.INSTANCE);
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new DefaultObjectFactory(
+            instantiatorFactory.injectAndDecorate(services),
+            NamedObjectInstantiator.INSTANCE,
+            fileResolver,
+            directoryFileTreeFactory,
+            new DefaultFilePropertyFactory(fileResolver));
     }
 
     ProviderFactory createProviderFactory() {
@@ -350,12 +361,16 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(outputEventListener), clock, buildOperationIdFactory);
     }
 
-    ContentHasherFactory createHasherFactory() {
-        return new DefaultContentHasherFactory();
+    PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultPropertyMetadataStore(annotationHandlers, cacheFactory);
     }
 
-    StreamHasher createStreamHasher(ContentHasherFactory hasherFactory) {
-        return new DefaultStreamHasher(hasherFactory);
+    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTaskClassInfoStore(cacheFactory);
+    }
+
+    StreamHasher createStreamHasher() {
+        return new DefaultStreamHasher();
     }
 
     Clock createClock() {

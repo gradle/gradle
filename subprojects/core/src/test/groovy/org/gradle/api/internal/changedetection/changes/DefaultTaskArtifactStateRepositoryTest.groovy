@@ -23,14 +23,11 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -45,9 +42,9 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
-import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
@@ -61,6 +58,9 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.SerializerRegistry
+import org.gradle.internal.snapshot.WellKnownFileLocations
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -102,7 +102,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         gradle = project.getGradle()
         task = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-        CrossBuildInMemoryCacheFactory cacheFactory = new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())
+        CrossBuildInMemoryCacheFactory cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, cacheFactory))
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
@@ -118,7 +118,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
             serializerRegistry.build(HistoricalFileCollectionFingerprint),
-            stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
             fingerprinterRegistry
@@ -817,7 +816,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
                 }
             }
             if (inputProperties != null) {
-                task.getInputs().properties(inputProperties)
+                inputProperties.each { key, value ->
+                    task.getInputs().property(key, value).optional(true)
+                }
             }
             if (outputFiles != null) {
                 outputFiles.each { String property, Collection<? extends File> files ->

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Internal;
@@ -25,7 +26,10 @@ import org.gradle.api.tasks.Internal;
  *
  * Only one of the reports can be enabled when the task executes. If more than one is enabled, an {@link org.gradle.api.InvalidUserDataException}
  * will be thrown.
+ *
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
+@Deprecated
 public interface FindBugsReports extends ReportContainer<SingleFileReport> {
 
     /**
@@ -42,7 +46,7 @@ public interface FindBugsReports extends ReportContainer<SingleFileReport> {
      * @return The findbugs HTML report
      */
     @Internal
-    SingleFileReport getHtml();
+    CustomizableHtmlReport getHtml();
 
     /**
      * The findbugs Text report
