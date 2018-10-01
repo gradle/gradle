@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.util.VersionNumber
 
 /*
  * Copyright 2013 the original author or authors.
