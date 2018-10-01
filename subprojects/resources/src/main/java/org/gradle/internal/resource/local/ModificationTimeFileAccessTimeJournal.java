@@ -17,11 +17,18 @@
 package org.gradle.internal.resource.local;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 
 public class ModificationTimeFileAccessTimeJournal implements FileAccessTimeJournal {
     @Override
     public void setLastAccessTime(File file, long millis) {
-        file.setLastModified(millis);
+        try {
+            Files.setLastModifiedTime(file.toPath(), FileTime.fromMillis(millis));
+        } catch (IOException ignore) {
+            // ignore
+        }
     }
 
     @Override

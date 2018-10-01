@@ -28,6 +28,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,8 +66,10 @@ public class GFileUtils {
      * (or directory) must exist.
      */
     public static void touchExisting(File file) {
-        if (!file.setLastModified(System.currentTimeMillis())) {
-            throw new UncheckedIOException("Could not update time stamp for " + file);
+        try {
+            Files.setLastModifiedTime(file.toPath(), FileTime.fromMillis(System.currentTimeMillis()));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not update time stamp for " + file, e);
         }
     }
 
