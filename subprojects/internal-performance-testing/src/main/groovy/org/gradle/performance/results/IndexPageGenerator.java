@@ -194,7 +194,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center data-row").attr("scenario", String.valueOf(index));
                             div().classAttr("col").text(String.valueOf(index)).
-                                a().attr("data-toggle", "tooltip").classAttr("section-sign").title("Click to copy url of this scenario to clipboard").href("#scenario" + index).style("display:none")
+                                a().attr("data-toggle", "tooltip").classAttr("section-sign").title("Click to copy url of this scenario to clipboard").href("#scenario" + index).style("opacity:0")
                                     .id("section-sign-" + index).text("§");
                                 end();
                             end();
