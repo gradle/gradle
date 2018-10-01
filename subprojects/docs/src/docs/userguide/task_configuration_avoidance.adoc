@@ -142,6 +142,9 @@ Be mindful of <<#task_configuration_avoidance_pitfall_build_scan_plugin, the pit
 Because the task configuration action can now run immediately, later or never, mutating anything other than the current task will expose flaky-like behavior in your build.
 Consider the following code:
 +
+====
+[.multi-language-sample]
+=====
 [source,groovy]
 ----
 def check = tasks.register("check")
@@ -152,12 +155,30 @@ tasks.register("verificationTask") { verificationTask ->
     check.get().dependsOn verificationTask
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+val check = tasks.register("check")
+tasks.register("verificationTask") {
+    // Configure verificationTask
+
+    // Run verificationTask when someone runs check
+    check.get().dependsOn(this)
+}
+----
+=====
+====
 Executing the `gradle check` task should execute `verificationTask`, but with this example, it won't.
 This is because the dependency between `verificationTask` and `check` only happens when `verificationTask` is realized.
 To avoid issues like this, you must only modify the task associated with the configuration action.
 Other tasks should be modified in their own configuration action outside of any other possibly "lazy" configuration actions.
 The code would become:
 +
+====
+[.multi-language-sample]
+=====
 [source,groovy]
 ----
 def check = tasks.register("check")
@@ -168,6 +189,21 @@ check.configure {
     dependsOn verificationTask
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+val check = tasks.register("check")
+val verificationTask = tasks.register("verificationTask") {
+    // Configure verificationTask
+}
+check.configure {
+    dependsOn(verificationTask)
+}
+----
+=====
+====
 In the future, Gradle will consider these flaky-mutations as failures.
 It also means the configuration needs to flow from the extensions to the tasks.
 Thus, the task should be configured by the extension and not the other way around.
@@ -330,7 +366,7 @@ If this lookup is done from anything other than a lazy configuration action, the
 tasks.register "someTask"
 
 // Sometime later, an eager task is configured like
-task aEagerTask {
+task anEagerTask {
     // The task is resolved immediately as it will be treated as a property of the project and will result in an eager task lookup by name
     dependsOn someTask
 }
@@ -341,14 +377,30 @@ You can solve the following in three ways:
   - **Use `TaskProvider` variable.**
   Useful when the task is referenced multiple time in the same build script.
 +
+====
+[.multi-language-sample]
+=====
 [source,groovy]
 ----
 def someTask = tasks.register "someTask"
 
-task aEagerTask {
+task anEagerTask {
     dependsOn someTask
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+val someTask = tasks.register("someTask")
+
+task("anEagerTask") {
+    dependsOn(someTask)
+}
+----
+=====
+====
 
     - **Migrate consumer task.**
     It will only work under specific circumstances.
@@ -358,7 +410,7 @@ task aEagerTask {
 ----
 tasks.register "someTask"
 
-tasks.register("aEagerTask") {
+tasks.register("anEagerTask") {
     dependsOn someTask
 }
 ----
@@ -366,14 +418,30 @@ tasks.register("aEagerTask") {
     - **Lookup the task lazily.**
     Useful when the task registration isn’t co-located with its eager usage.
 +
+====
+[.multi-language-sample]
+=====
 [source,groovy]
 ----
 tasks.register "someTask"
 
-task aEagerTask {
+task anEagerTask {
     dependsOn tasks.named("someTask")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+tasks.register("someTask")
+
+task("anEagerTask") {
+    dependsOn(tasks.named("someTask"))
+}
+----
+=====
+====
 
 * **The `jar` task is eagerly realized, always.**
 The following https://github.com/gradle/gradle-native/issues/730[issue is tracking this pitfall].
