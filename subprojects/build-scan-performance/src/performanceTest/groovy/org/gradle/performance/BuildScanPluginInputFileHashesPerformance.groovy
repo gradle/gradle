@@ -24,28 +24,29 @@ import spock.lang.Unroll
 class BuildScanPluginInputFileHashesPerformance extends AbstractBuildScanPluginPerformanceTest {
 
     private static final int MEDIAN_PERCENTAGES_SHIFT = 10
-    public static final String ENABLED_PER_FILE_SNAPSHOTS = "per-file input snapshots disabled"
-    public static final String DISABLED_PER_FILE_SNAPSHOTS = "per-file input snapshots enabled"
+    public static final String DISABLED_PER_FILE_SNAPSHOTS = "per-file input snapshots disabled"
+    public static final String ENABLED_PER_FILE_SNAPSHOTS = "per-file input snapshots enabled"
 
     @Unroll
     def "large java project with per-file input snapshots capturing (#scenario)"() {
         given:
         def sourceProject = "manyInputFilesProject"
-        def jobArgs = ['--parallel', '--max-workers=2']
+        def jobArgs = ['--parallel', '--max-workers=2', '--scan', '-DenableScan=true', '-Dscan.dump']
         def opts = ['-Xms4096m', '-Xms4096m']
-
+        def tasks = ['clean', 'assemble']
         runner.testId = "large java project with per-file input snapshots capturing ($scenario)"
         runner.baseline {
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
             projectName(sourceProject)
             displayName(DISABLED_PER_FILE_SNAPSHOTS)
-                invocation {
-                    args("--scan", "-DenableScan=true", "-Dscan.dump")
-                    tasksToRun('clean', 'assemble')
-                    useDaemon()
-                    gradleOpts(*opts)
-                }
+            invocation {
+                args(*jobArgs)
+                args()
+                tasksToRun(*tasks)
+                useDaemon()
+                gradleOpts(*opts)
+            }
         }
 
         runner.buildSpec {
@@ -55,8 +56,8 @@ class BuildScanPluginInputFileHashesPerformance extends AbstractBuildScanPluginP
             displayName(ENABLED_PER_FILE_SNAPSHOTS)
             invocation {
                 args(*jobArgs)
-                args("--scan", "-DenableScan=true", "-Dscan.dump", "-Dcom.gradle.scan.input-file-hashes=true")
-                tasksToRun('clean', 'assemble')
+                args("-Dcom.gradle.scan.input-file-hashes=true")
+                tasksToRun(*tasks)
                 useDaemon()
                 gradleOpts(*opts)
             }
