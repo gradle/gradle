@@ -88,6 +88,10 @@
                 <td>commandLine</td>
                 <td/>
             </tr>
+            <tr>
+                <td>spawn</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -124,6 +128,9 @@
             </tr>
             <tr>
                 <td>environment</td>
+            </tr>
+            <tr>
+                <td>spawn</td>
             </tr>
         </table>
     </section>

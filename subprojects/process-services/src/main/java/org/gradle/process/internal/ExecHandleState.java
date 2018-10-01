@@ -23,7 +23,8 @@ public enum ExecHandleState {
     ABORTED(true),
     FAILED(true),
     DETACHED(true),
-    SUCCEEDED(true);
+    SUCCEEDED(true),
+    SPAWNED(true);
 
     private final boolean terminal;
 

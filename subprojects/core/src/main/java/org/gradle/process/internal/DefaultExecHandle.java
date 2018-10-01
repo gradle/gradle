@@ -116,10 +116,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private final BuildCancellationToken buildCancellationToken;
 
+    private final boolean spawn;
+
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
-                      Executor executor, BuildCancellationToken buildCancellationToken) {
+                      Executor executor, BuildCancellationToken buildCancellationToken, boolean spawn) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -139,6 +141,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
         broadcast.addAll(listeners);
+        this.spawn = spawn;
     }
 
     public File getDirectory() {
@@ -151,6 +154,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     public boolean isDaemon() {
         return daemon;
+    }
+
+    public boolean isSpawn() {
+        return spawn;
     }
 
     @Override
@@ -207,7 +214,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
 
         ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
-        if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
+        if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED && newState != ExecHandleState.SPAWNED) {
             try {
                 broadcast.getSource().executionFinished(this, newResult);
             } catch (Exception e) {
@@ -241,7 +248,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     public ExecHandle start() {
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",
-                displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+            displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Environment for process '{}': {}", displayName, environment);
         }
@@ -327,6 +334,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     void detached() {
         setEndStateInfo(ExecHandleState.DETACHED, 0, null);
+    }
+
+    void spawned() {
+        setEndStateInfo(ExecHandleState.SPAWNED, 0, null);
     }
 
     void started() {

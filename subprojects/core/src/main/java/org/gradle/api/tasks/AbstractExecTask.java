@@ -362,4 +362,21 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     public ExecResult getExecResult() {
         return execResult;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Internal
+    @Override
+    public boolean isSpawn() {
+        return execAction.isSpawn();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setSpawn(boolean spawn) {
+        execAction.setSpawn(spawn);
+    }
 }

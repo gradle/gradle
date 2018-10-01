@@ -50,6 +50,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.minHeapSize = "64m"
         builder.maxHeapSize = "1g"
         builder.defaultCharacterEncoding = inputEncoding
+        builder.spawn = true
 
         when:
         List jvmArgs = builder.getAllJvmArgs()
@@ -63,6 +64,12 @@ class JavaExecHandleBuilderTest extends Specification {
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
         commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+
+        when:
+        boolean isSpawn = builder.isSpawn()
+
+        then:
+        isSpawn
 
         where:
         inputEncoding | expectedEncoding

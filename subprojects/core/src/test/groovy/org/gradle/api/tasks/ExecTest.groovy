@@ -56,6 +56,19 @@ class ExecTest extends AbstractTaskTest {
         execTask.execResult.exitValue == 1
     }
 
+    def "spawns when configured"() {
+        when:
+        execTask.setExecutable("ls")
+        execTask.setSpawn(true)
+        execute(execTask)
+
+        then:
+        1 * execAction.setExecutable("ls")
+        1 * execAction.setSpawn(true)
+        1 * execAction.execute() >> new ExpectedExecResult(0)
+        execTask.execResult.exitValue == 0
+    }
+
     private class ExpectedExecResult implements ExecResult {
         int exitValue
 

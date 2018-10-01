@@ -71,6 +71,13 @@ public class ExecHandleRunner implements Runnable {
 
             execHandle.started();
 
+            if (execHandle.isSpawn()) {
+                LOGGER.debug("Process successfully spawned");
+                streamsHandler.disconnect();
+                spawned();
+                return;
+            }
+
             LOGGER.debug("waiting until streams are handled...");
             streamsHandler.start();
 
@@ -112,5 +119,9 @@ public class ExecHandleRunner implements Runnable {
 
     private void detached() {
         execHandle.detached();
+    }
+
+    private void spawned() {
+        execHandle.spawned();
     }
 }

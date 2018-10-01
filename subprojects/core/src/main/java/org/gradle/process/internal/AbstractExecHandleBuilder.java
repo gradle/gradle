@@ -21,8 +21,8 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
-import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
+import org.gradle.process.internal.streams.SafeStreams;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +45,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
     private Executor executor;
+    private boolean spawn = false;
 
     AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver);
@@ -133,7 +134,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
+            effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken, spawn);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {
@@ -163,5 +164,15 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
         return this;
+    }
+
+    @Override
+    public boolean isSpawn() {
+        return spawn;
+    }
+
+    @Override
+    public void setSpawn(boolean spawn) {
+        this.spawn = spawn;
     }
 }

@@ -234,6 +234,25 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == "different"
     }
 
+    def "spawned process" () {
+        buildFile.text = """
+            apply plugin: "java"
+
+            task run(type: JavaExec) {
+                classpath = project.layout.files(compileJava)
+                main "driver.Driver"
+                args "1"
+                spawn true
+            }
+        """
+
+        when:
+        run "run"
+
+        then:
+        succeeds (":run")
+    }
+
     private void assertOutputFileIs(String text) {
         assert file("out.txt").text == text
     }

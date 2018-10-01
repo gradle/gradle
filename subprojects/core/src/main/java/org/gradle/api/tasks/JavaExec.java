@@ -551,6 +551,23 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    @Internal
+    public boolean isSpawn() {
+        return javaExecHandleBuilder.isSpawn();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setSpawn(boolean spawn) {
+        javaExecHandleBuilder.setSpawn(spawn);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaExecHandleBuilder.getJvmArgumentProviders();
     }

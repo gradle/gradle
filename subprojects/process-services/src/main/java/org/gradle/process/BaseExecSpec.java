@@ -95,4 +95,17 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * @return The full command line, including the executable plus its arguments
      */
     List<String> getCommandLine();
+
+    /**
+     * Returns a boolean representing whether or not this exec will spawn in a new process.
+     *
+     * @return A boolean representing whether or not this exec will spawn in a new process.
+     */
+    boolean isSpawn();
+
+    /**
+     * Configures the exec to spawn in a new process which will not be tracked by the Gradle container
+     * @param spawn Whether or not to spawn a new process
+     */
+    void setSpawn(boolean spawn);
 }
