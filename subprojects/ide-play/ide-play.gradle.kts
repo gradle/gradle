@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
@@ -16,17 +17,17 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile libraries.groovy.coordinates
-    compile project(':core')
-    compile project(":ide")
-    compile project(':platformPlay')
+    compile(library("groovy"))
+    compile(project(":core"))
+    compile(project(":ide"))
+    compile(project(":platformPlay"))
 
-    integTestRuntime project(':compositeBuilds')
+    integTestRuntime(project(":compositeBuilds"))
 }
 
 gradlebuildJava {
@@ -34,11 +35,11 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
-    from(':platformPlay')
-    from(':ide')
+    from(":core")
+    from(":platformPlay")
+    from(":ide")
 }
 
-tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest).configureEach {
-    dependsOn(':platformPlay:integTestPrepare')
+tasks.withType<IntegrationTest>().configureEach {
+    dependsOn(":platformPlay:integTestPrepare")
 }

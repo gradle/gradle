@@ -124,7 +124,6 @@ val groovyBuildScriptProjects = listOf(
     "resources-sftp",
     "plugins",
     "scala",
-    "ide-play",
     "osgi",
     "docs",
     "integ-test",
