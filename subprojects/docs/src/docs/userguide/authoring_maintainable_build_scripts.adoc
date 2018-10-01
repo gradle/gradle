@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[authoring_maintainable_builds]]
+[[authoring_maintainable_build_scripts]]
 = Authoring Maintainable Builds
 
 Gradle has a rich API with several approaches to creating build logic.
-The associated flexibility can easily lead to spaghetti builds or other anti-patterns.
+The associated flexibility can easily lead to unnecessarily complex builds with custom code commonly added directly to build scripts.
 In this chapter, we present several best practices that will help you develop expressive and maintainable builds that are easy to use.
 
 NOTE: The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in build scripts if that's something that would interest you.
