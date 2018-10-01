@@ -141,7 +141,6 @@ val groovyBuildScriptProjects = listOf(
     "diagnostics",
     "publish",
     "jacoco",
-    "build-init",
     "platform-base",
     "platform-jvm",
     "language-jvm",
