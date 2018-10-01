@@ -16,19 +16,21 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.classycle'
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile libraries.groovy.coordinates
-    compile project(':core')
-    compile project(":ide")
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingNative')
-    compile libraries.plist.coordinates
+    compile(project(":core"))
+    compile(project(":platformNative"))
+    compile(project(":maven"))
+    compile(project(":ivy"))
+    compile(project(":toolingApi"))
 
-    testFixturesApi project(':internalTesting')
+    implementation(project(":versionControl"))
+    implementation(library("commons_io"))
+
+    integTestRuntimeOnly(project(":ideNative"))
 }
 
 gradlebuildJava {
@@ -36,8 +38,14 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
-    from(':platformNative')
-    from(':versionControl')
-    from(':ide', 'testFixtures')
+    from(":core")
+    from(":versionControl")
+    from(":platformNative")
+    from(":platformBase")
+    from(":messaging")
+    from(":platformNative", "testFixtures")
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }
