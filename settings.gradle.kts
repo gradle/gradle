@@ -151,7 +151,6 @@ val groovyBuildScriptProjects = listOf(
     "plugin-use",
     "model-core",
     "model-groovy",
-    "build-cache-http",
     "testing-base",
     "testing-jvm",
     "testing-junit-platform",

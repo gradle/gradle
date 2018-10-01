@@ -16,19 +16,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile project(':resources')
-    compile project(':resourcesHttp')
-    compile project(':baseServices')
-    compile project(':core')
-    compile libraries.commons_httpclient.coordinates
-    compile libraries.commons_lang.coordinates
+    compile(project(":resources"))
+    compile(project(":resourcesHttp"))
+    compile(project(":baseServices"))
+    compile(project(":core"))
+    compile(library("commons_httpclient"))
+    compile(library("commons_lang"))
 
-    integTestCompile testLibraries.jetty
+    integTestCompile(testLibrary("jetty"))
 }
 
 gradlebuildJava {
