@@ -33,6 +33,8 @@ include::overview.adoc[leveloffset=+2]
 
 include::installation.adoc[leveloffset=+2]
 
+include::kotlin_dsl.adoc[leveloffset=+2]
+
 include::upgrading_from_gradle4.adoc[leveloffset=+2]
 
 
@@ -47,8 +49,6 @@ include::directory_layout.adoc[leveloffset=+2]
 include::gradle_daemon.adoc[leveloffset=+2]
 
 include::init_scripts.adoc[leveloffset=+2]
-
-include::kotlin_dsl.adoc[leveloffset=+2]
 
 include::intro_multi_project_builds.adoc[leveloffset=+2]
 

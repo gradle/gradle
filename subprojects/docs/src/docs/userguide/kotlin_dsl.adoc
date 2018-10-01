@@ -19,7 +19,7 @@
 
 
 [[kotlin_dsl]]
-= Gradle Kotlin DSL
+= Gradle Kotlin DSL Primer
 
 Gradle's newer Kotlin DSL provides a pleasant editing experience in supported IDEs: content-assist, refactoring, documentation, and more.
 
