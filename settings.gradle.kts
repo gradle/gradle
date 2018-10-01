@@ -133,7 +133,6 @@ val groovyBuildScriptProjects = listOf(
     "publish",
     "platform-base",
     "platform-jvm",
-    "language-scala",
     "plugin-use",
     "model-core",
     "model-groovy",
