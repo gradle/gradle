@@ -74,7 +74,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         if (maybeDeriveVariants.isPresent()) {
             ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
             for (ConfigurationMetadata derivedVariant : maybeDeriveVariants.get()) {
-                ImmutableList<ModuleDependencyMetadata> dependencies = Cast.uncheckedCast(derivedVariant.getDependencies());
+                ImmutableList<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>().addAll((List<ModuleDependencyMetadata>) derivedVariant.getDependencies()).build();
                 RealisedConfigurationMetadata derivedVariantMetadata = new RealisedConfigurationMetadata(
                     metadata.getId(),
                     derivedVariant.getName(),
