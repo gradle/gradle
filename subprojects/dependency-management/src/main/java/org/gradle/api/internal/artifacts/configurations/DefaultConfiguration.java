@@ -1547,56 +1547,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.lenient = lenient;
         }
 
-        private <T> T withMutableProject(final Factory<T> factory) {
-            if (domainObjectContext.getProjectPath() != null) {
-                Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-                // Project should only be null if we are resolving a configuration in places where we are running single
-                // threaded anyways, like evaluating buildSrc or in an init script.
-                if (project != null) {
-                    ProjectState projectState = projectStateRegistry.stateFor(project);
-                    return projectState.withMutableState(factory);
-                }
-            }
-
-            return factory.create();
-        }
-
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
-            withMutableProject(Factories.toFactory(new Runnable() {
+            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                // Force graph resolution as this is required to calculate build dependencies
+                resolveToStateOrLater(GRAPH_RESOLVED);
+            }
+            ResolverResults results;
+            if (getState() == State.UNRESOLVED) {
+                // Traverse graph
+                results = new DefaultResolverResults();
+                resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+            } else {
+                // Otherwise, already have a result, so reuse it
+                results = cachedResolverResults;
+            }
+            SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
+            final Set<Throwable> failures = new LinkedHashSet<Throwable>();
+            selected.collectBuildDependencies(new BuildDependenciesVisitor() {
                 @Override
-                public void run() {
-                    if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-                        // Force graph resolution as this is required to calculate build dependencies
-                        resolveToStateOrLater(GRAPH_RESOLVED);
-                    }
-                    ResolverResults results;
-                    if (getState() == State.UNRESOLVED) {
-                        // Traverse graph
-                        results = new DefaultResolverResults();
-                        resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
-                    } else {
-                        // Otherwise, already have a result, so reuse it
-                        results = cachedResolverResults;
-                    }
-                    SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-                    final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-                    selected.collectBuildDependencies(new BuildDependenciesVisitor() {
-                        @Override
-                        public void visitFailure(Throwable failure) {
-                            failures.add(failure);
-                        }
-
-                        @Override
-                        public void visitDependency(Object dep) {
-                            context.add(dep);
-                        }
-                    });
-                    if (!lenient) {
-                        rethrowFailure("task dependencies", failures);
-                    }
+                public void visitFailure(Throwable failure) {
+                    failures.add(failure);
                 }
-            }));
+
+                @Override
+                public void visitDependency(Object dep) {
+                    context.add(dep);
+                }
+            });
+            if (!lenient) {
+                rethrowFailure("task dependencies", failures);
+            }
         }
     }
 
