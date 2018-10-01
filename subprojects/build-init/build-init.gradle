@@ -57,7 +57,7 @@ task updateInitPluginTemplateVersionFile() {
         findLatest('groovy', 'org.codehaus.groovy:groovy:(2.4,2.5]', versionProperties)
         findLatest('junit', 'junit:junit:(4.0,)', versionProperties)
         findLatest('testng', 'org.testng:testng:(6.0,)', versionProperties)
-        findLatest('slf4j', 'org.slf4j:slf4j-api:1.7.25', versionProperties)
+        findLatest('slf4j', 'org.slf4j:slf4j-api:(1.7,)', versionProperties)
         def groovyVersion = VersionNumber.parse(versionProperties['groovy'])
         versionProperties.put('spock', "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}" as String)
         findLatest('guava', 'com.google.guava:guava:(20,)', versionProperties)
@@ -65,7 +65,7 @@ task updateInitPluginTemplateVersionFile() {
         findLatest('kotlin', 'org.jetbrains.kotlin:kotlin-gradle-plugin:(1.2,)', versionProperties)
 
         org.gradle.build.ReproduciblePropertiesWriter.store(versionProperties, libraryVersionFile,
-                                                            "Generated file, please to not edit - Version values used in build-init templates")
+                                                            "Generated file, please do not edit - Version values used in build-init templates")
     }
 }
 
