@@ -302,7 +302,7 @@ The default tool versions of the following code quality plugins have been update
 - The Checkstyle plugin now uses 8.12 instead of 6.19 by default.
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
 - The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
-- The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
+- The PMD plugin now uses 6.8.0 instead of 5.6.1 by default.
   In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
   We recommend configuring a ruleset explicitly, though.
 
