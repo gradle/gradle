@@ -135,7 +135,6 @@ val groovyBuildScriptProjects = listOf(
     "ear",
     "native",
     "performance",
-    "build-scan-performance",
     "javascript",
     "reporting",
     "diagnostics",
