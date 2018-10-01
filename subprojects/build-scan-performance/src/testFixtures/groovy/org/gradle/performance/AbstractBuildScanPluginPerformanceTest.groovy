@@ -36,8 +36,8 @@ import spock.lang.Specification
 
 class AbstractBuildScanPluginPerformanceTest extends Specification {
 
-    int warmupBuilds = 1
-    int measuredBuilds = 2
+    int warmupBuilds = 2
+    int measuredBuilds = 7
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

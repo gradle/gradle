@@ -23,7 +23,7 @@ import spock.lang.Unroll
 @Category(PerformanceExperiment)
 class BuildScanPluginInputFileHashesPerformance extends AbstractBuildScanPluginPerformanceTest {
 
-    private static final int MEDIAN_PERCENTAGES_SHIFT = 15
+    private static final int MEDIAN_PERCENTAGES_SHIFT = 10
     public static final String ENABLED_PER_FILE_SNAPSHOTS = "per-file input snapshots disabled"
     public static final String DISABLED_PER_FILE_SNAPSHOTS = "per-file input snapshots enabled"
 
