@@ -28,7 +28,6 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -186,7 +185,7 @@ public class JavaCompile extends AbstractCompile {
     /**
      * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
      *
-     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)} or {@link CompileOptions#setCompilerArgs(java.util.List)}. When not explicitly set using one of the methods on {@link CompileOptions}, the compile classpath will be used when there are annotation processors present in the compile classpath. Otherwise this path will be empty.
+     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)}.
      *
      * <p>This path is always empty when annotation processing is disabled.</p>
      *
@@ -195,7 +194,6 @@ public class JavaCompile extends AbstractCompile {
     @Incubating
     @Classpath
     public FileCollection getEffectiveAnnotationProcessorPath() {
-        AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
-        return annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions);
+        return compileOptions.getAnnotationProcessorPath();
     }
 }

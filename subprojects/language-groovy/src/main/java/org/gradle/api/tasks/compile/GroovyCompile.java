@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -52,7 +51,6 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
@@ -102,7 +100,7 @@ public class GroovyCompile extends AbstractCompile {
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setAnnotationProcessorPath(calculateAnnotationProcessorClasspath());
+        spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
@@ -112,12 +110,6 @@ public class GroovyCompile extends AbstractCompile {
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
         return spec;
-    }
-
-    private List<File> calculateAnnotationProcessorClasspath() {
-        AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
-        FileCollection processorClasspath = annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions);
-        return Lists.newArrayList(processorClasspath);
     }
 
     private void checkGroovyClasspathIsNonEmpty() {
