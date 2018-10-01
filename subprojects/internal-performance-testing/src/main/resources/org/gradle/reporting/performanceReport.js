@@ -24,16 +24,20 @@ $(function enableAllTooltips() {
 
 
     $(document).on('click', '.form-check-input', function () {
-        var selectedTags = $('.popover-body .form-check-input').toArray().filter(function(checkbox) {
-            return checkbox.checked
-        }).map(function (checkbox) { return checkbox.value })
+        var currentSelectedTag = $(this).val();
+        var checked = $(this).prop('checked');
+
+        $("#filter-popover .form-check-input[value*='"+currentSelectedTag+"']").toArray().forEach(checkbox => checked ? checkbox.setAttribute('checked', 'true') : checkbox.removeAttribute('checked'));
+
+        var selectedTags = $('.popover-body .form-check-input').toArray().filter(checkbox => checkbox.checked ).map(checkbox => checkbox.value );
 
         $('.card').each(function (index, row) {
-            var currentTag = $(row).attr('tag')
-            if(currentTag === undefined) {
-                currentTag = ''
+            var currentTags = $(row).attr('tag');
+            if(currentTags === undefined) {
+                currentTags = ''
             }
-            if(selectedTags.some(function(tag) { return currentTag.indexOf(tag) != -1 })) {
+            currentTags = currentTags.split(',');
+            if(selectedTags.some(tag => currentTags.indexOf(tag)!=-1)) {
                 $(row).show()
             } else {
                 $(row).hide()
