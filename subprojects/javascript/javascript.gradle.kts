@@ -17,16 +17,18 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
-    compile libraries.rhino.coordinates
-    compile libraries.gson.coordinates // used by JsHint.coordinates
-    compile libraries.simple.coordinates // used by http package in envjs.coordinates
-    compile project(':core'), project(":plugins"), project(':workers')
-    compile libraries.inject.coordinates
+    compile(library("rhino"))
+    compile(library("gson")) // used by JsHint.coordinates
+    compile(library("simple")) // used by http package in envjs.coordinates
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":workers"))
+    compile(library("inject"))
 
     // Required by JavaScriptExtension#getGoogleApisRepository()
-    compile project(':dependencyManagement')
+    compile(project(":dependencyManagement"))
 }
 
 gradlebuildJava {
@@ -34,5 +36,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
