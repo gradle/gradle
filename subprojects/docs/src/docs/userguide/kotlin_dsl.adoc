@@ -455,18 +455,64 @@ Note that alternatively you could also move the version declarations in the root
 
 // [[sec:collections]]
 // == TODO Working with collections
-//
-// ** overview & api
-// ** delegated properties
-// ** string invoke
+// overview & api
+// === Via Kotlin delegated properties
+// === Container scope string invoke extension
 
 
-// [[sec:properties]]
-// == TODO Working with properties
-//
-// ** Gradle, Settings & Project properties
-// ** Extra properties
-// ** `Property` and `Provider`
+[[sec:properties]]
+== Working with properties
+
+The Gradle Kotlin DSL provides some sugar for working with properties.
+
+=== Gradle, Settings & Project properties
+
+`Gradle`, `Settings` and `Project` properties are documented in the <<build_environment#sec:project_properties, Build Environment>> chapter.
+
+They can also be used via Kotlin delegated properties, see the sample below for `Project` properties:
+
+.build.gradle.kts
+[source,kotlin]
+----
+val myProperty: String by project
+val myNullableProperty: String? by project
+----
+
+It works the exact same way in settings scripts for `Settings` properties and in init scripts for `Gradle` properties, respectively replacing `by project` with `by settings` or `by gradle`.
+
+=== Extra properties
+
+Extra properties are documented in the <<writing_build_scripts#sec:extra_properties, Writing Build Scripts>> chapter.
+
+On every `ExtensionAware` type they can be used via the `extra` property Kotlin delegated properties, see the sample below.
+
+.build.gradle.kts
+[source,kotlin]
+----
+val myProperty: String by extra
+val myNullableProperty: String? by extra
+val myNewProperty by extra("initial value")
+val myOtherNewProperty by extra { "lazy initial value" }
+----
+
+It works the exact same way in settings or init scripts.
+
+All `ExtensionAware` types can host extra properties, `Task` is a common example:
+
+.build.gradle.kts
+[source,kotlin]
+----
+tasks {
+    test {
+        val myTaskProperty: String by extra
+        val myNullableTaskProperty: String? by extra
+        val myNewTaskProperty by extra("initial value")
+        val myOtherNewTaskProperty by extra { "lazy initial value" }
+    }
+}
+----
+
+// === `Property`, `Provider` and `NamedDomainObjectProvider`
 
 
 [[sec:kotlin-dsl_plugin]]
