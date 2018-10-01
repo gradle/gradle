@@ -17,11 +17,13 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.tasks.ExecTest
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.nio.file.Files
 import java.util.concurrent.Executor
 
 @UsesNativeServices
@@ -61,5 +63,27 @@ class DefaultExecHandleBuilderTest extends Specification {
         then:
         builder.args == ['1', '2', '3']
         builder.allArguments == ['1', '2', '3']
+    }
+
+    def "build and assert spawn flag"() {
+        builder.executable('ls')
+        File workingDir = Files.createTempDirectory(ExecTest.getSimpleName()).toFile()
+        workingDir.deleteOnExit()
+        builder.workingDir(workingDir)
+        if(inputSpawn != null) {
+            builder.setSpawn(inputSpawn)
+        }
+
+        when:
+        boolean isSpawn = ((DefaultExecHandle) builder.build()).isSpawn()
+
+        then:
+        isSpawn == expectedSpawn
+
+        where:
+        inputSpawn  | expectedSpawn
+        null        | false
+        true        | true
+        false       | false
     }
 }

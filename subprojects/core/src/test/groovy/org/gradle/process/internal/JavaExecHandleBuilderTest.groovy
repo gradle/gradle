@@ -16,12 +16,14 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.tasks.ExecTest
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
+import java.nio.file.Files
 import java.util.concurrent.Executor
 
 import static java.util.Arrays.asList
@@ -50,7 +52,6 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.minHeapSize = "64m"
         builder.maxHeapSize = "1g"
         builder.defaultCharacterEncoding = inputEncoding
-        builder.spawn = true
 
         when:
         List jvmArgs = builder.getAllJvmArgs()
@@ -65,12 +66,6 @@ class JavaExecHandleBuilderTest extends Specification {
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
         commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
 
-        when:
-        boolean isSpawn = builder.isSpawn()
-
-        then:
-        isSpawn
-
         where:
         inputEncoding | expectedEncoding
         null          | Charset.defaultCharset().name()
@@ -80,6 +75,29 @@ class JavaExecHandleBuilderTest extends Specification {
     def "detects null entries early"() {
         when: builder.args(1, null)
         then: thrown(IllegalArgumentException)
+    }
+
+    def "build and assert spawn flag"() {
+        builder.executable('ls')
+        builder.main = 'mainClass'
+        File workingDir = Files.createTempDirectory(ExecTest.getSimpleName()).toFile()
+        workingDir.deleteOnExit()
+        builder.workingDir(workingDir)
+        if(inputSpawn != null) {
+            builder.setSpawn(inputSpawn)
+        }
+
+        when:
+        boolean isSpawn = ((DefaultExecHandle) builder.build()).isSpawn()
+
+        then:
+        isSpawn == expectedSpawn
+
+        where:
+        inputSpawn  | expectedSpawn
+        null        | false
+        true        | true
+        false       | false
     }
 
     private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {

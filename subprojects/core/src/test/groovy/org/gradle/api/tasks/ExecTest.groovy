@@ -56,7 +56,7 @@ class ExecTest extends AbstractTaskTest {
         execTask.execResult.exitValue == 1
     }
 
-    def "spawns when configured"() {
+    def "spawn configuration is correctly passed to action"() {
         when:
         execTask.setExecutable("ls")
         execTask.setSpawn(true)
