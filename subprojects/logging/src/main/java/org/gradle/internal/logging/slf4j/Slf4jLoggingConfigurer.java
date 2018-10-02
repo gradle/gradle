@@ -42,8 +42,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
 
         ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
         if (!(loggerFactory instanceof OutputEventListenerBackedLoggerContext)) {
-            System.out.println("Gradle cannot configure Slf4j logger of type '" + loggerFactory.getClass().getSimpleName()
-                + "'. This is expected when executing tests with a custom `java.system.class.loader` set.");
+            System.out.println("Gradle cannot configure Slf4j logger of type '" + loggerFactory.getClass().getSimpleName() + "'.");
             return;
         }
         OutputEventListenerBackedLoggerContext context = (OutputEventListenerBackedLoggerContext) loggerFactory;

@@ -47,11 +47,28 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         run 'test'
 
         then:
-        outputContains("Gradle cannot configure Slf4j logger of type 'SimpleLoggerFactory'. This is expected when executing tests with a custom `java.system.class.loader` set.")
+        outputContains("Gradle cannot configure Slf4j logger of type 'SimpleLoggerFactory'.")
         def testResults = new DefaultTestExecutionResult(testDirectory)
         testResults.assertTestClassesExecuted('org.gradle.TestUsingSlf4j')
         with(testResults.testClass('org.gradle.TestUsingSlf4j')) {
             assertTestPassed('mySystemClassLoaderIsUsed')
+            assertStderr(Matchers.containsText("ERROR via slf4j"))
+            assertStderr(Matchers.containsText("WARN via slf4j"))
+            assertStderr(Matchers.containsText("INFO via slf4j"))
+        }
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def canRunTestsReferencingSlf4jWithModularJava() {
+        when:
+        run 'test'
+
+        then:
+        outputContains("Gradle cannot configure Slf4j logger of type 'SimpleLoggerFactory'.")
+        def testResults = new DefaultTestExecutionResult(testDirectory)
+        testResults.assertTestClassesExecuted('org.gradle.example.TestUsingSlf4j')
+        with(testResults.testClass('org.gradle.example.TestUsingSlf4j')) {
+            assertTestPassed('testModular')
             assertStderr(Matchers.containsText("ERROR via slf4j"))
             assertStderr(Matchers.containsText("WARN via slf4j"))
             assertStderr(Matchers.containsText("INFO via slf4j"))
