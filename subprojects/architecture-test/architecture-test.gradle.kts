@@ -1,5 +1,6 @@
 import org.gradle.gradlebuild.ProjectGroups.publicProjects
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.PublicApi
 
 plugins {
     `java-library`
@@ -17,4 +18,9 @@ dependencies {
     publicProjects.forEach {
         testRuntime(it)
     }
+}
+
+tasks.withType<Test> {
+    systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(":"))
+    systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(":"))
 }

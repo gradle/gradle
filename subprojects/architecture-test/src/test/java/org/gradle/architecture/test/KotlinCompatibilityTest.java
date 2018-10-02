@@ -16,6 +16,8 @@
 
 package org.gradle.architecture.test;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -33,7 +35,9 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.util.stream.Collectors.toSet;
 
@@ -41,8 +45,15 @@ import static java.util.stream.Collectors.toSet;
 @AnalyzeClasses(packages = "org.gradle")
 public class KotlinCompatibilityTest {
 
+    public static DescribedPredicate<JavaClass> gradlePublicApi() {
+        return new GradlePublicApi();
+    }
+
     @ArchTest
-    public static final ArchRule consistent_nullable_annotations = classes().should(haveAccessorsWithSymmetricalNullableAnnotations());
+    public static final ArchRule consistent_nullable_annotations_on_public_api = classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations());
+    
+    @ArchTest
+    public static final ArchRule consistent_nullable_annotations_on_internal_api = classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations());
 
     private static ArchCondition<JavaClass> haveAccessorsWithSymmetricalNullableAnnotations() {
         return new ArchCondition<JavaClass>("have accessors with symmetrical @Nullable annotations") {
@@ -115,6 +126,26 @@ public class KotlinCompatibilityTest {
 
         private String propertyNameOf(JavaMethod getter) {
             return PropertyAccessorType.fromName(getter.getName()).propertyNameFor(getter.getName());
+        }
+    }
+
+    private static class GradlePublicApi extends DescribedPredicate<JavaClass> {
+        private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
+        private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
+
+        public GradlePublicApi() {
+            super("Gradle public API");
+        }
+
+        @Override
+        public boolean apply(JavaClass input) {
+            return INCLUDES.apply(input.getPackageName()) && !EXCLUDES.apply(input.getPackageName());
+        }
+
+        private static Set<String> parsePackageMatcher(String packageList) {
+            return Arrays.stream(packageList.split(":"))
+                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
+                .collect(toSet());
         }
     }
 }
