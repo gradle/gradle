@@ -46,6 +46,11 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
             assertTrue(leafs.isEmpty())
         }
 
+        classNamesFromTypeString("CustomTask").apply {
+            assertThat(all, hasItems("CustomTask"))
+            assertThat(leafs, hasItems("CustomTask"))
+        }
+
         classNamesFromTypeString("java.util.List<String>").apply {
             assertThat(all, hasItems("java.util.List"))
             assertTrue(leafs.isEmpty())
