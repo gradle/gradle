@@ -18,12 +18,14 @@ package org.gradle.architecture.test;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
@@ -54,17 +56,17 @@ public class KotlinCompatibilityTest {
 
             private Set<Accessors> findSymmetricalAccessors(JavaClass javaClass) {
                 return filterGetters(javaClass.getMethods()).stream()
-                    .flatMap(getter -> tryFindMatchingSetters(javaClass, getter).map(s -> new Accessors(getter, s)))
+                    .flatMap(getter -> tryFindMatchingSetters(javaClass, getter).map(setter -> new Accessors(getter, setter)))
                     .collect(toSet());
             }
 
             private Set<JavaMethod> filterGetters(Set<JavaMethod> methods) {
-                return methods.stream().filter(m -> m.getName().startsWith("get") && m.getName().length() > 3).collect(toSet());
+                return methods.stream().filter(KotlinCompatibilityTest::isGetter).collect(toSet());
             }
 
             private Stream<JavaMethod> tryFindMatchingSetters(JavaClass javaClass, JavaMethod getter) {
-                String setterName = getter.getName().replaceFirst("g", "s");
-                return javaClass.getMethods().stream().filter(m -> m.getName().equals(setterName) && m.getParameters().size() == 1);
+                String propertyName = PropertyAccessorType.fromName(getter.getName()).propertyNameFor(getter.getName());
+                return javaClass.getMethods().stream().filter(m -> isSetterFor(propertyName, m));
             }
 
             private boolean nullableIsUnsymmetrical(Accessors accessor) {
@@ -77,6 +79,24 @@ public class KotlinCompatibilityTest {
                 return Arrays.stream(setter.reflect().getParameterAnnotations()[0]).anyMatch(a -> a instanceof Nullable);
             }
         };
+    }
+
+    private static boolean isGetter(JavaMethod m) {
+        // We avoid using reflect, since that leads to class loading exceptions
+        PropertyAccessorType accessorType = PropertyAccessorType.fromName(m.getName());
+        return !m.getModifiers().contains(JavaModifier.STATIC)
+            && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
+            && m.getParameters().size() == 0
+            && (accessorType != PropertyAccessorType.IS_GETTER || m.getReturnType().reflect().equals(Boolean.TYPE) || m.getReturnType().reflect().equals(Boolean.class));
+    }
+
+    private static boolean isSetterFor(String propertyName, JavaMethod m) {
+        // We avoid using reflect, since that leads to class loading exceptions
+        PropertyAccessorType accessorType = PropertyAccessorType.fromName(m.getName());
+        return !m.getModifiers().contains(JavaModifier.STATIC)
+            && accessorType == PropertyAccessorType.SETTER
+            && m.getParameters().size() == 1
+            && accessorType.propertyNameFor(m.getName()).equals(propertyName);
     }
 
     private static class Accessors {
@@ -94,9 +114,7 @@ public class KotlinCompatibilityTest {
         }
 
         private String propertyNameOf(JavaMethod getter) {
-            String prop = getter.getName().replaceFirst("get", "");
-            prop = prop.substring(0, 1).toLowerCase() + prop.substring(1);
-            return prop;
+            return PropertyAccessorType.fromName(getter.getName()).propertyNameFor(getter.getName());
         }
     }
 }
