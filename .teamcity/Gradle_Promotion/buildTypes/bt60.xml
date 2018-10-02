@@ -9,7 +9,6 @@
     </options>
     <parameters>
       <param name="confirmationCode" value="" spec="text description='Enter the value |'rc|' (no quotes) to confirm the promotion' display='prompt' label='Confirmation Code'" />
-      <param name="env.JAVA_HOME" value="%linux.java8.oracle.64bit%" />
       <param name="gitUserEmail" value="" spec="text description='Enter the git |'user.email|' configuration to commit change under' label='Git user.email Configuration' validationMode='any' display='prompt'" />
       <param name="gitUserName" value="" spec="text description='Enter the git |'user.name|' configuration to commit change under' label='Git user.name Configuration' validationMode='any' display='prompt'" />
     </parameters>
@@ -43,4 +42,3 @@
     <cleanup />
   </settings>
 </build-type>
-
