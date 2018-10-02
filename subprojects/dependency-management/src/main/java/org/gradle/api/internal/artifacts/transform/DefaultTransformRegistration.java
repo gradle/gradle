@@ -52,8 +52,8 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
 
         paramsSnapshot.appendToHasher(hasher);
 
-        TransformArtifactsAction transformer = new TransformArtifactsAction(implementation, paramsSnapshot, instantiator);
-        return new DefaultTransformRegistration(from, to, new UserCodeBackedTransformer(transformer, hasher.hash(), transformedFileCache));
+        TransformerRegistration transformerRegistration = new TransformerRegistration(implementation, paramsSnapshot, hasher.hash(), instantiator);
+        return new DefaultTransformRegistration(from, to, new UserCodeBackedTransformer(transformerRegistration, transformedFileCache));
     }
 
     public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, UserCodeBackedTransformer cachingTransformInvocation) {

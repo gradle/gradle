@@ -17,41 +17,32 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.transform.TransformInvocationException;
-import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.List;
 
 class UserCodeBackedTransformer implements ArtifactTransformer {
-    private final HashCode inputsHash;
     private final TransformedFileCache transformedFileCache;
-    private final TransformArtifactsAction transformAction;
+    private final TransformerRegistration transformerRegistration;
 
-    public UserCodeBackedTransformer(TransformArtifactsAction transformAction, HashCode inputHash, TransformedFileCache cache) {
-        this.transformAction = transformAction;
-        this.inputsHash = inputHash;
-        this.transformedFileCache = cache;
+    public UserCodeBackedTransformer(TransformerRegistration transformerRegistration, TransformedFileCache transformedFileCache) {
+        this.transformerRegistration = transformerRegistration;
+        this.transformedFileCache = transformedFileCache;
     }
 
     @Override
     public List<File> transform(File input) {
-        try {
-            File absoluteFile = input.getAbsoluteFile();
-            return transformedFileCache.getResult(absoluteFile, inputsHash, transformAction);
-        } catch (Throwable t) {
-            throw new TransformInvocationException(input, transformAction.getImplementationClass(), t);
-        }
+        return transformedFileCache.runTransformer(input, transformerRegistration);
     }
 
     @Override
     public boolean hasCachedResult(File input) {
-        return transformedFileCache.contains(input.getAbsoluteFile(), inputsHash);
+        return transformedFileCache.contains(input.getAbsoluteFile(), transformerRegistration.getInputsHash());
     }
 
     @Override
     public String getDisplayName() {
-        return transformAction.getDisplayName();
+        return transformerRegistration.getDisplayName();
     }
 
     @Override
@@ -61,7 +52,7 @@ class UserCodeBackedTransformer implements ArtifactTransformer {
 
     @Override
     public String toString() {
-        return String.format("%s@%s", transformAction.getDisplayName(), inputsHash);
+        return String.format("%s@%s", transformerRegistration.getDisplayName(), transformerRegistration.getInputsHash());
     }
 
     @Override
@@ -74,11 +65,11 @@ class UserCodeBackedTransformer implements ArtifactTransformer {
         }
 
         UserCodeBackedTransformer that = (UserCodeBackedTransformer) o;
-        return inputsHash.equals(that.inputsHash);
+        return transformerRegistration.equals(that.transformerRegistration);
     }
 
     @Override
     public int hashCode() {
-        return inputsHash.hashCode();
+        return transformerRegistration.hashCode();
     }
 }

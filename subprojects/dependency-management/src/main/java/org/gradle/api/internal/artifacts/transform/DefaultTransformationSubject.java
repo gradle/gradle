@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,30 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.hash.HashCode;
-
 import java.io.File;
 import java.util.List;
 
-@ThreadSafe
-public interface TransformedFileCache {
+public class DefaultTransformationSubject implements TransformationSubject{
+    private final List<File> files;
+    private final Throwable failure;
 
-    boolean contains(File absoluteFile, HashCode inputsHash);
+    public DefaultTransformationSubject(List<File> files) {
+        this.files = files;
+        this.failure = null;
+    }
 
-    List<File> runTransformer(File primaryInput, TransformerRegistration transformerRegistration);
+    public DefaultTransformationSubject(Throwable failure) {
+        this.failure = failure;
+        this.files = null;
+    }
+
+    @Override
+    public List<File> getFiles() {
+        return files;
+    }
+
+    @Override
+    public Throwable getFailure() {
+        return failure;
+    }
 }
