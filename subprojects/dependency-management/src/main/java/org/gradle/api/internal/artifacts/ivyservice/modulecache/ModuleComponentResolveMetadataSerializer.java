@@ -69,7 +69,7 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
 
     @Override
     public void write(Encoder encoder, ModuleComponentResolveMetadata value) throws Exception {
-        AbstractRealisedModuleComponentResolveMetadata transformed = transformToRealisedForSerialization(value);
+        AbstractRealisedModuleComponentResolveMetadata transformed = assertRealized(value);
         delegate.write(encoder, transformed);
         if (transformed instanceof RealisedIvyModuleResolveMetadata) {
             ivySerializationHelper.writeRealisedVariantsData(encoder, transformed);
@@ -82,13 +82,9 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
         }
     }
 
-    private AbstractRealisedModuleComponentResolveMetadata transformToRealisedForSerialization(ModuleComponentResolveMetadata metadata) {
+    private AbstractRealisedModuleComponentResolveMetadata assertRealized(ModuleComponentResolveMetadata metadata) {
         if (metadata instanceof AbstractRealisedModuleComponentResolveMetadata) {
             return (AbstractRealisedModuleComponentResolveMetadata) metadata;
-        } else if (metadata instanceof DefaultIvyModuleResolveMetadata) {
-            return RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
-        } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
-            return RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
         }
         throw new IllegalStateException("The type of metadata received is not supported - " + metadata.getClass().getName());
     }

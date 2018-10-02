@@ -27,12 +27,17 @@ import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.TestUtil.attributes
 
 class ModuleMetadataParserTest extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
 
@@ -78,6 +83,7 @@ class ModuleMetadataParserTest extends Specification {
         parser.parse(resource('{ "formatVersion": "0.4" }'), metadata)
 
         then:
+        1 * metadata.setContentHash(_)
         0 * metadata._
     }
 
@@ -94,6 +100,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -111,6 +118,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.setAttributes(attributes(foo: 'bar', 'org.gradle.status': 'release'))
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -137,6 +145,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
         1 * variant.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY)
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -165,6 +174,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -205,6 +215,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addFile("api.zip", "api.zop")
         1 * variant2.addFile("runtime.zip", "runtime.zop")
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -261,6 +272,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * variant2.addDependency("g4", "m4", strictly("v5"), [], null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependency("g6", "m6", strictly("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY)
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -311,6 +323,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]), null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependencyConstraint("g6", "m6", prefers("v6"), "v5 is buggy", ImmutableAttributes.EMPTY)
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -351,6 +364,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependencyConstraint("g1", "m1", prefers("v1"), null, attributes(custom: 'foo'))
         1 * variant2.addDependencyConstraint("g2", "m2", requires("v2"), null, attributes(custom: 'foo', other: 'bar'))
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -391,6 +405,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addCapability("g3", "m3", "3")
         1 * variant2.addCapability("g4", "m4", "4")
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -414,6 +429,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -443,6 +459,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant1
         1 * metadata.addVariant("runtime", attributes([:])) >> variant2
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -485,6 +502,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY)
+        1 * metadata.setContentHash(_)
         0 * _
     }
 
@@ -514,6 +532,7 @@ class ModuleMetadataParserTest extends Specification {
         }'''), metadata)
 
         then:
+        1 * metadata.setContentHash(_)
         0 * metadata._
     }
 
@@ -540,6 +559,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes([:]))
+        1 * metadata.setContentHash(_)
         0 * metadata._
     }
 
@@ -571,6 +591,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
+        1 * metadata.setContentHash(_)
         0 * metadata._
     }
 
@@ -607,6 +628,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
         1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY)
+        1 * metadata.setContentHash(_)
         0 * metadata._
     }
 
@@ -670,6 +692,11 @@ class ModuleMetadataParserTest extends Specification {
         def resource = Stub(LocallyAvailableExternalResource)
         _ * resource.displayName >> "<resource>"
         _ * resource.withContent(_) >> { Transformer transformer -> return transformer.transform(new ByteArrayInputStream(content.getBytes("utf-8"))) }
+        _ * resource.getFile() >> {
+            def file = temporaryFolder.createFile("module${UUID.randomUUID().toString()}.module")
+            file.write(content, "UTF-8")
+            file
+        }
         resource
     }
 }

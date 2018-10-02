@@ -541,11 +541,11 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
+    @Unroll("can force a published platform version by forcing the platform itself via a constraint")
     def "can force a published platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
