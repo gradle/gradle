@@ -48,6 +48,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -127,7 +128,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(scalaCompileOptions);
-        spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         return spec;
     }
 
@@ -180,10 +181,12 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      * <p>This path is always empty when annotation processing is disabled.</p>
      *
      * @since 4.1
+     * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
      */
-    @Incubating
+    @Deprecated
     @Classpath
     public FileCollection getEffectiveAnnotationProcessorPath() {
+        SingleMessageLogger.nagUserOfReplacedProperty("AbstractScalaCompile.effectiveAnnotationProcessorPath", "AbstractScalaCompile.options.annotationProcessorPath");
         return compileOptions.getAnnotationProcessorPath();
     }
 

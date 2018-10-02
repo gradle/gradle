@@ -224,6 +224,10 @@ TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### The property `effectiveAnnotationProcessorPath` on `AbstractScalaCompile` has been deprecated
+
+Please use the `annotationProcessorPath` property on the task's `CompileOptions` directly.
+
 ### Deprecated announce plugins
 
 The [announce](userguide/announce_plugin.html) and [build announcements](userguide/build_announcements_plugin.html) plugins have been deprecated.
