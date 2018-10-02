@@ -131,4 +131,25 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     public ForcingDependencyMetadata forced() {
         return new GradleDependencyMetadata(selector, excludes, constraint, reason, true);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        GradleDependencyMetadata that = (GradleDependencyMetadata) o;
+        return constraint == that.constraint &&
+            force == that.force &&
+            Objects.equal(selector, that.selector) &&
+            Objects.equal(excludes, that.excludes) &&
+            Objects.equal(reason, that.reason);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(selector, excludes, constraint, reason, force);
+    }
 }
