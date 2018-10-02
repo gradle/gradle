@@ -117,7 +117,8 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         }
         try {
             ModuleComponentResolveMetadata forceRead = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
-            assert metadata.equals(forceRead);
+            // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
+            //assert metadata.equals(forceRead);
             metadata = forceRead;
         } catch (Exception e) {
             throw new RuntimeException(e);
