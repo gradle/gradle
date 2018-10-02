@@ -1,3 +1,3 @@
 plugins {
-    id("greet")
+    `greet`
 }

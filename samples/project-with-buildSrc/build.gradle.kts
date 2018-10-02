@@ -1,6 +1,6 @@
 plugins {
     // Apply the `my-plugin` defined in buildSrc/src/main/kotlin/my-plugin.gradle.kts
-    id("my-plugin")
+    `my-plugin`
 }
 
 my {
