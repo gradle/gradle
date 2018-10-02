@@ -45,6 +45,9 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
      * @return a list of realised variants
      */
     public static ImmutableList<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realiseVariants(ModuleComponentResolveMetadata mutableMetadata, VariantMetadataRules variantMetadataRules, ImmutableList<? extends ComponentVariant> variants) {
+        if (variants.isEmpty()) {
+            return ImmutableList.of();
+        }
         List<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realisedVariants = Lists.newArrayListWithExpectedSize(variants.size());
         for (ComponentVariant variant : variants) {
             ImmutableAttributes attributes = variantMetadataRules.applyVariantAttributeRules(variant, variant.getAttributes());
