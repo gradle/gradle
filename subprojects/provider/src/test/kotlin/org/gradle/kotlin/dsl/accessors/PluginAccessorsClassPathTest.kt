@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.hamcrest.MatcherAssert.assertThat
@@ -50,7 +51,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // then:
         assertThat(
-            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText(),
+            srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().toPlatformLineSeparators(),
             containsMultiLineString("""
 
                 /**
