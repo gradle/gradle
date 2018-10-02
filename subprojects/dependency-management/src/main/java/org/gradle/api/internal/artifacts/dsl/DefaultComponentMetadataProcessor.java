@@ -116,7 +116,9 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             }
         }
         try {
-            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+            ModuleComponentResolveMetadata forceRead = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+            assert metadata.equals(forceRead);
+            metadata = forceRead;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
