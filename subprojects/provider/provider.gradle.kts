@@ -71,7 +71,7 @@ tasks {
         property("kotlin", kotlinVersion)
     }
 
-    "processResources"(ProcessResources::class) {
+    processResources {
         from(writeVersionsManifest)
     }
 
@@ -82,7 +82,7 @@ tasks {
         options.isIncremental = false
     }
 
-    "test" {
+    test {
         dependsOn(":customInstallation")
     }
 }

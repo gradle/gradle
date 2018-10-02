@@ -10,7 +10,7 @@ dependencies {
 }
 
 tasks {
-    "test" {
+    test {
         dependsOn(":customInstallation")
         inputs.dir("$rootDir/samples")
     }

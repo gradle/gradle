@@ -18,7 +18,7 @@ dependencies {
 
 // -- Testing ----------------------------------------------------------
 tasks {
-    "test" {
+    test {
         dependsOn(":customInstallation")
     }
 }
