@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -86,7 +85,7 @@ public class CompileOptions extends AbstractOptions {
 
     private FileCollection sourcepath;
 
-    private FileCollection annotationProcessorPath = ImmutableFileCollection.of();
+    private FileCollection annotationProcessorPath;
 
     private final Property<File> annotationProcessorGeneratedSourcesDirectory;
 
@@ -456,9 +455,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @return The annotation processor path
+     * @return The annotation processor path, or {@code null} if annotation processing is disabled.
      * @since 3.4
      */
+    @Nullable
     @Internal // Handled on the compile task
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
@@ -467,10 +467,10 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @param annotationProcessorPath The annotation processor path
+     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
      * @since 3.4
      */
-    public void setAnnotationProcessorPath(FileCollection annotationProcessorPath) {
+    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
     }
 

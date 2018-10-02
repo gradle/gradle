@@ -45,7 +45,9 @@ import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 
 /**
  * Compiles Java source files.
@@ -159,7 +161,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
-        spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.<File>of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
@@ -193,6 +195,7 @@ public class JavaCompile extends AbstractCompile {
      */
     @Incubating
     @Classpath
+    @Nullable
     public FileCollection getEffectiveAnnotationProcessorPath() {
         return compileOptions.getAnnotationProcessorPath();
     }

@@ -50,6 +50,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -128,7 +129,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(scalaCompileOptions);
-        spec.setAnnotationProcessorPath(ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.<File>of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         return spec;
     }
 
@@ -185,6 +186,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      */
     @Deprecated
     @Classpath
+    @Nullable
     public FileCollection getEffectiveAnnotationProcessorPath() {
         SingleMessageLogger.nagUserOfReplacedProperty("AbstractScalaCompile.effectiveAnnotationProcessorPath", "AbstractScalaCompile.options.annotationProcessorPath");
         return compileOptions.getAnnotationProcessorPath();
