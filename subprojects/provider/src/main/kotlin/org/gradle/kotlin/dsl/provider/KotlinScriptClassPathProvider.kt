@@ -144,7 +144,6 @@ class KotlinScriptClassPathProvider(
     fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath =
         gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
 
-    private
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"

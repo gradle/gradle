@@ -53,32 +53,61 @@ import java.io.File
 import java.util.*
 
 
-fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
-    project.getOrCreateSingletonProperty {
+fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
+    project.getOrCreateProperty("gradleKotlinDsl.projectAccessorsClassPath") {
         buildAccessorsClassPathFor(project, classPath)
             ?: AccessorsClassPath.empty
     }
 
 
+private
+fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
+    configuredProjectSchemaOf(project)?.let { projectSchema ->
+        cachedAccessorsClassPathFor(project, cacheKeyFor(projectSchema, classPath)) { srcDir, binDir ->
+            buildAccessorsFor(
+                projectSchema,
+                classPath,
+                srcDir = srcDir,
+                binDir = binDir
+            )
+        }
+    }
+
+
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
+
     companion object {
         val empty = AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
     }
+
+    operator fun plus(other: AccessorsClassPath) =
+        AccessorsClassPath(bin + other.bin, src + other.src)
+}
+
+
+internal
+fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, builder: (File, File) -> Unit): AccessorsClassPath {
+    val cacheDir =
+        scriptCacheOf(project)
+            .cacheDirFor(cacheKeySpec) { baseDir ->
+                builder(
+                    accessorsSourceDir(baseDir),
+                    accessorsClassesDir(baseDir)
+                )
+            }
+    return AccessorsClassPath(
+        DefaultClassPath.of(accessorsClassesDir(cacheDir)),
+        DefaultClassPath.of(accessorsSourceDir(cacheDir))
+    )
 }
 
 
 private
-fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
-    configuredProjectSchemaOf(project)?.let { projectSchema ->
-        val cacheDir =
-            scriptCacheOf(project)
-                .cacheDirFor(cacheKeyFor(projectSchema, classPath)) { baseDir ->
-                    buildAccessorsClassesFor(projectSchema, classPath, outputDir = baseDir)
-                }
-        AccessorsClassPath(
-            DefaultClassPath.of(accessorsClassesDir(cacheDir)),
-            DefaultClassPath.of(accessorsSourceDir(cacheDir)))
-    }
+fun accessorsSourceDir(baseDir: File) = baseDir.resolve("src")
+
+
+private
+fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
 
 
 private
@@ -152,15 +181,19 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
 private
-fun buildAccessorsClassesFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
-
+fun buildAccessorsFor(
+    projectSchema: ProjectSchema<String>,
+    classPath: ClassPath,
+    srcDir: File,
+    binDir: File
+) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
 
-    val sourceFiles = sourceFilesWithAccessorsFor(availableSchema, outputDir)
+    val sourceFiles = sourceFilesWithAccessorsFor(availableSchema, srcDir)
 
     require(
         compileToDirectory(
-            accessorsClassesDir(outputDir),
+            binDir,
             sourceFiles,
             logger,
             classPath.asFiles
@@ -181,7 +214,7 @@ fun buildAccessorsClassesFor(projectSchema: ProjectSchema<String>, classPath: Cl
 
 
 private
-fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, outputDir: File): List<File> {
+fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, srcDir: File): List<File> {
 
     val schemaPerTarget =
         projectSchema.groupedByTarget()
@@ -190,7 +223,7 @@ fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>,
         ArrayList<File>(schemaPerTarget.size + 1)
 
     val packageDir =
-        accessorsSourceDir(outputDir).resolve("org/gradle/kotlin/dsl")
+        srcDir.resolve("org/gradle/kotlin/dsl")
 
     fun sourceFile(name: String) =
         packageDir.resolve(name).also { sourceFiles.add(it) }
@@ -514,14 +547,6 @@ val logger by lazy { loggerFor<AccessorsClassPath>() }
 
 
 private
-fun accessorsSourceDir(baseDir: File) = baseDir.resolve("src")
-
-
-private
-fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
-
-
-private
 fun multiProjectSchemaSnapshotOf(project: Project) =
     MultiProjectSchemaSnapshot(
         projectSchemaSnapshotFileOf(project)?.let {
@@ -546,9 +571,13 @@ fun classLoaderScopeOf(project: Project) =
     (project as ProjectInternal).classLoaderScope
 
 
+internal
+val accessorsCacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors")
+
+
 private
 fun cacheKeyFor(projectSchema: ProjectSchema<String>, classPath: ClassPath): CacheKeySpec =
-    (CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors")
+    (accessorsCacheKeyPrefix
         + projectSchema.toCacheKeyString()
         + classPath)
 

@@ -54,10 +54,6 @@ open class TestWithClassPath : TestWithTempFiles() {
         })
 
     private
-    fun classPathOf(vararg files: File) =
-        DefaultClassPath.of(files.asList())
-
-    private
     fun classFileForType(name: String, rootDir: File, vararg modifiers: Int) {
         File(rootDir, "${name.replace(".", "/")}.class").apply {
             parentFile.mkdirs()
@@ -80,3 +76,8 @@ open class TestWithClassPath : TestWithTempFiles() {
             toByteArray()
         }
 }
+
+
+internal
+fun classPathOf(vararg files: File) =
+    DefaultClassPath.of(files.asList())

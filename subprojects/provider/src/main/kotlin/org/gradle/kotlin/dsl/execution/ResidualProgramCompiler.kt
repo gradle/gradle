@@ -79,7 +79,8 @@ class ResidualProgramCompiler(
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
-    private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() }
+    private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
+    private val pluginAccessorsClassPath: ClassPath = ClassPath.EMPTY
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -161,7 +162,9 @@ class ResidualProgramCompiler(
                         buildscript.fragment.section.wholeRange,
                         plugins.fragment.section.wholeRange)
                 },
-                buildscriptWithPluginsScriptDefinition)
+                buildscriptWithPluginsScriptDefinition,
+                pluginsBlockClassPath
+            )
 
         precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
 
@@ -374,7 +377,7 @@ class ResidualProgramCompiler(
 
     private
     fun requiresAccessors() =
-        programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
+        requiresAccessors(programTarget, programKind)
 
     private
     fun MethodVisitor.emitAccessorsClassPathForScriptHost() {
@@ -398,7 +401,13 @@ class ResidualProgramCompiler(
     fun compilePlugins(program: Program.Plugins) =
         compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
-            pluginsScriptDefinition)
+            pluginsScriptDefinition,
+            pluginsBlockClassPath
+        )
+
+    private
+    val pluginsBlockClassPath
+        get() = classPath + pluginAccessorsClassPath
 
     private
     fun MethodVisitor.loadHashCode(hashCode: HashCode) {
@@ -506,26 +515,37 @@ class ResidualProgramCompiler(
         outputDir.resolve(relativePath)
 
     private
-    fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
+    fun compileStage1(
+        source: ProgramSource,
+        scriptDefinition: KotlinScriptDefinition,
+        compileClassPath: ClassPath = classPath
+    ): String {
         withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
             return compileScript(
                 scriptFile,
                 originalScriptPath,
                 scriptDefinition,
-                StableDisplayNameFor.stage1
+                StableDisplayNameFor.stage1,
+                compileClassPath
             )
         }
     }
 
     private
-    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition, stage: String): String =
+    fun compileScript(
+        scriptFile: File,
+        originalPath: String,
+        scriptDefinition: KotlinScriptDefinition,
+        stage: String,
+        compileClassPath: ClassPath = classPath
+    ): String =
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
                 scriptFile,
                 scriptDefinition,
-                classPath.asFiles,
+                compileClassPath.asFiles,
                 messageCollectorFor(logger) { path ->
                     if (path == scriptFile.path) originalPath
                     else path
@@ -587,6 +607,11 @@ class ResidualProgramCompiler(
             )
         }
 }
+
+
+internal
+fun requiresAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
+    programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
 
 
 private

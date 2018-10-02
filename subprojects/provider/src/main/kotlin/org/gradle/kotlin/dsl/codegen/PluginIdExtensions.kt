@@ -240,11 +240,11 @@ object UserGuideLink {
 }
 
 
-private
+internal
 data class PluginEntry(val pluginId: String, val implementationClass: String)
 
 
-private
+internal
 fun pluginEntriesFrom(jar: File): List<PluginEntry> =
     JarFile(jar).use { jarFile ->
         jarFile.entries().asSequence().filter {

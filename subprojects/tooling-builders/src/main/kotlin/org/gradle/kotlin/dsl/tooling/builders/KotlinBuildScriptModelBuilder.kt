@@ -29,8 +29,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-
 import org.gradle.groovy.scripts.TextResourceScriptSource
 
 import org.gradle.internal.classpath.ClassPath
@@ -38,7 +36,8 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
-import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
+import org.gradle.kotlin.dsl.accessors.pluginAccessorsClassPath
+import org.gradle.kotlin.dsl.accessors.projectAccessorsClassPath
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 
@@ -57,10 +56,11 @@ import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.kotlin.dsl.typeOf
 
-import org.gradle.kotlin.dsl.*
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 import java.io.File
 import java.io.Serializable
@@ -171,7 +171,7 @@ fun projectScriptModelBuilder(scriptFile: File?, project: Project) =
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = project.scriptCompilationClassPath,
-        accessorsClassPath = { classPath -> accessorsClassPathFor(project, classPath) },
+        accessorsClassPath = { classPath -> projectAccessorsClassPath(project, classPath) + pluginAccessorsClassPath(project) },
         sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project))
 
 

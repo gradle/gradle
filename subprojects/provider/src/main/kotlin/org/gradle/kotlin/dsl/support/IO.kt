@@ -21,3 +21,8 @@ import java.io.File
 
 internal
 fun userHome() = File(System.getProperty("user.home"))
+
+
+internal
+inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
+    use { run(action) }
