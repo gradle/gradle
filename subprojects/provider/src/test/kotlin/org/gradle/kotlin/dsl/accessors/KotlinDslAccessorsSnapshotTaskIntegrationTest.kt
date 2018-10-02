@@ -291,9 +291,9 @@ fun existingTaskContainerElement(name: String, type: String = "org.gradle.api.De
 
 private
 fun existingConfigurationContainerElement(name: String) =
-    ProjectSchemaEntry("org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>", name, "org.gradle.api.internal.artifacts.configurations.DefaultConfiguration")
+    ProjectSchemaEntry("org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>", name, "org.gradle.api.artifacts.Configuration")
 
 
 private
 fun existingSourceSetContainerElement(name: String) =
-    ProjectSchemaEntry("org.gradle.api.tasks.SourceSetContainer", name, "org.gradle.api.internal.tasks.DefaultSourceSet")
+    ProjectSchemaEntry("org.gradle.api.tasks.SourceSetContainer", name, "org.gradle.api.tasks.SourceSet")
