@@ -1,7 +1,7 @@
 import build.*
 
 plugins {
-    id("kotlin-library")
+    `kotlin-library`
 }
 
 dependencies {

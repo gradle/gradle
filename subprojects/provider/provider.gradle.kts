@@ -3,7 +3,7 @@ import build.*
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
-    id("public-kotlin-dsl-module")
+    `public-kotlin-dsl-module`
 }
 
 base {

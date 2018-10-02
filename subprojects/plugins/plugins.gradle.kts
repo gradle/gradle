@@ -2,7 +2,7 @@ import build.futureKotlin
 import plugins.bundledGradlePlugin
 
 plugins {
-    id("kotlin-dsl-plugin-bundle")
+    `kotlin-dsl-plugin-bundle`
 }
 
 base {

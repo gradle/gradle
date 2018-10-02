@@ -4,7 +4,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.internal.hash.Hashing
 
 plugins {
-    id("kotlin-dsl-plugin-bundle")
+    `kotlin-dsl-plugin-bundle`
     id("com.github.johnrengelman.shadow") version "2.0.4" apply false
 }
 
