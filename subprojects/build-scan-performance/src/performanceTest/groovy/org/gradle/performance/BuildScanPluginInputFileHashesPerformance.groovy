@@ -80,6 +80,7 @@ class BuildScanPluginInputFileHashesPerformance extends AbstractBuildScanPluginP
         where:
         scenario         | expectedMedianPercentageShift
         "clean assemble" | MEDIAN_PERCENTAGES_SHIFT
+        "assemble"       | MEDIAN_PERCENTAGES_SHIFT
     }
 
 }

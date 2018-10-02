@@ -30,7 +30,7 @@ import spock.lang.Unroll
 @Category(PerformanceRegressionTest)
 class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
-    private static final int MEDIAN_PERCENTAGES_SHIFT = 15
+    private static final int MEDIAN_PERCENTAGES_SHIFT = 10
 
     private static final String WITHOUT_PLUGIN_LABEL = "1 without plugin"
     private static final String WITH_PLUGIN_LABEL = "2 with plugin"
