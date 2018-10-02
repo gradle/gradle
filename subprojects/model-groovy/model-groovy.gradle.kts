@@ -20,19 +20,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * Groovy specific adaptions to the model management.
  */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    `java-library`
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(':baseServices')
-    api project(':modelCore')
-    api libraries.groovy.coordinates
+    api(project(":baseServices"))
+    api(project(":modelCore"))
+    api(library("groovy"))
 
-    implementation project(':baseServicesGroovy')
-    implementation libraries.jcip.coordinates
-    implementation libraries.guava.coordinates
+    implementation(project(":baseServicesGroovy"))
+    implementation(library("jcip"))
+    implementation(library("guava"))
 }
 
 gradlebuildJava {
@@ -40,6 +40,6 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
-    from(':modelCore')
+    from(":core")
+    from(":modelCore")
 }
