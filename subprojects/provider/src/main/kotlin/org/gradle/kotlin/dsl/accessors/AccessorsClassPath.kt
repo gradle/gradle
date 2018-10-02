@@ -251,8 +251,7 @@ private
 fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
         schemaSubset
-            .extensions
-            .flatMap { listOf(it.target, it.type) }
+            .run { extensions.flatMap { listOf(it.target, it.type) } + tasks.map { it.type } }
             .filterIsInstance<TypeAccessibility.Accessible>()
             .map { it.type }
     )

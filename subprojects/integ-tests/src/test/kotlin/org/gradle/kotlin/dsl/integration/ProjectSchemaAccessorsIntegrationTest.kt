@@ -146,6 +146,47 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    fun `can access task of default package type`() {
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin" {
+
+                    withFile("CustomTask.kt", """
+                        open class CustomTask : org.gradle.api.DefaultTask()
+                    """)
+
+                    withFile("plugin.gradle.kts", """
+                        tasks.register<CustomTask>("customTask")
+                    """)
+                }
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("task: " + typeOf(tasks.customTask))
+            tasks.customTask { println("task{} " + typeOf(this)) }
+        """)
+
+        assertThat(
+            build("customTask", "-q").output,
+            containsMultiLineString("""
+                task: org.gradle.api.tasks.TaskProvider<CustomTask>
+                task{} CustomTask
+            """)
+        )
+    }
+
+    @Test
     fun `can access extension of nested type`() {
 
         withFolders {
