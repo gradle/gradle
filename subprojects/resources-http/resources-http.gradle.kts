@@ -16,32 +16,32 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'java-library'
+    `java-library`
     // Cannot use strict compile because JDK 7 doesn't recognize
     // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
     // in the context of a delegation pattern
-    // id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    // id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(':resources')
-    api project(':baseServices')
-    api project(':core')
-    api libraries.commons_httpclient.coordinates
+    api(project(":resources"))
+    api(project(":baseServices"))
+    api(project(":core"))
+    api(library("commons_httpclient"))
 
-    implementation libraries.slf4j_api.coordinates
-    implementation libraries.jcl_to_slf4j.coordinates
-    implementation libraries.jcifs.coordinates
-    implementation libraries.guava.coordinates
-    implementation libraries.commons_lang.coordinates
-    implementation libraries.commons_io.coordinates
-    implementation libraries.xerces.coordinates
-    implementation libraries.nekohtml.coordinates
+    implementation(library("slf4j_api"))
+    implementation(library("jcl_to_slf4j"))
+    implementation(library("jcifs"))
+    implementation(library("guava"))
+    implementation(library("commons_lang"))
+    implementation(library("commons_io"))
+    implementation(library("xerces"))
+    implementation(library("nekohtml"))
 
-    testImplementation testLibraries.jetty
+    testImplementation(testLibrary("jetty"))
 
-    testFixturesImplementation project(":internalIntegTesting")
+    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {
@@ -49,6 +49,6 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
-    from(':logging')
+    from(":core")
+    from(":logging")
 }
