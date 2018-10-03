@@ -100,8 +100,6 @@ projects.each { projectName ->
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
-    enabled = false
-
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
