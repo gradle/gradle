@@ -41,6 +41,7 @@ dependencies {
     api project(":buildCache")
     api project(":coreApi")
     api project(":files")
+    api project(":snapshots")
 
     api project(":processServices")
     api project(":jvmServices")

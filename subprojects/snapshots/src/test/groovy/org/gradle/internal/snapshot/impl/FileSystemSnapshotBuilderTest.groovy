@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -25,6 +24,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class FileSystemSnapshotBuilderTest extends Specification {
