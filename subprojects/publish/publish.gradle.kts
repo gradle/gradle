@@ -16,18 +16,18 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.classycle'
+    id ("gradlebuild.classycle")
 }
 
 dependencies {
-    compile project(':core')
-    compile project(':dependencyManagement')
+    compile(project(":core"))
+    compile(project(":dependencyManagement"))
 
-    implementation libraries.commons_lang.coordinates
-    implementation libraries.gson.coordinates
+    implementation(library("commons_lang"))
+    implementation(library("gson"))
 
-    integTestRuntime project(":ivy")
-    integTestRuntime project(":maven")
+    integTestRuntime(project(":ivy"))
+    integTestRuntime(project(":maven"))
 }
 
 gradlebuildJava {
@@ -35,5 +35,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
