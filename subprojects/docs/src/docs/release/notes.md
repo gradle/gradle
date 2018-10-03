@@ -161,7 +161,8 @@ The following are the features that have been promoted in this Gradle release.
 - `IncrementalTaskInputs` and `InputFileDetails`
 - input normalization (`org.gradle.normalization`) including `InputNormalizationHandler`
 - `FileNormalizer` and its subclasses
-- `@LocalState` and `TaskLocalState`
+- `@LocalState`, `Task.getLocalState()` and `TaskLocalState`
+- `Task.getDestroyables()`
 - `TaskState.getUpToDate()` and `TaskState.getNoSource()`
 - the `ValidateTaskProperties` task
 - `AbstractArchiveTask.preserveFileTimestamps` and `reproducibleFileOrder` properties
