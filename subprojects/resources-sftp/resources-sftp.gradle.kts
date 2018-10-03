@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 /*
  * Copyright 2015 the original author or authors.
@@ -16,20 +17,20 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    `java-library`
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(':resources')
-    api project(':core')
+    api(project(":resources"))
+    api(project(":core"))
 
-    implementation libraries.slf4j_api.coordinates
-    implementation libraries.guava.coordinates
-    implementation libraries.jsch.coordinates
-    implementation libraries.jcip.coordinates
-    implementation libraries.commons_io.coordinates
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("jsch"))
+    implementation(library("jcip"))
+    implementation(library("commons_io"))
 }
 
 gradlebuildJava {
@@ -37,13 +38,12 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':dependencyManagement')
-    from(':ivy')
-    from(':maven')
-    from(':core')
+    from(":dependencyManagement")
+    from(":ivy")
+    from(":maven")
+    from(":core")
 }
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    policy = WhenNotEmpty.REPORT
+    policy.set(WhenNotEmpty.REPORT)
 }
