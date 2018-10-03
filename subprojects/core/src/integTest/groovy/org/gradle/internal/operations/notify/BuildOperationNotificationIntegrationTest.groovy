@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations.notify
 
-
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
@@ -46,7 +45,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
             println "init script"
         """
         buildScript """
-           ${notifications.registerListenerWithDrainRecordings()}
+           ${notifications.registerListener()}
             task t
         """
 
@@ -62,7 +61,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     def "can emit notifications from start of build"() {
         when:
         buildScript """
-           ${notifications.registerListenerWithDrainRecordings()}
+           ${notifications.registerListener()}
             task t
         """
 
@@ -95,30 +94,6 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
-    def "can emit notifications from point of registration"() {
-        when:
-        buildScript """
-           ${notifications.registerListener()}
-            task t
-        """
-
-        succeeds "t", "-S"
-
-        then:
-        // Operations that started before the listener registration are not included (even if they finish _after_ listener registration)
-        notifications.notIncluded(EvaluateSettingsBuildOperationType.Details)
-        notifications.notIncluded(LoadProjectsBuildOperationType.Details)
-        notifications.notIncluded(NotifyProjectsLoadedBuildOperationType.Details)
-        notifications.notIncluded(ApplyPluginBuildOperationType.Details)
-        notifications.notIncluded(ConfigureProjectBuildOperationType.Details)
-
-        notifications.started(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ':'])
-        notifications.started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
-        notifications.finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
-        notifications.started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
-        notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
-    }
-
     def "can emit notifications for nested builds"() {
         when:
         file("buildSrc/build.gradle") << ""
@@ -127,7 +102,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         buildScript """
-           ${notifications.registerListenerWithDrainRecordings()}
+           ${notifications.registerListener()}
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
             }
@@ -280,7 +255,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         given:
         file("buildSrc/build.gradle") << ""
         file("build.gradle") << """
-            ${notifications.registerListenerWithDrainRecordings()}
+            ${notifications.registerListener()}
             task t
         """
 
