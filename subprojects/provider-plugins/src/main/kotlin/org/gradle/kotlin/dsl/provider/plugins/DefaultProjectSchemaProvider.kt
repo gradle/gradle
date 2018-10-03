@@ -42,7 +42,8 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                 targetSchema.conventions,
                 targetSchema.tasks,
                 targetSchema.containerElements,
-                accessibleConfigurationsOf(project))
+                accessibleConfigurationsOf(project)
+            )
         }
 }
 
@@ -96,7 +97,12 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     collectSchemaOf(target, targetType)
 
-    return TargetTypedSchema(extensions.distinct(), conventions.distinct(), tasks.distinct(), containerElements.distinct())
+    return TargetTypedSchema(
+        extensions.distinct(),
+        conventions.distinct(),
+        tasks.distinct(),
+        containerElements.distinct()
+    )
 }
 
 
