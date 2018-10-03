@@ -18,9 +18,7 @@ package org.gradle.integtests.resolve.artifactreuse
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
 
-@Ignore("broken by 5.0 milestone release")
 @IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
 @LeaksFileHandles
 class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
