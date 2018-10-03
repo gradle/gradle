@@ -270,21 +270,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private ProjectState.SafeExclusiveLock getProjectSafeLock() {
-        if (domainObjectContext.getProjectPath() != null) {
-            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-            // Project should only be null if we are resolving a configuration in places where we are running single
-            // threaded anyways, like evaluating buildSrc or in an init script.
-            if (project != null) {
-                ProjectState projectState = projectStateRegistry.stateFor(project);
-                return projectState.newSafeExclusiveLock();
-            }
-        }
-
-        // This configuration is not associated with a project
+        // We delay getting the actual lock until later because buildSrc configurations can be
+        // created before the buildSrc project is registered in the project registry
         return new ProjectState.SafeExclusiveLock() {
+            ProjectState.SafeExclusiveLock delegate;
+
             @Override
             public void withLock(Runnable runnable) {
-                runnable.run();
+                ProjectState.SafeExclusiveLock lock = getDelegate();
+                if (lock != null) {
+                    lock.withLock(runnable);
+                } else {
+                    // This configuration is not associated with a project
+                    runnable.run();
+                }
+            }
+
+            synchronized ProjectState.SafeExclusiveLock getDelegate() {
+                if (delegate == null) {
+                    if (domainObjectContext.getProjectPath() != null) {
+                        Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+                        // Project should only be null if we are resolving a configuration in places where we are running single
+                        // threaded anyways, like evaluating buildSrc or in an init script.
+                        if (project != null) {
+                            ProjectState projectState = projectStateRegistry.stateFor(project);
+                            delegate = projectState.newSafeExclusiveLock();
+                        }
+                    }
+                }
+
+                return delegate;
             }
         };
     }
