@@ -23,6 +23,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
     features {
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
             buildReportTab("API Compatibility Report", "report-distributions-binary-compatibility-report.html")
+            buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
         }
         if (!stage.performanceTests.isEmpty()) {
             buildReportTab("Performance", "report-performance-performance-tests.zip!report/index.html")

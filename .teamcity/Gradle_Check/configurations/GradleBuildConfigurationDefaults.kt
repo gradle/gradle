@@ -75,6 +75,7 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
         buildSrc/build/report-* => .
         subprojects/*/build/tmp/test files/** => test-files
         build/errorLogs/** => errorLogs
+        build/reports/incubation/** => incubation-reports
     """.trimIndent()
 
     buildType.vcs {
