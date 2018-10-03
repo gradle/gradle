@@ -168,6 +168,7 @@ The following are the features that have been promoted in this Gradle release.
 - `AbstractArchiveTask.preserveFileTimestamps` and `reproducibleFileOrder` properties
 - `ForkOptions.javaHome` property
 - `Project.normalization`
+- `GroovyCompile.groovyCompilerJvmVersion` and `javaToolChain` properties
 
 ## Fixed issues
 
