@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,22 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
+}
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(project(":core"))
+    compile(project(":platformNative"))
+    compile(project(":maven"))
+    compile(project(":ivy"))
+    compile(project(":toolingApi"))
 
-    compile libraries.rhino.coordinates
-    compile libraries.gson.coordinates // used by JsHint.coordinates
-    compile libraries.simple.coordinates // used by http package in envjs.coordinates
-    compile project(':core'), project(":plugins"), project(':workers')
-    compile libraries.inject.coordinates
+    implementation(project(":versionControl"))
+    implementation(library("commons_io"))
 
-    // Required by JavaScriptExtension#getGoogleApisRepository()
-    compile project(':dependencyManagement')
+    integTestRuntimeOnly(project(":ideNative"))
 }
 
 gradlebuildJava {
@@ -34,5 +38,14 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
+    from(":versionControl")
+    from(":platformNative")
+    from(":platformBase")
+    from(":messaging")
+    from(":platformNative", "testFixtures")
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }

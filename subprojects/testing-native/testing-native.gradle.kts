@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile project(':resources')
-    compile project(':resourcesHttp')
-    compile project(':baseServices')
-    compile project(':core')
-    compile libraries.commons_httpclient.coordinates
-    compile libraries.commons_lang.coordinates
+    compile(project(":core"))
+    compile(project(":platformNative"))
+    compile(project(":languageNative"))
+    compile(project(":testingBase"))
 
-    integTestCompile testLibraries.jetty
+    integTestRuntime(project(":ideNative"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
+testFixtures {
+    from(":core")
+    from(":platformNative")
+    from(":diagnostics")
+    from(":platformBase")
+    from(":testingBase")
+    from(":languageNative")
+}

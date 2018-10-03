@@ -17,9 +17,9 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile project(':core')
-    compile project(":plugins")
-    compile libraries.inject.coordinates
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(library("inject"))
 }
 
 gradlebuildJava {
@@ -27,5 +27,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }

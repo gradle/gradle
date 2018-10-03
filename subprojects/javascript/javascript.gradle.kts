@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,26 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id 'gradlebuild.classycle'
-}
-
-apply from: 'templates.gradle'
 
 dependencies {
-    // so that all Gradle features are available
-    performanceTestRuntime allTestRuntimeDependencies
+    compile(library("groovy"))
 
-    testFixturesApi project(':internalPerformanceTesting')
+    compile(library("rhino"))
+    compile(library("gson")) // used by JsHint.coordinates
+    compile(library("simple")) // used by http package in envjs.coordinates
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":workers"))
+    compile(library("inject"))
+
+    // Required by JavaScriptExtension#getGoogleApisRepository()
+    compile(project(":dependencyManagement"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    moduleType = ModuleType.CORE
 }
 
-tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
-    systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
+testFixtures {
+    from(":core")
 }

@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,23 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/*
- * Groovy specific adaptions to the model management.
- */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(':baseServices')
-    api project(':modelCore')
-    api libraries.groovy.coordinates
+    compile(project(":resources"))
+    compile(project(":resourcesHttp"))
+    compile(project(":baseServices"))
+    compile(project(":core"))
+    compile(library("commons_httpclient"))
+    compile(library("commons_lang"))
 
-    implementation project(':baseServicesGroovy')
-    implementation libraries.jcip.coordinates
-    implementation libraries.guava.coordinates
+    integTestCompile(testLibrary("jetty"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
-testFixtures {
-    from(':core')
-    from(':modelCore')
-}

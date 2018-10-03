@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 /*
  * Copyright 2017 the original author or authors.
@@ -16,25 +17,25 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'java-library'
-    // id 'gradlebuild.strict-compile'
+    `java-library`
+    // id("gradlebuild.strict-compile")
 }
 
 dependencies {
-    api project(":baseServices")
-    api project(":baseServicesGroovy")
-    api project(":buildCache")
-    api project(":logging")
-    api project(":persistentCache")
-    api project(":processServices")
-    api project(":resources")
+    api(project(":baseServices"))
+    api(project(":baseServicesGroovy"))
+    api(project(":buildCache"))
+    api(project(":logging"))
+    api(project(":persistentCache"))
+    api(project(":processServices"))
+    api(project(":resources"))
 
-    implementation libraries.ant.coordinates
-    implementation libraries.commons_io.coordinates
-    implementation libraries.commons_lang.coordinates
-    implementation libraries.jcip.coordinates
+    implementation(library("ant"))
+    implementation(library("commons_io"))
+    implementation(library("commons_lang"))
+    implementation(library("jcip"))
 
-    testFixturesImplementation project(":internalTesting")
+    testFixturesImplementation(project(":internalTesting"))
 }
 
 gradlebuildJava {
@@ -42,10 +43,9 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':logging')
+    from(":logging")
 }
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    policy = WhenNotEmpty.REPORT
+    policy.set(WhenNotEmpty.REPORT)
 }

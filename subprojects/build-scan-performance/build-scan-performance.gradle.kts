@@ -1,7 +1,8 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.testing.PerformanceTest
 
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +16,26 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id("gradlebuild.classycle")
+}
+
+apply(from = "templates.gradle.kts")
 
 dependencies {
-    compile libraries.groovy.coordinates
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':reporting')
-    testCompile testLibraries.jsoup
-    testCompile project(':internalIntegTesting')
+    // so that all Gradle features are available
+    val allTestRuntimeDependencies: DependencySet? by rootProject.extra
+    allTestRuntimeDependencies!!.forEach {
+        performanceTestRuntime(it)
+    }
+
+    testFixturesApi(project(":internalPerformanceTesting"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.CORE
+    moduleType = ModuleType.INTERNAL
 }
 
-testFixtures {
-    from(':core')
+tasks.withType<PerformanceTest>().configureEach {
+    systemProperties.put("incomingArtifactDir", "${rootDir}/incoming/")
 }

@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
-/*
-    This project contains some utilities for parsing command line arguments.
-
-    It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
-    It has no dependencies, and should never have any.
-*/
-plugins {
-    id 'java-library'
-    id 'gradlebuild.classycle'
-}
-
-dependencies{
-    compile project(':distributionsDependencies')
+dependencies {
+    compile(library("groovy"))
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":reporting"))
+    testCompile(testLibrary("jsoup"))
+    testCompile(project(":internalIntegTesting"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
+}
+
+testFixtures {
+    from(":core")
 }

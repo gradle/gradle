@@ -15,37 +15,31 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Groovy specific adaptions to the model management.
+ */
 plugins {
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    `java-library`
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':maven')
-    compile project(':ivy')
-    compile project(':toolingApi')
+    api(project(":baseServices"))
+    api(project(":modelCore"))
+    api(library("groovy"))
 
-    implementation project(':versionControl')
-    implementation libraries.commons_io.coordinates
-
-    integTestRuntimeOnly project(":ideNative")
+    implementation(project(":baseServicesGroovy"))
+    implementation(library("jcip"))
+    implementation(library("guava"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.CORE
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
-    from(':core')
-    from(':versionControl')
-    from(':platformNative')
-    from(':platformBase')
-    from(':messaging')
-    from(':platformNative', 'testFixtures')
-}
-
-classycle {
-    excludePatterns = ['org/gradle/language/nativeplatform/internal/**']
+    from(":core")
+    from(":modelCore")
 }
