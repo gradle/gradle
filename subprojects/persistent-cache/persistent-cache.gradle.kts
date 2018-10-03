@@ -16,22 +16,22 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    `java-library`
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(":baseServices")
-    api project(":messaging")
-    api project(":native")
-    api project(":resources")
-    api project(":logging")
-    api libraries.jcip.coordinates
+    api(project(":baseServices"))
+    api(project(":messaging"))
+    api(project(":native"))
+    api(project(":resources"))
+    api(project(":logging"))
+    api(library("jcip"))
 
-    implementation libraries.commons_collections.coordinates
-    implementation libraries.commons_io.coordinates
-    implementation libraries.commons_lang.coordinates
+    implementation(library("commons_collections"))
+    implementation(library("commons_io"))
+    implementation(library("commons_lang"))
 }
 
 gradlebuildJava {
@@ -39,5 +39,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
