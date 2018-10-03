@@ -33,17 +33,22 @@ dependencies {
 
     testFixturesApi(project(":internalIntegTesting"))
 }
+
+val availableJavaInstallations = rootProject.availableJavaInstallations
+
 // Needed for testing debug command line option (JDWPUtil)
-if (!rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion.isJava9Compatible()) {
+val javaInstallationForTest = availableJavaInstallations.javaInstallationForTest
+if (!javaInstallationForTest.javaVersion.isJava9Compatible) {
     dependencies {
-        integTestRuntime(files(rootProject.availableJavaInstallations.javaInstallationForTest.toolsJar))
+        integTestRuntime(files(javaInstallationForTest.toolsJar))
     }
 }
 
-if(rootProject.availableJavaInstallations.currentJavaInstallation.javaVersion.isJava8()) {
-    // If running on Java 8 but compiling with Java 9, Groovy code would still be compiled by Java 8, so here we need the tools.jar
+// If running on Java 8 but compiling with Java 9, Groovy code would still be compiled by Java 8, so here we need the tools.jar
+val currentJavaInstallation = availableJavaInstallations.currentJavaInstallation
+if (currentJavaInstallation.javaVersion.isJava8) {
     dependencies {
-        integTestCompileOnly(files(rootProject.availableJavaInstallations.currentJavaInstallation.toolsJar))
+        integTestCompileOnly(files(currentJavaInstallation.toolsJar))
     }
 }
 
@@ -66,12 +71,14 @@ integTestTasks.configureEach {
 
 val configureJar by tasks.registering {
     doLast {
-        val classpath = listOf(":baseServices", ":coreApi", ":core").map { project(it).tasks.getByName<Jar>("jar").archivePath.name }.joinToString(" ")
+        val classpath = listOf(":baseServices", ":coreApi", ":core").joinToString(" ") {
+            project(it).tasks.jar.get().archivePath.name
+        }
         tasks.jar.get().manifest.attributes("Class-Path" to classpath)
     }
 }
 
-tasks.jar.configure {
+tasks.jar {
     dependsOn(configureJar)
     manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
 }

@@ -50,27 +50,33 @@ testFixtures {
 tasks {
     register("updateInitPluginTemplateVersionFile") {
         doLast {
-            val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
 
-            val versionProperties: Properties = Properties()
+            val versionProperties = Properties()
 
             findLatest("scala-library", "org.scala-lang:scala-library:2.12.+", versionProperties)
             val scalaVersion = VersionNumber.parse(versionProperties["scala-library"] as String)
-            versionProperties.put("scala", "${scalaVersion.major}.${scalaVersion.minor}")
+            versionProperties["scala"] = "${scalaVersion.major}.${scalaVersion.minor}"
+
             findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
             findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
             findLatest("groovy", "org.codehaus.groovy:groovy:(2.4,2.5]", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("testng", "org.testng:testng:(6.0,)", versionProperties)
             findLatest("slf4j", "org.slf4j:slf4j-api:(1.7,)", versionProperties)
+
             val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
-            versionProperties.put("spock", "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}")
+            versionProperties["spock"] = "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}"
+
             findLatest("guava", "com.google.guava:guava:(20,)", versionProperties)
             findLatest("commons-math", "org.apache.commons:commons-math3:latest.release", versionProperties)
             findLatest("kotlin", "org.jetbrains.kotlin:kotlin-gradle-plugin:(1.2,)", versionProperties)
 
-            org.gradle.build.ReproduciblePropertiesWriter.store(versionProperties, libraryVersionFile,
-                "Generated file, please do not edit - Version values used in build-init templates")
+            val libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
+            org.gradle.build.ReproduciblePropertiesWriter.store(
+                versionProperties,
+                libraryVersionFile,
+                "Generated file, please do not edit - Version values used in build-init templates"
+            )
         }
     }
 }
@@ -79,7 +85,6 @@ fun findLatest(name: String, notation: String, dest: Properties) {
     val libDependencies = arrayOf(project.dependencies.create(notation))
     val templateVersionConfiguration = project.configurations.detachedConfiguration(*libDependencies)
     templateVersionConfiguration.resolutionStrategy.componentSelection.all { selection: ComponentSelection ->
-        val devSuffixes = arrayOf("-SNAP\\d+", "-SNAPSHOT", "-alpha-?\\d+", "-beta-?\\d+", "-dev-?\\d+", "-rc-?\\d+", "-M\\d+", "-eap-?\\d+")
         devSuffixes.forEach {
             if (selection.candidate.version.matches(".+$it\$".toRegex())) {
                 selection.reject("don't use snapshots")
@@ -87,11 +92,22 @@ fun findLatest(name: String, notation: String, dest: Properties) {
             }
         }
     }
-    templateVersionConfiguration.setTransitive(false)
+    templateVersionConfiguration.isTransitive = false
     val resolutionResult: ResolutionResult = templateVersionConfiguration.incoming.resolutionResult
     val matches: List<ResolvedComponentResult> = resolutionResult.allComponents.filter { it != resolutionResult.root }
     if (matches.isEmpty()) {
         throw GradleException("Could not locate any matches for $notation")
     }
-    matches.forEach { dep -> dest.put(name, (dep.id as ModuleComponentIdentifier).version) }
+    matches.forEach { dep -> dest[name] = (dep.id as ModuleComponentIdentifier).version }
 }
+
+val devSuffixes = arrayOf(
+    "-SNAP\\d+",
+    "-SNAPSHOT",
+    "-alpha-?\\d+",
+    "-beta-?\\d+",
+    "-dev-?\\d+",
+    "-rc-?\\d+",
+    "-M\\d+",
+    "-eap-?\\d+"
+)

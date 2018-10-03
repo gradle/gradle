@@ -37,5 +37,5 @@ gradlebuildJava {
 }
 
 tasks.withType<PerformanceTest>().configureEach {
-    systemProperties.put("incomingArtifactDir", "${rootDir}/incoming/")
+    systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 }

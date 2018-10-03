@@ -43,20 +43,29 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
     linesOfCodePerSourceFile = 150
     rootProjectTemplates = listOf("root")
     subProjectTemplates = listOf("project-with-source")
-    templateArgs = mapOf("fullTestLogging" to true, "failedTests" to true, "projectDependencies" to true, "manyPlugins" to true, "manyScripts" to true)
+    templateArgs = mapOf(
+        "fullTestLogging" to true,
+        "failedTests" to true,
+        "projectDependencies" to true,
+        "manyPlugins" to true,
+        "manyScripts" to true
+    )
 
     doLast {
         // generate script plugins
         val scriptPlugins = 30
         val nesting = 5
-        val groupedScriptIds = ((1..scriptPlugins).groupBy { it % (scriptPlugins/nesting)}.values)
-        val gradleFolder =  File(destDir, "gradle")
+        val groupedScriptIds = ((1..scriptPlugins).groupBy { it % (scriptPlugins / nesting) }.values)
+        val gradleFolder = File(destDir, "gradle")
         gradleFolder.mkdirs()
         (1..30).forEach { scriptPluginId ->
-            val nestedScriptId: Int? = groupedScriptIds.find {it.contains(scriptPluginId)}?.find { it > scriptPluginId }
-            val maybeApplyNestedScript = if (nestedScriptId != null) "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" else ""
-            File(gradleFolder, "script-plugin${scriptPluginId}.gradle").writeText("""
-                ${maybeApplyNestedScript}
+            val nestedScriptId: Int? =
+                groupedScriptIds.find { it.contains(scriptPluginId) }?.find { it > scriptPluginId }
+            val maybeApplyNestedScript =
+                if (nestedScriptId != null) "apply from: \'../gradle/script-plugin$nestedScriptId.gradle'"
+                else ""
+            File(gradleFolder, "script-plugin$scriptPluginId.gradle").writeText("""
+                $maybeApplyNestedScript
             """)
         }
     }
