@@ -67,7 +67,7 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteBuildFileWithJupiter(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}")
+        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}", "org.junit.jupiter.api")
     }
 
     static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {
@@ -120,10 +120,10 @@ test {
                 '''
             }
         }
-        if (text.contains("--add-modules")) {
+        if (moduleName != null && text.contains("--add-modules")) {
             // This is a bit aggressive but it works for now
-            text = text.replace('"junit"', '"org.junit.jupiter.api"')
-            text = text.replace('=junit"', '=org.junit.jupiter.api"')
+            text = text.replace('"junit"', '"' + moduleName + '"')
+            text = text.replace('=junit"', '=' + moduleName + '"')
         }
         buildFile.text = text
     }
