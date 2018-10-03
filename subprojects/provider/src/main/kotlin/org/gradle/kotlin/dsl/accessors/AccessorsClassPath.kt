@@ -247,14 +247,21 @@ fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>,
 }
 
 
-private
+internal
 fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
-        schemaSubset
-            .run { extensions.flatMap { listOf(it.target, it.type) } + tasks.map { it.type } }
+        candidateTypesForImportIn(schemaSubset)
             .filterIsInstance<TypeAccessibility.Accessible>()
             .map { it.type }
     )
+
+
+private
+fun candidateTypesForImportIn(projectSchema: ProjectSchema<TypeAccessibility>) = projectSchema.run {
+    (extensions.flatMap { listOf(it.target, it.type) }
+        + tasks.map { it.type }
+        + containerElements.map { it.type })
+}
 
 
 internal

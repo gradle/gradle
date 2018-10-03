@@ -93,25 +93,19 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of default package type`() {
 
-        withFolders {
+        withBuildSrc {
 
-            "buildSrc" {
+            "src/main/kotlin" {
 
-                withPrecompiledPlugins()
+                withFile("Extension.kt", """
+                    class Extension(private val name: String) : org.gradle.api.Named {
+                        override fun getName() = name
+                    }
+                """)
 
-                "src/main/kotlin" {
-
-                    withFile("Extension.kt", """
-                        class Extension(private val name: String) : org.gradle.api.Named {
-                            override fun getName() = name
-                        }
-                    """)
-
-                    withFile("plugin.gradle.kts", """
-                        extensions.add("extension", Extension("foo"))
-                        extensions.add("beans", container(Extension::class))
-                    """)
-                }
+                withFile("plugin.gradle.kts", """
+                    extensions.add("extension", Extension("foo"))
+                """)
             }
         }
 
@@ -123,9 +117,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             println("extension: " + typeOf(extension))
             extension { println("extension{} " + typeOf(this)) }
-
-            println("beans: " + typeOf(beans))
-            beans { println("beans{} " + typeOf(beans)) }
         """)
 
         assertThat(
@@ -133,8 +124,59 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             containsMultiLineString("""
                 extension: Extension
                 extension{} Extension
-                beans: org.gradle.api.NamedDomainObjectContainer<Extension>
-                beans{} org.gradle.api.NamedDomainObjectContainer<Extension>
+            """)
+        )
+    }
+
+    @Test
+    fun `can access container element of default package type`() {
+
+        withBuildSrc {
+
+            "src/main/kotlin" {
+
+                withFile("Bean.kt", """
+                    open class Bean(private val name: String) : org.gradle.api.Named {
+                        override fun getName() = name
+                    }
+                """)
+
+                withFile("plugin.gradle.kts", """
+
+                    import org.gradle.api.internal.*
+                    import org.gradle.internal.reflect.*
+
+                    val beans = DefaultPolymorphicDomainObjectContainer(
+                        Any::class.java,
+                        DirectInstantiator.INSTANCE
+                    ) { (it as Bean).name }
+
+                    // TODO: schema doesn't expose the registered element as Bean
+                    beans.register("bean", Bean::class)
+                    extensions.add("beans", beans)
+
+                """)
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("beans: " + typeOf(beans))
+            println("bean: " + typeOf(beans.bean))
+            beans { println("beans{} " + typeOf(beans)) }
+        """)
+
+        // TODO: `bean` should be exposed as `Bean` in the collection schema
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                beans: org.gradle.api.NamedDomainObjectContainer<java.lang.Object>
+                bean: org.gradle.api.NamedDomainObjectProvider<java.lang.Object>
+                beans{} org.gradle.api.NamedDomainObjectContainer<java.lang.Object>
             """)
         )
     }
@@ -142,22 +184,16 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access task of default package type`() {
 
-        withFolders {
+        withBuildSrc {
+            "src/main/kotlin" {
 
-            "buildSrc" {
+                withFile("CustomTask.kt", """
+                    open class CustomTask : org.gradle.api.DefaultTask()
+                """)
 
-                withPrecompiledPlugins()
-
-                "src/main/kotlin" {
-
-                    withFile("CustomTask.kt", """
-                        open class CustomTask : org.gradle.api.DefaultTask()
-                    """)
-
-                    withFile("plugin.gradle.kts", """
-                        tasks.register<CustomTask>("customTask")
-                    """)
-                }
+                withFile("plugin.gradle.kts", """
+                    tasks.register<CustomTask>("customTask")
+                """)
             }
         }
 
