@@ -37,7 +37,8 @@ import javax.inject.Inject
 
 
 @CacheableTask
-open class IncubatingApiReportTask @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+open class IncubatingApiReportTask
+    @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
 
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)

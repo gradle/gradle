@@ -28,7 +28,8 @@ import javax.inject.Inject
 
 
 @CacheableTask
-open class IncubatingApiAggregateReportTask @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+open class IncubatingApiAggregateReportTask
+    @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
 
     @Input
     var reports: Map<String, File>? = null
