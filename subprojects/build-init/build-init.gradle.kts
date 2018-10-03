@@ -33,8 +33,8 @@ dependencies {
 
     testFixturesImplementation(project(":internalTesting"))
 
-    val allTestRuntimeDependencies: DependencySet? by rootProject.extra
-    allTestRuntimeDependencies!!.forEach {
+    val allTestRuntimeDependencies: DependencySet by rootProject.extra
+    allTestRuntimeDependencies.forEach {
         integTestRuntime(it)
     }
 }

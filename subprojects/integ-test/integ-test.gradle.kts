@@ -19,8 +19,8 @@ dependencies {
         exclude(module = "slf4j-simple")
     }
 
-    val allTestRuntimeDependencies: DependencySet? by rootProject.extra
-    allTestRuntimeDependencies!!.forEach {
+    val allTestRuntimeDependencies: DependencySet by rootProject.extra
+    allTestRuntimeDependencies.forEach {
         integTestRuntime(it)
     }
 
@@ -29,7 +29,7 @@ dependencies {
     crossVersionTestCompile(project(":codeQuality"))
     crossVersionTestCompile(project(":signing"))
 
-    allTestRuntimeDependencies!!.forEach {
+    allTestRuntimeDependencies.forEach {
         crossVersionTestRuntime(it)
     }
 }

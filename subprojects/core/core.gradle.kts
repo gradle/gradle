@@ -80,8 +80,8 @@ dependencies {
     testFixturesImplementation(library("ivy"))
 
     testFixturesRuntimeOnly(project(":runtimeApiInfo"))
-    val allCoreRuntimeExtensions: DependencySet? by rootProject.extra
-    allCoreRuntimeExtensions!!.forEach {
+    val allCoreRuntimeExtensions: DependencySet by rootProject.extra
+    allCoreRuntimeExtensions.forEach {
         testFixturesRuntimeOnly(it)
     }
     testFixturesRuntimeOnly(project(":testingJunitPlatform"))
