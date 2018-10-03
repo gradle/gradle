@@ -86,6 +86,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'xcode',
 
             'play-application',
+            'application',
         ])
 
         applyPlugin()
