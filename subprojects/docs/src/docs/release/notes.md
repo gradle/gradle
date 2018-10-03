@@ -163,6 +163,7 @@ The following are the features that have been promoted in this Gradle release.
 - `FileNormalizer` and its subclasses
 - `@LocalState` and `TaskLocalState`
 - `TaskState.getUpToDate()` and `TaskState.getNoSource()`
+- the `ValidateTaskProperties` task
 
 ## Fixed issues
 
