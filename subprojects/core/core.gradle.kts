@@ -80,8 +80,8 @@ dependencies {
     testFixturesImplementation(library("ivy"))
 
     testFixturesRuntimeOnly(project(":runtimeApiInfo"))
-    val allCoreRuntimeExtensions: DependencySet? by rootProject.extra
-    allCoreRuntimeExtensions!!.forEach {
+    val allCoreRuntimeExtensions: DependencySet by rootProject.extra
+    allCoreRuntimeExtensions.forEach {
         testFixturesRuntimeOnly(it)
     }
     testFixturesRuntimeOnly(project(":testingJunitPlatform"))
@@ -118,22 +118,26 @@ listOf("compileGroovy", "compileTestGroovy").forEach { taskName ->
 }
 
 val pluginsManifest by tasks.registering(WriteProperties::class) {
-    property("plugins", Callable<String> {
+    property("plugins", Callable {
         pluginProjects.map { it.base.archivesBaseName }.sorted().joinToString(",")
     })
     outputFile = File(generatedResourcesDir, "gradle-plugins.properties")
 }
 
-sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].output.dir(generatedResourcesDir, "builtBy" to pluginsManifest)
+sourceSets.main {
+    output.dir(generatedResourcesDir, "builtBy" to pluginsManifest)
+}
 
 val implementationPluginsManifest by tasks.registering(WriteProperties::class) {
-    property("plugins", Callable<String> {
+    property("plugins", Callable {
         implementationPluginProjects.map { it.base.archivesBaseName }.sorted().joinToString(",")
     })
     outputFile = File(generatedResourcesDir, "gradle-implementation-plugins.properties")
 }
 
-sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].output.dir(generatedResourcesDir, "builtBy" to implementationPluginsManifest)
+sourceSets.main {
+    output.dir(generatedResourcesDir, "builtBy" to implementationPluginsManifest)
+}
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)

@@ -54,8 +54,10 @@ testFixtures {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/nativeplatform/plugins/**",
+    excludePatterns.set(listOf(
+        "org/gradle/nativeplatform/plugins/**",
         "org/gradle/nativeplatform/tasks/**",
         "org/gradle/nativeplatform/internal/resolve/**",
-        "org/gradle/nativeplatform/toolchain/internal/**"))
+        "org/gradle/nativeplatform/toolchain/internal/**"
+    ))
 }

@@ -27,6 +27,8 @@ testFixtures {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/api/internal/tasks/compile/**",
-        "org/gradle/api/tasks/javadoc/**"))
+    excludePatterns.set(listOf(
+        "org/gradle/api/internal/tasks/compile/**",
+        "org/gradle/api/tasks/javadoc/**"
+    ))
 }

@@ -24,8 +24,8 @@ apply(from = "templates.gradle.kts")
 
 dependencies {
     // so that all Gradle features are available
-    val allTestRuntimeDependencies: DependencySet? by rootProject.extra
-    allTestRuntimeDependencies!!.forEach {
+    val allTestRuntimeDependencies: DependencySet by rootProject.extra
+    allTestRuntimeDependencies.forEach {
         performanceTestRuntime(it)
     }
 
@@ -37,5 +37,5 @@ gradlebuildJava {
 }
 
 tasks.withType<PerformanceTest>().configureEach {
-    systemProperties.put("incomingArtifactDir", "${rootDir}/incoming/")
+    systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 }
