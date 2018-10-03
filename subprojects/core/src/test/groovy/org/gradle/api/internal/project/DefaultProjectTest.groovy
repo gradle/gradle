@@ -149,6 +149,7 @@ class DefaultProjectTest extends Specification {
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
     ProjectStateRegistry projectStateRegistryMock = Stub(ProjectStateRegistry)
+    ProjectState projectStateMock = Stub(ProjectState)
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile
@@ -216,6 +217,8 @@ class DefaultProjectTest extends Specification {
 
         serviceRegistryMock.get((Type) ProjectStateRegistry) >> projectStateRegistryMock
         serviceRegistryMock.get(ProjectStateRegistry) >> projectStateRegistryMock
+        projectStateRegistryMock.stateFor(_) >> projectStateMock
+        projectStateMock.withMutableState(_) >> { Runnable runnable -> runnable.run() }
 
         ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
         serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
