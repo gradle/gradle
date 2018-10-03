@@ -33,8 +33,10 @@ testFixtures {
 
 classycle {
     // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.set(listOf("org/gradle/api/tasks/compile/**",
-        "org/gradle/external/javadoc/**"))
+    excludePatterns.set(listOf(
+        "org/gradle/api/tasks/compile/**",
+        "org/gradle/external/javadoc/**"
+    ))
 }
 
 testFilesCleanup {

@@ -56,9 +56,11 @@ testFixtures {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/model/internal/core/**",
+    excludePatterns.set(listOf(
+        "org/gradle/model/internal/core/**",
         "org/gradle/model/internal/inspect/**",
         "org/gradle/api/internal/tasks/**",
         "org/gradle/model/internal/manage/schema/**",
-        "org/gradle/model/internal/type/**"))
+        "org/gradle/model/internal/type/**"
+    ))
 }
