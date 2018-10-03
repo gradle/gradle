@@ -238,6 +238,18 @@ The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should
   Please consider using the [SpotBugs plugin](https://plugins.gradle.org/plugin/com.github.spotbugs) instead.
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
 
+### Resolving configurations in other projects
+
+It is now deprecated behavior to resolve a configuration in another project directly.  Projects should interact via `project()` dependencies
+declared in configurations of the consuming project.  Accessing and resolving configurations in other projects will now produce a
+deprecation warning.
+
+### Resolving configurations from user-managed threads
+
+It is also deprecated behavior to resolve a configuration from a thread that is not managed by Gradle (i.e. a thread created and 
+managed by the user).   Threads managed by Gradle (such as the workers that execute tasks) can still resolve configurations safely,
+but doing so from other threads will now produce a deprecation warning.
+
 ## Potential breaking changes
 
 ### Fixes to dependency resolution

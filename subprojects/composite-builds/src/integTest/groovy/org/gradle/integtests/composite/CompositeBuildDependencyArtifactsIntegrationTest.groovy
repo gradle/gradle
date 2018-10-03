@@ -654,7 +654,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 runtime 'org.test:b2:1.0'
             }
             resolve.doLast {
-                ${server.callFromBuild("resolve")}
+                ${server.callFromTaskAction("resolve")}
             }
             task resolveRuntime(type: Copy) {
                 dependsOn "resolve"
@@ -666,7 +666,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         buildB.buildFile << """
             project(':b2') {
                 jar.doLast {
-                    ${server.callFromBuild("b2")}
+                    ${server.callFromTaskAction("b2")}
                     throw new GradleException("jar task failed")
                 }
             }
