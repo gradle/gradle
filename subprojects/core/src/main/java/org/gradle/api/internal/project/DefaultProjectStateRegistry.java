@@ -32,6 +32,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final WorkerLeaseService workerLeaseService;
@@ -188,21 +189,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             }
         }
 
-        @Override
-        public <T> T withoutMutableState(Factory<? extends T> factory) {
-            Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-            if (currentLocks.contains(projectLock)) {
-                return workerLeaseService.withoutLocks(Lists.newArrayList(projectLock), factory);
-            } else {
-                return factory.create();
-            }
-        }
-
-        @Override
-        public <T> void withoutMutableState(Runnable runnable) {
-            withoutMutableState(Factories.toFactory(runnable));
-        }
-
         private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
             return workerLeaseService.withLocks(Lists.newArrayList(projectLock), factory);
         }
@@ -210,6 +196,50 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public boolean hasMutableState() {
             return workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+        }
+
+        @Override
+        public SafeExclusiveLock newSafeExclusiveLock() {
+            return new SafeExclusiveLockImpl(projectLock);
+        }
+    }
+
+    private class SafeExclusiveLockImpl implements ProjectState.SafeExclusiveLock {
+        private final ResourceLock projectLock;
+        private final ReentrantLock lock = new ReentrantLock();
+
+        public SafeExclusiveLockImpl(ResourceLock projectLock) {
+            this.projectLock = projectLock;
+        }
+
+        @Override
+        public void withLock(final Runnable runnable) {
+            // It's important that we do not block waiting for the lock while holding the project mutation lock.
+            // Doing so can lead to deadlocks.
+            try {
+                if (lock.tryLock()) {
+                    runnable.run();
+                } else {
+                    // Another thread holds the lock, release the project lock and wait for the other thread to finish
+                    Runnable lockedRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            lock.lock();
+                            runnable.run();
+                        }
+                    };
+                    Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+                    if (currentLocks.contains(projectLock)) {
+                        workerLeaseService.withoutLocks(Lists.newArrayList(projectLock), lockedRunnable);
+                    } else {
+                        lockedRunnable.run();
+                    }
+                }
+            } finally {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+            }
         }
     }
 }

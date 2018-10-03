@@ -118,7 +118,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
@@ -187,7 +186,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Set<Object> excludeRules = new LinkedHashSet<Object>();
     private Set<ExcludeRule> parsedExcludeRules;
 
-    private final ReentrantLock resolveGraphLock = new ReentrantLock();
+    private final ProjectState.SafeExclusiveLock resolveGraphLock;
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
     private volatile InternalState resolvedState = UNRESOLVED;
@@ -247,6 +246,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.projectStateRegistry = projectStateRegistry;
+        this.resolveGraphLock = getProjectSafeLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -267,6 +267,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         path = domainObjectContext.projectPath(name);
+    }
+
+    private ProjectState.SafeExclusiveLock getProjectSafeLock() {
+        if (domainObjectContext.getProjectPath() != null) {
+            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+            // Project should only be null if we are resolving a configuration in places where we are running single
+            // threaded anyways, like evaluating buildSrc or in an init script.
+            if (project != null) {
+                ProjectState projectState = projectStateRegistry.stateFor(project);
+                return projectState.newSafeExclusiveLock();
+            }
+        }
+
+        // This configuration is not associated with a project
+        return new ProjectState.SafeExclusiveLock() {
+            @Override
+            public void withLock(Runnable runnable) {
+                runnable.run();
+            }
+        };
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -520,22 +540,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void withoutMutableProject(final Runnable runnable) {
-        if (domainObjectContext.getProjectPath() != null) {
-            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-            // Project should only be null if we are resolving a configuration in places where we are running single
-            // threaded anyways, like evaluating buildSrc or in an init script.
-            if (project != null) {
-                ProjectState projectState = projectStateRegistry.stateFor(project);
-                projectState.withoutMutableState(runnable);
-                return;
-            }
-        }
-
-        // there is no project associated with this configuration
-        runnable.run();
-    }
-
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
@@ -544,33 +548,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return;
         }
 
-        // It's important that we do not block waiting for the resolve graph lock while holding the project mutation lock.
-        // Doing so can lead to deadlocks.
-        try {
-            if (resolveGraphLock.tryLock()) {
-                // This thread should resolve the graph
+        resolveGraphLock.withLock(new Runnable() {
+            @Override
+            public void run() {
                 resolveGraph(requestedState);
-            } else {
-                // Another thread is resolving the graph, release the project lock and wait until the other thread is finished
-                withoutMutableProject(new Runnable() {
-                    @Override
-                    public void run() {
-                        resolveGraphLock.lock();
-                    }
-                });
-                // The graph should be resolved now - if it isn't, something failed
-                if (resolvedState.compareTo(GRAPH_RESOLVED) < 0) {
-                    throw new IllegalStateException("Expected configuration '" + identityPath + "' to be resolved, but it wasn't.");
-                }
             }
-        } finally {
-            if (resolveGraphLock.isHeldByCurrentThread()) {
-                resolveGraphLock.unlock();
-            }
-        }
+        });
     }
 
     private void resolveGraph(final InternalState requestedState) {
+        if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
+            if (dependenciesModified) {
+                throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
+            }
+            return;
+        }
+
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {

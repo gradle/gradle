@@ -61,17 +61,23 @@ public interface ProjectState {
     <T> void withMutableState(Runnable runnable);
 
     /**
-     * Releases exclusive access to the mutable state of the project and runs the given action before re-acquiring exclusive access again. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     */
-    <T> T withoutMutableState(Factory<? extends T> factory);
-
-    /**
-     * Releases exclusive access to the mutable state of the project and runs the given action before re-acquiring exclusive access again. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     */
-    <T> void withoutMutableState(Runnable runnable);
-
-    /**
      * Returns whether or not the current thread holds the mutable state for this project.
      */
     boolean hasMutableState();
+
+    /**
+     * Returns a {@link SafeExclusiveLock} associated with this project.
+     */
+    SafeExclusiveLock newSafeExclusiveLock();
+
+    /**
+     * Represents a lock that can be used to perform safe concurrent execution in light of the possibility that a project
+     * lock might be released during execution.  Specifically, it avoids blocking on the lock while holding the project lock.
+     */
+    interface SafeExclusiveLock {
+        /**
+         * Safely waits for the lock before executing the given action.
+         */
+        void withLock(Runnable runnable);
+    }
 }
