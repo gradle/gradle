@@ -17,13 +17,13 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
-    compile project(':core')
-    compile project(':plugins')
+    compile(project(":core"))
+    compile(project(":plugins"))
 
-    compile libraries.slf4j_api.coordinates
-    compile libraries.bndlib.coordinates
+    compile(library("slf4j_api"))
+    compile(library("bndlib"))
 }
 
 gradlebuildJava {
@@ -31,5 +31,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
