@@ -47,7 +47,6 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         run 'test'
 
         then:
-        outputContains("Gradle cannot configure Slf4j logger of type 'SimpleLoggerFactory'.")
         def testResults = new DefaultTestExecutionResult(testDirectory)
         testResults.assertTestClassesExecuted('org.gradle.TestUsingSlf4j')
         with(testResults.testClass('org.gradle.TestUsingSlf4j')) {
@@ -64,7 +63,6 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         run 'test'
 
         then:
-        outputContains("Gradle cannot configure Slf4j logger of type 'SimpleLoggerFactory'.")
         def testResults = new DefaultTestExecutionResult(testDirectory)
         testResults.assertTestClassesExecuted('org.gradle.example.TestUsingSlf4j')
         with(testResults.testClass('org.gradle.example.TestUsingSlf4j')) {
