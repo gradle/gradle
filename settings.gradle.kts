@@ -127,7 +127,6 @@ rootProject.name = "gradle"
 val groovyBuildScriptProjects = listOf(
     "distributions",
     "wrapper",
-    "resources",
     "resources-http",
     "resources-gcs",
     "resources-s3",
