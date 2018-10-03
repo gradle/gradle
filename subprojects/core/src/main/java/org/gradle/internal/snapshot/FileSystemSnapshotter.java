@@ -16,11 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
-import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.List;
 

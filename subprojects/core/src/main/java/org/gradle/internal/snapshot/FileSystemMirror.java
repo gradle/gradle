@@ -16,10 +16,10 @@
 
 package org.gradle.internal.snapshot;
 
-import net.rubygrapefruit.platform.ThreadSafe;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Maintains an in-memory mirror of the state of the filesystem.
