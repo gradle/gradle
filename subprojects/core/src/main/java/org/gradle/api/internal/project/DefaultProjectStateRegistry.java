@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
@@ -27,6 +28,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -75,6 +77,17 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         synchronized (lock) {
             return projectsByPath.values();
         }
+    }
+
+    @Override
+    public void lockAllProjects(Runnable runnable) {
+        final Collection<ProjectStateImpl> projects = getAllProjects();
+        workerLeaseService.withLocks(CollectionUtils.collect(projects, new Transformer<ResourceLock, ProjectStateImpl>() {
+            @Override
+            public ResourceLock transform(ProjectStateImpl projectState) {
+                return projectState.projectLock;
+            }
+        }), runnable);
     }
 
     @Override

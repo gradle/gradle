@@ -49,6 +49,8 @@ public interface ProjectStateRegistry {
      */
     ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath);
 
+    void lockAllProjects(Runnable runnable);
+
     /**
      * Registers a project.
      */

@@ -18,6 +18,7 @@ package org.gradle.execution;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -25,15 +26,22 @@ import java.util.List;
 public class DefaultBuildConfigurationActionExecuter implements BuildConfigurationActionExecuter {
     private final List<BuildConfigurationAction> configurationActions;
     private List<? extends BuildConfigurationAction> taskSelectors;
+    private final ProjectStateRegistry projectStateRegistry;
 
-    public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildConfigurationAction> defaultTaskSelectors) {
+    public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildConfigurationAction> defaultTaskSelectors, ProjectStateRegistry projectStateRegistry) {
         this.taskSelectors = Lists.newArrayList(defaultTaskSelectors);
         this.configurationActions = Lists.newArrayList(configurationActions);
+        this.projectStateRegistry = projectStateRegistry;
     }
 
-    public void select(GradleInternal gradle) {
-        List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);
-        configure(processingBuildActions, gradle, 0);
+    public void select(final GradleInternal gradle) {
+        projectStateRegistry.lockAllProjects(new Runnable() {
+            @Override
+            public void run() {
+                List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);
+                configure(processingBuildActions, gradle, 0);
+            }
+        });
     }
 
     @Override
