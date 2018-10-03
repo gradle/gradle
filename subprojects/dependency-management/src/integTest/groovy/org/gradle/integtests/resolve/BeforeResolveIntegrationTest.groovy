@@ -193,7 +193,10 @@ task resolveDependencies {
                 foo
                 bar {
                     incoming.beforeResolve {
-                        println foo.files
+                        println "resolving foo..."
+                        foo.resolve()
+                        // bar should still be in an unresolved state, so we should be able to modify the 
+                        // things like dependency constraints here
                         bar.validateMutation(${MutationValidator.MutationType.class.name}.DEPENDENCIES)
                     }
                 }
@@ -203,11 +206,13 @@ task resolveDependencies {
                 bar "org.test:module2:1.0"
             }
             task a {
+                inputs.files configurations.bar
                 doLast {
                     configurations.bar.each { println it }
                 }    
             }
             task b {
+                inputs.files configurations.bar
                 doLast {
                     configurations.bar.each { println it }
                 }    
@@ -226,5 +231,8 @@ task resolveDependencies {
         expect:
         executer.withArgument("--parallel")
         succeeds "a", "b"
+
+        and:
+        outputContains("resolving foo")
     }
 }
