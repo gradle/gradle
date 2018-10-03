@@ -165,6 +165,7 @@ The following are the features that have been promoted in this Gradle release.
 - `TaskState.getUpToDate()` and `TaskState.getNoSource()`
 - the `ValidateTaskProperties` task
 - `AbstractArchiveTask.preserveFileTimestamps` and `reproducibleFileOrder` properties
+- `ForkOptions.javaHome` property
 
 ## Fixed issues
 

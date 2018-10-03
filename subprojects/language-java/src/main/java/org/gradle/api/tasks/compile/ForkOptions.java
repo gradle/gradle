@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -69,7 +68,6 @@ public class ForkOptions extends BaseForkOptions {
      * @since 3.5
      */
     @Internal
-    @Incubating
     @Nullable
     public File getJavaHome() {
         return javaHome;
@@ -82,7 +80,6 @@ public class ForkOptions extends BaseForkOptions {
      *
      * @since 3.5
      */
-    @Incubating
     public void setJavaHome(@Nullable File javaHome) {
         this.javaHome = javaHome;
     }
