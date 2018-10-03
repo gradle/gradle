@@ -312,7 +312,7 @@ tasks.register<Install>("installAll") {
 }
 
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
-    val allReports = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
+    val allReports = collectAllIncubationReports()
     dependsOn(allReports)
     reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
 }
@@ -320,6 +320,7 @@ tasks.register<Zip>("allIncubationReportsZip") {
     destinationDir = file("$buildDir/reports/incubation")
     baseName = "incubating-apis"
     from(allIncubationReports.get().htmlReportFile)
+    from(collectAllIncubationReports().map { it.htmlReportFile })
 }
 
 fun distributionImage(named: String) =
@@ -327,3 +328,5 @@ fun distributionImage(named: String) =
 
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
+
+fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
