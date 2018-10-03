@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 /*
  * Copyright 2014 the original author or authors.
@@ -16,19 +17,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'gradlebuild.classycle'
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    compile project(":core")
-    compile project(":dependencyManagement")
+    compile(project(":core"))
+    compile(project(":dependencyManagement"))
 
-    runtime project(":resourcesHttp")
+    runtime(project(":resourcesHttp"))
 
-    integTestRuntime project(':plugins')
-    integTestRuntime project(':pluginDevelopment')
-    integTestRuntime project(':testKit')
-    integTestRuntime project(':toolingApiBuilders')
+    integTestRuntime(project(":plugins"))
+    integTestRuntime(project(":pluginDevelopment"))
+    integTestRuntime(project(":testKit"))
+    integTestRuntime(project(":toolingApiBuilders"))
 }
 
 
@@ -36,9 +37,8 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    policy = WhenNotEmpty.REPORT
+    policy.set(WhenNotEmpty.REPORT)
 }
 
 testFixtures {
