@@ -17,15 +17,15 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':maven')
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":maven"))
 
-    testCompile project(':ivy')
+    testCompile(project(":ivy"))
 
-    compile libraries.bouncycastle_pgp.coordinates
+    compile(library("bouncycastle_pgp"))
 }
 
 gradlebuildJava {
@@ -33,5 +33,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
