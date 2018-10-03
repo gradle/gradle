@@ -14,7 +14,7 @@ Please follow our [migrating build logic from Groovy to Kotlin guide](https://gu
 If you prefer the flexibility and dynamic nature of Groovy, that's totally okay — the Groovy DSL will _never_ be deprecated.
 
 You can now specify a timeout duration for a task, after which it will be interrupted.
-Read more [about task timeouts](userguide/more_about_tasks.html#task_timeouts) in the docs.
+Read more [about task timeouts](userguide/more_about_tasks.html#sec:task_timeouts) in the docs.
 
 Next up, this version of Gradle introduces _dependency version alignment_. 
 This allows different modules belonging to the same logical group (`platform`) to have identical versions in a dependency graph.
