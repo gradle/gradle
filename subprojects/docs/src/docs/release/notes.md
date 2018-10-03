@@ -167,6 +167,7 @@ The following are the features that have been promoted in this Gradle release.
 - the `ValidateTaskProperties` task
 - `AbstractArchiveTask.preserveFileTimestamps` and `reproducibleFileOrder` properties
 - `ForkOptions.javaHome` property
+- `Project.normalization`
 
 ## Fixed issues
 
