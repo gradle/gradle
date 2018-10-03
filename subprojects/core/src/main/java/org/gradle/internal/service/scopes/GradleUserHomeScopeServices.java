@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -176,7 +177,7 @@ public class GradleUserHomeScopeServices {
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror);
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(TaskHistoryStore store) {

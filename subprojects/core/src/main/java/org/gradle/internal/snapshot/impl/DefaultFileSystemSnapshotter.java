@@ -70,12 +70,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
     private final DirectorySnapshotter directorySnapshotter;
 
-    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
+    public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror, String... defaultExcludes) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, fileSystem, stringInterner);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, fileSystem, stringInterner, defaultExcludes);
     }
 
     @Override

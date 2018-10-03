@@ -18,16 +18,16 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
@@ -62,11 +62,11 @@ public class DirectorySnapshotter {
     private final StringInterner stringInterner;
     private final DefaultExcludes defaultExcludes;
 
-    public DirectorySnapshotter(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner) {
+    public DirectorySnapshotter(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner, String... defaultExcludes) {
         this.hasher = hasher;
         this.fileSystem = fileSystem;
         this.stringInterner = stringInterner;
-        this.defaultExcludes = new DefaultExcludes(DirectoryScanner.getDefaultExcludes());
+        this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
     public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
@@ -170,12 +170,12 @@ public class DirectorySnapshotter {
     static class DefaultExcludes {
         private final ImmutableSet<String> excludeFileNames;
         private final ImmutableSet<String> excludedDirNames;
-        private final Spec<String> excludedFileNameSpec;
+        private final Predicate<String> excludedFileNameSpec;
 
         public DefaultExcludes(String[] defaultExcludes) {
             final List<String> excludeFiles = Lists.newArrayList();
             final List<String> excludeDirs = Lists.newArrayList();
-            final List<Spec<String>> excludeFileSpecs = Lists.newArrayList();
+            final List<Predicate<String>> excludeFileSpecs = Lists.newArrayList();
             for (String defaultExclude : defaultExcludes) {
                 if (defaultExclude.startsWith("**/")) {
                     defaultExclude = defaultExclude.substring(3);
@@ -188,15 +188,15 @@ public class DirectorySnapshotter {
                     if (firstStar == -1) {
                         excludeFiles.add(defaultExclude);
                     } else {
-                        Spec<String> start = firstStar == 0 ? Specs.<String>satisfyAll() : new StartMatcher(defaultExclude.substring(0, firstStar));
-                        Spec<String> end = firstStar == length - 1 ? Specs.<String>satisfyAll() : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
-                        excludeFileSpecs.add(Specs.intersect(start, end));
+                        Predicate<String> start = firstStar == 0 ? Predicates.<String>alwaysTrue() : new StartMatcher(defaultExclude.substring(0, firstStar));
+                        Predicate<String> end = firstStar == length - 1 ? Predicates.<String>alwaysTrue() : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
+                        excludeFileSpecs.add(Predicates.and(start, end));
                     }
                 }
             }
 
             this.excludeFileNames = ImmutableSet.copyOf(excludeFiles);
-            this.excludedFileNameSpec = Specs.union(excludeFileSpecs);
+            this.excludedFileNameSpec = Predicates.or(excludeFileSpecs);
             this.excludedDirNames = ImmutableSet.copyOf(excludeDirs);
         }
 
@@ -205,10 +205,10 @@ public class DirectorySnapshotter {
         }
 
         public boolean excludeFile(String name) {
-            return excludeFileNames.contains(name) || excludedFileNameSpec.isSatisfiedBy(name);
+            return excludeFileNames.contains(name) || excludedFileNameSpec.apply(name);
         }
 
-        private static class EndMatcher implements Spec<String> {
+        private static class EndMatcher implements Predicate<String> {
             private final String end;
 
             public EndMatcher(String end) {
@@ -216,12 +216,12 @@ public class DirectorySnapshotter {
             }
 
             @Override
-            public boolean isSatisfiedBy(String element) {
+            public boolean apply(String element) {
                 return element.endsWith(end);
             }
         }
 
-        private static class StartMatcher implements Spec<String> {
+        private static class StartMatcher implements Predicate<String> {
             private final String start;
 
             public StartMatcher(String start) {
@@ -229,7 +229,7 @@ public class DirectorySnapshotter {
             }
 
             @Override
-            public boolean isSatisfiedBy(String element) {
+            public boolean apply(String element) {
                 return element.startsWith(start);
             }
         }

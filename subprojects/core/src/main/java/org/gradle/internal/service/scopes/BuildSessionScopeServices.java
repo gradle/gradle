@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.FeaturePreviews;
@@ -166,7 +167,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror);
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
     AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
