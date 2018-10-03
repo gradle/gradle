@@ -53,12 +53,22 @@ public interface ProjectState {
     /**
      * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      */
-    <T> T withMutableState(Factory<? extends T> action);
+    <T> T withMutableState(Factory<? extends T> factory);
 
     /**
      * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      */
-    <T> void withMutableState(Runnable action);
+    <T> void withMutableState(Runnable runnable);
+
+    /**
+     * Releases exclusive access to the mutable state of the project and runs the given action before re-acquiring exclusive access again. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
+     */
+    <T> T withoutMutableState(Factory<? extends T> factory);
+
+    /**
+     * Releases exclusive access to the mutable state of the project and runs the given action before re-acquiring exclusive access again. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
+     */
+    <T> void withoutMutableState(Runnable runnable);
 
     /**
      * Returns whether or not the current thread holds the mutable state for this project.
