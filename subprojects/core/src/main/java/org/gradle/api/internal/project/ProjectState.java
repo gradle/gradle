@@ -68,7 +68,7 @@ public interface ProjectState {
     /**
      * Returns a {@link SafeExclusiveLock} associated with this project.
      */
-    SafeExclusiveLock newSafeExclusiveLock();
+    SafeExclusiveLock newExclusiveOperationLock();
 
     /**
      * Represents a lock that can be used to perform safe concurrent execution in light of the possibility that a project

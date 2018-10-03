@@ -199,7 +199,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public SafeExclusiveLock newSafeExclusiveLock() {
+        public SafeExclusiveLock newExclusiveOperationLock() {
             return new SafeExclusiveLockImpl(projectLock);
         }
     }
