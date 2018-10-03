@@ -186,7 +186,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Set<Object> excludeRules = new LinkedHashSet<Object>();
     private Set<ExcludeRule> parsedExcludeRules;
 
-    private final ProjectState.SafeExclusiveLock resolveGraphLock;
+    private final ProjectState.SafeExclusiveLock resolutionLock;
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
     private volatile InternalState resolvedState = UNRESOLVED;
@@ -246,7 +246,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.projectStateRegistry = projectStateRegistry;
-        this.resolveGraphLock = getProjectSafeLock();
+        this.resolutionLock = getProjectSafeLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -532,31 +532,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveToStateOrLater(final InternalState requestedState) {
         assertResolvingAllowed();
 
-        if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
-            resolveGraphIfRequired(requestedState);
-        }
-        if (requestedState == ARTIFACTS_RESOLVED) {
-            resolveArtifactsIfRequired();
-        }
-    }
-
-    private void resolveGraphIfRequired(final InternalState requestedState) {
-        if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
-            if (dependenciesModified) {
-                throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
-            }
-            return;
-        }
-
-        resolveGraphLock.withLock(new Runnable() {
+        resolutionLock.withLock(new Runnable() {
             @Override
             public void run() {
-                resolveGraph(requestedState);
+                if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
+                    resolveGraphIfRequired(requestedState);
+                }
+                if (requestedState == ARTIFACTS_RESOLVED) {
+                    resolveArtifactsIfRequired();
+                }
             }
         });
     }
 
-    private void resolveGraph(final InternalState requestedState) {
+    private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
                 throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
