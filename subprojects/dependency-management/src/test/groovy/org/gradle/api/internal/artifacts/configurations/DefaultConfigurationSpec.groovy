@@ -1613,6 +1613,32 @@ All Artifacts:
    none"""
     }
 
+    def "copied configuration has independent listeners"() {
+        def original = conf()
+        def seenOriginal = [] as Set<ResolvableDependencies>
+        original.incoming.beforeResolve { seenOriginal.add(it) }
+
+        def copied = original.copy()
+        def seenCopied = [] as Set<ResolvableDependencies>
+        copied.incoming.beforeResolve { seenCopied.add(it) }
+
+        expectResolved([] as Set)
+
+        when:
+        original.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.incoming] as Set
+        seenCopied.empty
+
+        when:
+        copied.getResolvedConfiguration()
+
+        then:
+        seenOriginal == [original.incoming, copied.incoming] as Set
+        seenCopied == [copied.incoming] as Set
+    }
+
     // You need to wrap this in an interaction {} block when calling it
     private ResolvedConfiguration resolveConfig(ConfigurationInternal config) {
         def resolvedConfiguration = Mock(ResolvedConfiguration)
