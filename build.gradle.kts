@@ -24,6 +24,8 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import org.gradle.util.GradleVersion
+import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
+import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
 plugins {
     `java-base`
@@ -47,7 +49,7 @@ buildTypes {
 
     create("sanityCheck") {
         tasks(
-            "classes", "doc:checkstyleApi", "codeQuality",
+            "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
     }
 
@@ -307,6 +309,17 @@ tasks.register<Install>("installAll") {
     group = "build"
     with(distributionImage("allDistImage"))
     installDirPropertyName = ::gradle_installPath.name
+}
+
+val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
+    val allReports = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
+    dependsOn(allReports)
+    reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
+}
+tasks.register<Zip>("allIncubationReportsZip") {
+    destinationDir = file("$buildDir/reports/incubation")
+    baseName = "incubating-apis"
+    from(allIncubationReports.get().htmlReportFile)
 }
 
 fun distributionImage(named: String) =
