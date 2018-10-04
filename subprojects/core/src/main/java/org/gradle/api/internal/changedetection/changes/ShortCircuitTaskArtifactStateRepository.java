@@ -28,6 +28,7 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -92,8 +93,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
+        public IncrementalTaskInputs getInputChanges() {
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
+        }
+
+        @Override
+        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
+            return delegate.getCurrentInputFileFingerprints();
         }
 
         @Override
