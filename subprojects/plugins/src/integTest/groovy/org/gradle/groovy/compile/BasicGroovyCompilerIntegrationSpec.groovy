@@ -137,7 +137,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.annotationProcessorPath = files()
+                options.compilerArgs << '-proc:none'
             }
         """
 

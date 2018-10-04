@@ -195,7 +195,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
-        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing() && !spec.getAnnotationProcessorPath().isEmpty();
+        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing()
+            && !spec.getAnnotationProcessorPath().isEmpty()
+            && !spec.getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
