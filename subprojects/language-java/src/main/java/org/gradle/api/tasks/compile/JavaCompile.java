@@ -30,8 +30,8 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -196,7 +196,7 @@ public class JavaCompile extends AbstractCompile {
      * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
      */
     @Deprecated
-    @Classpath
+    @Internal
     @Nullable
     public FileCollection getEffectiveAnnotationProcessorPath() {
         SingleMessageLogger.nagUserOfReplacedProperty("JavaCompile.effectiveAnnotationProcessorPath", "JavaCompile.options.annotationProcessorPath");

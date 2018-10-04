@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
@@ -185,7 +184,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
      */
     @Deprecated
-    @Classpath
+    @Internal
     @Nullable
     public FileCollection getEffectiveAnnotationProcessorPath() {
         SingleMessageLogger.nagUserOfReplacedProperty("AbstractScalaCompile.effectiveAnnotationProcessorPath", "AbstractScalaCompile.options.annotationProcessorPath");

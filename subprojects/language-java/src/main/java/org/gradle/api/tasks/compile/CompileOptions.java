@@ -26,6 +26,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -459,7 +460,8 @@ public class CompileOptions extends AbstractOptions {
      * @since 3.4
      */
     @Nullable
-    @Internal // Handled on the compile task
+    @Optional
+    @Classpath
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
     }
