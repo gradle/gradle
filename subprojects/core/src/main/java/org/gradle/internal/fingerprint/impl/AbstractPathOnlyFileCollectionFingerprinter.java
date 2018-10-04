@@ -21,7 +21,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public abstract class AbstractPathOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
@@ -33,7 +32,7 @@ public abstract class AbstractPathOnlyFileCollectionFingerprinter extends Abstra
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
         return super.fingerprint(files, fingerprintingStrategy);
     }
 }

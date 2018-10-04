@@ -54,6 +54,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         fileSystemSnapshotter,
+        InputNormalizationStrategy.NO_NORMALIZATION,
         stringInterner)
 
     def "directories and missing files are ignored"() {
@@ -209,7 +210,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
     def fingerprint(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
-        def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
+        def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath))
         return fileCollectionFingerprint.fingerprints.collect { String path, FileSystemLocationFingerprint fingerprint ->
             [new File(path).getName(), fingerprint.normalizedPath, fingerprint.normalizedContentHash.toString()]
         }

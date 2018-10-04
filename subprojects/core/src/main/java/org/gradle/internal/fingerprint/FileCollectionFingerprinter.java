@@ -17,7 +17,6 @@ package org.gradle.internal.fingerprint;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public interface FileCollectionFingerprinter {
     /**
@@ -28,5 +27,5 @@ public interface FileCollectionFingerprinter {
     /**
      * Creates a fingerprint of the contents of the given collection.
      */
-    CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy);
+    CurrentFileCollectionFingerprint fingerprint(FileCollection files);
 }

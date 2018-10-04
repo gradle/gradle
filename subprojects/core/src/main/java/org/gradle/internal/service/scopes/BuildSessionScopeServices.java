@@ -57,10 +57,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.filewatch.PendingChangesManager;
-import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
@@ -198,10 +196,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
         return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, stringInterner);
-    }
-
-    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, stringInterner);
     }
 
     DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {

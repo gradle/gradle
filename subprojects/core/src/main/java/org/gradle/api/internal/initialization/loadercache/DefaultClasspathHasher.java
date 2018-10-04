@@ -22,7 +22,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultClasspathHasher implements ClasspathHasher {
 
@@ -34,7 +33,7 @@ public class DefaultClasspathHasher implements ClasspathHasher {
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(ImmutableFileCollection.of(classpath.getAsFiles()), InputNormalizationStrategy.NO_NORMALIZATION);
+        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(ImmutableFileCollection.of(classpath.getAsFiles()));
         return fingerprint.getHash();
     }
 }

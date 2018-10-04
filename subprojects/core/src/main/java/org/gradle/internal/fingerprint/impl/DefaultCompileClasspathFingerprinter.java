@@ -27,7 +27,6 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultCompileClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements CompileClasspathFingerprinter {
     private final ResourceHasher classpathResourceHasher;
@@ -42,7 +41,7 @@ public class DefaultCompileClasspathFingerprinter extends AbstractFileCollection
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
         return super.fingerprint(
             files,
             ClasspathFingerprintingStrategy.compileClasspath(classpathResourceHasher, cacheService, stringInterner));

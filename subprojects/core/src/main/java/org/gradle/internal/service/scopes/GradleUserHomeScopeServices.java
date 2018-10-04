@@ -86,6 +86,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -186,7 +187,7 @@ public class GradleUserHomeScopeServices {
     }
 
     ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, stringInterner);
+        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, InputNormalizationStrategy.NO_NORMALIZATION, stringInterner);
     }
 
     ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter) {

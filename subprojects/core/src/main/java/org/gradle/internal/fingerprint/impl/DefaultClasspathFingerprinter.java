@@ -30,12 +30,19 @@ import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     private final ResourceSnapshotterCacheService cacheService;
+    private final InputNormalizationStrategy inputNormalizationStrategy;
     private final StringInterner stringInterner;
     private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
 
-    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+    public DefaultClasspathFingerprinter(
+        ResourceSnapshotterCacheService cacheService,
+        FileSystemSnapshotter fileSystemSnapshotter,
+        InputNormalizationStrategy inputNormalizationStrategy,
+        StringInterner stringInterner
+    ) {
         super(stringInterner, fileSystemSnapshotter);
         this.cacheService = cacheService;
+        this.inputNormalizationStrategy = inputNormalizationStrategy;
         this.stringInterner = stringInterner;
         this.runtimeClasspathResourceHasher = new RuntimeClasspathResourceHasher();
     }
@@ -46,8 +53,8 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
-        ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
+        ResourceFilter classpathResourceFilter = this.inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
         return super.fingerprint(files, ClasspathFingerprintingStrategy.runtimeClasspath(classpathResourceFilter, runtimeClasspathResourceHasher, cacheService, stringInterner));
     }
 
