@@ -133,7 +133,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         inputs.inputFiles >> ImmutableSortedMap.copyOf(c: { getHash: { HashCode.fromInt(0x000000cc) } } as CurrentFileCollectionFingerprint)
 
         then:
-        adapter.inputValueHashesBytes == [a: "000000aa".bytes, b: "000000bb".bytes, c: "000000cc".bytes]
+        adapter.inputValueHashesBytes.collectEntries { [(it.key):HashCode.fromBytes(it.value).toString()] } == [a: "000000aa", b: "000000bb"]
 
         when:
         inputs.nonCacheableInputProperties >> ImmutableSortedMap.of("bean", "Implementation loaded by unknown classloader.", "someOtherBean", "Implementation implemented by Java Lambda.")
@@ -143,12 +143,12 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         when:
         inputs.taskImplementation >> ImplementationSnapshot.of("org.gradle.TaskType", HashCode.fromInt(0x000000cc))
         then:
-        adapter.classLoaderHashBytes == "000000cc".bytes
+        HashCode.fromBytes(adapter.classLoaderHashBytes).toString() == "000000cc"
 
         when:
         inputs.actionImplementations >> ImmutableList.copyOf([ImplementationSnapshot.of("foo", HashCode.fromInt(0x000000ee)), ImplementationSnapshot.of("bar", HashCode.fromInt(0x000000dd))])
         then:
-        adapter.actionClassLoaderHashesBytes == ["000000ee".bytes, "000000dd".bytes]
+        adapter.actionClassLoaderHashesBytes.collect{ HashCode.fromBytes(it).toString() } == ["000000ee", "000000dd"]
         adapter.actionClassNames == ["foo", "bar"]
 
         when:
@@ -157,10 +157,10 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.outputPropertyNames == ["1", "2"]
 
         when:
-        key.hashCode >> HashCode.fromInt(0x000000ff)
+        key.hashCodeBytes >> HashCode.fromInt(0x000000ff).toByteArray()
         key.valid >> true
         then:
-        adapter.hashBytes == "000000ff".bytes
+        HashCode.fromBytes(adapter.hashBytes).toString() == "000000ff"
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {
