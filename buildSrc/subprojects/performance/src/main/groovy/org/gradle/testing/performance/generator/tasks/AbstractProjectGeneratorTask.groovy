@@ -26,6 +26,8 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.testing.performance.generator.DependencyGraph
 import org.gradle.testing.performance.generator.MavenJarCreator
 import org.gradle.testing.performance.generator.MavenRepository
@@ -85,6 +87,7 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     }
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     FileTree getTemplateDirectories() {
         def allTemplates = rootProjectTemplates + subProjectTemplates
         if (buildSrcTemplate) {
