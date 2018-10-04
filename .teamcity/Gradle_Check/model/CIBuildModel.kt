@@ -261,7 +261,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     // Cross version tests select a small set of versions to cover when run as part of this stage
     quickFeedbackCrossVersion(false, false, true),
     // Cross version tests select all versions to cover when run as part of this stage
-    allVersionsCrossVersion(false, false, true),
+    allVersionsCrossVersion(false, false, true, 240),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
     soak(false, false, false),
