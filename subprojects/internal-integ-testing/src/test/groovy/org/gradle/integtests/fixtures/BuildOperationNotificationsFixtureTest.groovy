@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.GradleException
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
-import org.gradle.internal.operations.notify.BuildOperationNotificationListener2
+import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -79,10 +79,10 @@ class BuildOperationNotificationsFixtureTest extends Specification {
         e.cause.message == "!"
     }
 
-    BuildOperationNotificationListener2 listener() {
+    BuildOperationNotificationListener listener() {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(BuildOperationNotificationsFixture.getClassLoader())
         Class theParsedClass = groovyClassLoader.parseClass(BuildOperationNotificationsFixture.EVALUATION_LISTENER_SOURCE)
-        return JavaReflectionUtil.newInstance(theParsedClass) as BuildOperationNotificationListener2
+        return JavaReflectionUtil.newInstance(theParsedClass) as BuildOperationNotificationListener
     }
 
     def progressNotification(Class<SimpleProgress> progressClazz = null) {

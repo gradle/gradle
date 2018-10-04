@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -174,5 +175,56 @@ task resolveDependencies {
 
         expect:
         succeeds 'resolveDependencies'
+    }
+
+    def "can modify a configuration in a beforeResolve hook when the hook resolves another configuration"() {
+        mavenRepo.module('org.test', 'module1', '1.0').publish()
+        mavenRepo.module('org.test', 'module2', '1.0').publish()
+        settingsFile << """
+           include ":lib" 
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+            }
+            configurations {
+                foo
+                bar {
+                    incoming.beforeResolve {
+                        println foo.files
+                        bar.validateMutation(${MutationValidator.MutationType.class.name}.DEPENDENCIES)
+                    }
+                }
+            }
+            dependencies { 
+                foo project(path: ':lib', configuration: 'foo')
+                bar "org.test:module2:1.0"
+            }
+            task a {
+                doLast {
+                    configurations.bar.each { println it }
+                }    
+            }
+            task b {
+                doLast {
+                    configurations.bar.each { println it }
+                }    
+            }
+        """
+        file('lib/build.gradle') << """  
+            configurations {
+                foo 
+            }
+                      
+            dependencies {
+                foo "org.test:module1:1.0"
+            }
+        """
+
+        expect:
+        executer.withArgument("--parallel")
+        succeeds "a", "b"
     }
 }

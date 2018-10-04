@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.changes
 
+import groovy.transform.ToString
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -36,7 +37,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter
-import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
@@ -229,7 +229,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskInternal inputFilesAdded = builder.withInputFiles(file: [inputFile, addedFile], dir: [inputDir], missingFile: [missingInputFile]).task()
 
         then:
-        inputsOutOfDate(inputFilesAdded).withAddedFile(addedFile)
+        inputsOutOfDate(inputFilesAdded).withAddedFiles(addedFile)
     }
 
     def "artifacts are not up to date when any input files removed from set"() {
@@ -249,7 +249,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.write("some new content")
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file has changed type"() {
@@ -261,7 +261,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createDir()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file no longer exists"() {
@@ -272,7 +272,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.delete()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file did not exist and now does"() {
@@ -284,7 +284,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createNewFile()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any file created in input dir"() {
@@ -295,7 +295,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def file = inputDir.file("other-file").createFile()
 
         then:
-        inputsOutOfDate(task).withAddedFile(file)
+        inputsOutOfDate(task).withAddedFiles(file)
     }
 
     def "artifacts are not up to date when any file deleted from input dir"() {
@@ -306,7 +306,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputDirFile.delete()
 
         then:
-        inputsOutOfDate(task).withRemovedFile(inputDirFile)
+        inputsOutOfDate(task).withRemovedFiles(inputDirFile)
     }
 
     def "artifacts are not up to date when any file in input dir changes hash"() {
@@ -317,7 +317,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputDirFile.writelns("new content")
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputDirFile)
+        inputsOutOfDate(task).withModifiedFiles(inputDirFile)
     }
 
     def "artifacts are not up to date when any file in input dir changes type"() {
@@ -329,7 +329,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputDirFile.mkdir()
 
         then:
-        inputsOutOfDate(task).withModifiedFile(inputDirFile)
+        inputsOutOfDate(task).withModifiedFiles(inputDirFile)
     }
 
     def "artifacts are not up to date when any input property value changed"() {
@@ -641,7 +641,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     private void outOfDate(TaskInternal task) {
         final state = getStateFor(task)
         assert !state.isUpToDate([])
-        assert !state.getInputChanges(Mock(TaskProperties)).incremental
+        assert !state.getInputChanges().incremental
     }
 
     private TaskArtifactState getStateFor(TaskInternal task) {
@@ -660,7 +660,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         final state = getStateFor(task)
         assert !state.isUpToDate([])
 
-        final inputChanges = state.getInputChanges(Mock(TaskProperties))
+        final inputChanges = state.getInputChanges()
         assert inputChanges.incremental
 
         final changedFiles = new ChangedFiles()
@@ -711,27 +711,22 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         fileSystemMirror.beforeTaskOutputChanged()
     }
 
+    @ToString(includeNames = true)
     private static class ChangedFiles {
         def added = []
         def modified = []
         def removed = []
 
-        void withAddedFile(File file) {
-            assert added == [file]
+        void withAddedFiles(File... files) {
+            assert added == files as List
             assert modified == []
             assert removed == []
         }
 
-        void withModifiedFile(File file) {
+        void withModifiedFiles(File... files) {
             assert added == []
-            assert modified == [file]
+            assert modified == files as List
             assert removed == []
-        }
-
-        void withRemovedFile(File file) {
-            assert added == []
-            assert modified == []
-            assert removed == [file]
         }
 
         void withRemovedFiles(File... files) {

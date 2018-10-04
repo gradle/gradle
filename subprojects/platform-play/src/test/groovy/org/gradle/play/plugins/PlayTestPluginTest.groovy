@@ -27,9 +27,6 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
-import org.gradle.play.internal.toolchain.PlayToolChainInternal
-import org.gradle.play.internal.toolchain.PlayToolProvider
-import org.gradle.play.platform.PlayPlatform
 import spock.lang.Specification
 
 class PlayTestPluginTest extends Specification {
@@ -38,9 +35,6 @@ class PlayTestPluginTest extends Specification {
     def binaryContainer = Mock(ModelMap)
     def projectIdentifier = Mock(ProjectIdentifier)
     def binary = Mock(PlayApplicationBinarySpecInternal)
-    def playPlatform = Mock(PlayPlatform)
-    def playToolChain = Mock(PlayToolChainInternal)
-    def playToolProvider = Mock(PlayToolProvider)
 
     def configuration = Stub(Configuration)
     def configurations = Mock(ConfigurationContainer)
@@ -70,11 +64,7 @@ class PlayTestPluginTest extends Specification {
         given:
         def fileResolver = Mock(FileResolver)
         1 * fileResolver.resolve('test') >> new File('test')
-
-        1 * binary.getTargetPlatform() >> playPlatform
-        1 * binary.getToolChain() >> playToolChain
-        1 * playToolChain.select(playPlatform) >> playToolProvider
-
+        
         when:
         plugin.createTestTasks(taskModelMap, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), fileResolver, projectIdentifier, buildDir)
 

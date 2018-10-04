@@ -16,11 +16,12 @@
 
 package org.gradle.performance
 
-
+import org.apache.commons.io.FileUtils
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
@@ -39,8 +40,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
-        def jobArgs = ['--continue', '--parallel', '--max-workers=2'] + scenarioArgs
-        def opts = ['-Xms4096m', '-Xms4096m']
+        def jobArgs = ['--continue', '--parallel', '--max-workers=4', '-Dcom.gradle.scan.input-file-hashes=true'] + scenarioArgs
+        def opts = ['-Xms4096m', '-Xmx4096m']
 
         runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
@@ -67,7 +68,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             displayName(WITH_PLUGIN_LABEL)
             invocation {
                 args(*jobArgs)
-                args("--scan", "-DenableScan=true", "-Dscan.dump")
+                args("-DenableScan=true")
                 tasksToRun(*tasks)
                 useDaemon()
                 gradleOpts(*opts)
@@ -94,12 +95,17 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
         where:
         scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | null
-        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
+        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | saveSpoolingListener(scenario)
+        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean(scenario)
     }
 
-    def partiallyBuildCacheClean() {
-        return new BuildExperimentListenerAdapter() {
+
+    def saveSpoolingListener(String testId) {
+        return new BuildScanPluginBuildExperimentListener(testId)
+    }
+
+    def partiallyBuildCacheClean(String testId) {
+        return new BuildScanPluginBuildExperimentListener(testId) {
             void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
                 def projectTestDir = new TestFile(projectDir)
                 def cacheDir = projectTestDir.file('local-build-cache')
@@ -111,10 +117,12 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                         }
                     }
                 """.stripIndent()
+
             }
 
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                super.afterInvocation(invocationInfo, operation, measurementCallback)
                 assert !new File(invocationInfo.projectDir, 'error.log').exists()
                 def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
                 def cacheEntries = buildCacheDirectory.listFiles().sort()
@@ -127,4 +135,31 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
     }
 
+    class BuildScanPluginBuildExperimentListener extends BuildExperimentListenerAdapter {
+        final String testId
+
+        BuildScanPluginBuildExperimentListener(String testId) {
+            this.testId = testId.replaceAll(/[- ]/,'_')
+        }
+
+        @Override
+        void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            def spoolingFolder = new File(invocationInfo.gradleUserHome, "build-scan-data")
+            spoolingFolder.deleteDir()
+        }
+
+        @Override
+        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+            saveSpoolFile(invocationInfo)
+        }
+
+        void saveSpoolFile(BuildExperimentInvocationInfo invocationInfo) {
+            def spoolingFolder = new File(invocationInfo.gradleUserHome, "build-scan-data")
+            if (invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT && (invocationInfo.iterationNumber == invocationInfo.iterationMax) && spoolingFolder.exists()) {
+                def targetDirectory = new File("build/scan-dumps/$testId")
+                targetDirectory.deleteDir()
+                FileUtils.moveToDirectory(spoolingFolder, targetDirectory, true)
+            }
+        }
+    }
 }

@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -37,7 +36,6 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
@@ -50,12 +48,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
-    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
-        @Override
-        public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
-            return getLocalComponentMetadata(projectIdentifier);
-        }
-    });
+    private final Cache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build();
 
     public DefaultProjectLocalComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metadataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.projectStateRegistry = projectStateRegistry;
@@ -70,9 +63,18 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
             return null;
         }
         try {
-            return projects.get(projectIdentifier);
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            // Resolving a project component can cause traversal to other projects, at which
+            // point we could release the project lock and allow another task to run.  We can't
+            // use a cache loader here because it is synchronized.  If the other task also tries
+            // to resolve a project component, he can block trying to get the lock around the
+            // loader while still holding the project lock.  To avoid this deadlock, we check,
+            // then release the project lock only if we need to resolve the project and ensure
+            // that only the thread holding the lock can populate the metadata for a project.
+            LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
+            if (metadata == null) {
+                metadata = getLocalComponentMetadata(projectIdentifier);
+            }
+            return metadata;
         } catch (UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
@@ -82,7 +84,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         return projectIdentifier.getBuild().equals(thisBuild);
     }
 
-    private LocalComponentMetadata getLocalComponentMetadata(ProjectComponentIdentifier projectIdentifier) {
+    private LocalComponentMetadata getLocalComponentMetadata(final ProjectComponentIdentifier projectIdentifier) {
         // TODO - the project model should be reachable from ProjectState without another lookup
         final ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
@@ -93,7 +95,12 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
             @Nullable
             @Override
             public LocalComponentMetadata create() {
-                return getLocalComponentMetadata(projectState, project);
+                LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
+                if (metadata == null) {
+                    metadata = getLocalComponentMetadata(projectState, project);
+                    projects.put(projectIdentifier, metadata);
+                }
+                return metadata;
             }
         });
     }

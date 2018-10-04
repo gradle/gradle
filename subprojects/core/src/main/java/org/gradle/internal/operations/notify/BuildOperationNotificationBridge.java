@@ -22,13 +22,7 @@ import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.operations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +45,9 @@ public class BuildOperationNotificationBridge {
     private class State {
         private ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
         private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
-        private BuildOperationNotificationListener2 notificationListener;
+        private BuildOperationNotificationListener notificationListener;
 
-        private void assignSingleListener(BuildOperationNotificationListener2 notificationListener) {
+        private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
             if (this.notificationListener != null) {
                 throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
             }
@@ -114,29 +108,9 @@ public class BuildOperationNotificationBridge {
     };
 
     private final BuildOperationNotificationListenerRegistrar registrar = new BuildOperationNotificationListenerRegistrar() {
-        @Override
-        public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-            State state = requireState();
-            BuildOperationNotificationListener2 adapted = adapt(notificationListener);
-            state.assignSingleListener(adapted);
-
-            // Remove the old adapter and start again.
-            // We explicitly do not want to receive finish notifications
-            // for any operations currently in flight,
-            // and we want to throw away the recorded notifications.
-            buildOperationListenerManager.removeListener(state.buildOperationListener);
-            state.buildOperationListener = new Adapter(adapted);
-            buildOperationListenerManager.addListener(state.buildOperationListener);
-            state.replayAndAttachListener = null;
-        }
 
         @Override
-        public void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener notificationListener) {
-            register(adapt(notificationListener));
-        }
-
-        @Override
-        public void register(BuildOperationNotificationListener2 listener) {
+        public void register(BuildOperationNotificationListener listener) {
             State state = requireState();
             state.assignSingleListener(listener);
             state.replayAndAttachListener.attach(listener);
@@ -175,12 +149,12 @@ public class BuildOperationNotificationBridge {
      */
     private static class Adapter implements BuildOperationListener {
 
-        private final BuildOperationNotificationListener2 notificationListener;
+        private final BuildOperationNotificationListener notificationListener;
 
         private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
         private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
 
-        private Adapter(BuildOperationNotificationListener2 notificationListener) {
+        private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
         }
 
@@ -265,7 +239,7 @@ public class BuildOperationNotificationBridge {
 
     }
 
-    private static class RecordingListener implements BuildOperationNotificationListener2 {
+    private static class RecordingListener implements BuildOperationNotificationListener {
 
         private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
 
@@ -286,16 +260,16 @@ public class BuildOperationNotificationBridge {
 
     }
 
-    private static class ReplayAndAttachListener implements BuildOperationNotificationListener2 {
+    private static class ReplayAndAttachListener implements BuildOperationNotificationListener {
 
         private RecordingListener recordingListener = new RecordingListener();
 
-        private volatile BuildOperationNotificationListener2 listener = recordingListener;
+        private volatile BuildOperationNotificationListener listener = recordingListener;
 
         private final AtomicBoolean needLock = new AtomicBoolean(true);
         private final Lock lock = new ReentrantLock();
 
-        private synchronized void attach(BuildOperationNotificationListener2 realListener) {
+        private synchronized void attach(BuildOperationNotificationListener realListener) {
             lock.lock();
             try {
                 for (Object storedEvent : recordingListener.storedEvents) {
@@ -418,7 +392,7 @@ public class BuildOperationNotificationBridge {
         private final long timestamp;
         private final Object details;
 
-        public Progress(Object id, long timestamp, Object details) {
+        Progress(Object id, long timestamp, Object details) {
             this.id = id;
             this.timestamp = timestamp;
             this.details = details;
@@ -504,22 +478,4 @@ public class BuildOperationNotificationBridge {
         }
     }
 
-    private static BuildOperationNotificationListener2 adapt(final BuildOperationNotificationListener listener) {
-        return new BuildOperationNotificationListener2() {
-            @Override
-            public void started(BuildOperationStartedNotification notification) {
-                listener.started(notification);
-            }
-
-            @Override
-            public void progress(BuildOperationProgressNotification notification) {
-
-            }
-
-            @Override
-            public void finished(BuildOperationFinishedNotification notification) {
-                listener.finished(notification);
-            }
-        };
-    }
 }

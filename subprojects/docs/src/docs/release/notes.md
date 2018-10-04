@@ -238,6 +238,18 @@ The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should
   Please consider using the [SpotBugs plugin](https://plugins.gradle.org/plugin/com.github.spotbugs) instead.
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
 
+### Resolving configurations in other projects
+
+It is now deprecated behavior to resolve a configuration in another project directly.  Projects should interact via `project()` dependencies
+declared in configurations of the consuming project.  Accessing and resolving configurations in other projects will now produce a
+deprecation warning.
+
+### Resolving configurations from user-managed threads
+
+It is also deprecated behavior to resolve a configuration from a thread that is not managed by Gradle (i.e. a thread created and 
+managed by the user).   Threads managed by Gradle (such as the workers that execute tasks) can still resolve configurations safely,
+but doing so from other threads will now produce a deprecation warning.
+
 ## Potential breaking changes
 
 ### Fixes to dependency resolution
@@ -401,8 +413,8 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 
 ### Changes to previously deprecated APIs
 
-- The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
-- Removed `DirectoryBuildCache.targetSizeInMB`.
+- Removed the methods `getToSignArtifact` and `setFile` from `Signature`.
+- Removed the property `targetSizeInMB` from `DirectoryBuildCache`.
 - Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
 - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 - Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
@@ -418,12 +430,12 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
-- Removed the method `configureForSourceSet` from `JavaBasePlugin`
+- Removed the method `configureForSourceSet` from `JavaBasePlugin`.
 - Removed the property `classesDir` from `JDepend`.
 - Removed the property `testClassesDir` from `Test`.
 - Removed the property `classesDir` from `SourceSetOutput`.
-- Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
-- Removed `ConfigurableReport.setDestination(Object)`
+- Removed the methods `performPostEvaluationActions` from `IdeaPlugin` and `EclipsePlugin`.
+- Removed the method `setDestination(Object)` from `ConfigurableReport`.
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Removed the `@DeferredConfigurable` annotation.
 - Removed the method `isDeferredConfigurable` from `ExtensionSchema`
@@ -509,6 +521,8 @@ We would like to thank the following community members for making contributions 
 - [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
 - [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 - [Jakub Strzyżewski](https://github.com/shindouj) - Improve exception message for missing repository credentials when publishing (gradle/gradle#6379)
+- [Martin Dünkelmann](https://github.com/MartinX3) - Raise default bytecode level to 1.8 in Maven2Gradle(gradle/gradle#4474)
+- [Alex Saveau](https://github.com/SUPERCILEX) - Report all files in directory as changed for incremental task for non-incremental change (gradle/gradle#6019)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

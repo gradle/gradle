@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
-import org.gradle.internal.operations.notify.BuildOperationNotificationListener2
+import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar
 import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
@@ -64,7 +64,7 @@ class BuildOperationNotificationsFixture {
     }
 
     public static final String EVALUATION_LISTENER_SOURCE = """
-        class BuildOperationNotificationsEvaluationListener implements $BuildOperationNotificationListener2.name {
+        class BuildOperationNotificationsEvaluationListener implements $BuildOperationNotificationListener.name {
                 @Override
                 void started($BuildOperationStartedNotification.name notification) {
                     verify(notification.getNotificationOperationDetails(), 'Details')

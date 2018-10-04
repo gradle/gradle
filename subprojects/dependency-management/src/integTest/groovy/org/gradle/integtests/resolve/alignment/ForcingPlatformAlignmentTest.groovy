@@ -117,12 +117,49 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
 
         where:
         dep1                 | dep2
         'org:core:2.9.4'     | 'org:databind:2.7.9'
         'org:databind:2.7.9' | 'org:core:2.9.4'
+    }
+
+    def "fails if forcing a virtual platform version by forcing multiple leaves with different versions through resolutionStrategy"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            configurations {
+                conf.resolutionStrategy {
+                    force('org:core:2.9.4')
+                    force('org:databind:2.7.9')
+                }
+            }
+            dependencies {
+                conf("org:core:2.9.4.1")
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.9.4.1")
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        fails ':checkDeps'
+
+        then:
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "fails if forcing a virtual platform version and forcing a leaf with different version"() {
@@ -158,7 +195,46 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
+    }
+
+    def "fails if forcing a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            configurations {
+                conf.resolutionStrategy {
+                    force('org:databind:2.7.9')
+                }
+            }
+            dependencies {
+                conf("org:core:2.9.4")
+                
+                conf enforcedPlatform("org:platform:2.9.4")
+                
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.9.4")
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        fails ':checkDeps'
+
+        then:
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
@@ -206,7 +282,7 @@ include 'other'
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple competing force for virtual platform org:platform")
+        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
     def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version"() {
@@ -241,6 +317,40 @@ include 'other'
         succeeds ':checkDeps'
     }
 
+    def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version through resolutionStrategy"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            configurations {
+                conf.resolutionStrategy {
+                    force('org:core:2.7.9')
+                    force('org:databind:2.7.9')
+                }
+            }
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.7.9")
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        expect:
+        allowAllRepositoryInteractions()
+        succeeds ':checkDeps'
+    }
+
     def "succeeds if forcing a virtual platform version and forcing a leaf with same version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -263,6 +373,42 @@ include 'other'
                 conf("org:databind:2.7.9") {
                     force = true
                 }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        expect:
+        allowAllRepositoryInteractions()
+        succeeds ':checkDeps'
+    }
+
+    def "succeeds if forcing a virtual platform version and forcing a leaf with same version through resolutionStrategy"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            configurations {
+                conf.resolutionStrategy {
+                    force('org:databind:2.7.9')
+                }
+            }
+            dependencies {
+                conf("org:core:2.9.4")
+                
+                conf enforcedPlatform("org:platform:2.7.9")
+                
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.9.4")
             }
         """
 

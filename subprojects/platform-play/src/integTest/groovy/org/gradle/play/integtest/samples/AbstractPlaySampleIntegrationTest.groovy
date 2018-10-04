@@ -18,6 +18,7 @@ package org.gradle.play.integtest.samples
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -54,6 +55,12 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
         """
     }
 
+    @Override
+    protected ExecutionResult succeeds(String... tasks) {
+        executer.noDeprecationChecks()
+        return super.succeeds(tasks)
+    }
+
     @IgnoreIf({ !AbstractPlaySampleIntegrationTest.portForWithBrowserTestIsFree() })
     def "produces usable application" () {
         when:
@@ -66,7 +73,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
 
         when:
         sample playSample
-        executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true)
+        executer.usingInitScript(initScript).withStdinPipe().withForceInteractive(true).noDeprecationChecks()
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
         runningPlayApp.initialize(gradleHandle)
 
