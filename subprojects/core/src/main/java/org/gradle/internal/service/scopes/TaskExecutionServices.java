@@ -15,46 +15,13 @@
  */
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.StartParameter;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.execution.ActionEventFiringTaskExecuter;
-import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
-import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
-import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
-import org.gradle.api.internal.tasks.execution.FinalizeInputFilePropertiesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.OutputDirectoryCreatingTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
-import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
-import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
-import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
-import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
-import org.gradle.api.internal.tasks.execution.SnapshotAfterExecutionTaskExecuter;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
-import org.gradle.api.internal.tasks.execution.TimeoutTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.timeout.DefaultTimeoutHandler;
 import org.gradle.api.internal.tasks.timeout.TimeoutHandler;
 import org.gradle.api.invocation.Gradle;
@@ -62,103 +29,20 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
-import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.scan.config.BuildScanPluginApplied;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
-
-    private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
-        AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
-
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
-                                    TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,
-                                    BuildCacheController buildCacheController,
-                                    ListenerManager listenerManager,
-                                    TaskInputsListener inputsListener,
-                                    BuildOperationExecutor buildOperationExecutor,
-                                    AsyncWorkTracker asyncWorkTracker,
-                                    BuildOutputCleanupRegistry cleanupRegistry,
-                                    TaskOutputFilesRepository taskOutputFilesRepository,
-                                    BuildScanPluginApplied buildScanPlugin,
-                                    PathToFileResolver resolver,
-                                    PropertyWalker propertyWalker,
-                                    TaskExecutionGraphInternal taskExecutionGraph,
-                                    BuildInvocationScopeId buildInvocationScopeId,
-                                    BuildCancellationToken buildCancellationToken,
-                                    TaskExecutionListener taskExecutionListener,
-                                    TimeoutHandler timeoutHandler
-    ) {
-
-        boolean buildCacheEnabled = buildCacheController.isEnabled();
-        boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
-        TaskOutputChangesListener taskOutputChangesListener = listenerManager.getBroadcaster(TaskOutputChangesListener.class);
-
-        TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            buildOperationExecutor,
-            asyncWorkTracker,
-            buildCancellationToken
-        );
-        executer = new ActionEventFiringTaskExecuter(executer, taskOutputChangesListener, listenerManager.getBroadcaster(TaskActionListener.class));
-        executer = new TimeoutTaskExecuter(executer, timeoutHandler);
-        executer = new SnapshotAfterExecutionTaskExecuter(executer, buildInvocationScopeId);
-        executer = new OutputDirectoryCreatingTaskExecuter(executer);
-        if (buildCacheEnabled) {
-            executer = new SkipCachedTaskExecuter(
-                buildCacheController,
-                taskOutputChangesListener,
-                taskOutputCacheCommandFactory,
-                executer
-            );
-        }
-        executer = new SkipUpToDateTaskExecuter(executer);
-        executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, executer);
-        if (buildCacheEnabled || scanPluginApplied) {
-            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, buildCacheController.isEmitDebugLogging());
-        }
-        executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputChangesListener, executer, buildInvocationScopeId);
-        executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, taskOutputChangesListener, executer);
-        executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
-        executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
-        executer = new SkipOnlyIfTaskExecuter(executer);
-        executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, executer);
-        return executer;
-    }
 
     TimeoutHandler createTaskTimeoutHandler(ExecutorFactory executorFactory) {
         return new DefaultTimeoutHandler(executorFactory.createScheduled("task timeouts", 1));
@@ -168,35 +52,8 @@ public class TaskExecutionServices {
         return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(ServiceRegistry serviceRegistry) {
-        List<FileFingerprintingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileFingerprintingPropertyAnnotationHandler.class);
-        ImmutableList.Builder<FileCollectionFingerprinter> fingerprinterImplementations = ImmutableList.builder();
-        for (Class<? extends FileCollectionFingerprinter> builtInFingerprinterType : BUILT_IN_FINGERPRINTER_TYPES) {
-            fingerprinterImplementations.add(serviceRegistry.get(builtInFingerprinterType));
-        }
-        for (FileFingerprintingPropertyAnnotationHandler handler : handlers) {
-            fingerprinterImplementations.add(serviceRegistry.get(handler.getFingerprinterImplementationType()));
-        }
-        return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
-    }
-
     TaskHistoryCache createTaskHistoryCache(TaskHistoryStore taskHistoryStore, StringInterner stringInterner) {
         return new TaskHistoryCache(taskHistoryStore, stringInterner);
-    }
-
-    TaskHistoryRepository createTaskHistoryRepository(
-        TaskHistoryCache taskHistoryCache,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        ValueSnapshotter valueSnapshotter,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        StringInterner stringInterner) {
-
-        return new CacheBackedTaskHistoryRepository(
-            taskHistoryCache,
-            classLoaderHierarchyHasher,
-            valueSnapshotter,
-            fingerprinterRegistry
-        );
     }
 
     TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -208,21 +65,6 @@ public class TaskExecutionServices {
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
         return new DefaultTaskOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);
-    }
-
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository) {
-        TaskCacheKeyCalculator taskCacheKeyCalculator = new TaskCacheKeyCalculator(startParameter.isBuildCacheDebugLogging());
-
-        return new ShortCircuitTaskArtifactStateRepository(
-            startParameter,
-            instantiator,
-            new DefaultTaskArtifactStateRepository(
-                taskHistoryRepository,
-                instantiator,
-                taskOutputsRepository,
-                taskCacheKeyCalculator
-            )
-        );
     }
 
     PlanExecutor createTaskExecutorFactory(
@@ -245,5 +87,4 @@ public class TaskExecutionServices {
             coordinationService
         );
     }
-
 }

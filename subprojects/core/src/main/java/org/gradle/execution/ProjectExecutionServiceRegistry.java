@@ -36,16 +36,12 @@ public class ProjectExecutionServiceRegistry {
                 return ServiceRegistryBuilder.builder()
                     .displayName("Configured project services for " + project.getPath())
                     .parent(project.getServices())
-                    .provider(ConfiguredProjectScopeServices.class)
+                    .provider(new ProjectExecutionServices())
                     .build();
             }
         });
 
     public <T> T getProjectService(ProjectInternal project, Class<T> serviceType) {
         return projectRegistries.getUnchecked(project).get(serviceType);
-    }
-
-    private static class ConfiguredProjectScopeServices {
-
     }
 }
