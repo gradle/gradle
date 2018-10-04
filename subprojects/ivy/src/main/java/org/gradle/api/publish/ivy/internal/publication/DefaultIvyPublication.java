@@ -25,6 +25,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -32,6 +33,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -72,6 +74,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.DeprecationLogger;
@@ -105,7 +108,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
     };
     @VisibleForTesting
-    public static final String INCOMPATIBLE_FEATURE = " uses dependency management feature(s) like constraints or platform support that will most likely make the produced Ivy file incomplete and/or not consumable by Ivy compatible solutions.";
+    public static final String INCOMPATIBLE_FEATURE = " uses dependency management feature(s) that will most likely make the produced Ivy file incomplete and/or not consumable by Ivy compatible solutions";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -237,7 +240,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        boolean unsupportedDependencyFeatureUsed = false;
+        Set<String> unsupportedUsages = null;
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
@@ -262,26 +265,53 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {
+                        ExternalDependency externalDependency = (ExternalDependency) dependency;
                         if (PlatformSupport.isTargettingPlatform(dependency)) {
-                            unsupportedDependencyFeatureUsed = true;
+                            if (unsupportedUsages == null) {
+                                unsupportedUsages = Sets.newHashSet();
+                            }
+                            unsupportedUsages.add(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
-                        addExternalDependency((ExternalDependency) dependency, confMapping);
+                        if (externalDependency.getVersion() == null) {
+                            if (unsupportedUsages == null) {
+                                unsupportedUsages = Sets.newHashSet();
+                            }
+                            unsupportedUsages.add(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                        }
+                        addExternalDependency(externalDependency, confMapping);
                     }
                 }
             }
             if (!usageContext.getDependencyConstraints().isEmpty()) {
-                unsupportedDependencyFeatureUsed = true;
+                if (unsupportedUsages == null) {
+                    unsupportedUsages = Sets.newHashSet();
+                }
+                for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
+                    unsupportedUsages.add(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                }
             }
             if (!usageContext.getCapabilities().isEmpty()) {
-                unsupportedDependencyFeatureUsed = true;
+                if (unsupportedUsages == null) {
+                    unsupportedUsages = Sets.newHashSet();
+                }
+                for (Capability capability : usageContext.getCapabilities()) {
+                    unsupportedUsages.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                }
             }
 
             for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
                 globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
             }
         }
-        if (unsupportedDependencyFeatureUsed) {
-            LOG.lifecycle(getDisplayName() + INCOMPATIBLE_FEATURE);
+        if (unsupportedUsages != null) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(getDisplayName() + INCOMPATIBLE_FEATURE);
+            formatter.startChildren();
+            for (String usage : unsupportedUsages) {
+                formatter.node(usage);
+            }
+            formatter.endChildren();
+            LOG.lifecycle(formatter.toString());
         }
     }
 
