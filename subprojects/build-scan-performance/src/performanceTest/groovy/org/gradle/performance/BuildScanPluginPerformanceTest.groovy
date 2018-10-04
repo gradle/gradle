@@ -67,7 +67,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             displayName(WITH_PLUGIN_LABEL)
             invocation {
                 args(*jobArgs)
-                args("--scan", "-DenableScan=true", "-Dscan.dump")
+                args("-DenableScan=true")
                 tasksToRun(*tasks)
                 useDaemon()
                 gradleOpts(*opts)
