@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -31,9 +31,8 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
        """
     }
 
-    @NotYetImplemented
-    @Requires(TestPrecondition.JDK9_OR_LATER) // Java 9 compiler throws error: 'zip END header not found'
-    def "handles malformed jars"() {
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "fails when malformed jars are on the compile classpath"() {
         buildFile << """
             apply plugin: 'java'
             dependencies {
@@ -43,7 +42,8 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
         file("broken.jar").text = "this is not a jar"
         file("src/main/java/Main.java") << "public class Main {}"
         expect:
-        succeeds("compileJava")
+        fails("compileJava")
+        errorOutput.contains("zip END header not found")
     }
 
     def "doesn't recompile if implementation dependency changed in ABI compatible way"() {
