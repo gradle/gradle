@@ -413,8 +413,8 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 
 ### Changes to previously deprecated APIs
 
-- The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
-- Removed `DirectoryBuildCache.targetSizeInMB`.
+- Removed the methods `getToSignArtifact` and `setFile` from `Signature`.
+- Removed the property `targetSizeInMB` from `DirectoryBuildCache`.
 - Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
 - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 - Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
@@ -430,12 +430,12 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
-- Removed the method `configureForSourceSet` from `JavaBasePlugin`
+- Removed the method `configureForSourceSet` from `JavaBasePlugin`.
 - Removed the property `classesDir` from `JDepend`.
 - Removed the property `testClassesDir` from `Test`.
 - Removed the property `classesDir` from `SourceSetOutput`.
-- Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
-- Removed `ConfigurableReport.setDestination(Object)`
+- Removed the methods `performPostEvaluationActions` from `IdeaPlugin` and `EclipsePlugin`.
+- Removed the method `setDestination(Object)` from `ConfigurableReport`.
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Removed the `@DeferredConfigurable` annotation.
 - Removed the method `isDeferredConfigurable` from `ExtensionSchema`
