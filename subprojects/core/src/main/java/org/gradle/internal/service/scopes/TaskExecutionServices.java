@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
@@ -75,7 +76,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
@@ -87,8 +87,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.serialize.DefaultSerializerRegistry;
-import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -185,15 +183,12 @@ public class TaskExecutionServices {
         TaskHistoryStore cacheAccess,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
-        FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        for (FileCollectionFingerprinter fingerprinter : fingerprinterRegistry.getAllFingerprinters()) {
-            fingerprinter.registerSerializers(serializerRegistry);
-        }
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        StringInterner stringInterner) {
 
         return new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            serializerRegistry.build(HistoricalFileCollectionFingerprint.class),
+            stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,
             fingerprinterRegistry

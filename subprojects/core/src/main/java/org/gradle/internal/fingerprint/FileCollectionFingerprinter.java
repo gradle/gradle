@@ -17,7 +17,6 @@ package org.gradle.internal.fingerprint;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public interface FileCollectionFingerprinter {
@@ -25,11 +24,6 @@ public interface FileCollectionFingerprinter {
      * The type used to refer to this fingerprinter in the {@link FileCollectionFingerprinterRegistry}.
      */
     Class<? extends FileNormalizer> getRegisteredType();
-
-    /**
-     * Registers the serializer(s) that can be used to serialize the {@link FileCollectionFingerprint} implementations produced by this fingerprinter.
-     */
-    void registerSerializers(SerializerRegistry registry);
 
     /**
      * Creates a fingerprint of the contents of the given collection.

@@ -47,7 +47,6 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -56,8 +55,6 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
-import org.gradle.internal.serialize.DefaultSerializerRegistry
-import org.gradle.internal.serialize.SerializerRegistry
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
@@ -112,12 +109,10 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
-        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
-        inputFileCollectionFingerprinter.registerSerializers(serializerRegistry)
         def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            serializerRegistry.build(HistoricalFileCollectionFingerprint),
+            stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
             fingerprinterRegistry

@@ -26,6 +26,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
@@ -43,8 +44,11 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.Serializers;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -75,7 +79,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     public CacheBackedTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer,
+        StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry
@@ -83,7 +87,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;
-        TaskExecutionFingerprintSerializer serializer = new TaskExecutionFingerprintSerializer(fileCollectionFingerprintSerializer);
+
+        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
+        serializerRegistry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner));
+        serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
+        TaskExecutionFingerprintSerializer serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
+
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
 

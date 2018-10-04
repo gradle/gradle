@@ -24,8 +24,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.serialize.SerializerRegistry;
-import org.gradle.internal.serialize.Serializers;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
@@ -42,11 +40,6 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     public AbstractFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
         this.stringInterner = stringInterner;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-    }
-
-    public void registerSerializers(SerializerRegistry registry) {
-        registry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner));
-        registry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
     }
 
     public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
