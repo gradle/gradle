@@ -39,11 +39,6 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
     }
 
     @Override
-    public Collection<FileCollectionFingerprinter> getAllFingerprinters() {
-        return fingerprinters.values();
-    }
-
-    @Override
     public FileCollectionFingerprinter getFingerprinter(Class<? extends FileNormalizer> type) {
         FileCollectionFingerprinter fingerprinter = fingerprinters.get(type);
         if (fingerprinter == null) {
