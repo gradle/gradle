@@ -53,10 +53,6 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
     )
 }
 
-tasks.named('performanceTest').configure {
-    dependsOn 'largeJavaProjectWithBuildScanPlugin'
-}
-
 tasks.register<JvmProjectGeneratorTask>("manyInputFilesProject") {
     doFirst {
         templateArgs["buildScanPluginVersion"] = getBuildScanPluginVersion()
@@ -72,5 +68,4 @@ tasks.register<JvmProjectGeneratorTask>("manyInputFilesProject") {
     linesOfCodePerSourceFile = 50
     subProjectTemplates = listOf("project-with-source")
     templateArgs = mapOf("projectDependencies" to true)
-}
 }
