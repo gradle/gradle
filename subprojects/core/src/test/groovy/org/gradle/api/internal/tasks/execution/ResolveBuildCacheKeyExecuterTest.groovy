@@ -133,7 +133,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         inputs.inputFiles >> ImmutableSortedMap.copyOf(c: { getHash: { HashCode.fromInt(0x000000cc) } } as CurrentFileCollectionFingerprint)
 
         then:
-        adapter.inputHashes == [a: "000000aa", b: "000000bb", c: "000000cc"]
+        adapter.inputValueHashesBytes == [a: "000000aa".bytes, b: "000000bb".bytes, c: "000000cc".bytes]
 
         when:
         inputs.nonCacheableInputProperties >> ImmutableSortedMap.of("bean", "Implementation loaded by unknown classloader.", "someOtherBean", "Implementation implemented by Java Lambda.")
@@ -143,12 +143,12 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         when:
         inputs.taskImplementation >> ImplementationSnapshot.of("org.gradle.TaskType", HashCode.fromInt(0x000000cc))
         then:
-        adapter.classLoaderHash == "000000cc"
+        adapter.classLoaderHashBytes == "000000cc".bytes
 
         when:
         inputs.actionImplementations >> ImmutableList.copyOf([ImplementationSnapshot.of("foo", HashCode.fromInt(0x000000ee)), ImplementationSnapshot.of("bar", HashCode.fromInt(0x000000dd))])
         then:
-        adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
+        adapter.actionClassLoaderHashesBytes == ["000000ee".bytes, "000000dd".bytes]
         adapter.actionClassNames == ["foo", "bar"]
 
         when:
@@ -160,7 +160,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         key.hashCode >> HashCode.fromInt(0x000000ff)
         key.valid >> true
         then:
-        adapter.buildCacheKey == "000000ff"
+        adapter.hashBytes == "000000ff".bytes
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {
