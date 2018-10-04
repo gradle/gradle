@@ -27,7 +27,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def transformer = Mock(ArtifactTransformation)
     def operationQueue = Mock(BuildOperationQueue)
     def transformListener = Mock(ArtifactTransformListener)
-    def listener  = new TransformingAsyncArtifactListener(transformer, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), transformListener)
+    def listener  = new TransformingAsyncArtifactListener(transformer, null, operationQueue, Maps.newHashMap(), Maps.newHashMap())
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -61,16 +61,18 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        0 * transformListener.beforeTransform(transformer, artifactId, artifactFile)
+        // FIXME wolfs
+//        0 * transformListener.beforeTransform(transformer, artifactId, artifactFile)
         1 * transformer.transform(artifactFile)
-        0 * transformListener.afterTransform(transformer, artifactId, artifactFile, null)
+//        0 * transformListener.afterTransform(transformer, artifactId, artifactFile, null)
 
         when:
         listener.fileAvailable(file)
 
         then:
-        0 * transformListener.beforeTransform(transformer, null, file)
+        // FIXME wolfs
+//        0 * transformListener.beforeTransform(transformer, null, file)
         1 * transformer.transform(file)
-        0 * transformListener.afterTransform(transformer, null, file, null)
+//        0 * transformListener.afterTransform(transformer, null, file, null)
     }
 }

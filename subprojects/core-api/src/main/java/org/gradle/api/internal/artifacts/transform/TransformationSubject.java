@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-public interface ArtifactTransformListener {
+import org.gradle.api.Describable;
 
-    /**
-     * This method is called immediately before a transformer is invoked.
-     */
-    void beforeTransform(TransformerRegistration transformer, TransformationSubject subject);
+import java.io.File;
+import java.util.List;
+import javax.annotation.Nullable;
 
-    /**
-     * This method is call immediately after a transformer has been invoked.
-     */
-    void afterTransform(TransformerRegistration transformer, TransformationSubject subject);
+public interface TransformationSubject extends Describable {
+    List<File> getFiles();
+    @Nullable
+    Throwable getFailure();
 }

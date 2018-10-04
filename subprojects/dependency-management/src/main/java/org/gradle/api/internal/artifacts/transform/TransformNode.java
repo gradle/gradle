@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
@@ -39,22 +37,18 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.Nullable;
 
 public abstract class TransformNode extends Node {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
     protected final ArtifactTransformationStep artifactTransformer;
-    protected List<File> result;
-    protected Throwable failure;
+    protected TransformationSubject transformedSubject;
 
-    public static TransformNode chained(ArtifactTransformationStep current, TransformNode previous, ComponentArtifactIdentifier artifactId) {
-        return new ChainedTransformNode(current, previous, artifactId);
+    public static TransformNode chained(ArtifactTransformationStep current, TransformNode previous) {
+        return new ChainedTransformNode(current, previous);
     }
 
     public static TransformNode initial(ArtifactTransformationStep initial, BuildableSingleResolvedArtifactSet artifact) {
@@ -72,24 +66,12 @@ public abstract class TransformNode extends Node {
         return artifactTransformer.getDisplayName();
     }
 
-    private List<File> getResult() {
-        if (failure != null) {
-            throw new IllegalStateException("Transformation has failed", failure);
-        }
-        if (result == null) {
+    private TransformationSubject getTransformedSubject() {
+        if (transformedSubject == null) {
             throw new IllegalStateException("Transformation hasn't been executed yet");
         }
-        return result;
+        return transformedSubject;
     }
-
-    @Nullable
-    private Throwable getFailure() {
-        if (result == null) {
-            throw new IllegalStateException("Transformation hasn't been executed yet");
-        }
-        return failure;
-    }
-
     @Override
     public void prepareForExecution() {
     }
@@ -129,10 +111,9 @@ public abstract class TransformNode extends Node {
 
         @Override
         public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            InitialArtifactTransformationStepOperation transformationStep = new InitialArtifactTransformationStepOperation(buildOperationExecutor, transformListener);
+            InitialArtifactTransformationStepOperation transformationStep = new InitialArtifactTransformationStepOperation(buildOperationExecutor);
             buildOperationExecutor.run(transformationStep);
-            this.result = transformationStep.getResult();
-            this.failure = transformationStep.getFailure();
+            this.transformedSubject = transformationStep.getTransformedSubject();
         }
 
         @Override
@@ -149,19 +130,16 @@ public abstract class TransformNode extends Node {
         }
 
         private class InitialArtifactTransformationStepOperation implements RunnableBuildOperation {
-            private List<File> result;
-            private Throwable failure;
-            private final BuildOperationExecutor buildOperationExecutor;
-            private final ArtifactTransformListener transformListener;
+            private TransformationSubject transformedSubject;
 
-            public InitialArtifactTransformationStepOperation(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            private final BuildOperationExecutor buildOperationExecutor;
+            public InitialArtifactTransformationStepOperation(BuildOperationExecutor buildOperationExecutor) {
                 this.buildOperationExecutor = buildOperationExecutor;
-                this.transformListener = transformListener;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform " + artifactSet.getArtifactId().getDisplayName() + " with " + artifactTransformer.getDisplayName();
+                String displayName = "Transform artifact " + artifactSet.getArtifactId().getDisplayName() + " with " + artifactTransformer.getDisplayName();
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .operationType(BuildOperationCategory.TRANSFORM);
@@ -181,44 +159,34 @@ public abstract class TransformNode extends Node {
                     } else {
                         failure = new DefaultLenientConfiguration.ArtifactResolveException("artifacts", artifactTransformer.getDisplayName(), "artifact transform", failures);
                     }
-                    this.failure = failure;
-                    this.result = Collections.emptyList();
+                    this.transformedSubject = new ResolveFailedTransformationSubject(artifactSet.getArtifactId(), failure);
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
+                InitialArtifactTransformationSubject initialArtifactTransformationSubject = new InitialArtifactTransformationSubject(artifact.getId(), artifact.getFile());
 
-                TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer, transformListener);
-                operation.run(context);
-                this.failure = operation.getFailure();
-                this.result = operation.getResult();
+                this.transformedSubject = artifactTransformer.transform(initialArtifactTransformationSubject);
             }
 
-            public List<File> getResult() {
-                return result;
-            }
-
-            public Throwable getFailure() {
-                return failure;
+            public TransformationSubject getTransformedSubject() {
+                return transformedSubject;
             }
         }
     }
 
     private static class ChainedTransformNode extends TransformNode {
         private final TransformNode previousTransform;
-        private final ComponentArtifactIdentifier artifactId;
 
-        public ChainedTransformNode(ArtifactTransformationStep artifactTransformer, TransformNode previousTransform, ComponentArtifactIdentifier artifactId) {
+        public ChainedTransformNode(ArtifactTransformationStep artifactTransformer, TransformNode previousTransform) {
             super(artifactTransformer);
             this.previousTransform = previousTransform;
-            this.artifactId = artifactId;
         }
 
         @Override
         public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation(transformListener);
+            ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation();
             buildOperationExecutor.run(chainedArtifactTransformStep);
-            this.result = chainedArtifactTransformStep.getResult();
-            this.failure = chainedArtifactTransformStep.getFailure();
+            this.transformedSubject = chainedArtifactTransformStep.getTransformedSubject();
         }
 
         @Override
@@ -229,53 +197,23 @@ public abstract class TransformNode extends Node {
 
         private class ChainedArtifactTransformStepOperation implements RunnableBuildOperation {
 
-            private final ArtifactTransformListener transformListener;
-            private List<File> result;
-            private Throwable failure;
-
-            public ChainedArtifactTransformStepOperation(ArtifactTransformListener transformListener) {
-                this.transformListener = transformListener;
-            }
+            private TransformationSubject transformedSubject;
 
             @Override
             public void run(BuildOperationContext context) {
-                Throwable previousFailure = previousTransform.getFailure();
-                if (previousFailure != null) {
-                    this.failure = previousFailure;
-                    this.result = Collections.emptyList();
-                    return;
-                }
-                ImmutableList.Builder<File> builder = ImmutableList.builder();
-                for (File inputFile : previousTransform.getResult()) {
-                    TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer, transformListener);
-                    operation.run(context);
-                    if (operation.getFailure() != null) {
-                        this.failure = operation.getFailure();
-                        this.result = Collections.emptyList();
-                        return;
-                    }
-                    List<File> result = operation.getResult();
-                    if (result != null) {
-                        builder.addAll(result);
-                    }
-                }
-                this.result = builder.build();
+                this.transformedSubject = artifactTransformer.transform(previousTransform.getTransformedSubject());
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform " + artifactId.getDisplayName() + " with " + artifactTransformer.getDisplayName();
+                String displayName = "Transform " + previousTransform.getTransformedSubject().getDisplayName() + " with " + artifactTransformer.getDisplayName();
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .operationType(BuildOperationCategory.TRANSFORM);
             }
 
-            public List<File> getResult() {
-                return result;
-            }
-
-            public Throwable getFailure() {
-                return failure;
+            public TransformationSubject getTransformedSubject() {
+                return transformedSubject;
             }
         }
     }

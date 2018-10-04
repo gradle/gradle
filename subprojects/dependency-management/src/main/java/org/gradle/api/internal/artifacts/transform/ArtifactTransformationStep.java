@@ -17,22 +17,56 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 class ArtifactTransformationStep implements ArtifactTransformation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactTransformationStep.class);
+
     private final TransformedFileCache transformedFileCache;
     private final TransformerRegistration transformerRegistration;
+    private final ArtifactTransformListener artifactTransformListener;
 
-    public ArtifactTransformationStep(TransformerRegistration transformerRegistration, TransformedFileCache transformedFileCache) {
+    public ArtifactTransformationStep(TransformerRegistration transformerRegistration, TransformedFileCache transformedFileCache, ArtifactTransformListener artifactTransformListener) {
         this.transformerRegistration = transformerRegistration;
         this.transformedFileCache = transformedFileCache;
+        this.artifactTransformListener = artifactTransformListener;
     }
 
     @Override
     public List<File> transform(File input) {
         return transformedFileCache.runTransformer(input, transformerRegistration);
+    }
+
+    @Override
+    public TransformationSubject transform(TransformationSubject subjectToTransform) {
+        if (subjectToTransform.getFailure() != null) {
+            return subjectToTransform;
+        }
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Executing transform {} on {}", transformerRegistration.getDisplayName(), subjectToTransform.getDisplayName());
+            }
+        List<File> result = new ArrayList<File>();
+        for (File file : subjectToTransform.getFiles()) {
+            boolean hasCachedResult = hasCachedResult(file);
+            if (!hasCachedResult) {
+                artifactTransformListener.beforeTransform(transformerRegistration, subjectToTransform);
+            }
+            try {
+                result.addAll(transformedFileCache.runTransformer(file, transformerRegistration));
+            } catch (Throwable t) {
+                return new DefaultTransformationSubject(subjectToTransform, t);
+            } finally {
+                if (!hasCachedResult) {
+                    artifactTransformListener.afterTransform(transformerRegistration, subjectToTransform);
+                }
+            }
+        }
+        return new DefaultTransformationSubject(subjectToTransform, result);
     }
 
     @Override

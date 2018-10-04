@@ -69,7 +69,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "reuses result for given inputs and transform"() {
-        def transformerRegistration = Mock(TransformerRegistration)
+        def transformerRegistration = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
 
         when:
@@ -112,7 +112,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
     def "contains result after transform ran once"() {
         given:
-        def transformerRegistration = Mock(TransformerRegistration)
+        def transformerRegistration = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
         _ * transformerRegistration.inputsHash >> hash
@@ -128,7 +128,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
     def "does not contain result if a different transform ran"() {
         given:
-        def transformerRegistration = Mock(TransformerRegistration)
+        def transformerRegistration = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
         def otherHash = HashCode.fromInt(456)
@@ -144,7 +144,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "reuses result when transform returns its input file"() {
-        def transformerRegistration = Mock(TransformerRegistration)
+        def transformerRegistration = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a").createFile()
 
         when:
@@ -175,7 +175,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "applies transform once when requested concurrently by multiple threads"() {
-        def transformerRegistration = Mock(TransformerRegistration)
+        def transformerRegistration = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
 
         when:
@@ -213,7 +213,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "multiple threads can transform files concurrently"() {
-        def transformerRegistrationA = new TransformerRegistration(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
+        def transformerRegistrationA = new DefaultTransformerRegistration(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
             @Override
             List<File> apply(File primaryInput, File outputDir) {
                 instant.a
@@ -221,7 +221,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
                 instant.a_done
                 [new TestFile(outputDir, primaryInput.getName()).touch()]            }
         }
-        def transformerRegistrationB = new TransformerRegistration(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
+        def transformerRegistrationB = new DefaultTransformerRegistration(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
             @Override
             List<File> apply(File primaryInput, File outputDir) {
                 instant.b
@@ -251,8 +251,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "does not reuse result when transform inputs are different"() {
-        def transform1 = Mock(TransformerRegistration)
-        def transform2 = Mock(TransformerRegistration)
+        def transform1 = Mock(DefaultTransformerRegistration)
+        def transform2 = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
 
         given:
@@ -291,8 +291,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "does not reuse result when transform input files have different content"() {
-        def transform1 = Mock(TransformerRegistration)
-        def transform2 = Mock(TransformerRegistration)
+        def transform1 = Mock(DefaultTransformerRegistration)
+        def transform2 = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
 
         given:
@@ -334,7 +334,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "runs transform when previous execution failed and cleans up directory"() {
-        def transform = Mock(TransformerRegistration)
+        def transform = Mock(DefaultTransformerRegistration)
         def failure = new RuntimeException()
         def inputFile = tmpDir.file("a")
 
@@ -376,7 +376,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def "runs transform when output has been removed"() {
-        def transform = Mock(TransformerRegistration)
+        def transform = Mock(DefaultTransformerRegistration)
         def inputFile = tmpDir.file("a")
 
         given:

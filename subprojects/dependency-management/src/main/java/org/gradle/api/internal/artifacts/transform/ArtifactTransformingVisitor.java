@@ -39,10 +39,10 @@ import java.util.Map;
 class ArtifactTransformingVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
-    private final Map<File, TransformFileOperation> fileResults;
+    private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
+    private final Map<File, TransformationOperation> fileResults;
 
-    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -51,7 +51,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformArtifactOperation operation = artifactResults.get(artifact.getId());
+        TransformationOperation operation = artifactResults.get(artifact.getId());
         if (operation.getFailure() != null) {
             visitFailureWithContext(operation.getFailure());
             return;
@@ -87,7 +87,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        TransformFileOperation operation = fileResults.get(file);
+        TransformationOperation operation = fileResults.get(file);
         if (operation.getFailure() != null) {
             visitFailureWithContext(operation.getFailure());
             return;

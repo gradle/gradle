@@ -16,25 +16,24 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
 import java.util.List;
+import javax.annotation.Nullable;
 
-public class TransformerRegistration implements BiFunction<List<File>, File, File>, Describable {
+public class DefaultTransformerRegistration implements TransformerRegistration {
 
     private final Class<? extends ArtifactTransform> implementationClass;
     private final Isolatable<Object[]> parameters;
     private final Instantiator instantiator;
     private final HashCode inputsHash;
 
-    public TransformerRegistration(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
+    public DefaultTransformerRegistration(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
         this.instantiator = instantiator;
@@ -49,7 +48,7 @@ public class TransformerRegistration implements BiFunction<List<File>, File, Fil
         return validateOutputs(primaryInput, outputDir, outputs);
     }
 
-    private List<File> validateOutputs(File primaryInput, File outputDir, List<File> outputs) {
+    private List<File> validateOutputs(File primaryInput, File outputDir, @Nullable List<File> outputs) {
         if (outputs == null) {
             throw new InvalidUserDataException("Transform returned null result.");
         }
@@ -77,10 +76,12 @@ public class TransformerRegistration implements BiFunction<List<File>, File, Fil
         return instantiator.newInstance(implementationClass, parameters.isolate());
     }
 
+    @Override
     public HashCode getInputsHash() {
         return inputsHash;
     }
 
+    @Override
     public Class<? extends ArtifactTransform> getImplementationClass() {
         return implementationClass;
     }
@@ -99,7 +100,7 @@ public class TransformerRegistration implements BiFunction<List<File>, File, Fil
             return false;
         }
 
-        TransformerRegistration that = (TransformerRegistration) o;
+        DefaultTransformerRegistration that = (DefaultTransformerRegistration) o;
 
         return inputsHash.equals(that.inputsHash);
     }

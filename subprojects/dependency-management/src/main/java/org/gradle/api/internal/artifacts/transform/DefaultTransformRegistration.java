@@ -37,7 +37,7 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
     private final ImmutableAttributes to;
     private final ArtifactTransformationStep cachingTransformInvocation;
 
-    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
+    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator, ArtifactTransformListener artifactTransformListener) {
         Hasher hasher = Hashing.newHasher();
         hasher.putString(implementation.getName());
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
@@ -52,8 +52,8 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
 
         paramsSnapshot.appendToHasher(hasher);
 
-        TransformerRegistration transformerRegistration = new TransformerRegistration(implementation, paramsSnapshot, hasher.hash(), instantiator);
-        return new DefaultTransformRegistration(from, to, new ArtifactTransformationStep(transformerRegistration, transformedFileCache));
+        DefaultTransformerRegistration transformerRegistration = new DefaultTransformerRegistration(implementation, paramsSnapshot, hasher.hash(), instantiator);
+        return new DefaultTransformRegistration(from, to, new ArtifactTransformationStep(transformerRegistration, transformedFileCache, artifactTransformListener));
     }
 
     public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, ArtifactTransformationStep cachingTransformInvocation) {

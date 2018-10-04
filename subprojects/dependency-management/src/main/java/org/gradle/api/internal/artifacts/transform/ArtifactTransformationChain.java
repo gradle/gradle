@@ -42,6 +42,12 @@ class ArtifactTransformationChain implements ArtifactTransformation {
     }
 
     @Override
+    public TransformationSubject transform(TransformationSubject subject) {
+        TransformationSubject intermediateSubject = first.transform(subject);
+        return second.transform(intermediateSubject);
+    }
+
+    @Override
     public boolean hasCachedResult(File input) {
         if (first.hasCachedResult(input)) {
             for (File intermediate : first.transform(input)) {

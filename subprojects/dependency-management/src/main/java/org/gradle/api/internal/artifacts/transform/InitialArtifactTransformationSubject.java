@@ -16,39 +16,36 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+
 import java.io.File;
 import java.util.List;
+import javax.annotation.Nullable;
 
-public class DefaultTransformationSubject implements TransformationSubject {
-    private final TransformationSubject previous;
-    private final List<File> files;
-    private final Throwable failure;
+public class InitialArtifactTransformationSubject implements TransformationSubject {
+    private final ComponentArtifactIdentifier artifactId;
+    private final File file;
 
-    public DefaultTransformationSubject(TransformationSubject previous, List<File> files) {
-        this.previous = previous;
-        this.files = files;
-        this.failure = null;
+    public InitialArtifactTransformationSubject(ComponentArtifactIdentifier artifactId, File file) {
+        this.artifactId = artifactId;
+        this.file = file;
     }
 
-    public DefaultTransformationSubject(TransformationSubject previous, Throwable failure) {
-        this.previous = previous;
-        this.failure = failure;
-        this.files = null;
+    @Nullable
+    @Override
+    public Throwable getFailure() {
+        return null;
     }
 
     @Override
     public List<File> getFiles() {
-        return files;
-    }
-
-    @Override
-    public Throwable getFailure() {
-        return failure;
+        return ImmutableList.of(file);
     }
 
     @Override
     public String getDisplayName() {
-        return previous.getDisplayName();
+        return "artifact " + artifactId.getDisplayName();
     }
 
     @Override

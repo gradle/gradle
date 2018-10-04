@@ -32,6 +32,8 @@ public interface ArtifactTransformation extends Describable {
      */
     List<File> transform(File input);
 
+    TransformationSubject transform(TransformationSubject subject);
+
     /**
      * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(File)} will be fast.
      */

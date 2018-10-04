@@ -20,49 +20,29 @@ import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 import javax.annotation.Nullable;
 
-class TransformFileOperation implements RunnableBuildOperation {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
-    private final File file;
-    private final ArtifactTransformation transform;
-    private final ArtifactTransformListener transformListener;
-    private Throwable failure;
-    private List<File> result;
+class TransformationOperation implements RunnableBuildOperation {
+    private final ArtifactTransformation transformation;
+    private final TransformationSubject subject;
+    private TransformationSubject result;
 
-    TransformFileOperation(File file, ArtifactTransformation transform, ArtifactTransformListener transformListener) {
-        this.file = file;
-        this.transform = transform;
-        this.transformListener = transformListener;
+    TransformationOperation(ArtifactTransformation transformation, TransformationSubject subject) {
+        this.transformation = transformation;
+        this.subject = subject;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        boolean hasCachedResult = transform.hasCachedResult(file);
-        if (!hasCachedResult) {
-            transformListener.beforeTransform(transform, null, file);
-        }
-        try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
-            }
-            result = transform.transform(file);
-        } catch (Throwable t) {
-            failure = t;
-        }
-        if (!hasCachedResult) {
-            transformListener.afterTransform(transform, null, file, failure);
-        }
+        result = transformation.transform(subject);
     }
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        String displayName = "Transform " + file.getName() + " with " + transform.getDisplayName();
+        String displayName = "Transform " + subject.getDisplayName() + " with " + transformation.getDisplayName();
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
             .operationType(BuildOperationCategory.UNCATEGORIZED);
@@ -70,11 +50,11 @@ class TransformFileOperation implements RunnableBuildOperation {
 
     @Nullable
     public Throwable getFailure() {
-        return failure;
+        return result.getFailure();
     }
 
     @Nullable
     public List<File> getResult() {
-        return result;
+        return result.getFiles();
     }
 }

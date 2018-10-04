@@ -77,8 +77,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         succeeds ":util:resolve"
 
-        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project :lib) with FileSizer")
-        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project :lib) with FileSizer")
+        def transformationPosition1 = output.indexOf("> Transform artifact lib1.jar (project :lib) with FileSizer")
+        def transformationPosition2 = output.indexOf("> Transform artifact lib2.jar (project :lib) with FileSizer")
         def taskPosition = output.indexOf("> Task :util:resolve")
 
         then:
@@ -107,8 +107,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":util2:resolve"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with FileSizer") == 1
-        output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with FileSizer") == 1
     }
 
     def "early discovered chained transform is only run once per transform"() {
@@ -208,12 +208,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         run ":app1:resolveRed", ":app2:resolveYellow"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToRedThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
+        output.count("> Transform artifact lib1.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform artifact lib2.jar (project :lib) with MakeGreenToRedThings") == 1
     }
 
     def "each file is transformed once per set of configuration parameters"() {

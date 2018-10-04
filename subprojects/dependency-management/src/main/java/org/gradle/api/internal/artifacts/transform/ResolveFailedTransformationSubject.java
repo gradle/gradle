@@ -16,31 +16,28 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+
 import java.io.File;
 import java.util.List;
+import javax.annotation.Nullable;
 
-public class DefaultTransformationSubject implements TransformationSubject {
-    private final TransformationSubject previous;
-    private final List<File> files;
+public class ResolveFailedTransformationSubject implements TransformationSubject{
+    private final ComponentArtifactIdentifier artifactId;
     private final Throwable failure;
 
-    public DefaultTransformationSubject(TransformationSubject previous, List<File> files) {
-        this.previous = previous;
-        this.files = files;
-        this.failure = null;
+    public ResolveFailedTransformationSubject(ComponentArtifactIdentifier artifactId, Throwable failure) {
+        this.artifactId = artifactId;
+        this.failure = failure;
     }
 
-    public DefaultTransformationSubject(TransformationSubject previous, Throwable failure) {
-        this.previous = previous;
-        this.failure = failure;
-        this.files = null;
-    }
 
     @Override
     public List<File> getFiles() {
-        return files;
+        throw new UnsupportedOperationException();
     }
 
+    @Nullable
     @Override
     public Throwable getFailure() {
         return failure;
@@ -48,7 +45,7 @@ public class DefaultTransformationSubject implements TransformationSubject {
 
     @Override
     public String getDisplayName() {
-        return previous.getDisplayName();
+        return "artifact " + artifactId.getDisplayName();
     }
 
     @Override

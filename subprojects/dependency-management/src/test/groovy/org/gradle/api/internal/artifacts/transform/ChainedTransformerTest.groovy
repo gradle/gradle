@@ -62,6 +62,11 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
+        TransformationSubject transform(TransformationSubject subject) {
+            return null
+        }
+
+        @Override
         boolean hasCachedResult(File input) {
             return true
         }
@@ -81,6 +86,11 @@ class ChainedTransformerTest extends Specification {
         @Override
         List<File> transform(File input) {
             Lists.newArrayList(new File(input, "non-cached"));
+        }
+
+        @Override
+        TransformationSubject transform(TransformationSubject subject) {
+            return null
         }
 
         @Override

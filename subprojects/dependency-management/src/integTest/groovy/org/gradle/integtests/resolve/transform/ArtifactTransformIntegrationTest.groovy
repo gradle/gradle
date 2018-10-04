@@ -1761,7 +1761,7 @@ Found the following transforms:
         then:
         output.count("> Dependency:") == 1
         output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
-        output.contains("> Transform lib1.jar (project :lib) with FileSizer")
+        output.contains("> Transform artifact lib1.jar (project :lib) with FileSizer")
         output.contains("> Task :app:resolve")
     }
 
@@ -1799,6 +1799,4 @@ Found the following transforms:
             }
 """
     }
-
-
-    }
+}

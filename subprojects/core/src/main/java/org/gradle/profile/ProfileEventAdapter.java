@@ -23,19 +23,16 @@ import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformation;
+import org.gradle.api.internal.artifacts.transform.TransformationSubject;
+import org.gradle.api.internal.artifacts.transform.TransformerRegistration;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
-
-import java.io.File;
-import javax.annotation.Nullable;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
@@ -141,22 +138,15 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void beforeTransform(ArtifactTransformation transform, @Nullable ComponentArtifactIdentifier artifactId, File file) {
+    public void beforeTransform(TransformerRegistration transformer, TransformationSubject subject) {
         long now = clock.getCurrentTime();
-        StringBuilder transformDescription = new StringBuilder(256);
-        if (artifactId != null) {
-            transformDescription.append(artifactId.getDisplayName());
-        } else {
-            transformDescription.append(file.getAbsolutePath());
-        }
-        transformDescription.append(" with ");
-        transformDescription.append(transform.getDisplayName());
-        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription.toString());
+        String transformDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
+        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
         currentTransform.set(transformProfile.start(now));
     }
 
     @Override
-    public void afterTransform(ArtifactTransformation transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure) {
+    public void afterTransform(TransformerRegistration transformer, TransformationSubject subject) {
         long now = clock.getCurrentTime();
         currentTransform.get().setFinish(now);
         currentTransform.remove();

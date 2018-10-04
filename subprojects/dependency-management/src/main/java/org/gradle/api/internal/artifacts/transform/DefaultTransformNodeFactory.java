@@ -62,7 +62,7 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
                 transformNode = TransformNode.initial(transformerChain.iterator().next(), singleArtifactSet);
             } else {
                 TransformNode previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
-                transformNode = TransformNode.chained(transformerChain.get(transformerChain.size() - 1), previous, singleArtifactSet.getArtifactId());
+                transformNode = TransformNode.chained(transformerChain.get(transformerChain.size() - 1), previous);
             }
             transformations.put(key, transformNode);
         }
