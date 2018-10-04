@@ -62,6 +62,8 @@ class IncrementalReverseTask extends DefaultTask {
 
         // tag::out-of-date-inputs[]
         inputs.outOfDate { change ->
+            if (change.file.directory) return
+
             println "out of date: ${change.file.name}"
             def targetFile = new File(outputDir, change.file.name)
             targetFile.text = change.file.text.reverse()
@@ -70,6 +72,8 @@ class IncrementalReverseTask extends DefaultTask {
 
         // tag::removed-inputs[]
         inputs.removed { change ->
+            if (change.file.directory) return
+
             println "removed: ${change.file.name}"
             def targetFile = new File(outputDir, change.file.name)
             targetFile.delete()

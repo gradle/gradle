@@ -29,6 +29,24 @@ import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
+    static String repositoryDefinition(GradleDsl dsl = GROOVY, String type, String name, String url) {
+        if (dsl == KOTLIN) {
+            """
+                    ${type} {
+                        name = "${name}"
+                        url = uri("${url}")
+                    }
+                """
+        } else {
+            """
+                    ${type} {
+                        name '${name}'
+                        url '${url}'
+                    }
+                """
+        }
+    }
+
     private static enum MirroredRepository {
         JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
         MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
@@ -61,21 +79,7 @@ class RepoScriptBlockUtil {
         }
 
         String getRepositoryDefinition(GradleDsl dsl = GROOVY) {
-            if (dsl == KOTLIN) {
-                """
-                    ${type} {
-                        name = "${name}"
-                        url = uri("${mirrorUrl}")
-                    }
-                """
-            } else {
-                """
-                    ${type} {
-                        name '${name}'
-                        url '${mirrorUrl}'
-                    }
-                """
-            }
+            repositoryDefinition(dsl, type, name, mirrorUrl)
         }
 
         void configure(RepositoryHandler repositories) {
@@ -90,7 +94,7 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        return """
+        """
             repositories {
                 ${jcenterRepositoryDefinition(dsl)}
             }
@@ -124,6 +128,10 @@ class RepoScriptBlockUtil {
         } else {
             url + '/'
         }
+    }
+
+    static String kotlinEapRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.KOTLIN_EAP.getRepositoryDefinition(dsl)
     }
 
     static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {

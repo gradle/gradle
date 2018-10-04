@@ -21,6 +21,7 @@ import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.internal.Actions
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.util.ConfigureUtil
 import org.hamcrest.Matchers
@@ -275,6 +276,76 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         1 * action.execute(a)
+        0 * action._
+    }
+
+    def "can add action to execute only when object added"() {
+        def action = Mock(Action)
+
+        container.add(c)
+
+        when:
+        container.whenObjectAdded(action)
+
+        then:
+        // Does not fire for existing elements
+        0 * action._
+
+        when:
+        container.add(a)
+
+        then:
+        1 * action.execute(a)
+        0 * action._
+
+        when:
+        container.add(a)
+
+        then:
+        0 * action._
+
+        when:
+        container.remove(c)
+        container.addAll(a, b, c, d)
+
+        then:
+        // TODO:DAZ This indicates a bug in the list implementation: should not be firing for duplicates
+        if (container instanceof List) {
+            1 * action.execute(a)
+        }
+        1 * action.execute(b)
+        1 * action.execute(c)
+        1 * action.execute(d)
+        0 * action._
+    }
+
+    def "can add action to execute only when object removed"() {
+        def action = Mock(Action)
+
+        container.add(c)
+
+        when:
+        container.whenObjectRemoved(action)
+
+        then:
+        // Does not fire for existing elements
+        0 * action._
+
+        when:
+        container.add(a)
+        container.remove(c)
+        container.remove(a)
+
+        then:
+        1 * action.execute(c)
+        1 * action.execute(a)
+        0 * action._
+
+        when:
+        container.remove(d)
+
+        then:
+        // Not fired when unknown object removed
         0 * action._
     }
 
@@ -1450,6 +1521,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
 
+        when:
+        container.matching({ it in container.type }).configureEach(method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
         where:
         mutatingMethods << getMutatingMethods()
     }
@@ -1466,6 +1543,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
             "removeAll(Collection)": { container.removeAll([b]) },
             "retainAll(Collection)": { container.retainAll([b]) },
             "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
+            "configureEach(Action)": { container.configureEach(Actions.doNothing()) },
         ]
     }
 
@@ -1492,6 +1570,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         when:
         container.withType(container.type).configureEach(method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.matching({ it in container.type }).configureEach(method)
         then:
         noExceptionThrown()
 

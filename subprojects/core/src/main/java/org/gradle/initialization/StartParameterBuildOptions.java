@@ -41,7 +41,6 @@ public class StartParameterBuildOptions {
         List<BuildOption<StartParameterInternal>> options = new ArrayList<BuildOption<StartParameterInternal>>();
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
-        options.add(new RecompileScriptsOption());
         options.add(new ProfileOption());
         options.add(new ContinueOption());
         options.add(new OfflineOption());
@@ -90,20 +89,6 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRerunTasks(true);
-        }
-    }
-
-    public static class RecompileScriptsOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
-        private static final String LONG_OPTION = "recompile-scripts";
-
-        public RecompileScriptsOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Force build script recompiling.").deprecated());
-        }
-
-        @Override
-        public void applyTo(StartParameterInternal settings, Origin origin) {
-            settings.setRecompileScripts(true);
-            settings.addDeprecation("--" + LONG_OPTION);
         }
     }
 

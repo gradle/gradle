@@ -24,12 +24,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.internal.IoActions;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nonnull;
@@ -167,7 +167,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
             zipFile = new ZipFile(jarFile);
             return readGradleVersionFromBuildReceipt(zipFile);
         } finally {
-            IOUtils.closeQuietly(zipFile);
+            IoActions.closeQuietly(zipFile);
         }
     }
 

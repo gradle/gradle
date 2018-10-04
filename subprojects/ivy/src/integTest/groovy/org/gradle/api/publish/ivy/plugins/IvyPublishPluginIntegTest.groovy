@@ -16,14 +16,10 @@
 
 package org.gradle.api.publish.ivy.plugins
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class IvyPublishPluginIntegTest extends WellBehavedPluginTest {
 
-    def setup() {
-        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
-    }
     @Override
     String getMainTask() {
         "publish"

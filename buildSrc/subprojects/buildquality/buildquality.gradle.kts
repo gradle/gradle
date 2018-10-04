@@ -17,6 +17,7 @@ dependencies {
     implementation("org.codenarc:CodeNarc:1.0") {
         exclude(group = "org.codehaus.groovy")
     }
+    implementation("com.github.javaparser:javaparser-symbol-solver-core:3.6.11")
 }
 
 gradlePlugin {
@@ -44,6 +45,10 @@ gradlePlugin {
         register("taskPropertyValidation") {
             id = "gradlebuild.task-properties-validation"
             implementationClass = "org.gradle.gradlebuild.buildquality.TaskPropertyValidationPlugin"
+        }
+        register("incubationReport") {
+            id = "gradlebuild.incubation-report"
+            implementationClass = "org.gradle.gradlebuild.buildquality.incubation.IncubationReportPlugin"
         }
     }
 }

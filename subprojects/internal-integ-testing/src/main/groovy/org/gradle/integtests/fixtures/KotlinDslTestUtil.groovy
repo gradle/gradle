@@ -18,15 +18,22 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepositoryDefinition
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
 
 class KotlinDslTestUtil {
 
     static String getKotlinDslBuildSrcScript() {
         """
-            plugins { `kotlin-dsl` }
+            plugins { `kotlin-dsl-base` }
 
-            ${jcenterRepository(GradleDsl.KOTLIN)} 
+            allprojects {
+                repositories {
+                    //TODO:kotlin-dsl remove once we're no longer on a kotlin eap 
+                    ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
         """
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
@@ -30,6 +31,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -322,8 +324,14 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry);
-        return classpathFactory.createEntries();
+        final ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry);
+        return projectInternal.getMutationState().withMutableState(new Factory<List<ClasspathEntry>>() {
+            @Nullable
+            @Override
+            public List<ClasspathEntry> create() {
+                return classpathFactory.createEntries();
+            }
+        });
     }
 
     public void mergeXmlClasspath(Classpath xmlClasspath) {

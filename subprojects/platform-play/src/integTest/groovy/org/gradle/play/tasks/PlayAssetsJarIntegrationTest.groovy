@@ -17,6 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
@@ -24,6 +25,13 @@ import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayAssetsJarIntegrationTest extends AbstractIntegrationSpec {
+
+    @Override
+    protected ExecutionResult succeeds(String... tasks) {
+        executer.noDeprecationChecks()
+        return super.succeeds(tasks)
+    }
+
     def setup() {
         new BasicPlayApp().writeSources(file("."))
         settingsFile << """ rootProject.name = 'play-app' """

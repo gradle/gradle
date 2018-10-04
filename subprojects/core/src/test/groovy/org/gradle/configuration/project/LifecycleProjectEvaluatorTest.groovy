@@ -21,6 +21,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
@@ -35,6 +36,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private buildOperationExecutor = new TestBuildOperationExecutor()
     private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
     private state = new ProjectStateInternal()
+    private mutationState = Mock(ProjectState)
 
     final RuntimeException failure1 = new RuntimeException()
     final RuntimeException failure2 = new RuntimeException()
@@ -53,6 +55,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
             step.execute(listener)
             null
         }
+        project.getMutationState() >> mutationState
+        mutationState.withMutableState(_) >> { args -> args[0].run() }
     }
 
     void "nothing happens if project was already configured"() {

@@ -28,5 +28,23 @@ buildscript {
 
 if (System.getProperty('enableScan')) {
     apply plugin: 'com.gradle.build-scan'
-    buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }
+}
+
+// We want to double check that a build failure is
+// only caused by failing test executions
+gradle.buildFinished { result ->
+    buildDir.mkdirs()
+    if(result.failure) {
+        def unexpectedFailure = (result.failure instanceof org.gradle.execution.MultipleBuildFailures && result.failure.causes.every { cause ->
+            def failureMessage = cause?.cause?.cause?.message
+            !failureMessage?.contains("There were failing tests")
+        }
+        )
+        if(unexpectedFailure) {
+            StringWriter errors = new StringWriter();
+            result.failure.printStackTrace(new PrintWriter(errors));
+            buildDir.mkdirs()
+            new File(buildDir, "error.log").text = errors.toString()
+        }
+    }
 }

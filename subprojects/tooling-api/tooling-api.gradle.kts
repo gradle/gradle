@@ -94,7 +94,7 @@ eclipse {
 
 tasks.register<Upload>("publishLocalArchives") {
     val repoBaseDir = rootProject.file("build/repo")
-    configuration = configurations.publishRuntime
+    configuration = configurations["publishRuntime"] // TODO:kotlin-dsl revert to accessor
     isUploadDescriptor = false
     repositories {
         ivy {

@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.GroovyCoverage.groovySnapshotRepository
+
 @TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -31,6 +33,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             apply plugin: "groovy"
 
             ${mavenCentralRepository()}
+            ${groovySnapshotRepository(version)}
 
             dependencies {
                 compile "org.codehaus.groovy:groovy:${version}"

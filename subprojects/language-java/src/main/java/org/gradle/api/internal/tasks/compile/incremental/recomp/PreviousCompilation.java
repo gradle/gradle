@@ -20,14 +20,11 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class PreviousCompilation {
@@ -36,7 +33,6 @@ public class PreviousCompilation {
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer;
 
-    private Map<File, ClasspathEntrySnapshot> snapshots;
     private ClassSetAnalysis classAnalysis;
 
     public PreviousCompilation(PreviousCompilationData data, ClasspathEntrySnapshotCache classpathEntrySnapshotCache, PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer) {
@@ -57,20 +53,11 @@ public class PreviousCompilation {
     }
 
     public ClasspathEntrySnapshot getClasspathEntrySnapshot(File file) {
-        initSnapshots();
-        return snapshots.get(file);
+        return classpathEntrySnapshotCache.get(file, data.getClasspathSnapshot().getFileHashes().get(file));
     }
 
-    public Map<File, ClasspathEntrySnapshot> getSnapshots() {
-        initSnapshots();
-        return Collections.unmodifiableMap(snapshots);
-    }
-
-    private void initSnapshots() {
-        if (snapshots == null) {
-            ClasspathSnapshotData classpathSnapshot = data.getClasspathSnapshot();
-            snapshots = classpathEntrySnapshotCache.getClasspathEntrySnapshots(classpathSnapshot.getFileHashes());
-        }
+    public Set<File> getClasspath() {
+        return data.getClasspathSnapshot().getFileHashes().keySet();
     }
 
     public DependentsSet getDependents(String className, IntSet newConstants) {

@@ -73,7 +73,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action, null)
+            cache = CACHE_FACTORY.open(versionDir, version.version, [:], CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action, null)
         }
 
         super.binDistribution.assertIsFile()

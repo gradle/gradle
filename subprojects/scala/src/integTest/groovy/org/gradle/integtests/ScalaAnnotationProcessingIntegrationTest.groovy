@@ -18,7 +18,6 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.escapeString
@@ -218,7 +217,6 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         private void writeBuildFile() {
             def processorBuildFile = file("$name/build.gradle")
-            FeaturePreviewsFixture.enableStablePublishing(file("$name/settings.gradle"))
             processorBuildFile << """
                 apply plugin: 'java'
                 apply plugin: 'maven-publish'

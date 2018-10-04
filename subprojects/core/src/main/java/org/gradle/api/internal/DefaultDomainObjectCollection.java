@@ -165,7 +165,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void configureEach(Action<? super T> action) {
-        Action<? super T> wrappedAction = getMutationGuard().withMutationDisabled(action);
+        assertMutable("configureEach(Action)");
+        Action<? super T> wrappedAction = withMutationDisabled(action);
         eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
@@ -184,6 +185,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                 wrappedAction.execute(next);
             }
         }
+    }
+
+    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
+        return getMutationGuard().withMutationDisabled(action);
     }
 
     public void all(Closure action) {

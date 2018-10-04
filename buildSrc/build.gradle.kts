@@ -85,6 +85,10 @@ allprojects {
             url = uri("https://repo.gradle.org/gradle/libs")
         }
         maven {
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
+        maven {
             name = "kotlin-dev"
             url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
@@ -158,8 +162,7 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        val spockGroovyVersion = groovy.lang.GroovySystem.getVersion().substring(0, 3)
-        testCompile("org.spockframework:spock-core:1.2-groovy-${spockGroovyVersion}") {
+        testCompile("org.spockframework:spock-core:1.2-groovy-2.5") {
             exclude(group = "org.codehaus.groovy")
         }
         testCompile("net.bytebuddy:byte-buddy:1.8.21")

@@ -15,74 +15,46 @@
  */
 package org.gradle.api.tasks.testing.testng
 
-import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
-import org.junit.Before
-import org.junit.Test
 
-import static org.hamcrest.Matchers.hasItems
-import static org.junit.Assert.*
+import spock.lang.Specification
 
-class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTestFramework> {
+class TestNGOptionsTest extends Specification {
 
-    TestNGOptions testngOptions
+    TestNGOptions testngOptions  = new TestNGOptions(new File("projectDir"))
 
     String[] groups = ['fast', 'unit']
 
-    @Before
-    void setUp() {
-        super.setUp(TestNGTestFramework)
-
-        testngOptions = new TestNGOptions(new File("projectDir"))
+    def verifyDefaults() {
+        expect:
+        with(testngOptions) {
+            includeGroups.empty
+            excludeGroups.empty
+            listeners.empty
+            parallel == null
+            threadCount == -1
+            suiteName == 'Gradle suite'
+            testName == 'Gradle test'
+            configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY
+            !preserveOrder
+            !groupByInstances
+        }
     }
 
-    @Test
-    void verifyDefaults() {
-        assertNotNull(testngOptions.includeGroups)
-        assertTrue(testngOptions.includeGroups.empty)
-
-        assertNotNull(testngOptions.excludeGroups)
-        assertTrue(testngOptions.excludeGroups.empty)
-
-        assertNotNull(testngOptions.listeners)
-        assertTrue(testngOptions.listeners.empty)
-
-        assertNull(testngOptions.parallel)
-
-        assertEquals(testngOptions.threadCount, -1)
-
-        assertEquals('Gradle suite', testngOptions.suiteName)
-
-        assertEquals('Gradle test', testngOptions.testName)
-
-        assertEquals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY, testngOptions.configFailurePolicy)
-
-        assertFalse(testngOptions.preserveOrder)
-
-        assertFalse(testngOptions.groupByInstances)
-    }
-
-    @Test
-    void testIncludeGroups() {
-        assertTrue(testngOptions.excludeGroups.empty)
-        assertTrue(testngOptions.includeGroups.empty)
-
+    def testIncludeGroups() {
+        when:
         testngOptions.includeGroups(groups)
 
-        assertFalse(testngOptions.includeGroups.empty)
-        assertThat(testngOptions.includeGroups, hasItems(groups))
-        assertTrue(testngOptions.excludeGroups.empty)
+        then:
+        testngOptions.includeGroups == groups as Set
+        testngOptions.excludeGroups.empty
     }
 
-    @Test
-    void testExcludeGroups() {
-        assertTrue(testngOptions.excludeGroups.empty)
-        assertTrue(testngOptions.includeGroups.empty)
-
+    def testExcludeGroups() {
+        when:
         testngOptions.excludeGroups(groups)
 
-        assertFalse(testngOptions.excludeGroups.empty)
-        assertThat(testngOptions.excludeGroups, hasItems(groups))
-        assertTrue(testngOptions.includeGroups.empty)
+        then:
+        testngOptions.excludeGroups == groups as Set
+        testngOptions.includeGroups.empty
     }
 }

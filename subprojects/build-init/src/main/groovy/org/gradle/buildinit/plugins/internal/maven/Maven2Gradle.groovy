@@ -323,10 +323,10 @@ class Maven2Gradle {
 
     private void compilerSettings(project, builder) {
         def configuration = plugin('maven-compiler-plugin', project).configuration
-        def source = configuration.source.text() ?: '1.5'
+        def source = configuration.source.text() ?: '1.8'
         builder.propertyAssignment(null, "sourceCompatibility", source)
 
-        def target = configuration.target.text() ?: '1.5'
+        def target = configuration.target.text() ?: '1.8'
         if (target != source) {
             builder.propertyAssignment(null, "targetCompatibility", target)
         }
