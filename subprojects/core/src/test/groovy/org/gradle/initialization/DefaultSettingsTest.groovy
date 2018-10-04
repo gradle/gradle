@@ -29,11 +29,11 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import spock.lang.Specification
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
+import spock.lang.Unroll
 
 class DefaultSettingsTest extends Specification {
 
@@ -212,11 +212,21 @@ class DefaultSettingsTest extends Specification {
         settings.toString() == 'settings \'root\''
     }
 
-    def 'can enable feature preview'() {
+    @Unroll
+    def "can enable feature preview for #feature"() {
         when:
-        settings.enableFeaturePreview("GRADLE_METADATA")
-
+        settings.enableFeaturePreview(feature.name())
         then:
-        previews.isFeatureEnabled(GRADLE_METADATA)
+        previews.isFeatureEnabled(feature)
+        where:
+        feature << FeaturePreviewsFixture.activeFeatures()
+    }
+
+    def 'fails when enabling an unknown feature'() {
+        when:
+        settings.enableFeaturePreview('UNKNOWN_FEATURE')
+        then:
+        IllegalArgumentException exception = thrown()
+        exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
     }
 }

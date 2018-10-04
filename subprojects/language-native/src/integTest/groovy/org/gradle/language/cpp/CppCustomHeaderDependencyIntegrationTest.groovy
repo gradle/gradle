@@ -28,9 +28,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
         buildFile << consumerBuildScript(repoType)
 
-        file("lib/settings.gradle") << """
-            enableFeaturePreview('STABLE_PUBLISHING')
-        """
+        file("lib/settings.gradle").touch()
 
         file("lib/build.gradle") << producerBuildScript(repoType)
 
