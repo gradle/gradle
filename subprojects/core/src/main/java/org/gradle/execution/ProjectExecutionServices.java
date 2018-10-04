@@ -31,6 +31,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.ActionEventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
@@ -77,6 +78,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -84,7 +86,11 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
 import java.util.List;
 
-class ProjectExecutionServices {
+public class ProjectExecutionServices extends DefaultServiceRegistry {
+    public ProjectExecutionServices(ProjectInternal project) {
+        super("Configured project services for '" + project.getPath() + "'", project.getServices());
+    }
+
     private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
         AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 

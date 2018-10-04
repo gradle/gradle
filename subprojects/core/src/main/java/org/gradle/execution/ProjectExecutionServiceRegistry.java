@@ -21,7 +21,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 
 import javax.annotation.Nonnull;
 
@@ -33,11 +32,7 @@ public class ProjectExecutionServiceRegistry {
         .build(new CacheLoader<ProjectInternal, ServiceRegistry>() {
             @Override
             public ServiceRegistry load(@Nonnull ProjectInternal project) {
-                return ServiceRegistryBuilder.builder()
-                    .displayName("Configured project services for " + project.getPath())
-                    .parent(project.getServices())
-                    .provider(new ProjectExecutionServices())
-                    .build();
+                return new ProjectExecutionServices(project);
             }
         });
 

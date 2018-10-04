@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.TaskHistoryCache
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
@@ -111,8 +112,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         }
         def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
-            cacheAccess,
-            stringInterner,
+            new TaskHistoryCache(cacheAccess, stringInterner),
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
             fingerprinterRegistry
