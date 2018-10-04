@@ -31,9 +31,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
+import org.gradle.internal.Factory;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
@@ -46,6 +48,7 @@ import org.gradle.plugins.ide.idea.model.ModuleLibrary;
 import org.gradle.plugins.ide.idea.model.ProjectLibrary;
 import org.gradle.util.VersionNumber;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -106,12 +109,19 @@ public class IdeaScalaConfigurer {
         });
     }
 
-    private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, boolean useScalaSdk) {
+    private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, final boolean useScalaSdk) {
         Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
-        for (Project scalaProject : scalaProjects) {
-            IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
-            Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
-            ProjectLibrary library = createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule);
+        for (final Project scalaProject : scalaProjects) {
+            final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
+            final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
+            ProjectLibrary library = ((ProjectInternal)scalaProject).getMutationState().withMutableState(new Factory<ProjectLibrary>() {
+                @Nullable
+                @Override
+                public ProjectLibrary create() {
+                    return createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule);
+                }
+            });
+
             if (library != null) {
                 ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
                 scalaCompilerLibraries.put(scalaProject.getPath(), duplicate == null ? library : duplicate);

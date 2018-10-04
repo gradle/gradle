@@ -212,27 +212,27 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         given:
         settingsFile << "include 'a', 'b'"
         buildFile << """
-        allprojects {
-            apply plugin: 'java'
-
-            repositories {
-               maven { url '$mavenRepo.uri' }
+            allprojects {
+                apply plugin: 'java'
+    
+                repositories {
+                   maven { url '$mavenRepo.uri' }
+                }
             }
-        }
-
-        task checkClasspath {
-            doLast {
-                def compileClasspath = project(':a').compileJava.classpath.files*.name
-                assert compileClasspath.contains('b.jar')
-                assert compileClasspath.contains('other-1.0.jar')
-                assert !compileClasspath.contains('shared-1.0.jar')
-            }
-        }
         """
 
         file('a/build.gradle') << '''
             dependencies {
                 implementation project(':b')
+            }
+            
+            task checkClasspath {
+                doLast {
+                    def compileClasspath = compileJava.classpath.files*.name
+                    assert compileClasspath.contains('b.jar')
+                    assert compileClasspath.contains('other-1.0.jar')
+                    assert !compileClasspath.contains('shared-1.0.jar')
+                }
             }
         '''
         file('b/build.gradle') << '''
