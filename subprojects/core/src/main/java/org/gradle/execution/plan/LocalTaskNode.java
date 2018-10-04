@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 
 import java.util.Set;
@@ -59,24 +60,31 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        for (Node targetNode : getDependencies(dependencyResolver)) {
-            addDependencySuccessor(targetNode);
-            processHardSuccessor.execute(targetNode);
-        }
-        for (Node targetNode : getFinalizedBy(dependencyResolver)) {
-            if (!(targetNode instanceof TaskNode)) {
-                throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
+    public void resolveDependencies(final TaskDependencyResolver dependencyResolver, final Action<Node> processHardSuccessor) {
+        ProjectInternal project = (ProjectInternal) task.getProject();
+        // There could be things in the task dependencies that modify project state when they're resolved
+        project.getMutationState().withMutableState(new Runnable() {
+            @Override
+            public void run() {
+                for (Node targetNode : getDependencies(dependencyResolver)) {
+                    addDependencySuccessor(targetNode);
+                    processHardSuccessor.execute(targetNode);
+                }
+                for (Node targetNode : getFinalizedBy(dependencyResolver)) {
+                    if (!(targetNode instanceof TaskNode)) {
+                        throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
+                    }
+                    addFinalizerNode((TaskNode) targetNode);
+                    processHardSuccessor.execute(targetNode);
+                }
+                for (Node targetNode : getMustRunAfter(dependencyResolver)) {
+                    addMustSuccessor(targetNode);
+                }
+                for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
+                    addShouldSuccessor(targetNode);
+                }
             }
-            addFinalizerNode((TaskNode) targetNode);
-            processHardSuccessor.execute(targetNode);
-        }
-        for (Node targetNode : getMustRunAfter(dependencyResolver)) {
-            addMustSuccessor(targetNode);
-        }
-        for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
-            addShouldSuccessor(targetNode);
-        }
+        });
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {

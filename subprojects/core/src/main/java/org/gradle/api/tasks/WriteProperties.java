@@ -19,8 +19,8 @@ package org.gradle.api.tasks;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 
@@ -218,7 +218,7 @@ public class WriteProperties extends DefaultTask {
             propertiesToWrite.putAll(getProperties());
             PropertiesUtils.store(propertiesToWrite, out, getComment(), charset, getLineSeparator());
         } finally {
-            IOUtils.closeQuietly(out);
+            IoActions.closeQuietly(out);
         }
     }
 

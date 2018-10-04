@@ -247,15 +247,16 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         container.add(a)
         expect:
         assertSchemaIs(
-            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+            a: "DefaultNamedDomainObjectCollectionTest.Bean"
         )
         // schema isn't cached
         container.add(b)
         container.add(d)
+        // TODO maybe should be based on the type of the add?
         assertSchemaIs(
-            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
-            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
-            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+            a: "DefaultNamedDomainObjectCollectionTest.Bean",
+            b: "DefaultNamedDomainObjectCollectionTest.Bean",
+            d: "DefaultNamedDomainObjectCollectionTest.Bean"
         )
     }
 
@@ -268,15 +269,9 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
             [ schema.name, schema.publicType.simpleName ]
-        }
-        // Same size
-        assert expectedSchema.size() == actualSchemaMap.size()
-        // Same keys
-        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
-        // Keys have the same values
-        expectedSchema.each { entry ->
-            assert entry.value == actualSchemaMap[entry.key]
-        }
+        }.sort()
+        def expectedSchemaMap = expectedSchema.sort()
+        assert expectedSchemaMap == actualSchemaMap
     }
 
     static class Bean {

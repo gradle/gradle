@@ -24,7 +24,6 @@ import org.gradle.internal.util.Alignment;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class RecompilationSpecProvider {
@@ -45,10 +44,9 @@ public class RecompilationSpecProvider {
 
     private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         ClasspathEntryChangeProcessor classpathEntryChangeProcessor = new ClasspathEntryChangeProcessor(current.getClasspathSnapshot(), previous);
-        Map<File, ClasspathEntrySnapshot> previousCompilationSnapshots = previous.getSnapshots();
         ClasspathSnapshot currentSnapshots = current.getClasspathSnapshot();
 
-        Set<File> previousCompilationEntries = previousCompilationSnapshots.keySet();
+        Set<File> previousCompilationEntries = previous.getClasspath();
         Set<File> currentCompilationEntries = currentSnapshots.getEntries();
         List<Alignment<File>> alignment = Alignment.align(currentCompilationEntries.toArray(new File[0]), previousCompilationEntries.toArray(new File[0]));
         for (Alignment<File> fileAlignment : alignment) {
@@ -66,9 +64,9 @@ public class RecompilationSpecProvider {
                     return;
                 case identical:
                     File key = fileAlignment.getPreviousValue();
-                    ClasspathEntrySnapshot previousSnapshot = previousCompilationSnapshots.get(key);
+                    ClasspathEntrySnapshot previousSnapshot = previous.getClasspathEntrySnapshot(key);
                     ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
-                    if (!snapshot.getHash().equals(previousSnapshot.getHash())) {
+                    if (previousSnapshot == null || !snapshot.getHash().equals(previousSnapshot.getHash())) {
                         classpathEntryChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile), spec);
                     }
                     break;
@@ -83,6 +81,4 @@ public class RecompilationSpecProvider {
         InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, annotationProcessorChangeProcessor, resourceChangeProcessor);
         current.visitChanges(action);
     }
-
-
 }

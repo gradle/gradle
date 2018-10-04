@@ -29,6 +29,7 @@ import org.gradle.tooling.model.internal.Exceptions;
  *
  * <p>Used for providers >= 1.2 and <= 1.6.</p>
  */
+@SuppressWarnings("deprecation")
 public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelProducer modelProducer;
     private final UnsupportedActionRunner actionRunner;

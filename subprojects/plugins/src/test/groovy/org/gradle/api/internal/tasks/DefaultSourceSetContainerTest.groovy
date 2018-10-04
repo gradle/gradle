@@ -17,59 +17,21 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.SourceSet
-import org.gradle.internal.featurelifecycle.FeatureUsage
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.util.NameValidator
-import org.gradle.util.SingleMessageLogger
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultSourceSetContainerTest extends Specification {
-    static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
-    static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
-    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
-
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())
 
     def "can create a source set"() {
+        given:
+        def container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())
+
         when:
         SourceSet set = container.create("main")
 
         then:
         set instanceof DefaultSourceSet
         set.name == "main"
-    }
-
-    @Unroll
-    def "source sets are not allowed to be named '#name'"() {
-        given:
-        def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
-        SingleMessageLogger.deprecatedFeatureHandler = loggingDeprecatedFeatureHandler
-
-        when:
-        container.create(name)
-
-        then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
-            assertForbidden(name, usage.formattedMessage())
-        }
-
-        cleanup:
-        SingleMessageLogger.reset()
-
-        where:
-        name << invalidNames
-    }
-
-    void assertForbidden(String name, String message) {
-        if (name == '') {
-            assert message.contains("The name is empty. This has been deprecated")
-        } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message.contains("""The name '${name}' starts or ends with a '.'. This has been deprecated""")
-        } else {
-            assert message.contains("""The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated""")
-        }
     }
 }

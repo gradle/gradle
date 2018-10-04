@@ -54,21 +54,21 @@ class BuildFileProjectSpecTest extends Specification {
         def target = project(file)
 
         then:
-        spec.selectProject(registry(target, project(otherFile))).is(target)
+        spec.selectProject("description", registry(target, project(otherFile))).is(target)
     }
 
     def "selectProject() throws when no project has specified build file"() {
         when:
-        spec.selectProject(registry())
+        spec.selectProject("settings 'foo'", registry())
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "No projects in this build have build file '$file'.".toString()
+        e.message == "Build file '$file' is not part of the build defined by settings 'foo'. If this is an unrelated build, it must have it's own settings file."
     }
 
     def "selectProject() throws when multiple projects have specified build file"() {
         when:
-        spec.selectProject(registry(project(file), project(file)))
+        spec.selectProject("settings 'foo'", registry(project(file), project(file)))
 
         then:
         InvalidUserDataException e = thrown()

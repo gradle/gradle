@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -46,6 +47,7 @@ import org.gradle.internal.hash.HashValue;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
@@ -68,7 +70,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
-    private List<ComponentIdentifier> owners;
+    private Set<ComponentIdentifier> owners;
 
     protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
         this.attributesFactory = attributesFactory;
@@ -264,13 +266,13 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     @Override
     public void belongsTo(ComponentIdentifier platform) {
         if (owners == null) {
-            owners = Lists.newArrayListWithExpectedSize(1);
+            owners = Sets.newLinkedHashSet();
         }
         owners.add(platform);
     }
 
     @Override
-    public List<? extends ComponentIdentifier> getPlatformOwners() {
+    public Set<? extends ComponentIdentifier> getPlatformOwners() {
         return owners;
     }
 

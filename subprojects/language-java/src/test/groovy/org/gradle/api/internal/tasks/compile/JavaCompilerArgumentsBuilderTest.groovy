@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
@@ -338,34 +339,21 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.noEmptySourcePath().build() == expected
     }
 
-    def "merges user-provided sourcepath arguments with sourcepath property"() {
-        given:
-        def file1 = new File('/libs/lib1.jar')
-        def file2 = new File('/libs/lib2.jar')
-        def fc = [file1, file2]
-        def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
-        spec.compileOptions.sourcepath = fc
-        spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
-        def expected = ["-g", "-sourcepath", [GUtil.asPath(fc), userProvidedPath].join(File.pathSeparator), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
-
-        expect:
-        builder.build() == expected
-        builder.noEmptySourcePath().build() == expected
-    }
-
-    def "respects sourcepath purely provided by compiler args list"() {
+    def "prohibits setting sourcepath as compiler argument"() {
         given:
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
         spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
-        def expected = ["-g", "-sourcepath", userProvidedPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
-        expect:
-        builder.build() == expected
-        builder.noEmptySourcePath().build() == expected
+        when:
+        builder.build()
+
+        then:
+        thrown(InvalidUserDataException)
     }
 
     def "removes sourcepath when module-source-path is provided"() {
         given:
+        spec.compileOptions.sourcepath = [new File("/ignored")]
         spec.compileOptions.compilerArgs = ['--module-source-path', '/src/other']
         def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-source-path", "/src/other"]
 

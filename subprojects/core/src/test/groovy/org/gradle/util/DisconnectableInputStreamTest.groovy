@@ -17,9 +17,7 @@ package org.gradle.util
 
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.jmock.integration.junit4.JMock
 import org.junit.Test
-import org.junit.runner.RunWith
 
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
@@ -29,9 +27,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.greaterThan
 import static org.junit.Assert.assertThat
 
-@RunWith(JMock)
 class DisconnectableInputStreamTest extends MultithreadedTestRule {
-    final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     Action<Runnable> toActionExecuter(ExecutorFactory factory) {
         new Action<Runnable>() {

@@ -44,7 +44,7 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * The directory is evaluated as per {@code Project.file(Object)}.
      */
-    public void setDirectory(Object directory) {
+    public void setDirectory(@Nullable Object directory) {
         this.directory = directory;
     }
 

@@ -459,22 +459,22 @@ h3.releaseinfo {
     background-color: white;
 }
 
-.site-header .site-header-version {
-    align-self: center;
-    color: #1DA2BD;
-    font-size: 20px;
-    font-weight: 500;
-    padding-left: 1px;
-}
-
 /* Override javadoc styles */
 .site-header div {
     font-family: 'Lato', Arial, sans-serif;
 }
+
 .site-header__navigation-header a {
     align-self: center;
     border-bottom: 0 none;
     height: 36px;
+}
+
+.site-header .site-header-version {
+    align-self: center;
+    color: #1da2bd;
+    font-size: 20px;
+    padding-left: 1px;
 }
 
 .site-header__navigation {
@@ -490,7 +490,7 @@ h3.releaseinfo {
 
 .site-header__navigation-collapsible {
     flex: 1 1 auto;
-    height: 195px;
+    height: 210px;
     overflow: visible;
     transition: height 0.3s ease;
 }
@@ -500,7 +500,7 @@ h3.releaseinfo {
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
-    max-height: 170px;
+    max-height: 210px; /* This matches the collapsible height above */
     margin: 0 20px;
     padding-top: 12px;
     padding-left: 0;
@@ -531,6 +531,10 @@ h3.releaseinfo {
 
 .site-header__navigation-item .site-header__navigation-link:hover {
     color: #1DA2BD;
+}
+
+.site-header__navigation-item .site-header__navigation-link.active {
+    font-weight: 500;
 }
 
 /* Navigation submenu styles */
@@ -597,6 +601,7 @@ h3.releaseinfo {
     }
 
     .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        padding: 0 1rem 0.5rem 1.5rem;
         display: block;
         top: 30px !important;
         left: 0 !important;
@@ -605,6 +610,10 @@ h3.releaseinfo {
     .site-header__navigation-item,
     .site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
         font-size: 18px;
+    }
+
+    .site-header {
+        padding: 5px 12px;
     }
 
     .site-header-version {
@@ -618,6 +627,10 @@ h3.releaseinfo {
     .site-footer__links {
         flex-wrap: wrap;
     }
+
+    .site-footer__link-group {
+        margin-bottom: 1rem;
+    }
 }
 
 /* Top navigation desktop styles */
@@ -627,10 +640,27 @@ h3.releaseinfo {
         top: 0;
         left: 0;
         right: 0;
-        -webkit-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        -moz-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
         z-index: 1;
+    }
+
+    /*
+      Pushes the section headings to just below the top nav bar when a user
+      navigates directly to section anchors.
+     */
+    #content h2[id], #content h3[id], #content h4[id] {
+        padding-top: 60px;
+    }
+
+    #content h2[id] {
+        /* Little extra room above h2s */
+        margin-top: -44px;
+    }
+
+    #content h3[id], #content h4[id] {
+        margin-top: -60px;
     }
 
     .site-header__navigation {
@@ -682,10 +712,10 @@ h3.releaseinfo {
     /*
       Pushes the section headings to just below the top nav bar when a user
       navigates directly to section anchors. It doesn't work if you try
-      to apply the padding and margin to the `h` elements directly. Don't
-      know why.
+      to apply the padding and margin to the `h` elements directly.
      */
-    .chapter a[name] {
+    .chapter a[name],
+    .chapter .anchor {
         padding-top: 60px;
         margin-top: -60px;
         text-decoration: none;
@@ -695,9 +725,138 @@ h3.releaseinfo {
 }
 
 /* Docs Navigation */
+.docs-navigation .search-container {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.docs-navigation .search-input {
+    height: 30px;
+    line-height: 30px;
+    box-sizing: border-box;
+    padding: 0 20px 0 30px;
+    border: 1px solid #e3e3e3;
+    border-radius: 3px;
+    color: #666;
+    outline: none;
+    margin-right: 10px;
+    transition: border-color 0.2s ease;
+    background: white url('data:image/svg+xml;utf8,<svg height="20px" version="1.1" viewBox="0 0 32 32" width="20px" xmlns="http://www.w3.org/2000/svg"><g fill="#cccccc" fill-rule="evenodd" stroke="none" stroke-width="1"><path d="M19.4271164,21.4271164 C18.0372495,22.4174803 16.3366522,23 14.5,23 C9.80557939,23 6,19.1944206 6,14.5 C6,9.80557939 9.80557939,6 14.5,6 C19.1944206,6 23,9.80557939 23,14.5 C23,16.3366522 22.4174803,18.0372495 21.4271164,19.4271164 L27.0119176,25.0119176 C27.5621186,25.5621186 27.5575313,26.4424687 27.0117185,26.9882815 L26.9882815,27.0117185 C26.4438648,27.5561352 25.5576204,27.5576204 25.0119176,27.0119176 L19.4271164,21.4271164 L19.4271164,21.4271164 Z M14.5,21 C18.0898511,21 21,18.0898511 21,14.5 C21,10.9101489 18.0898511,8 14.5,8 C10.9101489,8 8,10.9101489 8,14.5 C8,18.0898511 10.9101489,21 14.5,21 L14.5,21 Z"/></g></svg>') no-repeat 8px 5px;
+    background-size: 20px;
+    vertical-align: middle !important;
+    max-width: 100%;
+}
+
+.docs-navigation .search-input:focus {
+    border-color: #1BA8CB;
+}
+
+.docs-navigation .search-input::placeholder {
+    color: #ccc;
+}
+
+/* Docsearch overrides */
+.docs-navigation .algolia-autocomplete {
+    display: block !important;
+    flex: 1;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: .75rem 0 !important;
+    background-color: #fff !important;
+    background-clip: padding-box;
+    border: 1px solid #e3e3e3 !important;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
+}
+
+@media (min-width: 768px) {
+    .docs-navigation .algolia-autocomplete .ds-dropdown-menu {
+        width: 300%;
+    }
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
+    padding: 0 !important;
+    overflow: visible !important;
+    background-color: transparent !important;
+    border: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu .ds-suggestions {
+    margin-top: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion {
+    padding: 0 15px !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--category-header {
+    font-weight: 800 !important;
+    color: #1BA8CB !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--wrapper {}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column {}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--content {
+    padding: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--title {
+    display: block !important;
+    color: #02303A;
+    padding: .25rem 1rem !important;
+    margin-bottom: 0 !important;
+    font-weight: 500 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--text {
+    padding: 0 1rem .5rem !important;
+    margin-top: -.25rem !important;
+    font-size: 0.9em !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    padding: .75rem 1rem 0;
+    font-size: .875rem !important;
+    line-height: 1 !important;
+    color: #767676 !important;
+    border-top: 1px solid #e3e3e3 !important;
+    text-align: right;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer a {
+    font-size: .875rem;
+    text-decoration: underline;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer--logo {
+    display: inline !important;
+    overflow: visible !important;
+    color: inherit !important;
+    text-indent: 0 !important;
+    background: none !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--highlight {
+    background-color: rgba(143, 187, 237, .1) !important;
+}
+
+.docs-navigation .algolia-autocomplete .ds-suggestion .ds-cursor .algolia-docsearch-suggestion--content {
+    background-color: rgba(208, 189, 236, .15) !important;
+}
+
 .docs-navigation {
     display: none;
-    overflow: hidden;
     padding-left: 5px;
 }
 
@@ -1296,6 +1455,17 @@ table .caution {
 .signature .literal {
     color: #04598D;
     padding-left: 0.1em;
+}
+
+.sr-only {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
 }
 
 /*

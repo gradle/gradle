@@ -52,7 +52,6 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
                 withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
                     setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
-                withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
                 withLibraryDependencies("cglib:cglib", DependencyRemovalByNameRule::class, setOf("ant"))
 
                 // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows

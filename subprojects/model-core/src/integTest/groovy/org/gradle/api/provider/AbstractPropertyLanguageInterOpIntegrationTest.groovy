@@ -19,12 +19,11 @@ package org.gradle.api.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
+import static org.gradle.integtests.fixtures.KotlinDslTestUtil.kotlinDslBuildSrcScript
 
 @Requires(TestPrecondition.KOTLIN_SCRIPT)
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
@@ -37,11 +36,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         if (!buildfile.file) {
             buildfile.createFile()
         }
-        def block = """
-            plugins { `kotlin-dsl` }
-            ${jcenterRepository(GradleDsl.KOTLIN)}
-        """
-        buildfile.text = block + buildfile.text
+        buildfile.text = kotlinDslBuildSrcScript + buildfile.text
         if (!hasKotlin) {
             executer.beforeExecute {
                 expectDeprecationWarning()
@@ -55,7 +50,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
     def setup() {
         executer.withRepositoryMirrors()
         executer.withPluginRepositoryMirror()
-        file("buildSrc/settings.gradle") << """
+        file("buildSrc/settings.gradle.kts") << """
             include("plugin")
         """
         file("buildSrc/build.gradle.kts") << """
@@ -165,7 +160,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
     def "can define property in language plugin and set value from Java plugin"() {
         pluginDefinesTask()
 
-        file("buildSrc/settings.gradle") << """
+        file("buildSrc/settings.gradle.kts") << """
             include("other")
         """
         file("buildSrc/build.gradle.kts") << """
@@ -214,7 +209,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
     def "can define property in language plugin and set value from Kotlin plugin"() {
         pluginDefinesTask()
 
-        file("buildSrc/settings.gradle") << """
+        file("buildSrc/settings.gradle.kts") << """
             include("other")
         """
         file("buildSrc/build.gradle.kts") << """

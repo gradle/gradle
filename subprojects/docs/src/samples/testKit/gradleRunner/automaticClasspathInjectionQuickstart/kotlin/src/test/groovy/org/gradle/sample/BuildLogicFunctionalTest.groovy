@@ -26,15 +26,18 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 class BuildLogicFunctionalTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    File settingsFile
     File buildFile
 
     def setup() {
+        settingsFile = testProjectDir.newFile('settings.gradle')
         buildFile = testProjectDir.newFile('build.gradle')
     }
 
     // tag::functional-test-classpath-setup-automatic[]
     def "hello world task prints hello world"() {
         given:
+        settingsFile << "rootProject.name = 'hello-world'"
         buildFile << """
             plugins {
                 id 'org.gradle.sample.helloworld'

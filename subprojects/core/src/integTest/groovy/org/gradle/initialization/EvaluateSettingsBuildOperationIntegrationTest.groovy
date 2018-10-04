@@ -45,7 +45,6 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         def projectDirectory = testDirectory.createDir("a")
 
         when:
-        executer.withSearchUpwards()
         projectDir(projectDirectory)
         succeeds('help')
 

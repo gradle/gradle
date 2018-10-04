@@ -33,12 +33,14 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * Implementations must not error from either signal.
  * Callers should ignore any exceptions thrown by these methods.
  *
- * @since 4.0
+ * @since 4.4
  */
-@UsedByScanPlugin("implemented by the scan plugin - 1.8 - 1.10")
+@UsedByScanPlugin("implemented by the scan plugin - 1.11+")
 public interface BuildOperationNotificationListener {
 
     void started(BuildOperationStartedNotification notification);
+
+    void progress(BuildOperationProgressNotification notification);
 
     void finished(BuildOperationFinishedNotification notification);
 

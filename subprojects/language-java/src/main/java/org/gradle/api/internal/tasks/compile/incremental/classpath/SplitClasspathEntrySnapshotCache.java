@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import com.google.common.collect.Maps;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashCode;
@@ -25,7 +24,6 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A {@link ClasspathEntrySnapshotCache} that delegates to the global cache for files that are known to be immutable.
@@ -43,28 +41,12 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
     }
 
     @Override
-    public Map<File, ClasspathEntrySnapshot> getClasspathEntrySnapshots(Map<File, HashCode> fileHashes) {
-        Map<File, HashCode> globalEntries = Maps.newLinkedHashMap();
-        Map<File, HashCode> localEntries = Maps.newLinkedHashMap();
-        for (Map.Entry<File, HashCode> entry : fileHashes.entrySet()) {
-            if (fileLocations.isImmutable(entry.getKey().getPath())) {
-                globalEntries.put(entry.getKey(), entry.getValue());
-            } else {
-                localEntries.put(entry.getKey(), entry.getValue());
-            }
+    public ClasspathEntrySnapshot get(File file, HashCode hash) {
+        if (fileLocations.isImmutable(file.getPath())) {
+            return globalCache.get(file, hash);
+        } else {
+            return localCache.get(file, hash);
         }
-        Map<File, ClasspathEntrySnapshot> globalSnapshots = globalCache.getClasspathEntrySnapshots(globalEntries);
-        Map<File, ClasspathEntrySnapshot> localSnapshots = localCache.getClasspathEntrySnapshots(localEntries);
-
-        Map<File, ClasspathEntrySnapshot> snapshots = Maps.newLinkedHashMap();
-        for (File entry : fileHashes.keySet()) {
-            ClasspathEntrySnapshot snapshot = globalSnapshots.get(entry);
-            if (snapshot == null) {
-                snapshot = localSnapshots.get(entry);
-            }
-            snapshots.put(entry, snapshot);
-        }
-        return snapshots;
     }
 
     @Override

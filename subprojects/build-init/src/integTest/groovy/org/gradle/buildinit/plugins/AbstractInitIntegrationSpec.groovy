@@ -29,6 +29,7 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         executer.withRepositoryMirrors()
         executer.beforeExecute {
             executer.inDirectory(targetDir)
+            executer.ignoreMissingSettingsFile()
         }
     }
 

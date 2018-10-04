@@ -18,11 +18,16 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.IoActions;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -81,7 +86,7 @@ public class FileToArchiveEntrySetTransformer implements Transformer<Set<Archive
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            IOUtils.closeQuietly(zipStream);
+            IoActions.closeQuietly(zipStream);
         }
 
         return entries.build();

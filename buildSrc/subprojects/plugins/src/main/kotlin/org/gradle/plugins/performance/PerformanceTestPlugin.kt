@@ -442,7 +442,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
         }
         project.configureSampleGenerators {
-            configureEach(registerInputs)
+            all(registerInputs)
         }
     }
 

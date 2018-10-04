@@ -103,6 +103,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return cl;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Package getPackage(String name) {
         Package p = super.getPackage(name);

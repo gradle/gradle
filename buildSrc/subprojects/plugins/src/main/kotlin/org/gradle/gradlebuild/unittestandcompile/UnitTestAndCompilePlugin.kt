@@ -40,7 +40,6 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
-import testLibraries
 import testLibrary
 import java.util.jar.Attributes
 
@@ -159,7 +158,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testCompile(library("groovy"))
             testCompile(testLibrary("spock"))
             testRuntime(testLibrary("bytebuddy"))
-            testLibraries("jmock").forEach { testCompile(it) }
+            testRuntime(library("objenesis"))
         }
     }
 

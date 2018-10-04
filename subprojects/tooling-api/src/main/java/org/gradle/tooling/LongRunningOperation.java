@@ -152,7 +152,7 @@ public interface LongRunningOperation {
      * Be aware that not all of the Gradle command line options are supported!
      * Only the build arguments that configure the build execution are supported.
      * They are modelled in the Gradle API via {@link org.gradle.StartParameter}.
-     * Examples of supported build arguments: '--info', '-u', '-p'.
+     * Examples of supported build arguments: '--info', '-p'.
      * The command line instructions that are actually separate commands (like '-?' and '-v') are not supported.
      * Some other instructions like '--daemon' are also not supported - the tooling API always runs with the daemon.
      * <p>

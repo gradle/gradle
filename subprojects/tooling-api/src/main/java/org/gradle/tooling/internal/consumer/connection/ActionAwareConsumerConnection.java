@@ -36,6 +36,7 @@ import java.io.File;
  *
  * <p>Used for providers >= 1.8 and <= 2.0</p>
  */
+@SuppressWarnings("deprecation")
 public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ActionRunner actionRunner;
     private final ModelProducer modelProducer;

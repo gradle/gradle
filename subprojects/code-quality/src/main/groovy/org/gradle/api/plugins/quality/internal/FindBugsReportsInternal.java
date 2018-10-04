@@ -22,6 +22,7 @@ import org.gradle.api.tasks.Internal;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("deprecation")
 public interface FindBugsReportsInternal extends FindBugsReports {
     @Internal
     @Nullable

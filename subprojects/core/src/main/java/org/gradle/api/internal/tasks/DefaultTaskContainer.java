@@ -91,18 +91,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final BuildOperationExecutor buildOperationExecutor;
 
     private final TaskStatistics statistics;
-    private final CrossProjectConfigurator crossProjectConfigurator;
     private final boolean eagerlyCreateLazyTasks;
 
     private MutableModelNode modelNode;
 
     public DefaultTaskContainer(final ProjectInternal project, Instantiator instantiator, final ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
-        super(Task.class, instantiator, project);
+        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator));
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskFactory, project);
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
-        this.crossProjectConfigurator = crossProjectConfigurator;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -647,11 +645,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             context.add(get());
             return true;
-        }
-
-        @Override
-        protected Action<? super I> withMutationDisabled(Action action) {
-            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(super.withMutationDisabled(action));
         }
 
         @Override

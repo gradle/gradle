@@ -57,6 +57,7 @@ model {
 
 ${PLAY_REPOSITORIES}
 """
+        executer.noDeprecationChecks()
     }
 
     protected String controllers() {

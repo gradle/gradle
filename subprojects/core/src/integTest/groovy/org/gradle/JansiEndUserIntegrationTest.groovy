@@ -17,7 +17,6 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.util.Requires
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -244,7 +243,6 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         private void writeBuildFile() {
             def processorBuildFile = file("$name/build.gradle")
-            FeaturePreviewsFixture.enableStablePublishing(file("$name/settings.gradle"))
             processorBuildFile << basicJavaProject()
             processorBuildFile << """
                 apply plugin: 'maven-publish'

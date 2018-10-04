@@ -63,7 +63,7 @@
                 <main class="main-content">
                     <nav class="docs-navigation">
                         <div class="search-container">
-                            <input type="search" name="q" id="search-input" class="search-input" placeholder="Search DSL Reference"/>
+                            <input type="search" name="q" id="search-input" class="search-input" placeholder="Search Docs"/>
                         </div>
                         <ul>
                             <xsl:apply-templates select="." mode="sidebar"/>
