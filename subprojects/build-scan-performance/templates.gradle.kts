@@ -39,7 +39,7 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
     setProjects(250)
     sourceFiles = 200
     testSourceFiles = 50 // verbose tests are time consuming
-    filesPerPackage = 25
+    filesPerPackage = 5
     linesOfCodePerSourceFile = 150
     numberOfScriptPlugins = 30
     rootProjectTemplates = listOf("root")
