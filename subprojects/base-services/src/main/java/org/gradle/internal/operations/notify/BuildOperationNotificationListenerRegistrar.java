@@ -39,13 +39,4 @@ public interface BuildOperationNotificationListenerRegistrar {
      */
     void register(BuildOperationNotificationListener listener);
 
-    /**
-     * The registered listener will receive notification for all build operations for the
-     * current build execution, including those those operations that started before the
-     * listener was registered.
-     *
-     * @since 4.4
-     */
-    void register(BuildOperationNotificationListener2 listener);
-
 }

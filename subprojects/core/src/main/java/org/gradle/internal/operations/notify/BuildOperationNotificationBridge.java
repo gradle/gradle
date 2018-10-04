@@ -116,14 +116,6 @@ public class BuildOperationNotificationBridge {
             state.replayAndAttachListener.attach(listener);
         }
 
-        @Override
-        public void register(BuildOperationNotificationListener2 listener) {
-            State state = requireState();
-            BuildOperationNotificationListener adapted = adapt(listener);
-            state.assignSingleListener(adapted);
-            state.replayAndAttachListener.attach(adapted);
-        }
-
         private State requireState() {
             State s = state;
             if (s == null) {
@@ -484,26 +476,6 @@ public class BuildOperationNotificationBridge {
                 + ", failure=" + failure
                 + '}';
         }
-    }
-
-
-    private static BuildOperationNotificationListener adapt(final BuildOperationNotificationListener2 listener) {
-        return new BuildOperationNotificationListener() {
-            @Override
-            public void started(BuildOperationStartedNotification notification) {
-                listener.started(notification);
-            }
-
-            @Override
-            public void progress(BuildOperationProgressNotification notification) {
-                listener.progress(notification);
-            }
-
-            @Override
-            public void finished(BuildOperationFinishedNotification notification) {
-                listener.finished(notification);
-            }
-        };
     }
 
 }
