@@ -18,16 +18,12 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
@@ -49,11 +45,12 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
 
         then:
-        result.buildCacheKey != null
-        result.inputHashes.keySet() == ['input1', 'input2'] as Set
+        result.hash != null
+        result.inputValueHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
+    @Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         buildFile << customTaskCode('foo', 'bar')
@@ -81,8 +78,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
 
         then:
-        result.buildCacheKey != null
-        result.inputHashes.keySet() == ['input1', 'input2'] as Set
+        result.hash != null
+        result.inputValueHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
@@ -106,11 +103,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
-        result.buildCacheKey == null
+        result.hash == null
         result.classLoaderHash == null
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
-        result.inputHashes == null
+        result.inputValueHashes == null
         result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
@@ -127,11 +124,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
-        result.buildCacheKey != null
+        result.hash != null
         result.classLoaderHash != null
         result.actionClassLoaderHashes != null
         result.actionClassNames != null
-        result.inputHashes == null
+        result.inputValueHashes == null
         result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
@@ -164,11 +161,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
-        result.buildCacheKey == null
+        result.hash == null
         result.classLoaderHash == null
         result.actionClassLoaderHashes.last() == null
         result.actionClassNames != null
-        result.inputHashes != null
+        result.inputValueHashes != null
         result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
@@ -191,11 +188,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
-        result.buildCacheKey == null
+        result.hash == null
         result.classLoaderHash != null
         result.actionClassLoaderHashes.last() == null
         result.actionClassNames != null
-        result.inputHashes != null
+        result.inputValueHashes != null
         result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
@@ -240,8 +237,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         def aCompileJava = result.inputFileProperties
         aCompileJava.size() == 5
 
-        // All are in deprecated property
-        result.inputHashes.keySet().containsAll(aCompileJava.keySet())
         // Not in just-values property
         aCompileJava.keySet().every { !result.inputValueHashes.containsKey(it) }
 
@@ -353,12 +348,12 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
-        result.buildCacheKey == null
+        result.hash == null
         result.inputPropertiesLoadedByUnknownClassLoader == ["bean"]
         result.classLoaderHash != null
         result.actionClassLoaderHashes != null
         result.actionClassNames != null
-        result.inputHashes != null
+        result.inputValueHashes != null
         result.outputPropertyNames != null
     }
 
