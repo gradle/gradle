@@ -31,14 +31,18 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.junit.runner.RunWith;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toSet;
 
 @RunWith(ArchUnitRunner.class)
@@ -59,74 +63,135 @@ public class KotlinCompatibilityTest {
         return new ArchCondition<JavaClass>("have accessors with symmetrical @Nullable annotations") {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
-                findSymmetricalAccessors(item).stream()
-                    .filter(this::nullableIsUnsymmetrical)
+                findMutableProperties(item).stream()
+                    .filter(accessor -> !accessor.nullableIsSymmetric())
                     .map(accessor -> violated(item, String.format("Accessors for %s don't use symmetrical @Nullable", accessor)))
                     .forEach(events::add);
             }
 
-            private Set<Accessors> findSymmetricalAccessors(JavaClass javaClass) {
-                return filterGetters(javaClass.getMethods()).stream()
-                    .flatMap(getter -> tryFindMatchingSetters(javaClass, getter).map(setter -> new Accessors(getter, setter)))
-                    .collect(toSet());
-            }
-
-            private Set<JavaMethod> filterGetters(Set<JavaMethod> methods) {
-                return methods.stream().filter(KotlinCompatibilityTest::isGetter).collect(toSet());
-            }
-
-            private Stream<JavaMethod> tryFindMatchingSetters(JavaClass javaClass, JavaMethod getter) {
-                String propertyName = PropertyAccessorType.fromName(getter.getName()).propertyNameFor(getter.getName());
-                return javaClass.getMethods().stream().filter(m -> isSetterFor(propertyName, m));
-            }
-
-            private boolean nullableIsUnsymmetrical(Accessors accessor) {
-                boolean getterIsNullable = accessor.getter.isAnnotatedWith(Nullable.class);
-                boolean setterIsNullable = firstParameterIsAnnotatedWithNullable(accessor.setter);
-                return (getterIsNullable && !setterIsNullable) || (!getterIsNullable && setterIsNullable);
-            }
-
-            private boolean firstParameterIsAnnotatedWithNullable(JavaMethod setter) {
-                return Arrays.stream(setter.reflect().getParameterAnnotations()[0]).anyMatch(a -> a instanceof Nullable);
+            private Set<Accessors> findMutableProperties(JavaClass javaClass) {
+                Map<String, List<Accessor>> accessors = findAccessors(javaClass.getMethods());
+                return accessors.entrySet().stream().map(entry -> Accessors.from(entry.getKey(), entry.getValue())).filter(Objects::nonNull).collect(toSet());
             }
         };
     }
 
-    private static boolean isGetter(JavaMethod m) {
-        // We avoid using reflect, since that leads to class loading exceptions
-        PropertyAccessorType accessorType = PropertyAccessorType.fromName(m.getName());
-        return !m.getModifiers().contains(JavaModifier.STATIC)
-            && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
-            && m.getParameters().size() == 0
-            && (accessorType != PropertyAccessorType.IS_GETTER || m.getReturnType().reflect().equals(Boolean.TYPE) || m.getReturnType().reflect().equals(Boolean.class));
+    private static Map<String, List<Accessor>> findAccessors(Set<JavaMethod> methods) {
+        return methods.stream().map(Accessor::from).filter(Objects::nonNull).collect(groupingBy(Accessor::getPropertyName));
     }
 
-    private static boolean isSetterFor(String propertyName, JavaMethod m) {
-        // We avoid using reflect, since that leads to class loading exceptions
-        PropertyAccessorType accessorType = PropertyAccessorType.fromName(m.getName());
-        return !m.getModifiers().contains(JavaModifier.STATIC)
-            && accessorType == PropertyAccessorType.SETTER
-            && m.getParameters().size() == 1
-            && accessorType.propertyNameFor(m.getName()).equals(propertyName);
+    private static class Accessor {
+        private final PropertyAccessorType accessorType;
+        private final JavaMethod method;
+        private final boolean isGetter;
+
+        @Nullable
+        public static Accessor from(JavaMethod method) {
+            PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(method.getName());
+            if (propertyAccessorType != null && (KotlinCompatibilityTest.isGetter(method, propertyAccessorType) || KotlinCompatibilityTest.isSetter(method, propertyAccessorType))) {
+                return new Accessor(propertyAccessorType, method);
+            }
+            return null;
+        }
+
+        private Accessor(PropertyAccessorType accessorType, JavaMethod method) {
+            this.accessorType = accessorType;
+            this.method = method;
+            this.isGetter = accessorType == PropertyAccessorType.IS_GETTER || accessorType == PropertyAccessorType.GET_GETTER;
+        }
+
+        public String getPropertyName() {
+            return accessorType.propertyNameFor(method.getName());
+        }
+
+        public JavaMethod getMethod() {
+            return method;
+        }
+
+        public boolean isGetter() {
+            return isGetter;
+        }
+
+        public boolean isSetter() {
+            return !isGetter;
+        }
     }
 
     private static class Accessors {
-        private final JavaMethod getter;
-        private final JavaMethod setter;
+        private final JavaClass owningClass;
+        private final String propertyName;
+        private final Set<JavaMethod> getters;
+        private final Set<JavaMethod> setters;
 
-        private Accessors(JavaMethod getter, JavaMethod setter) {
-            this.getter = getter;
-            this.setter = setter;
+        @Nullable
+        public static Accessors from(String propertyName, List<Accessor> accessors) {
+            Map<Boolean, List<Accessor>> gettersAndSetters = accessors.stream().collect(partitioningBy(Accessor::isGetter));
+            JavaClass owningClass = accessors.iterator().next().getMethod().getOwner();
+            Set<JavaMethod> getters = gettersAndSetters.get(Boolean.TRUE).stream().map(Accessor::getMethod).collect(toSet());
+            Set<JavaMethod> setters = gettersAndSetters.get(Boolean.FALSE).stream().map(Accessor::getMethod).collect(toSet());
+            if (!getters.isEmpty() && !setters.isEmpty()) {
+                return new Accessors(owningClass, propertyName, getters, setters);
+            }
+            List<Accessor> superclassAccessors = findAccessors(owningClass.getAllMethods()).get(propertyName);
+            if (superclassAccessors == null) {
+                return null;
+            }
+            if (!setters.isEmpty()) {
+                Set<JavaMethod> superclassGetters = superclassAccessors.stream().filter(Accessor::isGetter).map(Accessor::getMethod).collect(toSet());
+                if (!superclassGetters.isEmpty()) {
+                    return new Accessors(owningClass, propertyName, superclassGetters, setters);
+                }
+            } else {
+                Set<JavaMethod> superclassSetters = superclassAccessors.stream().filter(Accessor::isSetter).map(Accessor::getMethod).collect(toSet());
+                if (!superclassSetters.isEmpty()) {
+                    return new Accessors(owningClass, propertyName, getters, superclassSetters);
+                }
+            }
+            return null;
+        }
+
+        private Accessors(JavaClass owningClass, String propertyName, Set<JavaMethod> getters, Set<JavaMethod> setters) {
+            this.getters = getters;
+            this.setters = setters;
+            this.owningClass = owningClass;
+            this.propertyName = propertyName;
+        }
+
+        public boolean nullableIsSymmetric() {
+            Set<Boolean> gettersAreNullable = getters.stream().map(this::getterAnnotatedWithNullable).collect(toSet());
+            Set<Boolean> settersAreNullable = setters.stream().map(this::setterAnnotatedWithNullable).collect(toSet());
+            if (gettersAreNullable.size() > 1 || settersAreNullable.size() > 1) {
+                return false;
+            }
+            return gettersAreNullable.equals(settersAreNullable);
+        }
+
+        private boolean getterAnnotatedWithNullable(JavaMethod getter) {
+            return getter.isAnnotatedWith(Nullable.class);
+        }
+
+        private boolean setterAnnotatedWithNullable(JavaMethod setter) {
+            return Arrays.stream(setter.reflect().getParameterAnnotations()[0]).anyMatch(a -> a instanceof Nullable);
         }
 
         @Override
         public String toString() {
-            return getter.getOwner().getName() + "." + propertyNameOf(getter) + ": " + setter.getParameters().get(0).getSimpleName();
+            return owningClass.getName() + "." + propertyName;
         }
+    }
 
-        private String propertyNameOf(JavaMethod getter) {
-            return PropertyAccessorType.fromName(getter.getName()).propertyNameFor(getter.getName());
-        }
+    private static boolean isGetter(JavaMethod m, PropertyAccessorType accessorType) {
+        // We avoid using reflect, since that leads to class loading exceptions
+        return !m.getModifiers().contains(JavaModifier.STATIC)
+            && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
+            && m.getParameters().size() == 0
+            && (accessorType != PropertyAccessorType.IS_GETTER || m.getReturnType().isEquivalentTo(Boolean.TYPE) || m.getReturnType().isEquivalentTo(Boolean.class));
+    }
+
+    private static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
+        return !m.getModifiers().contains(JavaModifier.STATIC)
+            && accessorType == PropertyAccessorType.SETTER
+            && m.getParameters().size() == 1;
     }
 
     private static class GradlePublicApi extends DescribedPredicate<JavaClass> {
