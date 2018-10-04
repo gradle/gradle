@@ -16,8 +16,9 @@
 
 package org.gradle.normalization.internal;
 
+import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.normalization.RuntimeClasspathNormalization;
 
 public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
-    RuntimeClasspathNormalizationStrategy buildFinalStrategy();
+    ResourceFilter getResourceFilter();
 }

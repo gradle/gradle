@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService
+import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
@@ -27,7 +28,6 @@ import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
-import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -54,7 +54,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         fileSystemSnapshotter,
-        InputNormalizationStrategy.NO_NORMALIZATION,
+        ResourceFilter.FILTER_NOTHING,
         stringInterner)
 
     def "directories and missing files are ignored"() {

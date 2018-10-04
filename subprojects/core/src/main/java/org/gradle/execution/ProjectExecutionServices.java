@@ -146,7 +146,12 @@ class ProjectExecutionServices {
     }
 
     ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
-        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, inputNormalizationHandler.buildFinalStrategy(), stringInterner);
+        return new DefaultClasspathFingerprinter(
+            resourceSnapshotterCacheService,
+            fileSystemSnapshotter,
+            inputNormalizationHandler.getRuntimeClasspath().getResourceFilter(),
+            stringInterner
+        );
     }
 
     FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(

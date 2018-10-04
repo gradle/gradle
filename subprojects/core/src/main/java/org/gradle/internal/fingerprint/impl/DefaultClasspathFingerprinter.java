@@ -26,25 +26,23 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
-    private final ResourceSnapshotterCacheService cacheService;
-    private final InputNormalizationStrategy inputNormalizationStrategy;
-    private final StringInterner stringInterner;
-    private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
+    private final ClasspathFingerprintingStrategy fingerprintingStrategy;
 
     public DefaultClasspathFingerprinter(
         ResourceSnapshotterCacheService cacheService,
         FileSystemSnapshotter fileSystemSnapshotter,
-        InputNormalizationStrategy inputNormalizationStrategy,
+        ResourceFilter classpathResourceFilter,
         StringInterner stringInterner
     ) {
         super(stringInterner, fileSystemSnapshotter);
-        this.cacheService = cacheService;
-        this.inputNormalizationStrategy = inputNormalizationStrategy;
-        this.stringInterner = stringInterner;
-        this.runtimeClasspathResourceHasher = new RuntimeClasspathResourceHasher();
+        this.fingerprintingStrategy = ClasspathFingerprintingStrategy.runtimeClasspath(
+            classpathResourceFilter,
+            new RuntimeClasspathResourceHasher(),
+            cacheService,
+            stringInterner
+        );
     }
 
     @Override
@@ -54,8 +52,6 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        ResourceFilter classpathResourceFilter = this.inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
-        return super.fingerprint(files, ClasspathFingerprintingStrategy.runtimeClasspath(classpathResourceFilter, runtimeClasspathResourceHasher, cacheService, stringInterner));
+        return super.fingerprint(files, fingerprintingStrategy);
     }
-
 }

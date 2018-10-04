@@ -17,35 +17,22 @@
 package org.gradle.normalization.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.normalization.RuntimeClasspathNormalization;
 
 public class DefaultInputNormalizationHandler implements InputNormalizationHandlerInternal {
-    private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy;
-    private InputNormalizationStrategy finalStrategy;
+    private final RuntimeClasspathNormalizationInternal runtimeClasspathNormalization;
 
-    public DefaultInputNormalizationHandler(RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
-        this.runtimeClasspathNormalizationStrategy = runtimeClasspathNormalizationStrategy;
+    public DefaultInputNormalizationHandler(RuntimeClasspathNormalizationInternal runtimeClasspathNormalization) {
+        this.runtimeClasspathNormalization = runtimeClasspathNormalization;
     }
 
     @Override
-    public RuntimeClasspathNormalization getRuntimeClasspath() {
-        return runtimeClasspathNormalizationStrategy;
+    public RuntimeClasspathNormalizationInternal getRuntimeClasspath() {
+        return runtimeClasspathNormalization;
     }
 
     @Override
     public void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration) {
-        if (finalStrategy != null) {
-            throw new GradleException("Cannot configure input normalization after execution started.");
-        }
         configuration.execute(getRuntimeClasspath());
-    }
-
-    @Override
-    public InputNormalizationStrategy buildFinalStrategy() {
-        if (finalStrategy == null) {
-            finalStrategy = new InputNormalizationStrategy(runtimeClasspathNormalizationStrategy.buildFinalStrategy());
-        }
-        return finalStrategy;
     }
 }

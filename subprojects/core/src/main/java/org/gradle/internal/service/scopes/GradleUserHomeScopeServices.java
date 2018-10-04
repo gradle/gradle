@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterC
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
@@ -86,7 +87,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -187,7 +187,7 @@ public class GradleUserHomeScopeServices {
     }
 
     ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, InputNormalizationStrategy.NO_NORMALIZATION, stringInterner);
+        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
     }
 
     ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter) {
