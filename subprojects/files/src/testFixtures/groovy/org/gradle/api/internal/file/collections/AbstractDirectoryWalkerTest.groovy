@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.file.collections
 
-
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
@@ -85,13 +84,14 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         millis / 1000L
     }
 
-    private static generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
+    private static generateFilesAndSubDirectories(File parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
         for (int i = 0; i < fileCount; i++) {
             parentDir.createFile("file" + fileIdGenerator.incrementAndGet()) << ("x" * fileIdGenerator.get())
         }
         if (currentDepth < maxDepth) {
             for (int i = 0; i < dirCount; i++) {
-                TestFile subDir = parentDir.createDir("dir" + fileIdGenerator.incrementAndGet())
+                File subDir = new File(parentDir, "dir" + fileIdGenerator.incrementAndGet())
+                subDir.mkdirs()
                 generateFilesAndSubDirectories(subDir, fileCount, dirCount, maxDepth, currentDepth + 1, fileIdGenerator)
             }
         }
@@ -214,7 +214,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
         def walkerInstance = new Jdk7DirectoryWalker()
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, NativeServicesTestFixture.getInstance().get(FileSystem), false)
         def visitedFiles = []
         def visitedDirectories = []
         def fileVisitor = [visitFile: { visitedFiles << it }, visitDir: { visitedDirectories << it }] as FileVisitor
