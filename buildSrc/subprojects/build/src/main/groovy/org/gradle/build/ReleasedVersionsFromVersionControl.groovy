@@ -24,7 +24,7 @@ import org.gradle.util.VersionNumber
 class ReleasedVersionsFromVersionControl implements ReleasedVersions {
     private static final List<String> BANNED_VERSIONS = []
     private lowestInterestingVersion = GradleVersion.version("0.8")
-    private lowestTestedVersion = GradleVersion.version("1.0")
+    private lowestTestedVersion = GradleVersion.version("2.0")
 
     ReleasedVersion mostRecentRelease
     List<ReleasedVersion> allVersions
