@@ -32,6 +32,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
@@ -152,11 +153,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
+
         try {
             planExecutor.process(executionPlan, failures,
                 new BuildOperationAwareExecutionAction(
                     buildOperationExecutor.getCurrentOperation(),
-                    new InvokeNodeExecutorsAction(nodeExecutors)
+                    new InvokeNodeExecutorsAction(nodeExecutors, new ProjectExecutionServiceRegistry())
                 )
             );
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
@@ -313,15 +315,17 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private static class InvokeNodeExecutorsAction implements Action<Node> {
         private final List<NodeExecutor> nodeExecutors;
+        private final ProjectExecutionServiceRegistry projectExecutionServices;
 
-        public InvokeNodeExecutorsAction(List<NodeExecutor> nodeExecutors) {
+        public InvokeNodeExecutorsAction(List<NodeExecutor> nodeExecutors, ProjectExecutionServiceRegistry projectExecutionServices) {
             this.nodeExecutors = nodeExecutors;
+            this.projectExecutionServices = projectExecutionServices;
         }
 
         @Override
         public void execute(Node node) {
             for (NodeExecutor nodeExecutor : nodeExecutors) {
-                if (nodeExecutor.execute(node)) {
+                if (nodeExecutor.execute(node, projectExecutionServices)) {
                     return;
                 }
             }

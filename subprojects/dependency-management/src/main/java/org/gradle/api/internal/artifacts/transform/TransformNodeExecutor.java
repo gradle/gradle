@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -30,7 +31,7 @@ public class TransformNodeExecutor implements NodeExecutor {
     }
 
     @Override
-    public boolean execute(Node node) {
+    public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
         if (node instanceof TransformNode) {
             TransformNode transformNode = (TransformNode) node;
             transformNode.execute(buildOperationExecutor, transformListener);
