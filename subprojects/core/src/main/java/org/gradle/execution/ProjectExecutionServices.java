@@ -139,8 +139,10 @@ class ProjectExecutionServices {
         return executer;
     }
 
-    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(ServiceRegistry serviceRegistry) {
-        List<FileFingerprintingPropertyAnnotationHandler> handlers = serviceRegistry.getAll(FileFingerprintingPropertyAnnotationHandler.class);
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(
+        ServiceRegistry serviceRegistry,
+        List<FileFingerprintingPropertyAnnotationHandler> handlers
+    ) {
         ImmutableList.Builder<FileCollectionFingerprinter> fingerprinterImplementations = ImmutableList.builder();
         for (Class<? extends FileCollectionFingerprinter> builtInFingerprinterType : BUILT_IN_FINGERPRINTER_TYPES) {
             fingerprinterImplementations.add(serviceRegistry.get(builtInFingerprinterType));
