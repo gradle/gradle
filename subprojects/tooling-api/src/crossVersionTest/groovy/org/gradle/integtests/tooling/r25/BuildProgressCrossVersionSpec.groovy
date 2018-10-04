@@ -18,7 +18,6 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
@@ -29,26 +28,8 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=1.2 <2.5")
-    def "ignores listeners when Gradle version does not generate build events"() {
-        given:
-        goodCode()
-
-        when:
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener({ ProgressEvent event ->
-                    throw new RuntimeException()
-                }, EnumSet.of(OperationType.GENERIC)).run()
-        }
-
-        then:
-        noExceptionThrown()
-    }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive build progress events when requesting a model"() {
         given:
         goodCode()
@@ -65,7 +46,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive build progress events when launching a build"() {
         given:
         goodCode()
@@ -82,7 +62,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "stops dispatching events to progress listeners when a listener fails and continues with build"() {
         given:
         goodCode()
@@ -117,7 +96,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive build progress events for successful operations"() {
         given:
         goodCode()
@@ -152,7 +130,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive build progress events for failed operations"() {
         given:
         buildFile << """

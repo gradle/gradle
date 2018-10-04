@@ -16,16 +16,13 @@
 
 package org.gradle.integtests.tooling.r25
 
-
+import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnectionException
-
 import org.junit.Rule
-
-import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 
 class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 

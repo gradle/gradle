@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.plugins.ide.internal.tooling.model;
+
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 import java.io.File;
 import java.io.Serializable;
@@ -22,22 +25,22 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject<T> implements Serializable, GradleProjectIdentity {
+public class DefaultGradleProject implements Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    private List<T> tasks = new LinkedList<T>();
+    private List<LaunchableGradleTask> tasks = new LinkedList<LaunchableGradleTask>();
     private String name;
     private String description;
     private DefaultProjectIdentifier projectIdentifier;
-    private DefaultGradleProject<T> parent;
-    private List<? extends DefaultGradleProject<T>> children = new LinkedList<DefaultGradleProject<T>>();
+    private DefaultGradleProject parent;
+    private List<? extends DefaultGradleProject> children = new LinkedList<DefaultGradleProject>();
 
     public String getName() {
         return name;
     }
 
-    public DefaultGradleProject<T> setName(String name) {
+    public DefaultGradleProject setName(String name) {
         this.name = name;
         return this;
     }
@@ -46,25 +49,25 @@ public class DefaultGradleProject<T> implements Serializable, GradleProjectIdent
         return description;
     }
 
-    public DefaultGradleProject<T> setDescription(String description) {
+    public DefaultGradleProject setDescription(String description) {
         this.description = description;
         return this;
     }
 
-    public DefaultGradleProject<T> getParent() {
+    public DefaultGradleProject getParent() {
         return parent;
     }
 
-    public DefaultGradleProject<T> setParent(DefaultGradleProject<T> parent) {
+    public DefaultGradleProject setParent(DefaultGradleProject parent) {
         this.parent = parent;
         return this;
     }
 
-    public Collection<? extends DefaultGradleProject<T>> getChildren() {
+    public Collection<? extends DefaultGradleProject> getChildren() {
         return children;
     }
 
-    public DefaultGradleProject<T> setChildren(List<? extends DefaultGradleProject<T>> children) {
+    public DefaultGradleProject setChildren(List<? extends DefaultGradleProject> children) {
         this.children = children;
         return this;
     }
@@ -87,17 +90,17 @@ public class DefaultGradleProject<T> implements Serializable, GradleProjectIdent
         return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
-    public DefaultGradleProject<T> setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+    public DefaultGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
         this.projectIdentifier = projectIdentifier;
         return this;
     }
 
-    public DefaultGradleProject<T> findByPath(String path) {
+    public DefaultGradleProject findByPath(String path) {
         if (path.equals(this.getPath())) {
             return this;
         }
-        for (DefaultGradleProject<T> child : children) {
-            DefaultGradleProject<T> found = child.findByPath(path);
+        for (DefaultGradleProject child : children) {
+            DefaultGradleProject found = child.findByPath(path);
             if (found != null) {
                 return found;
             }
@@ -112,11 +115,11 @@ public class DefaultGradleProject<T> implements Serializable, GradleProjectIdent
             + '}';
     }
 
-    public Collection<T> getTasks() {
+    public Collection<LaunchableGradleTask> getTasks() {
         return tasks;
     }
 
-    public DefaultGradleProject<T> setTasks(List<T> tasks) {
+    public DefaultGradleProject setTasks(List<LaunchableGradleTask> tasks) {
         this.tasks = tasks;
         return this;
     }
@@ -125,7 +128,7 @@ public class DefaultGradleProject<T> implements Serializable, GradleProjectIdent
         return buildDirectory;
     }
 
-    public DefaultGradleProject<T> setBuildDirectory(File buildDirectory) {
+    public DefaultGradleProject setBuildDirectory(File buildDirectory) {
         this.buildDirectory = buildDirectory;
         return this;
     }
@@ -134,7 +137,7 @@ public class DefaultGradleProject<T> implements Serializable, GradleProjectIdent
         return projectDirectory;
     }
 
-    public DefaultGradleProject<T> setProjectDirectory(File projectDirectory) {
+    public DefaultGradleProject setProjectDirectory(File projectDirectory) {
         this.projectDirectory = projectDirectory;
         return this;
     }

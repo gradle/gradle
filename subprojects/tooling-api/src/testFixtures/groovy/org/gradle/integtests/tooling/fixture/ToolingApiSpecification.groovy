@@ -55,7 +55,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @CleanupTestDirectory
 @ToolingApiVersion('>=2.0')
-@TargetGradleVersion('>=1.2')
+@TargetGradleVersion('>=2.6')
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification {
@@ -174,12 +174,8 @@ abstract class ToolingApiSpecification extends Specification {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model']
         } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.10")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
-        } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.4")) {
-            return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
-        } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.1")) {
-            return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
         } else {
-            return ['dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
+            return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
         }
     }
 
@@ -190,10 +186,6 @@ abstract class ToolingApiSpecification extends Specification {
      * to {@link #getImplicitTasks()}.
      */
     Set<String> getImplicitSelectors() {
-        if (targetVersion <= GradleVersion.version("2.0")) {
-            // Implicit tasks were ignored
-            return []
-        }
         return getImplicitTasks()
     }
 
@@ -201,43 +193,21 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitTasks() {
-        if (targetVersion == GradleVersion.version("1.6")) {
-            return implicitTasks + ['setupBuild']
-        }
         return implicitTasks + ['init', 'wrapper']
     }
 
     /**
      * Returns the set of implicit selector names expected for a root project for the target Gradle version.
-     *
-     * <p>Note that in some versions the handling of implicit selectors was broken, so this method may return a different value
-     * to {@link #getRootProjectImplicitTasks()}.
      */
     Set<String> getRootProjectImplicitSelectors() {
-        if (targetVersion == GradleVersion.version("1.6")) {
-            // Implicit tasks were ignored, and setupBuild was added as a regular task
-            return ['setupBuild']
-        }
-        if (targetVersion <= GradleVersion.version("2.0")) {
-            // Implicit tasks were ignored
-            return []
-        }
         return rootProjectImplicitTasks
     }
 
     /**
      * Returns the set of implicit tasks returned by GradleProject.getTasks()
-     *
-     * <p>Note that in some versions the handling of implicit tasks was broken, so this method may return a different value
-     * to {@link #getRootProjectImplicitTasks()}.
      */
     Set<String> getRootProjectImplicitTasksForGradleProjectModel() {
-        if (targetVersion == GradleVersion.version("1.6")) {
-            // Implicit tasks were ignored, and setupBuild was added as a regular task
-            return ['setupBuild']
-        }
-
-        targetVersion < GradleVersion.version("2.3") ? [] : rootProjectImplicitTasks
+        rootProjectImplicitTasks
     }
 
     public <T> T loadToolingModel(Class<T> modelClass) {

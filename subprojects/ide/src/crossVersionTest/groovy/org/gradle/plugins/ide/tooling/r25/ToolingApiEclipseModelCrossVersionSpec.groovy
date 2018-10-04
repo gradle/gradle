@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.tooling.r25
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -25,7 +25,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "export classpath entry option is reflected in eclipse model"() {
 
         projectDir.file('settings.gradle').text = '''
@@ -69,7 +68,6 @@ configure(project(':a')){
         rootProject.classpath.find { it.file.name.contains("slf4j-log4j") }.exported == false
     }
 
-    @TargetGradleVersion(">=2.5")
     def "transitive dependencies are listed as direct dependencies in the eclipse model"() {
         def mavenRepo = new MavenFileRepository(file("maven-repo"));
         mavenRepo.module('someGroup', 'someArtifact', '17.0').publish()

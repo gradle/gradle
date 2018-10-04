@@ -37,25 +37,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=1.2 <2.5")
-    def "ignores listeners when Gradle version does not generate task events"() {
-        given:
-        goodCode()
-
-        when:
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('assemble').addProgressListener({
-                    throw new RuntimeException()
-                }, EnumSet.of(OperationType.TASK)).run()
-        }
-
-        then:
-        noExceptionThrown()
-    }
-
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive task progress events when requesting a model"() {
         given:
         goodCode()
@@ -73,7 +54,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive task progress events when launching a build"() {
         given:
         goodCode()
@@ -91,7 +71,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive current task progress event even if one of multiple task listeners throws an exception"() {
         given:
         goodCode()
@@ -126,7 +105,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive task progress events for successful tasks"() {
         given:
         goodCode()
@@ -169,7 +147,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "receive task progress events for failed tasks"() {
         given:
         buildFile << """
@@ -209,7 +186,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5 <3.6")
+    @TargetGradleVersion(">=2.6 <3.6")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
         server.start()
@@ -318,7 +295,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=2.5")
     def "task operations have a build operation as parent iff build listener is attached"() {
         given:
         goodCode()

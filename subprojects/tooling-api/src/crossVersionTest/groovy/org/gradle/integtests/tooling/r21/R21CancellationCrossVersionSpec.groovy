@@ -16,7 +16,11 @@
 
 package org.gradle.integtests.tooling.r21
 
-import org.gradle.integtests.tooling.fixture.*
+
+import org.gradle.integtests.tooling.fixture.TestOutputStream
+import org.gradle.integtests.tooling.fixture.TestResultHandler
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
@@ -24,7 +28,6 @@ import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
 @ToolingApiVersion("=2.1")
-@TargetGradleVersion(">=2.1")
 class R21CancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
@@ -34,7 +37,6 @@ rootProject.name = 'cancelling'
 '''
     }
 
-    @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
         toolingApi.requireIsolatedDaemons()
         def daemons = toolingApi.daemons

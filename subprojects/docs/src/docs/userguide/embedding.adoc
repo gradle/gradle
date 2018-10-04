@@ -68,13 +68,13 @@ The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/too
 
 === Provider side
 
-The current version of Tooling API supports running builds using Gradle versions 1.2 and later. However, support for running builds with Gradle versions older than 2.6 is deprecated and will be removed in Tooling API version 5.0.
+The current version of Tooling API supports running builds using Gradle versions 2.6 and later.
 
 === Consumer side
 
 The current version of Gradle supports running builds via Tooling API versions 2.0 and later. However, support for running builds via Tooling API versions older than 3.0 is deprecated and will be removed in Gradle 5.0.
 
-You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available when a build uses Gradle 2.1 and later. Refer to the documentation for each class and method for more details.
+You should note that not all features of the Tooling API are available for all versions of Gradle. Refer to the documentation for each class and method for more details.
 
 == Java version
 

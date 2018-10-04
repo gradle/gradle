@@ -25,7 +25,7 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion(">=2.14 <=3.0")
-@TargetGradleVersion(">=1.2 <=3.0")
+@TargetGradleVersion(">=2.6 <=3.0")
 class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides module identifiers for module dependencies"() {

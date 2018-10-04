@@ -28,7 +28,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.gradle.BuildInvocations;
 
 import java.io.File;
 
@@ -61,9 +60,6 @@ public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, In
             }
         }, new ModelMapping(), rootDir);
         buildControllerAdapter  = new BuildControllerWithoutParameterSupport(versionDetails, buildControllerAdapter);
-        if (!versionDetails.maySupportModel(BuildInvocations.class)) {
-            buildControllerAdapter= new BuildInvocationsAdapterController(protocolToModelAdapter, buildControllerAdapter);
-        }
         return action.execute(buildControllerAdapter);
     }
 

@@ -31,7 +31,7 @@ class ToolingApiUnsupportedConsumerCrossVersionSpec extends ToolingApiVersionSpe
         caughtGradleConnectionException.cause.message.contains('Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. You should upgrade your tooling API client to version 3.0 or later.')
     }
 
-    @ToolingApiVersion(">=1.2 <2.0")
+    @ToolingApiVersion(">=2.6 <2.0")
     def "provider rejects build request from a tooling API client older than 2.0"() {
         when:
         build()
@@ -51,7 +51,7 @@ class ToolingApiUnsupportedConsumerCrossVersionSpec extends ToolingApiVersionSpe
         caughtGradleConnectionException.cause.message.contains('Support for clients using a tooling API version older than 2.0 was removed in Gradle 3.0. You should upgrade your tooling API client to version 3.0 or later.')
     }
 
-    @ToolingApiVersion(">=1.2 <2.0")
+    @ToolingApiVersion(">=2.6 <2.0")
     def "provider rejects model request from a tooling API client older than 2.0"() {
         when:
         getModel()

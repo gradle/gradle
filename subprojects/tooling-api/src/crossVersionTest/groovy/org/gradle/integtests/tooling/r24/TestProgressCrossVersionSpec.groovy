@@ -15,14 +15,20 @@
  */
 package org.gradle.integtests.tooling.r24
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.test.*
+import org.gradle.tooling.events.test.JvmTestKind
+import org.gradle.tooling.events.test.TestFailureResult
+import org.gradle.tooling.events.test.TestFinishEvent
+import org.gradle.tooling.events.test.TestProgressEvent
+import org.gradle.tooling.events.test.TestSkippedResult
+import org.gradle.tooling.events.test.TestStartEvent
+import org.gradle.tooling.events.test.TestSuccessResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,7 +36,6 @@ import org.gradle.util.TestPrecondition
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @ToolingApiVersion("=2.4")
-@TargetGradleVersion(">=2.4")
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     def "receive test progress events when requesting a model"() {
         given:
@@ -578,7 +583,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion("=2.4")
-    @TargetGradleVersion(">=2.5")
     def "stops dispatching events to progress listeners when a listener fails and continues with build"() {
         given:
         goodCode()

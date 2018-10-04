@@ -41,7 +41,7 @@ dependencies {
 
     }
 
-    @TargetGradleVersion(">=1.2 <2.14")
+    @TargetGradleVersion(">=2.6 <2.14")
     def "older Gradle versions throw UnsupportedMethodException when classpath attributes are accessed"() {
         setup:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
