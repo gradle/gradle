@@ -28,7 +28,6 @@ buildscript {
 
 if (System.getProperty('enableScan')) {
     apply plugin: 'com.gradle.build-scan'
-    buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }
 }
 
 // We want to double check that a build failure is
