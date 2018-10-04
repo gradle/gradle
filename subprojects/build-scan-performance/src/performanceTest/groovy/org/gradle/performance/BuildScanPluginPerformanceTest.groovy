@@ -95,71 +95,62 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
         where:
         scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | saveSpoolingListener(scenario)
-        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean(scenario)
+        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | new SaveScanSpoolFile(scenario)
+        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | BuildExperimentListener.compose(new SaveScanSpoolFile(scenario), new ManageLocalCacheState())
     }
 
 
-    def saveSpoolingListener(String testId) {
-        return new BuildScanPluginBuildExperimentListener(testId)
-    }
-
-    def partiallyBuildCacheClean(String testId) {
-        return new BuildScanPluginBuildExperimentListener(testId) {
-            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-                def projectTestDir = new TestFile(projectDir)
-                def cacheDir = projectTestDir.file('local-build-cache')
-                def settingsFile = projectTestDir.file('settings.gradle')
-                settingsFile << """
+    static class ManageLocalCacheState extends BuildExperimentListenerAdapter {
+        void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+            def projectTestDir = new TestFile(projectDir)
+            def cacheDir = projectTestDir.file('local-build-cache')
+            def settingsFile = projectTestDir.file('settings.gradle')
+            settingsFile << """
                     buildCache {
                         local {
                             directory = '${cacheDir.absoluteFile.toURI()}'
                         }
                     }
                 """.stripIndent()
+        }
 
-            }
-
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                super.afterInvocation(invocationInfo, operation, measurementCallback)
-                assert !new File(invocationInfo.projectDir, 'error.log').exists()
-                def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
-                def cacheEntries = buildCacheDirectory.listFiles().sort()
-                cacheEntries.eachWithIndex { TestFile entry, int i ->
-                    if (i % 2 == 0) {
-                        entry.delete()
-                    }
+        @Override
+        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
+            assert !new File(invocationInfo.projectDir, 'error.log').exists()
+            def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
+            def cacheEntries = buildCacheDirectory.listFiles().sort()
+            cacheEntries.eachWithIndex { TestFile entry, int i ->
+                if (i % 2 == 0) {
+                    entry.delete()
                 }
             }
         }
     }
 
-    class BuildScanPluginBuildExperimentListener extends BuildExperimentListenerAdapter {
+    static class SaveScanSpoolFile extends BuildExperimentListenerAdapter {
         final String testId
 
-        BuildScanPluginBuildExperimentListener(String testId) {
-            this.testId = testId.replaceAll(/[- ]/,'_')
+        SaveScanSpoolFile(String testId) {
+            this.testId = testId.replaceAll(/[- ]/, '_')
         }
 
         @Override
         void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-            def spoolingFolder = new File(invocationInfo.gradleUserHome, "build-scan-data")
-            spoolingFolder.deleteDir()
+            spoolDir(invocationInfo).deleteDir()
         }
 
         @Override
-        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-            saveSpoolFile(invocationInfo)
-        }
-
-        void saveSpoolFile(BuildExperimentInvocationInfo invocationInfo) {
-            def spoolingFolder = new File(invocationInfo.gradleUserHome, "build-scan-data")
-            if (invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT && (invocationInfo.iterationNumber == invocationInfo.iterationMax) && spoolingFolder.exists()) {
+        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
+            def spoolDir = this.spoolDir(invocationInfo)
+            if (invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT && (invocationInfo.iterationNumber == invocationInfo.iterationMax) && spoolDir.exists()) {
                 def targetDirectory = new File("build/scan-dumps/$testId")
                 targetDirectory.deleteDir()
-                FileUtils.moveToDirectory(spoolingFolder, targetDirectory, true)
+                FileUtils.moveToDirectory(spoolDir, targetDirectory, true)
             }
+        }
+
+        private File spoolDir(BuildExperimentInvocationInfo invocationInfo) {
+            new File(invocationInfo.gradleUserHome, "build-scan-data")
         }
     }
 }
