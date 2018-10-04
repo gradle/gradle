@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepos
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
@@ -179,16 +180,19 @@ public class TaskExecutionServices {
         return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
     }
 
+    TaskHistoryCache createTaskHistoryCache(TaskHistoryStore taskHistoryStore, StringInterner stringInterner) {
+        return new TaskHistoryCache(taskHistoryStore, stringInterner);
+    }
+
     TaskHistoryRepository createTaskHistoryRepository(
-        TaskHistoryStore cacheAccess,
+        TaskHistoryCache taskHistoryCache,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         StringInterner stringInterner) {
 
         return new CacheBackedTaskHistoryRepository(
-            cacheAccess,
-            stringInterner,
+            taskHistoryCache,
             classLoaderHierarchyHasher,
             valueSnapshotter,
             fingerprinterRegistry
