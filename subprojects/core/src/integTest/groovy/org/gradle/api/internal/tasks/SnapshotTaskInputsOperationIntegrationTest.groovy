@@ -257,11 +257,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             normalization == "RELATIVE_PATH"
         }
 
-        with(aCompileJava["effectiveAnnotationProcessorPath"] as Map<String, ?>) {
-            hash != null
-            roots.empty
-            normalization == "CLASSPATH"
-        }
+        aCompileJava["options.annotationProcessorPath"] == null
 
         with(aCompileJava.source) {
             hash != null

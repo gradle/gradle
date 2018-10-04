@@ -44,6 +44,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -192,11 +193,13 @@ public class JavaCompile extends AbstractCompile {
      * <p>This path is always empty when annotation processing is disabled.</p>
      *
      * @since 3.4
+     * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
      */
-    @Incubating
+    @Deprecated
     @Classpath
     @Nullable
     public FileCollection getEffectiveAnnotationProcessorPath() {
+        SingleMessageLogger.nagUserOfReplacedProperty("JavaCompile.effectiveAnnotationProcessorPath", "JavaCompile.options.annotationProcessorPath");
         return compileOptions.getAnnotationProcessorPath();
     }
 }

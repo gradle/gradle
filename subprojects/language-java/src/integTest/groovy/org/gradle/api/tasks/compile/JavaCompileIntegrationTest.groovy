@@ -921,4 +921,26 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         then:
         !file("build/headers/java/main/Foo.h").exists()
     }
+
+    def "emits deprecation warning for effectiveAnnotationProcessorPath property"() {
+        buildScript("""
+            apply plugin: 'java'
+                        
+            ${jcenterRepository()}
+
+            task printAnnotationProcessors {
+                doLast {
+                    println compileJava.effectiveAnnotationProcessorPath
+                }
+            }
+        """.stripIndent())
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds 'printAnnotationProcessors'
+
+        then:
+        outputContains('The JavaCompile.effectiveAnnotationProcessorPath property has been deprecated.')
+        outputContains('Please use the JavaCompile.options.annotationProcessorPath property instead.')
+    }
 }

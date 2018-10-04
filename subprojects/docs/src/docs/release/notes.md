@@ -224,7 +224,7 @@ TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
-### The property `effectiveAnnotationProcessorPath` on `AbstractScalaCompile` has been deprecated
+### The property `effectiveAnnotationProcessorPath` on `AbstractScalaCompile` and `JavaCompile` has been deprecated
 
 Please use the `annotationProcessorPath` property on the task's `CompileOptions` directly.
 
