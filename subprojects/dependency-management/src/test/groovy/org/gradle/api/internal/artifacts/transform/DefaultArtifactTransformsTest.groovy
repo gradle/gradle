@@ -126,7 +126,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile4 = new File("out4.classes")
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
-        def transformer = Mock(ArtifactTransformer)
+        def transformer = Mock(ArtifactTransformation)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
@@ -204,7 +204,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(_, _) >> []
 
         matchingCache.collectConsumerVariants(_, _, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-                result.matched(to, Stub(ArtifactTransformer), 1)
+                result.matched(to, Stub(ArtifactTransformation), 1)
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"), true)

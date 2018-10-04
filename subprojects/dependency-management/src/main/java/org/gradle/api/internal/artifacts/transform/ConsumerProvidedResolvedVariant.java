@@ -33,10 +33,10 @@ import java.util.Map;
 public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
-    private final ArtifactTransformer transform;
+    private final ArtifactTransformation transform;
     private final ArtifactTransformListener transformListener;
 
-    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, ArtifactTransformListener transformListener) {
+    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformation transform, ArtifactTransformListener transformListener) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;

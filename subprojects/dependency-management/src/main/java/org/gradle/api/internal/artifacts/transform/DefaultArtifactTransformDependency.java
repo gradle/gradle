@@ -21,15 +21,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 
 @NonNullApi
 public class DefaultArtifactTransformDependency implements ArtifactTransformDependency {
-    private final ArtifactTransformer transform;
+    private final ArtifactTransformation transform;
     private final ResolvedArtifactSet artifacts;
 
-    public DefaultArtifactTransformDependency(ArtifactTransformer transform, ResolvedArtifactSet artifacts) {
+    public DefaultArtifactTransformDependency(ArtifactTransformation transform, ResolvedArtifactSet artifacts) {
         this.transform = transform;
         this.artifacts = artifacts;
     }
 
-    public ArtifactTransformer getTransform() {
+    public ArtifactTransformation getTransform() {
         return transform;
     }
 

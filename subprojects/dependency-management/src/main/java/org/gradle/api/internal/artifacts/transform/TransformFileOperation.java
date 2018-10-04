@@ -23,19 +23,19 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+import javax.annotation.Nullable;
 
 class TransformFileOperation implements RunnableBuildOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformFileOperation.class);
     private final File file;
-    private final ArtifactTransformer transform;
+    private final ArtifactTransformation transform;
     private final ArtifactTransformListener transformListener;
     private Throwable failure;
     private List<File> result;
 
-    TransformFileOperation(File file, ArtifactTransformer transform, ArtifactTransformListener transformListener) {
+    TransformFileOperation(File file, ArtifactTransformation transform, ArtifactTransformListener transformListener) {
         this.file = file;
         this.transform = transform;
         this.transformListener = transformListener;

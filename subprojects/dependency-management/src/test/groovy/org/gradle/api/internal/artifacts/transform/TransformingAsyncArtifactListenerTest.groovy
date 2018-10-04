@@ -24,7 +24,7 @@ import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.testing.internal.util.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
-    def transformer = Mock(ArtifactTransformer)
+    def transformer = Mock(ArtifactTransformation)
     def operationQueue = Mock(BuildOperationQueue)
     def transformListener = Mock(ArtifactTransformListener)
     def listener  = new TransformingAsyncArtifactListener(transformer, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), transformListener)

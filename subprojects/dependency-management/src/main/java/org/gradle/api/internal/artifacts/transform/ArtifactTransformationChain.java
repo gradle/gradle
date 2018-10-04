@@ -22,12 +22,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-class ChainedTransformer implements ArtifactTransformer {
+class ArtifactTransformationChain implements ArtifactTransformation {
 
-    private final ArtifactTransformer first;
-    private final ArtifactTransformer second;
+    private final ArtifactTransformation first;
+    private final ArtifactTransformation second;
 
-    public ChainedTransformer(ArtifactTransformer first, ArtifactTransformer second) {
+    public ArtifactTransformationChain(ArtifactTransformation first, ArtifactTransformation second) {
         this.first = first;
         this.second = second;
     }
@@ -60,8 +60,8 @@ class ChainedTransformer implements ArtifactTransformer {
     }
 
     @Override
-    public void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
-        first.visitLeafTransformers(action);
-        second.visitLeafTransformers(action);
+    public void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
+        first.visitTransformationSteps(action);
+        second.visitTransformationSteps(action);
     }
 }

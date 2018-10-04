@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
  */
-public interface ArtifactTransformer extends Describable {
+public interface ArtifactTransformation extends Describable {
 
     /**
      * Transforms the given input file. May call the underlying user-provided transform or retrieve a cached value.
@@ -37,5 +37,5 @@ public interface ArtifactTransformer extends Describable {
      */
     boolean hasCachedResult(File input);
 
-    void visitLeafTransformers(Action<? super ArtifactTransformer> action);
+    void visitTransformationSteps(Action<? super ArtifactTransformation> action);
 }

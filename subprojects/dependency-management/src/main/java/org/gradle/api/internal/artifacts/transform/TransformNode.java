@@ -38,30 +38,30 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 
 public abstract class TransformNode extends Node {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
-    protected final UserCodeBackedTransformer artifactTransformer;
+    protected final ArtifactTransformationStep artifactTransformer;
     protected List<File> result;
     protected Throwable failure;
 
-    public static TransformNode chained(UserCodeBackedTransformer current, TransformNode previous, ComponentArtifactIdentifier artifactId) {
+    public static TransformNode chained(ArtifactTransformationStep current, TransformNode previous, ComponentArtifactIdentifier artifactId) {
         return new ChainedTransformNode(current, previous, artifactId);
     }
 
-    public static TransformNode initial(UserCodeBackedTransformer initial, BuildableSingleResolvedArtifactSet artifact) {
+    public static TransformNode initial(ArtifactTransformationStep initial, BuildableSingleResolvedArtifactSet artifact) {
         return new InitialTransformNode(initial, artifact);
     }
 
-    protected TransformNode(UserCodeBackedTransformer artifactTransformer) {
+    protected TransformNode(ArtifactTransformationStep artifactTransformer) {
         this.artifactTransformer = artifactTransformer;
     }
 
@@ -120,7 +120,7 @@ public abstract class TransformNode extends Node {
         private final BuildableSingleResolvedArtifactSet artifactSet;
 
         public InitialTransformNode(
-            UserCodeBackedTransformer artifactTransformer,
+            ArtifactTransformationStep artifactTransformer,
             BuildableSingleResolvedArtifactSet artifactSet
         ) {
             super(artifactTransformer);
@@ -207,7 +207,7 @@ public abstract class TransformNode extends Node {
         private final TransformNode previousTransform;
         private final ComponentArtifactIdentifier artifactId;
 
-        public ChainedTransformNode(UserCodeBackedTransformer artifactTransformer, TransformNode previousTransform, ComponentArtifactIdentifier artifactId) {
+        public ChainedTransformNode(ArtifactTransformationStep artifactTransformer, TransformNode previousTransform, ComponentArtifactIdentifier artifactId) {
             super(artifactTransformer);
             this.previousTransform = previousTransform;
             this.artifactId = artifactId;

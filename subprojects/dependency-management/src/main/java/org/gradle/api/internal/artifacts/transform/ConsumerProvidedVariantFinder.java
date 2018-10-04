@@ -84,7 +84,7 @@ public class ConsumerProvidedVariantFinder {
             }
             for (final ConsumerVariantMatchResult.ConsumerVariant inputVariant : inputVariants.getMatches()) {
                 ImmutableAttributes variantAttributes = attributesFactory.concat(inputVariant.attributes.asImmutable(), candidate.getTo().asImmutable());
-                ArtifactTransformer transformer = new ChainedTransformer(inputVariant.transformer, candidate.getArtifactTransformer());
+                ArtifactTransformation transformer = new ArtifactTransformationChain(inputVariant.transformer, candidate.getArtifactTransformer());
                 result.matched(variantAttributes, transformer, inputVariant.depth + 1);
             }
         }

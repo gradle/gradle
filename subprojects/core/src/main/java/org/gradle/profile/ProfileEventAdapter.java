@@ -27,15 +27,15 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformation;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import javax.annotation.Nullable;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
@@ -141,7 +141,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void beforeTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file) {
+    public void beforeTransform(ArtifactTransformation transform, @Nullable ComponentArtifactIdentifier artifactId, File file) {
         long now = clock.getCurrentTime();
         StringBuilder transformDescription = new StringBuilder(256);
         if (artifactId != null) {
@@ -156,7 +156,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void afterTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure) {
+    public void afterTransform(ArtifactTransformation transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure) {
         long now = clock.getCurrentTime();
         currentTransform.get().setFinish(now);
         currentTransform.remove();

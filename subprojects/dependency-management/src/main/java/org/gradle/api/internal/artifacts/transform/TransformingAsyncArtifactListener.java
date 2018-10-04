@@ -31,9 +31,9 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final ArtifactTransformListener transformListener;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
-    private final ArtifactTransformer transform;
+    private final ArtifactTransformation transform;
 
-    TransformingAsyncArtifactListener(ArtifactTransformer transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults, ArtifactTransformListener transformListener) {
+    TransformingAsyncArtifactListener(ArtifactTransformation transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults, ArtifactTransformListener transformListener) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transform = transform;

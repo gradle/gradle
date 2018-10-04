@@ -21,11 +21,11 @@ import org.gradle.api.Action;
 import java.io.File;
 import java.util.List;
 
-class UserCodeBackedTransformer implements ArtifactTransformer {
+class ArtifactTransformationStep implements ArtifactTransformation {
     private final TransformedFileCache transformedFileCache;
     private final TransformerRegistration transformerRegistration;
 
-    public UserCodeBackedTransformer(TransformerRegistration transformerRegistration, TransformedFileCache transformedFileCache) {
+    public ArtifactTransformationStep(TransformerRegistration transformerRegistration, TransformedFileCache transformedFileCache) {
         this.transformerRegistration = transformerRegistration;
         this.transformedFileCache = transformedFileCache;
     }
@@ -46,7 +46,7 @@ class UserCodeBackedTransformer implements ArtifactTransformer {
     }
 
     @Override
-    public void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
+    public void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
         action.execute(this);
     }
 
@@ -64,7 +64,7 @@ class UserCodeBackedTransformer implements ArtifactTransformer {
             return false;
         }
 
-        UserCodeBackedTransformer that = (UserCodeBackedTransformer) o;
+        ArtifactTransformationStep that = (ArtifactTransformationStep) o;
         return transformerRegistration.equals(that.transformerRegistration);
     }
 

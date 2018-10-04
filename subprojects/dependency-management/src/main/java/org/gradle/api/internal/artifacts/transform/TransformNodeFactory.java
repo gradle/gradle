@@ -21,5 +21,5 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import java.util.Collection;
 
 public interface TransformNodeFactory {
-    Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
+    Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformation transformer);
 }

@@ -32,8 +32,8 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
     private final Map<ArtifactTransformKey, TransformNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer) {
-        final List<UserCodeBackedTransformer> transformerChain = unpackTransformerChain(transformer);
+    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformation transformer) {
+        final List<ArtifactTransformationStep> transformerChain = unpackTransformerChain(transformer);
         final ImmutableList.Builder<TransformNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
             @Override
@@ -54,7 +54,7 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
         return builder.build();
     }
 
-    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<UserCodeBackedTransformer> transformerChain) {
+    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<ArtifactTransformationStep> transformerChain) {
         ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
         TransformNode transformNode = transformations.get(key);
         if (transformNode == null) {
@@ -69,12 +69,12 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
         return transformNode;
     }
 
-    private static List<UserCodeBackedTransformer> unpackTransformerChain(ArtifactTransformer transformer) {
-        final ImmutableList.Builder<UserCodeBackedTransformer> builder = ImmutableList.builder();
-        transformer.visitLeafTransformers(new Action<ArtifactTransformer>() {
+    private static List<ArtifactTransformationStep> unpackTransformerChain(ArtifactTransformation transformer) {
+        final ImmutableList.Builder<ArtifactTransformationStep> builder = ImmutableList.builder();
+        transformer.visitTransformationSteps(new Action<ArtifactTransformation>() {
             @Override
-            public void execute(ArtifactTransformer transformer) {
-                builder.add((UserCodeBackedTransformer) transformer);
+            public void execute(ArtifactTransformation transformer) {
+                builder.add((ArtifactTransformationStep) transformer);
             }
         });
         return builder.build();
@@ -82,9 +82,9 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
 
     private static class ArtifactTransformKey {
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final List<UserCodeBackedTransformer> transformers;
+        private final List<ArtifactTransformationStep> transformers;
 
-        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<UserCodeBackedTransformer> transformers) {
+        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<ArtifactTransformationStep> transformers) {
             this.artifactIdentifier = artifactIdentifier;
             this.transformers = transformers;
         }

@@ -18,17 +18,17 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import javax.annotation.Nullable;
 
 public interface ArtifactTransformListener {
     /**
      * This method is called immediately before a transform is executed.
      */
-    void beforeTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file);
+    void beforeTransform(ArtifactTransformation transform, @Nullable ComponentArtifactIdentifier artifactId, File file);
 
     /**
      * This method is call immediately after a transform has been executed.
      */
-    void afterTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure);
+    void afterTransform(ArtifactTransformation transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure);
 }

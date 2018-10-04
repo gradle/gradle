@@ -332,7 +332,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.artifactTransformer >> Stub(ArtifactTransformer) {
+        reg.artifactTransformer >> Stub(ArtifactTransformation) {
             transform(_) >> { File file ->
                 transformer.transform(file)
             }

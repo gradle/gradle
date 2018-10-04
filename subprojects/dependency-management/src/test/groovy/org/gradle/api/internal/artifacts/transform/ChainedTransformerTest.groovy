@@ -24,7 +24,7 @@ class ChainedTransformerTest extends Specification {
 
     def "is cached if all parts are cached"() {
         given:
-        def chain = new ChainedTransformer(new CachingTransformer(), new CachingTransformer())
+        def chain = new ArtifactTransformationChain(new CachingTransformation(), new CachingTransformation())
 
         expect:
         chain.hasCachedResult(new File("foo"))
@@ -32,7 +32,7 @@ class ChainedTransformerTest extends Specification {
 
     def "is not cached if first part is not cached"() {
         given:
-        def chain = new ChainedTransformer(new NonCachingTransformer(), new CachingTransformer())
+        def chain = new ArtifactTransformationChain(new NonCachingTransformation(), new CachingTransformation())
 
         expect:
         !chain.hasCachedResult(new File("foo"))
@@ -40,7 +40,7 @@ class ChainedTransformerTest extends Specification {
 
     def "is not cached if second part is not cached"() {
         given:
-        def chain = new ChainedTransformer(new CachingTransformer(), new NonCachingTransformer())
+        def chain = new ArtifactTransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
         !chain.hasCachedResult(new File("foo"))
@@ -48,13 +48,13 @@ class ChainedTransformerTest extends Specification {
 
     def "applies second transform on the result of the first"() {
         given:
-        def chain = new ChainedTransformer(new CachingTransformer(), new NonCachingTransformer())
+        def chain = new ArtifactTransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
         chain.transform(new File("foo")) == [new File("foo/cached/non-cached")]
     }
 
-    class CachingTransformer implements ArtifactTransformer {
+    class CachingTransformation implements ArtifactTransformation {
 
         @Override
         List<File> transform(File input) {
@@ -72,11 +72,11 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
+        void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
         }
     }
 
-    class NonCachingTransformer implements ArtifactTransformer {
+    class NonCachingTransformation implements ArtifactTransformation {
 
         @Override
         List<File> transform(File input) {
@@ -94,7 +94,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        void visitLeafTransformers(Action<? super ArtifactTransformer> action) {
+        void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
         }
     }
 }
