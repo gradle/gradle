@@ -51,10 +51,10 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
         "manyPlugins" to true,
         "manyScripts" to true
     )
+}
 
-    doLast {
-
-    }
+tasks.named('performanceTest').configure {
+    dependsOn 'largeJavaProjectWithBuildScanPlugin'
 }
 
 tasks.register<JvmProjectGeneratorTask>("manyInputFilesProject") {
@@ -72,4 +72,5 @@ tasks.register<JvmProjectGeneratorTask>("manyInputFilesProject") {
     linesOfCodePerSourceFile = 50
     subProjectTemplates = listOf("project-with-source")
     templateArgs = mapOf("projectDependencies" to true)
+}
 }
