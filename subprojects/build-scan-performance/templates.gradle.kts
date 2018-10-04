@@ -41,6 +41,7 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
     testSourceFiles = 50 // verbose tests are time consuming
     filesPerPackage = 25
     linesOfCodePerSourceFile = 150
+    numberOfScriptPlugins = 30
     rootProjectTemplates = listOf("root")
     subProjectTemplates = listOf("project-with-source")
     templateArgs = mapOf(
@@ -52,22 +53,7 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
     )
 
     doLast {
-        // generate script plugins
-        val scriptPlugins = 30
-        val nesting = 5
-        val groupedScriptIds = ((1..scriptPlugins).groupBy { it % (scriptPlugins / nesting) }.values)
-        val gradleFolder = File(destDir, "gradle")
-        gradleFolder.mkdirs()
-        (1..30).forEach { scriptPluginId ->
-            val nestedScriptId: Int? =
-                groupedScriptIds.find { it.contains(scriptPluginId) }?.find { it > scriptPluginId }
-            val maybeApplyNestedScript =
-                if (nestedScriptId != null) "apply from: \'../gradle/script-plugin$nestedScriptId.gradle'"
-                else ""
-            File(gradleFolder, "script-plugin$scriptPluginId.gradle").writeText("""
-                $maybeApplyNestedScript
-            """)
-        }
+
     }
 }
 
