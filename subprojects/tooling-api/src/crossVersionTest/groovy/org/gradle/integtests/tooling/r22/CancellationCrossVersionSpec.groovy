@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.tooling.r22
 
-
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.integtests.tooling.r21.HangingBuildAction
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
@@ -30,7 +28,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
 
-@ToolingApiVersion(">=2.2")
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 

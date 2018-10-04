@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r40
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -27,7 +26,6 @@ import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
-@ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule

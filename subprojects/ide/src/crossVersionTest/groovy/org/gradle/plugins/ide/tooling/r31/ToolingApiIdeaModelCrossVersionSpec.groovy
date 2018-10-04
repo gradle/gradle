@@ -57,7 +57,7 @@ project(':impl') {
         mod.targetModuleName == 'api'
     }
 
-    @ToolingApiVersion(">=2.0 !3.0") // broken on 3.0
+    @ToolingApiVersion(">3.0")
     @TargetGradleVersion(">=2.6")
     def "can query dependencies for model produced from BuildAction"() {
         def fakeRepo = new MavenFileRepository(file("repo"))

@@ -54,7 +54,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  * </ul>
  */
 @CleanupTestDirectory
-@ToolingApiVersion('>=2.0')
+@ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=2.6')
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)

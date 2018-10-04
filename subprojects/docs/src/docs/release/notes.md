@@ -269,7 +269,13 @@ However, you can still use forked compilation and testing to build and test soft
 
 ### Tooling API and TestKit require Gradle 2.6 or higher
 
-The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. The same applies to builds run through TestKit.
+The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. 
+The same applies to builds run through TestKit.
+
+### Tooling API clients before 3.0 are now longer supported
+
+Gradle 5.0 requires a minimum Tooling API client version of 3.0. 
+Older client libraries can no longer run builds with Gradle 5.0
 
 ### Configuration Avoidance API disallows common configuration errors
 

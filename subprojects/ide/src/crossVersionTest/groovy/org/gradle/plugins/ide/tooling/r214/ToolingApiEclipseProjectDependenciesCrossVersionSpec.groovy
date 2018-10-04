@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-@ToolingApiVersion(">=2.14 <=3.0")
+@ToolingApiVersion("<=3.0")
 @TargetGradleVersion(">=2.6 <=3.0")
 class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 

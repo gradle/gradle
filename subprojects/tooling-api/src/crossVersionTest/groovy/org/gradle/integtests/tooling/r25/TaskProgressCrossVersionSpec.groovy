@@ -20,7 +20,6 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
@@ -36,7 +35,6 @@ import org.junit.Rule
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
-    @ToolingApiVersion(">=2.5")
     def "receive task progress events when requesting a model"() {
         given:
         goodCode()
@@ -53,7 +51,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operations == events.tasks
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive task progress events when launching a build"() {
         given:
         goodCode()
@@ -70,7 +67,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operations == events.tasks
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive current task progress event even if one of multiple task listeners throws an exception"() {
         given:
         goodCode()
@@ -104,7 +100,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive task progress events for successful tasks"() {
         given:
         goodCode()
@@ -146,7 +141,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         !classes.result.upToDate
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive task progress events for failed tasks"() {
         given:
         buildFile << """
@@ -185,7 +179,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         events.failed == [test]
     }
 
-    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=2.6 <3.6")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
@@ -230,7 +223,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
 
-    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=3.6")
     def "receive task progress events when tasks are executed in parallel (with async work)"() {
         given:
@@ -294,7 +286,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         server.stop()
     }
 
-    @ToolingApiVersion(">=2.5")
     def "task operations have a build operation as parent iff build listener is attached"() {
         given:
         goodCode()
@@ -321,7 +312,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         events.tasks.every { it.descriptor.parent == null }
     }
 
-    @ToolingApiVersion(">=2.5")
     @TargetGradleVersion(">=3.4")
     def "task with empty skipwhenempty inputs marked as skipped with NO-SOURCE"() {
         given:

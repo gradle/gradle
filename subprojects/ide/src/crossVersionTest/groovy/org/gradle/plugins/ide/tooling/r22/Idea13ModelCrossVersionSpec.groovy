@@ -15,14 +15,11 @@
  */
 package org.gradle.plugins.ide.tooling.r22
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaProject
 
 class Idea13ModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.2")
     def "provides generated sources dir information"() {
 
         file('build.gradle').text = """

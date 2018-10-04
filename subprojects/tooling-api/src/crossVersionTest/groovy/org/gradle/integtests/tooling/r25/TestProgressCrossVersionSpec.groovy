@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
@@ -36,7 +35,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion(">=2.5")
     def "receive test progress events when requesting a model"() {
         given:
         goodCode()
@@ -53,7 +51,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operations == events.tests
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive test progress events when launching a build"() {
         given:
         goodCode()
@@ -70,7 +67,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operations == events.tests
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
         given:
         goodCode()
@@ -113,7 +109,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive test progress events for successful test run"() {
         given:
         buildFile << """
@@ -181,7 +176,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testMethod.descriptor.parent == testClass.descriptor
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive test progress events for failed test run"() {
         given:
         buildFile << """
@@ -263,7 +257,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testMethod.result.failures[0].causes[0].causes.empty
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive test progress events for skipped test run"() {
         given:
         buildFile << """
@@ -296,7 +289,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testMethod.result instanceof TestSkippedResult
     }
 
-    @ToolingApiVersion(">=2.5")
     def "test progress event ids are unique across multiple test workers"() {
         given:
         buildFile << """
@@ -365,7 +357,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToolingApiVersion(">=2.5")
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
         if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
@@ -438,7 +429,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         events.tests.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 4       // 2 test processes for each task
     }
 
-    @ToolingApiVersion(">=2.5")
     def "top-level test operation has test task as parent if task listener is attached"() {
         given:
         goodCode()

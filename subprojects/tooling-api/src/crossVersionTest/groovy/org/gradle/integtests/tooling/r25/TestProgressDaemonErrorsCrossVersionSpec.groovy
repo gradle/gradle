@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.tooling.r25
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -33,7 +31,6 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireIsolatedDaemons()
     }
 
-    @ToolingApiVersion(">=2.5")
     def "should received failed event when daemon disappears unexpectedly with TAPI higher 2.4"() {
         given:
         goodCode()

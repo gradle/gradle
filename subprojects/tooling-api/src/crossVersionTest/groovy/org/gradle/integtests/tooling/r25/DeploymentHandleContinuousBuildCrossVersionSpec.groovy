@@ -19,12 +19,9 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import spock.lang.Timeout
 
 @Timeout(120)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
 @TargetGradleVersion(GradleVersions.SUPPORTS_DEPLOYMENT_REGISTRY)
 class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
     File triggerFile = file('triggerFile')

@@ -24,7 +24,7 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion(">=2.14 <=3.0")
+@ToolingApiVersion("<=3.0")
 @TargetGradleVersion(">=2.6 <=3.0")
 class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 

@@ -72,7 +72,7 @@ The current version of Tooling API supports running builds using Gradle versions
 
 === Consumer side
 
-The current version of Gradle supports running builds via Tooling API versions 2.0 and later. However, support for running builds via Tooling API versions older than 3.0 is deprecated and will be removed in Gradle 5.0.
+The current version of Gradle supports running builds via Tooling API versions 3.0 and later.
 
 You should note that not all features of the Tooling API are available for all versions of Gradle. Refer to the documentation for each class and method for more details.
 

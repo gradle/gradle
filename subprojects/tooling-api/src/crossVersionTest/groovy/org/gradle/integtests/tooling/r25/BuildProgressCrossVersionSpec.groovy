@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
@@ -29,7 +28,6 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.5")
     def "receive build progress events when requesting a model"() {
         given:
         goodCode()
@@ -45,7 +43,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive build progress events when launching a build"() {
         given:
         goodCode()
@@ -61,7 +58,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
     }
 
-    @ToolingApiVersion(">=2.5")
     def "stops dispatching events to progress listeners when a listener fails and continues with build"() {
         given:
         goodCode()
@@ -95,7 +91,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         stdout.toString().contains("BUILD SUCCESSFUL")
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive build progress events for successful operations"() {
         given:
         goodCode()
@@ -129,7 +124,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.operations.each { it.buildOperation }
     }
 
-    @ToolingApiVersion(">=2.5")
     def "receive build progress events for failed operations"() {
         given:
         buildFile << """

@@ -139,7 +139,6 @@ class ParametrizedToolingModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=4.4")
-    @ToolingApiVersion(">=2.0")
     def "can get model without parameters for old gradle versions"() {
         when:
         def model = withConnection { connection ->
