@@ -153,7 +153,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
         try {
-            planExecutor.process(executionPlan, failures, new BuildOperationAwareExecutionAction(nodeExecutors, buildOperationExecutor.getCurrentOperation()));
+            planExecutor.process(executionPlan, failures,
+                new BuildOperationAwareExecutionAction(
+                    buildOperationExecutor.getCurrentOperation(),
+                    new InvokeNodeExecutorsAction(nodeExecutors)
+                )
+            );
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
@@ -285,29 +290,42 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     /**
      * This action wraps the execution of a node into a build operation.
      */
-    private class BuildOperationAwareExecutionAction implements Action<Node> {
+    private static class BuildOperationAwareExecutionAction implements Action<Node> {
         private final BuildOperationRef parentOperation;
-        private final List<NodeExecutor> nodeExecutors;
+        private Action<Node> delegate;
 
-        BuildOperationAwareExecutionAction(List<NodeExecutor> nodeExecutors, BuildOperationRef parentOperation) {
-            this.nodeExecutors = nodeExecutors;
+        BuildOperationAwareExecutionAction(BuildOperationRef parentOperation, Action<Node> delegate) {
             this.parentOperation = parentOperation;
+            this.delegate = delegate;
         }
 
         @Override
-        public void execute(Node work) {
+        public void execute(Node node) {
             BuildOperationRef previous = CurrentBuildOperationRef.instance().get();
             CurrentBuildOperationRef.instance().set(parentOperation);
             try {
-                for (NodeExecutor nodeExecutor : nodeExecutors) {
-                    if (nodeExecutor.execute(work)) {
-                        return;
-                    }
-                }
-                throw new IllegalStateException("Unknown type of work: " + work);
+                delegate.execute(node);
             } finally {
                 CurrentBuildOperationRef.instance().set(previous);
             }
+        }
+    }
+
+    private static class InvokeNodeExecutorsAction implements Action<Node> {
+        private final List<NodeExecutor> nodeExecutors;
+
+        public InvokeNodeExecutorsAction(List<NodeExecutor> nodeExecutors) {
+            this.nodeExecutors = nodeExecutors;
+        }
+
+        @Override
+        public void execute(Node node) {
+            for (NodeExecutor nodeExecutor : nodeExecutors) {
+                if (nodeExecutor.execute(node)) {
+                    return;
+                }
+            }
+            throw new IllegalStateException("Unknown type of node: " + node);
         }
     }
 
