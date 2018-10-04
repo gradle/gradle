@@ -96,7 +96,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         where:
         scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
         "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | saveSpoolingListener(scenario)
-        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
+        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean(scenario)
     }
 
 
