@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHas
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;

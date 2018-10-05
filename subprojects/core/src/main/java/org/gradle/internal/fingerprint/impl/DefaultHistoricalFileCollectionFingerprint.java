@@ -25,6 +25,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;

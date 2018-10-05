@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;

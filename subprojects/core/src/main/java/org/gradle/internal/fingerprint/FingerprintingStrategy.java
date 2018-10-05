@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;

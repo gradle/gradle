@@ -22,6 +22,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
@@ -33,7 +34,7 @@ import java.util.Map;
 /**
  * Compares by normalized path (relative/name only) and file contents. Order does not matter.
  */
-public class NormalizedPathFingerprintCompareStrategy extends FingerprintCompareStrategy {
+public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprintCompareStrategy {
     public static final FingerprintCompareStrategy INSTANCE = new NormalizedPathFingerprintCompareStrategy();
 
     private static final Comparator<Map.Entry<FileSystemLocationFingerprint, ?>> ENTRY_COMPARATOR = new Comparator<Map.Entry<FileSystemLocationFingerprint, ?>>() {

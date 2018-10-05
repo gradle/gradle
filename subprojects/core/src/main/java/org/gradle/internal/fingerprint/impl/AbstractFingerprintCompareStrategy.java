@@ -20,25 +20,16 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.changes.TaskStateChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Map;
 
-/**
- * Strategy to compare two {@link FileCollectionFingerprint}s.
- *
- * The strategy first tries to do a trivial comparison and delegates the more complex cases to a separate implementation.
- */
-public abstract class FingerprintCompareStrategy {
+public abstract class AbstractFingerprintCompareStrategy implements FingerprintCompareStrategy {
 
-    /**
-     * @see FileCollectionFingerprint#visitChangesSince(FileCollectionFingerprint, String, boolean, TaskStateChangeVisitor)
-     */
+    @Override
     public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Boolean trivialResult = compareTrivialFingerprints(visitor, current, previous, propertyTitle, includeAdded);
@@ -49,8 +40,6 @@ public abstract class FingerprintCompareStrategy {
     }
 
     protected abstract boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
-
-    public abstract void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
 
     /**
      * Compares collection fingerprints if one of current or previous are empty or both have at most one element.

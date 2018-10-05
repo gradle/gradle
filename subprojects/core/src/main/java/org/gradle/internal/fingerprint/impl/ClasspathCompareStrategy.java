@@ -20,6 +20,7 @@ import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
@@ -31,7 +32,7 @@ import java.util.Map;
  *
  * That means that the comparison happens in-order with relative path sensitivity.
  */
-public class ClasspathCompareStrategy extends FingerprintCompareStrategy {
+public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy {
     public static final FingerprintCompareStrategy INSTANCE = new ClasspathCompareStrategy();
 
     private ClasspathCompareStrategy() {

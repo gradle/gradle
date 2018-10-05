@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 class DefaultHistoricalFileCollectionFingerprintSerializerTest extends SerializerSpec {
 
-    static final List<FingerprintCompareStrategy> COMPARE_STRATEGIES = [
+    static final List<AbstractFingerprintCompareStrategy> COMPARE_STRATEGIES = [
         AbsolutePathFingerprintCompareStrategy.INSTANCE,
         NormalizedPathFingerprintCompareStrategy.INSTANCE,
         IgnoredPathCompareStrategy.INSTANCE,

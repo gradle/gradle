@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
@@ -30,7 +31,7 @@ import java.util.Set;
 /**
  * Compares by absolute paths and file contents. Order does not matter.
  */
-public class AbsolutePathFingerprintCompareStrategy extends FingerprintCompareStrategy {
+public class AbsolutePathFingerprintCompareStrategy extends AbstractFingerprintCompareStrategy {
 
     public static final FingerprintCompareStrategy INSTANCE = new AbsolutePathFingerprintCompareStrategy();
 

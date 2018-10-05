@@ -24,7 +24,7 @@ import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.compareTrivialFingerprints
+import static AbstractFingerprintCompareStrategy.compareTrivialFingerprints
 
 class FingerprintCompareStrategyTest extends Specification {
 
@@ -297,13 +297,13 @@ class FingerprintCompareStrategyTest extends Specification {
         ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
     }
 
-    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
+    def changes(AbstractFingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
-    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
+    def changesUsingAbsolutePaths(AbstractFingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()

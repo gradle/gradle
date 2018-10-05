@@ -23,6 +23,7 @@ import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
@@ -35,7 +36,7 @@ import java.util.Map;
 /**
  * Compares {@link FileCollectionFingerprint}s ignoring the path.
  */
-public class IgnoredPathCompareStrategy extends FingerprintCompareStrategy {
+public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrategy {
     public static final FingerprintCompareStrategy INSTANCE = new IgnoredPathCompareStrategy();
 
     private static final Comparator<Map.Entry<HashCode, FilePathWithType>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FilePathWithType>>() {
