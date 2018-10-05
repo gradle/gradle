@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
-import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer
