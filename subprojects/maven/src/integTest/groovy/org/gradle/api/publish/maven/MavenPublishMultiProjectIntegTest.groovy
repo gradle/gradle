@@ -264,6 +264,7 @@ project(":project2") {
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "can resolve non-build dependencies while projects are configured in parallel"() {
         def parallelProjectCount = 20
+        using m2
 
         given:
         settingsFile << """
@@ -282,14 +283,6 @@ project(":project2") {
                 
                 group = "org.gradle.test"
                 version = "1.0"
-
-                uploadArchives {
-                    repositories {
-                        mavenDeployer {
-                            repository(url: "${mavenRepo.uri}")
-                        }
-                    }
-                }
 
                 tasks.named("jar") {
                     resolutionCount[project.name].incrementAndGet()
