@@ -5,6 +5,7 @@ plugins {
 apply(plugin = "org.gradle.kotlin.kotlin-dsl")
 
 dependencies {
+    implementation(project(":buildPlatform"))
     implementation(project(":binaryCompatibility"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
@@ -17,7 +18,7 @@ dependencies {
     implementation("org.codenarc:CodeNarc:1.0") {
         exclude(group = "org.codehaus.groovy")
     }
-    implementation("com.github.javaparser:javaparser-symbol-solver-core:3.6.11")
+    implementation("com.github.javaparser:javaparser-symbol-solver-core")
 }
 
 gradlePlugin {
