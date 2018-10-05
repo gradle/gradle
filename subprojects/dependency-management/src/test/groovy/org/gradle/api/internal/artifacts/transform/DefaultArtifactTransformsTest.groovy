@@ -164,7 +164,7 @@ class DefaultArtifactTransformsTest extends Specification {
                 }
             }
         }
-        _ * transformer.hasCachedResult(_) >> false
+        _ * transformer.hasCachedResult(_ as TransformationSubject) >> false
         _ * transformer.getDisplayName() >> "transform"
 
         1 * transformer.transform({ it instanceof InitialArtifactTransformationSubject && it.files == [sourceArtifactFile]}) >> new DefaultTransformationSubject(new InitialArtifactTransformationSubject(sourceArtifactId, sourceArtifactFile), [outFile1, outFile2])

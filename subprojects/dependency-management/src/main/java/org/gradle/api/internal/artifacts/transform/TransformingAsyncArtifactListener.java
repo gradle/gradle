@@ -44,13 +44,8 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        TransformationOperation operation = new TransformationOperation(transform, new InitialArtifactTransformationSubject(artifactId, file));
-        artifactResults.put(artifactId, operation);
-        if (transform.hasCachedResult(file)) {
-            operation.run(null);
-        } else {
-            actions.add(operation);
-        }
+        InitialArtifactTransformationSubject initialSubject = new InitialArtifactTransformationSubject(artifactId, file);
+        initialSubjectAvailable(artifactId, initialSubject, artifactResults);
     }
 
     @Override
@@ -66,9 +61,14 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void fileAvailable(File file) {
-        TransformationOperation operation = new TransformationOperation(transform, new InitialFileTransformationSubject(file));
-        fileResults.put(file, operation);
-        if (transform.hasCachedResult(file)) {
+        InitialFileTransformationSubject initialSubject = new InitialFileTransformationSubject(file);
+        initialSubjectAvailable(file, initialSubject, fileResults);
+    }
+
+    private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results) {
+        TransformationOperation operation = new TransformationOperation(transform, initialSubject);
+        results.put(key, operation);
+        if (transform.hasCachedResult(initialSubject)) {
             operation.run(null);
         } else {
             actions.add(operation);

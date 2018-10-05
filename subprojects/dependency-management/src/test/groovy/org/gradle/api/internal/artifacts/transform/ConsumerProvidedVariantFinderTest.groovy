@@ -182,10 +182,14 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformer.transform(new File("in.txt"))
+        def result = transformer.transformer.transform(initialSubject("in.txt"))
 
         then:
-        result == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
+        result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
+    }
+
+    private static TransformationSubject initialSubject(String path) {
+        new InitialFileTransformationSubject(new File(path))
     }
 
     def "prefers direct transformation over indirect"() {
@@ -257,7 +261,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformer.transform(new File("a"))
+        def files = result.matches.first().transformer.transform(initialSubject("a")).files
 
         then:
         files == [new File("d"), new File("e")]
@@ -328,13 +332,13 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         immutableAttributesFactory.mutable()
     }
 
-    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer<List<File>, File> transformer) {
         def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
         reg.artifactTransformer >> Stub(ArtifactTransformation) {
-            transform(_) >> { File file ->
-                transformer.transform(file)
+            transform(_ as TransformationSubject) >> { TransformationSubject subject ->
+                return new DefaultTransformationSubject(subject, subject.files.collectMany { transformer.transform(it) })
             }
         }
         reg

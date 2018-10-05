@@ -18,10 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 class ArtifactTransformationChain implements ArtifactTransformation {
 
     private final ArtifactTransformation first;
@@ -33,29 +29,16 @@ class ArtifactTransformationChain implements ArtifactTransformation {
     }
 
     @Override
-    public List<File> transform(File file) {
-        List<File> result = new ArrayList<File>();
-        for (File intermediate : first.transform(file)) {
-            result.addAll(second.transform(intermediate));
-        }
-        return result;
-    }
-
-    @Override
     public TransformationSubject transform(TransformationSubject subject) {
         TransformationSubject intermediateSubject = first.transform(subject);
         return second.transform(intermediateSubject);
     }
 
     @Override
-    public boolean hasCachedResult(File input) {
-        if (first.hasCachedResult(input)) {
-            for (File intermediate : first.transform(input)) {
-                if (!second.hasCachedResult(intermediate)) {
-                    return false;
-                }
-            }
-            return true;
+    public boolean hasCachedResult(TransformationSubject subject) {
+        if (first.hasCachedResult(subject)) {
+            TransformationSubject intermediate = first.transform(subject);
+            return second.hasCachedResult(intermediate);
         }
         return false;
     }

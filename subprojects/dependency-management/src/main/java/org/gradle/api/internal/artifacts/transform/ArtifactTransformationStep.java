@@ -38,11 +38,6 @@ class ArtifactTransformationStep implements ArtifactTransformation {
     }
 
     @Override
-    public List<File> transform(File input) {
-        return transformedFileCache.runTransformer(input, transformerRegistration);
-    }
-
-    @Override
     public TransformationSubject transform(TransformationSubject subjectToTransform) {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
@@ -52,7 +47,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
             }
         List<File> result = new ArrayList<File>();
         for (File file : subjectToTransform.getFiles()) {
-            boolean hasCachedResult = hasCachedResult(file);
+            boolean hasCachedResult = hasCachedResultForSingleFile(file);
             if (!hasCachedResult) {
                 artifactTransformListener.beforeTransform(transformerRegistration, subjectToTransform);
             }
@@ -69,9 +64,21 @@ class ArtifactTransformationStep implements ArtifactTransformation {
         return new DefaultTransformationSubject(subjectToTransform, result);
     }
 
-    @Override
-    public boolean hasCachedResult(File input) {
+    public boolean hasCachedResultForSingleFile(File input) {
         return transformedFileCache.contains(input.getAbsoluteFile(), transformerRegistration.getInputsHash());
+    }
+
+    @Override
+    public boolean hasCachedResult(TransformationSubject subject) {
+        if (subject.getFailure() != null) {
+            return true;
+        }
+        for (File file : subject.getFiles()) {
+            if (!hasCachedResultForSingleFile(file)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
