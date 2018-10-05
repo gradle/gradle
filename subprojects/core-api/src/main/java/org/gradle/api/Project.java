@@ -1729,7 +1729,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     InputNormalizationHandler getNormalization();
 
     /**
@@ -1737,7 +1736,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     void normalization(Action<? super InputNormalizationHandler> configuration);
 
     /**

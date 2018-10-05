@@ -15,14 +15,11 @@
  */
 package org.gradle.api.tasks.incremental;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
  * A change to an input file.
  */
-@Incubating
 public interface InputFileDetails {
     /**
      * Was the file added?
