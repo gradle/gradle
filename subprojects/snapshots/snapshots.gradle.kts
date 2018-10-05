@@ -42,6 +42,7 @@ java {
 testFixtures {
     from(":baseServices")
     from(":files")
+    from(":messaging")
     from(":core")
     from(":coreApi")
 }

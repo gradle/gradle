@@ -20,13 +20,14 @@ import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.FingerprintCompareStrategy
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
 class DefaultHistoricalFileCollectionFingerprintSerializerTest extends SerializerSpec {
 
-    static final List<AbstractFingerprintCompareStrategy> COMPARE_STRATEGIES = [
+    static final List<FingerprintCompareStrategy> COMPARE_STRATEGIES = [
         AbsolutePathFingerprintCompareStrategy.INSTANCE,
         NormalizedPathFingerprintCompareStrategy.INSTANCE,
         IgnoredPathCompareStrategy.INSTANCE,
