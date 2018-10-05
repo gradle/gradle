@@ -31,7 +31,7 @@ class ToolingApiEclipseModelSourceDirectoryAccessRuleCrossVersionSpec extends To
         settingsFile << 'rootProject.name = "root"'
     }
 
-    @TargetGradleVersion(">=1.2 <3.0")
+    @TargetGradleVersion(">=2.6 <3.0")
     def "Older versions throw runtime exception when querying access rules"() {
         buildFile << "apply plugin: 'java'"
         file('src/main/java').mkdirs()

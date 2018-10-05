@@ -57,7 +57,7 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectNatu
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
@@ -76,7 +76,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private DefaultEclipseProject result;
     private List<DefaultEclipseProject> eclipseProjects;
     private TasksFactory tasksFactory;
-    private DefaultGradleProject<?> rootGradleProject;
+    private DefaultGradleProject rootGradleProject;
     private Project currentProject;
 
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {

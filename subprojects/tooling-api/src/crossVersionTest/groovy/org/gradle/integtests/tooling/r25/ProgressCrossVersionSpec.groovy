@@ -16,17 +16,13 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=2.5")
-@TargetGradleVersion(">=2.5")
 class ProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "receive progress events when requesting a model"() {
@@ -104,24 +100,6 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: "only the matching progress events must be forwarded to the attached listener"
-        !events.tests.empty
-        events.operations == events.tests
-    }
-
-    @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion("=2.4")
-    def "register for all progress events when provider version only knows how to send test progress events"() {
-        given:
-        goodCode()
-
-        when: "registering for all progress event types but provider only knows how to send test progress events"
-        def events = ProgressEvents.create()
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().forTasks('test').addProgressListener(events, EnumSet.allOf(OperationType)).run()
-        }
-
-        then: "only test progress events must be forwarded to the attached listener"
         !events.tests.empty
         events.operations == events.tests
     }

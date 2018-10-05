@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r18
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r16.CustomModel
 
@@ -64,7 +64,6 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
-    @TargetGradleVersion(">=1.8")
     def "can use build model to request models for individual projects"() {
         when:
         Map<String, CustomModel> result = withConnection { connection -> connection.action(new UseGradleBuildToFetchProjectModel()).run() }
@@ -96,7 +95,6 @@ class CustomPlugin implements Plugin<Project> {
         result.values()*.value as Set == [':', ':a', ':b', ':b:c'] as Set
     }
 
-    @TargetGradleVersion(">=1.8")
     def "can request models using various element types"() {
         when:
         Map<String, CustomModel> result = withConnection { connection -> connection.action(new UseOtherTypesToFetchProjectModel()).run() }

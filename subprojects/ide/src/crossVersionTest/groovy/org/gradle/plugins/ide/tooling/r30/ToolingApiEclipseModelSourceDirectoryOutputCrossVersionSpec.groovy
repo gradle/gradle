@@ -27,7 +27,7 @@ import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 @TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=1.2 <3.0")
+    @TargetGradleVersion(">=2.6 <3.0")
     def "Old versions throw runtime exception when querying source directory output"() {
         setup:
         settingsFile << 'rootProject.name = "root"'

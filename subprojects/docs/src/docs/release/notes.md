@@ -285,6 +285,16 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
+### Tooling API and TestKit require Gradle 2.6 or higher
+
+The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. 
+The same applies to builds run through TestKit.
+
+### Tooling API clients before 3.0 are now longer supported
+
+Gradle 5.0 requires a minimum Tooling API client version of 3.0. 
+Older client libraries can no longer run builds with Gradle 5.0
+
 ### Configuration Avoidance API disallows common configuration errors
 
 The [configuration avoidance API](userguide/task_configuration_avoidance.html) introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.

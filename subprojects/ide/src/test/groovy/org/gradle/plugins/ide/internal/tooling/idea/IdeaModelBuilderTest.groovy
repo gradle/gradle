@@ -30,7 +30,7 @@ import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.tooling.internal.gradle.DefaultGradleProject
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject
 import org.gradle.util.TestUtil
 
 class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {

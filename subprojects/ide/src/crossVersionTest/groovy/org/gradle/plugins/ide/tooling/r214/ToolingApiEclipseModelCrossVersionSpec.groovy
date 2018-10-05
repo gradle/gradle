@@ -18,13 +18,11 @@ package org.gradle.plugins.ide.tooling.r214
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=2.14')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -41,7 +39,7 @@ dependencies {
 
     }
 
-    @TargetGradleVersion(">=1.2 <2.14")
+    @TargetGradleVersion(">=2.6 <2.14")
     def "older Gradle versions throw UnsupportedMethodException when classpath attributes are accessed"() {
         setup:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

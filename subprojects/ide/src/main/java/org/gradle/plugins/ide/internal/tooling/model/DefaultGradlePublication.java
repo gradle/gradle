@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.gradle;
+package org.gradle.plugins.ide.internal.tooling.model;
+
+import com.google.common.base.MoreObjects;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
+import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
 
-public class DefaultProjectPublications implements Serializable, GradleProjectIdentity {
-    private List<DefaultGradlePublication> publications;
+public class DefaultGradlePublication implements Serializable, GradleProjectIdentity {
+    private GradleModuleVersion id;
     private DefaultProjectIdentifier projectIdentifier;
 
-    public List<DefaultGradlePublication> getPublications() {
-        return publications;
+    public GradleModuleVersion getId() {
+        return id;
     }
 
-    public DefaultProjectPublications setPublications(List<DefaultGradlePublication> publications) {
-        this.publications = publications;
+    public DefaultGradlePublication setId(GradleModuleVersion id) {
+        this.id = id;
         return this;
     }
 
@@ -47,8 +51,14 @@ public class DefaultProjectPublications implements Serializable, GradleProjectId
         return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
-    public DefaultProjectPublications setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+    public DefaultGradlePublication setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
         this.projectIdentifier = projectIdentifier;
         return this;
+    }
+
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .toString();
     }
 }

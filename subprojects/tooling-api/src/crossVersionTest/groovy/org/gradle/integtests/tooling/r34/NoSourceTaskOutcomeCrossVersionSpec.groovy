@@ -43,7 +43,7 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         skippedTaskResult(taskEvents).skipMessage == "NO-SOURCE"
     }
 
-    @ToolingApiVersion('<3.4 >=2.5')
+    @ToolingApiVersion('<3.4 >=3.0')
     @TargetGradleVersion('>=3.4')
     def "NO-SOURCE tasks with are reported as SKIPPED for older tapi versions"() {
         when:
