@@ -648,6 +648,22 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.addMultilineStringsOption(option);
     }
 
+    /**
+     * Adds an option that will have multiple values separated by spaces.
+     *
+     * <p>
+     * {@code addMultiValueOption("foo").setValue(["a", "b", "c"])} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'a' 'b' 'c'
+     * </pre>
+     * @param option command-line option
+     *
+     * @since 4.10.3
+     */
+    public JavadocOptionFileOption<List<String>> addMultiValueOption(String option) {
+        return optionFile.addMultiValueOption(option);
+    }
 
     /**
      * Adds an option that will appear multiple times to the javadoc tool. Each line can have more than one value separated by spaces.

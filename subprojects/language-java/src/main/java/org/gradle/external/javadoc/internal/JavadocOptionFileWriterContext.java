@@ -95,6 +95,28 @@ public class JavadocOptionFileWriterContext {
         return this;
     }
 
+    public JavadocOptionFileWriterContext writeMultiValueOption(String option, Collection<String> values) throws IOException {
+        writeOptionHeader(option);
+
+        Iterator<String> valuesIt = values.iterator();
+        while (valuesIt.hasNext()) {
+            writeValue(valuesIt.next());
+            if (valuesIt.hasNext()) {
+                write(" ");
+            }
+        }
+
+        newLine();
+        return this;
+    }
+
+    public JavadocOptionFileWriterContext writeMultilineMultiValueOption(String option, Collection<? extends Collection<String>> values) throws IOException {
+        for (Collection<String> valuesInLine : values) {
+            writeMultiValueOption(option, valuesInLine);
+        }
+        return this;
+    }
+
     public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
         StringBuilder builder = new StringBuilder();
         Iterator<File> filesIt = files.iterator();

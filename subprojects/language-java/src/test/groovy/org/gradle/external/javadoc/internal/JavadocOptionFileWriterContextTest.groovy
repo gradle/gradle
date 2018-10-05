@@ -54,4 +54,23 @@ public class JavadocOptionFileWriterContextTest extends Specification {
 
         then: writer.toString() == "-key 'Hey\\${SystemProperties.instance.getLineSeparator()}Joe!'${SystemProperties.instance.getLineSeparator()}"
     }
+
+    def "writes single line multiple values"() {
+        when:
+        context.writeMultiValueOption("key", WrapUtil.toList("a\\b", "c"))
+
+        then: writer.toString() == "-key 'a\\\\b' 'c'${SystemProperties.instance.getLineSeparator()}"
+    }
+
+    def "writes multiple line multiple values"() {
+        when:
+        context.writeMultilineMultiValueOption("key",
+            WrapUtil.toList(
+                WrapUtil.toList("a\\b", "c"),
+                WrapUtil.toList("d", "e\\f")
+            )
+        )
+
+        then: writer.toString() == "-key 'a\\\\b' 'c'${SystemProperties.instance.getLineSeparator()}-key 'd' 'e\\\\f'${SystemProperties.instance.getLineSeparator()}"
+    }
 }

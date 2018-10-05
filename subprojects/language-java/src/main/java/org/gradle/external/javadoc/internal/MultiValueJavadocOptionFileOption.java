@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,19 @@ import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.List;
 
-public class MultilineMultiValueJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<List<String>>> {
-    protected MultilineMultiValueJavadocOptionFileOption(String option, List<List<String>> value) {
+public class MultiValueJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<String>> {
+    protected MultiValueJavadocOptionFileOption(String option, List<String> value) {
         super(option, value, null);
     }
 
     @Override
-    public JavadocOptionFileOptionInternal<List<List<String>>> duplicate() {
-        List<List<String>> copyValues = Lists.newArrayList();
-        for (List<String> occurrence : getValue()) {
-            copyValues.add(Lists.newArrayList(occurrence));
-        }
-        return new MultilineMultiValueJavadocOptionFileOption(option, copyValues);
+    public JavadocOptionFileOptionInternal<List<String>> duplicate() {
+        List<String> duplicateValue = Lists.newArrayList(value);
+        return new MultiValueJavadocOptionFileOption(option, duplicateValue);
     }
 
     @Override
     protected void writeCollectionValue(JavadocOptionFileWriterContext writerContext) throws IOException {
-        writerContext.writeMultilineMultiValueOption(option, getValue());
+        writerContext.writeMultiValueOption(option, value);
     }
 }

@@ -235,6 +235,11 @@ Joe!""")
                         "b",
                         "c"
                     ])
+                    addMultiValueOption("addMultiValueOption").setValue([
+                        "a",
+                        "b",
+                        "c"
+                    ])
                     addMultilineMultiValueOption("addMultilineMultiValueOption").setValue([
                         [ "a" ],
                         [ "b", "c" ]
@@ -253,10 +258,10 @@ Joe!""")
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
-'a' 
--addMultilineMultiValueOption 
-'b' 'c' """))
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultiValueOption 'a' 'b' 'c'"""))
+
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 'a'
+-addMultilineMultiValueOption 'b' 'c'"""))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1502")

@@ -143,7 +143,11 @@ public class JavadocOptionFile {
         return Cast.uncheckedCast(foundOption);
     }
 
+    public JavadocOptionFileOption<List<String>> addMultiValueOption(String option) {
+        return addOption(new MultiValueJavadocOptionFileOption(option, Lists.<String>newArrayList()));
+    }
+
     public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
-        return addOption(new MultilineMultiValueJavadocOptionFileOption(option, Lists.<List<String>>newArrayList(), " "));
+        return addOption(new MultilineMultiValueJavadocOptionFileOption(option, Lists.<List<String>>newArrayList()));
     }
 }
