@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -32,7 +31,7 @@ class EmptyFileCollectionFingerprintTest extends Specification {
 
     private static final List<FileCollectionFingerprint> EMPTY_FINGERPRINTS = [
         EmptyHistoricalFileCollectionFingerprint.INSTANCE,
-        *FingerprintingStrategy.Identifier.values()*.emptyFingerprint
+        new EmptyCurrentFileCollectionFingerprint("test")
     ]
 
     def "comparing empty snapshot to regular snapshot shows entries added"() {

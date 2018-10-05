@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
@@ -31,13 +32,14 @@ import java.util.Map;
 /**
  * Fingerprint files without path or content normalization.
  */
-public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy {
-    INCLUDE_MISSING(true),
-    IGNORE_MISSING(false);
+public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
+    public static final FingerprintingStrategy INCLUDE_MISSING = new AbsolutePathFingerprintingStrategy(true);
+    public static final FingerprintingStrategy IGNORE_MISSING = new AbsolutePathFingerprintingStrategy(false);
 
     private final boolean includeMissing;
 
-    AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+    private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
+        super("ABSOLUTE_PATH");
         this.includeMissing = includeMissing;
     }
 
@@ -81,10 +83,4 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.ABSOLUTE;
     }
-
-    @Override
-    public Identifier getIdentifier() {
-        return Identifier.ABSOLUTE_PATH;
-    }
-
 }

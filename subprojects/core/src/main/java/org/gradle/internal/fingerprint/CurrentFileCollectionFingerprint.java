@@ -28,5 +28,5 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
      */
     HashCode getHash();
 
-    FingerprintingStrategy.Identifier getStrategyIdentifier();
+    String getStrategyIdentifier();
 }

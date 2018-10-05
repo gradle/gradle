@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -35,9 +34,9 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     private static final HashCode SIGNATURE = Hashing.signature(EmptyCurrentFileCollectionFingerprint.class);
 
-    private final FingerprintingStrategy.Identifier identifier;
+    private final String identifier;
 
-    public EmptyCurrentFileCollectionFingerprint(FingerprintingStrategy.Identifier identifier) {
+    public EmptyCurrentFileCollectionFingerprint(String identifier) {
         this.identifier = identifier;
     }
 
@@ -65,7 +64,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public FingerprintingStrategy.Identifier getStrategyIdentifier() {
+    public String getStrategyIdentifier() {
         return identifier;
     }
 
@@ -76,6 +75,6 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     @Override
     public String toString() {
-        return "EMPTY{" + identifier.name() + "}";
+        return "EMPTY{" + identifier + "}";
     }
 }

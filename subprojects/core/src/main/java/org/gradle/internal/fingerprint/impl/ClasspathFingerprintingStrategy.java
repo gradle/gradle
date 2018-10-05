@@ -27,8 +27,8 @@ import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHas
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -59,7 +59,7 @@ import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrate
  * For the resources in each classpath entry, normalization takes the relative path of the resource and possibly normalizes its contents.
  * </p>
  */
-public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
+public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     private final NonJarFingerprintingStrategy nonJarFingerprintingStrategy;
     private final ResourceFilter classpathResourceFilter;
@@ -68,10 +68,9 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     private final JarHasher jarHasher;
     private final StringInterner stringInterner;
     private final HashCode jarHasherConfigurationHash;
-    private final FingerprintingStrategy.Identifier identifier;
 
-    private ClasspathFingerprintingStrategy(Identifier identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        this.identifier = identifier;
+    private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+        super(identifier);
         this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -84,11 +83,11 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        return new ClasspathFingerprintingStrategy(Identifier.CLASSPATH, USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner);
+        return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        return new ClasspathFingerprintingStrategy(Identifier.COMPILE_CLASSPATH, IGNORE, classpathResourceHasher, ResourceFilter.FILTER_NOTHING, cacheService, stringInterner);
+        return new ClasspathFingerprintingStrategy("COMPILE_CLASSPATH", IGNORE, classpathResourceHasher, ResourceFilter.FILTER_NOTHING, cacheService, stringInterner);
     }
 
     @Override
@@ -191,11 +190,6 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.CLASSPATH;
-    }
-
-    @Override
-    public Identifier getIdentifier() {
-        return identifier;
     }
 
     private class ClasspathFingerprintVisitor {

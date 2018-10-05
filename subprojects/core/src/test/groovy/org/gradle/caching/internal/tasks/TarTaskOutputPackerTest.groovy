@@ -351,21 +351,21 @@ class TarTaskOutputPackerTest extends Specification {
         packer.unpack(propertySpecs, input, readOrigin)
     }
 
-    def prop(String name = "test", OutputType type, File output) {
+    def prop(String name = "test", OutputType type, File output, FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING) {
         switch (type) {
             case FILE:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
                     if (output == null) {
-                        return FingerprintingStrategy.Identifier.ABSOLUTE_PATH.getEmptyFingerprint()
+                        return fingerprintingStrategy.getEmptyFingerprint()
                     }
-                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
-                        return FingerprintingStrategy.Identifier.ABSOLUTE_PATH.getEmptyFingerprint()
+                        return fingerprintingStrategy.getEmptyFingerprint()
                     }
-                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
                 })
             default:
                 throw new AssertionError()

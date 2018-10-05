@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.fingerprint.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -32,11 +32,12 @@ import java.util.Map;
  *
  * Ignores directories.
  */
-public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy {
+public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
 
     private IgnoredPathFingerprintingStrategy() {
+        super("IGNORED_PATH");
     }
 
     @Override
@@ -71,10 +72,4 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.IGNORED_PATH;
     }
-
-    @Override
-    public Identifier getIdentifier() {
-        return Identifier.IGNORED_PATH;
-    }
-
 }

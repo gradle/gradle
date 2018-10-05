@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -39,25 +38,8 @@ public interface FingerprintingStrategy {
      */
     FingerprintCompareStrategy getCompareStrategy();
 
-    Identifier getIdentifier();
-
     @UsedByScanPlugin("not linked directly - name are expected as part of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType.Result.VisitState.getPropertyNormalizationStrategyName")
-    enum Identifier {
-        IGNORED_PATH,
-        NAME_ONLY,
-        RELATIVE_PATH,
-        ABSOLUTE_PATH,
-        COMPILE_CLASSPATH,
-        CLASSPATH;
+    String getIdentifier();
 
-        private final EmptyCurrentFileCollectionFingerprint emptyFingerprint;
-
-        Identifier() {
-            emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(this);
-        }
-
-        public EmptyCurrentFileCollectionFingerprint getEmptyFingerprint() {
-            return emptyFingerprint;
-        }
-    }
+    CurrentFileCollectionFingerprint getEmptyFingerprint();
 }
