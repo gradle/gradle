@@ -55,11 +55,11 @@ project(':a') {
 
         ideaModuleA.dependencies.size() == 2
 
-        IdeaModuleDependency rootDependency = ideaModuleA.dependencies.find { it.dependencyModule.name == 'root' }
+        IdeaModuleDependency rootDependency = ideaModuleA.dependencies.find { it.targetModuleName == 'root' }
         rootDependency != null
         rootDependency.target == ideaModuleRoot.identifier
 
-        IdeaModuleDependency otherDependency = ideaModuleA.dependencies.find { it.dependencyModule.name == 'b' }
+        IdeaModuleDependency otherDependency = ideaModuleA.dependencies.find { it.targetModuleName == 'b' }
         otherDependency != null
         otherDependency.target == ideaModuleB.identifier
     }

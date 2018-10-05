@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.model.ProjectDependency;
+package org.gradle.tooling.internal.consumer.converters;
+
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
 /**
- * Represents a dependency on another Eclipse project.
+ * This is used for compatibility with clients <2.14
  */
-public interface EclipseProjectDependency extends ProjectDependency, EclipseClasspathEntry {
-
-    /**
-     * Returns the path to use for this project dependency.
-     */
-    String getPath();
-
-    /**
-     * Marks this dependency as exported.
-     *
-     * @return whether this dependency needs to be exported.
-     * @since 2.5
-     */
-    boolean isExported();
+public interface BackwardsCompatibleIdeaModuleDependency extends IdeaModuleDependency {
+    IdeaModule getDependencyModule();
 }
