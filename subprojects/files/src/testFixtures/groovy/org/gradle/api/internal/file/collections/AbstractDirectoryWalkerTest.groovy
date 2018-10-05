@@ -86,7 +86,8 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
 
     private static generateFilesAndSubDirectories(File parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
         for (int i = 0; i < fileCount; i++) {
-            parentDir.createFile("file" + fileIdGenerator.incrementAndGet()) << ("x" * fileIdGenerator.get())
+            def file = new File(parentDir, "file" + fileIdGenerator.incrementAndGet())
+            file << ("x" * fileIdGenerator.get())
         }
         if (currentDepth < maxDepth) {
             for (int i = 0; i < dirCount; i++) {
