@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
+import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -282,7 +283,7 @@ public class CommandLineActionFactory {
             sb.append("%nKotlin:       ");
             sb.append(currentKotlinDslVersion.getKotlinVersion());
             sb.append("%nGroovy:       ");
-            sb.append(GroovyVersion.current());
+            sb.append(ReleaseInfo.getVersion());
             sb.append("%nAnt:          ");
             sb.append(Main.getAntVersion());
             sb.append("%nJVM:          ");
