@@ -614,10 +614,10 @@ fun requiresAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
     programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
 
 
-private
+internal
 fun publicClass(name: String, superName: String = "java/lang/Object", interfaces: Array<String>? = null, classBody: ClassWriter.() -> Unit = {}) =
     ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).run {
-        visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name, null, superName, interfaces)
+        visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name, null, superName, interfaces)
         classBody()
         visitEnd()
         toByteArray()
@@ -642,7 +642,20 @@ fun ClassVisitor.publicMethod(
     exceptions: Array<String>? = null,
     methodBody: MethodVisitor.() -> Unit
 ) {
-    visitMethod(Opcodes.ACC_PUBLIC, name, desc, signature, exceptions).apply {
+    method(Opcodes.ACC_PUBLIC, name, desc, signature, exceptions, methodBody)
+}
+
+
+internal
+fun ClassVisitor.method(
+    access: Int,
+    name: String,
+    desc: String,
+    signature: String? = null,
+    exceptions: Array<String>? = null,
+    methodBody: MethodVisitor.() -> Unit
+) {
+    visitMethod(access, name, desc, signature, exceptions).apply {
         visitCode()
         methodBody()
         visitMaxs(0, 0)
@@ -676,7 +689,7 @@ fun MethodVisitor.NEWARRAY(primitiveType: Int) {
 }
 
 
-private
+internal
 fun MethodVisitor.LDC(value: Any) {
     visitLdcInsn(value)
 }
@@ -694,7 +707,7 @@ fun MethodVisitor.INVOKESPECIAL(owner: String, name: String, desc: String, itf: 
 }
 
 
-private
+internal
 fun MethodVisitor.INVOKEINTERFACE(owner: String, name: String, desc: String, itf: Boolean = true) {
     visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, name, desc, itf)
 }
@@ -718,19 +731,19 @@ fun MethodVisitor.DUP() {
 }
 
 
-private
+internal
 fun MethodVisitor.ARETURN() {
     visitInsn(Opcodes.ARETURN)
 }
 
 
-private
+internal
 fun MethodVisitor.RETURN() {
     visitInsn(Opcodes.RETURN)
 }
 
 
-private
+internal
 fun MethodVisitor.ALOAD(`var`: Int) {
     visitVarInsn(Opcodes.ALOAD, `var`)
 }
@@ -799,13 +812,13 @@ fun MethodVisitor.CHECKCAST(type: String) {
 }
 
 
-private
+internal
 fun MethodVisitor.ACONST_NULL() {
     visitInsn(Opcodes.ACONST_NULL)
 }
 
 
-private
+internal
 val KClass<*>.internalName: String
     get() = java.internalName
 

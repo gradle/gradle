@@ -24,6 +24,15 @@ dependencies {
 
     testCompile(project(":test-fixtures"))
     testCompile("com.tngtech.archunit:archunit:0.8.3")
+    testCompile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.4")
+}
+
+
+repositories {
+    maven {
+        name = "kotlinx"
+        url = uri("https://kotlin.bintray.com/kotlinx/")
+    }
 }
 
 
