@@ -38,7 +38,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     private final StringInterner stringInterner;
 
     public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
-        super("RELATIVE_PATH", FingerprintCompareStrategy.NORMALIZED);
+        super("RELATIVE_PATH", NormalizedPathFingerprintCompareStrategy.INSTANCE);
         this.stringInterner = stringInterner;
     }
 

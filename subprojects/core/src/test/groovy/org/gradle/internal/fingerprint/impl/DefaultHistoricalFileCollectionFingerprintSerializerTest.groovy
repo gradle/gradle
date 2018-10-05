@@ -26,7 +26,11 @@ import org.gradle.internal.serialize.SerializerSpec
 class DefaultHistoricalFileCollectionFingerprintSerializerTest extends SerializerSpec {
 
     def stringInterner = new StringInterner()
-    def serializer = new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner)
+    def serializer = new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, [
+        AbsolutePathFingerprintCompareStrategy.INSTANCE,
+        NormalizedPathFingerprintCompareStrategy.INSTANCE,
+        IgnoredPathCompareStrategy.INSTANCE,
+    ])
 
     def "reads and writes the fingerprints"(FingerprintCompareStrategy strategy) {
         def hash = HashCode.fromInt(1234)

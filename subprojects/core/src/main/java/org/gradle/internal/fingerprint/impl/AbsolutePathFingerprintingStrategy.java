@@ -39,7 +39,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     private final boolean includeMissing;
 
     private AbsolutePathFingerprintingStrategy(boolean includeMissing) {
-        super("ABSOLUTE_PATH", FingerprintCompareStrategy.ABSOLUTE);
+        super("ABSOLUTE_PATH", AbsolutePathFingerprintCompareStrategy.INSTANCE);
         this.includeMissing = includeMissing;
     }
 

@@ -70,7 +70,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final HashCode jarHasherConfigurationHash;
 
     private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(identifier, FingerprintCompareStrategy.CLASSPATH);
+        super(identifier, ClasspathCompareStrategy.INSTANCE);
         this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;

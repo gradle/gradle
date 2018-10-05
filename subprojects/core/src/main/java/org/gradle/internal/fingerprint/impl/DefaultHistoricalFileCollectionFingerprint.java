@@ -18,6 +18,8 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
@@ -31,6 +33,8 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFileCollectionFingerprint {
@@ -75,17 +79,30 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
         private final FingerprintMapSerializer fingerprintMapSerializer;
         private final StringInterner stringInterner;
         private final HashCodeSerializer hashCodeSerializer;
+        private final BiMap<Integer, FingerprintCompareStrategy> compareStrategies;
 
-        public SerializerImpl(StringInterner stringInterner) {
+        public SerializerImpl(StringInterner stringInterner, List<FingerprintCompareStrategy> compareStrategies) {
             this.fingerprintMapSerializer = new FingerprintMapSerializer(stringInterner);
             this.stringInterner = stringInterner;
             this.hashCodeSerializer = new HashCodeSerializer();
+            this.compareStrategies = mapStrategies(compareStrategies);
+        }
+
+        private static BiMap<Integer, FingerprintCompareStrategy> mapStrategies(List<FingerprintCompareStrategy> compareStrategies) {
+            ImmutableBiMap.Builder<Integer, FingerprintCompareStrategy> builder = ImmutableBiMap.builder();
+            ListIterator<FingerprintCompareStrategy> iStrategy = compareStrategies.listIterator();
+            while (iStrategy.hasNext()) {
+                int index = iStrategy.nextIndex();
+                FingerprintCompareStrategy strategy = iStrategy.next();
+                builder.put(index, strategy);
+            }
+            return builder.build();
         }
 
         @Override
         public DefaultHistoricalFileCollectionFingerprint read(Decoder decoder) throws IOException {
             int type = decoder.readSmallInt();
-            FingerprintCompareStrategy compareStrategy = FingerprintCompareStrategy.values()[type];
+            FingerprintCompareStrategy compareStrategy = compareStrategies.get(type);
             Map<String, FileSystemLocationFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
             ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
             return new DefaultHistoricalFileCollectionFingerprint(fingerprints, compareStrategy, rootHashes);
@@ -107,7 +124,7 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
 
         @Override
         public void write(Encoder encoder, DefaultHistoricalFileCollectionFingerprint value) throws Exception {
-            encoder.writeSmallInt(value.compareStrategy.ordinal());
+            encoder.writeSmallInt(compareStrategies.inverse().get(value.compareStrategy));
             fingerprintMapSerializer.write(encoder, value.getFingerprints());
             writeRootHashes(encoder, value.getRootHashes());
         }

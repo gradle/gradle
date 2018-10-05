@@ -31,10 +31,14 @@ import java.util.Map;
  *
  * That means that the comparison happens in-order with relative path sensitivity.
  */
-public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl {
+public class ClasspathCompareStrategy extends FingerprintCompareStrategy {
+    public static final FingerprintCompareStrategy INSTANCE = new ClasspathCompareStrategy();
+
+    private ClasspathCompareStrategy() {
+    }
 
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
         Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries = currentSnapshots.entrySet().iterator();
         Iterator<Map.Entry<String, FileSystemLocationFingerprint>> previousEntries = previousSnapshots.entrySet().iterator();
         while (true) {

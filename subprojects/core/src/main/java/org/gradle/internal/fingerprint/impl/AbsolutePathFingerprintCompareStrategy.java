@@ -30,10 +30,15 @@ import java.util.Set;
 /**
  * Compares by absolute paths and file contents. Order does not matter.
  */
-public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
+public class AbsolutePathFingerprintCompareStrategy extends FingerprintCompareStrategy {
+
+    public static final FingerprintCompareStrategy INSTANCE = new AbsolutePathFingerprintCompareStrategy();
+
+    private AbsolutePathFingerprintCompareStrategy() {
+    }
 
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
 
         for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {

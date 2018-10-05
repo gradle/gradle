@@ -34,7 +34,7 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
     private final Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
 
-    TaskExecutionFingerprintSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
+    public TaskExecutionFingerprintSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
         this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();

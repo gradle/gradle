@@ -33,13 +33,18 @@ import java.util.Map;
 /**
  * Compares by normalized path (relative/name only) and file contents. Order does not matter.
  */
-public class NormalizedPathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
+public class NormalizedPathFingerprintCompareStrategy extends FingerprintCompareStrategy {
+    public static final FingerprintCompareStrategy INSTANCE = new NormalizedPathFingerprintCompareStrategy();
+
     private static final Comparator<Map.Entry<FileSystemLocationFingerprint, ?>> ENTRY_COMPARATOR = new Comparator<Map.Entry<FileSystemLocationFingerprint, ?>>() {
         @Override
         public int compare(Map.Entry<FileSystemLocationFingerprint, ?> o1, Map.Entry<FileSystemLocationFingerprint, ?> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }
     };
+
+    private NormalizedPathFingerprintCompareStrategy() {
+    }
 
     /**
      * Determines changes by:
@@ -54,7 +59,7 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
      * </ul>
      */
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentFingerprints, Map<String, FileSystemLocationFingerprint> previousFingerprints, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentFingerprints, Map<String, FileSystemLocationFingerprint> previousFingerprints, String propertyTitle, boolean includeAdded) {
         ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
         ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = MultimapBuilder.linkedHashKeys().linkedListValues().build();
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previousFingerprints.entrySet()) {

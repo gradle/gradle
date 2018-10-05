@@ -16,25 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
-import org.gradle.internal.serialize.DefaultSerializerRegistry;
-import org.gradle.internal.serialize.SerializerRegistry;
-import org.gradle.internal.serialize.Serializers;
 
 import javax.annotation.Nullable;
 
 public class TaskHistoryCache {
     private final PersistentIndexedCache<String, HistoricalTaskExecution> cache;
 
-    public TaskHistoryCache(TaskHistoryStore cacheAccess, StringInterner stringInterner) {
-        SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        serializerRegistry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner));
-        serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
-        TaskExecutionFingerprintSerializer serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
+    public TaskHistoryCache(TaskHistoryStore cacheAccess, TaskExecutionFingerprintSerializer serializer) {
         this.cache = cacheAccess.createCache(
             "taskHistory",
             String.class,

@@ -35,13 +35,18 @@ import java.util.Map;
 /**
  * Compares {@link FileCollectionFingerprint}s ignoring the path.
  */
-public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Impl {
+public class IgnoredPathCompareStrategy extends FingerprintCompareStrategy {
+    public static final FingerprintCompareStrategy INSTANCE = new IgnoredPathCompareStrategy();
+
     private static final Comparator<Map.Entry<HashCode, FilePathWithType>> ENTRY_COMPARATOR = new Comparator<Map.Entry<HashCode, FilePathWithType>>() {
         @Override
         public int compare(Map.Entry<HashCode, FilePathWithType> o1, Map.Entry<HashCode, FilePathWithType> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }
     };
+
+    private IgnoredPathCompareStrategy() {
+    }
 
     /**
      * Determines changes by:
@@ -53,7 +58,7 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
      * </ul>
      */
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();

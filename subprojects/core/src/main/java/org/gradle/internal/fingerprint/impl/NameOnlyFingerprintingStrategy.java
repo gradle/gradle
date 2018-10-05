@@ -37,7 +37,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
 
     private NameOnlyFingerprintingStrategy() {
-        super("NAME_ONLY", FingerprintCompareStrategy.NORMALIZED);
+        super("NAME_ONLY", NormalizedPathFingerprintCompareStrategy.INSTANCE);
     }
 
     @Override

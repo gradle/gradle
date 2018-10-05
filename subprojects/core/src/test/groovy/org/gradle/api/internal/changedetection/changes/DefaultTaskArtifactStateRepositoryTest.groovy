@@ -26,6 +26,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.TaskExecutionFingerprintSerializer
 import org.gradle.api.internal.changedetection.state.TaskHistoryCache
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
@@ -48,14 +49,22 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.IgnoredPathCompareStrategy
+import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.DefaultSerializerRegistry
+import org.gradle.internal.serialize.Serializers
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
@@ -111,8 +120,18 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
         def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
+
+        def serializerRegistry = new DefaultSerializerRegistry();
+        serializerRegistry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, [
+            AbsolutePathFingerprintCompareStrategy.INSTANCE,
+            NormalizedPathFingerprintCompareStrategy.INSTANCE,
+            IgnoredPathCompareStrategy.INSTANCE,
+        ]));
+        serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
+        def serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
+
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
-            new TaskHistoryCache(cacheAccess, stringInterner),
+            new TaskHistoryCache(cacheAccess, serializer),
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
             fingerprinterRegistry

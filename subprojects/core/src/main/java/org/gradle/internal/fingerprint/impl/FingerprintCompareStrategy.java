@@ -34,34 +34,7 @@ import java.util.Map;
  *
  * The strategy first tries to do a trivial comparison and delegates the more complex cases to a separate implementation.
  */
-public enum FingerprintCompareStrategy {
-    /**
-     * Compares by absolute paths and file contents. Order does not matter.
-     */
-    ABSOLUTE(new AbsolutePathFingerprintCompareStrategy()),
-    /**
-     * Compares by normalized path (relative/name only) and file contents. Order does not matter.
-     */
-    NORMALIZED(new NormalizedPathFingerprintCompareStrategy()),
-    /**
-     * Compares by file contents only. Order does not matter.
-     */
-    IGNORED_PATH(new IgnoredPathCompareStrategy()),
-    /**
-     * Compares by relative path per root. Order matters.
-     */
-    CLASSPATH(new ClasspathCompareStrategy());
-
-    private final Impl delegate;
-
-    FingerprintCompareStrategy(FingerprintCompareStrategy.Impl compareStrategy) {
-        this.delegate = compareStrategy;
-    }
-
-    interface Impl {
-        boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
-        void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
-    }
+public abstract class FingerprintCompareStrategy {
 
     /**
      * @see FileCollectionFingerprint#visitChangesSince(FileCollectionFingerprint, String, boolean, TaskStateChangeVisitor)
@@ -72,12 +45,12 @@ public enum FingerprintCompareStrategy {
         if (trivialResult != null) {
             return trivialResult;
         }
-        return delegate.visitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
+        return doVisitChangesSince(visitor, current, previous, propertyTitle, includeAdded);
     }
 
-    public void appendToHasher(Hasher hasher, Map<String, FileSystemLocationFingerprint> fingerprints) {
-        delegate.appendToHasher(hasher, fingerprints.values());
-    }
+    protected abstract boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
+
+    public abstract void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
 
     /**
      * Compares collection fingerprints if one of current or previous are empty or both have at most one element.
