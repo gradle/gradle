@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl
+package org.gradle.internal.fingerprint.classpath.impl
 
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.internal.changes.FileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static AbstractFingerprintCompareStrategy.compareTrivialFingerprints
+class ClasspathFingerprintCompareStrategyTest extends Specification {
 
-class FingerprintCompareStrategyTest extends Specification {
-
-    private static final ABSOLUTE = AbsolutePathFingerprintCompareStrategy.INSTANCE
-    private static final NORMALIZED = NormalizedPathFingerprintCompareStrategy.INSTANCE
-    private static final IGNORED_PATH = IgnoredPathCompareStrategy.INSTANCE
+    private static final CLASSPATH = ClasspathCompareStrategy.INSTANCE
 
     @Unroll
     def "empty snapshots (#strategy, include added: #includeAdded)"() {
@@ -43,12 +40,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy     | includeAdded
-        NORMALIZED   | true
-        NORMALIZED   | false
-        IGNORED_PATH | true
-        IGNORED_PATH | false
-        ABSOLUTE     | true
-        ABSOLUTE     | false
+        CLASSPATH    | true
+        CLASSPATH    | false
     }
 
     @Unroll
@@ -61,12 +54,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy     | includeAdded | results
-        NORMALIZED   | true         | [added("one-new")]
-        NORMALIZED   | false        | []
-        IGNORED_PATH | true         | [added("one-new")]
-        IGNORED_PATH | false        | []
-        ABSOLUTE     | true         | [added("one-new")]
-        ABSOLUTE     | false        | []
+        CLASSPATH    | true         | [added("one-new")]
+        CLASSPATH    | false        | []
     }
 
     @Unroll
@@ -79,22 +68,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | [added("two-new")]
-        NORMALIZED | false        | []
-    }
-
-    @Unroll
-    def "non-trivial addition with absolute paths (#strategy, include added: #includeAdded)"() {
-        expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two")],
-            ["one": fingerprint("one")]
-        ) == results
-
-        where:
-        strategy | includeAdded | results
-        ABSOLUTE | true         | [added("two")]
-        ABSOLUTE | false        | []
+        CLASSPATH  | true         | [added("two-new")]
+        CLASSPATH  | false        | []
     }
 
     @Unroll
@@ -107,10 +82,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
-        ABSOLUTE   | true
-        ABSOLUTE   | false
+        CLASSPATH  | true
+        CLASSPATH  | false
     }
 
     @Unroll
@@ -123,22 +96,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
-    }
-
-    @Unroll
-    def "non-trivial removal with absolute paths (#strategy, include added: #includeAdded)"() {
-        expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": fingerprint("one")],
-            ["one": fingerprint("one"), "two": fingerprint("two")]
-        ) == [removed("two")]
-
-        where:
-        strategy | includeAdded
-        ABSOLUTE | true
-        ABSOLUTE | false
+        CLASSPATH  | true
+        CLASSPATH  | false
     }
 
     @Unroll
@@ -151,34 +110,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
-    }
-
-    @Unroll
-    def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, include added: #includeAdded)"() {
-        expect:
-        changes(NORMALIZED, includeAdded,
-            ["two-new": fingerprint("", 0x9876cafe), "one-new": fingerprint("")],
-            ["one-old": fingerprint(""), "two-old": fingerprint("", 0xface1234)]
-        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
-
-        where:
-        includeAdded << [true, false]
-    }
-
-    @Unroll
-    def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
-        expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two", 0x9876cafe)],
-            ["one": fingerprint("one"), "two": fingerprint("two", 0xface1234)]
-        ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
-
-        where:
-        strategy | includeAdded
-        ABSOLUTE | true
-        ABSOLUTE | false
+        CLASSPATH  | true
+        CLASSPATH  | false
     }
 
     @Unroll
@@ -191,8 +124,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | [removed("one-old"), added("two-new")]
-        NORMALIZED | false        | [removed("one-old")]
+        CLASSPATH  | true         | [removed("one-old"), added("two-new")]
+        CLASSPATH  | false        | [removed("one-old")]
     }
 
     @Unroll
@@ -205,22 +138,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | [removed("three-old"), added("two-new")]
-        NORMALIZED | false        | [removed("three-old")]
-    }
-
-    @Unroll
-    def "non-trivial replacement with absolute paths (#strategy, include added: #includeAdded)"() {
-        expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two"), "four": fingerprint("four")],
-            ["one": fingerprint("one"), "three": fingerprint("three"), "four": fingerprint("four")]
-        ) == results
-
-        where:
-        strategy | includeAdded | results
-        ABSOLUTE | true         | [added("two"), removed("three")]
-        ABSOLUTE | false        | [removed("three")]
+        CLASSPATH  | true         | [removed("three-old"), added("two-new")]
+        CLASSPATH  | false        | [removed("three-old")]
     }
 
     @Unroll
@@ -233,22 +152,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | []
-        NORMALIZED | false        | []
-    }
-
-    @Unroll
-    def "reordering with absolute paths (#strategy, include added: #includeAdded)"() {
-        expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": fingerprint("one"), "two": fingerprint("two"), "three": fingerprint("three")],
-            ["one": fingerprint("one"), "three": fingerprint("three"), "two": fingerprint("two")]
-        ) == results
-
-        where:
-        strategy | includeAdded | results
-        ABSOLUTE | true         | []
-        ABSOLUTE | false        | []
+        CLASSPATH  | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
+        CLASSPATH  | false        | [removed("three-old"), removed("two-old")]
     }
 
     @Unroll
@@ -261,20 +166,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded
-        NORMALIZED | true
-        NORMALIZED | false
-    }
-
-    @Unroll
-    def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
-        expect:
-        compareTrivialFingerprints(new CollectingTaskStateChangeVisitor(), current, previous, "test", true) == null
-        compareTrivialFingerprints(new CollectingTaskStateChangeVisitor(), current, previous, "test", false) == null
-
-        where:
-        current                                                | previous
-        ["one": fingerprint("one")]                            | ["one": fingerprint("one"), "two": fingerprint("two")]
-        ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
+        CLASSPATH  | true
+        CLASSPATH  | false
     }
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {

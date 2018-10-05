@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl
+package org.gradle.internal.fingerprint.classpath.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService
@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer

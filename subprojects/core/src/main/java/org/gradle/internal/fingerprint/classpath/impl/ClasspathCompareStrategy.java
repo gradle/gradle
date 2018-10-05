@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.fingerprint.classpath.impl;
 
 import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.impl.AbstractFingerprintCompareStrategy;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;

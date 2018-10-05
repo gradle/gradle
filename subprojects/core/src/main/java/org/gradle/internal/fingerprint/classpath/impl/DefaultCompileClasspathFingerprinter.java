@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.fingerprint.classpath.impl;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
@@ -24,8 +24,9 @@ import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
+import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class DefaultCompileClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements CompileClasspathFingerprinter {

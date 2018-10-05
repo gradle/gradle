@@ -19,8 +19,8 @@ package org.gradle.api.internal.initialization.loadercache;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 
 public class DefaultClasspathHasher implements ClasspathHasher {

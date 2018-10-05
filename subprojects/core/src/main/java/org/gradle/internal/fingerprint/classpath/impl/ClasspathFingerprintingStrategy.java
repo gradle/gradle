@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl;
+package org.gradle.internal.fingerprint.classpath.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -28,6 +28,9 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -43,8 +46,8 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.IGNORE;
-import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
+import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.IGNORE;
+import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
 
 /**
  * Fingerprints classpath-like {@link org.gradle.api.file.FileCollection}s.
