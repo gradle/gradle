@@ -19,19 +19,8 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.play.integtest.fixtures.PlayMultiVersionApplicationIntegrationTest
-import org.gradle.util.VersionNumber
 
 abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
-    def setup() {
-        if (versionNumber >= VersionNumber.parse('2.6.0')) {
-            // The following annotation processors were detected on the compile classpath: 'org.atteo.classindex.processor.ClassIndexProcessor'.
-            // Detecting annotation processors on the compile classpath is deprecated and Gradle 5.0 will ignore them.
-            executer.beforeExecute {
-                executer.expectDeprecationWarning()
-            }
-        }
-    }
-
     def "can run play app tests"() {
         when:
         succeeds("check")
