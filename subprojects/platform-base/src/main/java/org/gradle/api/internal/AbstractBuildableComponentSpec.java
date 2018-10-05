@@ -39,14 +39,17 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
     }
 
     @Override
+    @Nullable
     public Task getBuildTask() {
         return buildTask;
     }
 
     @Override
-    public void setBuildTask(Task buildTask) {
+    public void setBuildTask(@Nullable Task buildTask) {
         this.buildTask = buildTask;
-        buildTask.dependsOn(buildTaskDependencies);
+        if (buildTask != null) {
+            buildTask.dependsOn(buildTaskDependencies);
+        }
     }
 
     @Override
@@ -80,9 +83,11 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
     }
 
     @Override
-    public void setCheckTask(Task checkTask) {
+    public void setCheckTask(@Nullable Task checkTask) {
         this.checkTask = checkTask;
-        checkTask.dependsOn(checkTaskDependencies);
+        if (checkTask != null) {
+            checkTask.dependsOn(checkTaskDependencies);
+        }
     }
 
     @Override
