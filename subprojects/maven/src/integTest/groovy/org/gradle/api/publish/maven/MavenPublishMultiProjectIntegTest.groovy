@@ -18,10 +18,6 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -265,70 +261,64 @@ project(":project2") {
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/867")
-    @IgnoreIf({ !GradleContextualExecuter.parallel })
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "can resolve non-build dependencies while projects are configured in parallel"() {
         def parallelProjectCount = 20
 
         given:
         settingsFile << """
-(0..$parallelProjectCount).each {
-    include "producer\$it"
-    include "consumer\$it"
-}"""
+            (0..${parallelProjectCount}).each {
+                include "producer" + it
+                include "consumer" + it
+            }
+        """
 
         buildFile << """
-allprojects {
-    group = "org.gradle.test"
-}
+            def resolutionCount = [:].withDefault { new ${AtomicInteger.canonicalName}(0) }.asSynchronized()
 
-def resolutionCount = [:].withDefault { new ${AtomicInteger.canonicalName}(0) }.asSynchronized()
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'maven'
+                
+                group = "org.gradle.test"
+                version = "1.0"
 
-(0..$parallelProjectCount).each {
-    project(":producer\$it") {
-        apply plugin: "java"
-        apply plugin: "maven"
+                uploadArchives {
+                    repositories {
+                        mavenDeployer {
+                            repository(url: "${mavenRepo.uri}")
+                        }
+                    }
+                }
 
-        version = "1.0"
-
-        dependencies {
-            (0..$parallelProjectCount).each {
-                testCompile project(":consumer\$it")
-            }
-        }
-
-        uploadArchives {
-            repositories {
-                mavenDeployer {
-                    repository(url: "${mavenRepo.uri}")
+                tasks.named("jar") {
+                    resolutionCount[project.name].incrementAndGet()
+                    println project.name + " RESOLUTION"
                 }
             }
-        }
-    }
-
-    project(":consumer\$it") {
-        apply plugin: 'java'
-        apply plugin: 'maven'
-
-        version = "2.0"
-
-        tasks.named("jar") {
-            resolutionCount[project.name].incrementAndGet()
-            println project.name + " RESOLUTION"
-        }
-    }
-}
-
-def verify = tasks.register("verify") {
-    (1..$parallelProjectCount).each { dependsOn ":producer\$it:install" }
-    doLast {
-        println resolutionCount
-        assert !resolutionCount.values().any { it > 1 }
-    }
-}
-"""
+           
+            subprojects {
+                if (name.startsWith("consumer")) {
+                    dependencies {
+                        (0..${parallelProjectCount}).each {
+                            testCompile project(":producer" + it)
+                        }
+                    }
+                }
+            }
+            
+            def verify = tasks.register("verify") {
+                dependsOn ((0..${parallelProjectCount}).collect { ":consumer" + it + ":install" })
+                doLast {
+                    println resolutionCount
+                    assert !resolutionCount.empty
+                    assert !resolutionCount.values().any { it > 1 }
+                }
+            }
+        """
 
         expect:
-        succeeds "verify"
+        succeeds "verify", "--parallel"
     }
 
     @Issue("GRADLE-3366")

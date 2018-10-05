@@ -129,6 +129,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         final List<Dependency> mavenDependencies = new ArrayList<Dependency>();
 
         if (dependency instanceof ProjectDependency) {
+            // TODO: Combine with ProjectDependencyPublicationResolver
             final ProjectDependency projectDependency = (ProjectDependency) dependency;
             ((ProjectInternal)projectDependency.getDependencyProject()).getMutationState().withMutableState(new Runnable() {
                 @Override
