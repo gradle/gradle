@@ -24,13 +24,14 @@ import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.ABSOLUTE
-import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.CLASSPATH
-import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.IGNORED_PATH
-import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.NORMALIZED
 import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.compareTrivialFingerprints
 
 class FingerprintCompareStrategyTest extends Specification {
+
+    private static final ABSOLUTE = AbsolutePathFingerprintCompareStrategy.INSTANCE
+    private static final NORMALIZED = NormalizedPathFingerprintCompareStrategy.INSTANCE
+    private static final IGNORED_PATH = IgnoredPathCompareStrategy.INSTANCE
+    private static final CLASSPATH = ClasspathCompareStrategy.INSTANCE
 
     @Unroll
     def "empty snapshots (#strategy, include added: #includeAdded)"() {

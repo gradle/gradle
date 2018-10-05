@@ -22,17 +22,21 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
+import spock.lang.Unroll
 
 class DefaultHistoricalFileCollectionFingerprintSerializerTest extends SerializerSpec {
 
-    def stringInterner = new StringInterner()
-    def serializer = new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, [
+    static final List<FingerprintCompareStrategy> COMPARE_STRATEGIES = [
         AbsolutePathFingerprintCompareStrategy.INSTANCE,
         NormalizedPathFingerprintCompareStrategy.INSTANCE,
         IgnoredPathCompareStrategy.INSTANCE,
-    ])
+    ]
 
-    def "reads and writes the fingerprints"(FingerprintCompareStrategy strategy) {
+    def stringInterner = new StringInterner()
+    def serializer = new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, COMPARE_STRATEGIES)
+
+    @Unroll
+    def "reads and writes the fingerprints with #strategy.class.simpleName"() {
         def hash = HashCode.fromInt(1234)
 
         def rootHashes = ImmutableMultimap.of(
@@ -68,7 +72,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
         out.rootHashes == rootHashes
 
         where:
-        strategy << FingerprintCompareStrategy.values()
+        strategy << COMPARE_STRATEGIES
     }
 
     def "should retain order in serialization"() {
@@ -77,7 +81,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             "/3": new DefaultFileSystemLocationFingerprint('3', FileType.RegularFile, HashCode.fromInt(1234)),
             "/2": new DefaultFileSystemLocationFingerprint('/2', FileType.RegularFile, HashCode.fromInt(5678)),
             "/1": new DefaultFileSystemLocationFingerprint('1', FileType.Missing, FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE),
-            FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of(
+            AbsolutePathFingerprintCompareStrategy.INSTANCE, ImmutableMultimap.of(
             "/3", HashCode.fromInt(1234),
             "/2", HashCode.fromInt(5678),
             "/1", FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE)

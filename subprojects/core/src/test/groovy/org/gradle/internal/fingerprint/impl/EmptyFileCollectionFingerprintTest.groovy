@@ -38,7 +38,7 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
+        ], AbsolutePathFingerprintCompareStrategy.INSTANCE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
         getChanges(fingerprint, empty, false).empty
         getChanges(fingerprint, empty, true) == [
@@ -54,7 +54,7 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
+        ], AbsolutePathFingerprintCompareStrategy.INSTANCE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
         getChanges(empty, fingerprint, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
