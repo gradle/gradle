@@ -17,7 +17,6 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import groovy.lang.GroovySystem;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
@@ -283,7 +282,7 @@ public class CommandLineActionFactory {
             sb.append("%nKotlin:       ");
             sb.append(currentKotlinDslVersion.getKotlinVersion());
             sb.append("%nGroovy:       ");
-            sb.append(GroovySystem.getVersion());
+            sb.append(GroovyVersion.current());
             sb.append("%nAnt:          ");
             sb.append(Main.getAntVersion());
             sb.append("%nJVM:          ");
