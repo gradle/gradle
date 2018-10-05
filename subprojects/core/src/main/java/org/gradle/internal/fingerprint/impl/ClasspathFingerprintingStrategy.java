@@ -70,7 +70,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final HashCode jarHasherConfigurationHash;
 
     private ClasspathFingerprintingStrategy(String identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
-        super(identifier);
+        super(identifier, FingerprintCompareStrategy.CLASSPATH);
         this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -185,11 +185,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     @Nullable
     private HashCode fingerprintJarContents(RegularFileSnapshot fileSnapshot) {
         return cacheService.hashFile(fileSnapshot, jarHasher, jarHasherConfigurationHash);
-    }
-
-    @Override
-    public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.CLASSPATH;
     }
 
     private class ClasspathFingerprintVisitor {

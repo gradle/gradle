@@ -37,7 +37,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     public static final NameOnlyFingerprintingStrategy INSTANCE = new NameOnlyFingerprintingStrategy();
 
     private NameOnlyFingerprintingStrategy() {
-        super("NAME_ONLY");
+        super("NAME_ONLY", FingerprintCompareStrategy.NORMALIZED);
     }
 
     @Override
@@ -79,10 +79,5 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             });
         }
         return builder.build();
-    }
-
-    @Override
-    public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.NORMALIZED;
     }
 }

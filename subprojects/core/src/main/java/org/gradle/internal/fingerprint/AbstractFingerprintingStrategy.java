@@ -17,14 +17,17 @@
 package org.gradle.internal.fingerprint;
 
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
+    private final FingerprintCompareStrategy compareStrategy;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
 
-    public AbstractFingerprintingStrategy(String identifier) {
+    public AbstractFingerprintingStrategy(String identifier, FingerprintCompareStrategy compareStrategy) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
+        this.compareStrategy = compareStrategy;
     }
 
     @Override
@@ -35,5 +38,10 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public CurrentFileCollectionFingerprint getEmptyFingerprint() {
         return emptyFingerprint;
+    }
+
+    @Override
+    public FingerprintCompareStrategy getCompareStrategy() {
+        return compareStrategy;
     }
 }

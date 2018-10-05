@@ -37,7 +37,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
 
     private IgnoredPathFingerprintingStrategy() {
-        super("IGNORED_PATH");
+        super("IGNORED_PATH", FingerprintCompareStrategy.IGNORED_PATH);
     }
 
     @Override
@@ -66,10 +66,5 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
             });
         }
         return builder.build();
-    }
-
-    @Override
-    public FingerprintCompareStrategy getCompareStrategy() {
-        return FingerprintCompareStrategy.IGNORED_PATH;
     }
 }
