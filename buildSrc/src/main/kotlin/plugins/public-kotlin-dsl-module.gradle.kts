@@ -65,8 +65,10 @@ val generatedResourcesDir = file("$buildDir/generate-resources/main")
 val generateClasspathManifest by tasks.registering(GenerateClasspathManifest::class) {
     outputDirectory = generatedResourcesDir
 }
-val main by sourceSets
-main.output.dir(generatedResourcesDir, "builtBy" to generateClasspathManifest)
+
+sourceSets.named("main") {
+    output.dir(generatedResourcesDir, "builtBy" to generateClasspathManifest)
+}
 
 fun buildTagFor(version: String): String =
     when (version.substringAfterLast('-')) {
