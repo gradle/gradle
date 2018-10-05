@@ -294,7 +294,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
      */
     private static class BuildOperationAwareExecutionAction implements Action<Node> {
         private final BuildOperationRef parentOperation;
-        private Action<Node> delegate;
+        private final Action<Node> delegate;
 
         BuildOperationAwareExecutionAction(BuildOperationRef parentOperation, Action<Node> delegate) {
             this.parentOperation = parentOperation;
