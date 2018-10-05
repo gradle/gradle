@@ -38,7 +38,7 @@ public class UnresolvedIdeDependencyHandler {
         logger.debug("Could not resolve: " + dep.getAttempted(), dep.getFailure());
     }
 
-    public File asFile(UnresolvedDependencyResult dep) {
-        return new File("unresolved dependency - " + dep.getAttempted().getDisplayName().replaceAll(":", " "));
+    public File asFile(UnresolvedDependencyResult dep, File parent) {
+        return new File(parent, "unresolved dependency - " + dep.getAttempted().getDisplayName().replaceAll(":", " "));
     }
 }

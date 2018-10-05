@@ -202,7 +202,7 @@ public class IdeaDependenciesProvider {
          */
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
-            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency);
+            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, ideaModule.getContentRoot());
             fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, unresolvedFile), scope));
             unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
         }
