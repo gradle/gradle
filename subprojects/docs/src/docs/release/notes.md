@@ -16,13 +16,13 @@ If you prefer the flexibility and dynamic nature of Groovy, that's totally okay 
 You can now specify a timeout duration for a task, after which it will be interrupted.
 Read more [about task timeouts](userguide/more_about_tasks.html#sec:task_timeouts) in the docs.
 
-Next up, this version of Gradle introduces _dependency version alignment_. 
+Next up, this version of Gradle introduces [dependency version alignment](userguide/managing_transitive_dependencies.html#sec:version_alignment). 
 This allows different modules belonging to the same logical group (`platform`) to have identical versions in a dependency graph.
 Maven BOMs can be imported to define platforms as well.
 
     dependencies {
         // import a BOM. The versions used in this file will override any other version found in the graph
-        implementation(dependencies.enforcedPlatform("org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE"))
+        implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE"))
         
          // define dependencies without versions
         implementation("com.google.code.gson:gson")
@@ -31,6 +31,8 @@ Maven BOMs can be imported to define platforms as well.
          // this version will be overriden by the one found in the BOM
         implementation("org.codehaus.groovy:groovy:1.8.6")
     }
+    
+More details about BOM import can be found in [this section of the userguide](userguide/managing_transitive_dependencies.html#sec:bom_import).
 
 Moving on, [`gradle init` functionality has been upgraded](#build-init-plugin-improvements) in this release: is now optionally _interactive_, includes new `kotlin-library` and `kotlin-application` project types, provides options for configuring project and package names, and more.
 
