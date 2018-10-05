@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+
 public interface TaskStateChanges {
     /**
      * Propagate changes the visitor.

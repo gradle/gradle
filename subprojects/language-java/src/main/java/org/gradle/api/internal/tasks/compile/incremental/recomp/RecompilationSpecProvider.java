@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
+import org.gradle.internal.changes.FileChange;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.util.Alignment;
 

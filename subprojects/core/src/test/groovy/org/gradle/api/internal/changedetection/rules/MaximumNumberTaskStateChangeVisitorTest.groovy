@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules
 
+import org.gradle.internal.changes.TaskStateChange
 import spock.lang.Specification
 
 class MaximumNumberTaskStateChangeVisitorTest extends Specification {

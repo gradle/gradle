@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
-import org.gradle.api.internal.changedetection.rules.FileChange
+import org.gradle.internal.changes.FileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode

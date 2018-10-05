@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+
 public class MaximumNumberTaskStateChangeVisitor implements TaskStateChangeVisitor {
     private final int maxReportedChanges;
     private final TaskStateChangeVisitor delegate;

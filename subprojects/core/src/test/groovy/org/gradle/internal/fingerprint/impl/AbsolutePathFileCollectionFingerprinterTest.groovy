@@ -17,11 +17,11 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
-import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.internal.changes.ChangeType
+import org.gradle.internal.changes.FileChange
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations

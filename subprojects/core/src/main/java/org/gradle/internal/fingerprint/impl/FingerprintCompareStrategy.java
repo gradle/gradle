@@ -17,9 +17,9 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.internal.changes.FileChange;
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;

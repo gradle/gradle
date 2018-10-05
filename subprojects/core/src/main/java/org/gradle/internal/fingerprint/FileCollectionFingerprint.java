@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.Multimap;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;

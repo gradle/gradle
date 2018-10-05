@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.changes;
 
-package org.gradle.api.internal.changedetection.rules;
-
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
-
-public class ChangeDetectorVisitor implements TaskStateChangeVisitor {
-    private boolean anyChanges;
-
-    @Override
-    public boolean visitChange(TaskStateChange change) {
-        anyChanges = true;
-        return false;
-    }
-
-    public boolean hasAnyChanges() {
-        return anyChanges;
-    }
-}
+import org.gradle.api.NonNullApi;
