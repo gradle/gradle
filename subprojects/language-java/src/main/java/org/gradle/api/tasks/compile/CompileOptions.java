@@ -26,6 +26,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -453,21 +454,22 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery. If set to {@code null}, it means use the compile classpath.
+     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @return The annotation processor path, or {@code null} to use the compile classpath.
+     * @return The annotation processor path, or {@code null} if annotation processing is disabled.
      * @since 3.4
      */
     @Nullable
-    @Internal // Handled on the compile task
+    @Optional
+    @Classpath
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
     }
 
     /**
-     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery. The value can be {@code null}, which means use the compile classpath.
+     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to use the compile classpath.
+     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
      * @since 3.4
      */
     public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {

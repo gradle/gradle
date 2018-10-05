@@ -528,8 +528,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Could not read annotation processor declarations'
-
+        errorOutput.contains('error in opening zip file')
     }
 
     @Issue("gradle/gradle#1581")
@@ -790,16 +789,32 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             
             compileJava {
                 options.compilerArgs = ['-sourcepath', files('src/main/java').asPath]
-            }            
+            }
         '''
         file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
-        file('sources1/Rectangle.java') << 'public class Rectangle extends Shape {}'
 
         when:
         fails 'compileJava'
 
         then:
-        failureHasCause("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompilerOptions.sourcepath` property instead.")
+        failureHasCause("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.sourcepath` property instead.")
+    }
+
+    def "fails when processorpath is set on compilerArgs"() {
+        buildFile << '''
+            apply plugin: 'java'
+            
+            compileJava {
+                options.compilerArgs = ['-processorpath', files('src/main/java').asPath]
+            }
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+
+        when:
+        fails 'compileJava'
+
+        then:
+        failureHasCause("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
@@ -905,5 +920,27 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         !file("build/headers/java/main/Foo.h").exists()
+    }
+
+    def "emits deprecation warning for effectiveAnnotationProcessorPath property"() {
+        buildScript("""
+            apply plugin: 'java'
+                        
+            ${jcenterRepository()}
+
+            task printAnnotationProcessors {
+                doLast {
+                    println compileJava.effectiveAnnotationProcessorPath
+                }
+            }
+        """.stripIndent())
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds 'printAnnotationProcessors'
+
+        then:
+        outputContains('The JavaCompile.effectiveAnnotationProcessorPath property has been deprecated.')
+        outputContains('Please use the JavaCompile.options.annotationProcessorPath property instead.')
     }
 }

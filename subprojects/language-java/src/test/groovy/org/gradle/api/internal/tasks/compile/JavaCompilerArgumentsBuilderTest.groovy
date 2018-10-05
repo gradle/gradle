@@ -25,6 +25,7 @@ import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
@@ -339,16 +340,25 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.noEmptySourcePath().build() == expected
     }
 
-    def "prohibits setting sourcepath as compiler argument"() {
+    @Unroll
+    def "prohibits setting #option as compiler argument"() {
         given:
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
-        spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
+        spec.compileOptions.compilerArgs = [option, userProvidedPath]
 
         when:
         builder.build()
 
         then:
-        thrown(InvalidUserDataException)
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("Use the `$replacement` property instead.")
+
+        where:
+        option             | replacement
+        '-sourcepath'      | 'CompileOptions.sourcepath'
+        '--source-path'    | 'CompileOptions.sourcepath'
+        '-processorpath'   | 'CompileOptions.annotationProcessorPath'
+        '--processor-path' | 'CompileOptions.annotationProcessorPath'
     }
 
     def "removes sourcepath when module-source-path is provided"() {

@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
@@ -59,6 +61,9 @@ public class AnnotationProcessorDiscoveringCompiler<T extends JavaCompileSpec> i
         int processorIndex = compilerArgs.lastIndexOf("-processor");
         if (processorIndex == -1) {
             return Sets.newLinkedHashSet(declarations.values());
+        }
+        if (processorIndex == compilerArgs.size() - 1) {
+            throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
         }
         Collection<String> explicitProcessors = Splitter.on(',').splitToList(compilerArgs.get(processorIndex + 1));
         Set<AnnotationProcessorDeclaration> effectiveProcessors = Sets.newLinkedHashSet();

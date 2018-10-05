@@ -667,7 +667,8 @@ Some of the types of changes that do not affect the public API and are ignored:
 * Renaming a parameter
 
 
-Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
+Since implementation details matter for annotation processors, they must be declared separately on the annotation processor path.
+Gradle ignores annotation processors on the compile classpath.
 
 .Declaring annotation processors
 ====

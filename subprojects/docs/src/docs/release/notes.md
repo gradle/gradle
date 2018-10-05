@@ -224,6 +224,10 @@ TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### The property `effectiveAnnotationProcessorPath` on `AbstractScalaCompile` and `JavaCompile` has been deprecated
+
+Please use the `annotationProcessorPath` property on the task's `CompileOptions` directly.
+
 ### Deprecated announce plugins
 
 The [announce](userguide/announce_plugin.html) and [build announcements](userguide/build_announcements_plugin.html) plugins have been deprecated.
@@ -411,6 +415,11 @@ A new behavior that made its evaluation eager (like for any other block) was int
 Now, the old behavior has been removed and switching on the new one is no longer necessary. 
 If you need to defer evaluation, please use `afterEvaluate {}`.
 
+### Annotation processors on the compile classpath are now ignored
+
+Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
+Please add them to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+
 ### Changes to previously deprecated APIs
 
 - Removed the methods `getToSignArtifact` and `setFile` from `Signature`.
@@ -495,6 +504,11 @@ Please ensure that all builds being executed with Gradle TestKit define `setting
 
 Adding `-sourcepath` or `--source-path` to the `CompileOptions.compilerArgs` list is now prohibited. 
 The source path for a `JavaCompile` task should be set via the `CompileOptions.sourcePath` property.
+
+### Cannot specify `--processor-path` directly as a Java compiler arg
+
+Adding `-processorpath` or `--processor-path` to the `CompileOptions.compilerArgs` list is now prohibited.
+The annotation processor path for a `JavaCompile` task should be set via the `CompileOptions.annotationProcessorPath` property.
 
 ## External contributions
 
