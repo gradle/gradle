@@ -95,8 +95,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
         where:
         scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | new SaveScanSpoolFile(scenario)
-        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | BuildExperimentListener.compose(new SaveScanSpoolFile(scenario), new ManageLocalCacheState())
+        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | BuildExperimentListener.compose(new InjectBuildScanPlugin(pluginVersionNumber), new SaveScanSpoolFile(scenario))
+//        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | BuildExperimentListener.compose(new InjectBuildScanPlugin(pluginVersionNumber), new SaveScanSpoolFile(scenario), new ManageLocalCacheState())
     }
 
 
@@ -151,6 +151,39 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
         private File spoolDir(BuildExperimentInvocationInfo invocationInfo) {
             new File(invocationInfo.gradleUserHome, "build-scan-data")
+        }
+    }
+
+    static class InjectBuildScanPlugin extends BuildExperimentListenerAdapter {
+        final String buildScanPluginVersion
+
+        InjectBuildScanPlugin(String buildScanPluginVersion) {
+            this.buildScanPluginVersion = buildScanPluginVersion
+            println "InjectBuildScanPlugin buildScanPluginVersion = $buildScanPluginVersion"
+        }
+
+        @Override
+        void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+
+            def projectTestDir = new TestFile(projectDir)
+            def rootBuildScript = projectTestDir.file('build.gradle')
+            rootBuildScript.text = """
+                    buildscript {
+                        repositories {
+                            maven {
+                                url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
+                            }
+                        }
+                    
+                        dependencies {
+                            classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
+                        }
+                    }
+                    
+                    if (System.getProperty('enableScan')) {
+                        apply plugin: 'com.gradle.build-scan'
+                    }
+                    """ + rootBuildScript.text
         }
     }
 }

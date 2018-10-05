@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import groovy.json.JsonSlurper
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 
-fun getBuildScanPluginVersion(): Any? {
-    val pluginInfo = file("$rootDir/incoming/plugin.json")
-    assert(pluginInfo.exists())
-    val json = JsonSlurper().parse(pluginInfo) as Map<String, Any>
-    assert(json.containsKey("versionNumber"))
-    return json["versionNumber"]
-}
-
 tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
-    doFirst {
-        templateArgs["buildScanPluginVersion"] = getBuildScanPluginVersion()
-    }
-
     dependencyGraph.run {
         size = 200
         depth = 5

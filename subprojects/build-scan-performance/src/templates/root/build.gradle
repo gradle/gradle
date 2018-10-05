@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        maven {
-            url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
-        }
-    }
-
-    dependencies {
-        classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
-    }
-}
-
-if (System.getProperty('enableScan')) {
-    apply plugin: 'com.gradle.build-scan'
-}
-
 // We want to double check that a build failure is
 // only caused by failing test executions
 gradle.buildFinished { result ->
