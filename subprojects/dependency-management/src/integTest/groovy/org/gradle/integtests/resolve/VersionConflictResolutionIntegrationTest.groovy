@@ -218,6 +218,48 @@ task resolve {
         }
     }
 
+    void "re-selects target version for previously resolved then evicted selector"() {
+        def depOld = mavenRepo.module("org", "dep", "2.0").publish()
+        def depNew = mavenRepo.module("org", "dep", "2.5").publish()
+
+        mavenRepo.module("org", "one", "1.0").dependsOn(depNew).publish()
+        def oneNew = mavenRepo.module("org", "one", "1.2").dependsOn(depNew).publish()
+
+        mavenRepo.module("org", "two", "1.0").dependsOn(depOld).dependsOn(oneNew).publish()
+
+        buildFile << """
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org:one:1.0'
+    compile 'org:two:1.0'
+}
+"""
+
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
+        resolve.prepare()
+
+        when:
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:one:1.0", "org:one:1.2") {
+                    edge("org:dep:2.5", "org:dep:2.5")
+                }
+                module("org:two:1.0") {
+                    edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.5 and 2.0")
+                    edge("org:one:1.2", "org:one:1.2")
+                }
+            }
+        }
+    }
+
     void "does not attempt to resolve an evicted dependency"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
