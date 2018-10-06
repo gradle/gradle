@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -272,7 +271,7 @@ public class BuildOperationNotificationBridge {
 
         private volatile BuildOperationNotificationListener listener = recordingListener;
 
-        private final AtomicBoolean needLock = new AtomicBoolean(true);
+        private boolean needLock = true;
         private final Lock lock = new ReentrantLock();
 
         private void attach(BuildOperationNotificationListener realListener) {
@@ -292,13 +291,13 @@ public class BuildOperationNotificationBridge {
                 this.recordingListener = null; // release
             } finally {
                 lock.unlock();
-                needLock.set(false);
+                needLock = false;
             }
         }
 
         @Override
         public void started(BuildOperationStartedNotification notification) {
-            if (needLock.get()) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.started(notification);
@@ -312,7 +311,7 @@ public class BuildOperationNotificationBridge {
 
         @Override
         public void progress(BuildOperationProgressNotification notification) {
-            if (needLock.get()) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.progress(notification);
@@ -326,7 +325,7 @@ public class BuildOperationNotificationBridge {
 
         @Override
         public void finished(BuildOperationFinishedNotification notification) {
-            if (needLock.get()) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.finished(notification);
