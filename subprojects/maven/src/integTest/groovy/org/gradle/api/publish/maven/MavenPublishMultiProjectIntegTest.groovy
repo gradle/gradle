@@ -16,9 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
+
+import java.util.concurrent.atomic.AtomicInteger
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "project1", "1.0"))
@@ -254,6 +258,60 @@ project(":project2") {
         then:
         project1.assertPublished()
         project1.assertApiDependencies("org.gradle.test:project2:2.0")
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/867")
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "can resolve non-build dependencies while projects are configured in parallel"() {
+        def parallelProjectCount = 20
+        using m2
+
+        given:
+        settingsFile << """
+            (0..${parallelProjectCount}).each {
+                include "producer" + it
+                include "consumer" + it
+            }
+        """
+
+        buildFile << """
+            def resolutionCount = [:].withDefault { new ${AtomicInteger.canonicalName}(0) }.asSynchronized()
+
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'maven'
+                
+                group = "org.gradle.test"
+                version = "1.0"
+
+                tasks.named("jar") {
+                    resolutionCount[project.name].incrementAndGet()
+                    println project.name + " RESOLUTION"
+                }
+            }
+           
+            subprojects {
+                if (name.startsWith("consumer")) {
+                    dependencies {
+                        (0..${parallelProjectCount}).each {
+                            testCompile project(":producer" + it)
+                        }
+                    }
+                }
+            }
+            
+            def verify = tasks.register("verify") {
+                dependsOn ((0..${parallelProjectCount}).collect { ":consumer" + it + ":install" })
+                doLast {
+                    println resolutionCount
+                    assert !resolutionCount.empty
+                    assert !resolutionCount.values().any { it > 1 }
+                }
+            }
+        """
+
+        expect:
+        succeeds "verify", "--parallel"
     }
 
     @Issue("GRADLE-3366")
