@@ -17,25 +17,11 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
 abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractPluginIntegrationTest {
-
-    @Override
-    protected ExecutionResult succeeds(String... tasks) {
-        executer.noDeprecationChecks()
-        return super.succeeds(tasks)
-    }
-
-    @Override
-    protected ExecutionFailure fails(String... tasks) {
-        executer.noDeprecationChecks()
-        return super.fails(tasks)
-    }
 
     def setup() {
         settingsFile << """ rootProject.name = 'js-play-app' """

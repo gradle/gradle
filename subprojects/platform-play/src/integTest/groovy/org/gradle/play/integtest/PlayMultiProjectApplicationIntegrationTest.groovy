@@ -17,7 +17,6 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
@@ -40,12 +39,6 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         playApp.writeSources(testDirectory)
-    }
-
-    @Override
-    protected ExecutionResult succeeds(String... tasks) {
-        executer.noDeprecationChecks()
-        return super.succeeds(tasks)
     }
 
     def "can build play app binary"() {
@@ -114,7 +107,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         run ":primary:assemble"
 
         when:
-        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe().noDeprecationChecks().start()
+        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe().start()
         runningApp.initialize(build)
 
         then:
