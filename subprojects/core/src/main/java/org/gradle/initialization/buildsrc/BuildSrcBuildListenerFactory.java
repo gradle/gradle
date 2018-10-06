@@ -17,18 +17,21 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.InternalBuildAdapter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 public class BuildSrcBuildListenerFactory {
 
@@ -46,8 +49,13 @@ public class BuildSrcBuildListenerFactory {
         return new Listener(buildSrcRootProjectConfiguration);
     }
 
+    /**
+     * Inspects the build when configured, and adds the appropriate task to build the "main" `buildSrc` component.
+     * On build completion, makes the runtime classpath of the main `buildSrc` component available.
+     */
     public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
-        private Set<File> classpath;
+        private FileCollection classpath;
+        private ProjectState rootProjectState;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
         private Listener(Action<ProjectInternal> rootProjectConfiguration) {
@@ -61,13 +69,20 @@ public class BuildSrcBuildListenerFactory {
 
         @Override
         public void onConfigure(GradleInternal gradle) {
-            BuildableJavaComponent mainComponent = mainComponentOf(gradle);
+            final BuildableJavaComponent mainComponent = mainComponentOf(gradle);
             gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
-            classpath = mainComponent.getRuntimeClasspath().getFiles();
+            classpath = mainComponent.getRuntimeClasspath();
+            rootProjectState = gradle.getRootProject().getMutationState();
         }
 
         public Collection<File> getRuntimeClasspath() {
-            return classpath;
+            return rootProjectState.withMutableState(new Factory<Collection<File>>() {
+                @Nullable
+                @Override
+                public Collection<File> create() {
+                    return classpath.getFiles();
+                }
+            });
         }
 
         private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {

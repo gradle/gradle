@@ -1,2 +1,1 @@
 rootProject.name = "sample-plugins"
-enableFeaturePreview("STABLE_PUBLISHING")

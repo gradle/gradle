@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -33,7 +32,6 @@ import spock.lang.Issue
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @IntegrationTestTimeout(300)
-@ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule

@@ -49,16 +49,12 @@ class IvyPluginPublishingPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
-            project.afterEvaluate(new Action<Project>() {
-                @Override
-                public void execute(final Project project) {
-                    configurePublishing(project);
-                }
-            });
-        } else {
-            configurePublishing(project);
-        }
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(final Project project) {
+                configurePublishing(project);
+            }
+        });
     }
 
     private void configurePublishing(final Project project) {

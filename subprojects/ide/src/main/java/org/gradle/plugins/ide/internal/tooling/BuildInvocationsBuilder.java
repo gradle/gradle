@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
-import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
+import org.gradle.plugins.ide.internal.tooling.model.TaskNameComparator;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 

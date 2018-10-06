@@ -17,14 +17,9 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.MutableActionSet;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -44,7 +39,7 @@ public class ExtensionsStorage {
             throw new IllegalArgumentException(
                 format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, wrap(name, publicType, extension));
+        extensions.put(name, new ExtensionHolder<T>(name, publicType, extension));
     }
 
     public boolean hasExtension(String name) {
@@ -133,26 +128,12 @@ public class ExtensionsStorage {
         return extensionHolder != null ? extensionHolder.get() : null;
     }
 
-    private <T> ExtensionHolder<T> wrap(String name, TypeOf<T> publicType, T extension) {
-        if (isDeferredConfigurable(extension)) {
-            if (!extension.getClass().getName().startsWith("org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension")) {
-                DeprecationLogger.nagUserOfDeprecated("@DeferredConfigurable");
-            }
-            return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
-        }
-        return new ExtensionHolder<T>(name, publicType, extension);
-    }
-
     private List<String> registeredExtensionTypeNames() {
         List<String> types = new ArrayList<String>(extensions.size());
         for (ExtensionHolder holder : extensions.values()) {
             types.add(holder.getPublicType().getSimpleName());
         }
         return types;
-    }
-
-    private <T> boolean isDeferredConfigurable(T extension) {
-        return extension.getClass().isAnnotationPresent(DeferredConfigurable.class);
     }
 
     /**
@@ -184,11 +165,6 @@ public class ExtensionsStorage {
             return publicType;
         }
 
-        @Override
-        public boolean isDeferredConfigurable() {
-            return false;
-        }
-
         public T get() {
             return extension;
         }
@@ -196,56 +172,6 @@ public class ExtensionsStorage {
         public T configure(Action<? super T> action) {
             action.execute(extension);
             return extension;
-        }
-    }
-
-    private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
-        private MutableActionSet<T> actions = new MutableActionSet<T>();
-        private boolean configured;
-        private Throwable configureFailure;
-
-        DeferredConfigurableExtensionHolder(String name, TypeOf<T> publicType, T extension) {
-            super(name, publicType, extension);
-        }
-
-        @Override
-        public boolean isDeferredConfigurable() {
-            return true;
-        }
-
-        @Override
-        public T get() {
-            configureNow();
-            return extension;
-        }
-
-        @Override
-        public T configure(Action<? super T> action) {
-            configureLater(action);
-            return null;
-        }
-
-        private void configureLater(Action<? super T> action) {
-            if (configured) {
-                throw new InvalidUserDataException(format("Cannot configure the '%s' extension after it has been accessed.", getName()));
-            }
-            actions.add(action);
-        }
-
-        private void configureNow() {
-            if (!configured) {
-                configured = true;
-                try {
-                    actions.execute(extension);
-                } catch (Throwable t) {
-                    configureFailure = t;
-                }
-                actions = null;
-            }
-
-            if (configureFailure != null) {
-                throw UncheckedException.throwAsUncheckedException(configureFailure);
-            }
         }
     }
 }

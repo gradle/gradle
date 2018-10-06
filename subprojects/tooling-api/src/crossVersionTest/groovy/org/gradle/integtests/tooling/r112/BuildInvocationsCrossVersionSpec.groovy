@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 import org.gradle.tooling.model.Launchable
@@ -69,7 +67,6 @@ project(':b:c') {
 }'''
     }
 
-    @TargetGradleVersion(">=1.12")
     def "can request task selectors in action"() {
         when:
         Map<String, Set<String>> result = withConnection { connection ->
@@ -84,7 +81,6 @@ project(':b:c') {
         result['a'] == implicitSelectors
     }
 
-    @TargetGradleVersion(">=1.12")
     def "can run build using task selectors from action"() {
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
@@ -145,19 +141,6 @@ project(':b:c') {
         model.taskSelectors*.name as Set == rootProjectImplicitSelectors + ['t1', 't2', 't3'] as Set
     }
 
-    @TargetGradleVersion("=1.12")
-    def "can fetch tasks for project using action"() {
-        when:
-        List<Task> tasks = withConnection { connection ->
-            connection.action(new FetchTasksBuildAction(':b')).run()
-        }
-
-        then:
-        tasks.size() == 2
-        tasks*.name as Set == ['t2', 't3'] as Set
-    }
-
-    @TargetGradleVersion(">=2.0")
     def "can fetch tasks including implicit for project using action"() {
         def projectBExpectedTasks = (['t2', 't3'] + implicitTasks) as Set
         def rootProjectExpectedTasks = (['t1'] + rootProjectImplicitTasks) as Set
@@ -181,7 +164,6 @@ project(':b:c') {
         tasks*.name as Set == rootProjectExpectedTasks
     }
 
-    @TargetGradleVersion(">=1.12")
     def "build tasks from BuildInvocations model as Launchable"() {
         when:
         List<Task> tasks = withConnection { connection ->
@@ -235,7 +217,6 @@ project(':b:c') {
         result.result.assertTasksExecutedInOrder(':b:c:t1', ':b:t2', ':t1')
     }
 
-    @TargetGradleVersion(">=1.12")
     def "build tasks and selectors in order"() {
         when:
         GradleProject model = withConnection { connection ->
@@ -273,27 +254,6 @@ project(':b:c') {
         result.result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
     }
 
-    @TargetGradleVersion("=1.12")
-    def "build fails with selectors from different projects"() {
-        when:
-        BuildInvocations rootSelectors = withConnection { connection ->
-            connection.action(new FetchTaskSelectorsBuildAction('test')).run()
-        }
-        BuildInvocations bSelectors = withConnection { connection ->
-            connection.action(new FetchTaskSelectorsBuildAction('b')).run()
-        }
-        TaskSelector selectorT1 = rootSelectors.taskSelectors.find { it.name == 't1' }
-        TaskSelector selectorBT1 = bSelectors.taskSelectors.find { it.name == 't1' }
-        TaskSelector selectorBT3 = bSelectors.taskSelectors.find { it.name == 't3' }
-        withBuild { BuildLauncher it ->
-            it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
-        }
-        then:
-        UnsupportedBuildArgumentException e = thrown()
-        e.message.contains 'Only selector from the same Gradle project can be built.'
-    }
-
-    @TargetGradleVersion(">=2.0")
     def "builds selectors from different projects"() {
         when:
         BuildInvocations rootSelectors = withConnection { connection ->

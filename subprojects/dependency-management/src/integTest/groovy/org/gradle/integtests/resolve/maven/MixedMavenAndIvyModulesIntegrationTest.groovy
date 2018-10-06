@@ -24,6 +24,7 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'testproject'
         """

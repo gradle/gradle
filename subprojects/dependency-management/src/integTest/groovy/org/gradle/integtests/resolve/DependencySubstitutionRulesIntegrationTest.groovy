@@ -28,6 +28,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     def setup() {
         settingsFile << "rootProject.name='depsub'\n"
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "forces multiple modules by rule"()

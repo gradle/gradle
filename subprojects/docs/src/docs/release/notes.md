@@ -14,7 +14,7 @@ Please follow our [migrating build logic from Groovy to Kotlin guide](https://gu
 If you prefer the flexibility and dynamic nature of Groovy, that's totally okay — the Groovy DSL will _never_ be deprecated.
 
 You can now specify a timeout duration for a task, after which it will be interrupted.
-Read more [about task timeouts](userguide/more_about_tasks.html#task_timeouts) in the docs.
+Read more [about task timeouts](userguide/more_about_tasks.html#sec:task_timeouts) in the docs.
 
 Next up, this version of Gradle introduces _dependency version alignment_. 
 This allows different modules belonging to the same logical group (`platform`) to have identical versions in a dependency graph.
@@ -156,6 +156,20 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Some long existing incubating features have been promoted
+
+- `IncrementalTaskInputs` and `InputFileDetails`
+- input normalization (`org.gradle.normalization`) including `InputNormalizationHandler`
+- `FileNormalizer` and its subclasses
+- `@LocalState`, `Task.getLocalState()` and `TaskLocalState`
+- `Task.getDestroyables()`
+- `TaskState.getUpToDate()` and `TaskState.getNoSource()`
+- the `ValidateTaskProperties` task
+- `AbstractArchiveTask.preserveFileTimestamps` and `reproducibleFileOrder` properties
+- `ForkOptions.javaHome` property
+- `Project.normalization`
+- `GroovyCompile.groovyCompilerJvmVersion` and `javaToolChain` properties
+
 ## Fixed issues
 
 ### Reporting of TestNG classes/methods
@@ -170,9 +184,12 @@ in the next major Gradle version (Gradle 6.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-### StartParameter.interactive flag
+### StartParameter properties
 
-The `interactive` flag is deprecated and will be removed in Gradle 6.0.
+The following properties are deprecated and will be removed in Gradle 6.0.
+
+- `interactive`
+- `recompileScripts`
 
 ### Removing tasks from TaskContainer
 
@@ -221,6 +238,10 @@ TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### The property `effectiveAnnotationProcessorPath` on `AbstractScalaCompile` and `JavaCompile` has been deprecated
+
+Please use the `annotationProcessorPath` property on the task's `CompileOptions` directly.
+
 ### Deprecated announce plugins
 
 The [announce](userguide/announce_plugin.html) and [build announcements](userguide/build_announcements_plugin.html) plugins have been deprecated.
@@ -234,6 +255,18 @@ The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should
 - The FindBugs plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 9 and above.
   Please consider using the [SpotBugs plugin](https://plugins.gradle.org/plugin/com.github.spotbugs) instead.
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
+
+### Resolving configurations in other projects
+
+It is now deprecated behavior to resolve a configuration in another project directly.  Projects should interact via `project()` dependencies
+declared in configurations of the consuming project.  Accessing and resolving configurations in other projects will now produce a
+deprecation warning.
+
+### Resolving configurations from user-managed threads
+
+It is also deprecated behavior to resolve a configuration from a thread that is not managed by Gradle (i.e. a thread created and 
+managed by the user).   Threads managed by Gradle (such as the workers that execute tasks) can still resolve configurations safely,
+but doing so from other threads will now produce a deprecation warning.
 
 ## Potential breaking changes
 
@@ -251,6 +284,16 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
+
+### Tooling API and TestKit require Gradle 2.6 or higher
+
+The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. 
+The same applies to builds run through TestKit.
+
+### Tooling API clients before 3.0 are now longer supported
+
+Gradle 5.0 requires a minimum Tooling API client version of 3.0. 
+Older client libraries can no longer run builds with Gradle 5.0
 
 ### Configuration Avoidance API disallows common configuration errors
 
@@ -302,7 +345,7 @@ The default tool versions of the following code quality plugins have been update
 - The Checkstyle plugin now uses 8.12 instead of 6.19 by default.
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
 - The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
-- The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
+- The PMD plugin now uses 6.8.0 instead of 5.6.1 by default.
   In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
   We recommend configuring a ruleset explicitly, though.
 
@@ -389,10 +432,22 @@ The left shift (`<<`) operator acted as an alias for adding a `doLast` action to
 Previously, it was deprecated for project and domain object names to be empty, start or end with `.` or contain any of the following characters: `/\:<>"?*|`.
 The use of such names now causes the build to fail.
 
+### Evaluation of the `publishing {}` block is now eager
+
+In Gradle 4.8, the old behavior of the `publishing {}` block to defer its evaluation was deprecated.
+A new behavior that made its evaluation eager (like for any other block) was introduced and switched on using `enableFeaturePreview('STABLE_PUBLISHING')`.
+Now, the old behavior has been removed and switching on the new one is no longer necessary. 
+If you need to defer evaluation, please use `afterEvaluate {}`.
+
+### Annotation processors on the compile classpath are now ignored
+
+Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
+Please add them to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+
 ### Changes to previously deprecated APIs
 
-- The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
-- Removed `DirectoryBuildCache.targetSizeInMB`.
+- Removed the methods `getToSignArtifact` and `setFile` from `Signature`.
+- Removed the property `targetSizeInMB` from `DirectoryBuildCache`.
 - Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
 - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 - Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
@@ -408,13 +463,15 @@ The use of such names now causes the build to fail.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
-- Removed the method `configureForSourceSet` from `JavaBasePlugin`
+- Removed the method `configureForSourceSet` from `JavaBasePlugin`.
 - Removed the property `classesDir` from `JDepend`.
 - Removed the property `testClassesDir` from `Test`.
 - Removed the property `classesDir` from `SourceSetOutput`.
-- Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
-- Removed `ConfigurableReport.setDestination(Object)`
+- Removed the methods `performPostEvaluationActions` from `IdeaPlugin` and `EclipsePlugin`.
+- Removed the method `setDestination(Object)` from `ConfigurableReport`.
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
+- Removed the `@DeferredConfigurable` annotation.
+- Removed the method `isDeferredConfigurable` from `ExtensionSchema`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
@@ -431,6 +488,7 @@ The use of such names now causes the build to fail.
 ### Removal of deprecated CLI options
 
 - Removed `--no-search-upward` (`-u`) option.
+- Removed `--recompile-scripts` option.
 
 ### Implicit imports for internal classes have been removed
 
@@ -471,6 +529,11 @@ Please ensure that all builds being executed with Gradle TestKit define `setting
 Adding `-sourcepath` or `--source-path` to the `CompileOptions.compilerArgs` list is now prohibited. 
 The source path for a `JavaCompile` task should be set via the `CompileOptions.sourcePath` property.
 
+### Cannot specify `--processor-path` directly as a Java compiler arg
+
+Adding `-processorpath` or `--processor-path` to the `CompileOptions.compilerArgs` list is now prohibited.
+The annotation processor path for a `JavaCompile` task should be set via the `CompileOptions.annotationProcessorPath` property.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -496,6 +559,9 @@ We would like to thank the following community members for making contributions 
 - [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
 - [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 - [Jakub Strzyżewski](https://github.com/shindouj) - Improve exception message for missing repository credentials when publishing (gradle/gradle#6379)
+- [Martin Dünkelmann](https://github.com/MartinX3) - Raise default bytecode level to 1.8 in Maven2Gradle(gradle/gradle#4474)
+- [Alex Saveau](https://github.com/SUPERCILEX) - Report all files in directory as changed for incremental task for non-incremental change (gradle/gradle#6019)
+- [Thad House](https://github.com/ThadHouse) - Allow disabling of cache cleanup by the end user (gradle/gradle#6928)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

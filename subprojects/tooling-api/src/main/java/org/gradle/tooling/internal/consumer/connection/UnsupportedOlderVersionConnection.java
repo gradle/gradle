@@ -26,12 +26,11 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * An adapter for unsupported connection using a {@code ConnectionVersion4} based provider.
  *
- * <p>Used for providers >= 1.0-milestone-3 and <= 1.2.</p>
+ * <p>Used for providers >= 1.0-milestone-3 and <= 2.5.</p>
  */
 public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     private final ProtocolToModelAdapter adapter;
@@ -55,7 +54,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
         if (type.equals(BuildEnvironment.class)) {
             return adapter.adapt(type, doGetBuildEnvironment());
         }
-        throw new UnsupportedVersionException(String.format("Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 1.2 or later.", version));
+        throw unsupported();
     }
 
     private Object doGetBuildEnvironment() {
@@ -63,16 +62,20 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return new UnsupportedActionRunner(version).run(action, operationParameters);
+        throw unsupported();
     }
 
     @Override
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "4.8");
+        throw unsupported();
     }
 
     public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "2.6");
+        throw unsupported();
+    }
+
+    private UnsupportedVersionException unsupported() {
+        return new UnsupportedVersionException(String.format("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 2.6 or later.", version));
     }
 
 }

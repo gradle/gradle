@@ -33,6 +33,8 @@ include::overview.adoc[leveloffset=+2]
 
 include::installation.adoc[leveloffset=+2]
 
+include::kotlin_dsl.adoc[leveloffset=+2]
+
 include::upgrading_from_gradle4.adoc[leveloffset=+2]
 
 

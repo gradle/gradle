@@ -17,16 +17,12 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 class GradleProjectCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.1")
-    @TargetGradleVersion(">=2.3")
     def "populate isPublic field on tasks from GradleProject"() {
         file("build.gradle") << """
 task publicTask {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -39,6 +40,7 @@ allprojects {
     }
 }
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     def "result includes files from local and external components and file dependencies in a fixed order"() {

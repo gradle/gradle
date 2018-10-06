@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.tooling.internal.gradle.BasicGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 

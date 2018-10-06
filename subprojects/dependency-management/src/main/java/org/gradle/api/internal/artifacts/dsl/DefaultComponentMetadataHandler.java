@@ -43,6 +43,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
@@ -58,7 +59,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessorFactory {
+public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataHandlerInternal, ComponentMetadataProcessorFactory {
     private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
     private static final List<Class<?>> VALIDATOR_PARAM_LIST = Collections.<Class<?>>singletonList(IvyModuleDescriptor.class);
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
@@ -196,6 +197,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     @Override
     public ComponentMetadataProcessor createComponentMetadataProcessor(MetadataResolutionContext resolutionContext) {
         return new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, attributesFactory, ruleExecutor, resolutionContext);
+    }
+
+    @Override
+    public void setVariantDerivationStrategy(VariantDerivationStrategy strategy) {
+        metadataRuleContainer.setVariantDerivationStrategy(strategy);
     }
 
     static class ComponentMetadataDetailsMatchingSpec implements Spec<ComponentMetadataDetails> {

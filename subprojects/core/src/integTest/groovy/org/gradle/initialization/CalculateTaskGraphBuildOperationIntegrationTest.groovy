@@ -110,6 +110,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         file('b/settings.gradle') << ""
 
         when:
+        executer.expectDeprecationWarnings(2)
         succeeds('build')
 
         def taskGraphCalculations = buildOperations.all(CalculateTaskGraphBuildOperationType)

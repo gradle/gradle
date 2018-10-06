@@ -93,7 +93,8 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input files"() {
-        when: inputs.files("a", "b")
+        when:
+        inputs.files("a", "b")
         then:
         inputFiles() == [new File("a"), new File("b")]
         inputFileProperties().propertyName == ['$1']

@@ -17,8 +17,8 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
-import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;

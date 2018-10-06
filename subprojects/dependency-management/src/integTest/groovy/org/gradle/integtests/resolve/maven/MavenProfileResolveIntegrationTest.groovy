@@ -29,6 +29,7 @@ class MavenProfileResolveIntegrationTest extends AbstractHttpDependencyResolutio
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
         resolve.expectDefaultConfiguration('runtime')
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     def "uses properties from active profile to resolve dependency"() {

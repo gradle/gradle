@@ -115,7 +115,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.compilerOutput.testOutputDir == file('someTestDir')
     }
 
-    @TargetGradleVersion(">=1.2 <5.0")
+    @TargetGradleVersion(">=2.6 <5.0")
     def "provides source dir information"() {
 
         file('build.gradle').text = "apply plugin: 'java'"
@@ -224,7 +224,7 @@ project(':impl') {
         }
     }
 
-    @TargetGradleVersion('>=1.2 <=2.7')
+    @TargetGradleVersion('>=2.6 <=2.7')
     def "makes sure module names are unique"() {
 
         file('build.gradle').text = """

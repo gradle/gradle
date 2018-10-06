@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.model.GradleModuleVersion;
 

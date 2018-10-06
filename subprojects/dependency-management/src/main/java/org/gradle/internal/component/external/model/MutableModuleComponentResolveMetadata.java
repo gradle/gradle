@@ -26,6 +26,7 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public interface MutableModuleComponentResolveMetadata {
     /**
@@ -104,5 +105,5 @@ public interface MutableModuleComponentResolveMetadata {
     void belongsTo(ComponentIdentifier platform);
 
     @Nullable
-    List<? extends ComponentIdentifier> getPlatformOwners();
+    Set<? extends ComponentIdentifier> getPlatformOwners();
 }

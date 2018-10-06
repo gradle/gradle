@@ -745,6 +745,15 @@ allprojects {
             this
         }
     }
+
+    /**
+     * Enables Maven derived variants, as if the Java plugin was applied
+     */
+    void addDefaultVariantDerivationStrategy() {
+        buildFile << """
+            allprojects { dependencies.components.variantDerivationStrategy = new org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy() }
+        """
+    }
 }
 
 class GenerateGraphTask extends DefaultTask {

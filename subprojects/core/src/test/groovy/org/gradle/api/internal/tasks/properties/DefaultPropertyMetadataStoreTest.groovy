@@ -495,7 +495,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2115")
-    def "annotation on private filed is recognized for is-getter"() {
+    def "annotation on private field is recognized for is-getter"() {
         def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:

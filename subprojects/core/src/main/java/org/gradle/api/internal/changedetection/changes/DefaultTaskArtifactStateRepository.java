@@ -96,16 +96,21 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
+        public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             IncrementalTaskInputs taskInputs;
             if (outputsRemoved || getStates().isRebuildRequired()) {
-                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
+                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
             } else {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
             return taskInputs;
+        }
+
+        @Override
+        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
+            return history.getCurrentExecution().getInputFingerprints().values();
         }
 
         @Override

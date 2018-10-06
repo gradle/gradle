@@ -439,10 +439,10 @@ class NodeState implements DependencyGraphNode {
 
     private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            EdgeState singleEdge = incomingEdges.iterator().next();
+            EdgeState singleEdge = incomingEdges.get(0);
             singleEdge.restart();
         } else {
-            for (EdgeState dependency : new ArrayList<EdgeState>(incomingEdges)) {
+            for (EdgeState dependency : new ArrayList<>(incomingEdges)) {
                 dependency.restart();
             }
         }

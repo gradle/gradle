@@ -113,7 +113,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def visitor = new GenericVisitorAdapter<Object, Void>() {
             @Override
             Object visit(MethodDeclaration declaration, Void arg) {
-                if (declaration.name == method.name && declaration.annotations.any { it.name.name == Override.simpleName } ) {
+                if (declaration.name.asString() == method.name && declaration.annotations.any { it.name.asString() == Override.simpleName } ) {
                     return new Object()
                 }
                 return null

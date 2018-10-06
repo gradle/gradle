@@ -16,7 +16,11 @@
 
 package org.gradle.testing.fixture
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.VersionNumber
+
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 
 class GroovyCoverage {
     final static String NEWEST = GroovySystem.version
@@ -35,5 +39,19 @@ class GroovyCoverage {
         it >= VersionNumber.parse("2.4.6")
     }.collect {
         it.toString()
+    }
+
+    /**
+     * Returns configuration DSL to set up the Groovy snapshot if a snapshot version is requested.
+     */
+    static String groovySnapshotRepository(GradleDsl dsl = GROOVY, def version) {
+        if (!version.toString().endsWith("-SNAPSHOT")) {
+            return ""
+        }
+        return """
+            repositories {
+                ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", "groovy-snapshots", "https://oss.jfrog.org/artifactory/oss-snapshot-local")}
+            }
+        """
     }
 }

@@ -34,6 +34,6 @@ class GradleRunnerUnsupportedGradleVersionFailureIntegrationTest extends BaseGra
 
         then:
         def e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using (1.1) is not supported by TestKit. TestKit supports all Gradle versions 1.2 and later."
+        e.message == "The version of Gradle you are using (1.1) is not supported by TestKit. TestKit supports all Gradle versions 2.6 and later."
     }
 }

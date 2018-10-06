@@ -16,9 +16,8 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.escapeString
@@ -41,7 +40,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('javac returned nonzero exit code')
     }
 
-    def "processes annotation for Java class if annotation processor is available on classpath"() {
+    def "does not process annotation for Java class if annotation processor is only available on classpath"() {
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
@@ -56,14 +55,12 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << annotationProcessorDependency(annotationProcessorPublisher.repoDir, annotationProcessorPublisher.dependencyCoordinates)
         file('src/main/scala/MyClass.java') << javaClassWithCustomAnnotation()
 
-        executer.expectDeprecationWarning()
         succeeds 'compileScala'
 
         then:
         skipped(':compileJava')
         executedAndNotSkipped(':compileScala')
-        new File(testDirectory, 'generated.txt').exists()
-        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        new TestFile(testDirectory, 'generated.txt').assertDoesNotExist()
     }
 
     def "processes annotation for Java class if annotation processor is available on processor path"() {
@@ -92,20 +89,18 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         new File(testDirectory, 'generated.txt').exists()
     }
 
-    def "can use external annotation processor for Java class, from classpath"() {
+    def "cannot use external annotation processor for Java class, from classpath"() {
         given:
         buildFile << basicScalaProject()
         buildFile << lombokDependency()
         file('src/main/scala/Test.java') << javaClassWithLombokAnnotation()
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds 'compileScala'
+        fails 'compileScala'
 
         then:
         skipped(':compileJava')
         executedAndNotSkipped(':compileScala')
-        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "can use external annotation processor for Java class, from processor path"() {
@@ -218,7 +213,6 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         private void writeBuildFile() {
             def processorBuildFile = file("$name/build.gradle")
-            FeaturePreviewsFixture.enableStablePublishing(file("$name/settings.gradle"))
             processorBuildFile << """
                 apply plugin: 'java'
                 apply plugin: 'maven-publish'

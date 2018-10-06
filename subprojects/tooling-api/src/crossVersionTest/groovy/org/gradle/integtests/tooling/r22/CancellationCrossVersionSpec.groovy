@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.tooling.r22
 
-import org.gradle.integtests.tooling.fixture.*
+import org.gradle.integtests.tooling.fixture.TestOutputStream
+import org.gradle.integtests.tooling.fixture.TestResultHandler
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.integtests.tooling.r21.HangingBuildAction
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
@@ -26,8 +28,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
 
-@ToolingApiVersion(">=2.2")
-@TargetGradleVersion(">=2.1")
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
@@ -37,7 +37,6 @@ rootProject.name = 'cancelling'
 '''
     }
 
-    @TargetGradleVersion(">=2.2")
     def "can cancel build during settings phase"() {
         settingsFile << """
 import org.gradle.initialization.BuildCancellationToken
@@ -79,7 +78,6 @@ throw new RuntimeException("should not run")
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    @TargetGradleVersion(">=2.2")
     def "can cancel build during configuration phase"() {
         file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
         setupCancelInConfigurationBuild()
@@ -109,7 +107,6 @@ throw new RuntimeException("should not run")
         configureOnDemand << [true, false]
     }
 
-    @TargetGradleVersion(">=2.2")
     def "can cancel model creation during configuration phase"() {
         file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
         setupCancelInConfigurationBuild()
@@ -138,7 +135,6 @@ throw new RuntimeException("should not run")
         configureOnDemand << [true, false]
     }
 
-    @TargetGradleVersion(">=2.2")
     def "can cancel build action execution during configuration phase"() {
         file("gradle.properties") << "org.gradle.configureondemand=${configureOnDemand}"
         setupCancelInConfigurationBuild()
@@ -287,7 +283,6 @@ task hang {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    @TargetGradleVersion(">=2.2")
     def "can cancel model retrieval"() {
         settingsFile << '''
 include 'sub'

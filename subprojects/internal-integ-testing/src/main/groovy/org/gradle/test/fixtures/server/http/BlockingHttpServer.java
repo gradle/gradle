@@ -22,6 +22,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.gradle.api.Action;
 import org.gradle.internal.ErroringAction;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -96,6 +97,10 @@ public class BlockingHttpServer extends ExternalResource {
     public String callFromBuild(String resource) {
         URI uri = uri(resource);
         return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
+    }
+
+    public String callFromTaskAction(String resource) {
+        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).withoutProjectLock(new Runnable() { void run() { " + callFromBuild(resource) +  " } });";
     }
 
     /**

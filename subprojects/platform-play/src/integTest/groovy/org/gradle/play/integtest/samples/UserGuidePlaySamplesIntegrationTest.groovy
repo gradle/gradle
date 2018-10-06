@@ -38,6 +38,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withRepositoryMirrors()
+        executer.noDeprecationChecks()
     }
 
     def "sourcesets sample is buildable" () {

@@ -67,7 +67,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        assertFailureContainsForbiddenCharacterMessage('name', "some/really.\\strange name:")
+        assertFailureContainsForbiddenCharacterMessage('Configuration name', "some/really.\\strange name:")
     }
 
     def "project names must not contain start with ."() {
