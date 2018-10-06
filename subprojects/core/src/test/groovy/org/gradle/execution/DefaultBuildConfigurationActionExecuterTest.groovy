@@ -17,23 +17,26 @@
 package org.gradle.execution
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import spock.lang.Specification
 
 class DefaultBuildConfigurationActionExecuterTest extends Specification {
     final GradleInternal gradleInternal = Mock()
+    final ProjectStateRegistry projectStateRegistry = Mock()
 
     def "select method calls configure method on first configuration action"() {
         BuildConfigurationAction configurationAction = Mock()
         BuildConfigurationAction taskSelectionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction], projectStateRegistry)
 
         when:
         buildExecution.select(gradleInternal)
 
         then:
         1 * configurationAction.configure(!null)
+        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
         0 * _._
     }
 
@@ -42,14 +45,14 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction taskSelectionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction], projectStateRegistry)
 
         when:
         buildExecution.select(gradleInternal)
 
         then:
         1 * configurationAction.configure(!null) >> { it[0].proceed() }
-
+        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
         and:
         1 * taskSelectionAction.configure(!null)
     }
@@ -58,13 +61,14 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction action1 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1],[])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1],[], projectStateRegistry)
 
         when:
         buildExecution.select(gradleInternal)
 
         then:
         1 * action1.configure(!null) >> { it[0].proceed() }
+        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
         0 * _._
     }
 
@@ -72,7 +76,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction configurationAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction],[])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction],[], projectStateRegistry)
 
         when:
         buildExecution.select(gradleInternal)
@@ -81,6 +85,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         1 * configurationAction.configure(!null) >> {
             assert it[0].gradle ==gradleInternal
         }
+        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
     }
 
     def "can overwrite default task selectors"() {
@@ -93,7 +98,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction newTaskSelector = Mock()
 
 
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configAction1, configAction2],[givenTaskSelector1, givenTaskSelector2])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configAction1, configAction2],[givenTaskSelector1, givenTaskSelector2], projectStateRegistry)
 
         when:
         buildExecution.setTaskSelectors([newTaskSelector])
@@ -105,7 +110,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         0 * givenTaskSelector2.configure(!null)
         1 * configAction1.configure(!null) >> {it[0].proceed()}
         1 * configAction2.configure(!null) >> {it[0].proceed()}
-
+        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
         1 * newTaskSelector.configure(!null) >> {
             assert it[0].gradle ==gradleInternal
 
