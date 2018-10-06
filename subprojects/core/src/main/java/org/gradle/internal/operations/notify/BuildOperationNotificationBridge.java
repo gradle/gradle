@@ -22,7 +22,13 @@ import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.*;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,7 +275,7 @@ public class BuildOperationNotificationBridge {
         private final AtomicBoolean needLock = new AtomicBoolean(true);
         private final Lock lock = new ReentrantLock();
 
-        private synchronized void attach(BuildOperationNotificationListener realListener) {
+        private void attach(BuildOperationNotificationListener realListener) {
             lock.lock();
             try {
                 for (Object storedEvent : recordingListener.storedEvents) {
@@ -291,7 +297,7 @@ public class BuildOperationNotificationBridge {
         }
 
         @Override
-        public synchronized void started(BuildOperationStartedNotification notification) {
+        public void started(BuildOperationStartedNotification notification) {
             if (needLock.get()) {
                 lock.lock();
                 try {
@@ -305,7 +311,7 @@ public class BuildOperationNotificationBridge {
         }
 
         @Override
-        public synchronized void progress(BuildOperationProgressNotification notification) {
+        public void progress(BuildOperationProgressNotification notification) {
             if (needLock.get()) {
                 lock.lock();
                 try {
@@ -319,7 +325,7 @@ public class BuildOperationNotificationBridge {
         }
 
         @Override
-        public synchronized void finished(BuildOperationFinishedNotification notification) {
+        public void finished(BuildOperationFinishedNotification notification) {
             if (needLock.get()) {
                 lock.lock();
                 try {
