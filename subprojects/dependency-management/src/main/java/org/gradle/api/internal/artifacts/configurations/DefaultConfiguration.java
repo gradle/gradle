@@ -294,7 +294,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         // threaded anyways, like evaluating buildSrc or in an init script.
                         if (project != null) {
                             ProjectState projectState = projectStateRegistry.stateFor(project);
-                            delegate = projectState.newSafeExclusiveLock();
+                            delegate = projectState.newExclusiveOperationLock();
                         }
                     }
                 }
