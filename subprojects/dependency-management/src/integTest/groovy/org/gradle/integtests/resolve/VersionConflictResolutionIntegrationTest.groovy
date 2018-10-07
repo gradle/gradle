@@ -222,10 +222,15 @@ task resolve {
         def depOld = mavenRepo.module("org", "dep", "2.0").publish()
         def depNew = mavenRepo.module("org", "dep", "2.5").publish()
 
-        mavenRepo.module("org", "one", "1.0").dependsOn(depNew).publish()
-        def oneNew = mavenRepo.module("org", "one", "1.2").dependsOn(depNew).publish()
+        def controlOld = mavenRepo.module("org", "control", "1.0").dependsOn(depNew).publish()
+        def controlNew = mavenRepo.module("org", "control", "1.2").dependsOn(depNew).publish()
+        def controlNewBringer = mavenRepo.module("org", "control-1.2-bringer", "1.0").dependsOn(controlNew).publish()
 
-        mavenRepo.module("org", "two", "1.0").dependsOn(depOld).dependsOn(oneNew).publish()
+        mavenRepo.module("org", "one", "1.0").dependsOn(controlOld).publish()
+
+        def depOldBringer = mavenRepo.module("org", "dep-2.0-bringer", "1.0").dependsOn(depOld).publish()
+        // Note: changing the order of the following dependencies makes the test pass
+        mavenRepo.module("org", "two", "1.0").dependsOn(controlNewBringer).dependsOn(depOldBringer).publish()
 
         buildFile << """
 repositories {
@@ -249,12 +254,18 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:one:1.0", "org:one:1.2") {
-                    edge("org:dep:2.5", "org:dep:2.5")
+                module("org:one:1.0") {
+                    edge("org:control:1.0", "org:control:1.2") {
+                        edge("org:dep:2.5", "org:dep:2.5")
+                    }
                 }
                 module("org:two:1.0") {
-                    edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.5 and 2.0")
-                    edge("org:one:1.2", "org:one:1.2")
+                    module("org:dep-2.0-bringer:1.0") {
+                        edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.5 and 2.0")
+                    }
+                    module("org:control-1.2-bringer:1.0") {
+                        module("org:control:1.2")
+                    }
                 }
             }
         }
