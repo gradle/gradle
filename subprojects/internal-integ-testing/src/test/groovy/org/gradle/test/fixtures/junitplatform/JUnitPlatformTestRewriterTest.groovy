@@ -41,6 +41,43 @@ dependencies { testCompile 'junit:junit:4.12' }
             "testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.0','org.junit.jupiter:junit-jupiter-engine:5.1.0'")
     }
 
+    def 'modular build.gradle should be rewritten'() {
+        given:
+        temporaryFolder.testDirectory.file('build.gradle') << '''
+dependencies { 
+    testImplementation 'junit:junit:4.12' 
+}
+compileTestJava {
+    def args = ["--add-modules", "junit",
+                "--add-reads", "org.gradle.example=junit"]
+}
+test {
+    def args = ["--add-modules", "ALL-MODULE-PATH",
+                "--add-reads", "org.gradle.example=junit"]
+}
+'''
+        when:
+        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.1.0')
+
+        then:
+        temporaryFolder.testDirectory.file('build.gradle').text == '''
+dependencies { 
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0','org.junit.jupiter:junit-jupiter-engine:5.1.0' 
+}
+compileTestJava {
+    def args = ["--add-modules", "org.junit.jupiter.api",
+                "--add-reads", "org.gradle.example=org.junit.jupiter.api"]
+}
+
+test {
+    useJUnitPlatform()
+
+    def args = ["--add-modules", "ALL-MODULE-PATH",
+                "--add-reads", "org.gradle.example=org.junit.jupiter.api"]
+}
+'''
+    }
+
     @Unroll
     def 'java source files should be rewritten'() {
         given:

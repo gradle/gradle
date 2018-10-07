@@ -31,13 +31,14 @@ import java.util.concurrent.locks.ReentrantLock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
+import static org.gradle.util.Path.path
 
 class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
-    def coordinationService = new DefaultResourceLockCoordinationService();
+    def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallel())
 
     def "can cleanly lock and unlock a project"() {
-        def projectLock = workerLeaseService.getProjectLock("root", ":project")
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         given:
         assert !lockIsHeld(projectLock)
@@ -61,7 +62,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                 start {
                     started.countDown()
                     thread.blockUntil.releaseAll
-                    def projectLock = workerLeaseService.getProjectLock("root", ":project")
+                    def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
                     workerLeaseService.withLocks([projectLock]) {
                         assert lockIsHeld(projectLock)
                     }
@@ -86,7 +87,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                     started.countDown()
                     thread.blockUntil.releaseAll
                     while (true) {
-                        def projectLock = workerLeaseService.getProjectLock("root", ":project")
+                        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
                         boolean success = coordinationService.withStateLock(tryLock(projectLock))
                         try {
                             if (success) {
@@ -117,7 +118,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         async {
             threadCount.times { i ->
                 start {
-                    def projectLock = workerLeaseService.getProjectLock("root", ":project${i}")
+                    def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project${i}"))
                     workerLeaseService.withLocks([projectLock]) {
                         started.countDown()
                         thread.blockUntil.releaseAll
@@ -145,7 +146,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                 start {
                     started.countDown()
                     thread.blockUntil.releaseAll
-                    def projectLock = projectLockService.getProjectLock("root", ":project${i}")
+                    def projectLock = projectLockService.getProjectLock(path("root"), path(":project${i}"))
                     workerLeaseService.withLocks([projectLock]) {
                         assert testLock.tryLock()
                         try {
@@ -179,7 +180,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
                     started.countDown()
                     thread.blockUntil.releaseAll
                     def buildIndex = i % buildCount
-                    def projectLock = projectLockService.getProjectLock("build${buildIndex}", ":project${i}")
+                    def projectLock = projectLockService.getProjectLock(path("build${buildIndex}"), path(":project${i}"))
                     workerLeaseService.withLocks([projectLock]) {
                         assert testLock[buildIndex].tryLock()
                         try {
@@ -200,7 +201,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
 
     def "can use withoutProjectLock to temporarily release a lock"() {
         boolean executed = false
-        def projectLock = workerLeaseService.getProjectLock("root", ":project")
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         given:
         assert !lockIsHeld(projectLock)
@@ -222,8 +223,8 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
 
     def "can use withoutProjectLock to temporarily release multiple locks"() {
         boolean executed = false
-        def projectLock = workerLeaseService.getProjectLock("root", ":project")
-        def otherProjectLock = workerLeaseService.getProjectLock("root", ":otherProject")
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+        def otherProjectLock = workerLeaseService.getProjectLock(path("root"), path(":otherProject"))
 
         given:
         assert !lockIsHeld(projectLock)
@@ -260,7 +261,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     }
 
     def "withoutProjectLock releases worker leases when waiting on a project lock"() {
-        def projectLock = workerLeaseService.getProjectLock("root", ":project")
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         when:
         async {

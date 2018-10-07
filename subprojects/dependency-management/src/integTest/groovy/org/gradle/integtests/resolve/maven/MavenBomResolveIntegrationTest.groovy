@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Ignore
@@ -29,8 +28,8 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << "rootProject.name = 'testproject'"
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             configurations { compile }

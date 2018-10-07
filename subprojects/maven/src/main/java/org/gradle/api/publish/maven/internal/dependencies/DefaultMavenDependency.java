@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.dependencies;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,13 +27,12 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
     private final String groupId;
     private final String artifactId;
     private final String version;
+    private final String type;
     private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
     private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>(); //exclude rules for a dependency specified in gradle DSL
 
     public DefaultMavenDependency(String groupId, String artifactId, String version) {
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.version = version;
+        this(groupId, artifactId, version, (String) null);
     }
 
     public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts) {
@@ -45,6 +45,13 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
         this.excludeRules.addAll(excludeRules);
     }
 
+    public DefaultMavenDependency(String groupId, String artifactId, String version, String type) {
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+        this.type = type;
+    }
+
     public String getGroupId() {
         return groupId;
     }
@@ -55,6 +62,12 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
 
     public String getVersion() {
         return version;
+    }
+
+    @Nullable
+    @Override
+    public String getType() {
+        return type;
     }
 
     public Collection<DependencyArtifact> getArtifacts() {

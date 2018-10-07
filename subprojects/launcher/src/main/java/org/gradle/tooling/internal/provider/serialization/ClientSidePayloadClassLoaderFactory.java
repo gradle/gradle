@@ -41,13 +41,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         this.classLoaderFactory = classLoaderFactory;
     }
 
+    @Override
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof VisitableURLClassLoader.Spec) {
             VisitableURLClassLoader.Spec clSpec = (VisitableURLClassLoader.Spec) spec;
             if (parents.size() != 1) {
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
-            return new MixInClassLoader(parents.get(0), clSpec.getClasspath());
+            return new MixInClassLoader(clSpec.getName() + "-client-payload-loader", parents.get(0), clSpec.getClasspath());
         }
         return classLoaderFactory.getClassLoaderFor(spec, parents);
     }
@@ -55,15 +56,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
     private static class MixInClassLoader extends TransformingClassLoader {
         static {
             try {
-                //noinspection Since15
                 ClassLoader.registerAsParallelCapable();
             } catch (NoSuchMethodError ignore) {
                 // Not supported on Java 6
             }
         }
 
-        public MixInClassLoader(ClassLoader parent, List<URL> classPath) {
-            super(parent, classPath);
+        public MixInClassLoader(String name, ClassLoader parent, List<URL> classPath) {
+            super(name, parent, classPath);
         }
 
         @Override

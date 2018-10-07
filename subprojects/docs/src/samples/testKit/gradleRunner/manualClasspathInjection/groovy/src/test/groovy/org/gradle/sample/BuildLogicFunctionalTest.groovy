@@ -26,12 +26,14 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 class BuildLogicFunctionalTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    File settingsFile
     File buildFile
     // tag::functional-test-classpath-setup[]
     // tag::functional-test-classpath-setup-older-gradle[]
     List<File> pluginClasspath
 
     def setup() {
+        settingsFile = testProjectDir.newFile('settings.gradle')
         buildFile = testProjectDir.newFile('build.gradle')
 
         def pluginClasspathResource = getClass().classLoader.findResource("plugin-classpath.txt")

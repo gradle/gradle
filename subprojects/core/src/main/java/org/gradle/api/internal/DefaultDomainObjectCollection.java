@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -39,6 +38,7 @@ import org.gradle.util.ConfigureUtil;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -131,7 +131,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     Iterator<T> iteratorNoFlush() {
         if (store.constantTimeIsEmpty()) {
-            return Iterators.emptyIterator();
+            return Collections.emptyIterator();
         }
 
         return new IteratorImpl(store.iteratorNoFlush());
@@ -165,7 +165,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void configureEach(Action<? super T> action) {
-        Action<? super T> wrappedAction = getMutationGuard().withMutationDisabled(action);
+        assertMutable("configureEach(Action)");
+        Action<? super T> wrappedAction = withMutationDisabled(action);
         eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
@@ -184,6 +185,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                 wrappedAction.execute(next);
             }
         }
+    }
+
+    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
+        return getMutationGuard().withMutationDisabled(action);
     }
 
     public void all(Closure action) {
@@ -287,7 +292,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean addAll(Collection<? extends T> c) {
-        assertMutable("addAll(Collection)");
+        assertMutable("addAll(Collection<T>)");
         boolean changed = false;
         for (T o : c) {
             if (doAdd(o, eventRegister.getAddActions())) {

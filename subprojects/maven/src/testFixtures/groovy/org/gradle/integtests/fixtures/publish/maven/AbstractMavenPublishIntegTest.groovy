@@ -32,7 +32,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
     def setup() {
         prepare()
-        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
     }
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
@@ -70,7 +69,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         def attributes = params.variant == null ?
             "" :
             """ 
@@ -108,6 +106,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
 
         buildFile.text = """
+            apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
                 resolve {
                     ${attributes}

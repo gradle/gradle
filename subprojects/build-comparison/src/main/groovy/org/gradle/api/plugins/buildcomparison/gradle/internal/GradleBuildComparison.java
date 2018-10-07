@@ -174,7 +174,6 @@ public class GradleBuildComparison {
     private ProjectConnection createProjectConnection(ComparableGradleBuildExecuter executer) {
         DefaultGradleConnector connector = (DefaultGradleConnector) GradleConnector.newConnector();
         connector.forProjectDirectory(executer.getSpec().getProjectDir());
-        connector.searchUpwards(false);
         File gradleUserHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
         if (gradleUserHomeDir != null) {
             connector.useGradleUserHomeDir(gradleUserHomeDir);

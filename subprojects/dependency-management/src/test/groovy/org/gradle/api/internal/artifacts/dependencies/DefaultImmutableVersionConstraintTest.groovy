@@ -26,7 +26,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
         expect:
         v.requiredVersion == '1.0'
-        v.preferredVersion == '1.0'
+        v.preferredVersion == ''
         v.strictVersion == ''
         v.rejectedVersions == []
     }

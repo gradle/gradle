@@ -26,9 +26,9 @@ public class FeaturePreviews {
      * A feature that is no longer relevant will have the {@code active} flag set to {@code false}.
      */
     public enum Feature {
-        IMPROVED_POM_SUPPORT(true),
+        IMPROVED_POM_SUPPORT(false),
         GRADLE_METADATA(true),
-        STABLE_PUBLISHING(true);
+        STABLE_PUBLISHING(false);
 
         public static Feature withName(String name) {
             try {
@@ -54,7 +54,7 @@ public class FeaturePreviews {
     private final EnumSet<Feature> enabledFeatures = EnumSet.noneOf(Feature.class);
 
     public FeaturePreviews() {
-        EnumSet<Feature> tmpActiveSet = EnumSet.noneOf(Feature.class);
+        Set<Feature> tmpActiveSet = EnumSet.noneOf(Feature.class);
         for (Feature feature : Feature.values()) {
             if (feature.isActive()) {
                 tmpActiveSet.add(feature);
@@ -73,18 +73,8 @@ public class FeaturePreviews {
         return feature.isActive() && enabledFeatures.contains(feature);
     }
 
-    public void enableFeature(String name) {
-        enableFeature(Feature.withName(name));
-    }
-
-    public boolean isFeatureEnabled(String name) {
-        return isFeatureEnabled(Feature.withName(name));
-    }
-
     /**
-     * Returns an {@code EnumSet} containing all {@link Feature} that are active.
-     *
-     * @return the active {@code Feature}
+     * Returns the set of active {@linkplain Feature features}.
      */
     public Set<Feature> getActiveFeatures() {
         return activeFeatures;

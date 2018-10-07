@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Unroll
 
 class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
 
@@ -42,13 +43,14 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
+    @Unroll
+    def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
         project.repositories {
             mavenCentral()
         }
 
         when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-2.1.2${classifier}.jar")])
+        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-${groovyVersion}${classifier}.jar")])
 
         then:
         classpath instanceof LazilyInitializedFileCollection
@@ -56,13 +58,18 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             state == Configuration.State.UNRESOLVED
-            dependencies.size() == 2
-            dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy" && it.version == "2.1.2" } // not sure how to check classifier
-            dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy-ant" && it.version == "2.1.2" } // not sure how to check classifier
+            dependencies.size() == expectedJars.size()
+            expectedJars.each { expectedJar ->
+                assert dependencies.any { it.group == "org.codehaus.groovy" && it.name == expectedJar && it.version == groovyVersion } // not sure how to check classifier
+            }
         }
 
         where:
-        classifier << ["", "-indy"]
+        groovyVersion | classifier | expectedJars
+        "2.1.2"       | ""         | ["groovy", "groovy-ant"]
+        "2.1.2"       | "-indy"    | ["groovy", "groovy-ant"]
+        "2.5.2"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.2"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

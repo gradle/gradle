@@ -9,10 +9,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>testClassesDir</td>
-                <td></td>
-            </tr>
-            <tr>
                 <td>testClassesDirs</td>
                 <td><literal>project.sourceSets.test.output.classesDirs</literal></td>
             </tr>

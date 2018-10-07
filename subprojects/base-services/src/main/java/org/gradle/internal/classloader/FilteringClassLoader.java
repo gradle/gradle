@@ -16,12 +16,16 @@
 
 package org.gradle.internal.classloader;
 
+import org.gradle.internal.util.Trie;
+
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -33,13 +37,13 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
     public static final String DEFAULT_PACKAGE = "DEFAULT";
-    private final Set<String> packageNames = new HashSet<String>();
-    private final Set<String> packagePrefixes = new HashSet<String>();
-    private final Set<String> resourcePrefixes = new HashSet<String>();
-    private final Set<String> resourceNames = new HashSet<String>();
-    private final Set<String> classNames = new HashSet<String>();
-    private final Set<String> disallowedClassNames = new HashSet<String>();
-    private final Set<String> disallowedPackagePrefixes = new HashSet<String>();
+    private final Set<String> packageNames;
+    private final TrieSet packagePrefixes;
+    private final TrieSet resourcePrefixes;
+    private final Set<String> resourceNames;
+    private final Set<String> classNames;
+    private final Set<String> disallowedClassNames;
+    private final TrieSet disallowedPackagePrefixes;
 
     static {
         EXT_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
@@ -47,7 +51,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             SYSTEM_PACKAGES.add(p.getName());
         }
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -66,13 +69,13 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     public FilteringClassLoader(ClassLoader parent, Spec spec) {
         super(parent);
-        packageNames.addAll(spec.packageNames);
-        packagePrefixes.addAll(spec.packagePrefixes);
-        resourceNames.addAll(spec.resourceNames);
-        resourcePrefixes.addAll(spec.resourcePrefixes);
-        classNames.addAll(spec.classNames);
-        disallowedClassNames.addAll(spec.disallowedClassNames);
-        disallowedPackagePrefixes.addAll(spec.disallowedPackagePrefixes);
+        packageNames = new HashSet<String>(spec.packageNames);
+        packagePrefixes = new TrieSet(spec.packagePrefixes);
+        resourceNames = new HashSet<String>(spec.resourceNames);
+        resourcePrefixes = new TrieSet(spec.resourcePrefixes);
+        classNames = new HashSet<String>(spec.classNames);
+        disallowedClassNames = new HashSet<String>(spec.disallowedClassNames);
+        disallowedPackagePrefixes = new TrieSet(spec.disallowedPackagePrefixes);
     }
 
     public void visit(ClassLoaderVisitor visitor) {
@@ -100,6 +103,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return cl;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Package getPackage(String name) {
         Package p = super.getPackage(name);
@@ -136,62 +140,36 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return EXT_CLASS_LOADER.getResources(name);
     }
 
+    @Override
+    public String toString() {
+        return FilteringClassLoader.class.getSimpleName() + "(" + getParent() + ")";
+    }
+
     private boolean allowed(String resourceName) {
-        if (resourceNames.contains(resourceName)) {
-            return true;
-        }
-        for (String resourcePrefix : resourcePrefixes) {
-            if (resourceName.startsWith(resourcePrefix)) {
-                return true;
-            }
-        }
-        return false;
+        return resourceNames.contains(resourceName)
+            || resourcePrefixes.find(resourceName);
     }
 
     private boolean allowed(Package pkg) {
-        for (String packagePrefix : disallowedPackagePrefixes) {
-            if (pkg.getName().startsWith(packagePrefix)) {
-                return false;
-            }
+        String packageName = pkg.getName();
+        if (disallowedPackagePrefixes.find(packageName)) {
+            return false;
         }
 
-        if (SYSTEM_PACKAGES.contains(pkg.getName())) {
-            return true;
-        }
-        if (packageNames.contains(pkg.getName())) {
-            return true;
-        }
-        for (String packagePrefix : packagePrefixes) {
-            if (pkg.getName().startsWith(packagePrefix)) {
-                return true;
-            }
-        }
-        return false;
+        return SYSTEM_PACKAGES.contains(packageName)
+            || packageNames.contains(packageName)
+            || packagePrefixes.find(packageName);
     }
 
     private boolean classAllowed(String className) {
-        if (disallowedClassNames.contains(className)) {
+        if (disallowedClassNames.contains(className)
+            || disallowedPackagePrefixes.find(className)) {
             return false;
         }
-        for (String packagePrefix : disallowedPackagePrefixes) {
-            if (className.startsWith(packagePrefix)) {
-                return false;
-            }
-        }
 
-        if (classNames.contains(className)) {
-            return true;
-        }
-        for (String packagePrefix : packagePrefixes) {
-            if (className.startsWith(packagePrefix)) {
-                return true;
-            }
-
-            if (packagePrefix.startsWith(DEFAULT_PACKAGE) && isInDefaultPackage(className)) {
-                return true;
-            }
-        }
-        return false;
+        return classNames.contains(className)
+            || packagePrefixes.find(className)
+            || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 
     private boolean isInDefaultPackage(String className) {
@@ -223,14 +201,20 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             );
         }
 
-        public Spec(Collection<String> classNames, Collection<String> packageNames, Collection<String> packagePrefixes, Collection<String> resourcePrefixes, Collection<String> resourceNames, Collection<String> disallowedClassNames, Collection<String> disallowedPackagePrefixes) {
-            this.classNames.addAll(classNames);
-            this.packageNames.addAll(packageNames);
-            this.packagePrefixes.addAll(packagePrefixes);
-            this.resourcePrefixes.addAll(resourcePrefixes);
-            this.resourceNames.addAll(resourceNames);
-            this.disallowedClassNames.addAll(disallowedClassNames);
-            this.disallowedPackagePrefixes.addAll(disallowedPackagePrefixes);
+        public Spec(Iterable<String> classNames, Iterable<String> packageNames, Iterable<String> packagePrefixes, Iterable<String> resourcePrefixes, Iterable<String> resourceNames, Iterable<String> disallowedClassNames, Iterable<String> disallowedPackagePrefixes) {
+            addAll(this.classNames, classNames);
+            addAll(this.packageNames, packageNames);
+            addAll(this.packagePrefixes, packagePrefixes);
+            addAll(this.resourcePrefixes, resourcePrefixes);
+            addAll(this.resourceNames, resourceNames);
+            addAll(this.disallowedClassNames, disallowedClassNames);
+            addAll(this.disallowedPackagePrefixes, disallowedPackagePrefixes);
+        }
+
+        private static void addAll(Collection<String> collection, Iterable<String> elements) {
+            for (String element : elements) {
+                collection.add(element);
+            }
         }
 
         /**
@@ -344,6 +328,30 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
         Set<String> getDisallowedPackagePrefixes() {
             return disallowedPackagePrefixes;
+        }
+    }
+
+    private static class TrieSet implements Iterable<String> {
+        private final Trie trie;
+        private final Set<String> set;
+
+        public TrieSet(Collection<String> words) {
+            this.trie = Trie.from(words);
+            this.set = new HashSet<String>(words);
+        }
+
+        public boolean find(CharSequence seq) {
+            return trie.find(seq);
+        }
+
+        public boolean contains(String seq) {
+            return set.contains(seq);
+        }
+
+        @Nonnull
+        @Override
+        public Iterator<String> iterator() {
+            return set.iterator();
         }
     }
 }

@@ -15,9 +15,9 @@
  */
 package org.gradle.internal.hash;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class DefaultFileHasher implements FileHasher {
             try {
                 return streamHasher.hash(inputStream);
             } finally {
-                IOUtils.closeQuietly(inputStream);
+                IoActions.closeQuietly(inputStream);
             }
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);

@@ -15,43 +15,11 @@
  */
 package org.gradle.plugins.ide.tooling.r22
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.idea.*
+import org.gradle.tooling.model.idea.IdeaProject
 
 class Idea13ModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=2.2 <2.3")
-    @ToolingApiVersion(">=2.2")
-    def "provides partial generated sources dir information"() {
-
-        file('build.gradle').text = """
-apply plugin: 'java'
-apply plugin: 'idea'
-
-idea {
-  module {
-    sourceDirs += file('foo')
-    testSourceDirs += file('foo2')
-    generatedSourceDirs += file('foo')
-    generatedSourceDirs += file('foo2')
-  }
-}
-"""
-
-        when:
-        IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
-        def contentRoot = project.children[0].contentRoots[0]
-
-        then:
-        contentRoot.sourceDirectories.findAll { it.generated }.collect { it.directory } == [file('foo')]
-        contentRoot.testDirectories.findAll { it.generated }.collect { it.directory } == [file('foo2')]
-        // 2.2 always returned empty `generatedSourceDirectories` and `generatedTestDirectories`
-    }
-
-    @TargetGradleVersion(">=2.3")
-    @ToolingApiVersion(">=2.2")
     def "provides generated sources dir information"() {
 
         file('build.gradle').text = """

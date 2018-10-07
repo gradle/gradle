@@ -27,7 +27,6 @@ import spock.lang.Unroll
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
- * TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
  */
 @IgnoreIf({
     // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
@@ -39,7 +38,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
     def baseBuild
     def baseSettings
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         (9..13).each {
@@ -58,253 +57,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         resolve.prepare()
         baseBuild = buildFile.text
         baseSettings = settingsFile.text
-    }
-
-    @Unroll
-    void "check behaviour with #dep1 and #dep2"() {
-        given:
-        mavenRepo.module("org", "bar", "1.0").publish()
-        mavenRepo.module("org", "bar", "1.1").publish()
-        mavenRepo.module("org", "bar", "1.2").publish()
-
-        when:
-        buildFile.text = baseBuild + """
-            dependencies {
-                conf('org:bar:${dep1}')
-                conf('org:bar:${dep2}')
-            }
-        """
-        run ':checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org:bar:${dep1}", "org:bar:${lenientResult}")
-                edge("org:bar:${dep2}", "org:bar:${lenientResult}")
-            }
-        }
-        when:
-        // Invert the order of dependency declaration
-        buildFile.text = baseBuild + """
-            dependencies {
-                conf('org:bar:${dep2}')
-                conf('org:bar:${dep1}')
-            }
-        """
-        run ':checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org:bar:${dep1}", "org:bar:${lenientResult}")
-                edge("org:bar:${dep2}", "org:bar:${lenientResult}")
-            }
-        }
-
-        when:
-        // Declare versions with 'strictly'
-        buildFile.text = baseBuild + """
-            dependencies {
-                conf('org:bar') {
-                    version { strictly('${dep1}') }
-                }
-                conf('org:bar') {
-                    version { strictly('${dep2}') }
-                }
-            }
-        """
-
-        then:
-        // Cannot convert open range to 'strictly'
-        if (strictResult == "FAIL" || !strictable(dep1) || !strictable(dep2)) {
-            fails(":checkDeps")
-        } else {
-            succeeds(":checkDeps")
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${strictResult}")
-                    edge("org:bar:${dep2}", "org:bar:${strictResult}")
-                }
-            }
-        }
-
-        when:
-        // Use strict conflict resolution
-        buildFile.text = baseBuild + """
-            configurations.conf.resolutionStrategy.failOnVersionConflict()
-            dependencies {
-                conf('org:bar:${dep1}')
-                conf('org:bar:${dep2}')
-            }
-        """
-
-        then:
-        if (strictResult == "FAIL") {
-            fails(":checkDeps")
-        } else {
-            succeeds(":checkDeps")
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${strictResult}")
-                    edge("org:bar:${dep2}", "org:bar:${strictResult}")
-                }
-            }
-        }
-
-
-        where:
-        dep1         | dep2         | lenientResult | strictResult | correctLenient | correctStrict
-        "1.0"        | "1.1"        | "1.1"         | "FAIL"       | ''             | ''
-        "[1.0, 1.2]" | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.4]" | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.4]" | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.4]" | "[1.0, 1.6]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, )"    | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, )"    | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, )"    | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, )"    | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, 2)"   | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 2)"   | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 2)"   | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, 2)"   | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
-        "1.+"        | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
-        "1.+"        | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
-
-        // Currently incorrect behaviour
-        "1.+"        | "1.1"        | "1.2"         | "FAIL"       | "1.1"          | "1.1"  // #4180
-        "1.+"        | "[1.0, 1.1]" | "1.2"         | "FAIL"       | "1.1"          | "1.1"  // #4180
-    }
-
-    private boolean strictable(String version) {
-        return !version.endsWith(", )") && !version.endsWith("+")
-    }
-
-    @Unroll
-    void "check behaviour with #dep1 and reject #reject"() {
-        given:
-        mavenRepo.module("org", "bar", "1.0").publish()
-        mavenRepo.module("org", "bar", "1.1").publish()
-        mavenRepo.module("org", "bar", "1.2").publish()
-
-        when:
-        buildFile.text = baseBuild + """
-            dependencies {
-                conf('org:bar:${dep1}')
-                conf('org:bar') {
-                    version { reject '${reject}' }
-                }
-            }
-        """
-
-        then:
-        if (lenientResult == "FAIL") {
-            fails ':checkDeps'
-        } else {
-            run ':checkDeps'
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${lenientResult}")
-                    edge("org:bar", "org:bar:${lenientResult}")
-                }
-            }
-        }
-
-        when:
-        // Invert the order of dependency declaration
-        buildFile.text = baseBuild + """
-            dependencies {
-                conf('org:bar') {
-                    version { reject '${reject}' }
-                }
-                conf('org:bar:${dep1}')
-            }
-        """
-
-        then:
-        if (lenientResult == "FAIL") {
-            fails ':checkDeps'
-        } else {
-            run ':checkDeps'
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${lenientResult}")
-                    edge("org:bar", "org:bar:${lenientResult}")
-                }
-            }
-        }
-
-        when:
-        // Inverted order with a reject constraint
-        buildFile.text = baseBuild + """
-            dependencies {
-                constraints {
-                    conf('org:bar') {
-                        version { reject '${reject}' }
-                    }
-                }
-                conf('org:bar:${dep1}')
-            }
-        """
-
-        then:
-        if (lenientResult == "FAIL") {
-            fails ':checkDeps'
-        } else {
-            run ':checkDeps'
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${lenientResult}")
-                    edge("org:bar", "org:bar:${lenientResult}")
-                }
-            }
-        }
-
-
-        when:
-        // Use strict conflict resolution
-        buildFile.text = baseBuild + """
-            configurations.conf.resolutionStrategy.failOnVersionConflict()
-            dependencies {
-                conf('org:bar:${dep1}')
-                conf('org:bar') {
-                    version { reject '${reject}' }
-                }
-            }
-        """
-
-        then:
-        if (strictResult == "FAIL") {
-            fails(":checkDeps")
-        } else {
-            succeeds(":checkDeps")
-            resolve.expectGraph {
-                root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${strictResult}")
-                    edge("org:bar", "org:bar:${strictResult}")
-                }
-            }
-        }
-
-
-        where:
-        dep1         | reject       | lenientResult | strictResult
-        "1.0"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"
-        "[1.0, 1.2]" | "1.0"        | "1.2"         | "1.2"
-        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.2"         | "1.2"
-        "[1.0, 1.2]" | "[1.0, 1.4]" | "FAIL"        | "FAIL"
-        "[1.0, 1.2]" | "[1.0, )"    | "FAIL"        | "FAIL"
-        "[1.0, )"    | "1.0"        | "1.2"         | "1.2"
-        "[1.0, )"    | "[1.0, 1.1]" | "1.2"         | "1.2"
-        "[1.0, )"    | "[1.0, 1.4]" | "FAIL"        | "FAIL"
-        "[1.0, )"    | "[1.0, )"    | "FAIL"        | "FAIL"
-        "1.+"        | "1.0"        | "1.2"         | "1.2"
-        "1.+"        | "[1.0, 1.1]" | "1.2"         | "1.2"
-        "1.+"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"
-        "1.+"        | "[1.0, )"    | "FAIL"        | "FAIL"
-        "[1.0, 1.2]" | "1.2"        | "1.1"          | "1.1"
-        "[1.0, )"    | "1.2"        | "1.1"          | "1.1"
-        "1.+"        | "1.2"        | "1.1"          | "1.1"
     }
 
     @Unroll
@@ -437,8 +189,9 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     }
 
     def parseFailureType(ExecutionFailure failure) {
-        if (failure.error.contains("Cannot find a version of 'org:foo' that satisfies the version constraints")
-            && (failure.error.contains("rejects") || failure.error.contains("strictly"))) {
+        if (failure.error.contains("has been rejected") ||
+            (failure.error.contains("Cannot find a version of 'org:foo' that satisfies the version constraints")
+                && (failure.error.contains("rejects") || failure.error.contains("strictly")))) {
             return VersionRangeResolveTestScenarios.REJECTED
         }
         return VersionRangeResolveTestScenarios.FAILED

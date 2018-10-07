@@ -19,10 +19,15 @@ package org.gradle.caching.internal.tasks;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+
 public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {
     Path getTaskPath();
 
     BuildCacheKeyInputs getInputs();
+
+    @Nullable
+    byte[] getHashCodeBytes();
 
     /**
      * Whether this key can be used to retrieve or store task output entries.

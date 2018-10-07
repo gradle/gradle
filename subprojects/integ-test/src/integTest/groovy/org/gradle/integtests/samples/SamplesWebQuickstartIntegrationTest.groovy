@@ -27,7 +27,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractPluginIntegrationTest 
     @Rule ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "can build a war"() {

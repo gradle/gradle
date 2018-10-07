@@ -32,7 +32,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Unroll

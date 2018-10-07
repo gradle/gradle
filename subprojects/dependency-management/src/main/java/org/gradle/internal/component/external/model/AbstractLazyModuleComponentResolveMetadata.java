@@ -70,11 +70,15 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
      */
     protected void copyCachedState(AbstractLazyModuleComponentResolveMetadata metadata) {
         // Copy built-on-demand state
-        configurations.putAll(metadata.configurations);
+        metadata.copyCachedConfigurations(this.configurations);
         this.graphVariants = metadata.graphVariants;
     }
 
-    protected VariantMetadataRules getVariantMetadataRules() {
+    private synchronized void copyCachedConfigurations(Map<String, ConfigurationMetadata> target) {
+        target.putAll(configurations);
+    }
+
+    public VariantMetadataRules getVariantMetadataRules() {
         return variantMetadataRules;
     }
 
@@ -112,12 +116,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (populated != null) {
             return populated;
         }
-        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions);
         configurations.put(name, md);
         return md;
     }
 
-    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
+    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
         if (descriptorConfiguration == null) {
             return null;

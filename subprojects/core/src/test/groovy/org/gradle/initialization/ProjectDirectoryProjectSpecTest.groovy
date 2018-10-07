@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GFileUtils
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -33,6 +32,7 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
     private final File dir = temporaryFolder.createDir("build");
     private final ProjectDirectoryProjectSpec spec = new ProjectDirectoryProjectSpec(dir);
     private int counter;
+    def settings = "settings 'foo'"
 
     def "contains match when at least one project has specified project dir"() {
         expect:
@@ -49,16 +49,16 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
         ProjectIdentifier project1 = project(dir);
 
         then:
-        spec.selectProject(registry(project1, project(new File("other")))) == project1;
+        spec.selectProject("settings 'foo'", registry(project1, project(new File("other")))) == project1;
     }
 
     def "select project fails when no project has specified project dir"() {
         when:
-        spec.selectProject(registry())
+        spec.selectProject("settings 'foo'", registry())
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "No projects in this build have project directory '" + dir + "'."
+        e.message == "Project directory '$dir' is not part of the build defined by settings 'foo'. If this is an unrelated build, it must have it's own settings file."
     }
 
     def "select project fails when multiple projects have specified project dir"() {
@@ -66,7 +66,7 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
         ProjectIdentifier project2 = project(dir);
 
         when:
-        spec.selectProject(registry(project1, project2));
+        spec.selectProject("settings 'foo'", registry(project1, project2));
 
         then:
         def e = thrown(InvalidUserDataException)
@@ -84,7 +84,7 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
         e.message == "Project directory '" + dir + "' does not exist."
 
         when:
-        GFileUtils.writeStringToFile(dir, "file");
+        dir.text = "file"
         spec.containsProject(registry());
 
         then:

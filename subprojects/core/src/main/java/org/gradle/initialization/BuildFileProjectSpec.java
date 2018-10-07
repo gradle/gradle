@@ -29,8 +29,8 @@ public class BuildFileProjectSpec extends AbstractProjectSpec {
         this.buildFile = buildFile;
     }
 
-    protected String formatNoMatchesMessage() {
-        return String.format("No projects in this build have build file '%s'.", buildFile);
+    protected String formatNoMatchesMessage(String settings) {
+        return String.format("Build file '%s' is not part of the build defined by %s.", buildFile, settings);
     }
 
     protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {

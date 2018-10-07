@@ -42,7 +42,6 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ParallelismConfigurationManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
@@ -103,7 +102,7 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
             _ * it.decorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
-            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) {
+            _ * it.open(_, _, _, _, _, _, _) >> Mock(PersistentCache) {
                 getBaseDir() >> file("caches").createDir().absoluteFile
                 useCache(_) >> { Factory<?> factory -> factory.create() }
             }
@@ -125,7 +124,6 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
         expectParentServiceLocated(CrossBuildInMemoryCacheFactory)
         expectParentServiceLocated(ClassLoaderRegistry)
         expectParentServiceLocated(DirectoryFileTreeFactory)
-        expectParentServiceLocated(ContentHasherFactory)
         expectParentServiceLocated(StreamHasher)
 
         expect:

@@ -34,6 +34,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -168,6 +169,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ImmutableAttributesFactory getAttributesFactory() {
         return null;
+    }
+
+    @Override
+    public VariantMetadataRules getVariantMetadataRules() {
+        return VariantMetadataRules.noOp();
     }
 
     @Override

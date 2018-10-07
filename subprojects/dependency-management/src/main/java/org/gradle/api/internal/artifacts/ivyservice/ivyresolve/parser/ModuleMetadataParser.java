@@ -35,6 +35,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.IOException;
@@ -44,7 +45,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.gson.stream.JsonToken.*;
+import static com.google.gson.stream.JsonToken.BOOLEAN;
+import static com.google.gson.stream.JsonToken.END_ARRAY;
+import static com.google.gson.stream.JsonToken.END_OBJECT;
 
 public class ModuleMetadataParser {
     public static final String FORMAT_VERSION = "0.4";
@@ -80,6 +83,7 @@ public class ModuleMetadataParser {
                         throw new RuntimeException(String.format("Unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s only.", version, FORMAT_VERSION));
                     }
                     consumeTopLevelElements(reader, metadata);
+                    metadata.setContentHash(HashUtil.createHash(resource.getFile(), "MD5"));
                     return null;
                 } catch (Exception e) {
                     throw new MetaDataParseException("module metadata", resource, e);
@@ -291,17 +295,15 @@ public class ModuleMetadataParser {
         String strictVersion = "";
         List<String> rejects = Lists.newArrayList();
         while (reader.peek() != END_OBJECT) {
-            // At this stage, 'requires' implies 'prefers', 'strictly' implies 'requires'.
+            // At this stage, 'strictly' implies 'requires'.
             String cst = reader.nextName();
             if ("prefers".equals(cst)) {
                 preferredVersion = reader.nextString();
             } else if ("requires".equals(cst)) {
                 requiredVersion = reader.nextString();
-                preferredVersion = requiredVersion;
             } else if ("strictly".equals(cst)) {
                 strictVersion = reader.nextString();
                 requiredVersion = strictVersion;
-                preferredVersion = strictVersion;
             } else if ("rejects".equals(cst)) {
                 reader.beginArray();
                 while (reader.peek() != END_ARRAY) {

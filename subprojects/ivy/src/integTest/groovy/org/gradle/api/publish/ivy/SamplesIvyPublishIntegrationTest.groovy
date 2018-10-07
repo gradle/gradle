@@ -15,14 +15,15 @@
  */
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Unroll
 
-class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
+class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sampleProject = new Sample(temporaryFolder)
 
     @UsesSample("ivy-publish/quickstart")
@@ -200,13 +201,15 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         module.assertArtifactsPublished "${artifactId}-${version}.rpm", "ivy-${version}.xml"
     }
 
+    @Unroll
     @UsesSample("ivy-publish/distribution")
-    def publishesDistributionArchives() {
+    def "publishes distribution archives with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        executer.inDirectory(sampleDir).requireGradleDistribution()
 
         and:
-        def repo = ivy(sampleProject.dir.file("build/repo"))
+        def repo = ivy(sampleDir.file("build/repo"))
         def artifactId = "distribution"
         def version = "1.0"
         def module = repo.module("org.gradle.sample", artifactId, version)
@@ -220,6 +223,9 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         and:
         module.assertPublished()
         module.assertArtifactsPublished "${artifactId}-${version}.zip", "${artifactId}-${version}.tar", "ivy-${version}.xml"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     private void verifyIvyFile(IvyFileModule project1sample, String outputFileName) {

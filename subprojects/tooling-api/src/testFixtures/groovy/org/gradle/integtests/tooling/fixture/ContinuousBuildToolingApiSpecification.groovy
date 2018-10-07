@@ -21,7 +21,6 @@ import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
@@ -41,8 +40,6 @@ import static org.hamcrest.Matchers.containsString
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Timeout(180)
-@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
 @Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 

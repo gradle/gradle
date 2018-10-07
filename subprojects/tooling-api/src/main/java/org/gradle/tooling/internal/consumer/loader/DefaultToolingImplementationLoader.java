@@ -29,38 +29,31 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.DeprecatedVersionConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
-import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter;
+import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
-import org.gradle.tooling.internal.protocol.ModelBuilder;
-import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+/**
+ * Loads the tooling API implementation of the Gradle version that will run the build (the "provider").
+ * Adapts the rather clunky cross-version interface to the more readable interface of the TAPI client.
+ */
+@SuppressWarnings("deprecation")
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
     private final ClassLoader classLoader;
@@ -82,29 +75,17 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             if (factory == null) {
                 return new NoToolingApiConnection(distribution);
             }
-            // ConnectionVersion4 is a part of the protocol and cannot be easily changed.
             ConnectionVersion4 connection = factory.create();
 
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
             ModelMapping modelMapping = new ModelMapping();
 
-            // Adopting the connection to a refactoring friendly type that the consumer owns
             if (connection instanceof InternalPhasedActionConnection) {
                 return createConnection(new PhasedActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalParameterAcceptingConnection) {
                 return createConnection(new ParameterAcceptingConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalTestExecutionConnection) {
                 return createConnection(new TestExecutionConsumerConnection(connection, modelMapping, adapter), connectionParameters);
-            } else if (connection instanceof StoppableConnection) {
-                return createDeprecatedConnection(new ShutdownAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
-            } else if (connection instanceof InternalCancellableConnection) {
-                return createDeprecatedConnection(new CancellableConsumerConnection(connection, modelMapping, adapter), connectionParameters);
-            } else if (connection instanceof ModelBuilder && connection instanceof InternalBuildActionExecutor) {
-                return createDeprecatedConnection(new ActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
-            } else if (connection instanceof ModelBuilder) {
-                return createDeprecatedConnection(new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter), connectionParameters);
-            } else if (connection instanceof BuildActionRunner) {
-                return createDeprecatedConnection(new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }
@@ -118,12 +99,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     private ConsumerConnection createConnection(AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
         adaptedConnection.configure(connectionParameters);
         VersionDetails versionDetails = adaptedConnection.getVersionDetails();
-        ConsumerConnection delegate = versionDetails.supportsCancellation() ? adaptedConnection : new NonCancellableConsumerConnectionAdapter(adaptedConnection);
-        return new ParameterValidatingConsumerConnection(versionDetails, delegate);
-    }
-
-    private ConsumerConnection createDeprecatedConnection(AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
-        return new DeprecatedVersionConsumerConnection(createConnection(adaptedConnection, connectionParameters), adaptedConnection.getVersionDetails());
+        return new ParameterValidatingConsumerConnection(versionDetails, adaptedConnection);
     }
 
     private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
@@ -132,6 +108,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader, filterSpec);
-        return new VisitableURLClassLoader(filteringClassLoader, implementationClasspath);
+        return new VisitableURLClassLoader("tooling-implementation-loader", filteringClassLoader, implementationClasspath);
     }
 }

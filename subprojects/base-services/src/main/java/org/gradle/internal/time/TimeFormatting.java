@@ -17,6 +17,7 @@
 package org.gradle.internal.time;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class TimeFormatting {
 
@@ -78,7 +79,7 @@ public class TimeFormatting {
             result.append("m");
         }
         int secondsScale = result.length() > 0 ? 2 : 3;
-        result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, BigDecimal.ROUND_HALF_UP));
+        result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, RoundingMode.HALF_UP));
         result.append("s");
         return result.toString();
     }

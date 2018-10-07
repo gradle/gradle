@@ -38,7 +38,6 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -46,7 +45,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
     }
 
     public GroovyCompileTransformingClassLoader(ClassLoader parent, ClassPath classPath) {
-        super(parent, classPath);
+        super("groovy-compile-transforming-loader", parent, classPath);
     }
 
     @Override

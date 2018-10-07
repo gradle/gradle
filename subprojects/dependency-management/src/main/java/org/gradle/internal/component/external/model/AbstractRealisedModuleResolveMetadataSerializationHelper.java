@@ -44,7 +44,8 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
     protected static final byte GRADLE_DEPENDENCY_METADATA = 1;
     protected static final byte MAVEN_DEPENDENCY_METADATA = 2;
     protected static final byte IVY_DEPENDENCY_METADATA = 3;
-    private final AttributeContainerSerializer attributeContainerSerializer;
+    protected static final byte FORCED_DEPENDENCY_METADATA = 4;
+    protected final AttributeContainerSerializer attributeContainerSerializer;
     private final ModuleComponentSelectorSerializer componentSelectorSerializer;
     private final ExcludeRuleConverter excludeRuleConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -85,12 +86,16 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         encoder.writeSmallInt(transformed.getConfigurationNames().size());
         for (String configurationName: transformed.getConfigurationNames()) {
             ConfigurationMetadata configuration = transformed.getConfiguration(configurationName);
-            assert configuration != null;
-            encoder.writeString(configurationName);
-            attributeContainerSerializer.write(encoder, configuration.getAttributes());
-            writeCapabilities(encoder, configuration.getCapabilities().getCapabilities());
+            writeConfiguration(encoder, configuration);
             writeDependencies(encoder, configuration);
         }
+    }
+
+    protected void writeConfiguration(Encoder encoder, ConfigurationMetadata configuration) throws IOException {
+        assert configuration != null;
+        encoder.writeString(configuration.getName());
+        attributeContainerSerializer.write(encoder, configuration.getAttributes());
+        writeCapabilities(encoder, configuration.getCapabilities().getCapabilities());
     }
 
     protected Map<String, List<GradleDependencyMetadata>> readVariantDependencies(Decoder decoder) throws IOException {
@@ -112,8 +117,9 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         ModuleComponentSelector selector = componentSelectorSerializer.read(decoder);
         List<ExcludeMetadata> excludes = readMavenExcludes(decoder);
         boolean constraint = decoder.readBoolean();
+        boolean force = decoder.readBoolean();
         String reason = decoder.readNullableString();
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, false);
+        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force);
     }
 
     protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
@@ -152,6 +158,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         writeMavenExcludeRules(encoder, excludes);
         encoder.writeBoolean(dependencyMetadata.isConstraint());
+        encoder.writeBoolean(dependencyMetadata.isForce());
         encoder.writeNullableString(dependencyMetadata.getReason());
     }
 

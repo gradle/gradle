@@ -206,6 +206,34 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested2, null) == [candidate1]
     }
 
+    def "disambiguation rule is presented with all non-null candidate values"() {
+        def rule = Mock(AttributeDisambiguationRule)
+        def attr = Attribute.of(String)
+        schema.attribute(attr)
+        schema.accept(attr, "requested", "value1")
+        schema.accept(attr, "requested", "value2")
+        schema.select(attr, rule)
+
+        rule.execute({ it.consumerValue == "requested" }) >> { MultipleCandidatesDetails details ->
+            assert details.candidateValues == ["value1", "value2"] as Set
+            details.closestMatch("value1")
+        }
+
+        given:
+        def candidate1 = attributes()
+        candidate1.attribute(attr, "value1")
+        def candidate2 = attributes()
+        candidate2.attribute(attr, "value2")
+        def candidate3 = attributes()
+        def requested1 = attributes()
+        requested1.attribute(attr, "requested")
+
+        def matcher = new ComponentAttributeMatcher()
+
+        expect:
+        matcher.match(schema, [candidate1, candidate2, candidate3], requested1, null) == [candidate1]
+    }
+
     def "prefers match with superset of matching attributes"() {
         def attr = Attribute.of(String)
         def attr2 = Attribute.of('2', String)

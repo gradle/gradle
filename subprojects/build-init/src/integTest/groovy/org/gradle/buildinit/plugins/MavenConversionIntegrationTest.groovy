@@ -51,7 +51,10 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
+        executer.beforeExecute {
+            executer.ignoreMissingSettingsFile()
+        }
     }
 
     def "multiModule"() {

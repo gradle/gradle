@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.FindBugsXmlReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 
+@SuppressWarnings("deprecation")
 public class FindBugsXmlReportImpl extends TaskGeneratedSingleFileReport implements FindBugsXmlReport {
 
     private boolean withMessages;

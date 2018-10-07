@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.tooling.r18
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.GradleBuild
 
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
@@ -37,22 +36,6 @@ allprojects {
 """
     }
 
-    @TargetGradleVersion(">=1.2 <1.8")
-    def "can request GradleBuild model"() {
-        when:
-        GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
-
-        then:
-        validateModel(model)
-
-        when:
-        model.rootProject.projectDirectory
-
-        then:
-        def e = thrown(UnsupportedMethodException)
-    }
-
-    @TargetGradleVersion(">=1.8")
     def "can request GradleBuild model including projectDirectory"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }

@@ -17,11 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
-import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
@@ -44,13 +43,13 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
 
     @Override
     public HashCode hash(ZipEntry zipEntry, InputStream zipInput) throws IOException {
-        HashingOutputStream hasher = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        HashingOutputStream hasher = Hashing.primitiveStreamHasher();
         ByteStreams.copy(zipInput, hasher);
         return hasher.hash();
     }
 
     @Override
-    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
     }
 }

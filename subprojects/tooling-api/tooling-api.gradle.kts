@@ -48,8 +48,8 @@ dependencies {
     publishCompile(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
     compile(library("jcip"))
 
-    testFixturesCompile(project(":baseServicesGroovy"))
-    testFixturesCompile(project(":internalIntegTesting"))
+    testFixturesApi(project(":baseServicesGroovy"))
+    testFixturesApi(project(":internalIntegTesting"))
 
     integTestRuntime(project(":toolingApiBuilders"))
     integTestRuntime(project(":ivy"))
@@ -94,7 +94,7 @@ eclipse {
 
 tasks.register<Upload>("publishLocalArchives") {
     val repoBaseDir = rootProject.file("build/repo")
-    configuration = configurations.publishRuntime
+    configuration = configurations["publishRuntime"] // TODO:kotlin-dsl revert to accessor
     isUploadDescriptor = false
     repositories {
         ivy {

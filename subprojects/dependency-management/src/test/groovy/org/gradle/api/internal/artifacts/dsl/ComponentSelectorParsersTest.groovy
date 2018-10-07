@@ -46,7 +46,7 @@ class ComponentSelectorParsersTest extends Specification {
         v[0].module  == 'bar'
         v[0].version  == '1.0'
         v[0].versionConstraint.requiredVersion == '1.0'
-        v[0].versionConstraint.preferredVersion == '1.0'
+        v[0].versionConstraint.preferredVersion == ''
         v[0].versionConstraint.strictVersion == ''
         v[0].versionConstraint.rejectedVersions == []
     }
@@ -76,7 +76,7 @@ class ComponentSelectorParsersTest extends Specification {
         v[0].module == 'bar'
         v[0].version  == '2.0'
         v[0].versionConstraint.requiredVersion == '2.0'
-        v[0].versionConstraint.preferredVersion == '2.0'
+        v[0].versionConstraint.preferredVersion == ''
         v[0].versionConstraint.strictVersion == ''
         v[0].versionConstraint.rejectedVersions == []
     }
@@ -106,7 +106,7 @@ class ComponentSelectorParsersTest extends Specification {
         v[0].module  == 'bar'
         v[0].version  == '1.0'
         v[0].versionConstraint.requiredVersion == '1.0'
-        v[0].versionConstraint.preferredVersion == '1.0'
+        v[0].versionConstraint.preferredVersion == ''
         v[0].versionConstraint.strictVersion == ''
         v[0].versionConstraint.rejectedVersions == []
     }
@@ -200,7 +200,7 @@ class ComponentSelectorParsersTest extends Specification {
         v.module  == 'bar'
         v.version  == '1.0'
         v.versionConstraint.requiredVersion == '1.0'
-        v.versionConstraint.preferredVersion == '1.0'
+        v.versionConstraint.preferredVersion == ''
         v.versionConstraint.strictVersion == ''
         v.versionConstraint.rejectedVersions == []
     }

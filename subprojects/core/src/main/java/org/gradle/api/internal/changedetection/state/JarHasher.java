@@ -17,16 +17,16 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.io.IOUtils;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     @Override
-    public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+    public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
         classpathResourceHasher.appendConfigurationToHasher(hasher);
         classpathResourceFilter.appendConfigurationToHasher(hasher);
@@ -70,7 +70,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
             if (fingerprints.isEmpty()) {
                 return null;
             }
-            DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+            Hasher hasher = Hashing.newHasher();
             NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
             return hasher.hash();
         } catch (Exception e) {
@@ -78,7 +78,6 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
-    @SuppressWarnings("Since15")
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String jarFile) throws IOException {
         List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
         InputStream fileInputStream = null;
@@ -101,7 +100,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
             return fingerprints;
         } finally {
-            IOUtils.closeQuietly(fileInputStream);
+            IoActions.closeQuietly(fileInputStream);
         }
     }
 

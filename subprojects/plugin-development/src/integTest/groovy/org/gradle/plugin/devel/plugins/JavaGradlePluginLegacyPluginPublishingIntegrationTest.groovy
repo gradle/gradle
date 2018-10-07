@@ -41,7 +41,6 @@ class JavaGradlePluginLegacyPluginPublishingIntegrationTest extends AbstractInte
                 assert publishing.publications.size() == 4
             }
         """
-        executer.expectDeprecationWarning()
 
         expect:
         succeeds 'help'

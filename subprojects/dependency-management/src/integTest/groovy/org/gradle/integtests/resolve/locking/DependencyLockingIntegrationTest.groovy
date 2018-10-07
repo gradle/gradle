@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
@@ -30,6 +29,7 @@ class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest 
         settingsFile << "rootProject.name = 'depLock'"
         resolve = new ResolveTestFixture(buildFile, "lockedConf")
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     def 'succeeds when lock file does not conflict from declared versions'() {
@@ -62,6 +62,7 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
+        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0") {
@@ -460,7 +461,6 @@ dependencies {
         "+"         | "2.1"
     }
 
-    @ToBeImplemented // Currently `1.+` and `+` are resolved differently when dependency locking is enabled for a configuration
     def "version selector combinations are resolved equally for locked and unlocked configurations"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -479,8 +479,7 @@ configurations {
     conf
     lockEnabledConf {
         extendsFrom conf
-        // Enable locking for this configuration to demonstrate the failure
-        // resolutionStrategy.activateDependencyLocking()
+        resolutionStrategy.activateDependencyLocking()
     }
 }
 dependencies {
@@ -491,10 +490,10 @@ dependencies {
     conf 'org:foz:1.1'
     
     conf 'org:bar:1.+'
-    conf 'org:bar:1.1' // With dependency locking enabled, '1.1' is selected. Without, we select '1.2'.
+    conf 'org:bar:1.1'
     
     conf 'org:baz:+'
-    conf 'org:baz:1.1' // With dependency locking enabled, '1.1' is selected. Without, we select '2.0'.
+    conf 'org:baz:1.1'
 }
 task check {
     doLast {

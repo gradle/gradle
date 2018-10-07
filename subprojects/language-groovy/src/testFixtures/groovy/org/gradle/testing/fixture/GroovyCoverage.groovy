@@ -16,12 +16,16 @@
 
 package org.gradle.testing.fixture
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.VersionNumber
+
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 
 class GroovyCoverage {
     final static String NEWEST = GroovySystem.version
 
-    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', NEWEST]
+    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', NEWEST]
 
     private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
 
@@ -35,5 +39,19 @@ class GroovyCoverage {
         it >= VersionNumber.parse("2.4.6")
     }.collect {
         it.toString()
+    }
+
+    /**
+     * Returns configuration DSL to set up the Groovy snapshot if a snapshot version is requested.
+     */
+    static String groovySnapshotRepository(GradleDsl dsl = GROOVY, def version) {
+        if (!version.toString().endsWith("-SNAPSHOT")) {
+            return ""
+        }
+        return """
+            repositories {
+                ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", "groovy-snapshots", "https://oss.jfrog.org/artifactory/oss-snapshot-local")}
+            }
+        """
     }
 }

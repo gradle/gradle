@@ -103,7 +103,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             connection = gradleConnector.connect();
             targetGradleVersion = determineTargetGradleVersion(connection);
             if (targetGradleVersion.compareTo(TestKitFeature.RUN_BUILDS.getSince()) < 0) {
-                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions 1.2 and later.", targetGradleVersion.getVersion()));
+                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions 2.6 and later.", targetGradleVersion.getVersion()));
             }
 
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
@@ -181,7 +181,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
-        gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.embedded(embedded);
         return gradleConnector;

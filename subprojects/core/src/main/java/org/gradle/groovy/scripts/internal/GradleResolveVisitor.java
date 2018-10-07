@@ -100,8 +100,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private MethodNode currentMethod;
     private ClassNodeResolver classNodeResolver;
 
-    private Set<String> deprecatedImports = new HashSet<String>();
-
     /**
      * A ConstructedNestedClass consists of an outer class and a name part, denoting a nested class with an unknown number of levels down. This allows resolve tests to skip this node for further inner
      * class searches and combinations with imports, since the outer class we know is already resolved.
@@ -220,10 +218,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
     public void startResolving(ClassNode node, SourceUnit source) {
         this.source = source;
         visitClass(node);
-    }
-
-    Set<String> getDeprecatedImports(){
-        return deprecatedImports;
     }
 
     protected void visitConstructorOrMethod(MethodNode node, boolean isConstructor) {
@@ -569,10 +563,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     type.setRedirect(tmp.redirect());
                     return true;
                 }
-            }
-            if (resolveFromResolver(type, "org.gradle.util." + name)) {
-                deprecatedImports.add(name);
-                return true;
             }
             if (name.equals("BigInteger")) {
                 type.setRedirect(ClassHelper.BigInteger_TYPE);

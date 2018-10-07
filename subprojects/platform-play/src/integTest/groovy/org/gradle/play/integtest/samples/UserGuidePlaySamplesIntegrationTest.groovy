@@ -37,7 +37,8 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample play26Sample = new Sample(temporaryFolder, "play/play-2.6")
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
+        executer.noDeprecationChecks()
     }
 
     def "sourcesets sample is buildable" () {

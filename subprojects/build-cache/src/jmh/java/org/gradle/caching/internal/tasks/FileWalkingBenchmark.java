@@ -38,7 +38,6 @@ import java.nio.file.Path;
 @Warmup(iterations = 5)
 @Measurement(iterations = 10)
 @State(Scope.Benchmark)
-@SuppressWarnings("Since15")
 public class FileWalkingBenchmark {
     Path tempDirPath;
     Path missingPath;

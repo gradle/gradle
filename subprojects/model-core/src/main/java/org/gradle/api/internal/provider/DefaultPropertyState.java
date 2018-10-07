@@ -17,13 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implements Property<T>, PropertyInternal<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private ProviderInternal<? extends T> provider = Providers.notDefined();
@@ -59,6 +58,12 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
         }
         this.provider = Providers.of(value);
+    }
+
+    @Override
+    public Property<T> value(T value) {
+        set(value);
+        return this;
     }
 
     protected ProviderInternal<? extends T> getProvider() {
@@ -106,11 +111,6 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
             return defaultValue;
         }
         return t;
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return false;
     }
 
     @Override

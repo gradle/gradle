@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
@@ -58,6 +57,7 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_EMPTY
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_SINGLE
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
@@ -73,6 +73,19 @@ class SelectorStateResolverTest extends Specification {
 
     private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root)
     private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root)
+
+    @Unroll
+    def "resolve selector #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_SINGLE
+    }
 
     @Unroll
     def "resolve pair #permutation"() {
@@ -193,9 +206,8 @@ class SelectorStateResolverTest extends Specification {
 
         then:
         selected.version == "10"
-        missingLow.resolved.failure instanceof ModuleVersionNotFoundException
-        missingLow.resolved.failure instanceof ModuleVersionNotFoundException
-        missingHigh.resolved.failure instanceof ModuleVersionNotFoundException
+        missingLow.requireResult.failure instanceof ModuleVersionNotFoundException
+         missingHigh.requireResult.failure instanceof ModuleVersionNotFoundException
     }
 
     def "rethrows failure when all selectors fail to resolve"() {
@@ -242,7 +254,7 @@ class SelectorStateResolverTest extends Specification {
                 new TestModuleSelectorState(componentIdResolver, version.versionConstraint)
             }
             def currentSelection = ssr.selectBest(moduleId, selectors)
-            if (selectors.any { it.resolved?.failure != null }) {
+            if (selectors.any { it.requireResult?.failure != null || it.preferResult?.failure != null }) {
                 return VersionRangeResolveTestScenarios.FAILED
             }
             if (currentSelection.isRejected()) {
@@ -272,24 +284,21 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result) {
-            def prefer = versionConstraint.preferredSelector
-            def reject = versionConstraint.rejectedSelector
-
-            if (!prefer.isDynamic()) {
-                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), prefer.selector)
-                resolvedOrRejected(id, reject, result)
+        void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+            if (!acceptor.isDynamic()) {
+                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
+                resolvedOrRejected(id, rejector, result)
                 return
             }
 
-            def resolved = findDynamicVersion(prefer, reject)
+            def resolved = findDynamicVersion(acceptor, rejector)
             if (resolved) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), resolved as String)
-                resolvedOrRejected(id, reject, result)
+                resolvedOrRejected(id, rejector, result)
                 return
             }
 
-            result.failed(missing(prefer))
+            result.failed(missing(acceptor))
         }
 
         def resolvedOrRejected(ModuleComponentIdentifier id, VersionSelector rejectSelector, BuildableComponentIdResolveResult result) {

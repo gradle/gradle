@@ -135,6 +135,10 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
     }
 
+    public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor);
+    }
+
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         ExternalDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate);

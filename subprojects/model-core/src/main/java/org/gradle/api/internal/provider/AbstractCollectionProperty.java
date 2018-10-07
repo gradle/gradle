@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.EmptyCollection;
 import org.gradle.api.internal.provider.Collectors.NoValueCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -33,13 +33,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractMinimalProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
-    private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
+    private Collector<T> value = (Collector<T>) NO_VALUE_COLLECTOR;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
@@ -170,6 +170,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public HasMultipleValues<T> empty() {
+        value = (Collector<T>) EMPTY_COLLECTION;
+        collectors.clear();
+        return this;
+    }
+
+    @Override
     public String toString() {
         final String valueState;
         if (value == EMPTY_COLLECTION) {
@@ -180,11 +187,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             valueState = "defined";
         }
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
-    }
-
-    @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
-        return new TransformBackedProvider<S, C>(transformer, this);
     }
 
     private static class ValidatingValueCollector<T> implements ValueCollector<T> {

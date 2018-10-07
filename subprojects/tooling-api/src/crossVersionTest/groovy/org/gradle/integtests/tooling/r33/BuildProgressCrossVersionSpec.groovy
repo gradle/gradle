@@ -19,12 +19,10 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
-@ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=3.3")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     def "generates project configuration events for single project build"() {

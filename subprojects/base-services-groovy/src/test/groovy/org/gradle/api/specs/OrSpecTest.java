@@ -15,15 +15,12 @@
  */
 package org.gradle.api.specs;
 
-import org.gradle.api.artifacts.Dependency;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class OrSpecTest extends AbstractCompositeSpecTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
 
     public org.gradle.api.specs.CompositeSpec createCompositeSpec(Spec... specs) {
         return new OrSpec(specs);
@@ -40,11 +37,11 @@ public class OrSpecTest extends AbstractCompositeSpecTest {
 
     @Test
     public void isSatisfiedByWithOneTrue() {
-        assertTrue(new OrSpec(createAtomicElements(false, true, false)).isSatisfiedBy(context.mock(Dependency.class)));
+        assertTrue(new OrSpec(createAtomicElements(false, true, false)).isSatisfiedBy(new Object()));
     }
 
     @Test
     public void isSatisfiedByWithAllFalse() {
-        assertFalse(new OrSpec(createAtomicElements(false, false, false)).isSatisfiedBy(context.mock(Dependency.class)));
+        assertFalse(new OrSpec(createAtomicElements(false, false, false)).isSatisfiedBy(new Object()));
     }
 }

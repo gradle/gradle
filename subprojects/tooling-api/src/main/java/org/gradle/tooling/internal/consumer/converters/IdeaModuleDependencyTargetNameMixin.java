@@ -26,6 +26,7 @@ public class IdeaModuleDependencyTargetNameMixin {
         this.ideaModuleDependency = ideaModuleDependency;
     }
 
+    @SuppressWarnings("deprecation")
     public String getTargetModuleName() {
         if (ideaModuleDependency instanceof IdeaModuleDependency) {
             IdeaModuleDependency dependency = (IdeaModuleDependency) ideaModuleDependency;

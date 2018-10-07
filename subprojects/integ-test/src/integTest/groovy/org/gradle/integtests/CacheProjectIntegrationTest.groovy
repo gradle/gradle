@@ -18,7 +18,6 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.internal.hash.DefaultContentHasherFactory
 import org.gradle.internal.hash.DefaultFileHasher
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.FileHasher
@@ -36,7 +35,7 @@ import static org.junit.Assert.assertEquals
 class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher(new DefaultContentHasherFactory()))
+    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher())
 
     @Rule public final HttpServer server = new HttpServer()
 
@@ -91,11 +90,6 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         modifyLargeBuildScript()
         testBuild("newTask", "I am new")
         classFile.assertHasChangedSince(classFileSnapshot)
-        classFileSnapshot = classFile.snapshot()
-
-        executer.expectDeprecationWarning()
-        testBuild("newTask", "I am new", "--recompile-scripts")
-        classFile.assertContentsHaveNotChangedSince(classFileSnapshot)
     }
 
     @Test
@@ -113,20 +107,6 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
         testBuild("hello2", "Hello 2", "-rerun-tasks")
         artifactsCache.assertHasChangedSince(artifactsCacheSnapshot)
-    }
-
-    @Test
-    public void "does not rebuild artifact cache when run with --recompile-scripts"() {
-        createLargeBuildScript()
-        testBuild("hello1", "Hello 1")
-
-        TestFile dependenciesCache = findDependencyCacheDir()
-        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
-
-        modifyLargeBuildScript()
-        executer.expectDeprecationWarning()
-        testBuild("newTask", "I am new", "--recompile-scripts")
-        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
     }
 
     @Test

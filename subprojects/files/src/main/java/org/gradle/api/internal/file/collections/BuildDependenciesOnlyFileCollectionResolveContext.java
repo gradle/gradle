@@ -18,7 +18,8 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.file.PathToFileResolver;
@@ -59,11 +60,23 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
         } else if (element instanceof TaskOutputs) {
             TaskOutputs outputs = (TaskOutputs) element;
             taskContext.add(outputs.getFiles());
-        } else if (element instanceof ProviderInternal) {
-            ProviderInternal<?> provider = (ProviderInternal<?>) element;
-            if (!provider.maybeVisitBuildDependencies(taskContext)) {
-                taskContext.maybeAdd(((ProviderInternal<?>) element).get());
-            }
+        } else if (element instanceof TaskDependencyContainer) {
+            TaskDependencyContainer container = (TaskDependencyContainer) element;
+            container.visitDependencies(new AbstractTaskDependencyResolveContext() {
+                @Override
+                public void add(Object dependency) {
+                    if (dependency instanceof Task) {
+                        taskContext.add(dependency);
+                    } else {
+                        BuildDependenciesOnlyFileCollectionResolveContext.this.add(dependency);
+                    }
+                }
+
+                @Override
+                public Task getTask() {
+                    return taskContext.getTask();
+                }
+            });
         } else if (element instanceof Closure) {
             Closure closure = (Closure) element;
             Object closureResult = closure.call();

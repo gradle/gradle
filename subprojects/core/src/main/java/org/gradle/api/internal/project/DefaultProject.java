@@ -1307,19 +1307,19 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer());
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), MutationGuards.of(getProjectConfigurator()));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factory, MutationGuards.of(getProjectConfigurator()));
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         Instantiator instantiator = getServices().get(Instantiator.class);
-        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure);
+        return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, MutationGuards.of(getProjectConfigurator()));
     }
 
     @Override
@@ -1441,5 +1441,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Deprecated
     public FileCollection immutableFiles(Object... paths) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ProjectState getMutationState() {
+        return services.get(ProjectStateRegistry.class).stateFor(this);
     }
 }

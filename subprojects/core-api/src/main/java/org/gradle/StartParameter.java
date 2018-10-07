@@ -651,16 +651,24 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether the build scripts should be recompiled.
+     * Specifies whether to force the build scripts to be recompiled.
+     *
+     * @deprecated This flag is no longer used.
      */
+    @Deprecated
     public boolean isRecompileScripts() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isRecompileScripts()");
         return recompileScripts;
     }
 
     /**
-     * Specifies whether the build scripts should be recompiled.
+     * Specifies whether to force the build scripts to be recompiled.
+     *
+     * @deprecated This flag is no longer used and simply defaults to 'false'.
      */
+    @Deprecated
     public void setRecompileScripts(boolean recompileScripts) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setRecompileScripts()");
         this.recompileScripts = recompileScripts;
     }
 

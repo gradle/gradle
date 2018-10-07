@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.gradle.ProjectPublications
 
-@TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     def "empty project"() {
         when:
@@ -194,19 +192,5 @@ publishing {
         pub2 != null
         pub2.id.name == "test-artifactId"
         pub2.id.version == "1.2"
-    }
-
-    @TargetGradleVersion('>=1.2 <1.12')
-    def "decent error message for Gradle version that doesn't expose publications"() {
-        when:
-        ProjectPublications publications = withConnection { connection ->
-            connection.getModel(ProjectPublications)
-        }
-        publications.publications
-
-        then:
-        UnsupportedVersionException e = thrown()
-        e.message.contains('does not support building a model of type \'ProjectPublications\'.') ||
-        e.message.contains('No model of type \'ProjectPublications\' is available in this build.')
     }
 }

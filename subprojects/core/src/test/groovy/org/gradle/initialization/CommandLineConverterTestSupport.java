@@ -60,7 +60,6 @@ public class CommandLineConverterTestSupport {
     protected final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
     protected boolean expectedContinue;
     protected boolean expectedOffline;
-    protected boolean expectedRecompileScripts;
     protected boolean expectedParallelProjectExecution;
     protected int expectedMaxWorkersCount = Runtime.getRuntime().availableProcessors();
     protected boolean expectedConfigureOnDemand;
@@ -82,7 +81,6 @@ public class CommandLineConverterTestSupport {
             assertEquals(expectedCurrentDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         }
         assertEquals(expectedProjectDir, startParameter.getProjectDir());
-        assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
@@ -95,7 +93,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedProfile, startParameter.isProfile());
         assertEquals(expectedContinue, startParameter.isContinueOnFailure());
         assertEquals(expectedOffline, startParameter.isOffline());
-        assertEquals(expectedRecompileScripts, startParameter.isRecompileScripts());
         assertEquals(expectedRerunTasks, startParameter.isRerunTasks());
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());

@@ -29,7 +29,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
+import org.gradle.gradlebuild.ProjectGroups.projectsRequiringLanguageLevel8
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.kotlin.dsl.*
@@ -45,6 +45,7 @@ import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
 import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
 import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
+import org.jetbrains.gradle.ext.Inspection
 import org.jetbrains.gradle.ext.JUnit
 import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
@@ -52,6 +53,7 @@ import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -65,7 +67,13 @@ const val ideConfigurationBaseName = "ideConfiguration"
 
 
 private
-const val javaCompilerHeapSpace = 2048
+const val javaCompilerHeapSpace = 3072
+
+
+// Disable Java 7 inspections because some parts of the codebase still need
+// to run on Java 6
+private
+val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
 
 
 object GradleCopyright {
@@ -174,6 +182,8 @@ open class IdePlugin : Plugin<Project> {
                             // In doing so, tags in the code style settings are ignored.
                             projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
                                 .configureCodeStyleSettings()
+                            projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
+                                .configureInspectionSettings()
 
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
@@ -197,7 +207,7 @@ open class IdePlugin : Plugin<Project> {
                                     .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
-                                configureJunitRunConfiguration(runManagerComponent)
+                                updateJUnitRunConfigurationsOf(runManagerComponent)
                                 configureGradleRunConfigurations(runManagerComponent)
                             }
                         }
@@ -208,8 +218,15 @@ open class IdePlugin : Plugin<Project> {
                     configureCompilerSettings(rootProject)
                     configureCopyright()
                     configureCodeStyle()
+                    // TODO The idea-ext plugin does not yet support customizing inspections.
+                    // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
+                    // configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
+                    delegateActions {
+                        delegateBuildRunToGradle = false
+                        testRunner = ActionDelegationConfig.TestRunner.PLATFORM
+                    }
                 }
             }
         }
@@ -294,21 +311,37 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureJunitRunConfiguration(runManagerComponent: org.jsoup.nodes.Element) {
-        val junitConfiguration = runManagerComponent.select("configuration[type=JUnit]").first()
-        val junitVmParametersOption = junitConfiguration.select("option[name=VM_PARAMETERS]").first()
-        junitVmParametersOption.attr("value", getDefaultJunitVmParameter(project("docs")))
-        val lang = System.getenv("LANG") ?: "en_US.UTF-8"
-        junitConfiguration.select("envs").first()
-            .createOrEmptyOutChildElement("env")
-            .attr("name", "LANG")
-            .attr("value", lang)
+    fun Project.updateJUnitRunConfigurationsOf(runManagerComponent: org.jsoup.nodes.Element) {
+        val junitVmParameters = getDefaultJunitVmParameters(docsProject())
+        runManagerComponent.select("configuration[type=JUnit]").forEach {
+            updateJUnitRunConfiguration(it, junitVmParameters)
+        }
     }
+
+    private
+    fun updateJUnitRunConfiguration(junitConfiguration: Element, junitVmParameters: String) {
+        junitConfiguration.apply {
+            select("option[name=VM_PARAMETERS]").first()
+                .attr("value", junitVmParameters)
+            select("envs").first()
+                .createOrEmptyOutChildElement("env")
+                .attr("name", "LANG")
+                .attr("value", lang)
+        }
+    }
+
+    private
+    fun Project.docsProject() =
+        project(":docs")
+
+    private
+    val lang: String
+        get() = System.getenv("LANG") ?: "en_US.UTF-8"
 
     private
     fun Project.configureJUnitDefaults() {
         val rootProject = this
-        val docsProject = project(":docs")
+        val docsProject = docsProject()
         docsProject.afterEvaluate {
             rootProject.idea {
                 project {
@@ -316,8 +349,7 @@ open class IdePlugin : Plugin<Project> {
                         runConfigurations {
                             create<JUnit>("defaults") {
                                 defaults = true
-                                vmParameters = getDefaultJunitVmParameter(docsProject)
-                                val lang = System.getenv("LANG") ?: "en_US.UTF-8"
+                                vmParameters = getDefaultJunitVmParameters(docsProject)
                                 envs = mapOf("LANG" to lang)
                             }
                         }
@@ -347,9 +379,9 @@ open class IdePlugin : Plugin<Project> {
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
         val ideaLanguageLevel =
-            if (ideaModule.project in projectsRequiringJava8) "1.8"
-            else "1.6"
-        // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
+            if (ideaModule.project in projectsRequiringLanguageLevel8) "1.8"
+            else "1.7"
+        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
@@ -451,7 +483,7 @@ open class IdePlugin : Plugin<Project> {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
         compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
-            .option("BUILD_PROCESS_HEAP_SIZE", "2048")
+            .option("BUILD_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
         compilerConfiguration.removeBySelector("option[name=USE_RELEASE_OPTION]")
             .option("USE_RELEASE_OPTION", "false")
     }
@@ -495,7 +527,7 @@ open class IdePlugin : Plugin<Project> {
 
     @Suppress("UNCHECKED_CAST")
     private
-    fun getDefaultJunitVmParameter(docsProject: Project): String {
+    fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
         val releaseNotesMarkdown: PegDown by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
@@ -523,7 +555,7 @@ open class IdePlugin : Plugin<Project> {
             vmParameter.add("-XX:MaxPermSize=512m")
         }
         return vmParameter.joinToString(" ") {
-            if (it.contains(" ")) "\"$it\""
+            if (it.contains(" ") || it.contains("\$")) "\"$it\""
             else it
         }
     }
@@ -551,6 +583,14 @@ fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin
 
 
 fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
+    this.apply(configuration)
+}
 
 
 fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
@@ -638,6 +678,32 @@ fun Element.configureCodeStyleSettings() {
 
 
 private
+fun Element.configureInspectionSettings() {
+    val config = appendElement("component")
+        .attr("name", "InspectionProjectProfileManager")
+
+    val profile = config.appendElement("profile")
+        .attr("version", "1.0")
+    profile.option("myName", "Project Default")
+
+    disabledInspections.forEach { profile.inspectionTool(it) }
+
+    config.appendElement("version")
+        .attr("value", "1.0")
+}
+
+
+private
+fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled: Boolean = false) {
+    appendElement("inspection_tool")
+        .attr("class", clazz)
+        .attr("enabled", enabled.toString())
+        .attr("level", level)
+        .attr("enabled_by_default", "false")
+}
+
+
+private
 fun ProjectSettings.configureCodeStyle() {
     codeStyle {
         @Suppress("DEPRECATION")
@@ -665,6 +731,18 @@ fun ProjectSettings.configureCodeStyle() {
             doWhileForceBraces = FORCE_BRACES_ALWAYS
             whileForceBraces = FORCE_BRACES_ALWAYS
             forForceBraces = FORCE_BRACES_ALWAYS
+        }
+    }
+}
+
+
+private
+fun ProjectSettings.configureInspections() {
+    inspections {
+        disabledInspections.forEach { name ->
+            create(name) {
+                enabled = false
+            }
         }
     }
 }

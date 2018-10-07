@@ -27,6 +27,7 @@ import org.gradle.performance.fixture.PerformanceTestConditions
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -54,11 +55,12 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  * - be careful when rebasing/squashing/merging
  */
 @Category(PerformanceRegressionTest)
+@CleanupTestDirectory
 @Retry(condition = { PerformanceTestConditions.whenSlowerButNotAdhoc(failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     @Rule
     TestName testName = new TestName()
@@ -71,8 +73,8 @@ class GradleBuildPerformanceTest extends Specification {
 
     CrossBuildPerformanceTestRunner runner
 
-    def warmupBuilds = 20
-    def measuredBuilds = 40
+    def warmupBuilds = 1
+    def measuredBuilds = 1
 
     def setup() {
         runner = new CrossBuildPerformanceTestRunner(
@@ -83,7 +85,7 @@ class GradleBuildPerformanceTest extends Specification {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
-                builder.workingDirectory = tmpDir.testDirectory
+                builder.workingDirectory = temporaryFolder.testDirectory
                 if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
                     builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}", "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}", "-I", createMirrorInitScript().absolutePath)
                 }

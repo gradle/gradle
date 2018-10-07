@@ -14,80 +14,123 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
+
 import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
 import org.hamcrest.Matchers
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
-    private TestFile pomProjectDir
+class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Rule public Resources resources = new Resources();
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'maven/pomGeneration')
+    @Rule
+    public Resources resources = new Resources();
 
-    @Before
-    void setUp() {
-        pomProjectDir = sample.dir
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'maven/pomGeneration')
+
+    def setup() {
+        executer.requireGradleDistribution()
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
-    @Test
-    void "can deploy to local repository"() {
+    @Unroll
+    def "can deploy to local repository with #dsl dsl"() {
+        given:
+        def pomProjectDir = sample.dir.file(dsl)
+
+        and:
         def repo = maven(pomProjectDir.file('pomRepo'))
         def module = repo.module('deployGroup', 'mywar', '1.0MVN')
 
+        when:
         executer.inDirectory(pomProjectDir).withTasks('uploadArchives').run()
 
+        then:
         compareXmlWithIgnoringOrder(expectedPom('1.0MVN', "deployGroup"), module.pomFile.text)
         module.moduleDir.file("mywar-1.0MVN.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
 
+        and:
         pomProjectDir.file('build').assertDoesNotExist()
         pomProjectDir.file('target').assertIsDir()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void "can install to local repository"() {
+    @Unroll
+    def "can install to local repository with #dsl dsl"() {
+        given:
+        def pomProjectDir = sample.dir.file(dsl)
+
+        and:
         def repo = m2.mavenRepo()
         def module = repo.module('installGroup', 'mywar', '1.0MVN')
         module.moduleDir.deleteDir()
 
+        when:
         executer.inDirectory(pomProjectDir).withTasks('install').run()
 
+        then:
         pomProjectDir.file('build').assertDoesNotExist()
         pomProjectDir.file('target').assertIsDir()
 
+        and:
         TestFile installedFile = module.moduleDir.file("mywar-1.0MVN.war")
         TestFile installedJavadocFile = module.moduleDir.file("mywar-1.0MVN-javadoc.zip")
         TestFile installedPom = module.moduleDir.file("mywar-1.0MVN.pom")
 
+        and:
         installedFile.assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
         installedJavadocFile.assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
         installedPom.assertIsFile()
 
+        and:
         compareXmlWithIgnoringOrder(expectedPom("1.0MVN", "installGroup"), installedPom.text)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void writeNewPom() {
+    @Unroll
+    def "write new pom with #dsl dsl"() {
+        given:
+        def pomProjectDir = sample.dir.file(dsl)
+
+        when:
         executer.inDirectory(pomProjectDir).withTasks('writeNewPom').run()
+
+        then:
         compareXmlWithIgnoringOrder(expectedPom(null, null, 'pomGeneration/expectedNewPom.txt'), pomProjectDir.file("target/newpom.xml").text)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void writeDeployerPom() {
+    @Unroll
+    def "write deployer pom with #dsl dsl"() {
+        given:
+        def pomProjectDir = sample.dir.file(dsl)
+
+        and:
         String version = '1.0MVN'
         String groupId = "deployGroup"
+
+        when:
         executer.inDirectory(pomProjectDir).withTasks('writeDeployerPom').run()
+
+        then:
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), pomProjectDir.file("target/deployerpom.xml").text)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     private String expectedPom(String version, String groupId, String path = 'pomGeneration/expectedPom.txt') {

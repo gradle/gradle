@@ -36,8 +36,9 @@ dependencies {
     compile(library("asm"))
     compile(library("asm_tree"))
     compile(library("junit"))
-    testLibraries("jmock").forEach { compile(it) }
+    compile(testLibrary("hamcrest"))
     compile(testLibrary("spock"))
+    runtime(testLibrary("bytebuddy"))
     compile(testLibrary("jsoup"))
 }
 

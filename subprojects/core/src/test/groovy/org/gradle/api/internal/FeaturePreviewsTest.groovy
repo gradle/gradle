@@ -16,74 +16,45 @@
 
 package org.gradle.api.internal
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
-
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
-import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT
-import static org.gradle.api.internal.FeaturePreviews.Feature.STABLE_PUBLISHING
 
 class FeaturePreviewsTest extends Specification {
 
+    @Subject
+    def previews = new FeaturePreviews()
+
     def 'has no features enabled by default'() {
-        given:
-        def previews = new FeaturePreviews()
-        when:
-        def result = previews.isFeatureEnabled(feature)
-        then:
-        !result
+        expect:
+        !previews.isFeatureEnabled(feature)
         where:
-        feature << [IMPROVED_POM_SUPPORT, GRADLE_METADATA]
+        feature << FeaturePreviews.Feature.values()
     }
 
     @Unroll
-    def "can enable #feature"() {
-        given:
-        def previews = new FeaturePreviews()
+    def "can enable #feature feature"() {
         when:
         previews.enableFeature(feature)
         then:
         previews.isFeatureEnabled(feature)
         where:
-        feature << [IMPROVED_POM_SUPPORT, GRADLE_METADATA]
+        feature << FeaturePreviewsFixture.activeFeatures()
     }
 
     @Unroll
-    def "can enable #feature as String"() {
-        given:
-        def previews = new FeaturePreviews()
+    def "ignores activation of inactive #feature feature"() {
         when:
         previews.enableFeature(feature)
         then:
-        previews.isFeatureEnabled(feature)
+        !previews.isFeatureEnabled(feature)
         where:
-        feature << ['IMPROVED_POM_SUPPORT', 'GRADLE_METADATA']
-    }
-
-    def 'fails when enabling an unknown feature'() {
-        given:
-        def previews = new FeaturePreviews()
-        when:
-        previews.enableFeature('UNKNOWN_FEATURE')
-        then:
-        IllegalArgumentException exception = thrown()
-        exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
-    }
-
-    def 'fails when querying an unknown feature'() {
-        given:
-        def previews = new FeaturePreviews()
-        when:
-        previews.isFeatureEnabled('UNKNOWN_FEATURE')
-        then:
-        IllegalArgumentException exception = thrown()
-        exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
+        feature << FeaturePreviewsFixture.inactiveFeatures()
     }
 
     def 'lists active features'() {
-        given:
-        def previews = new FeaturePreviews()
         expect:
-        previews.getActiveFeatures() == [IMPROVED_POM_SUPPORT, GRADLE_METADATA, STABLE_PUBLISHING] as Set
+        previews.getActiveFeatures() == FeaturePreviewsFixture.activeFeatures()
     }
 }

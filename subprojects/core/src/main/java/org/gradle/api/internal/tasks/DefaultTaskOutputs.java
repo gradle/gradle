@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
@@ -28,6 +30,7 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -39,19 +42,23 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.INVALID_BUILD_CACHE_KEY;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
 
 @NonNullApi
@@ -158,12 +165,49 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         if (!buildCacheKey.isValid()) {
-            return DefaultTaskOutputCachingState.disabled(
-                INVALID_BUILD_CACHE_KEY,
-                "Invalid build cache key was generated"
-            );
+            return getCachingStateForInvalidCacheKey(buildCacheKey);
         }
         return ENABLED;
+    }
+
+    private TaskOutputCachingState getCachingStateForInvalidCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
+        BuildCacheKeyInputs buildCacheKeyInputs = buildCacheKey.getInputs();
+        ImplementationSnapshot taskImplementation = buildCacheKeyInputs.getTaskImplementation();
+        if (taskImplementation != null && taskImplementation.isUnknown()) {
+            return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_IMPLEMENTATION, "Task class " + taskImplementation.getUnknownReason());
+        }
+
+        List<ImplementationSnapshot> actionImplementations = buildCacheKeyInputs.getActionImplementations();
+        if (actionImplementations != null && !actionImplementations.isEmpty()) {
+            for (ImplementationSnapshot actionImplementation : actionImplementations) {
+                if (actionImplementation.isUnknown()) {
+                    return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_ACTION, "Task action " + actionImplementation.getUnknownReason());
+                }
+            }
+        }
+
+        ImmutableSortedMap<String, String> invalidInputProperties = buildCacheKeyInputs.getNonCacheableInputProperties();
+        if (invalidInputProperties != null && !invalidInputProperties.isEmpty()) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Non-cacheable inputs: ");
+            boolean first = true;
+            for (Map.Entry<String, String> entry : Preconditions.checkNotNull(invalidInputProperties).entrySet()) {
+                if (!first) {
+                    builder.append(", ");
+                }
+                first = false;
+                builder
+                    .append("property '")
+                    .append(entry.getKey())
+                    .append("' ")
+                    .append(entry.getValue());
+            }
+            return DefaultTaskOutputCachingState.disabled(
+                NON_CACHEABLE_INPUTS,
+                builder.toString()
+            );
+        }
+        throw new IllegalStateException("Cache key is invalid without a known reason: " + buildCacheKey);
     }
 
     @Nullable

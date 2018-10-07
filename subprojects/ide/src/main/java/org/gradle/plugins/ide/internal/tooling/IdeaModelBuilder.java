@@ -42,8 +42,8 @@ import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSingleEntryLibraryDependency;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
-import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
@@ -74,7 +74,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
         applyIdeaPlugin(root);
-        DefaultGradleProject<?> rootGradleProject = gradleProjectBuilder.buildAll(project);
+        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
         return build(root, rootGradleProject);
     }
 

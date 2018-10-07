@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Cast;
+import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 
@@ -37,7 +37,7 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putNull();
     }
 

@@ -62,7 +62,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @TargetGradleVersion(">=1.6")
     def "returns proper error message when non-serializable exception is thrown while building a custom build model"() {
         when:
         createToolingModelBuilderBuildFile(exceptionNestingLevel)
@@ -108,7 +107,6 @@ throw ${'new RuntimeException(' * exceptionNestingLevel}new CustomException("Som
 """
     }
 
-    @TargetGradleVersion(">=1.6")
     def "returns proper error message when non-serializable exception is thrown in configuration phase"() {
         when:
         createBuildFileForConfigurationPhaseCheck(exceptionNestingLevel)
@@ -143,7 +141,6 @@ task run {
 """
     }
 
-    @TargetGradleVersion(">=1.6")
     def "returns proper error message when non-serializable exception is thrown in execution phase"() {
         when:
         createBuildFileForExecutionPhaseCheck(exceptionNestingLevel)

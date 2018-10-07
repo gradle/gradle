@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.r18.NullAction
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
+import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -82,7 +82,6 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggi
         }
     }
 
-    @TargetGradleVersion(">=1.8")
     def "receives standard streams while client action is running"() {
         given:
         loggingBuildScript()

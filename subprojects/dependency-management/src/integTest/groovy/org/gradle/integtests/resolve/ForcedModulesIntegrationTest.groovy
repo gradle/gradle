@@ -20,7 +20,11 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
-public class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
+class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+    }
 
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
@@ -385,7 +389,7 @@ task checkDeps {
             }
 
         """
-        def resolve = new ResolveTestFixture(buildFile, "conf")
+        def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         resolve.prepare()
 
 

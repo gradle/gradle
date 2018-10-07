@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -42,6 +43,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     //publishes and declares the dependencies
@@ -426,8 +428,10 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : $expected

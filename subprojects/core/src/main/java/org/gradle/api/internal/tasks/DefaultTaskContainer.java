@@ -91,24 +91,22 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final BuildOperationExecutor buildOperationExecutor;
 
     private final TaskStatistics statistics;
-    private final CrossProjectConfigurator crossProjectConfigurator;
     private final boolean eagerlyCreateLazyTasks;
-    private final Map<String, TaskProvider<? extends Task>> placeholders = Maps.newLinkedHashMap();
 
     private MutableModelNode modelNode;
 
     public DefaultTaskContainer(final ProjectInternal project, Instantiator instantiator, final ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
-        super(Task.class, instantiator, project);
+        super(Task.class, instantiator, project, MutationGuards.of(crossProjectConfigurator));
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskFactory, project);
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
-        this.crossProjectConfigurator = crossProjectConfigurator;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public Task create(Map<String, ?> options) {
+        assertMutable("create(Map<String, ?>)");
         return doCreate(options, Actions.doNothing());
     }
 
@@ -222,16 +220,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private <T extends Task> void addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
-        TaskProvider<? extends Task> placeholderProvider = placeholders.remove(name);
-        if (placeholderProvider != null) {
-            if (!replaceExisting) {
-                if (modelNode != null) {
-                    modelNode.removeLink(name);
-                }
-                warnAboutPlaceholderDeprecation(name);
-            }
-        }
-
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
@@ -281,16 +269,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
+        assertMutable("create(Map<String, ?>, Closure)");
         return doCreate(options, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
+        assertMutable("create(String, Class)");
         return doCreate(name, type, NO_ARGS, Actions.doNothing());
     }
 
     @Override
     public <T extends Task> T create(final String name, final Class<T> type, final Object... constructorArgs) throws InvalidUserDataException {
+        assertMutable("create(String, Class, Object...)");
         return doCreate(name, type, constructorArgs, Actions.doNothing());
     }
 
@@ -328,10 +319,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(String name) {
+        assertMutable("create(String)");
         return doCreate(name, DefaultTask.class, NO_ARGS, Actions.doNothing());
     }
 
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
+        assertMutable("create(String, Action)");
         return doCreate(name, DefaultTask.class, NO_ARGS, configureAction);
     }
 
@@ -344,14 +337,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task replace(String name) {
+        assertMutable("replace(String)");
         return replace(name, DefaultTask.class);
     }
 
     public Task create(String name, Closure configureClosure) {
+        assertMutable("create(String, Closure)");
         return doCreate(name, DefaultTask.class, NO_ARGS, ConfigureUtil.configureUsing(configureClosure));
     }
 
     public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
+        assertMutable("create(String, Class, Action)");
         T task = create(name, type);
         configuration.execute(task);
         return task;
@@ -359,26 +355,31 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
+        assertMutable("register(String, Action)");
         return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException {
+        assertMutable("register(String, Class, Action)");
         return registerTask(name, type, configurationAction, NO_ARGS);
     }
 
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException {
+        assertMutable("register(String, Class)");
         return register(name, type, NO_ARGS);
     }
 
     @Override
     public TaskProvider<Task> register(String name) throws InvalidUserDataException {
+        assertMutable("register(String)");
         return Cast.uncheckedCast(register(name, DefaultTask.class));
     }
 
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) {
+        assertMutable("register(String, Class, Object...)");
         return registerTask(name, type, null, constructorArgs);
     }
 
@@ -412,6 +413,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public <T extends Task> T replace(final String name, final Class<T> type) {
+        assertMutable("replace(String, Class)");
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
@@ -482,19 +484,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public SortedSet<String> getNames() {
         SortedSet<String> names = super.getNames();
-        if (placeholders.isEmpty() && modelNode == null) {
+        if (modelNode == null) {
             return names;
-        }
-        TreeSet<String> allNames = new TreeSet<String>(names);
-        allNames.addAll(placeholders.keySet());
-        if (modelNode != null) {
+        } else {
+            TreeSet<String> allNames = new TreeSet<String>(names);
             allNames.addAll(modelNode.getLinkNames());
+            return allNames;
         }
-        return allNames;
     }
 
     public void realize() {
-        flushPlaceholders();
         if (modelNode != null) {
             project.getModelRegistry().realizeNode(modelNode.getPath());
         }
@@ -505,15 +504,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         project.fireDeferredConfiguration();
         if (modelNode != null) {
             project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
-        }
-    }
-
-    private void flushPlaceholders() {
-        // @formatter:off
-        for (Iterator<TaskProvider<?>> iterator = placeholders.values().iterator(); iterator.hasNext();) {
-            // @formatter:on
-            iterator.next().get();
-            iterator.remove();
         }
     }
 
@@ -529,11 +519,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
      * @return true if this method _may_ have done some work.
      */
     private boolean maybeCreateTasks(String name) {
-        TaskProvider<?> placeholder = placeholders.remove(name);
-        if (placeholder != null) {
-            placeholder.get();
-            return true;
-        }
         if (modelNode != null && modelNode.hasLink(name)) {
             realizeTask(MODEL_PATH.child(name), ModelNode.State.Initialized);
             return true;
@@ -549,43 +534,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!maybeCreateTasks(name)) {
             return null;
         }
-        placeholders.remove(name);
         return super.findByNameWithoutRules(name);
     }
 
     private Task realizeTask(ModelPath taskPath, ModelNode.State minState) {
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
-    }
-
-    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
-        if (findByNameWithoutRules(placeholderName) == null) {
-            final TaskIdentity<T> identity = TaskIdentity.create(placeholderName, taskType, project);
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    TaskCreatingProvider<T> provider = Cast.uncheckedCast(getInstantiator()
-                        .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configure, NO_ARGS)
-                    );
-                    placeholders.put(placeholderName, provider);
-                    deferredElementKnown(placeholderName, provider);
-                    context.setResult(REGISTER_RESULT);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return registerDescriptor(identity);
-                }
-            });
-        } else {
-            warnAboutPlaceholderDeprecation(placeholderName);
-        }
-    }
-
-    private void warnAboutPlaceholderDeprecation(String placeholderName) {
-        DeprecationLogger.nagUserOfDeprecated(
-            "Creating a custom task named '" + placeholderName + "'",
-            "You can configure the existing task using the '" + placeholderName + " { }' syntax or create your custom task under a different name."
-        );
     }
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
@@ -601,14 +554,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public void whenElementKnown(Action<? super ElementInfo<Task>> action) {
-        super.whenElementKnown(action);
-        for (Map.Entry<String, TaskProvider<?>> entry : placeholders.entrySet()) {
-            deferredElementKnown(entry.getKey(), entry.getValue());
-        }
-    }
-
-    @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
         return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
@@ -617,7 +562,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean remove(Object o) {
         warnAboutRemoveMethodDeprecation("remove(Object)");
-        return super.remove(o);
+        return removeInternal(o);
     }
 
     private boolean removeInternal(Object o) {
@@ -700,11 +645,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             context.add(get());
             return true;
-        }
-
-        @Override
-        protected Action<? super I> wrap(Action action) {
-            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
         }
 
         @Override

@@ -117,7 +117,9 @@ public class IntegrationTestBuildContext {
     @Nullable
     private static TestFile optionalFile(String propertyName) {
         String path = System.getProperty(propertyName);
-        return path != null ? new TestFile(new File(path)) : null;
+        // MODULE_WORKING_DIR doesn't seem to work correctly and MODULE_DIR seems to be in `.idea/modules/<path-to-subproject>`
+        // See https://youtrack.jetbrains.com/issue/IDEA-194910
+        return path != null ? new TestFile(new File(path.replace(".idea/modules/", ""))) : null;
     }
 
     private static TestFile testFile(String path) {

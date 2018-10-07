@@ -33,6 +33,10 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    def setup() {
+        executer.withRepositoryMirrors()
+    }
+
     @Unroll
     @UsesSample('java/customizedLayout')
     def "can build and upload jar with #dsl dsl"() {

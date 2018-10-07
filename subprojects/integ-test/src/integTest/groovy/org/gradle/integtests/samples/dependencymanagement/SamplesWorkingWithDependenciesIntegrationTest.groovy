@@ -33,7 +33,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Unroll

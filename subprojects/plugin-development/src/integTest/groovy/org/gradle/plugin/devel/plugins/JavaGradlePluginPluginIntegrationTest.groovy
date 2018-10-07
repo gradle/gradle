@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.plugins
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
@@ -26,10 +25,6 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String DECLARED_PLUGIN_MISSING_MESSAGE = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.substring(4).split('[%]')[0]
     final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.substring(4).split('[%]')[0]
-
-    def setup() {
-        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
-    }
 
     @Override
     String getMainTask() {

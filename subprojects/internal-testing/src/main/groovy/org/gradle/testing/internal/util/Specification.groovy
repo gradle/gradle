@@ -16,7 +16,6 @@
 
 package org.gradle.testing.internal.util
 
-import groovy.transform.CompileStatic
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SecondParam
 
@@ -25,7 +24,6 @@ import groovy.transform.stc.SecondParam
  * By using this subclass, IDEA knows the closure delegate type when using Mock() or Stub().
  * This means that you get editing assistance in said blocks WRT the type being mocked/stubbed.
  */
-@CompileStatic
 class Specification extends spock.lang.Specification {
 
     @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])

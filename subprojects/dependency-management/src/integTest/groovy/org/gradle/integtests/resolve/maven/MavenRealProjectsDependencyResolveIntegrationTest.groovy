@@ -26,6 +26,7 @@ class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependen
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'testproject'
         """
@@ -73,6 +74,7 @@ task check {
 
         expect:
         succeeds "check", "checkDep"
+        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module('ch.qos.logback:logback-classic:0.9.30') {

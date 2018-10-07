@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
@@ -27,7 +26,6 @@ import spock.lang.Ignore
  * Tests “simple” maven publishing scenarios
  */
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
-    private static final String DEFERRED_CONFIGURATION_WARNING = "the 'deferred configurable' behavior of the 'publishing {}' block has been deprecated."
 
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
@@ -249,59 +247,5 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
         failure.assertHasCause("Publication with name 'mavenJava' already exists")
-    }
-
-    def "asks the user to activate the stable publishing feature preview"() {
-
-        given:
-        settingsFile.text = "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds("help")
-
-        then:
-        outputContains(DEFERRED_CONFIGURATION_WARNING)
-    }
-
-    def "uses old deferred configuration logic if feature preview is not activated"() {
-        given:
-        settingsFile.text = "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            def mode = "Deferred"
-            publishing {
-                mode = "Eager"
-            }
-            println mode
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds("help")
-
-        then:
-        outputDoesNotContain("Eager")
-    }
-
-    def "no warning if the user already activated the stable feature preview"() {
-
-        given:
-        settingsFile << """
-            rootProject.name = 'root'
-        """
-        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
-        buildFile << """
-            apply plugin: 'maven-publish'
-        """
-
-        when:
-        succeeds("help")
-
-        then:
-        outputDoesNotContain(DEFERRED_CONFIGURATION_WARNING)
     }
 }

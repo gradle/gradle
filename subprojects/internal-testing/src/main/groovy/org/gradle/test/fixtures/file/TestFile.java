@@ -28,7 +28,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
-import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -44,6 +43,7 @@ import java.io.ObjectStreamException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -147,7 +147,7 @@ public class TestFile extends File {
 
     public TestFile write(Object content) {
         try {
-            FileUtils.writeStringToFile(this, content.toString());
+            FileUtils.writeStringToFile(this, content.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not write to test file '%s'", this), e);
         }
@@ -190,7 +190,7 @@ public class TestFile extends File {
     public String getText() {
         assertIsFile();
         try {
-            return FileUtils.readFileToString(this);
+            return FileUtils.readFileToString(this, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not read from test file '%s'", this), e);
         }
@@ -444,7 +444,7 @@ public class TestFile extends File {
     }
 
     public static HashCode md5(File file) {
-        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
             Files.copy(file, hashingStream);
         } catch (IOException e) {

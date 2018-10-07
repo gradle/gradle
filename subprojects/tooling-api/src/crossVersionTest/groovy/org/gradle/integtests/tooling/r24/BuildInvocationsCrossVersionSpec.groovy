@@ -17,14 +17,13 @@
 
 package org.gradle.integtests.tooling.r24
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.BuildInvocations
 
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=2.4")
     def "set task selector description taken from task with path that has lowest ordering"() {
         temporaryFolder.createFile('settings.gradle') << '''
           rootProject.name = 'TestProject'

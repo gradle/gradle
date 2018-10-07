@@ -167,7 +167,7 @@ idea.module {
         root.testResourceDirectories[0].directory == file('testResources')
     }
 
-    @TargetGradleVersion(">=1.2 <4.7")
+    @TargetGradleVersion(">=2.6 <4.7")
     def "older Gradle version throw UnsupportedMethodException when querying resources and test resources"() {
         given:
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }

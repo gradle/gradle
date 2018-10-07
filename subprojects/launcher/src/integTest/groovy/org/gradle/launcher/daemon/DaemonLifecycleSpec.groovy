@@ -68,6 +68,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     def buildDirWithScript(buildNum, buildScript) {
         def dir = buildDir(buildNum)
+        dir.file("settings.gradle").touch()
         dir.file("build.gradle") << buildScript
         dir
     }

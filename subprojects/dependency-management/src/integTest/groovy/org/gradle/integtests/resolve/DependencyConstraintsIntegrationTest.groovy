@@ -24,7 +24,7 @@ import spock.lang.Issue
  * declared in the build script (instead of published)
  */
 class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -37,6 +37,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
         """
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "dependency constraint is not included in resolution without a hard dependency"() {
@@ -416,7 +417,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1")
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
                     module("org:foo:1.1:runtime")

@@ -28,6 +28,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'test'
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
 
@@ -199,7 +200,7 @@ task resolve {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -237,7 +238,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -675,7 +676,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -713,7 +714,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -1568,7 +1569,7 @@ task checkDeps(dependsOn: configurations.compile) {
         mavenRepo.module('org', 'baz', '1.2').dependsOn(foo12).publish()
         mavenRepo.module('org', 'bar', '1.1').dependsOn(baz11).publish()
 
-        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -1692,13 +1693,8 @@ task checkDeps(dependsOn: configurations.compile) {
         }
         bom.publish()
 
-        settingsFile << """
-enableFeaturePreview('IMPROVED_POM_SUPPORT')
-"""
         buildFile << """
-plugins {
-    id 'java'
-}
+apply plugin: 'java'
 
 repositories {
     maven {

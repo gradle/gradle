@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.base.Joiner;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
@@ -30,7 +29,6 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.Phases;
-import org.codehaus.groovy.control.ProcessingUnit;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -54,7 +52,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +65,6 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
@@ -104,7 +100,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
     }
 
-    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
+    private void compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
                                final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
@@ -116,7 +112,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(source, compilerConfiguration, codeSource, customVerifier, this);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -279,7 +275,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private class CustomCompilationUnit extends CompilationUnit {
-        public CustomCompilationUnit(final ScriptSource script, CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
+        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.verifier = new Verifier() {
                 public void visitClass(ClassNode node) {
@@ -287,21 +283,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     super.visitClass(node);
                 }
             };
-            final GradleResolveVisitor resolveVisitor = new GradleResolveVisitor(this, simpleNameToFQN);
-            this.resolveVisitor = resolveVisitor;
-            this.progressCallback = new ProgressCallback() {
-                @Override
-                public void call(ProcessingUnit context, int phase) throws CompilationFailedException {
-                    if (phase == Phases.CANONICALIZATION) {
-                        Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
-                        if (!deprecatedImports.isEmpty()) {
-                            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("The support for implicit import of internal classes",
-                                "Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.",
-                                StringUtils.capitalize(script.getDisplayName()) + " is using " + Joiner.on(" and ").join(deprecatedImports) + " from the private org.gradle.util package.");
-                        }
-                    }
-                }
-            };
+            this.resolveVisitor = new GradleResolveVisitor(this, simpleNameToFQN);
         }
     }
 
@@ -374,7 +356,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final HashCode implementationHash;
 
         ScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
-            super(parent, classPath);
+            super("groovy-script-" + scriptSource.getFileName() + "-loader", parent, classPath);
             this.scriptSource = scriptSource;
             this.implementationHash = implementationHash;
         }

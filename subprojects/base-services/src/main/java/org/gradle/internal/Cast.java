@@ -50,4 +50,9 @@ public abstract class Cast {
     public static <T> T uncheckedCast(@Nullable Object object) {
         return (T) object;
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T uncheckedNonnullCast(Object object) {
+        return (T) object;
+    }
 }

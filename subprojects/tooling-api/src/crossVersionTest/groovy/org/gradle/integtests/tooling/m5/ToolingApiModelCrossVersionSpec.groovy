@@ -28,7 +28,7 @@ System.err.println 'this is stderr'
 
         when:
         def progress = withModel(GradleProject.class).progressMessages
-        progress.pop()
+        progress.removeLast()
 
         then:
         progress.size() >= 2

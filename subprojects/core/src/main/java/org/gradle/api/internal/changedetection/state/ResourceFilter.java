@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.Hasher;
 
 public interface ResourceFilter extends ConfigurableNormalizer {
     ResourceFilter FILTER_NOTHING = new ResourceFilter() {
@@ -27,7 +27,7 @@ public interface ResourceFilter extends ConfigurableNormalizer {
         }
 
         @Override
-        public void appendConfigurationToHasher(BuildCacheHasher hasher) {
+        public void appendConfigurationToHasher(Hasher hasher) {
             hasher.putString(getClass().getName());
         }
     };

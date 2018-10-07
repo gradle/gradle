@@ -42,15 +42,6 @@ public enum TaskOutputCachingDisabledReasonCategory {
     NO_OUTPUTS_DECLARED,
 
     /**
-     * Task has outputs declared via {@literal @}{@link org.gradle.api.tasks.OutputFiles} or {@literal @}{@link org.gradle.api.tasks.OutputDirectories}.
-     *
-     * @deprecated Simply having plural outputs is not a reason anymore to disable caching since Gradle 5.0
-     * The enum cannot be removed as build scan plugin depends on it.
-     */
-    @Deprecated
-    PLURAL_OUTPUTS,
-
-    /**
      * Task has a {@link org.gradle.api.file.FileTree} or {@link org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
      *
      * @since 5.0
@@ -73,11 +64,29 @@ public enum TaskOutputCachingDisabledReasonCategory {
     OVERLAPPING_OUTPUTS,
 
     /**
-     * The generated build cache key is invalid. Reasons for invalid cache keys:
+     * The task implementation is not cacheable. Reasons for non-cacheable task implemenations:
+     * <ul>
+     *     <li>the task type is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used to implement the task (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_TASK_IMPLEMENTATION,
+    
+    /**
+     * One of the task actions is not cacheable. Reasons for non-cacheable task action:
+     * <ul>
+     *     <li>a task action is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used as a task action (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_TASK_ACTION,
+
+    /**
+     * One of the task inputs is not cacheable. Reasons for non-cacheable task inputs:
      * <ul>
      *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
      *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
      * </ul>
      */
-    INVALID_BUILD_CACHE_KEY
+    NON_CACHEABLE_INPUTS
 }

@@ -21,6 +21,10 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def setup() {
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+    }
+
     def "can resolve unique and non-unique snapshots"() {
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -51,6 +55,7 @@ dependencies {
         run 'checkDeps'
 
         then:
+        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)

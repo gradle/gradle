@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
@@ -105,7 +104,6 @@ import java.util.Map;
  *
  * @since 3.0
  */
-@Incubating
 @CacheableTask
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
@@ -119,7 +117,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     public void validateTaskClasses() throws IOException {
         ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
         ClassPath classPath = DefaultClassPath.of(Iterables.concat(getClasses(), getClasspath()));
-        ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(classPath);
+        ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader("task-loader", classPath);
         Thread.currentThread().setContextClassLoader(classLoader);
         try {
             validateTaskClasses(classLoader);
@@ -198,7 +196,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             File output = outputFile.get().getAsFile();
             //noinspection ResultOfMethodCallIgnored
             output.createNewFile();
-            Files.write(Joiner.on('\n').join(problemMessages), output, Charsets.UTF_8);
+            Files.asCharSink(output, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
         }
     }
 

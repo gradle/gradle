@@ -16,31 +16,41 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResult<T> {
     private final Set<T> candidateValues;
     private final T consumerValue;
-    private Set<T> matches;
+
+    // Match recording is optimized for the general case of a single match
+    private T singleMatch;
+    private Set<T> multipleMatches;
 
     public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
         assert candidateValues.size() > 1;
+        for (T candidateValue : candidateValues) {
+            assert candidateValue != null;
+        }
         this.candidateValues = candidateValues;
         this.consumerValue = consumerValue;
     }
 
     @Override
     public boolean hasResult() {
-        return matches != null;
+        return singleMatch != null || multipleMatches!=null;
     }
 
     public Set<T> getMatches() {
-        assert matches != null;
-        return matches;
+        assert hasResult();
+        if (singleMatch != null) {
+            return Collections.singleton(singleMatch);
+        }
+        return multipleMatches;
     }
 
     @Nullable
@@ -56,9 +66,20 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
 
     @Override
     public void closestMatch(T candidate) {
-        if (matches == null) {
-            matches = new HashSet<T>(4);
+        if (singleMatch == null) {
+            if (multipleMatches == null) {
+                singleMatch = candidate;
+            } else {
+                multipleMatches.add(candidate);
+            }
+            return;
         }
-        matches.add(candidate);
+        if (singleMatch.equals(candidate)) {
+            return;
+        }
+        multipleMatches = Sets.newHashSetWithExpectedSize(candidateValues.size());
+        multipleMatches.add(singleMatch);
+        multipleMatches.add(candidate);
+        singleMatch = null;
     }
 }

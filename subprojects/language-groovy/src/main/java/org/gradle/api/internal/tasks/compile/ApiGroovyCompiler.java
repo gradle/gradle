@@ -92,7 +92,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // using a transforming classloader is only required for older buggy Groovy versions
             classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), DefaultClassPath.of(spec.getCompileClasspath()));
         } else {
-            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath.of(spec.getCompileClasspath()));
+            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader("api-groovy-compile-loader", DefaultClassPath.of(spec.getCompileClasspath()));
         }
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
         GroovySystemLoader compileClasspathLoader = groovySystemLoaderFactory.forClassLoader(classPathLoader);
@@ -195,7 +195,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
-        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing() && !spec.getAnnotationProcessorPath().isEmpty();
+        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing()
+            && !spec.getAnnotationProcessorPath().isEmpty()
+            && !spec.getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {

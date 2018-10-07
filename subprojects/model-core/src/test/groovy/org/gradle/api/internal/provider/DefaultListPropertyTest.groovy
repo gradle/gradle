@@ -44,13 +44,4 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     protected List<String> toMutable(Collection<String> values) {
         return new ArrayList<String>(values)
     }
-
-    def "defaults to empty list"() {
-        expect:
-        property.present
-        property.get() == []
-        property.getOrNull() == []
-        property.getOrElse(["abc"]) == []
-    }
-
 }

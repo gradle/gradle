@@ -81,7 +81,7 @@ System.err.println 'this is stderr'
 
         then:
         progress.size() >= 2
-        progress.pop() == ''
+        progress.removeLast() == ''
         progress.every { it }
     }
 

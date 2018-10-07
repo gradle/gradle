@@ -112,6 +112,95 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
+    def "can combine required and preferred version in single dependency definition"() {
+        repository {
+            'org:foo' {
+                '1.0.0'()
+                '1.1.0'()
+                '1.2.0'()
+                '2.0.0'()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:0.9')
+                conf('org:foo:[1.0.0,2.0.0)') {
+                    version {
+                        prefer '1.1.0'
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.1.0' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.2.0' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:[1.0.0,2.0.0)", "org:foo:1.1.0")
+                edge("org:foo:0.9", "org:foo:1.1.0").byConflictResolution("between versions 0.9 and 1.1.0")
+            }
+        }
+    }
+
+    def "can combine strict and preferred version in single dependency definition"() {
+        repository {
+            'org:foo' {
+                '1.0.0'()
+                '1.1.0'()
+                '1.2.0'()
+                '2.0.0'()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo') {
+                    version {
+                        strictly '[1.0.0,2.0.0)'
+                        prefer '1.1.0'
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.1.0' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.2.0' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:[1.0.0,2.0.0)", "org:foo:1.1.0")
+            }
+        }
+    }
+
     void "should fail if transitive dependency version is not compatible with the strict dependency version"() {
         given:
         repository {

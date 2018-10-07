@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -24,6 +25,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.ReusableAction;
+import org.gradle.internal.component.external.model.ComponentVariant;
 
 import java.util.Set;
 
@@ -32,6 +34,11 @@ public abstract class PlatformSupport {
     public static final String LIBRARY = "library";
     public static final String REGULAR_PLATFORM = "platform";
     public static final String ENFORCED_PLATFORM = "enforced-platform";
+
+    public static boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
+        String category = target.getAttributes().getAttribute(COMPONENT_CATEGORY);
+        return REGULAR_PLATFORM.equals(category) || ENFORCED_PLATFORM.equals(category);
+    }
 
     public static void configureSchema(AttributesSchema attributesSchema) {
         AttributeMatchingStrategy<String> componentTypeMatchingStrategy = attributesSchema.attribute(PlatformSupport.COMPONENT_CATEGORY);
@@ -45,6 +52,10 @@ public abstract class PlatformSupport {
                 attributeContainer.attribute(COMPONENT_CATEGORY, type);
             }
         });
+    }
+
+    public static boolean hasForcedDependencies(ComponentVariant variant) {
+        return Objects.equal(variant.getAttributes().getAttribute(COMPONENT_CATEGORY), ENFORCED_PLATFORM);
     }
 
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<String>, ReusableAction {

@@ -71,12 +71,12 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
+    public void visitDependencies(final TaskDependencyResolveContext context) {
         Set<Object> mutableValues = getMutableValues();
         if (mutableValues.isEmpty() && immutableValues.isEmpty()) {
             return;
         }
-        Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
+        final Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
         queue.addAll(immutableValues);
         queue.addAll(mutableValues);
         while (!queue.isEmpty()) {
@@ -87,16 +87,24 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 context.add(dependency);
             } else if (dependency instanceof TaskDependency) {
                 context.add(dependency);
+            } else if (dependency instanceof TaskDependencyContainer) {
+                ((TaskDependencyContainer) dependency).visitDependencies(new AbstractTaskDependencyResolveContext() {
+                    @Override
+                    public void add(Object dependency) {
+                        queue.addFirst(dependency);
+                    }
+
+                    @Override
+                    public Task getTask() {
+                        return context.getTask();
+                    }
+                });
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(context.getTask());
                 if (closureResult != null) {
                     queue.addFirst(closureResult);
                 }
-            } else if (dependency instanceof RealizableTaskCollection) {
-                RealizableTaskCollection realizableTaskCollection = (RealizableTaskCollection) dependency;
-                realizableTaskCollection.realizeRuleTaskTypes();
-                addAllFirst(queue, realizableTaskCollection.toArray());
             } else if (dependency instanceof List) {
                 List<?> list = (List) dependency;
                 if (list instanceof RandomAccess) {
@@ -125,18 +133,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 if (callableResult != null) {
                     queue.addFirst(callableResult);
                 }
-            } else if (dependency instanceof TaskReferenceInternal) {
-                context.add(((TaskReferenceInternal) dependency).resolveTask());
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
-            } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer) dependency).visitDependencies(context);
-            } else if (dependency instanceof ProviderInternal) {
-                ProviderInternal<?> providerInternal = (ProviderInternal) dependency;
-                if (!providerInternal.maybeVisitBuildDependencies(context)) {
-                    // Provider does not know its build dependencies, so unpack the value
-                    queue.addFirst(providerInternal.get());
-                }
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
@@ -146,7 +144,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Task instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
-                formats.add("A RegularFileProperty or DirectoryProperty instance");
+                formats.add("A Provider that represents a task output");
                 formats.add("A Provider instance that returns any of these types");
                 formats.add("A Closure instance that returns any of these types");
                 formats.add("A Callable instance that returns any of these types");

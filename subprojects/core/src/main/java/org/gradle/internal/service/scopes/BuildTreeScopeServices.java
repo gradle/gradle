@@ -28,6 +28,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
@@ -52,7 +53,7 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
         return exceptionAnalyser;
     }
 
-    public DefaultProjectStateRegistry createProjectPathRegistry() {
-        return new DefaultProjectStateRegistry();
+    public DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
+        return new DefaultProjectStateRegistry(workerLeaseService);
     }
 }

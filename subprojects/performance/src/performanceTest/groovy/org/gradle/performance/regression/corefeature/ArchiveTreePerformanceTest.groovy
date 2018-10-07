@@ -20,7 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
 class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
-        runner.targetVersions = ["5.0-20180909235858+0000"]
+        runner.targetVersions = ["5.0-20181003195513+0000"]
     }
 
     def "visiting zip trees"() {

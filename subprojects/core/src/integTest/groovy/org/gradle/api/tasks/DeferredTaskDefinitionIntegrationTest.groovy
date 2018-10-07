@@ -264,7 +264,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             
             gradle.buildFinished {
                 assert configureCount == 1
-                assert tasksAllCount == 2 // help + task1
+                assert tasksAllCount == 13 // built in tasks + task1
             }
         """
 
@@ -809,23 +809,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("got it 15")
-    }
-
-    def "configure rule can create additional tasks"() {
-        buildFile << '''
-            def fooTasks = tasks.withType(SomeTask)
-            
-            tasks.register('foo', SomeTask) {
-                dependsOn tasks.register('bar')
-            }
-            
-            task('baz') {
-                dependsOn fooTasks
-            }
-        '''
-
-        expect:
-        succeeds "baz"
     }
 
     def "lazy tasks that are removed cannot be recreated"() {

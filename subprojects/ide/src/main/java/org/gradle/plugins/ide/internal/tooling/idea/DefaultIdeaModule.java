@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
@@ -34,7 +34,7 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private DefaultIdeaProject parent;
 
     private List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
-    private DefaultGradleProject<?> gradleProject;
+    private DefaultGradleProject gradleProject;
 
     private IdeaCompilerOutput compilerOutput;
 

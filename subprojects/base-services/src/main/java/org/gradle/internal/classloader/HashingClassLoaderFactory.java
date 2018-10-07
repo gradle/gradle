@@ -28,5 +28,5 @@ public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoad
      * Creates a {@link ClassLoader} with the given parent and classpath. Use the given hash
      * code, or calculate it from the given classpath when hash code is {@code null}.
      */
-    ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, @Nullable HashCode implementationHash);
+    ClassLoader createChildClassLoader(String name, ClassLoader parent, ClassPath classPath, @Nullable HashCode implementationHash);
 }

@@ -159,12 +159,6 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     }
 
     @Override
-    protected VariantMetadataRules getVariantMetadataRules() {
-        // Added for package visibility
-        return super.getVariantMetadataRules();
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

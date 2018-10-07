@@ -286,7 +286,7 @@ image::javaPluginTasks.png[]
 [[sec:java_plugin_and_dependency_management]]
 == Dependency management
 
-The Java plugin adds a number of <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configurations>> to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
+The Java plugin adds a number of <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configurations>> to your project, as shown below. Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
 
 [[tab:configurations]]
 === Dependency configurations
@@ -294,7 +294,7 @@ The Java plugin adds a number of <<managing_dependency_configurations.adoc#manag
 [NOTE]
 ====
 
-To find information on the `api` configuration, please consult the <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and the <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management Tutorial>>.
+To find information on the `api` configuration, please consult the <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 
 ====
 
@@ -349,8 +349,18 @@ Artifacts (e.g. jars) produced by this project. Used by tasks `uploadArchives`.
 `default` extends `runtime`::
 The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
 
-.Java plugin - dependency configurations
-image::javaPluginConfigurations.png[]
+The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
+
+ * Gray text — the configuration is _deprecated_.
+ * Green background — you can declare dependencies against the configuration.
+ * Blue-gray background — the configuration is for consumption by tasks, not for you to declare dependencies.
+ * Light blue background with monospace text — a task.
+
+.Java plugin - _main_ source set dependency configurations
+image::java-main-configurations.png[]
+
+.Java plugin - _test_ source set dependency configurations
+image::java-test-configurations.png[]
 
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
 
@@ -657,7 +667,8 @@ Some of the types of changes that do not affect the public API and are ignored:
 * Renaming a parameter
 
 
-Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
+Since implementation details matter for annotation processors, they must be declared separately on the annotation processor path.
+Gradle ignores annotation processors on the compile classpath.
 
 .Declaring annotation processors
 ====

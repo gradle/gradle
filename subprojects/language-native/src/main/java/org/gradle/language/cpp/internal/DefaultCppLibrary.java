@@ -60,7 +60,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         publicHeaders = fileOperations.configurableFiles();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
-        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
+        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class)).empty();
         linkage.add(Linkage.SHARED);
 
         dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));

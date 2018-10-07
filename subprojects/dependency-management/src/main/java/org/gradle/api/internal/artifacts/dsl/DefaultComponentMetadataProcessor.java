@@ -42,12 +42,12 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -63,23 +63,32 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.repositories.resolver.VirtualComponentHelper.makeVirtual;
 
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
-    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
-            @Override
-            public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
-                ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
-                return metadata;
-            }
-        };
+    private final static boolean FORCE_REALIZE = Boolean.getBoolean("org.gradle.integtest.force.realize.metadata");
 
-    // This method and the next one can be used to force realisation and serialization, making sure all required state will be cached
-    private ModuleComponentResolveMetadata forceRealisation(ModuleComponentResolveMetadata metadata) {
+    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
+        @Override
+        public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
+            ModuleComponentResolveMetadata metadata = componentMetadataContext.getMutableMetadata().asImmutable();
+            return realizeMetadata(metadata);
+        }
+    };
+
+    private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
+        if (FORCE_REALIZE) {
+            metadata = realizeMetadata(metadata);
+            metadata = forceSerialization(metadata);
+        }
+        return metadata;
+    }
+
+    private static ModuleComponentResolveMetadata realizeMetadata(ModuleComponentResolveMetadata metadata) {
         if (metadata instanceof DefaultIvyModuleResolveMetadata) {
             metadata = RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
         } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
@@ -87,7 +96,6 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         } else {
             throw new IllegalStateException("Invalid type received: " + metadata.getClass());
         }
-        metadata = forceSerialization(metadata);
         return metadata;
     }
 
@@ -108,7 +116,10 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             }
         }
         try {
-            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+            ModuleComponentResolveMetadata forceRead = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+            // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
+            //assert metadata.equals(forceRead);
+            metadata = forceRead;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -122,11 +133,9 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataRuleExecutor ruleExecutor;
     private final MetadataResolutionContext metadataResolutionContext;
-    private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules;
-    private final Set<SpecConfigurableRule> classBasedRules;
+    private final ComponentMetadataRuleContainer metadataRuleContainer;
 
-    public DefaultComponentMetadataProcessor(Set<SpecRuleAction<? super ComponentMetadataDetails>> rules,
-                                             Set<SpecConfigurableRule> classBasedRules,
+    public DefaultComponentMetadataProcessor(ComponentMetadataRuleContainer metadataRuleContainer,
                                              Instantiator instantiator,
                                              NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
                                              NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
@@ -134,8 +143,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                                              ImmutableAttributesFactory attributesFactory,
                                              ComponentMetadataRuleExecutor ruleExecutor,
                                              MetadataResolutionContext resolutionContext) {
-        this.rules = rules;
-        this.classBasedRules = classBasedRules;
+        this.metadataRuleContainer = metadataRuleContainer;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
@@ -147,16 +155,29 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     @Override
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
+        metadata.getVariantMetadataRules().setVariantDerivationStrategy(metadataRuleContainer.getVariantDerivationStrategy());
         ModuleComponentResolveMetadata updatedMetadata;
-        if (rules.isEmpty() && classBasedRules.isEmpty()) {
-            updatedMetadata = metadata;
-        } else if (rules.isEmpty()) {
-            updatedMetadata = processClassRuleWithCaching(metadata, metadataResolutionContext);
+        if (metadataRuleContainer.isEmpty()) {
+            updatedMetadata = maybeForceRealisation(metadata);
+        } else if (metadataRuleContainer.isClassBasedRulesOnly()) {
+            Action<ComponentMetadataContext> action = collectRulesAndCreateAction(metadataRuleContainer.getOnlyClassRules(), metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
+            if (action instanceof InstantiatingAction) {
+                InstantiatingAction<ComponentMetadataContext> ia = (InstantiatingAction<ComponentMetadataContext>) action;
+                if (ia.getRules().isCacheable()) {
+                    updatedMetadata = processClassRuleWithCaching(ia, metadata, metadataResolutionContext);
+                } else {
+                    MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
+                    processClassRule(action, metadata, createDetails(mutableMetadata));
+                    updatedMetadata = maybeForceRealisation(mutableMetadata.asImmutable());
+                }
+            } else {
+                updatedMetadata = maybeForceRealisation(metadata);
+            }
         } else {
             MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-            ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
+            ComponentMetadataDetails details = createDetails(mutableMetadata);
             processAllRules(metadata, details, metadata.getModuleVersionId());
-            updatedMetadata = mutableMetadata.asImmutable();
+            updatedMetadata = maybeForceRealisation(mutableMetadata.asImmutable());
         }
 
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
@@ -165,10 +186,14 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return updatedMetadata;
     }
 
+    protected ComponentMetadataDetails createDetails(MutableModuleComponentResolveMetadata mutableMetadata) {
+        return instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
+    }
+
     @Override
     public ComponentMetadata processMetadata(ComponentMetadata metadata) {
         ComponentMetadata updatedMetadata;
-        if (rules.isEmpty() && classBasedRules.isEmpty()) {
+        if (metadataRuleContainer.isEmpty()) {
             updatedMetadata = metadata;
         } else {
             ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(componentIdentifierNotationParser, metadata, attributesFactory);
@@ -182,15 +207,18 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id) {
-        for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
-            processRule(rule, metadata, details);
+        for (MetadataRuleWrapper wrapper : metadataRuleContainer) {
+            if (wrapper.isClassBased()) {
+                Collection<SpecConfigurableRule> rules = wrapper.getClassRules();
+                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(rules, id, instantiator);
+                processClassRule(action, metadata, details);
+            } else {
+                processRule(wrapper.getRule(), metadata, details);
+            }
         }
-        processClassRule(metadata, details, id, metadataResolutionContext.getInjectingInstantiator());
     }
 
-    private void processClassRule(final ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details, ModuleVersionIdentifier id, Instantiator instantiator) {
-        Action<ComponentMetadataContext> action = collectRulesAndCreateAction(id, instantiator);
-
+    private void processClassRule(Action<ComponentMetadataContext> action, final ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details) {
         DefaultComponentMetadataContext componentMetadataContext = new DefaultComponentMetadataContext(details, metadata);
         try {
             action.execute(componentMetadataContext);
@@ -201,37 +229,33 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         }
     }
 
-    private ModuleComponentResolveMetadata processClassRuleWithCaching(final ModuleComponentResolveMetadata metadata, MetadataResolutionContext metadataResolutionContext) {
-        Action<ComponentMetadataContext> action = collectRulesAndCreateAction(metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
-        if (action instanceof InstantiatingAction) {
-            try {
-                return ruleExecutor.execute(metadata, (InstantiatingAction<ComponentMetadataContext>) action, DETAILS_TO_RESULT,
-                    new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
-                        @Override
-                        public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
-                            return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
-                        }
-                    }, metadataResolutionContext.getCachePolicy());
-            } catch (InvalidUserCodeException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", metadata.getModuleVersionId()), e);
-            }
+    private ModuleComponentResolveMetadata processClassRuleWithCaching(InstantiatingAction<ComponentMetadataContext> action, final ModuleComponentResolveMetadata metadata, MetadataResolutionContext metadataResolutionContext) {
+        try {
+            return ruleExecutor.execute(metadata, action, DETAILS_TO_RESULT,
+                new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
+                    @Override
+                    public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
+                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
+                    }
+                }, metadataResolutionContext.getCachePolicy());
+        } catch (InvalidUserCodeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", metadata.getModuleVersionId()), e);
         }
-        return metadata;
     }
 
-    private Action<ComponentMetadataContext> collectRulesAndCreateAction(ModuleVersionIdentifier id, Instantiator instantiator) {
-        if (classBasedRules.isEmpty()) {
+    private Action<ComponentMetadataContext> collectRulesAndCreateAction(Collection<SpecConfigurableRule> rules, ModuleVersionIdentifier id, Instantiator instantiator) {
+        if (rules.isEmpty()) {
             return Actions.doNothing();
         }
-        ArrayList<ConfigurableRule<ComponentMetadataContext>> rules = new ArrayList<ConfigurableRule<ComponentMetadataContext>>();
-        for (SpecConfigurableRule classBasedRule : classBasedRules) {
+        ArrayList<ConfigurableRule<ComponentMetadataContext>> collectedRules = new ArrayList<ConfigurableRule<ComponentMetadataContext>>();
+        for (SpecConfigurableRule classBasedRule : rules) {
             if (classBasedRule.getSpec().isSatisfiedBy(id)) {
-                rules.add(classBasedRule.getConfigurableRule());
+                collectedRules.add(classBasedRule.getConfigurableRule());
             }
         }
-        return new InstantiatingAction<ComponentMetadataContext>(new DefaultConfigurableRules<ComponentMetadataContext>(rules), instantiator, new ExceptionHandler());
+        return new InstantiatingAction<ComponentMetadataContext>(new DefaultConfigurableRules<ComponentMetadataContext>(collectedRules), instantiator, new ExceptionHandler());
     }
 
 

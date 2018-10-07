@@ -23,11 +23,20 @@ import java.util.List;
 /**
  * Represents a property whose type is a {@link List} of elements of type {@link T}.
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
+ * <p>
+ * You can create a {@link ListProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
+ * </p>
+ *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  *
  * @param <T> the type of elements.
  * @since 4.3
  */
 @Incubating
 public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T> {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ListProperty<T> empty();
 }

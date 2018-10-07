@@ -22,11 +22,11 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.util.Path;
 
@@ -42,8 +42,6 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public static final TaskArtifactState WITH_ACTIONS = new NoOutputsArtifactState("Task has not declared any outputs despite executing actions.");
 
     private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
-        null,
-        null,
         null,
         null,
         null,
@@ -79,6 +77,11 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
         }
 
         @Override
+        public byte[] getHashCodeBytes() {
+            return null;
+        }
+
+        @Override
         public String getDisplayName() {
             return toString();
         }
@@ -97,7 +100,12 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
+    public IncrementalTaskInputs getInputChanges() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
         throw new UnsupportedOperationException();
     }
 

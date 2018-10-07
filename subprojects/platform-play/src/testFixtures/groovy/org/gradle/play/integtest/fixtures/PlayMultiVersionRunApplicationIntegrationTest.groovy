@@ -26,7 +26,7 @@ abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVe
 
     def setup() {
         runningApp = new RunningPlayApp(testDirectory)
-        usePluginRepositoryMirror()
+        executer.withPluginRepositoryMirror()
     }
 
     def startBuild(tasks) {

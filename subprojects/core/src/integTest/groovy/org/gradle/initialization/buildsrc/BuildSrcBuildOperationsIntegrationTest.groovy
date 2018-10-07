@@ -16,6 +16,8 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -28,14 +30,16 @@ import spock.lang.Unroll
 import java.util.regex.Pattern
 
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
+    BuildOperationsFixture ops
+    def setup() {
+        ops = new BuildOperationsFixture(executer, temporaryFolder)
+        file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
+    }
+
     @Unroll
     def "includes build identifier in build operations with #display"() {
-        given:
-        def ops = new BuildOperationsFixture(executer, temporaryFolder)
-        file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
-        file("buildSrc/settings.gradle") << settings << "\n"
-
         when:
+        file("buildSrc/settings.gradle") << settings << "\n"
         succeeds()
 
         then:
@@ -80,6 +84,15 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         runTasksOps[1].displayName == "Run tasks"
         runTasksOps[1].parentId == root.id
 
+        def graphNotifyOps = ops.all(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps.size() == 2
+        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
+        graphNotifyOps[0].details.buildPath == ':buildSrc'
+        graphNotifyOps[0].parentId == runTasksOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[1].details.buildPath == ":"
+        graphNotifyOps[1].parentId == runTasksOps[1].id
+
         def taskOps = ops.all(ExecuteTaskBuildOperationType)
         taskOps.size() > 1
         taskOps[0].details.buildPath == ':buildSrc'
@@ -91,5 +104,15 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         settings                     | display
         ""                           | "default root project name"
         "rootProject.name='someLib'" | "configured root project name"
+    }
+
+    @Unroll
+    def "does not resolve configurations when configuring buildSrc build"() {
+        when:
+        succeeds()
+
+        then:
+        def buildSrcConfigure = ops.first("Configure build (:buildSrc)")
+        ops.children(buildSrcConfigure, ResolveConfigurationDependenciesBuildOperationType).empty
     }
 }

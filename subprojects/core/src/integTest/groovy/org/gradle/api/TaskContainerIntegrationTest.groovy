@@ -18,17 +18,16 @@ package org.gradle.api
 
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Override
-    String getContainerUnderTest() {
+    String makeContainer() {
         return "tasks"
     }
 
     @Override
-    String getBaseElementType() {
-        return "DefaultTask"
+    String getContainerStringRepresentation() {
+        return "task set"
     }
 
-    @Override
-    String disallowMutationMessage(String assertingMethod) {
-        return "DefaultTaskContainer#$assertingMethod on task set cannot be executed in the current context."
+    static String getContainerType() {
+        return "DefaultTaskContainer"
     }
 }

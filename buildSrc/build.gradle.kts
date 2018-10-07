@@ -42,6 +42,11 @@ subprojects {
         applyKotlinProjectConventions()
     }
 
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    
     apply(plugin = "idea")
     apply(plugin = "eclipse")
 
@@ -66,6 +71,10 @@ subprojects {
             tasks.named("check").configure { dependsOn(validateTaskProperties) }
         }
     }
+
+    tasks.withType<ValidateTaskProperties> {
+        failOnWarning = true
+    }
 }
 
 allprojects {
@@ -74,6 +83,14 @@ allprojects {
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "Gradle snapshot libs"
+            url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+        }
+        maven {
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
         maven {
             name = "kotlin-dev"
@@ -149,12 +166,11 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.2-RC2-groovy-2.4")
-        testCompile("cglib:cglib:3.2.7")
-        testCompile("org.objenesis:objenesis:2.4")
-        constraints {
-            compile("org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.getVersion()}")
+        testCompile("org.spockframework:spock-core:1.2-groovy-2.5") {
+            exclude(group = "org.codehaus.groovy")
         }
+        testCompile("net.bytebuddy:byte-buddy:1.8.21")
+        testCompile("org.objenesis:objenesis:2.6")
     }
 
     tasks.withType<GroovyCompile>().configureEach {

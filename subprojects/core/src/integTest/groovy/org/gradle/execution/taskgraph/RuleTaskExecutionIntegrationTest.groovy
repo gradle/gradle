@@ -24,7 +24,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     def setup() {
         buildFile << """
             gradle.buildFinished {
-                file("tasks.txt").text = allprojects*.tasks.flatten()*.path.join("\\n")
+                file("tasks.txt").text = allprojects*.tasks.flatten().grep({ it.group == "mygroup" })*.path.join("\\n")
             }
         """
     }
@@ -45,7 +45,9 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
             allprojects {
                 model {
                     tasks {
-                        create("t1")
+                        create("t1") {
+                            group = "mygroup"
+                        }
                     }
                 }
             }
@@ -64,8 +66,12 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
             ${ruleBasedTasks()}
             model {
                 tasks {
-                    create("t1")
-                    create("t2", BrokenTask)
+                    create("t1") {
+                        group = "mygroup"
+                    }
+                    create("t2", BrokenTask) {
+                        group = "mygroup"
+                    }
                 }
             }
         """

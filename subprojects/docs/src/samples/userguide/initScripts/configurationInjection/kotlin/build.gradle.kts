@@ -5,6 +5,7 @@ repositories {
 task("showRepos") {
     doLast {
         println("All repos:")
-        println(repositories.map { it.name })
+        //TODO:kotlin-dsl remove filter once we're no longer on a kotlin eap
+        println(repositories.map { it.name }.filter { it != "maven" })
     }
 }

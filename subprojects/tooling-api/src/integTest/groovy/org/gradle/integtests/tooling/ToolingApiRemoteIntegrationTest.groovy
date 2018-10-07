@@ -29,8 +29,11 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.mortbay.jetty.MimeTypes
+import spock.lang.Issue
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -50,6 +53,8 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.requireIsolatedUserHome()
     }
 
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def "downloads distribution with valid user-agent information"() {
         given:
         settingsFile << "";

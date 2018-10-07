@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import org.gradle.api.internal.component.ArtifactType
-import org.gradle.caching.internal.BuildCacheHasher
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -79,7 +79,7 @@ class DependencyResolverIdentifierTest extends Specification {
         }
 
         @Override
-        protected void appendId(BuildCacheHasher hasher) {
+        protected void appendId(Hasher hasher) {
             super.appendId(hasher)
         }
 

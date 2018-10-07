@@ -51,6 +51,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
 
                 def "execute helloWorld task"() {
                     given:
+                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'plugin-test'"
                     testProjectDir.newFile('build.gradle') << '''$plugin.useDeclaration'''
 
                     when:

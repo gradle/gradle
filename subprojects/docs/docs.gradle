@@ -72,7 +72,7 @@ dependencies {
 
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile testLibraries.jsoup
-    testCompile "org.gebish:geb-spock:2.2"
+    testCompile("org.gebish:geb-spock:2.2")
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
@@ -80,7 +80,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 ext {
@@ -154,7 +154,7 @@ def imageFiles = fileTree(userguideSrcDir) {
 }
 def resourceFiles = imageFiles + cssFiles
 
-def samples = tasks.register("samples", Copy) {
+def samples = tasks.register("samples", Sync) {
     from samplesSrcDir
     into samplesDir
 
@@ -163,7 +163,7 @@ def samples = tasks.register("samples", Copy) {
     exclude '**/.gradle/**'
 }
 
-tasks.register("userguideStyleSheets", Copy) {
+tasks.register("userguideStyleSheets", Sync) {
     File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
     into new File(buildDir, 'stylesheets')
     from(stylesheetsDir) {
@@ -254,7 +254,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
-def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${libraries.groovy.version}/html/gapi"
+def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
 def javadocAll = tasks.register("javadocAll", Javadoc) {
@@ -361,7 +361,7 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
-def userguide = tasks.register("userguide", Copy) {
+def userguide = tasks.register("userguide", Sync) {
     dependsOn userguideMultiPage, userguideSinglePage
     description = 'Generates the userguide HTML and PDF'
     group = 'documentation'

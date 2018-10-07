@@ -17,12 +17,12 @@
 package org.gradle.api.internal.file.collections
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
@@ -171,32 +171,7 @@ class ImmutableFileCollectionTest extends Specification {
     }
 
     private Provider<Object> providerReturning(Object result) {
-        return new Provider<Object>() {
-            @Override
-            Object get() {
-                return result
-            }
-
-            @Override
-            Object getOrNull() {
-                return result
-            }
-
-            @Override
-            Object getOrElse(Object defaultValue) {
-                return result
-            }
-
-            @Override
-            def <S> Provider<S> map(Transformer<? extends S, ? super Object> transformer) {
-                return result
-            }
-
-            @Override
-            boolean isPresent() {
-                return true
-            }
-        }
+        return Providers.of(result)
     }
 
     @Unroll

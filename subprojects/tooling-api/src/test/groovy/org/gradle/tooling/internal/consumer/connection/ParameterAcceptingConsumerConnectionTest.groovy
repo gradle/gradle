@@ -67,7 +67,6 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         def details = connection.versionDetails
 
         expect:
-        details.supportsCancellation()
         details.supportsEnvironmentVariablesCustomization()
         details.supportsRunTasksBeforeExecutingAction()
         details.supportsParameterizedToolingModels()

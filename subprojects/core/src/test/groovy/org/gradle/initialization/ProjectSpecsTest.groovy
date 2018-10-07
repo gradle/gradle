@@ -63,6 +63,6 @@ class ProjectSpecsTest extends Specification {
         parameter.setCurrentDir(currentDir)
 
         expect:
-        ProjectSpecs.forStartParameter(parameter, Stub(SettingsInternal)).class == DefaultProjectSpec
+        ProjectSpecs.forStartParameter(parameter, Stub(SettingsInternal)).class == CurrentDirectoryProjectSpec
     }
 }

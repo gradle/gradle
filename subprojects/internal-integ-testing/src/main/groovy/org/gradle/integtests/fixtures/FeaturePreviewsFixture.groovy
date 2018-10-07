@@ -16,23 +16,23 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.internal.FeaturePreviews.Feature
+
 class FeaturePreviewsFixture {
+
+    static def activeFeatures() {
+        EnumSet.of(Feature.GRADLE_METADATA)
+    }
+
+    static def inactiveFeatures() {
+        def features = EnumSet.allOf(Feature.class)
+        features.removeAll(activeFeatures())
+        features
+    }
 
     static void enableGradleMetadata(File settings) {
         settings << """
 enableFeaturePreview("GRADLE_METADATA")
-"""
-    }
-
-    static void enableImprovedPomSupport(File settings) {
-        settings << """
-enableFeaturePreview("IMPROVED_POM_SUPPORT")
-"""
-    }
-
-    static void enableStablePublishing(File settings) {
-        settings << """
-enableFeaturePreview("STABLE_PUBLISHING")
 """
     }
 }

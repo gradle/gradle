@@ -24,6 +24,8 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import org.gradle.util.GradleVersion
+import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
+import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
 plugins {
     `java-base`
@@ -47,7 +49,7 @@ buildTypes {
 
     create("sanityCheck") {
         tasks(
-            "classes", "doc:checkstyleApi", "codeQuality",
+            "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
     }
 
@@ -133,6 +135,11 @@ buildTypes {
         tasks("soak:soakTest")
         projectProperties("testAllVersions" to true)
     }
+
+    // Used to run the dependency management engine in "force component realization" mode
+    create("forceRealizeDependencyManagementTest") {
+        tasks("integForceRealizeTest")
+    }
 }
 
 allprojects {
@@ -142,6 +149,10 @@ allprojects {
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
         maven {
             name = "kotlin-dev"
@@ -279,6 +290,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
     coreModules = coreRuntime
     modulesToPatch = this@Build_gradle.externalModules
     destination = patchedExternalModulesDir
+    outputs.doNotCacheIfSlowInternetConnection()
 }
 
 evaluationDependsOn(":distributions")
@@ -299,8 +311,22 @@ tasks.register<Install>("installAll") {
     installDirPropertyName = ::gradle_installPath.name
 }
 
+val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
+    val allReports = collectAllIncubationReports()
+    dependsOn(allReports)
+    reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }
+}
+tasks.register<Zip>("allIncubationReportsZip") {
+    destinationDir = file("$buildDir/reports/incubation")
+    baseName = "incubating-apis"
+    from(allIncubationReports.get().htmlReportFile)
+    from(collectAllIncubationReports().map { it.htmlReportFile })
+}
+
 fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
 
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
+
+fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }

@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX
 
@@ -32,7 +31,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         settingsFile << """
             rootProject.name = 'plugins'
         """
-        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
     }
 
     def "Publishes nothing if automated publishing is disabled"() {

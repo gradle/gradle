@@ -52,6 +52,11 @@ open class ApiMetadataExtension(project: Project) {
     val includes = project.objects.listProperty<String>()
     val excludes = project.objects.listProperty<String>()
     val classpath = project.files()
+
+    init {
+        includes.set(listOf())
+        excludes.set(listOf())
+    }
 }
 
 
@@ -177,7 +182,7 @@ open class ParameterNamesResourceTask : DefaultTask() {
 
     private
     fun isolatedClassLoaderFor(classpath: FileCollection) =
-        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files)) as URLClassLoader
+        classLoaderFactory.createIsolatedClassLoader("parameter names", DefaultClassPath.of(classpath.files)) as URLClassLoader
 
     private
     val classLoaderFactory

@@ -1,5 +1,5 @@
 commons-codec:commons-codec:1.7
-   variant "default+runtime" [
+   variant "default" [
       org.gradle.status = release (not requested)
    ]
    Selection reasons:

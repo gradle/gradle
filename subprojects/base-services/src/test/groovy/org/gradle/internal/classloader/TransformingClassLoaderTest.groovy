@@ -19,7 +19,7 @@ package org.gradle.internal.classloader
 import spock.lang.Specification
 
 class TransformingClassLoaderTest extends Specification {
-    def cl  = new TransformingClassLoader(null, []) {
+    def cl  = new TransformingClassLoader("test", null, []) {
         @Override
         protected byte[] transform(String className, byte[] bytes) {
             return bytes

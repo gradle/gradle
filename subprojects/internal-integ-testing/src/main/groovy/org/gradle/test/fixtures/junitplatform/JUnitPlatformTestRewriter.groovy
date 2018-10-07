@@ -67,11 +67,11 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteBuildFileWithJupiter(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}")
+        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}", "org.junit.jupiter.api")
     }
 
     static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}")
+        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.12")
     }
 
     static rewriteJavaFilesWithJupiterAnno(File rootProject) {
@@ -84,21 +84,22 @@ class JUnitPlatformTestRewriter {
         }
     }
 
-    static rewriteBuildFileInDir(File dir, String dependencies) {
+    static rewriteBuildFileInDir(File dir, String dependencies, String moduleName = null) {
         def dirs = [dir]
         dirs.addAll(dir.listFiles().findAll { it.isDirectory() })
         dirs.each {
             File buildFile = new File(it, 'build.gradle')
             if (buildFile.exists()) {
-                rewriteBuildFile(buildFile, dependencies)
+                rewriteBuildFile(buildFile, dependencies, moduleName)
             }
         }
     }
 
-    static rewriteBuildFile(File buildFile, String dependenciesReplacement) {
+    static rewriteBuildFile(File buildFile, String dependenciesReplacement, String moduleName) {
         String text = buildFile.text
-        // compile/testCompile
+        // compile/testCompile/implementation/testImplementation
         text = text.replaceFirst(/ompile ['"]junit:junit:4\.12['"]/, "ompile '${dependenciesReplacement}'")
+        text = text.replaceFirst(/mplementation ['"]junit:junit:4\.12['"]/, "mplementation '${dependenciesReplacement}'")
         if (!text.contains('useTestNG')) {
             // we only hack build with JUnit 4
             // See IncrementalTestIntegrationTest.executesTestsWhenTestFrameworkChanges
@@ -108,16 +109,21 @@ class JUnitPlatformTestRewriter {
                 text = text.replace('useJUnit()', 'useJUnitPlatform()')
             } else if (text.contains('test {')) {
                 text = text.replace('test {', '''
-                    test {
-                    useJUnitPlatform()
-                    ''')
+test {
+    useJUnitPlatform()
+''')
             } else {
                 text += '''
-                    test {
-                        useJUnitPlatform()
-                    }
+test {
+    useJUnitPlatform()
+}
                 '''
             }
+        }
+        if (moduleName != null && text.contains("--add-modules")) {
+            // This is a bit aggressive but it works for now
+            text = text.replace('"junit"', '"' + moduleName + '"')
+            text = text.replace('=junit"', '=' + moduleName + '"')
         }
         buildFile.text = text
     }

@@ -262,6 +262,11 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mavenPublication.getRuntimeDependencyConstraints();
     }
 
+    @Override
+    public Set<MavenDependency> getImportDependencyManagement() {
+        return mavenPublication.getImportDependencyConstraints();
+    }
+
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
         T item = instantiator.newInstance(clazz, objectFactory);
         action.execute(item);

@@ -152,7 +152,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.7.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * Example: ruleSets = ["basic", "braces"]
      */
@@ -162,7 +162,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.7.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * Example: ruleSets = ["basic", "braces"]
      */

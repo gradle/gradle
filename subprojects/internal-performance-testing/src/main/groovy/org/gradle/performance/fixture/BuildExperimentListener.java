@@ -30,4 +30,30 @@ public interface BuildExperimentListener {
     interface MeasurementCallback {
         void omitMeasurement();
     }
+
+    static BuildExperimentListener compose(BuildExperimentListener... listeners) {
+        return new BuildExperimentListener() {
+            @Override
+            public void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+                for (BuildExperimentListener listener : listeners) {
+                    listener.beforeExperiment(experimentSpec, projectDir);
+                }
+            }
+
+            @Override
+            public void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                for (BuildExperimentListener listener : listeners) {
+                    listener.beforeInvocation(invocationInfo);
+                }
+            }
+
+            @Override
+            public void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
+                for (BuildExperimentListener listener : listeners) {
+                    listener.afterInvocation(invocationInfo, operation, measurementCallback);
+                }
+            }
+        };
+    }
+
 }

@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Reloader, Serializable {
+public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Reloader, Serializable, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(PlayWorkerServer.class);
 
     private final PlayRunSpec runSpec;
@@ -45,6 +46,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
     private boolean stopRequested;
+    private boolean serverStarted;
     private Reloader.Result latestStatus;
 
     public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter runAdapter) {
@@ -58,6 +60,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
         final PlayAppLifecycleUpdate result = start();
+        serverStarted = true;
         try {
             clientProtocol.update(result);
             while (!stopRequested) {
@@ -127,6 +130,9 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     public Result requireUpToDate() throws InterruptedException {
         lock.lock();
         try {
+            if (!serverStarted) {
+                return new Result(true, null);
+            }
             if (!stopRequested) {
                 LOGGER.debug("requireUpToDate");
                 events.put(PlayAppLifecycleUpdate.reloadRequested());

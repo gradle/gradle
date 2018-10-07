@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -29,6 +30,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         settingsFile << """
             rootProject.name = 'insight-test'
         """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     def "requires use of configuration flag if Java plugin isn't applied"() {
@@ -144,7 +146,9 @@ No dependencies matching given input were found in configuration ':conf'
         outputContains """
 org:leaf2:1.0
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf2:1.0
@@ -196,7 +200,9 @@ org:leaf2:1.0
 Task :dependencyInsight
 org:leaf2:2.5
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
@@ -250,7 +256,9 @@ org:leaf2:1.5 -> 2.5
         outputContains """
 org:leaf:1.0
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0
@@ -270,7 +278,9 @@ org:leaf:1.0
         outputContains """
 org:leaf:1.0
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0
@@ -326,7 +336,9 @@ org:leaf:1.0
 
 org:leaf2:2.5
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
@@ -399,7 +411,9 @@ org:leaf2:1.5 -> 2.5
 
 org:leaf2:2.5
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
@@ -564,7 +578,9 @@ org:foo:1.+ FAILED
         outputContains """
 org:leaf:1.0 (forced)
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0
@@ -669,7 +685,9 @@ org:leaf:latest.integration -> 1.0
         outputContains """
 org:leaf:1.0 (selected by rule)
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0
@@ -727,8 +745,10 @@ org:leaf:2.0 -> 1.0
         then:
         outputContains """
 org.test:bar:2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : why not?
@@ -737,16 +757,20 @@ org:bar:1.0 -> org.test:bar:2.0
 \\--- conf
 
 org:baz:1.0 (selected by rule)
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:baz:1.0
 \\--- conf
 
 org:foo:2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : because I am in control
@@ -789,8 +813,10 @@ org:foo:1.0 -> 2.0
 
         then:
         outputContains """org:bar:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : foo superceded by bar
@@ -835,7 +861,9 @@ org:foo:1.0 -> org:bar:1.0
         outputContains """
 org:new-leaf:77 (selected by rule)
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0 -> org:new-leaf:77
@@ -881,8 +909,10 @@ org:leaf:2.0 -> org:new-leaf:77
 
         then:
         outputContains """org:bar:2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : I am not sure I want to explain
@@ -891,8 +921,10 @@ org:bar:1.0 -> 2.0
 \\--- conf
 
 org:foo:2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : I want to
@@ -983,7 +1015,9 @@ org:leaf:latest.integration -> 1.6
         outputContains """
 org:leaf:2.0 (forced)
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:2.0
@@ -1029,7 +1063,9 @@ org:leaf:1.0 -> 2.0
         outputContains """
 org:leaf:1.5 (forced)
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0 -> 1.5
@@ -1075,8 +1111,10 @@ org:leaf:2.0 -> 1.5
         then:
         outputContains """
 org:leaf:1.0 (forced)
-   variant "default+runtime" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0
@@ -1121,8 +1159,10 @@ org:leaf:2.0 -> 1.0
         then:
         outputContains """
 org:leaf:2.0
-   variant "runtime+default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Forced
@@ -1483,7 +1523,9 @@ org:leaf:[1.5,2.0] FAILED
         outputContains """
 org:leaf2:1.0
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf2:1.0
@@ -1570,7 +1612,9 @@ project :
         outputContains """
 org:leaf2:1.0
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf2:1.0
@@ -1666,10 +1710,10 @@ project :impl
         then:
         outputContains """
 org:leaf4:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf4:1.0
@@ -1700,10 +1744,10 @@ org:leaf4:1.0
         then:
         outputContains """
 org:leaf1:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf1:1.0
@@ -1716,10 +1760,10 @@ org:leaf1:1.0
         then:
         outputContains """
 org:leaf2:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf2:1.0
@@ -1816,10 +1860,10 @@ project :api
         then:
         outputContains """
 org:leaf3:1.0
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf3:1.0
@@ -1862,16 +1906,20 @@ org:leaf3:1.0
 
         then:
         result.groupedOutput.task(":dependencyInsight").output.contains("""foo:bar:2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 foo:bar:2.0
 \\--- compile
 
 foo:foo:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 foo:foo:1.0
@@ -1913,10 +1961,10 @@ foo:foo:1.0
         then:
         if (!rejected) {
             outputContains """org:foo:$selected (by constraint)
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:foo -> $selected
@@ -1924,10 +1972,10 @@ org:foo -> $selected
 """
         } else {
             outputContains """org:foo:$selected
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By constraint : $rejected
@@ -1938,7 +1986,7 @@ org:foo -> $selected
 
         where:
         version                             | selected | rejected
-        "prefer '[1.0, 2.0)'"               | '1.5'    | "didn't match version 2.0"
+        "require '[1.0, 2.0)'"              | '1.5'    | "didn't match version 2.0"
         "strictly '[1.1, 1.4]'"             | '1.4'    | "didn't match versions 2.0, 1.5"
         "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'    | "rejected version 1.4"
     }
@@ -1977,10 +2025,10 @@ org:foo -> $selected
 
         then:
         outputContains """org:foo:$selected
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By constraint : ${rejected}${reason}
@@ -1990,7 +2038,7 @@ org:foo -> $selected
 """
         where:
         version                             | reason                                          | selected | rejected
-        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
+        "require '[1.0, 2.0)'"              | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
         "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
         "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
@@ -2026,10 +2074,10 @@ org:foo -> $selected
 
         then:
         outputContains """org:foo:$selected
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : ${rejected}${reason}
@@ -2039,7 +2087,7 @@ org:foo:${displayVersion} -> $selected
 """
         where:
         version                             | displayVersion | reason                                          | selected | rejected
-        "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
+        "require '[1.0, 2.0)'"              | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
         "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
@@ -2072,10 +2120,10 @@ org:foo:${displayVersion} -> $selected
 
         then:
         outputContains """org:foo:1.3
-   variant "default+runtime" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : didn't match versions 2.0, 1.5, 1.4
@@ -2106,13 +2154,13 @@ org:foo:[1.1,1.3] -> 1.3
             dependencies {
                 implementation('org:foo') {
                    version {
-                      prefer '[1.0,)'
+                      require '[1.0,)'
                       reject '1.2'
                    }
                 }
                 implementation('org:bar') {
                    version {
-                      prefer '[1.0,)'
+                      require '[1.0,)'
                       reject '[1.1, 1.2]'
                    }
                 }
@@ -2124,10 +2172,10 @@ org:foo:[1.1,1.3] -> 1.3
 
         then:
         outputContains """org:bar:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : rejected versions 1.2, 1.1
@@ -2136,10 +2184,10 @@ org:bar:[1.0,) -> 1.0
 \\--- compileClasspath
 
 org:foo:1.1
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : rejected version 1.2
@@ -2168,13 +2216,13 @@ org:foo:[1.0,) -> 1.1
             dependencies {
                 implementation('org:foo') {
                    version {
-                      prefer '[1.0,)'
+                      require '[1.0,)'
                       reject '1.2'
                    }
                 }
                 implementation('org:bar') {
                    version {
-                      prefer '[1.0,)'
+                      require '[1.0,)'
                    }
                 }
             }
@@ -2192,10 +2240,10 @@ org:foo:[1.0,) -> 1.1
         then:
         outputContains """Task :dependencyInsight
 org:bar:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Rejection : 1.2 by rule because version 1.2 is bad
@@ -2205,10 +2253,10 @@ org:bar:[1.0,) -> 1.0
 \\--- compileClasspath
 
 org:foo:1.1
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : rejected version 1.2
@@ -2226,8 +2274,6 @@ org:foo:[1.0,) -> 1.1
         bom.packaging = 'pom'
         bom.dependencyConstraint(leaf)
         bom.publish()
-
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -2293,10 +2339,10 @@ org:leaf -> 1.0
         then:
         outputContains """
 org.test:leaf:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : first reason
@@ -2339,7 +2385,9 @@ org.test:leaf:1.0
         outputContains """
 org:leaf2:1.0
    variant "runtime" [
-      org.gradle.status = release (not requested)
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf2:1.0
@@ -2469,10 +2517,10 @@ org:foo:[1.0,) FAILED
 
         then:
         outputContains """org.test:leaf:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : first reason
@@ -2530,12 +2578,11 @@ org.test:leaf:1.0
         then:
         outputContains """Task :dependencyInsight
 org:foo:1.0
-   variant "default" [
-      color             = blue
-      org.gradle.status = release (not requested)
-
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      color                         = blue
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Rejection : version 1.2:
@@ -2596,10 +2643,10 @@ org:foo:[1.0,) -> 1.0
         then:
         outputContains """> Task :dependencyInsight
 planet:mercury:1.0.2
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By conflict resolution : between versions 1.0.2 and 1.0.1
@@ -2623,10 +2670,10 @@ planet:mercury:1.0.1 -> 1.0.2
         then:
         outputContains """> Task :dependencyInsight
 planet:venus:2.0.1
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By conflict resolution : between versions 2.0.0, 2.0.1 and 1.0

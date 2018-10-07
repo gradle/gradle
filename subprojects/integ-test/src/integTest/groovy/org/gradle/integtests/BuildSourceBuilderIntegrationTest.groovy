@@ -80,6 +80,10 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         def firstTaskTimeFromSecondBuildSrcBuild = startedTaskTimes(secondBuildResult.output).values().min()
 
         lastTaskTimeFromFirstBuildSrcBuild < firstTaskTimeFromSecondBuildSrcBuild
+
+        cleanup:
+        runReleaseHandle.abort()
+        runBlockingHandle.abort()
     }
 
     Map<String, Long> startedTaskTimes(String output) {

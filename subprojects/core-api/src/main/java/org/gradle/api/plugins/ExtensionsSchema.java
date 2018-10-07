@@ -55,14 +55,5 @@ public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema, Ite
          * @return the public type of the extension
          */
         TypeOf<?> getPublicType();
-
-        /**
-         * Is the extension a deferred configurable.
-         *
-         * @see DeferredConfigurable
-         * @return {@code true} if the extension is a deferred configurable, {@code false} otherwise
-         * @deprecated without replacement.
-         */
-        boolean isDeferredConfigurable();
     }
 }

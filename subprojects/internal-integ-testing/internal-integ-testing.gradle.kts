@@ -24,7 +24,9 @@ dependencies {
     compile(project(":launcher"))
     compile(project(":native"))
     compile(testLibrary("jetty"))
-    compile("org.littleshoot:littleproxy:1.1.0-beta1")
+    compile("org.gradle.org.littleshoot:littleproxy:1.1.3") {
+        because("latest officially released version is incompatible with Guava >= 20")
+    }
     compile(library("gcs"))
     compile(library("commons_httpclient"))
     compile(library("joda"))
@@ -32,7 +34,7 @@ dependencies {
     compile(library("jackson_annotations"))
     compile(library("jackson_databind"))
     compile(library("ivy"))
-    compile(gradle5Platform(testLibrary("sshd")))
+    testLibraries("sshd").forEach { compile(gradle5Platform(it)) }
     compile(library("gson"))
     compile(library("joda"))
     compile(library("jsch"))
@@ -40,7 +42,10 @@ dependencies {
     compile(library("jansi"))
     compile(library("commons_collections"))
     compile("org.apache.mina:mina-core")
-    compile(testLibrary("sampleCheck"))
+    compile(testLibrary("sampleCheck")) {
+        exclude(module = "groovy-all")
+        exclude(module = "slf4j-simple")
+    }
 
     implementation(project(":dependencyManagement"))
 

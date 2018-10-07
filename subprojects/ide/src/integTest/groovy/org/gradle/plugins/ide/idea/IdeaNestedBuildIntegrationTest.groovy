@@ -26,6 +26,7 @@ class IdeaNestedBuildIntegrationTest extends AbstractIntegrationSpec {
                 dir = 'other'
             }
         """
+        file('other/settings.gradle') << "rootProject.name = 'other'"
         file("other/build.gradle") << """
             apply plugin: 'idea'
         """

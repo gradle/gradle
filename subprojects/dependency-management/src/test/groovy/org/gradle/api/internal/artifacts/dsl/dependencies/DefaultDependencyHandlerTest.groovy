@@ -108,7 +108,7 @@ class DefaultDependencyHandlerTest extends Specification {
         def result = dependencyHandler.create("someNotation") {
             force = true
             version {
-                it.prefer '1.0'
+                it.require '1.0'
             }
         }
 

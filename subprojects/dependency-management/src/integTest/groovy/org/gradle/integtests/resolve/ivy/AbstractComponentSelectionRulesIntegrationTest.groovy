@@ -89,9 +89,11 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
                 candidates << selection.candidate.version
             }
             """,
-        "reject all with metadata": """{ ComponentSelection selection, ComponentMetadata metadata ->
-                selection.reject("rejecting everything")
-                candidates << selection.candidate.version
+        "reject all with metadata": """{ ComponentSelection selection ->
+                if (selection.metadata != null) {
+                    selection.reject("rejecting everything")
+                    candidates << selection.candidate.version
+                }
             }
             """,
         "select 1.1": """{ ComponentSelection selection ->
@@ -115,15 +117,15 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
                 candidates << selection.candidate.version
             }
             """,
-        "select branch": """{ ComponentSelection selection, IvyModuleDescriptor ivy ->
-                if (ivy.branch != 'test') {
+        "select branch": """{ ComponentSelection selection ->
+                if (selection.getDescriptor(IvyModuleDescriptor)?.branch != 'test') {
                     selection.reject("not branch")
                 }
                 candidates << selection.candidate.version
             }
             """,
-        "select status": """{ ComponentSelection selection, ComponentMetadata metadata ->
-                if (metadata.status != 'milestone') {
+        "select status": """{ ComponentSelection selection ->
+                if (selection.metadata?.status != 'milestone') {
                     selection.reject("not milestone")
                 }
                 candidates << selection.candidate.version
