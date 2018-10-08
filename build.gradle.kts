@@ -50,7 +50,8 @@ buildTypes {
     create("sanityCheck") {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality", "allIncubationReportsZip",
-            "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
+            "docs:check", "distribution:checkBinaryCompatibility", "javadocAll",
+            "architectureTest:test")
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests

@@ -102,6 +102,7 @@ include("coreApi")
 include("versionControl")
 include("files")
 include("snapshots")
+include("architectureTest")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
