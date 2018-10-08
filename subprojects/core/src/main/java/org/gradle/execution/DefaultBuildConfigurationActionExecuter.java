@@ -35,7 +35,7 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
     }
 
     public void select(final GradleInternal gradle) {
-        projectStateRegistry.lockAllProjects(new Runnable() {
+        projectStateRegistry.assumeAllLocks(new Runnable() {
             @Override
             public void run() {
                 List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);

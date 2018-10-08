@@ -49,7 +49,14 @@ public interface ProjectStateRegistry {
      */
     ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath);
 
-    void lockAllProjects(Runnable runnable);
+    /**
+     * Assumes the current thread holds all locks.
+     *
+     * <b>NOTE</b> this is intended to be used when we know all accesses are single threaded.
+     *
+     * @param runnable action to run while disabling all lock checks.
+     */
+    void assumeAllLocks(Runnable runnable);
 
     /**
      * Registers a project.

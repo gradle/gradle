@@ -61,6 +61,11 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    public ResourceLock getLenientLock() {
+        return delegate.getLenientLock();
+    }
+
+    @Override
     public WorkerLease getWorkerLease() {
         return delegate.getWorkerLease();
     }

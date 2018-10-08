@@ -36,7 +36,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
 
         then:
         1 * configurationAction.configure(!null)
-        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
+        1 * projectStateRegistry.assumeAllLocks(_) >> { it[0].run() }
         0 * _._
     }
 
@@ -52,7 +52,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
 
         then:
         1 * configurationAction.configure(!null) >> { it[0].proceed() }
-        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
+        1 * projectStateRegistry.assumeAllLocks(_) >> { it[0].run() }
         and:
         1 * taskSelectionAction.configure(!null)
     }
@@ -68,7 +68,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
 
         then:
         1 * action1.configure(!null) >> { it[0].proceed() }
-        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
+        1 * projectStateRegistry.assumeAllLocks(_) >> { it[0].run() }
         0 * _._
     }
 
@@ -85,7 +85,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         1 * configurationAction.configure(!null) >> {
             assert it[0].gradle ==gradleInternal
         }
-        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
+        1 * projectStateRegistry.assumeAllLocks(_) >> { it[0].run() }
     }
 
     def "can overwrite default task selectors"() {
@@ -110,7 +110,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         0 * givenTaskSelector2.configure(!null)
         1 * configAction1.configure(!null) >> {it[0].proceed()}
         1 * configAction2.configure(!null) >> {it[0].proceed()}
-        1 * projectStateRegistry.lockAllProjects(_) >> { it[0].run() }
+        1 * projectStateRegistry.assumeAllLocks(_) >> { it[0].run() }
         1 * newTaskSelector.configure(!null) >> {
             assert it[0].gradle ==gradleInternal
 
