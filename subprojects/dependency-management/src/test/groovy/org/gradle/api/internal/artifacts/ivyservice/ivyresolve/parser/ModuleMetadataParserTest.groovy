@@ -28,18 +28,18 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.util.TestUtil.attributes
+import static org.gradle.util.AttributeTestUtil.attributes
 
 class ModuleMetadataParserTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
+    def parser = new ModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
 
     VersionConstraint emptyConstraint() {
         DefaultImmutableVersionConstraint.of()

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static com.google.common.collect.Sets.newHashSet
@@ -32,7 +32,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
     def meta = new IvyModuleResolveMetaDataBuilder(md, new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()), ivyMetadataFactory)
 
     def "adds correct artifact to meta-data"() {

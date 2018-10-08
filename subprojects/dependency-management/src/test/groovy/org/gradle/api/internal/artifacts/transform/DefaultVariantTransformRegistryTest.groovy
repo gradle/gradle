@@ -20,14 +20,15 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot
-import org.gradle.api.internal.changedetection.state.StringValueSnapshot
-import org.gradle.api.internal.changedetection.state.ValueSnapshot
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.internal.snapshot.impl.ArrayValueSnapshot
+import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -47,7 +48,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformedFileCache = Mock(TransformedFileCache)
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, isolatableFactory, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {

@@ -305,7 +305,7 @@ public class CreateStartScripts extends ConventionTask {
 
     @Input
     protected Iterable<String> getRelativeClasspath() {
-        //a list instance is needed here, as org.gradle.api.internal.changedetection.state.ValueSnapshotter.processValue() does not support
+        //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
         //serializing Iterators directly
         final FileCollection classpathNullable = getClasspath();
         if (classpathNullable == null) {

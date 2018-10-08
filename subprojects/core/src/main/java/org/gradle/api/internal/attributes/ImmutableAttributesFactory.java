@@ -16,7 +16,7 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.internal.isolation.Isolatable;
 
 public interface ImmutableAttributesFactory {
     /**

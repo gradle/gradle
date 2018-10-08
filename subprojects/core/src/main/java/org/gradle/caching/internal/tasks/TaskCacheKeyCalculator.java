@@ -18,11 +18,11 @@ package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
-import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.util.Map;
 import java.util.SortedMap;

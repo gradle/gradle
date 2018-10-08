@@ -27,6 +27,7 @@ dependencies {
     api(project(":reporting"))
     api(project(":platformBase"))
 
+    implementation(project(":snapshots"))
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
     implementation(library("guava"))

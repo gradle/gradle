@@ -34,7 +34,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.internal.rules.SpecRuleAction
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -410,7 +410,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         metadataProvider.getComponentMetadata() >> Mock(ComponentMetadata) {
             getId() >> id
             getAttributes() >> {
-                TestUtil.attributesFactory().mutable().attribute(testAttr, attributeValue)
+                AttributeTestUtil.attributesFactory().mutable().attribute(testAttr, attributeValue)
             }
         }
 
