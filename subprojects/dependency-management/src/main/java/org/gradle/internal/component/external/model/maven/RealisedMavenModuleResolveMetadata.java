@@ -33,6 +33,7 @@ import org.gradle.internal.component.external.model.AbstractRealisedModuleCompon
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -41,6 +42,7 @@ import org.gradle.internal.component.external.model.RealisedConfigurationMetadat
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
@@ -101,13 +103,28 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, metadata.getAttributes());
             CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, ImmutableCapabilities.EMPTY);
 
+            ImmutableList<MavenDependencyDescriptor> descriptors = findDependencyDescriptors(metadata, configurationName);
             RealisedConfigurationMetadata realisedConfiguration = createConfiguration(variantMetadataRules, metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
-                LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions), metadata.getDependencies(),
+                LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions), descriptors,
                 variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()));
             configurations.put(configurationName, realisedConfiguration);
         }
         RealisedMavenModuleResolveMetadata realisedMavenModuleResolveMetadata = new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
         return realisedMavenModuleResolveMetadata;
+    }
+
+    private static ImmutableList<MavenDependencyDescriptor> findDependencyDescriptors(DefaultMavenModuleResolveMetadata metadata, String configurationName) {
+        List<? extends DependencyMetadata> dependencies = metadata.getConfiguration(configurationName).getDependencies();
+        ImmutableList.Builder<MavenDependencyDescriptor> descriptors = ImmutableList.builder();
+        for (DependencyMetadata dependency : dependencies) {
+            if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
+                ExternalDependencyDescriptor dependencyDescriptor = ((ConfigurationBoundExternalDependencyMetadata) dependency).getDependencyDescriptor();
+                if (dependencyDescriptor instanceof MavenDependencyDescriptor) {
+                    descriptors.add((MavenDependencyDescriptor) dependencyDescriptor);
+                }
+            }
+        }
+        return descriptors.build();
     }
 
     private static RealisedConfigurationMetadata createConfiguration(VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<MavenDependencyDescriptor> dependencies, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
