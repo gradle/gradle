@@ -25,7 +25,10 @@ import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
-import org.gradle.api.internal.provider.Collectors.*;
+import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 
@@ -335,12 +338,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 realize();
             }
             collection.addAll(cache);
-        }
-
-        @Override
-        public boolean maybeCollectInto(Collection<T> collection) {
-            collectInto(collection);
-            return true;
         }
 
         List<T> getValues() {
