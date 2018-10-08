@@ -24,10 +24,17 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
-class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
+@CleanupTestDirectory
+class PathNormalizationStrategyTest extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+
     private StringInterner stringInterner = new StringInterner()
 
     public static final String IGNORED = "IGNORED"
@@ -131,8 +138,8 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         [jarFile1, jarFile2, resources, emptyDir, missingFile] + [fileInRoot, subDirA, fileInSubdirA, subDirB, fileInSubdirB].collect { resources.file(it) }
     }
 
-    protected TestFile file(String path) {
-        new TestFile(project.file(path))
+    protected TestFile file(String... path) {
+        temporaryFolder.file(path)
     }
 
     protected def collectFingerprints(FingerprintingStrategy strategy) {

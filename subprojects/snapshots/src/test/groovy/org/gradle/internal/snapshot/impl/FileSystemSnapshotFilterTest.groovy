@@ -30,14 +30,19 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.Specification
+import org.junit.Rule
 
-class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
+@CleanupTestDirectory
+class FileSystemSnapshotFilterTest extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
     FileSystemSnapshotter snapshotter
     DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     FileSystem fileSystem = TestFiles.fileSystem()
-
 
     def setup() {
         StringInterner interner = Mock(StringInterner) {

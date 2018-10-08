@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
@@ -84,7 +85,8 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         millis / 1000L
     }
 
-    private static generateFilesAndSubDirectories(File parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
+    @VisibleForTesting
+    static generateFilesAndSubDirectories(File parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
         for (int i = 0; i < fileCount; i++) {
             def file = new File(parentDir, "file" + fileIdGenerator.incrementAndGet())
             file << ("x" * fileIdGenerator.get())
