@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.Hasher;
 
-public class ShortValueSnapshot extends AbstractIsolatableScalarValue<Short> {
-    public ShortValueSnapshot(Short value) {
+public class IntegerValueSnapshot extends AbstractIsolatableScalarValue<Integer> {
+    public IntegerValueSnapshot(Integer value) {
         super(value);
     }
 

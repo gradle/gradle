@@ -27,6 +27,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 

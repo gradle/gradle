@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
+import org.gradle.api.Named;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-public class EnumValueSnapshot implements ValueSnapshot {
+public class ManagedNamedTypeSnapshot implements ValueSnapshot {
     private final String className;
     private final String name;
 
-    public EnumValueSnapshot(Enum<?> value) {
+    public ManagedNamedTypeSnapshot(Named value) {
         // Don't retain the value, to allow ClassLoader to be collected
-        this.className = value.getClass().getName();
-        this.name = value.name();
+        className = value.getClass().getName();
+        name = value.getName();
     }
 
-    public EnumValueSnapshot(String className, String name) {
+    public ManagedNamedTypeSnapshot(String className, String name) {
         this.className = className;
         this.name = name;
     }
@@ -45,26 +47,13 @@ public class EnumValueSnapshot implements ValueSnapshot {
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (isEqualEnum(value)) {
-            return this;
-        }
-        return snapshotter.snapshot(value);
-    }
-
-    private boolean isEqualEnum(Object value) {
-        if (value instanceof Enum) {
-            Enum<?> enumValue = (Enum<?>) value;
-            if (enumValue.name().equals(name) && enumValue.getClass().getName().equals(className)) {
-                return true;
+        if (value instanceof NamedObjectInstantiator.Managed) {
+            Named named = (Named) value;
+            if (className.equals(named.getClass().getName()) && name.equals(named.getName())) {
+                return this;
             }
         }
-        return false;
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putString(className);
-        hasher.putString(name);
+        return snapshotter.snapshot(value);
     }
 
     @Override
@@ -75,13 +64,18 @@ public class EnumValueSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-
-        EnumValueSnapshot other = (EnumValueSnapshot) obj;
-        return className.equals(other.className) && name.equals(other.name);
+        ManagedNamedTypeSnapshot other = (ManagedNamedTypeSnapshot) obj;
+        return other.className.equals(className) && other.name.equals(name);
     }
 
     @Override
     public int hashCode() {
         return className.hashCode() ^ name.hashCode();
+    }
+
+    @Override
+    public void appendToHasher(Hasher hasher) {
+        hasher.putString(className);
+        hasher.putString(name);
     }
 }

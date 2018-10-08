@@ -22,7 +22,6 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
@@ -37,6 +36,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification

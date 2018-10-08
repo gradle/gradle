@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolationException;
@@ -24,24 +23,24 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Arrays;
 
-public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
-    private final ImmutableSet<ValueSnapshot> elements;
+public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
+    public static final ArrayValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
+    private final ValueSnapshot[] elements;
 
-    public SetValueSnapshot(ImmutableSet<ValueSnapshot> elements) {
+    public ArrayValueSnapshot(ValueSnapshot[] elements) {
         this.elements = elements;
     }
 
-    public ImmutableSet<ValueSnapshot> getElements() {
+    public ValueSnapshot[] getElements() {
         return elements;
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString("Set");
-        hasher.putInt(elements.size());
+        hasher.putString("Array");
+        hasher.putInt(elements.length);
         for (ValueSnapshot element : elements) {
             element.appendToHasher(hasher);
         }
@@ -49,17 +48,17 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        ValueSnapshot newSnapshot = snapshotter.snapshot(value);
-        if (isEqualSetValueSnapshot(newSnapshot)) {
+        ValueSnapshot other = snapshotter.snapshot(value);
+        if (isEqualArrayValueSnapshot(other)) {
             return this;
         }
-        return newSnapshot;
+        return other;
     }
 
-    private boolean isEqualSetValueSnapshot(ValueSnapshot newSnapshot) {
-        if (newSnapshot instanceof SetValueSnapshot) {
-            SetValueSnapshot other = (SetValueSnapshot) newSnapshot;
-            if (elements.equals(other.elements)) {
+    private boolean isEqualArrayValueSnapshot(ValueSnapshot other) {
+        if (other instanceof ArrayValueSnapshot) {
+            ArrayValueSnapshot otherArray = (ArrayValueSnapshot) other;
+            if (Arrays.equals(elements, otherArray.elements)) {
                 return true;
             }
         }
@@ -74,27 +73,28 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        SetValueSnapshot other = (SetValueSnapshot) obj;
-        return elements.equals(other.elements);
+        ArrayValueSnapshot other = (ArrayValueSnapshot) obj;
+        return Arrays.equals(elements, other.elements);
     }
 
     @Override
     public int hashCode() {
-        return elements.hashCode();
+        return Arrays.hashCode(elements);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Set isolate() {
-        Set set = new LinkedHashSet();
-        for (ValueSnapshot snapshot : elements) {
+    public Object[] isolate() {
+        ValueSnapshot[] elements = getElements();
+        Object[] toReturn = new Object[elements.length];
+        for (int i = 0; i < elements.length; i++) {
+            ValueSnapshot snapshot = elements[i];
             if (snapshot instanceof Isolatable) {
-                set.add(((Isolatable) snapshot).isolate());
+                toReturn[i] = ((Isolatable) snapshot).isolate();
             } else {
                 throw new IsolationException(snapshot);
             }
         }
-        return set;
+        return toReturn;
     }
 
     @Nullable

@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.internal.snapshot.impl;
 
-enum Type1 {
-    ONE, TWO
+import org.gradle.internal.hash.Hasher;
+
+public class ShortValueSnapshot extends AbstractIsolatableScalarValue<Short> {
+    public ShortValueSnapshot(Short value) {
+        super(value);
+    }
+
+    @Override
+    public void appendToHasher(Hasher hasher) {
+        hasher.putInt(getValue());
+    }
 }

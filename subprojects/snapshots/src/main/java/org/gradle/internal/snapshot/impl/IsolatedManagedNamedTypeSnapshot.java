@@ -14,37 +14,43 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.api.Named;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 
-public class CoercingStringValueSnapshot extends StringValueSnapshot {
-    private final String value;
+public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot implements Isolatable<Named> {
+    private final Named value;
     private final NamedObjectInstantiator instantiator;
 
-    public CoercingStringValueSnapshot(String value, NamedObjectInstantiator instantiator) {
+    public IsolatedManagedNamedTypeSnapshot(Named value, NamedObjectInstantiator instantiator) {
         super(value);
         this.value = value;
         this.instantiator = instantiator;
     }
 
+    @Override
+    public Named isolate() {
+        return value;
+    }
+
     @Nullable
     @Override
     public <S> Isolatable<S> coerce(Class<S> type) {
-        if (type.isInstance(value)) {
+        if (type.isAssignableFrom(value.getClass())) {
             return Cast.uncheckedCast(this);
         }
-        if (type.isEnum()) {
-            return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), getValue())));
+        if (!Named.class.isAssignableFrom(type)) {
+            return null;
         }
-        if (Named.class.isAssignableFrom(type)) {
-            return Cast.uncheckedCast(new IsolatedManagedNamedTypeSnapshot(instantiator.named((Class<? extends Named>) type, getValue()), instantiator));
+        for (Class<?> interfaceType : value.getClass().getInterfaces()) {
+            if (interfaceType.getName().equals(type.getName())) {
+                return Cast.uncheckedCast(new IsolatedManagedNamedTypeSnapshot(instantiator.named((Class<? extends Named>) type, value.getName()), instantiator));
+            }
         }
         return null;
     }

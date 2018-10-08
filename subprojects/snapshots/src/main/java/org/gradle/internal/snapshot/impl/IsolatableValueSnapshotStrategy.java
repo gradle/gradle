@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.isolation;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;

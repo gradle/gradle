@@ -23,6 +23,22 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.internal.snapshot.impl.ArrayValueSnapshot
+import org.gradle.internal.snapshot.impl.BooleanValueSnapshot
+import org.gradle.internal.snapshot.impl.EnumValueSnapshot
+import org.gradle.internal.snapshot.impl.FileValueSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.internal.snapshot.impl.IntegerValueSnapshot
+import org.gradle.internal.snapshot.impl.ListValueSnapshot
+import org.gradle.internal.snapshot.impl.LongValueSnapshot
+import org.gradle.internal.snapshot.impl.ManagedNamedTypeSnapshot
+import org.gradle.internal.snapshot.impl.MapValueSnapshot
+import org.gradle.internal.snapshot.impl.NullValueSnapshot
+import org.gradle.internal.snapshot.impl.ProviderSnapshot
+import org.gradle.internal.snapshot.impl.SerializedValueSnapshot
+import org.gradle.internal.snapshot.impl.SetValueSnapshot
+import org.gradle.internal.snapshot.impl.ShortValueSnapshot
+import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import spock.lang.Specification
 import spock.lang.Subject
 

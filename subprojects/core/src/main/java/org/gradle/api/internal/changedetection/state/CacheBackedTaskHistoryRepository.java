@@ -50,6 +50,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

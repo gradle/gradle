@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl
 
-import org.gradle.internal.hash.Hasher;
-
-public class LongValueSnapshot extends AbstractIsolatableScalarValue<Long> {
-    public LongValueSnapshot(Long value) {
-        super(value);
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putLong(getValue());
-    }
+class Bean implements Serializable {
+    String prop
 }

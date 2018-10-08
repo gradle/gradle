@@ -14,38 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.isolation;
+package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.internal.changedetection.state.EnumValueSnapshot;
+import org.gradle.api.Named;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 
-/**
- * Isolates an Enum value and is a snapshot for that value.
- */
-public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
-    private final Enum<?> value;
+public class CoercingStringValueSnapshot extends StringValueSnapshot {
+    private final String value;
+    private final NamedObjectInstantiator instantiator;
 
-    public IsolatableEnumValueSnapshot(Enum<?> value) {
+    public CoercingStringValueSnapshot(String value, NamedObjectInstantiator instantiator) {
         super(value);
         this.value = value;
-    }
-
-    @Override
-    public Enum isolate() {
-        return value;
+        this.instantiator = instantiator;
     }
 
     @Nullable
     @Override
     public <S> Isolatable<S> coerce(Class<S> type) {
-        if (type.isAssignableFrom(value.getClass())) {
+        if (type.isInstance(value)) {
             return Cast.uncheckedCast(this);
         }
-        if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
-            return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), value.name())));
+        if (type.isEnum()) {
+            return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), getValue())));
+        }
+        if (Named.class.isAssignableFrom(type)) {
+            return Cast.uncheckedCast(new IsolatedManagedNamedTypeSnapshot(instantiator.named((Class<? extends Named>) type, getValue()), instantiator));
         }
         return null;
     }

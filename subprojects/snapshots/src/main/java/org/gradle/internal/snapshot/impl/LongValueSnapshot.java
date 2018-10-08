@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.Hasher;
 
-public class StringValueSnapshot extends AbstractIsolatableScalarValue<String> {
-    public StringValueSnapshot(String value) {
+public class LongValueSnapshot extends AbstractIsolatableScalarValue<Long> {
+    public LongValueSnapshot(Long value) {
         super(value);
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        hasher.putString(getValue());
+        hasher.putLong(getValue());
     }
 }

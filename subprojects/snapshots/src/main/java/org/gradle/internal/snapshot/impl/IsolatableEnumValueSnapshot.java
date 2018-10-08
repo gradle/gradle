@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.Named;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 
-public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot implements Isolatable<Named> {
-    private final Named value;
-    private final NamedObjectInstantiator instantiator;
+/**
+ * Isolates an Enum value and is a snapshot for that value.
+ */
+public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
+    private final Enum<?> value;
 
-    public IsolatedManagedNamedTypeSnapshot(Named value, NamedObjectInstantiator instantiator) {
+    public IsolatableEnumValueSnapshot(Enum<?> value) {
         super(value);
         this.value = value;
-        this.instantiator = instantiator;
     }
 
     @Override
-    public Named isolate() {
+    public Enum isolate() {
         return value;
     }
 
@@ -44,13 +43,8 @@ public class IsolatedManagedNamedTypeSnapshot extends ManagedNamedTypeSnapshot i
         if (type.isAssignableFrom(value.getClass())) {
             return Cast.uncheckedCast(this);
         }
-        if (!Named.class.isAssignableFrom(type)) {
-            return null;
-        }
-        for (Class<?> interfaceType : value.getClass().getInterfaces()) {
-            if (interfaceType.getName().equals(type.getName())) {
-                return Cast.uncheckedCast(new IsolatedManagedNamedTypeSnapshot(instantiator.named((Class<? extends Named>) type, value.getName()), instantiator));
-            }
+        if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
+            return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), value.name())));
         }
         return null;
     }

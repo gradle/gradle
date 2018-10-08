@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.attributes;
+package org.gradle.internal.snapshot.impl;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.changedetection.state.AbstractIsolatableScalarValue;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
 

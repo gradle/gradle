@@ -18,10 +18,10 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.lang.reflect.Method;
 

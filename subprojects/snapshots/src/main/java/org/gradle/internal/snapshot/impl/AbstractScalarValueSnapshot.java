@@ -14,43 +14,49 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import javax.annotation.Nullable;
+/**
+ * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
+ *
+ * @param <T>
+ */
+public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
+    private final T value;
 
-public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
-    public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();
+    public AbstractScalarValueSnapshot(T value) {
+        this.value = value;
+    }
 
-    private NullValueSnapshot() {
+    public T getValue() {
+        return value;
     }
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (value == null) {
+        if (this.value.equals(value)) {
             return this;
         }
         return snapshotter.snapshot(value);
     }
 
     @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putNull();
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        AbstractScalarValueSnapshot other = (AbstractScalarValueSnapshot) obj;
+        return value.equals(other.value);
     }
 
     @Override
-    public Object isolate() {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return Cast.uncheckedCast(this);
+    public int hashCode() {
+        return value.hashCode();
     }
 }

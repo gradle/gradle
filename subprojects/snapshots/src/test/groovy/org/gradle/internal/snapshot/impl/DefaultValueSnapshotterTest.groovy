@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
 import org.gradle.api.internal.model.NamedObjectInstantiator

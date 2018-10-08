@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributeDefinitionSnapshot;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableSerializedValueSnapshot;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableValueSnapshotStrategy;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;

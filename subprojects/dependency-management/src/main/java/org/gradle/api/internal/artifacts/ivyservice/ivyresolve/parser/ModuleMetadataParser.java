@@ -30,13 +30,13 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;

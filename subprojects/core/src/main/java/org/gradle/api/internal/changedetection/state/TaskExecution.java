@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 

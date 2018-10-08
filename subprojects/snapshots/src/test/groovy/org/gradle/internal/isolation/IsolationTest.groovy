@@ -16,9 +16,9 @@
 
 package org.gradle.internal.isolation
 
-import org.gradle.api.internal.changedetection.state.DefaultValueSnapshotter
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import spock.lang.Specification
 
 /**
