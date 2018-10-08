@@ -144,6 +144,7 @@ data class CIBuildModel (
             GradleSubproject("resourcesSftp"),
             GradleSubproject("scala"),
             GradleSubproject("signing"),
+            GradleSubproject("snapshots"),
             GradleSubproject("testKit"),
             GradleSubproject("testingBase"),
             GradleSubproject("testingJvm"),
