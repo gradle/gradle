@@ -466,4 +466,19 @@ class NodeState implements DependencyGraphNode {
         return resolveState.getAttributesFactory();
     }
 
+    /**
+     * Invoked when this node is back to being a pending dependency.
+     * There may be some incoming edges left at that point, but they must all be coming from constraints.
+     * @param pendingDependencies
+     */
+    public void clearConstraintEdges(PendingDependencies pendingDependencies) {
+        for (EdgeState incomingEdge : incomingEdges) {
+            assert incomingEdge.getDependencyMetadata().isConstraint();
+            incomingEdge.getSelector().release();
+            NodeState from = incomingEdge.getFrom();
+            from.getOutgoingEdges().remove(incomingEdge);
+            pendingDependencies.addNode(from);
+        }
+        incomingEdges.clear();
+    }
 }
