@@ -71,6 +71,7 @@ import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 
 class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
@@ -133,7 +134,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             new TaskHistoryCache(cacheAccess, serializer),
             classLoaderHierarchyHasher,
-            TestUtil.valueSnapshotter(),
+            SnapshotTestUtil.valueSnapshotter(),
             fingerprinterRegistry
         )
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)

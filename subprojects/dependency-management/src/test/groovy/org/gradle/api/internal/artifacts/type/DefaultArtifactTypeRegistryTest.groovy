@@ -22,11 +22,11 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class DefaultArtifactTypeRegistryTest extends Specification {
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def registry = new DefaultArtifactTypeRegistry(DirectInstantiator.INSTANCE, attributesFactory)
 
     def "creates as required and reuses"() {

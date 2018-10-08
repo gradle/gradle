@@ -19,13 +19,14 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.inject.Inject
 
 class DefaultDisambiguationRuleChainTest extends Specification {
-    def ruleChain = new DefaultDisambiguationRuleChain(TestUtil.instantiatorFactory().inject(), TestUtil.valueSnapshotter())
+    def ruleChain = new DefaultDisambiguationRuleChain(TestUtil.instantiatorFactory().inject(), SnapshotTestUtil.valueSnapshotter())
 
     static class SelectionRule implements AttributeDisambiguationRule<String> {
         @Override

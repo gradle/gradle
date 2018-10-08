@@ -30,7 +30,7 @@ import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
@@ -352,7 +352,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def attributes(Map<String, String> values) {
-        def attrs = TestUtil.attributesFactory().mutable()
+        def attrs = AttributeTestUtil.attributesFactory().mutable()
         attrs.attribute(ProjectInternal.STATUS_ATTRIBUTE, 'integration')
         if (values) {
             values.each { String key, String value ->

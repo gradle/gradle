@@ -35,8 +35,8 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
@@ -64,7 +64,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
-    def immutableAttributesFactory = TestUtil.attributesFactory()
+    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,

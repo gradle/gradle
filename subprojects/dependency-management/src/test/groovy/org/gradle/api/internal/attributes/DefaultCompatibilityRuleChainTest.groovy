@@ -19,13 +19,14 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.inject.Inject
 
 class DefaultCompatibilityRuleChainTest extends Specification {
-    def ruleChain = new DefaultCompatibilityRuleChain(TestUtil.instantiatorFactory().inject(), TestUtil.valueSnapshotter())
+    def ruleChain = new DefaultCompatibilityRuleChain(TestUtil.instantiatorFactory().inject(), SnapshotTestUtil.valueSnapshotter())
 
     static class CompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override

@@ -23,13 +23,13 @@ import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class ComponentAttributeMatcherTest extends Specification {
 
     def schema = new TestSchema()
-    def factory = TestUtil.attributesFactory()
+    def factory = AttributeTestUtil.attributesFactory()
 
     def "selects candidate with same set of attributes and whose values match"() {
         def attr = Attribute.of(String)

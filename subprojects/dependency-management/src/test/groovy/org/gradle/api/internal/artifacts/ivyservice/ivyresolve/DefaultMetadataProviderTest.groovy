@@ -39,6 +39,7 @@ import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -61,7 +62,7 @@ class DefaultMetadataProviderTest extends Specification {
     def setup() {
         resolveState.getCachePolicy() >> cachePolicy
         resolveState.getComponentMetadataSupplierExecutor() >> ruleExecutor
-        resolveState.attributesFactory >> TestUtil.attributesFactory()
+        resolveState.attributesFactory >> AttributeTestUtil.attributesFactory()
     }
 
     def "caches metadata result"() {

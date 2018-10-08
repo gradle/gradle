@@ -42,7 +42,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.util.TestUtil.attributes
+import static org.gradle.util.AttributeTestUtil.attributes
 
 class ModuleMetadataFileGeneratorTest extends Specification {
 

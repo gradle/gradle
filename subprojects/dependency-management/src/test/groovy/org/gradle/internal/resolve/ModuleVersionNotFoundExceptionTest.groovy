@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -224,7 +224,7 @@ Searched in the following locations:
     static List<AttributeMatcher.MatchingDescription> toDescriptions(Map<String, List<String>> attributes) {
         attributes.collect { k, v ->
             def attribute = Attribute.of(k, String)
-            new AttributeMatcher.MatchingDescription<Object>(attribute, TestUtil.attributesFactory().of(attribute, v[0]), TestUtil.attributesFactory().of(attribute, v[1]), v[2])
+            new AttributeMatcher.MatchingDescription<Object>(attribute, AttributeTestUtil.attributesFactory().of(attribute, v[0]), AttributeTestUtil.attributesFactory().of(attribute, v[1]), v[2])
         }
     }
 }

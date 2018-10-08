@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ArrayValueSnapshot
 import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -47,7 +48,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformedFileCache = Mock(TransformedFileCache)
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, isolatableFactory, classLoaderHierarchyHasher)
 
     def "creates registration without configuration"() {
