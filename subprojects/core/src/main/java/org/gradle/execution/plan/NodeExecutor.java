@@ -16,6 +16,8 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.execution.ProjectExecutionServiceRegistry;
+
 public interface NodeExecutor {
-    boolean execute(Node node);
+    boolean execute(Node node, ProjectExecutionServiceRegistry services);
 }

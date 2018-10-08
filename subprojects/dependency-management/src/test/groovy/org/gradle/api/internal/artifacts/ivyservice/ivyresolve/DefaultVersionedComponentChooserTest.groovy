@@ -38,6 +38,8 @@ import org.gradle.internal.resolve.result.ComponentSelectionContext
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -47,7 +49,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
     def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
-    def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
+    def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
     def consumerAttributes = ImmutableAttributes.EMPTY
     def cachePolicy = new DefaultCachePolicy()
 
@@ -232,7 +234,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def c = component('1.4', 'release', [color: 'green'])
         def d = component('2.0', 'release', [color: 'blue'])
         def selectedComponentResult = Mock(ComponentSelectionContext)
-        consumerAttributes = TestUtil.attributes(color: 'red')
+        consumerAttributes = AttributeTestUtil.attributes(color: 'red')
 
         when:
         chooser.selectNewestMatchingComponent([c, a, d, b], selectedComponentResult, versionSelectorScheme.parseSelector(notation), null, consumerAttributes)
@@ -356,7 +358,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def meta = Stub(ModuleComponentResolveMetadata) {
             getStatusScheme() >> ["integration", "milestone", "release"]
             getStatus() >> status
-            getAttributes() >> TestUtil.attributes(attributes)
+            getAttributes() >> AttributeTestUtil.attributes(attributes)
         }
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
         result.resolved(meta)

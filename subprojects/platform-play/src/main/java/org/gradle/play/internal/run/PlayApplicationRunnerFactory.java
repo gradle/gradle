@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.internal.fingerprint.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;

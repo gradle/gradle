@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.util.GradleVersion
 
-@IgnoreVersions({ isIgnoredMilestone(it) || it.artifactCacheLayoutVersion != DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
+@IgnoreVersions({ it.artifactCacheLayoutVersion != DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
 class SameCacheUsageCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
     def "incurs zero remote requests when cache version not upgraded"() {
         given:

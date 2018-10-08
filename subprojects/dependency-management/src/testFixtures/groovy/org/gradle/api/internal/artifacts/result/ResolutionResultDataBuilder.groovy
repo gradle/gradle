@@ -27,7 +27,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -52,7 +52,7 @@ class ResolutionResultDataBuilder {
     }
 
     static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {
-        def mutableAttributes = TestUtil.attributesFactory().mutable()
+        def mutableAttributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.each {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }

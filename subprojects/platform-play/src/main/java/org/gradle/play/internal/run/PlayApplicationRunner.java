@@ -20,9 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
-import org.gradle.internal.fingerprint.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -98,7 +97,7 @@ public class PlayApplicationRunner {
 
         private boolean applicationClasspathChanged() {
             HashCode oldClasspathHash = classpathHash;
-            classpathHash = fingerprinter.fingerprint(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
+            classpathHash = fingerprinter.fingerprint(applicationClasspath).getHash();
             return !classpathHash.equals(oldClasspathHash);
         }
     }

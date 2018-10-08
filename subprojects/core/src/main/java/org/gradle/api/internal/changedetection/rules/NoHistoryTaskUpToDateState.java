@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 
 @NonNullApi
 public class NoHistoryTaskUpToDateState implements TaskUpToDateState {

@@ -30,7 +30,6 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -44,6 +43,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;

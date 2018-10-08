@@ -43,6 +43,8 @@ import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Shared
@@ -57,10 +59,10 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
 
     @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
-    @Shared attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
+    @Shared attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     @Shared schema = createSchema()
-    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
-    @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
     @Shared defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
@@ -69,7 +71,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     }
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
+        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
         PlatformSupport.configureSchema(schema)
         schema
     }

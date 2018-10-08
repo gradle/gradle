@@ -19,9 +19,10 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.ValueSnapshot;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 

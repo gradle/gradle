@@ -26,7 +26,6 @@ import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -37,7 +36,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -47,6 +45,7 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -163,7 +162,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             Map<String, FileSystemLocationFingerprint> fingerprints;
             String propertyName;
             HashCode propertyHash;
-            FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
+            String propertyNormalizationStrategyIdentifier;
             String name;
             String path;
             HashCode hash;
@@ -185,7 +184,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
             @Override
             public String getPropertyNormalizationStrategyName() {
-                return propertyNormalizationStrategyIdentifier.name();
+                return propertyNormalizationStrategyIdentifier;
             }
 
             @Override

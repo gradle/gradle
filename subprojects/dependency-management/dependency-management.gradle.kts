@@ -27,6 +27,7 @@ dependencies {
 
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
+    implementation(project(":snapshots"))
 
     implementation(library("asm"))
     implementation(library("asm_commons"))

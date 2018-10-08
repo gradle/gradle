@@ -22,17 +22,17 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ComponentResultSerializerTest extends SerializerSpec {
 
-    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new DesugaredAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "serializes"() {
         def componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'module'), 'version')
-        def attributes = TestUtil.attributesFactory().mutable()
+        def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
         def selection = new DetachedComponentResult(12L,

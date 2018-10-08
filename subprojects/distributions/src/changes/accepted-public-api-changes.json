@@ -1,3 +1,611 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.setProjectLayoutRegistry(org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry)",
+            "acceptation": "Changed services injected into task",
+            "changes": [
+                "Method is less accessible"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "Removed deprecated methods",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.addValidator(org.gradle.api.internal.tasks.execution.TaskValidator)",
+                "org.gradle.api.internal.AbstractTask.deleteAllActions()",
+                "org.gradle.api.internal.AbstractTask.dependsOnTaskDidWork()",
+                "org.gradle.api.internal.AbstractTask.execute()",
+                "org.gradle.api.internal.AbstractTask.getExecuter()",
+                "org.gradle.api.internal.AbstractTask.getValidators()",
+                "org.gradle.api.internal.AbstractTask.leftShift(groovy.lang.Closure)",
+                "org.gradle.api.internal.AbstractTask.setExecuter(org.gradle.api.internal.tasks.TaskExecuter)"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Class org.gradle.api.plugins.ApplicationPluginConvention",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.ApplicationPluginConvention()",
+            "acceptation": "Implementation has moved to internal package"
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getApplicationDefaultJvmArgs()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getApplicationDistribution()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getApplicationName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getMainClassName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.getProject()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setApplicationDefaultJvmArgs(java.lang.Iterable)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setApplicationDistribution(org.gradle.api.file.CopySpec)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setApplicationName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPluginConvention",
+            "member": "Method org.gradle.api.plugins.ApplicationPluginConvention.setMainClassName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Class org.gradle.api.plugins.BasePluginConvention",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getArchivesBaseName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getLibsDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getLibsDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getProject()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.setArchivesBaseName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.setDistsDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.setLibsDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.setProject(org.gradle.api.internal.project.ProjectInternal)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Constructor org.gradle.api.plugins.BasePluginConvention()",
+            "acceptation": "Implementation has moved to internal package"
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Class org.gradle.api.plugins.JavaPluginConvention",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getDocsDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getDocsDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getProject()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getSourceCompatibility()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getSourceSets()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getTargetCompatibility()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getTestReportDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getTestReportDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getTestResultsDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.getTestResultsDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.manifest()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.manifest(groovy.lang.Closure)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.manifest(org.gradle.api.Action)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setDocsDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setSourceCompatibility(java.lang.Object)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setSourceCompatibility(org.gradle.api.JavaVersion)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setTargetCompatibility(java.lang.Object)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setTargetCompatibility(org.gradle.api.JavaVersion)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setTestReportDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.setTestResultsDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Method org.gradle.api.plugins.JavaPluginConvention.sourceSets(groovy.lang.Closure)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.JavaPluginConvention()",
+            "acceptation": "Implementation has moved to internal package"
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Class org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.getProjectReportDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.getProjectReportDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.getProjects()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Method org.gradle.api.plugins.ProjectReportsPluginConvention.setProjectReportDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.ProjectReportsPluginConvention()",
+            "acceptation": "Implementation has moved to internal package"
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Class org.gradle.api.plugins.WarPluginConvention",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getProject()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getWebAppDir()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getWebAppDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.setWebAppDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.WarPluginConvention()",
+            "acceptation": "Implementation has moved to internal package"
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Class org.gradle.plugins.ear.EarPluginConvention",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.appDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(org.gradle.api.Action)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getAppDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getDeploymentDescriptor()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.getLibDirName()",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.libDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.setAppDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.setDeploymentDescriptor(org.gradle.plugins.ear.descriptor.DeploymentDescriptor)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Method org.gradle.plugins.ear.EarPluginConvention.setLibDirName(java.lang.String)",
+            "acceptation": "Implementation has moved to internal package",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.EarPluginConvention",
+            "member": "Constructor org.gradle.plugins.ear.EarPluginConvention()",
+            "acceptation": "Implementation has moved to internal package"
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleReports",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleReports.getHtml()",
+            "acceptation": "Support type-safe configuration for Checkstyle HTML report stylesheet when using Kotlin DSL",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.java.archives.Manifest",
+            "member": "Method org.gradle.api.java.archives.Manifest.from(java.lang.Object,org.gradle.api.Action)",
+            "acceptation": "Support type-safe manifest merging",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.language.cpp.CppBinary",
+            "member": "Method org.gradle.language.cpp.CppBinary.getTargetPlatform()",
+            "acceptation": "Upgrading to Java 8 seems to have changed the byte code slightly, probably introducing a bridge method."
+        },
+        {
+            "type": "org.gradle.language.swift.SwiftBinary",
+            "member": "Method org.gradle.language.swift.SwiftBinary.getTargetPlatform()",
+            "acceptation": "Upgrading to Java 8 seems to have changed the byte code slightly, probably introducing a bridge method."
+        },
+        {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Field source",
+            "acceptation": "Prohibit direct access to field, see https://github.com/gradle/gradle/issues/6641",
+            "changes": [
+                "Field is less accessible"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getType()",
+            "acceptation": "Expose the Maven dependency type property",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }
