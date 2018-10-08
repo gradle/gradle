@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.DefaultValueSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -145,7 +146,7 @@ public class GradleUserHomeScopeServices {
     }
 
     ValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new ValueSnapshotter(classLoaderHierarchyHasher, NamedObjectInstantiator.INSTANCE);
+        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, NamedObjectInstantiator.INSTANCE);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {

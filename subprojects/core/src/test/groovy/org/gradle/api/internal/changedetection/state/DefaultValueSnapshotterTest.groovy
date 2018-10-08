@@ -26,11 +26,11 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
-class ValueSnapshotterTest extends Specification {
+class DefaultValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
-    def snapshotter = new ValueSnapshotter(classLoaderHasher, NamedObjectInstantiator.INSTANCE)
+    def snapshotter = new DefaultValueSnapshotter(classLoaderHasher, NamedObjectInstantiator.INSTANCE)
 
     def "creates snapshot for string"() {
         expect:

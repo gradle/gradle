@@ -25,6 +25,7 @@ import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.changedetection.state.DefaultValueSnapshotter
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
@@ -82,7 +83,7 @@ class TestUtil {
     }
 
     static ValueSnapshotter valueSnapshotter() {
-        return new ValueSnapshotter(new ClassLoaderHierarchyHasher() {
+        return new DefaultValueSnapshotter(new ClassLoaderHierarchyHasher() {
             @Override
             HashCode getClassLoaderHash(ClassLoader classLoader) {
                 return HashCode.fromInt(classLoader.hashCode())

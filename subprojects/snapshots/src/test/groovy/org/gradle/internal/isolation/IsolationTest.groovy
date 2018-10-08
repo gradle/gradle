@@ -16,7 +16,7 @@
 
 package org.gradle.internal.isolation
 
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.api.internal.changedetection.state.DefaultValueSnapshotter
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification
@@ -25,7 +25,7 @@ import spock.lang.Specification
  * Tests that Isolation is implemented for various types of Snapshots.
  */
 class IsolationTest extends Specification {
-    def snapshotter = new ValueSnapshotter(Stub(ClassLoaderHierarchyHasher), NamedObjectInstantiator.INSTANCE)
+    def snapshotter = new DefaultValueSnapshotter(Stub(ClassLoaderHierarchyHasher), NamedObjectInstantiator.INSTANCE)
 
     def "can isolate Strings"() {
         given:
