@@ -54,13 +54,16 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         repos.size() == 1
         repos.first() == augmentMapWithProperties(expectedRepo, [
             URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
+            ARTIFACT_URLS: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 
         where:
         repo                   | repoBlock                     | expectedRepo
         'maven'                | mavenRepoBlock()              | expectedMavenRepo()
+        'maven-no-url'         | mavenRepoNoUrlBlock()         | expectedMavenRepoNoUrl()
         'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()
+        'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()
         'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()
         'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()
         'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()
@@ -234,6 +237,36 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
+    def "default maven repository properties are captured when not specified"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                maven {
+                    name = 'custom repo'
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 1
+        def repo = ops.details.repositories[0]
+        with(repo) {
+            name == 'custom repo'
+            type == 'MAVEN'
+            properties.size() == 4
+            properties.ARTIFACT_URLS == []
+            properties.METADATA_SOURCES == ['mavenPom', 'artifact']
+            properties.AUTHENTICATED == false
+            properties.'AUTHENTICATION_SCHEMES' == []
+        }
+    }
+
     def "ivy repository attributes are stored"() {
         setup:
         buildFile << """
@@ -292,6 +325,39 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
+    def "default ivy repository properties are captured when not specified"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                ivy {
+                    name = 'custom repo'
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        ops.details.repositories.size() == 1
+        def repo = ops.details.repositories[0]
+        with(repo) {
+            name == 'custom repo'
+            type == 'IVY'
+            properties.size() == 7
+            properties.LAYOUT_TYPE == 'Gradle'
+            properties.M2_COMPATIBLE == false
+            properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
+            properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
+            properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+            properties.AUTHENTICATED == false
+            properties.AUTHENTICATION_SCHEMES == []
+        }
+    }
+
     def "flat-dir repository attributes are stored"() {
         setup:
         buildFile << """
@@ -339,6 +405,24 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         ]
     }
 
+    private static String mavenRepoNoUrlBlock() {
+        "repositories { maven { artifactUrls 'http://artifactUrl' } }"
+    }
+
+    private static Map expectedMavenRepoNoUrl() {
+        [
+            id: 'maven',
+            name: 'maven',
+            type: 'MAVEN',
+            properties: [
+                ARTIFACT_URLS: ['http://artifactUrl'],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: []
+            ]
+        ]
+    }
+
     private static String ivyRepoBlock() {
         "repositories { ivy { url '<<URL>>' } }"
     }
@@ -357,6 +441,30 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 M2_COMPATIBLE: false,
                 METADATA_SOURCES: ['ivyDescriptor', 'artifact'],
                 URL: null
+            ]
+        ]
+    }
+
+    private static String ivyRepoNoUrlBlock() {
+        "repositories { ivy { artifactPattern 'artifactPattern' } }"
+    }
+
+    private static Map expectedIvyRepoNoUrl() {
+        [
+            id: 'ivy',
+            name: 'ivy',
+            type: 'IVY',
+            properties: [
+                ARTIFACT_PATTERNS: [
+                    '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])',
+                    'artifactPattern'
+                ],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
+                LAYOUT_TYPE: 'Gradle',
+                M2_COMPATIBLE: false,
+                METADATA_SOURCES: ['ivyDescriptor', 'artifact']
             ]
         ]
     }
