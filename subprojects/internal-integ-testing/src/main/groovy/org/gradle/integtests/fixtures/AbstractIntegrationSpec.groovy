@@ -77,6 +77,10 @@ class AbstractIntegrationSpec extends Specification {
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
 
+    def setup() {
+        m2.isolateMavenLocalRepo(executer)
+    }
+
     def cleanup() {
         executer.cleanup()
     }
