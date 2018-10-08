@@ -21,11 +21,13 @@ import org.gradle.api.Describable;
 
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
+ *
+ * This can encapsulate a single transformation step using a single transformer or a chain of transformation steps.
  */
 public interface ArtifactTransformation extends Describable {
 
     /**
-     * Transforms the given input subject. May call the underlying user-provided transform or retrieve a cached value.
+     * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
      */
     TransformationSubject transform(TransformationSubject subject);
 
@@ -34,5 +36,8 @@ public interface ArtifactTransformation extends Describable {
      */
     boolean hasCachedResult(TransformationSubject subject);
 
+    /**
+     * Extract the transformation steps from this transformation.
+     */
     void visitTransformationSteps(Action<? super ArtifactTransformation> action);
 }

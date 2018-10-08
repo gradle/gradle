@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.TransformInvocationException
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.reflect.ObjectInstantiationException
@@ -48,7 +49,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def isolatableFactory = Mock(IsolatableFactory)
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def transformerInvoker = Mock(TransformerInvoker)
+    def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache, Stub(ArtifactTransformListener))
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
 
     def "creates registration without configuration"() {
@@ -76,14 +77,16 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.artifactTransformer.transform(new InitialFileTransformationSubject(TEST_INPUT)).files
+        def transformed = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).files
 
         then:
         transformed.size() == 1
         transformed.first() == new File(outputDirectory, "OUTPUT_FILE")
 
         and:
-        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { file, transform -> return transform.apply(file, outputDirectory) }
+        interaction {
+            runTransformer(TEST_INPUT)
+        }
     }
 
     def "creates registration with configuration"() {
@@ -113,7 +116,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.artifactTransformer.transform(new InitialFileTransformationSubject(TEST_INPUT)).files
+        def transformed = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).files
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -123,7 +126,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         and:
-        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { file, transform -> return transform.apply(file, outputDirectory) }
+        interaction {
+            runTransformer(TEST_INPUT)
+        }
     }
 
     def "fails when artifactTransform cannot be instantiated"() {
@@ -146,16 +151,17 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def result = registration.artifactTransformer.transform(new InitialFileTransformationSubject(TEST_INPUT))
+        def result = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT))
 
         then:
         def failure = result.failure
-        failure instanceof ObjectInstantiationException
-        failure.message == "Could not create an instance of type $AbstractArtifactTransform.name."
+        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.AbstractArtifactTransform"
+        failure.cause instanceof ObjectInstantiationException
+        failure.cause.message == "Could not create an instance of type $AbstractArtifactTransform.name."
 
         and:
-        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { File file, Transformer transformer ->
-            return transformer.apply(file, outputDirectory)
+        interaction {
+            runTransformer(TEST_INPUT)
         }
     }
 
@@ -184,16 +190,20 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.artifactTransformer.transform(new InitialFileTransformationSubject(TEST_INPUT)).failure
+        def failure = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).failure
 
         then:
-        failure instanceof ObjectInstantiationException
-        failure.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
-        failure.cause instanceof IllegalArgumentException
-        failure.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
+        failure instanceof TransformInvocationException
+        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.TestArtifactTransformWithParams"
+        failure.cause instanceof ObjectInstantiationException
+        failure.cause.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
+        failure.cause.cause instanceof IllegalArgumentException
+        failure.cause.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
 
         and:
-        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { file, transform -> return transform.apply(file, outputDirectory) }
+        interaction {
+            runTransformer(TEST_INPUT)
+        }
     }
 
     def "fails when artifactTransform throws exception"() {
@@ -216,14 +226,18 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.artifactTransformer.transform(new InitialFileTransformationSubject(TEST_INPUT)).failure
+        def failure = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).failure
 
         then:
-        failure instanceof RuntimeException
-        failure.message == 'broken'
+        failure instanceof TransformInvocationException
+        failure.message == "Failed to transform file 'input' using transform DefaultVariantTransformRegistryTest.BrokenTransform"
+        failure.cause instanceof RuntimeException
+        failure.cause.message == 'broken'
 
         and:
-        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { file, transform -> return transform.apply(file, outputDirectory) }
+        interaction {
+            runTransformer(TEST_INPUT)
+        }
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {
@@ -307,6 +321,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def e = thrown(VariantTransformConfigurationException)
         e.message == "Could not register transform: each 'to' attribute must be included as a 'from' attribute."
         e.cause == null
+    }
+
+    private void runTransformer(File primaryInput) {
+        1 * transformedFileCache.getResult(primaryInput, _)  >> { file, transform -> return transform.apply(file, outputDirectory) }
     }
 
     static class TestArtifactTransform extends ArtifactTransform {

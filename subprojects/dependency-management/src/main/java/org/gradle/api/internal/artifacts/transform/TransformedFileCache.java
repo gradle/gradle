@@ -24,8 +24,10 @@ import java.util.List;
 
 @ThreadSafe
 public interface TransformedFileCache {
+    /**
+     * Returns the result of applying the given transformer to the given file.
+     */
+    List<File> getResult(File primaryInput, Transformer transformer);
 
     boolean contains(File absoluteFile, HashCode inputsHash);
-
-    List<File> runTransformer(File primaryInput, Transformer transformer);
 }

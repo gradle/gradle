@@ -40,9 +40,9 @@ class ArtifactTransformationStep implements ArtifactTransformation {
         if (subjectToTransform.getFailure() != null) {
             return subjectToTransform;
         }
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Executing transform {} on {}", transformer.getDisplayName(), subjectToTransform.getDisplayName());
-            }
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Executing transform {} on {}", transformer.getDisplayName(), subjectToTransform.getDisplayName());
+        }
         List<File> result = new ArrayList<File>();
         for (File file : subjectToTransform.getFiles()) {
             TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);

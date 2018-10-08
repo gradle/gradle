@@ -33,7 +33,7 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
 
     @Override
     public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformation transformer) {
-        final List<ArtifactTransformationStep> transformerChain = unpackTransformerChain(transformer);
+        final List<ArtifactTransformationStep> transformerChain = unpackTransformation(transformer);
         final ImmutableList.Builder<TransformNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
             @Override
@@ -69,9 +69,9 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
         return transformNode;
     }
 
-    private static List<ArtifactTransformationStep> unpackTransformerChain(ArtifactTransformation transformer) {
+    private static List<ArtifactTransformationStep> unpackTransformation(ArtifactTransformation transformation) {
         final ImmutableList.Builder<ArtifactTransformationStep> builder = ImmutableList.builder();
-        transformer.visitTransformationSteps(new Action<ArtifactTransformation>() {
+        transformation.visitTransformationSteps(new Action<ArtifactTransformation>() {
             @Override
             public void execute(ArtifactTransformation transformer) {
                 builder.add((ArtifactTransformationStep) transformer);

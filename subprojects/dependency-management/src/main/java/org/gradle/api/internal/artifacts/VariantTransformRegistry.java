@@ -44,8 +44,8 @@ public interface VariantTransformRegistry {
         AttributeContainerInternal getTo();
 
         /**
-         * Transformer for artifacts of the variant.
+         * Transformation for artifacts of the variant.
          */
-        ArtifactTransformation getArtifactTransformer();
+        ArtifactTransformation getTransformation();
     }
 }

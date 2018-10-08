@@ -35,7 +35,7 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
 
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
-    private final ArtifactTransformationStep cachingTransformInvocation;
+    private final ArtifactTransformationStep transformation;
 
     public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator, TransformerInvoker transformerInvoker) {
         Hasher hasher = Hashing.newHasher();
@@ -52,14 +52,14 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
 
         paramsSnapshot.appendToHasher(hasher);
 
-        DefaultTransformer transformerRegistration = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiator);
-        return new DefaultTransformRegistration(from, to, new ArtifactTransformationStep(transformerRegistration, transformerInvoker));
+        Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiator);
+        return new DefaultTransformRegistration(from, to, new ArtifactTransformationStep(transformer, transformerInvoker));
     }
 
-    public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, ArtifactTransformationStep cachingTransformInvocation) {
+    public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, ArtifactTransformationStep transformation) {
         this.from = from;
         this.to = to;
-        this.cachingTransformInvocation = cachingTransformInvocation;
+        this.transformation = transformation;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
     }
 
     @Override
-    public ArtifactTransformation getArtifactTransformer() {
-        return cachingTransformInvocation;
+    public ArtifactTransformation getTransformation() {
+        return transformation;
     }
 }

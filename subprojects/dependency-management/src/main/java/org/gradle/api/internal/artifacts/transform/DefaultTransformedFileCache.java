@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.transform.TransformInvocationException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheBuilder;
@@ -120,25 +119,20 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> runTransformer(File primaryInput, Transformer transformer) {
+    public List<File> getResult(File primaryInput, Transformer transformer) {
         File absolutePrimaryInput = primaryInput.getAbsoluteFile();
-        try {
-            CacheKey cacheKey = getCacheKey(absolutePrimaryInput, transformer);
-            List<File> transformedFiles = resultHashToResult.get(cacheKey);
-            if (transformedFiles != null) {
-                return transformedFiles;
-            }
-            return loadIntoCache(absolutePrimaryInput, cacheKey, transformer);
-        } catch (Throwable t) {
-            throw new TransformInvocationException(absolutePrimaryInput, transformer.getImplementationClass(), t);
+        CacheKey cacheKey = getCacheKey(absolutePrimaryInput, transformer);
+        List<File> transformedFiles = resultHashToResult.get(cacheKey);
+        if (transformedFiles != null) {
+            return transformedFiles;
         }
+        return loadIntoCache(absolutePrimaryInput, cacheKey, transformer);
     }
 
-    /*
+    /**
      * Loads the transformed files from the file system cache into memory. Creates them if they are not present yet.
      * This makes sure that only one thread tries to load a result for a given key.
      */
-
     private List<File> loadIntoCache(final File inputFile, final CacheKey cacheKey, final BiFunction<List<File>, File, File> transformer) {
         return producing.guardByKey(cacheKey, new Factory<List<File>>() {
             @Override
