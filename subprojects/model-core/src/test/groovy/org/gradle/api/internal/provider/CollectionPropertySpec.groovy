@@ -274,7 +274,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     }
 
     def "queries values of provider on every call to get()"() {
-        def provider = Stub(Provider)
+        def provider = Stub(ProviderInternal)
         _ * provider.present >> true
         _ * provider.get() >>> [["abc"], ["def"]]
 
@@ -331,8 +331,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
 
     def "providers only called once per query"() {
         def valueProvider = Mock(ProviderInternal)
-        def addProvider = Mock(Provider)
-        def addAllProvider = Mock(Provider)
+        def addProvider = Mock(ProviderInternal)
+        def addAllProvider = Mock(ProviderInternal)
 
         given:
         property.set(valueProvider)

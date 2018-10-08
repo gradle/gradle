@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+
 import java.util.Collection;
 
-/**
- * This could move to the public API.
- */
 public interface Collector<T> {
     boolean present();
 
@@ -29,4 +28,6 @@ public interface Collector<T> {
     boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
 
     int size();
+
+    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 }

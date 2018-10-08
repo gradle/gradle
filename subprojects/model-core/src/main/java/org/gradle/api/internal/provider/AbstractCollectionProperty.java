@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.EmptyCollection;
 import org.gradle.api.internal.provider.Collectors.NoValueCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
@@ -61,7 +62,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        collectors.add(new ElementFromProvider<T>(providerOfElement));
+        collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
     @Override
@@ -76,7 +77,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        collectors.add(new ElementsFromCollectionProvider<T>(provider));
+        collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
     }
 
     @Nullable
@@ -88,6 +89,20 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public Class<T> getElementType() {
         return elementType;
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        boolean visitedAll = true;
+        if (!value.maybeVisitBuildDependencies(context)) {
+            visitedAll = false;
+        }
+        for (Collector<T> collector : collectors) {
+            if (!collector.maybeVisitBuildDependencies(context)) {
+                visitedAll = false;
+            }
+        }
+        return visitedAll;
     }
 
     @Override
@@ -155,7 +170,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
-        ProviderInternal<?> p = Providers.internal(provider);
+        ProviderInternal<? extends Iterable<? extends T>> p = Providers.internal(provider);
         if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
         }
@@ -166,7 +181,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             }
         }
         collectors.clear();
-        value = new ElementsFromCollectionProvider<T>(provider);
+        value = new ElementsFromCollectionProvider<T>(p);
     }
 
     @Override

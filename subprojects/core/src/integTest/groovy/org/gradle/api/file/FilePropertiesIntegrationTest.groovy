@@ -318,8 +318,6 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = ${inputFileMethod}
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
@@ -328,36 +326,30 @@ task useDirProviderApi {
                     def file = outputFile.asFile.get()
                     file.text = ""
                     file << inputFile.asFile.get().text
-                    inputFiles.each { file << ',' + it.text }
                 }
             }
             
-            task createFile1(type: FileOutputTask)
-            task createFile2(type: FileOutputTask)
+            task createFile(type: FileOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputFile = createFile1.outputFile
-                inputFiles.from(createFile2.outputFile)
+                inputFile = createFile.outputFile
             }
 
             // Set values lazily
-            createFile1.inputFile = layout.projectDirectory.file("file1-source.txt")
-            createFile1.outputFile = layout.buildDirectory.file("file1.txt")
-            createFile2.inputFile = layout.projectDirectory.file("file2-source.txt")
-            createFile2.outputFile = layout.buildDirectory.file("file2.txt")
+            createFile.inputFile = layout.projectDirectory.file("file-source.txt")
+            createFile.outputFile = layout.buildDirectory.file("file.txt")
             
             buildDir = "output"
 """
-        file("file1-source.txt").text = "file1"
-        file("file2-source.txt").text = "file2"
+        file("file-source.txt").text = "file1"
         expectDeprecated(deprecated)
 
         when:
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
-        file("output/merged.txt").text == 'file1,file2'
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
@@ -366,12 +358,12 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
 
         when:
-        file("file1-source.txt").text = "new-file1"
+        file("file-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createFile1", ":merge")
-        file("output/merged.txt").text == 'new-file1,file2'
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'new-file1'
 
         where:
         outputFileMethod                 | inputFileMethod                  | deprecated
@@ -386,8 +378,6 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
@@ -396,33 +386,23 @@ task useDirProviderApi {
                     def file = outputFile.asFile.get()
                     file.text = ""
                     file << inputFile.asFile.get().text
-                    inputFiles.each { file << ',' + it.text }
                 }
             }
             
-            task createFile1 {
+            task createFile {
                 ext.outputFile = ${outputFileMethod}
                 outputs.file(outputFile)
                 doLast {
                     outputFile.get().asFile.text = 'file1'
                 }
             }
-            task createFile2 {
-                ext.outputFile = ${outputFileMethod}
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.get().asFile.text = 'file2'
-                }
-            }
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputFile = createFile1.outputFile
-                inputFiles.from(createFile2.outputFile)
+                inputFile = createFile.outputFile
             }
 
             // Set values lazily
-            createFile1.outputFile.set(layout.buildDirectory.file("file1.txt"))
-            createFile2.outputFile.set(layout.buildDirectory.file("file2.txt"))
+            createFile.outputFile.set(layout.buildDirectory.file("file.txt"))
             
             buildDir = "output"
 """
@@ -432,8 +412,8 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
-        file("output/merged.txt").text == 'file1,file2'
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
@@ -468,44 +448,37 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputDirectory
                 final DirectoryProperty inputDir = ${inputDirMethod}
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
-                    file.text = (inputDir.asFile.get().listFiles() + inputFiles.files)*.text.join(',')
+                    file.text = inputDir.asFile.get().listFiles()*.text.join(',')
                 }
             }
 
-            task createDir1(type: DirOutputTask)
-            task createDir2(type: DirOutputTask)
+            task createDir(type: DirOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputDir = createDir1.outputDir
-                inputFiles.from(createDir2.outputDir.asFileTree)
+                inputDir = createDir.outputDir
             }
 
             // Set values lazily
-            createDir1.inputFile = layout.projectDirectory.file("dir1-source.txt")
-            createDir1.outputDir = layout.buildDirectory.dir("dir1")
-            createDir2.inputFile = layout.projectDirectory.file("dir2-source.txt")
-            createDir2.outputDir = layout.buildDirectory.dir("dir2")
+            createDir.inputFile = layout.projectDirectory.file("dir-source.txt")
+            createDir.outputDir = layout.buildDirectory.dir("dir")
 
             buildDir = "output"
 """
-        file("dir1-source.txt").text = "dir1"
-        file("dir2-source.txt").text = "dir2"
+        file("dir-source.txt").text = "dir1"
 
         when:
         expectDeprecated(deprecated)
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
-        file("output/merged.txt").text == 'dir1,dir2'
+        result.assertTasksExecuted(":createDir", ":merge")
+        file("output/merged.txt").text == 'dir1'
 
         when:
         run("merge")
@@ -514,12 +487,12 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
 
         when:
-        file("dir1-source.txt").text = "new-dir1"
+        file("dir-source.txt").text = "new-dir1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createDir1", ":merge")
-        file("output/merged.txt").text == 'new-dir1,dir2'
+        result.assertTasksNotSkipped(":createDir", ":merge")
+        file("output/merged.txt").text == 'new-dir1'
 
         where:
         outputDirMethod                       | inputDirMethod                        | deprecated
@@ -534,41 +507,30 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputDirectory
                 final DirectoryProperty inputDir = project.objects.directoryProperty()
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
-                    file.text = (inputDir.asFile.get().listFiles() + inputFiles.files)*.text.join(',')
+                    file.text = inputDir.asFile.get().listFiles()*.text.join(',')
                 }
             }
 
-            task createDir1 {
+            task createDir {
                 ext.outputDir = ${outputDirMethod}
                 outputs.dir(outputDir)
                 doLast {
                     new File(outputDir.get().asFile, "file.txt").text = "dir1"
                 }
             }
-            task createDir2 {
-                ext.outputDir = ${outputDirMethod}
-                outputs.dir(outputDir)
-                doLast {
-                    new File(outputDir.get().asFile, "file.txt").text = "dir2"
-                }
-            }
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputDir = createDir1.outputDir
-                inputFiles.from(createDir2.outputDir.asFileTree)
+                inputDir = createDir.outputDir
             }
 
             // Set values lazily
-            createDir1.outputDir.set(layout.buildDirectory.dir("dir1"))
-            createDir2.outputDir.set(layout.buildDirectory.dir("dir2"))
+            createDir.outputDir.set(layout.buildDirectory.dir("dir1"))
 
             buildDir = "output"
 """
@@ -578,8 +540,8 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
-        file("output/merged.txt").text == 'dir1,dir2'
+        result.assertTasksExecuted(":createDir", ":merge")
+        file("output/merged.txt").text == 'dir1'
 
         when:
         run("merge")
