@@ -36,8 +36,6 @@ dependencies {
     implementation(library("commons_lang"))
 
     testImplementation(project(":internalTesting"))
-
-    val testFixturesImplementation by configurations
     testFixturesImplementation(project(":internalTesting"))
 }
 
