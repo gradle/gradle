@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -57,11 +58,29 @@ public class ExecHandleRunner implements Runnable {
             aborted = true;
             if (process != null) {
                 streamsHandler.disconnect();
-                LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
-                process.destroy();
+                destroyProcess();
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void destroyProcess() {
+        LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
+        process.destroy();
+        boolean interrupted = Thread.interrupted();
+        boolean destroyed;
+        try {
+            destroyed = process.waitFor(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            interrupted = true;
+            destroyed = false;
+        }
+        if (!destroyed) {
+            process.destroyForcibly();
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
         }
     }
 
