@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.tooling.r40
 
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -30,12 +30,12 @@ import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.util.TestPrecondition.*
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@IntegrationTestTimeout(300)
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
@@ -44,15 +44,31 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
         import org.gradle.workers.*
+        import java.net.URLClassLoader
+        import java.net.URL
+        import org.gradle.internal.classloader.ClasspathUtil
+        
         class TestRunnable implements Runnable {
             @Override public void run() {
                 // Do nothing
             }
         }
+        
+        // Set up a simpler classloader that only contains what TestRunnable needs.
+        // This can be removed when the issues with long classpaths have been resolved.
+        // See https://github.com/gradle/gradle-private/issues/1486
+        ClassLoader cl = new URLClassLoader(
+            ClasspathUtil.getClasspath(TestRunnable.class.classLoader).asURLs.findAll { url ->
+                ["scripts-remapped", "groovy-all"].any { url.toString().contains(it) }
+            } as URL[]
+        )
+        
+        def testRunnable = cl.loadClass("TestRunnable")
+        
         task runInProcess {
             doLast {
                 def workerExecutor = services.get(WorkerExecutor)
-                workerExecutor.submit(TestRunnable) { config ->
+                workerExecutor.submit(testRunnable) { config ->
                     config.isolationMode = IsolationMode.NONE
                     config.displayName = 'My in-process worker action'
                 }
@@ -61,7 +77,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         task runForked {
             doLast {
                 def workerExecutor = services.get(WorkerExecutor)
-                workerExecutor.submit(TestRunnable) { config ->
+                workerExecutor.submit(testRunnable) { config ->
                     config.isolationMode = IsolationMode.PROCESS
                     config.displayName = 'My forked worker action'
                 }
@@ -74,6 +90,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
+                    .setStandardOutput(System.out)
                     .forTasks('runInProcess', 'runForked')
                     .addProgressListener(events)
                     .run()
@@ -125,18 +142,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def applyRootBuildScript = configureRoot.child("Apply script build.gradle to root project 'multi'")
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compile")
-        def resolveArtifactsInRoot = applyRootBuildScript.child("Resolve files of :compile")
-        resolveArtifactsInRoot.child("Resolve a.jar (project :a)")
+        applyRootBuildScript.child("Resolve files of :compile")
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child("Apply script build.gradle to project ':a'")
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compile")
-        def resolveArtifactsInProjectA = applyProjectABuildScript.child("Resolve files of :a:compile")
-        resolveArtifactsInProjectA.child("Resolve b.jar (project :b)")
+        applyProjectABuildScript.child("Resolve files of :a:compile")
 
         resolveCompileA.child("Configure project :b")
     }
 
-    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -199,7 +213,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         def resolveArtifacts = applyBuildScript.child("Resolve files of :compile")
-        resolveArtifacts.child("Resolve a.jar (project :a)").children.isEmpty()
 
         resolveArtifacts.child("Resolve projectB.jar (group:projectB:1.0)")
             .child "Download http://localhost:${server.port}${projectB.artifactPath}"
@@ -207,11 +220,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifacts.child("Resolve projectC.jar (group:projectC:1.5)")
             .child "Download http://localhost:${server.port}${projectC.artifactPath}"
 
-        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)")
+        resolveArtifacts.child("Resolve projectD.jar (group:projectD:2.0-SNAPSHOT)", "Resolve projectD.jar (group:projectD:2.0-SNAPSHOT:${projectD.uniqueSnapshotVersion})")
             .child "Download http://localhost:${server.port}${projectD.artifactPath}"
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     def "generates events for applied init-scripts"() {
@@ -284,7 +294,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        events.operation('Configure project :').children.size() == 1 //only 'Apply plugin org.gradle.help-tasks'
+        events.operation('Configure project :').children.size() <= 5 //only 'Apply plugin org.gradle.help-tasks', maybe before/afterEvaluated and 2 delayed task registrations
     }
 
     def "generates events for applied script plugins"() {
@@ -356,7 +366,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+    @Requires([KOTLIN_SCRIPT])
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')
@@ -391,8 +401,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
+    @TargetGradleVersion(">=4.0 <4.7")
     @Issue("gradle/gradle#1641")
-    @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -451,9 +461,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         orphans[1].child "Download ${module.rootMetaData.sha1.uri}"
         orphans[2].child "Download ${module.rootMetaData.uri}"
         orphans[3].child "Download ${module.rootMetaData.sha1.uri}"
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     MavenHttpRepository getMavenHttpRepo() {

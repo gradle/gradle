@@ -17,15 +17,12 @@
 package org.gradle.integtests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
@@ -151,16 +148,16 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
     }
 
     def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
@@ -175,10 +172,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
     }
 
     def "warns about using basic authentication over insecure connection"() {
@@ -187,10 +184,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('Please consider using HTTPS')
+        outputContains('Please consider using HTTPS')
     }
 
     def "does not warn about using basic authentication over secure connection"() {
@@ -207,10 +204,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        !result.output.contains('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
+        outputDoesNotContain('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
     }
 
     def "does not leak basic authentication credentials in output"() {
@@ -222,8 +219,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        !result.output.contains('changeit')
-        !result.error.contains('changeit')
+        result.assertNotOutput('changeit')
     }
 
     def "does not leak basic authentication credentials in exception messages"() {
@@ -257,29 +253,12 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
 
         and:
         proxyServer.requestCount == 1
-    }
-
-    @Requires(adhoc = { !AvailableJavaHomes.getJdks("1.5").empty })
-    @Unroll
-    def "provides reasonable failure message when attempting to download authenticated distribution under java #jdk.javaVersion()"() {
-        given:
-        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-
-        and:
-        wrapperExecuter.withJavaHome(jdk.javaHome)
-
-        expect:
-        def failure = wrapperExecuter.withTasks('help').withStackTraceChecksDisabled().runWithFailure()
-        failure.error.contains('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
-
-        where:
-        jdk << AvailableJavaHomes.getJdks("1.5")
     }
 }

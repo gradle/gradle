@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.GradleException;
-import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -29,15 +29,16 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.ArrayList;
@@ -48,23 +49,17 @@ import java.util.List;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
-    private final TaskOutputsGenerationListener outputsGenerationListener;
-    private final TaskActionListener listener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
+    private final BuildCancellationToken buildCancellationToken;
 
-    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
-        this.outputsGenerationListener = outputsGenerationListener;
-        this.listener = taskActionListener;
+    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildCancellationToken buildCancellationToken) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
+        this.buildCancellationToken = buildCancellationToken;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        listener.beforeActions(task);
-        if (!task.getTaskActions().isEmpty()) {
-            outputsGenerationListener.beforeTaskOutputsGenerated();
-        }
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state, context);
@@ -75,10 +70,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
-            context.getTaskArtifactState().snapshotAfterTaskExecution(failure);
         } finally {
             state.setExecuting(false);
-            listener.afterActions(task);
         }
     }
 
@@ -90,6 +83,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             task.getStandardOutputCapture().start();
             try {
                 executeAction(action.getDisplayName(), task, action, context);
+                if (buildCancellationToken.isCancellationRequested()) {
+                    return new BuildCancelledException("Build cancelled during task: " + task.getName());
+                }
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -110,12 +106,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getPath()).name(actionDisplayName);
+                return BuildOperationDescriptor.displayName(actionDisplayName + " for " + task.getIdentityPath().getPath()).name(actionDisplayName);
             }
 
             @Override
             public void run(BuildOperationContext context) {
-                BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
+                BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
                 Throwable actionFailure = null;
                 try {
                     action.execute(task);

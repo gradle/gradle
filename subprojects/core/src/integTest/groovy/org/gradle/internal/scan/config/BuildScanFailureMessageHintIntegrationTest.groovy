@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scan.config
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,12 +26,13 @@ import spock.lang.Unroll
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.BUILD_SCAN_ERROR_MESSAGE_HINT
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.StacktraceOption
 
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
-class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec {
+class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrationTest {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]
@@ -47,8 +48,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
         succeeds(DUMMY_TASK_NAME)
 
         then:
-        !output.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
-        errorOutput.isEmpty()
+        result.assertNotOutput(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     @Unroll
@@ -60,8 +60,8 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
         fails(DUMMY_TASK_ONLY + options as String[])
 
         then:
-        !output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertNotOutput(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         options                                             | description
@@ -85,7 +85,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -104,7 +104,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -125,7 +125,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -148,7 +148,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING) == buildScanPublished
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
 
         where:
         tasks                     | buildScanPublished
@@ -168,7 +168,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
 
         then:
         output.contains(BUILD_SCAN_SUCCESSFUL_PUBLISHING)
-        errorOutput.contains(BUILD_SCAN_ERROR_MESSAGE_HINT)
+        failure.assertHasResolution(BUILD_SCAN_ERROR_MESSAGE_HINT)
     }
 
     static String failingBuildFile() {
@@ -224,7 +224,7 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractIntegrationSpec
     private static String buildScanRepositoryAndDependency() {
         """
             repositories {
-                maven { url "https://plugins.gradle.org/m2/" }
+                ${gradlePluginRepositoryDefinition()}
             }
 
             dependencies {

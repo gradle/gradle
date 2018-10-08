@@ -24,9 +24,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>projects</td>
-            </tr>
-            <tr>
                 <td>solutionFile</td>
             </tr>
         </table>

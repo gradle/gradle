@@ -1,0 +1,30 @@
+// tag::mkdir-example[]
+task ensureDirectory {
+    doLast {
+        mkdir "images"
+    }
+}
+// end::mkdir-example[]
+
+// tag::move-example[]
+task moveReports {
+    doLast {
+        ant.move file: "${buildDir}/reports",
+                 todir: "${buildDir}/toArchive"
+    }
+}
+// end::move-example[]
+
+// tag::delete-example[]
+task myClean(type: Delete) {
+    delete buildDir
+}
+// end::delete-example[]
+
+// tag::delete-with-filter-example[]
+task cleanTempFiles(type: Delete) {
+    delete fileTree("src").matching {
+        include "**/*.tmp"
+    }
+}
+// end::delete-with-filter-example[]

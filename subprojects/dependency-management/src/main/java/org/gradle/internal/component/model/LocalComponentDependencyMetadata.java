@@ -16,49 +16,61 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.GUtil;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata implements LocalOriginDependencyMetadata {
+public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
+    private final ComponentIdentifier componentId;
     private final ComponentSelector selector;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
-    private final List<Exclude> excludes;
-    private final Set<IvyArtifactName> artifactNames;
+    private final List<ExcludeMetadata> excludes;
+    private final ImmutableList<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
+    private final boolean constraint;
+    private final String reason;
 
     private final AttributeContainer moduleAttributes;
+    private final ImmutableAttributes dependencyAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentSelector selector,
+    public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
+                                            ComponentSelector selector,
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
+                                            AttributeContainer dependencyAttributes,
                                             String dependencyConfiguration,
-                                            Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
-                                            boolean force, boolean changing, boolean transitive) {
+                                            List<IvyArtifactName> artifactNames,
+                                            List<ExcludeMetadata> excludes,
+                                            boolean force, boolean changing, boolean transitive, boolean constraint,
+                                            String reason) {
+        this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
+        this.dependencyAttributes = ((AttributeContainerInternal)dependencyAttributes).asImmutable();
         this.dependencyConfiguration = dependencyConfiguration;
-        this.artifactNames = artifactNames;
+        this.artifactNames = ImmutableList.copyOf(artifactNames);
         this.excludes = excludes;
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
+        this.constraint = constraint;
+        this.reason = reason;
     }
 
     @Override
@@ -81,49 +93,51 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
         return getOrDefaultConfiguration(dependencyConfiguration);
     }
 
+    private static String getOrDefaultConfiguration(String configuration) {
+        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+    }
+
+    /**
+     * Choose a single target configuration based on: a) the consumer attributes, b) the target configuration name and c) the target component
+     *
+     * Use attribute matching to choose a single variant when:
+     *   - The target configuration name is not specified AND
+     *   - Either: we have consumer attributes OR the target component has variants.
+     *
+     * Otherwise, revert to legacy selection of target configuration.
+     *
+     * @return A List containing a single `ConfigurationMetadata` representing the target variant.
+     */
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || !consumableConfigurations.isEmpty());
+        Optional<ImmutableList<? extends ConfigurationMetadata>> targetVariants = targetComponent.getVariantsForGraphTraversal();
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || targetVariants.isPresent());
         if (useConfigurationAttributes) {
-            return ImmutableSet.of(selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
+            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
         }
 
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
         ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(componentId, moduleConfiguration, targetConfiguration, targetComponent.getId());
         }
         if (!toConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
         }
         if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
             // need to validate that the selected configuration still matches the consumer attributes
+            // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration);
+                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, targetVariants.isPresent());
             }
         }
-        return ImmutableSet.of(toConfiguration);
-    }
-
-    private static String getOrDefaultConfiguration(String configuration) {
-        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+        return ImmutableList.of(toConfiguration);
     }
 
     @Override
-    public Set<String> getModuleConfigurations() {
-        return ImmutableSet.of(getOrDefaultConfiguration(moduleConfiguration));
-    }
-
-    @Override
-    public List<Exclude> getExcludes() {
-        return excludes;
-    }
-
-    @Override
-    public List<Exclude> getExcludes(Collection<String> configurations) {
+    public List<ExcludeMetadata> getExcludes() {
         return excludes;
     }
 
@@ -143,24 +157,17 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
     }
 
     @Override
-    public boolean isOptional() {
-        return false;
+    public boolean isConstraint() {
+        return constraint;
     }
 
     @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
-        if (artifactNames.isEmpty()) {
-            return Collections.emptySet();
-        }
-        Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
-        for (IvyArtifactName artifactName : artifactNames) {
-            artifacts.add(toConfiguration.artifact(artifactName));
-        }
-        return artifacts;
+    public String getReason() {
+        return reason;
     }
 
     @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
 
@@ -172,7 +179,32 @@ public class LocalComponentDependencyMetadata extends AbstractDependencyMetadata
         return copyWithTarget(target);
     }
 
-    private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+    @Override
+    public LocalOriginDependencyMetadata forced() {
+        if (force) {
+            return this;
+        }
+        return copyWithForce(true);
     }
+
+    @Override
+    public DependencyMetadata withReason(String reason) {
+        if (Objects.equal(reason, this.reason)) {
+            return this;
+        }
+        return copyWithReason(reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithReason(String reason) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithForce(boolean force) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, reason);
+    }
+
 }

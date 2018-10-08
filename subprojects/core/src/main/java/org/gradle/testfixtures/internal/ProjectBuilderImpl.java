@@ -18,9 +18,15 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -28,14 +34,19 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -45,13 +56,16 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
+import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collections;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -59,12 +73,13 @@ public class ProjectBuilderImpl {
 
     public Project createChildProject(String name, Project parent, File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
+        projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
         DefaultProject project = CLASS_GENERATOR.newInstance(
             DefaultProject.class,
             name,
             parentProject,
-            (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
-            null,
+            projectDir,
+            new File(projectDir, "build.gradle"),
             new StringScriptSource("test build file", null),
             parentProject.getGradle(),
             parentProject.getGradle().getServiceRegistryFactory(),
@@ -73,6 +88,10 @@ public class ProjectBuilderImpl {
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
+
+        BuildState build = project.getServices().get(BuildStateRegistry.class).getBuild(DefaultBuildIdentifier.ROOT);
+        project.getServices().get(ProjectStateRegistry.class).register(build, project);
+
         return project;
     }
 
@@ -88,16 +107,25 @@ public class ProjectBuilderImpl {
         NativeServices.initialize(userHomeDir);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(getUserHomeServices(userHomeDir), startParameter, buildRequestMetaData, ClassPath.EMPTY);
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(getGlobalServices(), startParameter);
+        ServiceRegistry userHomeServices = getUserHomeServices(userHomeDir);
+        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken());
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
+        TestBuildScopeServices topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
+        TestRootBuild build = new TestRootBuild();
+        topLevelRegistry.add(BuildState.class, build);
+
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
+        gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
             topLevelRegistry.get(FileResolver.class));
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
+
+        project.getServices().get(BuildStateRegistry.class).register(build);
+        project.getServices().get(ProjectStateRegistry.class).register(build, project);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
@@ -125,9 +153,6 @@ public class ProjectBuilderImpl {
                 .parent(NativeServices.getInstance())
                 .provider(new TestGlobalScopeServices())
                 .build();
-            // Registers a logger that will otherwise be registered when resolving dependencies with the ProjectBuilder
-            // Without this, ProjectBuilder will fail to resolve dependencies with a strange "Logging operation was not started" error
-            globalServices.get(GradleLauncherFactory.class);
             // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
             // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
             // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
@@ -149,5 +174,51 @@ public class ProjectBuilderImpl {
             projectDir = FileUtils.canonicalize(projectDir);
         }
         return projectDir;
+    }
+
+    private static class TestRootBuild extends AbstractBuildState {
+        @Override
+        public BuildIdentifier getBuildIdentifier() {
+            return DefaultBuildIdentifier.ROOT;
+        }
+
+        @Override
+        public Path getIdentityPath() {
+            return Path.ROOT;
+        }
+
+        @Override
+        public boolean isImplicitBuild() {
+            return false;
+        }
+
+        @Override
+        public SettingsInternal getLoadedSettings() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NestedBuildFactory getNestedBuildFactory() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Path getCurrentPrefixForProjectsInChildBuilds() {
+            return Path.ROOT;
+        }
+
+        @Override
+        public Path getIdentityPathForProject(Path projectPath) {
+            return projectPath;
+        }
+
+        @Override
+        public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
+            String name = projectPath.getName();
+            if (name == null) {
+                name = "root";
+            }
+            return new DefaultProjectComponentIdentifier(getBuildIdentifier(), projectPath, projectPath, name);
+        }
     }
 }

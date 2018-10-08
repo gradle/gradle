@@ -1,4 +1,0 @@
-
-// START SNIPPET include-projects
-include "shared", "api", "services:webservice", "services:shared"
-// END SNIPPET include-projects

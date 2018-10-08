@@ -15,8 +15,10 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+import java.util.UUID;
+
 public class Stop extends Command {
-    public Stop(Object identifier, byte[] token) {
+    public Stop(UUID identifier, byte[] token) {
         super(identifier, token);
     }
 }

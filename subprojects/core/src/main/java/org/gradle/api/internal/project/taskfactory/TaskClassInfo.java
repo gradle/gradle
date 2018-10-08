@@ -21,16 +21,12 @@ import com.google.common.collect.ImmutableList;
 public class TaskClassInfo {
     private final boolean incremental;
     private final ImmutableList<TaskActionFactory> taskActionFactories;
-    private final TaskClassValidator validator;
+    private final boolean cacheable;
 
-    public TaskClassInfo(boolean incremental, ImmutableList<TaskActionFactory> taskActionFactories, TaskClassValidator validator) {
+    public TaskClassInfo(boolean incremental, ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable) {
         this.incremental = incremental;
         this.taskActionFactories = taskActionFactories;
-        this.validator = validator;
-    }
-
-    public TaskClassValidator getValidator() {
-        return validator;
+        this.cacheable = cacheable;
     }
 
     public ImmutableList<TaskActionFactory> getTaskActionFactories() {
@@ -42,6 +38,6 @@ public class TaskClassInfo {
     }
 
     public boolean isCacheable() {
-        return validator.isCacheable();
+        return cacheable;
     }
 }

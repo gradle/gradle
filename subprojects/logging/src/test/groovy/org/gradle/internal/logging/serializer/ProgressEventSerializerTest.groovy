@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.logging.serializer
 
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressEvent
 import spock.lang.Subject
 

@@ -34,7 +34,6 @@ public interface ProjectConfigurer {
      */
     void configureHierarchy(ProjectInternal project);
 
-
     /*
      * Configures the project and all of its sub-projects, including task discovery and binding model rules.
      */

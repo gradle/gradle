@@ -17,9 +17,11 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.resources.TextResource;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,7 +38,7 @@ public class PmdExtension extends CodeQualityExtension {
     private TargetJdk targetJdk;
     private int rulePriority = 5;
     private TextResource ruleSetConfig;
-    private FileCollection ruleSetFiles;
+    private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
 
     public PmdExtension(Project project) {
@@ -44,18 +46,18 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.7.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["basic", "braces"]
+     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      */
     public List<String> getRuleSets() {
         return ruleSets;
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.7.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["basic", "braces"]
+     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
@@ -64,7 +66,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Convenience method for adding rule sets.
      *
-     * Example: ruleSets "basic", "braces"
+     * Example: ruleSets "category/java/errorprone.xml", "category/java/bestpractices.xml"
      *
      * @param ruleSets the rule sets to be added
      */
@@ -131,6 +133,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
+    @Nullable
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -145,7 +148,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setRuleSetConfig(TextResource ruleSetConfig) {
+    public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
 
@@ -164,7 +167,7 @@ public class PmdExtension extends CodeQualityExtension {
      * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = ruleSetFiles;
+        this.ruleSetFiles = project.getLayout().configurableFiles(ruleSetFiles);
     }
 
     /**
@@ -175,7 +178,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @param ruleSetFiles the rule set files to be added
      */
     public void ruleSetFiles(Object... ruleSetFiles) {
-        this.ruleSetFiles.add(project.files(ruleSetFiles));
+        this.ruleSetFiles.from(ruleSetFiles);
     }
 
     /**

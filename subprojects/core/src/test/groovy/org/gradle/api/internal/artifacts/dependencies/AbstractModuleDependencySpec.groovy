@@ -19,7 +19,10 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.util.TestUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
@@ -32,7 +35,11 @@ abstract class AbstractModuleDependencySpec extends Specification {
     }
 
     protected ExternalModuleDependency createDependency(String group, String name, String version) {
-        createDependency(group, name, version, null)
+        def dependency = createDependency(group, name, version, null)
+        if (dependency instanceof AbstractModuleDependency) {
+            dependency.attributesFactory = TestUtil.attributesFactory()
+        }
+        dependency
     }
 
     protected abstract ExternalModuleDependency createDependency(String group, String name, String version, String configuration);
@@ -43,11 +50,14 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.name == "gradle-core"
         dependency.version == "4.4-beta2"
         dependency.versionConstraint.preferredVersion == "4.4-beta2"
+        dependency.versionConstraint.requiredVersion == "4.4-beta2"
+        dependency.versionConstraint.strictVersion == ""
         dependency.versionConstraint.rejectedVersions == []
         dependency.transitive
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
         dependency.targetConfiguration == null
+        dependency.attributes == ImmutableAttributes.EMPTY
     }
 
     def "cannot create with null name"() {
@@ -57,6 +67,18 @@ abstract class AbstractModuleDependencySpec extends Specification {
         then:
         def e = thrown InvalidUserDataException
         e.message == "Name must not be null!"
+    }
+
+    def "cannot request artifact with null name"() {
+        when:
+        def dep = createDependency("group", "name", "version")
+        dep.artifact {
+            classifier = 'test'
+        }
+
+        then:
+        def e = thrown InvalidUserDataException
+        e.message == "Artifact name must not be null!"
     }
 
     void "can exclude dependencies"() {
@@ -87,8 +109,36 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.artifacts.contains(artifact2)
     }
 
+    void "can set attributes"() {
+        def attr1 = Attribute.of("attr1", String)
+        def attr2 = Attribute.of("attr2", Integer)
+
+        when:
+        dependency.attributes {
+            it.attribute(attr1, 'foo')
+            it.attribute(attr2, 123)
+        }
+
+        then:
+        dependency.attributes.keySet() == [attr1, attr2] as Set
+        dependency.attributes.getAttribute(attr1) == 'foo'
+        dependency.attributes.getAttribute(attr2) == 123
+    }
+
     void "knows if is equal to"() {
-        expect:
+        when:
+        def dep1 = createDependency("group1", "name1", "version1")
+        def dep2 = createDependency("group1", "name1", "version1")
+        def attr1 = Attribute.of("attr1", String)
+        def attr2 = Attribute.of("attr2", Integer)
+        dep1.attributes {
+            it.attribute(attr1, 'foo')
+        }
+        dep2.attributes {
+            it.attribute(attr2, 123)
+        }
+
+        then:
         createDependency("group1", "name1", "version1") == createDependency("group1", "name1", "version1")
         createDependency("group1", "name1", "version1").hashCode() == createDependency("group1", "name1", "version1").hashCode()
         createDependency("group1", "name1", "version1") != createDependency("group1", "name1", "version2")
@@ -96,6 +146,9 @@ abstract class AbstractModuleDependencySpec extends Specification {
         createDependency("group1", "name1", "version1") != createDependency("group2", "name1", "version1")
         createDependency("group1", "name1", "version1") != createDependency("group2", "name1", "version1")
         createDependency("group1", "name1", "version1", "depConf1") != createDependency("group1", "name1", "version1", "depConf2")
+
+        dep1 != dep2
+
     }
 
     def "creates deep copy"() {
@@ -113,7 +166,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assertDeepCopy(dependency, copy)
     }
 
-    public static void assertDeepCopy(ModuleDependency dependency, ModuleDependency copiedDependency) {
+    static void assertDeepCopy(ModuleDependency dependency, ModuleDependency copiedDependency) {
         assert copiedDependency.group == dependency.group
         assert copiedDependency.name == dependency.name
         assert copiedDependency.version == dependency.version
@@ -121,6 +174,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.transitive == dependency.transitive
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules
+        assert copiedDependency.attributes == dependency.attributes
 
         assert !copiedDependency.artifacts.is(dependency.artifacts)
         assert !copiedDependency.excludeRules.is(dependency.excludeRules)

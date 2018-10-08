@@ -21,13 +21,14 @@ import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrat
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
-    PlayApp playApp = new BasicPlayApp()
+    PlayApp playApp = new BasicPlayApp(versionNumber)
 
     def setup() {
         buildFile << """
             model {
                 tasks.runPlayBinary {
                     httpPort = 0
+                    ${java9AddJavaSqlModuleArgs()}
                 }
             }
         """

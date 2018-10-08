@@ -41,6 +41,8 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <li>{@link org.gradle.api.tasks.bundling.AbstractArchiveTask}. The information for publishing the artifact is extracted from the archive task (e.g. name, extension, ...). The task will be executed if the artifact is required.</li>
  *
+ * <li>A {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}.</li>
+ *
  * <li>A {@link org.gradle.api.provider.Provider} of {@link java.io.File}, {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}. The information for publishing the artifact is extracted from the file or directory name. When the provider represents an output of a particular task, that task will be executed if the artifact is required.</li>
  *
  * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name.</li>

@@ -21,13 +21,13 @@ import com.google.common.collect.Lists;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-abstract public class AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
-    private final List<VisualStudioMetadata> installs = Lists.newArrayList();
+public abstract class AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
+    private final List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
     private boolean initialized;
 
     @Nonnull
     @Override
-    public List<VisualStudioMetadata> getVisualStudioInstalls() {
+    public List<VisualStudioInstallCandidate> getVisualStudioInstalls() {
         if (!initialized) {
             installs.addAll(locateInstalls());
             initialized = true;
@@ -36,5 +36,5 @@ abstract public class AbstractVisualStudioVersionLocator implements VisualStudio
         return installs;
     }
 
-    protected abstract List<VisualStudioMetadata> locateInstalls();
+    protected abstract List<VisualStudioInstallCandidate> locateInstalls();
 }

@@ -17,7 +17,7 @@ package org.gradle.language.cpp.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.language.cpp.internal.DefaultCppCompileSpec;
+import org.gradle.language.cpp.tasks.internal.DefaultCppCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 

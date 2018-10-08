@@ -35,6 +35,6 @@ public class JvmVersionValidator {
         }
 
         JavaVersion javaVersion = versionDetector.getJavaVersion(parameters.getEffectiveJvm());
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7, javaVersion);
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8, javaVersion);
     }
 }

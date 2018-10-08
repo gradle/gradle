@@ -16,8 +16,6 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -28,7 +26,6 @@ import java.util.List;
  * @see GradleRunner#build()
  * @see GradleRunner#buildAndFail()
  */
-@Incubating
 public interface BuildResult {
 
     /**

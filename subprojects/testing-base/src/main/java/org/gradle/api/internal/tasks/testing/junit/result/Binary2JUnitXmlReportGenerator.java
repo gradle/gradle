@@ -26,7 +26,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;

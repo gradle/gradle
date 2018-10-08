@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.buildevents;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
@@ -24,6 +23,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -36,12 +36,15 @@ import org.gradle.util.TreeVisitor;
 
 import java.util.List;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * A {@link org.gradle.BuildListener} which reports the build exception, if any.
  */
-public class BuildExceptionReporter extends BuildAdapter implements Action<Throwable> {
+public class BuildExceptionReporter extends InternalBuildAdapter implements Action<Throwable> {
     private enum ExceptionStyle {
         NONE, FULL
     }
@@ -67,23 +70,22 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
     public void execute(Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
-            renderMultipleBuildExceptions((MultipleBuildFailures) failure);
+            List<? extends Throwable> flattenedFailures = ((MultipleBuildFailures) failure).getCauses();
+            renderMultipleBuildExceptions(failure.getMessage(), flattenedFailures);
             return;
         }
 
         renderSingleBuildException(failure);
     }
 
-    private void renderMultipleBuildExceptions(MultipleBuildFailures multipleFailures) {
-        List<? extends Throwable> causes = multipleFailures.getCauses();
-
+    private void renderMultipleBuildExceptions(String message, List<? extends Throwable> flattenedFailures) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
-        output.withStyle(Failure).format("FAILURE: Build completed with %s failures.", causes.size());
+        output.withStyle(Failure).format("FAILURE: %s", message);
         output.println();
 
-        for (int i = 0; i < causes.size(); i++) {
-            Throwable cause = causes.get(i);
+        for (int i = 0; i < flattenedFailures.size(); i++) {
+            Throwable cause = flattenedFailures.get(i);
             FailureDetails details = constructFailureDetails("Task", cause);
 
             output.println();
@@ -213,7 +215,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
     private void writeGeneralTips(StyledTextOutput resolution) {
         resolution.println();
-        resolution.text("* Get more help at https://help.gradle.org");
+        resolution.text("* Get more help at ");
+        resolution.withStyle(UserInput).text("https://help.gradle.org");
         resolution.println();
     }
 

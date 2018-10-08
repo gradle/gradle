@@ -17,12 +17,14 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.ExtensibleDynamicObject;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -32,13 +34,14 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
-import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -46,10 +49,10 @@ import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.gradle.util.NameValidator.asValidName;
-
-public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
+public class DefaultSettings extends AbstractPluginAware implements SettingsInternal, DynamicObjectAware {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
     private ScriptSource settingsScript;
 
@@ -63,10 +66,14 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     private GradleInternal gradle;
 
+    private final ExtensibleDynamicObject extensibleDynamicObject;
+
     private final ClassLoaderScope settingsClassLoaderScope;
     private final ClassLoaderScope buildRootClassLoaderScope;
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
+
+    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, ScriptHandler settingsScriptHandler,
@@ -79,7 +86,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         this.startParameter = startParameter;
         this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, asValidName(settingsDir.getName()), settingsDir);
+        this.extensibleDynamicObject = new ExtensibleDynamicObject(this, DefaultSettings.class, services.get(Instantiator.class));
+        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
     @Override
@@ -89,6 +97,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     public GradleInternal getGradle() {
         return gradle;
+    }
+
+    @Override
+    public List<IncludedBuildSpec> getIncludedBuilds() {
+        return includedBuildSpecs;
     }
 
     public Settings getSettings() {
@@ -101,7 +114,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver());
     }
 
     public DefaultProjectDescriptor findProject(String path) {
@@ -214,7 +227,13 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(
+            getFileResolver(),
+            getScriptPluginFactory(),
+            getScriptHandlerFactory(),
+            getRootClassLoaderScope(),
+            getResourceLoader(),
+            this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -227,11 +246,6 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     protected ServiceRegistry getServices() {
         return services;
-    }
-
-    @Inject
-    protected ScriptFileResolver getScriptFileResolver() {
-        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -255,16 +269,6 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Inject
-    protected IncludedBuildRegistry getIncludedBuildRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected NestedBuildFactory getNestedBuildFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
@@ -276,13 +280,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
-        if (gradle.getParent() == null) {
-            File projectDir = getFileResolver().resolve(rootProject);
-            ConfigurableIncludedBuild includedBuild = getIncludedBuildRegistry().addExplicitBuild(projectDir, getNestedBuildFactory());
-            configuration.execute(includedBuild);
-        } else {
-            throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", getRootProject().getName()));
-        }
+        File projectDir = getFileResolver().resolve(rootProject);
+        includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
     }
 
     @Override
@@ -316,5 +315,20 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Inject
     public SourceControl getSourceControl() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void enableFeaturePreview(String name) {
+        services.get(FeaturePreviews.class).enableFeature(name);
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return extensibleDynamicObject;
+    }
+
+    @Override
+    public ExtensionContainer getExtensions() {
+        return extensibleDynamicObject.getConvention();
     }
 }

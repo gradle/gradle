@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -31,7 +30,6 @@ import org.gradle.api.tasks.TaskAction;
  *
  * @since 1.4
  */
-@Incubating
 public class PublishToMavenLocal extends AbstractPublishToMaven {
 
     @TaskAction

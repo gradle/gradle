@@ -17,5 +17,5 @@
 package org.gradle.internal.featurelifecycle;
 
 public interface UsageLocationReporter {
-    void reportLocation(DeprecatedFeatureUsage usage, StringBuilder target);
+    void reportLocation(FeatureUsage usage, StringBuilder target);
 }

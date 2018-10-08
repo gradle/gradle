@@ -39,7 +39,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public DefaultDeployerFactory(MavenFactory mavenFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, MavenPomMetaInfoProvider pomMetaInfoProvider,
-                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping, 
+                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping,
                                   MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.mavenFactory = mavenFactory;
         this.loggingManagerFactory = loggingManagerFactory;

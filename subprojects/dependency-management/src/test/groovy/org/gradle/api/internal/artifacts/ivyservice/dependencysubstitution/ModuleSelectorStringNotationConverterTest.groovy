@@ -43,8 +43,8 @@ class ModuleSelectorStringNotationConverterTest extends Specification {
 
     def "parses module component identifier notation"() {
         expect:
-        parser.parseNotation("org.gradle:gradle-core:1.+") == DefaultModuleComponentSelector.newSelector("org.gradle", "gradle-core", new DefaultMutableVersionConstraint("1.+"))
-        parser.parseNotation(" foo:bar:[1.3, 2.0)") == DefaultModuleComponentSelector.newSelector("foo", "bar", new DefaultMutableVersionConstraint("[1.3, 2.0)"))
+        parser.parseNotation("org.gradle:gradle-core:1.+") == DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.gradle", "gradle-core"), new DefaultMutableVersionConstraint("1.+"))
+        parser.parseNotation(" foo:bar:[1.3, 2.0)") == DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("foo", "bar"), new DefaultMutableVersionConstraint("[1.3, 2.0)"))
     }
 
     def "reports invalid notation"() {

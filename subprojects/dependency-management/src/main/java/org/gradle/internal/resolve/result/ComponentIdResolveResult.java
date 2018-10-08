@@ -18,29 +18,67 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
+import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
- * The result of resolving a module version selector to a particular component id. The result may optionally include the meta-data for the selected component, if it
- * is cheaply available (for example, it was used to select the component).
+ * The result of resolving a module version selector to a particular component id.
+ * The result may optionally include the meta-data for the selected component, if it is cheaply available (for example, it was used to select the component).
  */
 public interface ComponentIdResolveResult extends ResolveResult {
+    /**
+     * Returns the resolve failure, if any.
+     */
     @Nullable
     ModuleVersionResolveException getFailure();
 
+    /**
+     * Returns the identifier of the component.
+     *
+     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     */
     ComponentIdentifier getId();
 
+    /**
+     * Returns the module version id of the component.
+     *
+     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     */
     ModuleVersionIdentifier getModuleVersionId();
-
-    ComponentSelectionReason getSelectionReason();
 
     /**
      * Returns the meta-data for the component, if it was available at resolve time.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
     @Nullable
-    ComponentResolveMetadata getMetaData();
+    ComponentResolveMetadata getMetadata();
+
+    /**
+     * Returns true if the component id was resolved, but it was rejected by constraint.
+     */
+    boolean isRejected();
+
+    /**
+     * @return the list of unmatched versions, that is to say versions which were listed but didn't match the selector
+     */
+    Collection<RejectedBySelectorVersion> getUnmatchedVersions();
+
+    /**
+     * @return the list of versions which were considered for this module but rejected.
+     */
+    Collection<RejectedVersion> getRejectedVersions();
+
+    /**
+     * Tags this resolve result, for visiting. This is a performance optimization. It will return
+     * true if the last tagged object is different, false otherwise. This is meant to replace the
+     * use of a hash set to collect the visited items.
+     */
+    boolean mark(Object o);
+
 }

@@ -17,15 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Incubating;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.internal.deprecation.Deprecatable;
+import org.gradle.internal.deprecation.LoggingDeprecatable;
 
-import java.util.HashSet;
+import java.io.File;
 import java.util.Set;
 
-public class StartParameterInternal extends StartParameter {
-    private final Set<String> deprecations = new HashSet<String>();
+public class StartParameterInternal extends StartParameter implements Deprecatable {
+    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
 
     @Override
     public StartParameter newInstance() {
@@ -36,22 +35,26 @@ public class StartParameterInternal extends StartParameter {
         return prepareNewBuild(new StartParameterInternal());
     }
 
-    /**
-     * Adds a deprecation item.
-     */
-    @Incubating
+    @Override
     public void addDeprecation(String deprecation) {
-        deprecations.add(deprecation);
+        deprecationHandler.addDeprecation(deprecation);
     }
 
-    /**
-     * Constructs and prints all deprecation warnings.
-     */
-    @Incubating
+    @Override
+    public Set<String> getDeprecations() {
+        return deprecationHandler.getDeprecations();
+    }
+
+    @Override
     public void checkDeprecation() {
-        String suffix = SingleMessageLogger.getDeprecationMessage();
-        for (String deprecation : deprecations) {
-            DeprecationLogger.nagUserWith(String.format("%s %s.", deprecation, suffix));
-        }
+        deprecationHandler.checkDeprecation();
+    }
+
+    public File getGradleHomeDir() {
+        return gradleHomeDir;
+    }
+
+    public void setGradleHomeDir(File gradleHomeDir) {
+        this.gradleHomeDir = gradleHomeDir;
     }
 }

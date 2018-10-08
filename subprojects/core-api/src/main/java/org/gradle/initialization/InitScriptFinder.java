@@ -22,5 +22,5 @@ import java.util.Collection;
  * Interface for objects that can find init scripts for a given build.
  */
 public interface InitScriptFinder {
-    public void findScripts(Collection<File> scripts);
+    void findScripts(Collection<File> scripts);
 }

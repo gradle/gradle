@@ -23,8 +23,11 @@ import spock.lang.Specification
 import static FileUtils.assertInWindowsPathLengthLimitation
 import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.calculateRoots
+import static org.gradle.internal.FileUtils.withExtension
 
 class FileUtilsTest extends Specification {
+
+    private static final String SEP = File.separator
 
     def "toSafeFileName encodes unsupported characters"() {
         expect:
@@ -67,10 +70,35 @@ class FileUtilsTest extends Specification {
         toRoots(files("a/a", "a/a")) == files("a/a")
         toRoots(files("a", "b", "c")) == files("a", "b", "c")
         toRoots(files("a/a", "a/a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(files("a/a/a", "a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(files("a/a", "a/a-1", "a/a/a")) == files("a/a", "a/a-1")
         toRoots(files("a/a", "a/a/a", "b/a/a")) == files("a/a", "b/a/a")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b")) == files("a/a/a/a/a/a/a/a/a", "a/b")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a", "b/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a")
     }
 
+    def "can transform filenames to alternate extensions"() {
+        expect:
+        withExtension("foo", ".bar") == "foo.bar"
+        withExtension("/some/path/to/foo", ".bar") == "/some/path/to/foo.bar"
+        withExtension("foo.baz", ".bar") == "foo.bar"
+        withExtension("/some/path/to/foo.baz", ".bar") == "/some/path/to/foo.bar"
+        withExtension("\\some\\path\\to\\foo.baz", ".bar") == "\\some\\path\\to\\foo.bar"
+        withExtension("/some/path/to/foo.boo.baz", ".bar") == "/some/path/to/foo.boo.bar"
+        withExtension("/some/path/to/foo.bar", ".bar") == "/some/path/to/foo.bar"
+    }
+
+    def "can determine if one path start with another"(String path, String startsWithPath, boolean result) {
+        expect:
+        FileUtils.doesPathStartWith(path, startsWithPath) == result
+
+        where:
+        path              | startsWithPath || result
+        ""                | ""             || true
+        "a${SEP}a${SEP}a" | "a${SEP}b"     || false
+        "a${SEP}a"        | "a${SEP}a"     || true
+        "a${SEP}a${SEP}a" | "a${SEP}a"     || true
+        "a${SEP}ab"       | "a${SEP}a"     || false
+    }
 }

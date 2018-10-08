@@ -44,6 +44,7 @@ class S3Server extends HttpServer implements RepositoryServer {
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
+    public static final String X_AMZ_ACL = 'bucket-owner-full-control'
     public static final String X_AMZ_ID_2 = 'nwUZ/n/F2/ZFRTZhtzjYe7mcXkxCaRjfrJSWirV50lN7HuvhF60JpphwoiX/sMnh'
     public static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
     public static final String SERVER_AMAZON_S3 = 'AmazonS3'
@@ -65,6 +66,7 @@ class S3Server extends HttpServer implements RepositoryServer {
         String path = stubRequest.path
         assert path.startsWith('/')
         assert path == request.pathInfo
+        assert stubRequest.headers["x-amz-acl"] == request.getHeader("x-amz-acl")
         assert stubRequest.method == request.method
         assert stubRequest.params.every {
             request.getParameterMap()[it.key] == it.value
@@ -115,7 +117,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                 path = url
                 headers = [
                     'Content-Type': 'application/octet-stream',
-                    'Connection': 'Keep-Alive'
+                    'Connection': 'Keep-Alive',
+                    'x-amz-acl': X_AMZ_ACL,
                 ]
                 body = { InputStream content ->
                     file.parentFile.mkdirs()
@@ -355,7 +358,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                 path = url
                 headers = [
                     'Content-Type': 'application/octet-stream',
-                    'Connection': 'Keep-Alive'
+                    'Connection': 'Keep-Alive',
+                    'x-amz-acl': X_AMZ_ACL,
                 ]
             }
             response {

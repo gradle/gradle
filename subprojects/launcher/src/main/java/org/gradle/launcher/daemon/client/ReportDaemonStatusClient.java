@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.ReportStatus;
@@ -33,19 +32,19 @@ import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.launcher.daemon.registry.DaemonStopEvents;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ReportDaemonStatusClient {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
-    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private final DaemonRegistry daemonRegistry;
     private final DaemonConnector connector;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<UUID> idGenerator;
     private final ReportStatusDispatcher reportStatusDispatcher;
     private final DocumentationRegistry documentationRegistry;
     public static final String STATUS_FOOTER = "Only Daemons for the current Gradle version are displayed.";
     private static final String STATUS_FORMAT = "%1$6s %2$-8s %3$s";
 
-    public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<?> idGenerator, DocumentationRegistry documentationRegistry) {
+    public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
         Preconditions.checkNotNull(daemonRegistry, "DaemonRegistry must not be null");
         Preconditions.checkNotNull(connector, "DaemonConnector must not be null");
         Preconditions.checkNotNull(idGenerator, "IdGenerator must not be null");

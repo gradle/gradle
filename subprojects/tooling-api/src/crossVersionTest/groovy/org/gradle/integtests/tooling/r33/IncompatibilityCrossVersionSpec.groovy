@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.r33
 
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -36,7 +36,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         println "Building plugin with $gradleDist"
         def pluginDir = file("plugin")
         def pluginJar = pluginDir.file("plugin.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder), pluginDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder).withWarningMode(null), pluginDir)
         builder.sourceFile("com/example/MyTask.java") << """
             package com.example;
             
@@ -64,20 +64,6 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
             
             task myTask(type: com.example.MyTask)
         """
-    }
-
-    @TargetGradleVersion(">=3.3")
-    def "can use plugin built with Gradle 1.2 with"() {
-        expect:
-        buildPluginWith("1.2")
-        assertWorks()
-    }
-
-    @TargetGradleVersion(">=3.3")
-    def "can use plugin built with Gradle 2.5 with"() {
-        expect:
-        buildPluginWith("2.5")
-        assertWorks()
     }
 
     @TargetGradleVersion(">=3.3")

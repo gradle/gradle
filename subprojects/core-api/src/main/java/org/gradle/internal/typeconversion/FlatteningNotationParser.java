@@ -20,17 +20,18 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Flattens or collectionizes input and passes the input notations to the delegates. Returns a set.
  */
-public class FlatteningNotationParser<T> implements NotationParser<Object, Set<T>> {
+public class FlatteningNotationParser<N, T> implements NotationParser<N, Set<T>> {
 
-    private final NotationParser<Object, T> delegate;
+    private final NotationParser<N, T> delegate;
 
-    public FlatteningNotationParser(NotationParser<Object, T> delegate) {
+    public FlatteningNotationParser(NotationParser<N, T> delegate) {
         assert delegate != null : "delegate cannot be null";
         this.delegate = delegate;
     }
@@ -41,10 +42,16 @@ public class FlatteningNotationParser<T> implements NotationParser<Object, Set<T
         visitor.candidate("Collections or arrays of any other supported format. Nested collections/arrays will be flattened.");
     }
 
-    public Set<T> parseNotation(Object notation) {
+    public Set<T> parseNotation(N notation) {
+        Collection<N> notations = GUtil.collectionize(notation);
+        if (notations.isEmpty()) {
+            return Collections.emptySet();
+        }
+        if (notations.size() == 1) {
+            return Collections.singleton(delegate.parseNotation(notations.iterator().next()));
+        }
         Set<T> out = new LinkedHashSet<T>();
-        Collection notations = GUtil.collectionize(notation);
-        for (Object n : notations) {
+        for (N n : notations) {
             out.add(delegate.parseNotation(n));
         }
         return out;

@@ -16,10 +16,16 @@
 package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -28,11 +34,13 @@ import java.util.List;
  * Executes a Gradle build.
  */
 public class GradleBuild extends ConventionTask {
-    private final NestedBuildFactory nestedBuildFactory;
+    private final BuildState currentBuild;
+    private final BuildStateRegistry buildStateRegistry;
     private StartParameter startParameter;
 
     public GradleBuild() {
-        this.nestedBuildFactory = getServices().get(NestedBuildFactory.class);
+        this.currentBuild = getServices().get(BuildState.class);
+        this.buildStateRegistry = getServices().get(BuildStateRegistry.class);
         this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
@@ -91,7 +99,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      */
-    @Optional @InputFile
+    @Nullable @Optional @InputFile
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
     }
@@ -102,7 +110,7 @@ public class GradleBuild extends ConventionTask {
      * @param file The build file. May be null to use the default build file for the build.
      * @since 4.0
      */
-    public void setBuildFile(File file) {
+    public void setBuildFile(@Nullable File file) {
         setBuildFile((Object) file);
     }
 
@@ -111,7 +119,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @param file The build file. May be null to use the default build file for the build.
      */
-    public void setBuildFile(Object file) {
+    public void setBuildFile(@Nullable Object file) {
         getStartParameter().setBuildFile(getProject().file(file));
     }
 
@@ -146,11 +154,15 @@ public class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        BuildController buildController = nestedBuildFactory.nestedBuildController(getStartParameter());
-        try {
-            buildController.run();
-        } finally {
-            buildController.stop();
-        }
+        // TODO: Allow us to inject plugins into GradleBuild nested builds too.
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter(), getServices().get(PublicBuildPath.class));
+        StandAloneNestedBuild nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild);
+        nestedBuild.run(new Transformer<Void, BuildController>() {
+            @Override
+            public Void transform(BuildController buildController) {
+                buildController.run();
+                return null;
+            }
+        });
     }
 }

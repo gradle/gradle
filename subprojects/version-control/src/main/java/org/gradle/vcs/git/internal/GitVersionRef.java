@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
-import org.gradle.vcs.VersionRef;
+import org.gradle.vcs.internal.VersionRef;
 
 import java.util.List;
 
@@ -36,6 +36,10 @@ public class GitVersionRef implements VersionRef {
     public static GitVersionRef from(Ref ref) {
         ObjectId commitId = ref.getPeeledObjectId() == null ? ref.getObjectId() : ref.getPeeledObjectId();
         return new GitVersionRef(extractName(ref), commitId.getName());
+    }
+
+    public static GitVersionRef from(String version, String canonicalId) {
+        return new GitVersionRef(version, canonicalId);
     }
 
     @Override

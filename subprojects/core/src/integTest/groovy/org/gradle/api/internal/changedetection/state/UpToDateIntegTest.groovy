@@ -102,25 +102,25 @@ public class CreateEmptyDirectory extends DefaultTask {
         '''
 
         def customTask = ':customTask'
-        def notUpToDateBecause = /Up-to-date check for task '${customTask}' took .* secs\. It is not up-to-date because:/
+        def notUpToDateBecause = /Task '${customTask}' is not up-to-date because:/
         when:
         run customTask, '-Pcontent=first', '--info'
         then:
         executedAndNotSkipped customTask
         result.output =~ notUpToDateBecause
-        result.output.contains('No history is available')
+        outputContains('No history is available')
 
         when:
         run customTask, '-Pcontent=second', '--info'
         then:
         executedAndNotSkipped(customTask)
         result.output =~ notUpToDateBecause
-        result.output.contains("Value of input property 'content' has changed for task '${customTask}'")
+        outputContains("Value of input property 'content' has changed for task '${customTask}'")
 
         when:
         run customTask, '-Pcontent=second', '--info'
         then:
         skipped customTask
-        result.output =~ /Skipping task '${customTask}' as it is up-to-date \(took .* secs\)\./
+        result.output =~ /Skipping task '${customTask}' as it is up-to-date\./
     }
 }

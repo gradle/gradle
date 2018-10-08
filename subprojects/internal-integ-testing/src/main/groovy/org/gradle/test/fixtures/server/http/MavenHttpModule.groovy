@@ -94,6 +94,7 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         server.allowGetOrHeadMissing(pomPath)
         server.allowGetOrHeadMissing(metaDataPath)
         server.allowGetOrHeadMissing(artifactPath)
+        getModuleMetadata().allowGetOrHead()
     }
 
     HttpResource getMetaData() {

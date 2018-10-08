@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
@@ -32,14 +33,14 @@ import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
@@ -89,9 +90,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
             // using a transforming classloader is only required for older buggy Groovy versions
-            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getCompileClasspath()));
+            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), DefaultClassPath.of(spec.getCompileClasspath()));
         } else {
-            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(spec.getCompileClasspath()));
+            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath.of(spec.getCompileClasspath()));
         }
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
         GroovySystemLoader compileClasspathLoader = groovySystemLoaderFactory.forClassLoader(classPathLoader);
@@ -132,18 +133,20 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
-        File[] sortedSourceFiles = Iterables.toArray(spec.getSource(), File.class);
+        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
         Arrays.sort(sortedSourceFiles);
         unit.addSources(sortedSourceFiles);
 
         unit.setCompilerFactory(new JavaCompilerFactory() {
+            @Override
             public JavaCompiler createCompiler(final CompilerConfiguration config) {
                 return new JavaCompiler() {
+                    @Override
                     public void compile(List<String> files, CompilationUnit cu) {
                         if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            spec.setSource(spec.getSource().plus(new SimpleFileCollection(stubDir).getAsFileTree()));
+                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), ImmutableFileCollection.of(stubDir).getAsFileTree()));
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
@@ -155,8 +158,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
                         }
 
-                        spec.setSource(spec.getSource().filter(new Spec<File>() {
-                            public boolean isSatisfiedBy(File file) {
+                        spec.setSourceFiles(Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
+                            @Override
+                            public boolean apply(File file) {
                                 return hasExtension(file, ".java");
                             }
                         }));
@@ -184,6 +188,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compilerGroovyLoader.discardTypesFrom(astTransformClassLoader);
             //Discard the compile loader
             compileClasspathLoader.shutdown();
+            CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
         }
 
         return WorkResults.didWork(true);

@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -17,35 +19,46 @@
 /*
  * The model management core.
  */
-apply plugin: 'java-library'
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+plugins {
+    id 'java-library'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     api project(':baseServices')
-    api libraries.groovy
+    api project(":coreApi")
+    api libraries.groovy.coordinates
 
     implementation project(':baseServicesGroovy')
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.commons_lang
-    implementation libraries.jcip
-    implementation libraries.asm
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_tree.coordinates
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')
+    integTestRuntimeOnly project(':apiMetadata')
 
     testFixturesImplementation project(':internalTesting')
     testFixturesImplementation project(':core')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
-useClassycle(exclude: [
-    'org/gradle/model/internal/core/**',
-    'org/gradle/model/internal/inspect/**',
-    'org/gradle/model/internal/manage/schema/**',
-    'org/gradle/model/internal/type/**'
-])
-strictCompileIgnoreDeprecations()
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
 
+testFixtures {
+    from(':core')
+    from(':coreApi')
+    from(':diagnostics', 'testFixtures')
+}
+
+classycle {
+    excludePatterns = ['org/gradle/model/internal/core/**',
+                       'org/gradle/model/internal/inspect/**',
+                       'org/gradle/api/internal/tasks/**',
+                       'org/gradle/model/internal/manage/schema/**',
+                       'org/gradle/model/internal/type/**']
+}

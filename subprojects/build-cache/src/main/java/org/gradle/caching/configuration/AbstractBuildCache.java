@@ -16,14 +16,11 @@
 
 package org.gradle.caching.configuration;
 
-import org.gradle.api.Incubating;
-
 /**
  * Base implementation for build cache service configuration.
  *
  * @since 3.5
  */
-@Incubating
 public abstract class AbstractBuildCache implements BuildCache {
     private boolean enabled = true;
     private boolean push;

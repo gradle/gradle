@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
@@ -43,6 +44,8 @@ public class Module extends XmlPersistableConfigurationObject {
     private Path contentPath;
     private Set<Path> sourceFolders = Sets.newLinkedHashSet();
     private Set<Path> testSourceFolders = Sets.newLinkedHashSet();
+    private Set<Path> resourceFolders = Sets.newLinkedHashSet();
+    private Set<Path> testResourceFolders = Sets.newLinkedHashSet();
     private Set<Path> generatedSourceFolders = Sets.newLinkedHashSet();
     private Set<Path> excludeFolders = Sets.newLinkedHashSet();
     private boolean inheritOutputDirs;
@@ -95,6 +98,43 @@ public class Module extends XmlPersistableConfigurationObject {
         this.testSourceFolders = testSourceFolders;
     }
 
+    /**
+     * The directories containing resources.
+     * Must not be null.
+     * @since 4.7
+     */
+    @Incubating
+    public Set<Path> getResourceFolders() {
+        return resourceFolders;
+    }
+
+    /**
+     * Sets the directories containing resources.
+     * @since 4.7
+     */
+    @Incubating
+    public void setResourceFolders(Set<Path> resourceFolders) {
+        this.resourceFolders = resourceFolders;
+    }
+
+    /**
+     * The directories containing test resources.
+     * Must not be null.
+     * @since 4.7
+     */
+    @Incubating
+    public Set<Path> getTestResourceFolders() {
+        return testResourceFolders;
+    }
+
+    /**
+     * Sets the directories containing test resources.
+     * @since 4.7
+     */
+    @Incubating
+    public void setTestResourceFolders(Set<Path> testResourceFolders) {
+        this.testResourceFolders = testResourceFolders;
+    }
     /**
      * The directories containing generated the production sources.
      * Must not be null.
@@ -181,15 +221,20 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     protected Object configure(Path contentPath,
-                               Set<Path> sourceFolders, Set<Path> testSourceFolders, Set<Path> generatedSourceFolders, Set<Path> excludeFolders,
+                               Set<Path> sourceFolders, Set<Path> testSourceFolders,
+                               Set<Path> resourceFolders, Set<Path> testResourceFolders,
+                               Set<Path> generatedSourceFolders,
+                               Set<Path> excludeFolders,
                                Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
                                Set<Dependency> dependencies, String jdkName, String languageLevel) {
         this.languageLevel = languageLevel;
         this.contentPath = contentPath;
         this.sourceFolders.addAll(sourceFolders);
-        this.excludeFolders.addAll(excludeFolders);
         this.testSourceFolders.addAll(testSourceFolders);
+        this.resourceFolders.addAll(resourceFolders);
+        this.testResourceFolders.addAll(testResourceFolders);
         this.generatedSourceFolders.addAll(generatedSourceFolders);
+        this.excludeFolders.addAll(excludeFolders);
         if (inheritOutputDirs != null) {
             this.inheritOutputDirs = inheritOutputDirs;
         }
@@ -239,13 +284,22 @@ public class Module extends XmlPersistableConfigurationObject {
     private void readSourceAndExcludeFolderFromXml() {
         for (Node sourceFolder : findSourceFolder()) {
             String url = (String) sourceFolder.attribute("url");
-            if ("false".equals(sourceFolder.attribute("isTestSource"))) {
-                sourceFolders.add(pathFactory.path(url));
-            } else {
-                testSourceFolders.add(pathFactory.path(url));
+            String isTestSource = (String) sourceFolder.attribute("isTestSource");
+            if (isTestSource != null) {
+                if ("false".equals(isTestSource)) {
+                    sourceFolders.add(pathFactory.path(url));
+                } else {
+                    testSourceFolders.add(pathFactory.path(url));
+                }
             }
             if ("true".equals(sourceFolder.attribute("generated"))) {
                 generatedSourceFolders.add(pathFactory.path(url));
+            }
+            String type = (String) sourceFolder.attribute("type");
+            if ("java-resource".equals(type)) {
+                resourceFolders.add(pathFactory.path(url));
+            } else if ("java-test-resource".equals(type)) {
+                testResourceFolders.add(pathFactory.path(url));
             }
         }
         for (Node excludeFolder : findExcludeFolder()) {
@@ -316,7 +370,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("type", "jdk");
             attributes.put("jdkName", jdkName);
             attributes.put("jdkType", "JavaSDK");
@@ -325,7 +379,7 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("type", "inheritedJdk");
             moduleRootManager.appendNode("orderEntry", attributes);
         }
@@ -350,7 +404,10 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = findOrCreateContentNode();
         for (Path path : sourceFolders) {
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            if (resourceFolders.contains(path)) {
+                continue;
+            }
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "false");
             if (generatedSourceFolders.contains(path)) {
@@ -359,7 +416,10 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            if (testResourceFolders.contains(path)) {
+                continue;
+            }
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("isTestSource", "true");
             if (generatedSourceFolders.contains(path)) {
@@ -367,8 +427,26 @@ public class Module extends XmlPersistableConfigurationObject {
             }
             content.appendNode("sourceFolder", attributes);
         }
+        for (Path path : resourceFolders) {
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            attributes.put("url", path.getUrl());
+            attributes.put("type", "java-resource");
+            if (generatedSourceFolders.contains(path)) {
+                attributes.put("generated", "true");
+            }
+            content.appendNode("sourceFolder", attributes);
+        }
+        for (Path path : testResourceFolders) {
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
+            attributes.put("url", path.getUrl());
+            attributes.put("type", "java-test-resource");
+            if (generatedSourceFolders.contains(path)) {
+                attributes.put("generated", "true");
+            }
+            content.appendNode("sourceFolder", attributes);
+        }
         for (Path path : excludeFolders) {
-            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             content.appendNode("excludeFolder", attributes);
         }
@@ -403,7 +481,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     protected boolean isDependencyOrderEntry(Object orderEntry) {
-        return Arrays.asList("module-library", "module").contains(((Node)orderEntry).attribute("type"));
+        return Arrays.asList("module-library", "module").contains(((Node) orderEntry).attribute("type"));
     }
 
     private void addDependenciesToXml() {
@@ -472,6 +550,8 @@ public class Module extends XmlPersistableConfigurationObject {
             + "dependencies=" + dependencies
             + ", sourceFolders=" + sourceFolders
             + ", testSourceFolders=" + testSourceFolders
+            + ", resourceFolders=" + resourceFolders
+            + ", testResourceFolders=" + testResourceFolders
             + ", generatedSourceFolders=" + generatedSourceFolders
             + ", excludeFolders=" + excludeFolders
             + ", inheritOutputDirs=" + inheritOutputDirs
@@ -496,11 +576,24 @@ public class Module extends XmlPersistableConfigurationObject {
             && Objects.equal(generatedSourceFolders, module.generatedSourceFolders)
             && Objects.equal(jdkName, module.jdkName)
             && Objects.equal(testOutputDir, module.testOutputDir)
-            && Objects.equal(testSourceFolders, module.testSourceFolders);
+            && Objects.equal(testSourceFolders, module.testSourceFolders)
+            && Objects.equal(resourceFolders, module.resourceFolders)
+            && Objects.equal(testResourceFolders, module.testResourceFolders);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(sourceFolders, generatedSourceFolders, testSourceFolders, excludeFolders, inheritOutputDirs, jdkName, outputDir, testOutputDir, dependencies);
+        return Objects.hashCode(sourceFolders,
+            generatedSourceFolders,
+            testSourceFolders,
+            resourceFolders,
+            testResourceFolders,
+            excludeFolders,
+            inheritOutputDirs,
+            jdkName,
+            outputDir,
+            testOutputDir,
+            dependencies);
     }
+
 }

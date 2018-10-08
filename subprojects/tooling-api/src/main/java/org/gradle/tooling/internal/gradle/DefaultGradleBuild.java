@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.gradle;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -26,6 +27,7 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private DefaultBuildIdentifier buildIdentifier;
     private Set<PartialBasicGradleProject> projects = new LinkedHashSet<PartialBasicGradleProject>();
     private Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<DefaultGradleBuild>();
+    private Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<DefaultGradleBuild>();
 
     public PartialBasicGradleProject getRootProject() {
         return rootProject;
@@ -43,6 +45,14 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
 
     public void addProject(PartialBasicGradleProject project) {
         projects.add(project);
+    }
+
+    public Set<DefaultGradleBuild> getEditableBuilds() {
+        return allBuilds;
+    }
+
+    public void addBuilds(Collection<DefaultGradleBuild> builds) {
+        allBuilds.addAll(builds);
     }
 
     public Set<DefaultGradleBuild> getIncludedBuilds() {

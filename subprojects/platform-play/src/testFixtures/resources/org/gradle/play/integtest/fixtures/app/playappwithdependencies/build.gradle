@@ -4,6 +4,8 @@ plugins {
 
 dependencies {
     play "com.google.guava:guava:17.0"
+    play "com.typesafe.play:play-guice_2.12:2.6.15"
+    play "ch.qos.logback:logback-classic:1.2.3"
     playTest "commons-lang:commons-lang:2.6"
 }
 

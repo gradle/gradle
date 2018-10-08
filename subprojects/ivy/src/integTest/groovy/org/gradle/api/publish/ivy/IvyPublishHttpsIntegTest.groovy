@@ -102,6 +102,8 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         module.jar.sha1.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
     }
 
     def verifyPublications() {

@@ -56,14 +56,14 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        result.error.contains("configurationType cannot be null.")
+        failure.assertHasCause("configurationType cannot be null.")
 
         when:
         settingsFile.text = settingsFile.text.replace("registerBuildCacheService(null, TestBuildCacheServiceFactory)", "registerBuildCacheService(TestBuildCache, null)")
         and:
         fails("help")
         then:
-        result.error.contains("buildCacheServiceFactoryType cannot be null.")
+        failure.assertHasCause("buildCacheServiceFactoryType cannot be null.")
     }
 
     def "can register build cache service factory multiple times and last one wins"() {
@@ -88,7 +88,7 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        result.error.contains("A type for the remote build cache must be configured first.")
+        failure.assertHasCause("A type for the remote build cache must be configured first.")
     }
 
     def "attempting to use an unknown build cache type fails with a reasonable message"() {
@@ -105,6 +105,6 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         fails("compileJava")
         then:
-        result.error.contains("Build cache type 'TestBuildCache' has not been registered.")
+        failure.assertHasCause("Build cache type 'TestBuildCache' has not been registered.")
     }
 }

@@ -16,50 +16,63 @@
 
 package org.gradle.plugin.devel.tasks;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
-import org.gradle.util.GUtil;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
 import java.util.Properties;
 
 /**
  * Generates plugin descriptors from plugin declarations.
  */
 @Incubating
-public class GeneratePluginDescriptors extends ConventionTask {
+public class GeneratePluginDescriptors extends DefaultTask {
+
+    private final ListProperty<PluginDeclaration> declarations;
+    private final DirectoryProperty outputDirectory;
+
+    public GeneratePluginDescriptors() {
+        ObjectFactory objectFactory = getProject().getObjects();
+        declarations = objectFactory.listProperty(PluginDeclaration.class).empty();
+        outputDirectory = objectFactory.directoryProperty();
+    }
 
     @Input
-    private List<PluginDeclaration> declarations = Lists.newArrayList();
+    public ListProperty<PluginDeclaration> getDeclarations() {
+        return declarations;
+    }
 
-    private Object outputDirectory;
+    @OutputDirectory
+    public DirectoryProperty getOutputDirectory() {
+        return outputDirectory;
+    }
 
     @TaskAction
     public void generatePluginDescriptors() {
-        clearOutputDirectory();
-        for (PluginDeclaration declaration : getDeclarations()) {
-            File descriptorFile = new File(getOutputDirectory(), declaration.getId() + ".properties");
+        File outputDir = outputDirectory.get().getAsFile();
+        clearOutputDirectory(outputDir);
+        for (PluginDeclaration declaration : getDeclarations().get()) {
+            File descriptorFile = new File(outputDir, declaration.getId() + ".properties");
             Properties properties = new Properties();
             properties.setProperty("implementation-class", declaration.getImplementationClass());
             writePropertiesTo(properties, descriptorFile);
         }
     }
 
-    private void clearOutputDirectory() {
+    private void clearOutputDirectory(File directoryToClear) {
         try {
-            FileUtils.cleanDirectory(getOutputDirectory());
+            FileUtils.cleanDirectory(directoryToClear);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -67,40 +80,9 @@ public class GeneratePluginDescriptors extends ConventionTask {
 
     private void writePropertiesTo(Properties properties, File descriptorFile) {
         try {
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(descriptorFile));
-            GUtil.savePropertiesNoDateComment(properties, outputStream);
+            PropertiesUtils.store(properties, descriptorFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
-
-    public List<PluginDeclaration> getDeclarations() {
-        return declarations;
-    }
-
-    public void setDeclarations(List<PluginDeclaration> declarations) {
-        this.declarations = declarations;
-    }
-
-    @OutputDirectory
-    public File getOutputDirectory() {
-        if (outputDirectory == null) {
-            return null;
-        }
-        return getProject().file(outputDirectory);
-    }
-
-    /**
-     * Sets the output directory.
-     *
-     * @since 4.0
-     */
-    public void setOutputDirectory(File outputDirectory) {
-        setOutputDirectory((Object) outputDirectory);
-    }
-
-    public void setOutputDirectory(Object outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
-
 }

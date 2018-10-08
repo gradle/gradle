@@ -98,21 +98,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
-                def flavorString = Attribute.of('flavor', String)
-                def buildTypeString = Attribute.of('buildType', String)
+                def flavorInteger = Attribute.of('flavor', Integer)
+                def buildTypeInteger = Attribute.of('buildType', Integer)
                 dependencies {
                     attributesSchema {
-                        attribute(flavorString)
-                        attribute(buildTypeString)
+                        attribute(flavorInteger)
+                        attribute(buildTypeInteger)
                     }
                 }
                 configurations {
                     create('default')
                     foo {
-                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'debug') } // use String type instead of Flavor/BuildType
+                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 1) }
                     }
                     bar {
-                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'release') } // use String type instead of Flavor/BuildType
+                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 2) }
                     }
                 }
                 task fooJar(type: Jar) {
@@ -135,14 +135,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
 
         when:
         fails ':a:checkRelease'
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
@@ -158,7 +158,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
-                    assert details.candidateValues*.name == ['ONE', 'TWO']
+                    assert details.candidateValues*.name as Set == ['ONE', 'TWO'] as Set
                     details.candidateValues.each { producerValue ->
                         if (producerValue.name == 'TWO') {
                             details.closestMatch(producerValue)
@@ -389,14 +389,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Configuration 'foo2':
+  - Variant 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'ONE'.
-  - Configuration 'foo3':
+  - Variant 'foo3':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'ONE'."""
     }
@@ -1273,7 +1273,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("The constructor for class FlavorSelectionRule should be annotated with @Inject.")
     }
@@ -1345,7 +1345,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }
 }

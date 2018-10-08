@@ -11,7 +11,7 @@ class MyTask extends DefaultTask {
     }
 }
 
-task generateConfigFile {
+def generateConfigFile = tasks.register("generateConfigFile") {
     outputs.file "config.txt"
     doLast {
         file("config.txt").text = "my config"
@@ -21,7 +21,7 @@ task generateConfigFile {
 task generateConfigZip(type: Zip) {
     destinationDir = projectDir
     archiveName = "config.zip"
-    from generateConfigFile
+    from generateConfigFile.get()
 }
 
 configurations {
@@ -43,6 +43,11 @@ task fileText(type: MyTask) {
 }
 
 task fileCollectionText(type: MyTask) {
+    config = resources.text.fromFile(generateConfigFile.get())
+    output = project.file("output.txt")
+}
+
+task fileCollectionTextUsingTaskProvider(type: MyTask) {
     config = resources.text.fromFile(generateConfigFile)
     output = project.file("output.txt")
 }

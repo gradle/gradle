@@ -71,7 +71,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.3
      */
-    @Incubating
     LongRunningOperation setColorOutput(boolean colorOutput);
 
     /**
@@ -112,6 +111,26 @@ public interface LongRunningOperation {
      * @since 1.0-milestone-8
      */
     LongRunningOperation setJvmArguments(@Nullable String... jvmArguments);
+
+    /**
+     * Appends Java VM arguments to the existing list.
+     *
+     * @param jvmArguments the argument to use for the Gradle process
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addJvmArguments(String... jvmArguments);
+
+    /**
+     * Appends Java VM arguments to the existing list.
+     *
+     * @param jvmArguments the argument to use for the Gradle process
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addJvmArguments(Iterable<String> jvmArguments);
 
     /**
      * Specifies the Java VM arguments to use for this operation.
@@ -176,6 +195,26 @@ public interface LongRunningOperation {
     LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
 
     /**
+     * Appends new command line arguments to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addArguments(String... arguments);
+
+    /**
+     * Appends new command line arguments to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addArguments(Iterable<String> arguments);
+
+    /**
      * Specifies the environment variables to use for this operation.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
@@ -187,7 +226,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 3.5
      */
-    @Incubating
     LongRunningOperation setEnvironmentVariables(@Nullable Map<String, String> envVariables);
 
     /**
@@ -195,8 +233,7 @@ public interface LongRunningOperation {
      *
      * <p>This method is intended to be replaced by {@link #addProgressListener(org.gradle.tooling.events.ProgressListener)}. The new progress listener type
      * provides much richer information and much better handling of parallel operations that run during the build, such as tasks that run in parallel.
-     * You should prefer using the new listener interface where possible. Note, however, that the new interface is supported only for Gradle 2.5 and later
-     * and is currently {@link Incubating}. It may change in later Gradle releases.
+     * You should prefer using the new listener interface where possible. Note, however, that the new interface is supported only for Gradle 2.5.
      * </p>
      *
      * @param listener The listener
@@ -218,7 +255,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.5
      */
-    @Incubating
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener);
 
     /**
@@ -235,7 +271,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 2.5
      */
-    @Incubating
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> operationTypes);
 
     /**
@@ -261,6 +296,5 @@ public interface LongRunningOperation {
      *
      * @since 2.1
      */
-    @Incubating
     LongRunningOperation withCancellationToken(CancellationToken cancellationToken);
 }

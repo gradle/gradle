@@ -163,6 +163,6 @@ public class VersionRangeSelectorTest extends AbstractStringVersionSelectorTest 
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector, new DefaultVersionComparator().asVersionComparator())
+        return new VersionRangeSelector(selector, new DefaultVersionComparator().asVersionComparator(), new VersionParser())
     }
 }

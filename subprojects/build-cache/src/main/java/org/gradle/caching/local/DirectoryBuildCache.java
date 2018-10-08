@@ -27,10 +27,9 @@ import javax.annotation.Nullable;
  *
  * @since 3.5
  */
-@Incubating
 public class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
-    private long targetSizeInMB = 5 * 1024; // 5 GB
+    private int removeUnusedEntriesAfterDays = 7;
 
     /**
      * Returns the directory to use to store the build cache.
@@ -50,29 +49,27 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * The target size of the build cache in megabytes.
-     * Defaults to 5 GB.
-     * <p>
-     * Must be greater than or equal to 1, although larger cache sizes will be more useful.
+     * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
      *
-     * @since 4.0
+     * @since 4.6
      */
-    public long getTargetSizeInMB() {
-        return targetSizeInMB;
+    @Incubating
+    public int getRemoveUnusedEntriesAfterDays() {
+        return removeUnusedEntriesAfterDays;
     }
 
     /**
-     * The target size of the build cache in megabytes.
-     * Defaults to 5 GB.
-     * <p>
-     * Must be greater than or equal to 1, although larger cache sizes will be more useful.
+     * Sets the number of days after unused entries are garbage collected. Defaults to 7 days.
      *
-     * @since 4.0
+     * Must be greater than 1.
+     *
+     * @since 4.6
      */
-    public void setTargetSizeInMB(long targetSizeInMB) {
-        if (targetSizeInMB < 1) {
-            throw new IllegalArgumentException("Directory build cache needs to have at least 1 MB of space but more space is useful.");
+    @Incubating
+    public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
+        if (removeUnusedEntriesAfterDays < 1) {
+            throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");
         }
-        this.targetSizeInMB = targetSizeInMB;
+        this.removeUnusedEntriesAfterDays = removeUnusedEntriesAfterDays;
     }
 }

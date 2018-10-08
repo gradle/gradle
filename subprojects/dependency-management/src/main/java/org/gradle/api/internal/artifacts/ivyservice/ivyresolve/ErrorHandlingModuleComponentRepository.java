@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -37,6 +39,13 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 import java.util.Map;
 
+/**
+ * A ModuleComponentRepository that catches any exception and applies it to the result object.
+ * This allows other repository implementations to throw exceptions on failure.
+ *
+ * This implementation will also blacklist any repository that throws a critical failure, failing-fast with that
+ * repository for any subsequent requests.
+ */
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
 
     private final ModuleComponentRepository delegate;
@@ -74,13 +83,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return remote;
     }
 
-    public ComponentMetadataSupplier createMetadataSupplier() {
-        return delegate.createMetadataSupplier();
-    }
-
     @Override
     public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
         return delegate.getArtifactCache();
+    }
+
+    @Override
+    public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
+        return delegate.getComponentMetadataSupplier();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
@@ -111,7 +121,9 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 delegate.listModuleVersions(dependency, result);
             } catch (Throwable throwable) {
                 repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ModuleVersionResolveException(dependency.getSelector(), throwable));
+                ModuleComponentSelector selector = dependency.getSelector();
+                String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
+                result.failed(new ModuleVersionResolveException(selector, message, throwable));
             }
         }
 
@@ -133,7 +145,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.failed(new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
@@ -141,14 +153,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 delegate.resolveArtifactsWithType(component, artifactType, result);
             } catch (Throwable throwable) {
                 repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
+                result.failed(new ArtifactResolveException(component.getId(), throwable));
             }
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.failed(new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
@@ -156,7 +168,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 delegate.resolveArtifacts(component, result);
             } catch (Throwable throwable) {
                 repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
+                result.failed(new ArtifactResolveException(component.getId(), throwable));
             }
         }
 

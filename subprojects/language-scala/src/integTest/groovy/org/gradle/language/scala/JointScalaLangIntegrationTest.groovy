@@ -16,7 +16,7 @@
 
 package org.gradle.language.scala
 
-import com.sun.xml.internal.ws.util.StringUtils
+import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest

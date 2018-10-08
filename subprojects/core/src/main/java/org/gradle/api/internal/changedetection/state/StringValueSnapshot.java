@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 public class StringValueSnapshot extends AbstractIsolatableScalarValue<String> {
     public StringValueSnapshot(String value) {
@@ -24,7 +24,7 @@ public class StringValueSnapshot extends AbstractIsolatableScalarValue<String> {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putString(getValue());
     }
 }

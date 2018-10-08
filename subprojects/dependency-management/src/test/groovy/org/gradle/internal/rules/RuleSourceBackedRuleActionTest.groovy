@@ -16,11 +16,10 @@
 
 package org.gradle.internal.rules
 
+import org.gradle.internal.MutableReference
 import org.gradle.model.Mutate
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
-
-import java.util.concurrent.atomic.AtomicReference
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
@@ -69,10 +68,10 @@ class RuleSourceBackedRuleActionTest extends Specification {
         action = RuleSourceBackedRuleAction.create(listType, new RuleSourceWithTypedParams())
 
         then:
-        action.inputTypes == [AtomicReference, Map, Set]
+        action.inputTypes == [MutableReference, Map, Set]
 
         when:
-        action.execute(collector, [new AtomicReference<String>("foo"), [2: "bar"], [4, 5] as Set])
+        action.execute(collector, [MutableReference.of("foo"), [2: "bar"], [4, 5] as Set])
 
         then:
         collector == ["foo", "2", "bar", "4", "5"]
@@ -80,7 +79,7 @@ class RuleSourceBackedRuleActionTest extends Specification {
 
     static class RuleSourceWithTypedParams {
         @Mutate
-        void theRule(List<String> subject, AtomicReference<String> input1, Map<Integer, String> input2, Set<Number> input3) {
+        void theRule(List<String> subject, MutableReference<String> input1, Map<Integer, String> input2, Set<Number> input3) {
             subject.add(input1.get())
             subject.addAll(input2.keySet().collect({ it.toString() }))
             subject.addAll(input2.values())

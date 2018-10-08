@@ -18,7 +18,8 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
     def "delete task removes specified files"() {
@@ -49,14 +50,31 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "deleted files show up in task destroys"() {
         buildFile << """
+            import org.gradle.api.internal.tasks.properties.PropertyVisitor
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import org.gradle.internal.file.PathToFileResolver
+            import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
+            import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            
             task clean(type: Delete) {
                 delete 'foo'
                 delete file('bar')
                 delete files('baz')
                 
+
                 doLast {
-                    assert destroyables.files.files.size() == 3 &&
-                        destroyables.files.files.containsAll([
+                    def destroyablePaths = []
+                    def resolver = project.services.get(PathToFileResolver)
+                    def propertyWalker = project.services.get(PropertyWalker)
+                    TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor.Adapter() {
+                        void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
+                            destroyablePaths << destroyable.value
+                        }
+                    })
+                    def destroyableFiles = new DefaultConfigurableFileCollection(resolver, null, destroyablePaths).files 
+                    assert destroyableFiles.size() == 3 &&
+                        destroyableFiles.containsAll([
                             file('foo'), 
                             file('bar'), 
                             file('baz')

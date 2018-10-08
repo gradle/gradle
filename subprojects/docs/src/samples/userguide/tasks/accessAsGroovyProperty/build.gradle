@@ -1,0 +1,10 @@
+task hello
+task copy(type: Copy)
+
+// Access tasks using Groovy dynamic properties on Project
+
+println hello.name
+println project.hello.name
+
+println copy.destinationDir
+println project.copy.destinationDir

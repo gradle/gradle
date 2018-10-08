@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.util.Path
 import spock.lang.Unroll
 
 /**
@@ -176,13 +178,14 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 
     static String checkHelper(String buildId, String projectPath) { """
         def moduleId(String group, String name, String version) {
-            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
+            def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
+            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
         }
 
         def projectId(String projectName) {
             def buildId = $buildId
             def projectPath = $projectPath
-            return new org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier(buildId, projectPath)
+            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).getIdentifierForProject(${Path.name}.path(projectPath))
         }
 """
     }

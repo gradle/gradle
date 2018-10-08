@@ -16,7 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.execution.TaskSelector;
@@ -89,6 +89,10 @@ public class Help extends DefaultTask {
         output.println();
         output.text("To see more detail about a task, run ");
         metaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
+        output.println();
+        output.println();
+        output.text("For troubleshooting, visit ");
+        output.withStyle(UserInput).text("https://help.gradle.org");
         output.println();
     }
 

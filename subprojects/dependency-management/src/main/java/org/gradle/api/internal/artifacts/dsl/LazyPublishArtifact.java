@@ -19,55 +19,57 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
 import java.util.Date;
 
 public class LazyPublishArtifact implements PublishArtifact {
-    private final Provider<?> provider;
+    private final ProviderInternal<?> provider;
     private final String version;
+    private PublishArtifact delegate;
+
+    public LazyPublishArtifact(Provider<?> provider) {
+        this.provider = Providers.internal(provider);
+        this.version = null;
+    }
 
     public LazyPublishArtifact(Provider<?> provider, String version) {
-        this.provider = provider;
+        this.provider = Providers.internal(provider);
         this.version = version;
     }
 
     @Override
     public String getName() {
-        return getValue().getName();
+        return getDelegate().getName();
     }
 
     @Override
     public String getExtension() {
-        return getValue().getExtension();
+        return getDelegate().getExtension();
     }
 
     @Override
     public String getType() {
-        return "";
+        return getDelegate().getType();
     }
 
     @Override
     public String getClassifier() {
-        return getValue().getClassifier();
+        return getDelegate().getClassifier();
     }
 
     @Override
     public File getFile() {
-        Object value = provider.get();
-        if (value instanceof FileSystemLocation) {
-            FileSystemLocation location = (FileSystemLocation) value;
-            return location.getAsFile();
-        }
-        if (value instanceof File) {
-            return (File) value;
-        }
-        throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
+        return getDelegate().getFile();
     }
 
     @Override
@@ -75,8 +77,26 @@ public class LazyPublishArtifact implements PublishArtifact {
         return new Date();
     }
 
-    private ArtifactFile getValue() {
-        return new ArtifactFile(getFile(), version);
+    private PublishArtifact getDelegate() {
+        if (delegate == null) {
+            Object value = provider.get();
+            if (value instanceof FileSystemLocation) {
+                FileSystemLocation location = (FileSystemLocation) value;
+                delegate = fromFile(location.getAsFile());
+            } else if (value instanceof File) {
+                delegate = fromFile((File)value);
+            } else if (value instanceof AbstractArchiveTask) {
+                delegate = new ArchivePublishArtifact((AbstractArchiveTask)value);
+            } else {
+                throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
+            }
+        }
+        return delegate;
+    }
+
+    private DefaultPublishArtifact fromFile(File file) {
+        ArtifactFile artifactFile = new ArtifactFile(file, version);
+        return new DefaultPublishArtifact(artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
     }
 
     @Override
@@ -84,9 +104,7 @@ public class LazyPublishArtifact implements PublishArtifact {
         return new AbstractTaskDependency() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                if (provider instanceof TaskDependencyContainer) {
-                    context.add(provider);
-                }
+                context.add(provider);
             }
         };
     }

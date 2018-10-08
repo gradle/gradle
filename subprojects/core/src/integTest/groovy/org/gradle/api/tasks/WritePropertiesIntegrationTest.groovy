@@ -138,7 +138,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             one=1
             three=three
             two=2
-        """).split("\n").join("EOL")
+        """).split("\n", -1).join("EOL")
     }
 
     @Unroll
@@ -153,12 +153,12 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails "props"
         then:
-        result.error.contains("Property 'someProp' is not allowed to have a null value.")
+        failure.assertHasCause("Property 'someProp' is not allowed to have a null value.")
         where:
         propValue << [ "null", "{ null }" ]
     }
 
     private static String normalize(String text) {
-        return text.stripIndent().trim()
+        return text.stripIndent().trim() + '\n'
     }
 }

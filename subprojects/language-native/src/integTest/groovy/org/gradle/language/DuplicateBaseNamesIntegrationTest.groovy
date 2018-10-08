@@ -29,6 +29,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -129,7 +130,8 @@ model {
         executable("build/exe/main/main").exec().out == "fooFromC\nfooFromCpp\nfooFromAsm\n"
     }
 
-    @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
         setup:
         testApp.writeSources(file("src/main"))

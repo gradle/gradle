@@ -236,7 +236,7 @@ class JvmOptionsTest extends Specification {
     }
 
     private JvmOptions createOpts() {
-        return new JvmOptions(TestFiles.resolver())
+        return new JvmOptions(TestFiles.pathToFileResolver())
     }
 
     private JvmOptions parse(String optsString) {

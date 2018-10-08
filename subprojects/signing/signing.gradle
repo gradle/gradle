@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -15,13 +17,21 @@
  */
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
 
     compile project(':core')
     compile project(':plugins')
     compile project(':maven')
 
-    compile libraries.bouncycastle_pgp
+    testCompile project(':ivy')
+
+    compile libraries.bouncycastle_pgp.coordinates
 }
 
-useTestFixtures()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+}

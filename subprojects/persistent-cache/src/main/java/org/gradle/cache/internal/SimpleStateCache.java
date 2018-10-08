@@ -96,8 +96,10 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
             public void run() {
                 T oldValue = deserialize();
                 result = updateAction.update(oldValue);
-                if (oldValue != result) { // note: intentional pointer comparison
+                if (!(oldValue == null && result == null) && (oldValue == null || result == null || !oldValue.equals(result))) {
                     serialize(result);
+                } else {
+                    result = oldValue;
                 }
             }
         }

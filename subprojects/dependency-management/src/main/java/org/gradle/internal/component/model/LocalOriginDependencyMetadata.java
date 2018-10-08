@@ -19,13 +19,17 @@ package org.gradle.internal.component.model;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
- * A simplified dependency, that maps from a single module configuration to a single target configuration.
+ * A dependency that is defined locally in a build script, not resolved from a repository.
+ * This has a simplified model of a dependency, that maps from a single module configuration to a single target configuration.
  */
-public interface LocalOriginDependencyMetadata extends DependencyMetadata {
+public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata {
     String getModuleConfiguration();
 
     String getDependencyConfiguration();
 
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);
+
+    @Override
+    LocalOriginDependencyMetadata forced();
 }

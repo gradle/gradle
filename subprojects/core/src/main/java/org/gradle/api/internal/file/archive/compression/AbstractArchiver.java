@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.internal.resources.URIBuilder;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
@@ -35,7 +34,7 @@ abstract class AbstractArchiver implements CompressedReadableResource {
 
     abstract protected String getSchemePrefix();
 
-    abstract public InputStream read();
+    public abstract InputStream read();
 
     public String getDisplayName() {
         return resource.getDisplayName();

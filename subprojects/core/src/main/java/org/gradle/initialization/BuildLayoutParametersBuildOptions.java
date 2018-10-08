@@ -73,13 +73,17 @@ public class BuildLayoutParametersBuildOptions {
     }
 
     public static class NoSearchUpwardsOption extends EnabledOnlyBooleanBuildOption<BuildLayoutParameters> {
+        private static final String LONG_OPTION = "no-search-upward";
+        private static final String SHORT_OPTION = "u";
+
         public NoSearchUpwardsOption() {
-            super(null, CommandLineOptionConfiguration.create("no-search-upward", "u", "Don't search in parent folders for a settings file."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Don't search in parent folders for a settings file."));
         }
 
         @Override
         public void applyTo(BuildLayoutParameters settings, Origin origin) {
             settings.setSearchUpwards(false);
+            settings.addDeprecation(String.format("--%s/-%s", LONG_OPTION, SHORT_OPTION));
         }
     }
 }

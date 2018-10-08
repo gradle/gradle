@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -36,11 +37,15 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
     GradleDistribution current
     final IntegrationTestBuildContext buildContext
+    final ResultsStore resultsStore
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
@@ -63,7 +68,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
     private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+        this.resultsStore = resultsStore
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
@@ -82,7 +88,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), resultsStore))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -103,13 +109,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
-        runVersion(current, perVersionWorkingDirectory('current'), results.current)
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
+        def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion)
+        runVersion(current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
-        baselineVersions.each { it ->
-            def baselineVersion = results.baseline(it)
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+        baselineVersions.each { baselineVersion ->
+            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
         }
 
         results.endTime = clock.getCurrentTime()
@@ -121,14 +127,18 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return results
     }
 
-    protected File perVersionWorkingDirectory(String version) {
-        def perVersion = new File(workingDir, version.replace('+', ''))
+    protected File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
+        def perVersion = new File(workingDir, sanitizeVersionWorkingDir(version).padRight(maxWorkingDirLength, '_'))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
             GFileUtils.cleanDirectory(perVersion)
         }
         perVersion
+    }
+
+    private static String sanitizeVersionWorkingDir(String version) {
+        version.replace('+', '')
     }
 
     static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
@@ -235,24 +245,17 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
                 cleanTasks(this.cleanTasks as String[])
-                args(this.args as String[])
+                args((this.args + ['-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}"]) as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
-        if (experimentRunner.honestProfiler) {
-            experimentRunner.honestProfiler.sessionId = "${testId}-${dist.version.version}".replaceAll('[^a-zA-Z0-9.-]', '_').replaceAll('[_]+', '_')
-        }
         experimentRunner.run(spec, results)
     }
 
     def resolveGradleOpts() {
-        PerformanceTestJvmOptions.customizeJvmOptions(this.gradleOpts)
-    }
-
-    HonestProfilerCollector getHonestProfiler() {
-        return experimentRunner.honestProfiler
+        PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
     }
 
     void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {

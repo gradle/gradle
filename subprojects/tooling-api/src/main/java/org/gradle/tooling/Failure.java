@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -26,7 +24,6 @@ import java.util.List;
  *
  * @since 2.4
  */
-@Incubating
 public interface Failure {
 
     /**

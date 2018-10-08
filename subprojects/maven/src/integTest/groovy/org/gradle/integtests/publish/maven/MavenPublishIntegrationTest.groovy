@@ -285,6 +285,26 @@ uploadArchives {
 
         and:
         module.parsedPom.version == '1.0-SNAPSHOT'
+
+        with (module.rootMetaData) {
+            groupId == "org.gradle"
+            artifactId == "test"
+            releaseVersion == null
+            versions == ['1.0-SNAPSHOT']
+        }
+
+        with (module.snapshotMetaData) {
+            groupId == "org.gradle"
+            artifactId == "test"
+            version == "1.0-SNAPSHOT"
+
+            snapshotTimestamp != null
+            snapshotBuildNumber == '1'
+            lastUpdated == snapshotTimestamp.replace('.', '')
+
+            // Snapshot versions are not published, due to Maven legacy support
+            snapshotVersions == []
+        }
     }
 
     def "can publish multiple deployments with attached artifacts"() {

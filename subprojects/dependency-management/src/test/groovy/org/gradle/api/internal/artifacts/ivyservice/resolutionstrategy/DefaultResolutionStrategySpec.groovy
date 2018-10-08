@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
+
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
@@ -25,14 +26,18 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.vcs.internal.VcsMappingsInternal
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.locking.NoOpDependencyLockingProvider
 import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.vcs.internal.VcsResolver
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -45,14 +50,16 @@ class DefaultResolutionStrategySpec extends Specification {
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
-    def vcsMappingsInternal = Mock(VcsMappingsInternal)
+    def vcsResolver = Mock(VcsResolver)
+    @Shared
+    def dependencyLockingProvider = Mock(DependencyLockingProvider)
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsMappingsInternal, moduleIdentifierFactory, componentSelectorConverter)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider)
 
     def "allows setting forced modules"() {
         expect:
@@ -89,6 +96,7 @@ class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "provides dependency resolve rule that forces modules"() {
+        def mid = DefaultModuleIdentifier.newId('org', 'foo')
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencySubstitutionInternal)
@@ -99,9 +107,9 @@ class DefaultResolutionStrategySpec extends Specification {
         then:
         _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
-        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        _ * details.getOldRequested() >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
+        _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        _ * details.getOldRequested() >> newSelector(mid, "1.0")
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -117,6 +125,7 @@ class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "provides dependency resolve rule with forced modules first and then user specified rules"() {
+        def mid = DefaultModuleIdentifier.newId('org', 'foo')
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencySubstitutionInternal)
@@ -127,9 +136,9 @@ class DefaultResolutionStrategySpec extends Specification {
 
         then: //forced modules:
         dependencySubstitutions.ruleAction >> substitutionAction
-        _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        _ * details.oldRequested >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
+        _ * details.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
+        _ * details.oldRequested >> newSelector(mid, "1.0")
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:
@@ -262,5 +271,20 @@ class DefaultResolutionStrategySpec extends Specification {
             }
         })
         then: 0 * validator.validateMutation(_)
+    }
+
+    @Unroll
+    def 'provides the expected DependencyLockingProvider (#activateLocking)'() {
+        when:
+        if (activateLocking) {
+            strategy.activateDependencyLocking()
+        }
+        then:
+        strategy.dependencyLockingProvider.is(expectedProvider)
+
+        where:
+        activateLocking | expectedProvider
+        true            | dependencyLockingProvider
+        false           | NoOpDependencyLockingProvider.instance
     }
 }

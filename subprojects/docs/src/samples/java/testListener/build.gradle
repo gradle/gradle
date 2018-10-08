@@ -10,7 +10,7 @@ dependencies.testCompile 'junit:junit:4.+'
 test.ignoreFailures = false
 
 def events = []
-// START SNIPPET testListenerImpl
+// tag::testListenerImpl[]
 class MyListener implements org.gradle.api.tasks.testing.TestListener
 {
     def events
@@ -36,11 +36,11 @@ class MyListener implements org.gradle.api.tasks.testing.TestListener
         println '  '+msg
     }
 }
-// END SNIPPET testListenerImpl
+// end::testListenerImpl[]
 
-// START SNIPPET testListenerRegister
+// tag::testListenerRegister[]
 gradle.addListener(new MyListener(events: events))
-// END SNIPPET testListenerRegister
+// end::testListenerRegister[]
 
 test.doLast {
     def expectedEvents = []

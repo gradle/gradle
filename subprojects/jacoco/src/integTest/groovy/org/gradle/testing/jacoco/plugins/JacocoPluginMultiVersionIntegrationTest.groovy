@@ -19,12 +19,10 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
+@TargetCoverage({ JacocoCoverage.DEFAULT_COVERAGE })
 class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
@@ -118,7 +116,6 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         executionResult.assertTaskSkipped(':jacocoTestReport')
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     void canUseCoverageDataFromPreviousRunForCoverageReport() {
         when:
         succeeds('jacocoTestReport')
@@ -138,7 +135,6 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         htmlReport().totalCoverage() == 100
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     void canMergeCoverageData() {
         given:
         file("src/otherMain/java/Thing.java") << """
@@ -206,7 +202,6 @@ public class ThingTest {
         buildFile << """
         test {
             jacoco {
-                append = false
                 destinationFile = file("\$buildDir/tmp/jacoco/jacocoTest.exec")
                 classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
             }
@@ -260,7 +255,16 @@ public class ThingTest {
         then:
         ':test' in nonSkippedTasks
         ':jacocoTestReport' in executedTasks
-        errorOutput.contains("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+        failure.assertHasCause("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+    }
+
+    def "coverage data is aggregated from many tests"() {
+        javaProjectUnderTest.writeSourceFiles(2000)
+
+        expect:
+        succeeds 'test', 'jacocoTestReport', '--info'
+        htmlReport().totalCoverage() == 100
+        htmlReport().numberOfClasses() == 2000
     }
 
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {

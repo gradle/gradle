@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -42,8 +43,9 @@ public class ForkOptions extends BaseForkOptions {
      *
      * <p>Setting the executable disables task output caching.</p>
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getExecutable() {
         return executable;
     }
@@ -55,7 +57,7 @@ public class ForkOptions extends BaseForkOptions {
      *
      * <p>Setting the executable disables task output caching.</p>
      */
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         this.executable = executable;
     }
 
@@ -68,6 +70,7 @@ public class ForkOptions extends BaseForkOptions {
      */
     @Internal
     @Incubating
+    @Nullable
     public File getJavaHome() {
         return javaHome;
     }
@@ -80,7 +83,7 @@ public class ForkOptions extends BaseForkOptions {
      * @since 3.5
      */
     @Incubating
-    public void setJavaHome(File javaHome) {
+    public void setJavaHome(@Nullable File javaHome) {
         this.javaHome = javaHome;
     }
 
@@ -90,6 +93,7 @@ public class ForkOptions extends BaseForkOptions {
      * in which case the directory will be chosen automatically.
      */
     @Internal
+    @Nullable
     public String getTempDir() {
         return tempDir;
     }
@@ -99,7 +103,7 @@ public class ForkOptions extends BaseForkOptions {
      * command line arguments to the compiler process. Defaults to {@code null},
      * in which case the directory will be chosen automatically.
      */
-    public void setTempDir(String tempDir) {
+    public void setTempDir(@Nullable String tempDir) {
         this.tempDir = tempDir;
     }
 

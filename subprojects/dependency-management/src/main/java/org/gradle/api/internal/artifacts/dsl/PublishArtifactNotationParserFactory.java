@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.apache.tools.ant.Task;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
@@ -56,6 +57,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
                 .converter(new DecoratingConverter())
                 .converter(new ArchiveTaskNotationConverter())
                 .converter(new FileProviderNotationConverter())
+                .converter(new FileSystemLocationNotationConverter())
                 .converter(fileConverter)
                 .converter(new FileMapNotationConverter(fileConverter))
                 .toComposite();
@@ -121,6 +123,24 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected ConfigurablePublishArtifact parseType(Provider notation) {
             Module module = metaDataProvider.getModule();
             return instantiator.newInstance(DecoratingPublishArtifact.class, new LazyPublishArtifact(notation, module.getVersion()));
+        }
+    }
+
+    private class FileSystemLocationNotationConverter extends TypedNotationConverter<FileSystemLocation, ConfigurablePublishArtifact> {
+        FileSystemLocationNotationConverter() {
+            super(FileSystemLocation.class);
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of RegularFile.");
+            visitor.candidate("Instances of Directory.");
+        }
+
+        @Override
+        protected ConfigurablePublishArtifact parseType(FileSystemLocation notation) {
+            Module module = metaDataProvider.getModule();
+            return instantiator.newInstance(DecoratingPublishArtifact.class, new FileSystemPublishArtifact(notation, module.getVersion()));
         }
     }
 

@@ -23,10 +23,12 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
     @Override
     ModuleComponentSelector getSelector();
 
-    String getDynamicConstraintVersion();
-
     /**
      * Returns a copy of this dependency with the given requested version.
      */
     ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
+
+    @Override
+    ModuleDependencyMetadata withReason(String reason);
+
 }

@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 
@@ -71,23 +70,16 @@ public class ModuleDependency implements Dependency {
 
     @Override
     public void addToNode(Node parentNode) {
-        Map<String, Object> attributes = Maps.newHashMap(ImmutableMap.<String, Object>builder()
-            .put("type", "module")
-            .put("module-name", name)
-            .putAll(getAttributeMapForScopeAndExported())
-            .build());
-        parentNode.appendNode("orderEntry", attributes);
-    }
-
-    private Map<String, Object> getAttributeMapForScopeAndExported() {
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
+        attributes.put("type", "module");
+        attributes.put("module-name", name);
         if (exported) {
-            builder.put("exported", "");
+            attributes.put("exported", "");
         }
         if (!Strings.isNullOrEmpty(scope) && !"COMPILE".equals(scope)) {
-            builder.put("scope", scope);
+            attributes.put("scope", scope);
         }
-        return builder.build();
+        parentNode.appendNode("orderEntry", attributes);
     }
 
     @Override

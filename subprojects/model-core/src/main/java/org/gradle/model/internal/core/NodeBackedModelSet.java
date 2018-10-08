@@ -21,12 +21,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Specs;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.ClosureBackedAction;
 
 import java.util.Collection;
 import java.util.Iterator;

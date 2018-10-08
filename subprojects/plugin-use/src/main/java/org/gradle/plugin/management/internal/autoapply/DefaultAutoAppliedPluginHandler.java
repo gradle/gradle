@@ -23,7 +23,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
@@ -41,38 +43,52 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
 
     @Override
     public PluginRequests mergeWithAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget) {
-        if (!(pluginTarget instanceof Project)) {
+        if (pluginTarget instanceof Project) {
+            Project project = (Project) pluginTarget;
+
+            PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(project);
+            if (autoAppliedPlugins.isEmpty()) {
+                return initialRequests;
+            }
+            return mergePluginRequests(autoAppliedPlugins, initialRequests, project.getPlugins(), project.getBuildscript());
+        } else if (pluginTarget instanceof Settings) {
+            Settings settings = (Settings) pluginTarget;
+
+            PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(settings);
+            if (autoAppliedPlugins.isEmpty()) {
+                return initialRequests;
+            }
+            return mergePluginRequests(autoAppliedPlugins, initialRequests, settings.getPlugins(), settings.getBuildscript());
+        } else {
+            // No auto-applied plugins available
             return initialRequests;
         }
-        Project project = (Project) pluginTarget;
 
-        PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(project);
-        if (autoAppliedPlugins.isEmpty()) {
-            return initialRequests;
-        }
+    }
 
-        List<PluginRequestInternal> filteredAutoAppliedPlugins = filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, project);
+    PluginRequests mergePluginRequests(PluginRequests autoAppliedPlugins, PluginRequests initialRequests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
+        List<PluginRequestInternal> filteredAutoAppliedPlugins = filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, pluginContainer, scriptHandler);
         List<PluginRequestInternal> merged = new ArrayList<PluginRequestInternal>(initialRequests.size() + autoAppliedPlugins.size());
         merged.addAll(filteredAutoAppliedPlugins);
         merged.addAll(ImmutableList.copyOf(initialRequests));
         return new DefaultPluginRequests(merged);
     }
 
-    private List<PluginRequestInternal> filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final Project project) {
+    private List<PluginRequestInternal> filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
         return Lists.newArrayList(Iterables.filter(autoAppliedPlugins, new Predicate<PluginRequestInternal>() {
             @Override
             public boolean apply(PluginRequestInternal autoAppliedPlugin) {
-                return !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, project);
+                return !isAlreadyAppliedOrRequested(autoAppliedPlugin, initialRequests, pluginContainer, scriptHandler);
             }
         }));
     }
 
-    private static boolean isAlreadyAppliedOrRequested(PluginRequestInternal autoAppliedPlugin, PluginRequests requests, Project project) {
-        return isAlreadyApplied(autoAppliedPlugin, project) || isAlreadyRequestedInPluginsBlock(autoAppliedPlugin, requests) || isAlreadyRequestedInBuildScriptBlock(autoAppliedPlugin, project);
+    private static boolean isAlreadyAppliedOrRequested(PluginRequestInternal autoAppliedPlugin, PluginRequests requests, PluginContainer pluginContainer, ScriptHandler scriptHandler) {
+        return isAlreadyApplied(autoAppliedPlugin, pluginContainer) || isAlreadyRequestedInPluginsBlock(autoAppliedPlugin, requests) || isAlreadyRequestedInBuildScriptBlock(autoAppliedPlugin, scriptHandler);
     }
 
-    private static boolean isAlreadyApplied(PluginRequestInternal autoAppliedPlugin, Project project) {
-        return project.getPlugins().hasPlugin(autoAppliedPlugin.getId().getId());
+    private static boolean isAlreadyApplied(PluginRequestInternal autoAppliedPlugin, PluginContainer pluginContainer) {
+        return pluginContainer.hasPlugin(autoAppliedPlugin.getId().getId());
     }
 
     private static boolean isAlreadyRequestedInPluginsBlock(PluginRequestInternal autoAppliedPlugin, PluginRequests requests) {
@@ -84,13 +100,13 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
         return false;
     }
 
-    private static boolean isAlreadyRequestedInBuildScriptBlock(PluginRequestInternal autoAppliedPlugin, Project project) {
+    private static boolean isAlreadyRequestedInBuildScriptBlock(PluginRequestInternal autoAppliedPlugin, ScriptHandler scriptHandler) {
         ModuleVersionSelector module = autoAppliedPlugin.getModule();
         if (module == null) {
             return false;
         }
 
-        Configuration classpathConfiguration = project.getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+        Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
         for (Dependency dependency : classpathConfiguration.getDependencies()) {
             if (module.getGroup().equals(dependency.getGroup()) && module.getName().equals(dependency.getName())) {
                 return true;

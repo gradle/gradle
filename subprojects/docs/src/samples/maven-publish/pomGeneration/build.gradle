@@ -1,0 +1,26 @@
+apply plugin: 'maven-publish'
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+publishing {
+    publications {
+        mavenCustom(MavenPublication) {
+            pom {
+                name = 'Example'
+            }
+        }
+    }
+    repositories {
+        maven {
+            // change to point to your repo, e.g. http://my.org/repo
+            url "$buildDir/repo"
+        }
+    }
+}
+
+// tag::generate[]
+generatePomFileForMavenCustomPublication {
+    destination = file("$buildDir/generated-pom.xml")
+}
+// end::generate[]

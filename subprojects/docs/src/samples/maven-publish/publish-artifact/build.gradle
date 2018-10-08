@@ -1,0 +1,41 @@
+plugins {
+    id 'base'
+    id 'maven-publish'
+}
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+// tag::custom-artifact[]
+def rpmFile = file("$buildDir/rpms/my-package.rpm")
+def rpmArtifact = artifacts.add('archives', rpmFile) {
+    type 'rpm'
+    builtBy 'rpm'
+}
+// end::custom-artifact[]
+
+task rpm() {
+    outputs.file rpmFile
+    doLast {
+        // produce real RPM here
+        rpmFile << 'file contents'
+    }
+}
+
+// tag::custom-artifact-publication[]
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact rpmArtifact
+        }
+    }
+// end::custom-artifact-publication[]
+    repositories {
+        // change URLs to point to your repo, e.g. http://my.org/repo
+        maven {
+            url = "$buildDir/repo"
+        }
+    }
+// tag::custom-artifact-publication[]
+}
+// end::custom-artifact-publication[]

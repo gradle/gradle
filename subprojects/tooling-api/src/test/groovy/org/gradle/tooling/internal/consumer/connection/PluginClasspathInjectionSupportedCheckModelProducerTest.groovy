@@ -60,7 +60,7 @@ class PluginClasspathInjectionSupportedCheckModelProducerTest extends Specificat
         producer.produceModel(Void, ConsumerOperationParameters.builder().with {
             entryPoint = "foo"
             if (injectedClasspath) {
-                injectedPluginClasspath = new DefaultClassPath(new File("foo"))
+                injectedPluginClasspath = DefaultClassPath.of(new File("foo"))
             }
             build()
         })

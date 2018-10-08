@@ -19,6 +19,7 @@ package org.gradle.performance.fixture
 import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
@@ -36,17 +37,19 @@ class ForkingGradleSession implements GradleSession {
 
     final GradleInvocationSpec invocation
     private final IntegrationTestBuildContext integrationTestBuildContext
+    File mirrorScript
 
     private ProcessBuilder stop
 
     ForkingGradleSession(GradleInvocationSpec invocation, IntegrationTestBuildContext integrationTestBuildContext) {
-        this.invocation = invocation
+        this.invocation = invocation.withBuilder().distribution(new PerformanceTestGradleDistribution(invocation.gradleDistribution, invocation.workingDirectory)).build()
         this.integrationTestBuildContext = integrationTestBuildContext
     }
 
     @Override
     void prepare() {
         cleanup()
+        mirrorScript = RepoScriptBlockUtil.createMirrorInitScript()
     }
 
     @Override
@@ -83,7 +86,6 @@ class ForkingGradleSession implements GradleSession {
         }
         args << new File(invocation.gradleDistribution.gradleHomeDir, "bin/gradle").absolutePath
         args << "--gradle-user-home" << invocationInfo.gradleUserHome.absolutePath
-        args << "--no-search-upward"
         args << "--stacktrace"
         if (invocation.useDaemon) {
             args << "--daemon"
@@ -93,10 +95,13 @@ class ForkingGradleSession implements GradleSession {
             args << '-Dorg.gradle.jvmargs'
             env.put("GRADLE_OPTS", jvmArgs)
         }
+        args << "--init-script" << mirrorScript.absolutePath
         args += invocation.args
 
         ProcessBuilder run = newProcessBuilder(invocationInfo, args + tasks, env)
-        stop = newProcessBuilder(invocationInfo, args + "--stop", env)
+        if (invocation.useDaemon) {
+            stop = newProcessBuilder(invocationInfo, args + "--stop", env)
+        }
 
         def exitCode = run.start().waitFor()
         if (exitCode != 0 && !invocation.expectFailure) {

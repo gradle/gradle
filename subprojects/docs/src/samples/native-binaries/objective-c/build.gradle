@@ -1,16 +1,16 @@
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'objective-c'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
-// START SNIPPET executables
+// tag::executables[]
 model {
     components {
         main(NativeExecutableSpec)
     }
 }
-// END SNIPPET executables
+// end::executables[]
 
-// START SNIPPET all-binaries
+// tag::all-binaries[]
 model {
     binaries {
         all {
@@ -24,4 +24,4 @@ model {
         }
     }
 }
-// END SNIPPET all-binaries
+// end::all-binaries[]

@@ -18,10 +18,13 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
@@ -45,7 +48,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.Set;
 
 /**
@@ -98,17 +100,35 @@ public class HttpBuildCacheService implements BuildCacheService {
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 return false;
             } else {
-                return throwHttpStatusCodeException(
-                    statusCode,
-                    String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase()));
+                String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                if (isRedirect(statusCode)) {
+                    return handleRedirect(uri, response, statusCode, defaultMessage, "loading entry from");
+                } else {
+                    return throwHttpStatusCodeException(statusCode, defaultMessage);
+                }
             }
         } catch (IOException e) {
-            // TODO: We should consider different types of exceptions as fatal/recoverable.
-            // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Unable to load entry from '%s': %s", safeUri(uri), e.getMessage()), e);
+            throw wrap(e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
+    }
+
+    private boolean handleRedirect(URI uri, CloseableHttpResponse response, int statusCode, String defaultMessage, String action) {
+        final Header locationHeader = response.getFirstHeader("location");
+        if (locationHeader == null) {
+            return throwHttpStatusCodeException(statusCode, defaultMessage);
+        }
+        try {
+            throw new BuildCacheException(String.format("Received unexpected redirect (HTTP %d) to %s when " + action + " '%s'. "
+                + "Ensure the configured URL for the remote build cache is correct.", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
+        } catch (URISyntaxException e) {
+            return throwHttpStatusCodeException(statusCode, defaultMessage);
+        }
+    }
+
+    private boolean isRedirect(int statusCode) {
+        return statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_TEMPORARY_REDIRECT;
     }
 
     private void addDiagnosticHeaders(HttpMessage request) {
@@ -125,7 +145,7 @@ public class HttpBuildCacheService implements BuildCacheService {
         httpPut.setEntity(new AbstractHttpEntity() {
             @Override
             public boolean isRepeatable() {
-                return true;
+                return false;
             }
 
             @Override
@@ -157,20 +177,33 @@ public class HttpBuildCacheService implements BuildCacheService {
             }
             int statusCode = statusLine.getStatusCode();
             if (!isHttpSuccess(statusCode)) {
-                throwHttpStatusCodeException(
-                    statusCode,
-                    String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase())
-                );
+                String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                if (isRedirect(statusCode)) {
+                    handleRedirect(uri, response, statusCode, defaultMessage, "storing entry at");
+                } else {
+                    throwHttpStatusCodeException(statusCode, defaultMessage);
+                }
             }
-        } catch (UnknownHostException e) {
-            throw new UncheckedException(e);
+        } catch (ClientProtocolException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof NonRepeatableRequestException) {
+                throw wrap(cause.getCause());
+            } else {
+                throw wrap(cause);
+            }
         } catch (IOException e) {
-            // TODO: We should consider different types of exceptions as fatal/recoverable.
-            // Right now, everything is considered recoverable.
-            throw new BuildCacheException(String.format("Unable to store entry at '%s': %s", safeUri(uri), e.getMessage()), e);
+            throw wrap(e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
+    }
+
+    private static BuildCacheException wrap(Throwable e) {
+        if (e instanceof Error) {
+            throw (Error) e;
+        }
+
+        throw new BuildCacheException(e.getMessage(), e);
     }
 
     private boolean isHttpSuccess(int statusCode) {

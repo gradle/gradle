@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
@@ -46,6 +47,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private ConnectionAcceptor acceptor;
     private ExecHandle execHandle;
     private boolean running;
+    private boolean aborted;
     private Throwable processFailure;
     private final long connectTimeout;
     private final JvmMemoryStatus jvmMemoryStatus;
@@ -61,6 +63,22 @@ public class DefaultWorkerProcess implements WorkerProcess {
             return jvmMemoryStatus;
         } else {
             throw new UnsupportedOperationException("This worker process does not support reporting JVM memory status.");
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        lock.lock();
+        try {
+            aborted = true;
+            if (connection != null) {
+                connection.abort();
+            }
+        } finally {
+            lock.unlock();
+
+            // cleanup() will abort the process as desired
+            cleanup();
         }
     }
 
@@ -100,6 +118,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
             }
 
             this.connection = connection;
+            if (aborted) {
+                connection.abort();
+            }
             condition.signalAll();
             stoppable = acceptor;
         } finally {
@@ -195,10 +216,14 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     private void cleanup() {
         CompositeStoppable stoppable;
-        execHandle.abort();
         lock.lock();
         try {
-            stoppable = CompositeStoppable.stoppable(acceptor, connection);
+            stoppable = CompositeStoppable.stoppable(connection, new Stoppable() {
+                @Override
+                public void stop() {
+                    execHandle.abort();
+                }
+            }, acceptor);
         } finally {
             this.connection = null;
             this.acceptor = null;

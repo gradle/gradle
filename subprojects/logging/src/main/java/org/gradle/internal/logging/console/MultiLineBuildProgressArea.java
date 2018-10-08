@@ -56,6 +56,9 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
         return progressBarLabel;
     }
 
+    /**
+     * The location of the top left of this progress area.
+     */
     public Cursor getWritePosition() {
         return statusAreaPos;
     }
@@ -79,6 +82,10 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
             entries.add(entries.size() - 1, label);
             buildProgressLabels.add(label);
         }
+    }
+
+    public boolean isVisible() {
+        return isVisible;
     }
 
     @Override
@@ -111,7 +118,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
             ansi.cursorAt(Cursor.newBottomLeft()).newLines(newLines);
         }
 
-        // Redraw every entries of this area
+        // Redraw every entry of this area
         for (int i = 0; i < entries.size(); ++i) {
             DefaultRedrawableLabel label = entries.get(i);
 
@@ -134,7 +141,7 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     }
 
     // According to absolute positioning
-    public void scrollBy(int rows) {
+    private void scrollBy(int rows) {
         statusAreaPos.row -= rows;
         for (DefaultRedrawableLabel label : entries) {
             label.scrollBy(rows);

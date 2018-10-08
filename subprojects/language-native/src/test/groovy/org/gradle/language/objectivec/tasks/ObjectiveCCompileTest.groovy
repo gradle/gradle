@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivec.tasks
 
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -60,12 +60,12 @@ class ObjectiveCCompileTest extends AbstractProjectBuilderSpec {
         platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
-        9 * toolChain.select(platform) >> platformToolChain
-        9 * platformToolChain.newCompiler({ ObjectiveCCompileSpec.class.isAssignableFrom(it) }) >> objCCompiler
+        2 * toolChain.select(platform) >> platformToolChain
+        2 * platformToolChain.newCompiler({ ObjectiveCCompileSpec.class.isAssignableFrom(it) }) >> objCCompiler
         pch.includeString >> "header"
         pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
-        pch.pchObjects >> new SimpleFileCollection()
+        pch.pchObjects >> ImmutableFileCollection.of()
         1 * objCCompiler.execute({ ObjectiveCCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

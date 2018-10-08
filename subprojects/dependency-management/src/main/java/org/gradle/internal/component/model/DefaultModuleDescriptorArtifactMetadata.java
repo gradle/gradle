@@ -16,41 +16,14 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
-public class DefaultModuleDescriptorArtifactMetadata implements ModuleDescriptorArtifactMetadata {
-    private final DefaultModuleComponentArtifactMetadata delegate;
-
-    public DefaultModuleDescriptorArtifactMetadata(DefaultModuleComponentArtifactMetadata delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    public ModuleComponentArtifactIdentifier getId() {
-        return delegate.getId();
-    }
-
-    @Override
-    public ArtifactIdentifier toArtifactIdentifier() {
-        return delegate.toArtifactIdentifier();
-    }
-
-    @Override
-    public ComponentIdentifier getComponentId() {
-        return delegate.getComponentId();
-    }
-
-    @Override
-    public IvyArtifactName getName() {
-        return delegate.getName();
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
+/**
+ * Subtype to provide `ModuleDescriptorArtifactMetadata` marker interface.
+ */
+public class DefaultModuleDescriptorArtifactMetadata extends DefaultModuleComponentArtifactMetadata implements ModuleDescriptorArtifactMetadata {
+    public DefaultModuleDescriptorArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+        super(componentIdentifier, artifact);
     }
 }

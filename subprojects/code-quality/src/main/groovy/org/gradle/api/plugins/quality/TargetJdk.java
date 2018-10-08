@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins.quality;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents the PMD targetjdk property available for PMD &lt; 5.0
  */
@@ -34,7 +36,8 @@ public enum TargetJdk {
      * @return The version, or null if the provided value is null.
      * @throws IllegalArgumentException when the provided value cannot be converted.
      */
-    public static TargetJdk toVersion(Object value) throws IllegalArgumentException {
+    @Nullable
+    public static TargetJdk toVersion(@Nullable Object value) throws IllegalArgumentException {
         if (value == null) {
             return null;
         }

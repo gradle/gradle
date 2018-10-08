@@ -80,7 +80,7 @@ public class HashUtil {
     }
 
     public static String compactStringFor(HashCode hashCode) {
-        return compactStringFor(hashCode.toByteArray());
+        return compactStringFor(hashCode.getBytes());
     }
 
     public static String compactStringFor(byte[] digest) {

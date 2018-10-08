@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -48,13 +47,14 @@ import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -172,7 +172,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private Set<DependencyGraphNodeResult> getFirstLevelNodes(Spec<? super Dependency> dependencySpec) {
         Set<DependencyGraphNodeResult> matches = new LinkedHashSet<DependencyGraphNodeResult>();
         TransientConfigurationResults graphResults = loadTransientGraphResults(getSelectedArtifacts());
-        for (Map.Entry<ModuleDependency, DependencyGraphNodeResult> entry : graphResults.getFirstLevelDependencies().entrySet()) {
+        for (Map.Entry<Dependency, DependencyGraphNodeResult> entry : graphResults.getFirstLevelDependencies().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
                 matches.add(entry.getValue());
             }
@@ -288,7 +288,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final Set<File> files = Sets.newLinkedHashSet();
 
         @Override
-        public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+        public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             try {
                 ResolvedArtifact resolvedArtifact = artifact.toPublicView();
                 files.add(resolvedArtifact.getFile());
@@ -314,7 +314,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
             throw new UnsupportedOperationException();
         }
     }
@@ -326,7 +326,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
             files.add(file);
         }
     }

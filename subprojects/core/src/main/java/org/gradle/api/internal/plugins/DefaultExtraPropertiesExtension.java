@@ -36,11 +36,16 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Nullable
     public Object get(String name) {
-        if (storage.containsKey(name)) {
-            return storage.get(name);
-        } else {
+        Object value = find(name);
+        if (value == null && !has(name)) {
             throw new UnknownPropertyException(this, name);
         }
+        return value;
+    }
+
+    @Nullable
+    public Object find(String name) {
+        return storage.get(name);
     }
 
     public void set(String name, @Nullable Object value) {
@@ -72,7 +77,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     }
 
     public Object methodMissing(String name, Object args) {
-        Object item = storage.get(name);
+        Object item = find(name);
         if (item != null && item instanceof Closure) {
             Closure closure = (Closure) item;
             return closure.call((Object[]) args);

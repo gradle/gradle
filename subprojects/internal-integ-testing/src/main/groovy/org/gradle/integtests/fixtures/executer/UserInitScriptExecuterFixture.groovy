@@ -46,7 +46,12 @@ abstract class UserInitScriptExecuterFixture implements MethodRule {
         executer.requireOwnGradleUserHomeDir()
         def temporaryFolder = executer.gradleUserHomeDir.file("init.d")
         def initFile = temporaryFolder.file(this.getClass().getSimpleName() + "-init.gradle")
-        initFile.text = initScriptContent()
+        executer.beforeExecute {
+            // On test retry the user home dir may be deleted, so verify the init script exists before each invocation
+            if (!initFile.file) {
+                initFile.text = initScriptContent()
+            }
+        }
         executer.afterExecute { afterBuild() }
     }
 }

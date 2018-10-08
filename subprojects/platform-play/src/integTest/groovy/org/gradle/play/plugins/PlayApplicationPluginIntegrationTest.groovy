@@ -19,10 +19,13 @@ package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

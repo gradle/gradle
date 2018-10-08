@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -35,7 +34,6 @@ public interface IdeaProject extends HierarchicalElement {
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
      * @since 2.11
      */
-    @Incubating
     IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
 
     /**

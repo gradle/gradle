@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualArtifactPublisher
-import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher
+import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -46,7 +46,6 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
         _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }
         _ * parent.getAll({it instanceof Class}) >> { Class t -> [Stub(t)]}
-        _ * parent.hasService(_) >> true
     }
 
     def "can create dependency resolution DSL services"() {
@@ -91,7 +90,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         then:
         def ivyService = publishServices.createArtifactPublisher()
         ivyService instanceof IvyContextualArtifactPublisher
-        ivyService.delegate instanceof IvyBackedArtifactPublisher
+        ivyService.delegate instanceof DefaultArtifactPublisher
         !ivyService.is(publishServices.createArtifactPublisher())
     }
 }

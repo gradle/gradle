@@ -28,7 +28,7 @@ class FluidDependenciesResolveRunner extends BehindFlagFeatureRunner {
     public final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
 
     FluidDependenciesResolveRunner(Class<?> target) {
-        super(target, ASSUME_FLUID_DEPENDENCIES, "fluid dependencies")
+        super(target, [ASSUME_FLUID_DEPENDENCIES: booleanFeature("fluid dependencies")])
     }
 
     static isFluid() {

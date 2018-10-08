@@ -13,29 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.Requires
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-class SamplesRepositoriesIntegrationTest extends AbstractIntegrationTest {
+@Requires(KOTLIN_SCRIPT)
+class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'userguide/artifacts/defineRepository')
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    @Test
-    public void repositoryNotations() {
+    def setup() {
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+    }
+
+    @Unroll
+    @LeaksFileHandles
+    @UsesSample("userguide/artifacts/defineRepository")
+    def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
-        File projectDir = sample.dir
-        String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().output
-        assertThat(output, equalTo("""localRepository
-localRepository
-"""))
+        executer.inDirectory(sample.dir.file(dsl))
+
+        expect:
+        succeeds('lookup')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

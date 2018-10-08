@@ -16,8 +16,10 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
+import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
@@ -152,6 +154,43 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         additionalRequests == 0
     }
 
+    def "the lock holder confirms lock releases to multiple requesters"() {
+        given:
+        def signal
+        setupLockOwner() { s ->
+            signal = s
+        }
+
+        when:
+        def build1 = executer.withArguments("-d").withTasks("help").start()
+        def build2 = executer.withArguments("-d").withTasks("help").start()
+        def build3 = executer.withArguments("-d").withTasks("help").start()
+
+        then:
+        poll {
+            assert signal != null
+            assertConfirmationCount(build1)
+            assertConfirmationCount(build2)
+            assertConfirmationCount(build3)
+        }
+
+        when:
+        signal.trigger()
+
+        then:
+        poll {
+            assertReleaseSignalTriggered(build1)
+            assertReleaseSignalTriggered(build2)
+            assertReleaseSignalTriggered(build3)
+        }
+
+        then:
+        receivingLock.close()
+        build1.waitForFinish()
+        build2.waitForFinish()
+        build3.waitForFinish()
+    }
+
     def "if the lock was released by one lock holder, but taken away again, the new lock holder is pinged once"() {
         given:
         def requestReceived = false
@@ -196,6 +235,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.FileLockManager
             import org.gradle.cache.internal.filelock.LockOptionsBuilder
             import org.gradle.cache.internal.CacheRepositoryServices;
+            import org.gradle.internal.logging.events.OutputEventListener;
             import org.gradle.internal.nativeintegration.services.NativeServices;
             import org.gradle.internal.service.DefaultServiceRegistry;
             import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -239,6 +279,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 private ZincCompilerServices(File gradleUserHome) {
                     super(NativeServices.getInstance());
         
+                    add(OutputEventListener.class, OutputEventListener.NO_OP);
                     addProvider(new GlobalScopeServices(true));
                     addProvider(new CacheRepositoryServices(gradleUserHome, null));
                 }
@@ -263,6 +304,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
     void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket, FileLock lock = receivingLock) {
         assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == addressFactory.communicationAddresses.size()
+    }
+
+    void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {
+        assert (build.standardOutput =~ "Triggering lock release signal for lock with id ${lock.lockId}.").count > 0
     }
 
     def assertReceivingSocketEmpty() {
@@ -309,7 +354,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         socketReceiverThread.start()
     }
 
-    def setupLockOwner(Runnable whenContended = null) {
+    def setupLockOwner(Action<FileLockReleasedSignal> whenContended = null) {
         receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), addressFactory)
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }

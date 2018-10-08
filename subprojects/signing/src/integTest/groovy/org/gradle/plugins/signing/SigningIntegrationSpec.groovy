@@ -17,35 +17,72 @@ package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+
+import java.nio.file.Path
 
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
-    
+    enum SignMethod {
+        OPEN_GPG,
+        GPG_CMD
+    }
+
     @Rule public final TestResources resources = new TestResources(temporaryFolder, "keys")
 
-    String jarFileName = "sign-1.0.jar"
+    Path gpgHomeSymlink
+
+    final String artifactId = "sign"
+    final String version = "1.0"
+    final String jarFileName = "$artifactId-${version}.jar"
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'signing'
-            archivesBaseName = 'sign'
+            archivesBaseName = '$artifactId'
             group = 'sign'
-            version = '1.0'
+            version = '$version'
         """
-        
+
         file("src", "main", "java", "Thing.java") << """
             public class Thing {}
         """
+
+        if (getSignMethod() == SignMethod.GPG_CMD) {
+            setupGpgCmd()
+        }
+    }
+
+    def setupGpgCmd() {
+        TestFile sampleDir = new IntegrationTestBuildContext().getSamplesDir()
+        sampleDir.file('signing/gnupg-signatory/groovy/gnupg-home').copyTo(file('gnupg-home'))
+        sampleDir.file('signing/gnupg-signatory/groovy/gradle.properties').copyTo(file('gradle.properties'))
+        GpgCmdFixture.setupGpgCmd(temporaryFolder.testDirectory)
+    }
+
+    def cleanup() {
+        if (gpgHomeSymlink != null) {
+            GpgCmdFixture.cleanupGpgCmd(gpgHomeSymlink)
+        }
+    }
+
+    def signingConfiguration() {
+        if (getSignMethod() == SignMethod.OPEN_GPG) {
+            return ''
+        } else {
+            return 'useGpgCmd()'
+        }
     }
 
     static class KeyInfo {
         String keyId
         String password
         String keyRingFilePath
-        
+
         Map<String, String> asProperties(String name = null) {
             def prefix = name ? "signing.${name}." : "signing."
             def properties = [:]
@@ -54,14 +91,14 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             properties[prefix + "secretKeyRingFile"] = keyRingFilePath
             properties
         }
-        
+
         String addAsPropertiesScript(addTo = "project.ext", name = null) {
             asProperties(name).collect { k, v ->
                 "${addTo}.setProperty('${escapeString(k)}', '${escapeString(v)}')"
             }.join(";")
         }
     }
-    
+
     KeyInfo getKeyInfo(set = "default") {
         new KeyInfo(
             keyId: file(set, "keyId.txt").text.trim(),
@@ -69,7 +106,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             keyRingFilePath: file(set, "secring.gpg")
         )
     }
-    
+
     String getJavadocAndSourceJarsScript(String configurationName = null) {
         def tasks = """
             task("sourcesJar", type: Jar, dependsOn: classes) { 
@@ -82,7 +119,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
                 from javadoc.destinationDir 
             } 
         """
-        
+
         if (configurationName == null) {
             tasks
         } else {
@@ -97,7 +134,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             """
         }
     }
-    
+
     String uploadArchives() {
         return """
             apply plugin: "maven"
@@ -121,21 +158,20 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    File m2RepoFile(String name) {
-        file("build", "m2Repo", "sign", "sign", "1.0", name)
+    TestFile m2RepoFile(String name) {
+        file("build", "m2Repo", "sign", artifactId, version, name)
     }
 
-    File ivyRepoFile(String name) {
+    TestFile ivyRepoFile(String name) {
         file("build", "ivyRepo", name)
     }
 
-    File fileRepoFile(String name) {
+    TestFile fileRepoFile(String name) {
         file("build", "fileRepo", name)
     }
 
 
     void jarUploaded(String jarFileName = jarFileName) {
-        assert m2RepoFile(jarFileName).exists()
         assert m2RepoFile(jarFileName).exists()
         assert ivyRepoFile(jarFileName).exists()
         assert fileRepoFile(jarFileName).exists()
@@ -168,12 +204,16 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             }
         """
     }
-    
-    File pom(String name = "sign-1.0") {
+
+    TestFile pom(String name = "sign-1.0") {
         m2RepoFile("${name}.pom")
     }
 
-    File pomSignature(String name = "sign-1.0") {
+    TestFile pomSignature(String name = "sign-1.0") {
         m2RepoFile("${name}.pom.asc")
+    }
+
+    SignMethod getSignMethod() {
+        return SignMethod.OPEN_GPG
     }
 }

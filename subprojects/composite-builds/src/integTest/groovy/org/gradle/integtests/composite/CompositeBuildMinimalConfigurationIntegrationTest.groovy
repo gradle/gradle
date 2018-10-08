@@ -30,7 +30,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
     def buildArgs = []
 
     def setup() {
-        resolve = new ResolveTestFixture(buildA.buildFile)
+        resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtimeElements")
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
@@ -65,7 +65,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -87,7 +86,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -123,11 +121,9 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
-                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
@@ -194,17 +190,40 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
                 compositeSubstitute()
             }
             edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
-                configuration = "runtimeElements"
                 compositeSubstitute()
             }
         }
 
         and:
         executed(":buildB:jar", ":buildB:b1:jar")
+        output.count('Configured buildB') == 1
+    }
+
+    def "configures included build only once when building multiple artifacts for a dependency of a referenced task"() {
+        given:
+        includeBuild buildB
+        includeBuild buildC
+
+        dependency buildC, "org.test:buildB:1.0"
+        dependency buildC, "org.test:b1:1.0"
+
+        when:
+        buildA.buildFile << """
+task run {
+    dependsOn gradle.includedBuild('buildC').task(':jar')
+}
+"""
+        buildB.buildFile << """
+            println 'Configured buildB'
+"""
+
+        then:
+        execute(buildA, ":run", buildArgs)
+
+        and:
         output.count('Configured buildB') == 1
     }
 

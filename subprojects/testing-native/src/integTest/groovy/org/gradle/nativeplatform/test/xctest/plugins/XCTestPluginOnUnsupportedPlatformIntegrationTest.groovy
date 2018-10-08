@@ -17,20 +17,25 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.HostPlatform
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.WINDOWS)
-class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrationSpec {
+class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
     def setup() {
         buildFile << "apply plugin: 'xctest'"
     }
 
-    def "supports the 'check' lifecycle task when xctest plugin cannot be used"() {
-        succeeds "check"
+    def "fails to build and run tests on unsupported platform"() {
+        def app = new SwiftAppWithXCTest()
+        app.writeToProject(testDirectory)
 
-        expect:
-        result.assertTasksExecuted(":check")
-        result.assertTasksSkipped(":check")
+        when:
+        fails "check"
+        then:
+        failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
+  - Tool chain 'swiftc' (Swift Compiler): Could not find Swift compiler 'swiftc' in system path.""")
     }
 }

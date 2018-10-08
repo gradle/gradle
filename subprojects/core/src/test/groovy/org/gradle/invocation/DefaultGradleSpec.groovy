@@ -18,6 +18,7 @@ package org.gradle.invocation
 
 import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
@@ -30,9 +31,12 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.execution.TaskGraphExecuter
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
+import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.build.MutablePublicBuildPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
@@ -57,6 +61,7 @@ class DefaultGradleSpec extends Specification {
     StartParameter parameter = new StartParameter()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
 
     GradleInternal gradle
@@ -67,15 +72,17 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
-        _ * serviceRegistry.get(TaskGraphExecuter) >> Mock(TaskGraphExecuter)
+        _ * serviceRegistry.get(TaskExecutionGraphInternal) >> Mock(TaskExecutionGraphInternal)
         _ * serviceRegistry.newInstance(TaskContainerInternal) >> Mock(TaskContainerInternal)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
         _ * serviceRegistry.get(Instantiator) >> Mock(Instantiator)
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
         _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
+        _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
+        _ * serviceRegistry.get(MutablePublicBuildPath) >> Mock(MutablePublicBuildPath)
 
         gradle = classGenerator.newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -399,11 +406,11 @@ class DefaultGradleSpec extends Specification {
     def "has identity path"() {
         given:
         def child1 = classGenerator.newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
-        child1.rootProject = project('child1')
+        child1.settings = settings('child1')
 
         and:
         def child2 = classGenerator.newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
-        child2.rootProject = project('child2')
+        child2.settings = settings('child2')
 
         expect:
         gradle.identityPath == Path.ROOT
@@ -412,6 +419,15 @@ class DefaultGradleSpec extends Specification {
     }
 
     def projectRegistry = new DefaultProjectRegistry()
+
+    private SettingsInternal settings(String rootProjectName) {
+        def rootProject = Stub(ProjectDescriptor)
+        rootProject.name >> rootProjectName
+
+        def settings = Stub(SettingsInternal)
+        settings.rootProject >> rootProject
+        return settings
+    }
 
     private ProjectInternal project(String name) {
         def project = Spy(DefaultProject, constructorArgs: [

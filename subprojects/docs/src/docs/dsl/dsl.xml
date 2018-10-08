@@ -184,33 +184,6 @@
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
             </tr>
             <tr>
-                <td>org.gradle.api.publish.PublishingExtension</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.ivy.IvyPublication</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.ivy.IvyArtifact</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.ivy.IvyArtifactSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.maven.MavenPublication</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.maven.MavenArtifact</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.maven.MavenArtifactSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.maven.MavenPom</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
             </tr>
             <tr>
@@ -229,10 +202,99 @@
     </section>
 
     <section>
+        <title>Publishing types</title>
+        <para>Listed below are the types used to configure publishing:</para>
+        <table>
+            <title>Publishing types</title>
+            <tr>
+                <td>org.gradle.api.publish.PublishingExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyPublication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyArtifact</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyArtifactSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorLicense</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorDescription</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPublication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenArtifact</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenArtifactSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPom</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomCiManagement</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomContributor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomContributorSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomDeveloper</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomDeveloperSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomDistributionManagement</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomIssueManagement</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomLicense</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomLicenseSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomMailingList</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomMailingListSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomOrganization</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomRelocation</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomScm</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
         <title>Container types</title>
-        <para>Container types that handle various declarative elements (e.g. dependencies, configurations, artifacts, etc.):</para>
+        <para>Container types that handle various declarative elements (e.g. dependencies, configurations, artifacts, tasks, etc.):</para>
         <table>
             <title>Container types</title>
+            <tr>
+                <td>org.gradle.api.tasks.TaskContainer</td>
+            </tr>
             <tr>
                 <td>org.gradle.api.artifacts.ConfigurationContainer</td>
             </tr>
@@ -266,6 +328,9 @@
                 <td>org.gradle.api.credentials.AwsCredentials</td>
             </tr>
             <tr>
+                <td>org.gradle.api.credentials.HttpHeaderCredentials</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.repositories.AuthenticationContainer</td>
             </tr>
             <tr>
@@ -273,6 +338,9 @@
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.BasicAuthentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.HttpHeaderAuthentication</td>
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.DigestAuthentication</td>

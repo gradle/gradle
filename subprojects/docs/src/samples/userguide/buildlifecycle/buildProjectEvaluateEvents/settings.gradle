@@ -1,3 +1,0 @@
-include 'projectA', 'projectB'
-
-project(':projectB').buildFileName = '../projectB.gradle'

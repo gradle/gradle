@@ -44,7 +44,7 @@ public class GradleVsMavenBuildExperimentRunner extends BuildExperimentRunner {
         super.run(exp, results);
         InvocationSpec invocation = exp.getInvocation();
         if (invocation instanceof MavenInvocationSpec) {
-            List<String> additionalJvmOpts = getDataCollector().getAdditionalJvmOpts(invocation.getWorkingDirectory());
+            List<String> additionalJvmOpts = getProfiler().getAdditionalJvmOpts(exp);
             MavenInvocationSpec mavenInvocationSpec = (MavenInvocationSpec) invocation;
             mavenInvocationSpec = mavenInvocationSpec.withBuilder().jvmOpts(additionalJvmOpts).build();
             MavenBuildExperimentSpec experiment = (MavenBuildExperimentSpec) exp;

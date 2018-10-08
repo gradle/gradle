@@ -44,7 +44,7 @@ public class Jdk7FileWatcherFactory implements FileWatcherFactory {
     public FileWatcher watch(Action<? super Throwable> onError, FileWatcherListener listener) {
         try {
             WatchService watchService = FileSystems.getDefault().newWatchService();
-            WatchServiceFileWatcherBacking backing = new WatchServiceFileWatcherBacking(onError, listener, watchService, fileSystem);
+            WatchServiceFileWatcherBacking backing = new WatchServiceFileWatcherBacking(onError, listener, watchService);
             return backing.start(executor);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

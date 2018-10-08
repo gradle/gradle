@@ -22,11 +22,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.DisplayName;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class DefaultNativeComponent {
+public abstract class DefaultNativeComponent {
     private final ConfigurableFileCollection source;
     private final FileOperations fileOperations;
 
@@ -34,7 +35,13 @@ public class DefaultNativeComponent {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
         this.fileOperations = fileOperations;
 
-        source = fileOperations.files();
+        source = fileOperations.configurableFiles();
+    }
+
+    public abstract DisplayName getDisplayName();
+
+    public String toString() {
+        return getDisplayName().getDisplayName();
     }
 
     public ConfigurableFileCollection getSource() {
@@ -51,9 +58,9 @@ public class DefaultNativeComponent {
         for (String sourceExtension : sourceExtensions) {
             patternSet.include("**/*." + sourceExtension);
         }
-        return fileOperations.files(new Callable<Object>() {
+        return fileOperations.immutableFiles(new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
+            public Object call() {
                 FileTree tree;
                 if (source.getFrom().isEmpty()) {
                     tree = fileOperations.fileTree(defaultLocation);

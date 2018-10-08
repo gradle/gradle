@@ -32,6 +32,7 @@ import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,10 +52,10 @@ public class DaemonStopClient {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private static final int STOP_TIMEOUT_SECONDS = 30;
     private final DaemonConnector connector;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<UUID> idGenerator;
     private final StopDispatcher stopDispatcher;
 
-    public DaemonStopClient(DaemonConnector connector, IdGenerator<?> idGenerator) {
+    public DaemonStopClient(DaemonConnector connector, IdGenerator<UUID> idGenerator) {
         this.connector = connector;
         this.idGenerator = idGenerator;
         this.stopDispatcher = new StopDispatcher();

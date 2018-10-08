@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -281,7 +282,7 @@ rootProject.name = 'root'
 
         then:
         output.contains """
-compile - Dependencies for source set 'main' (deprecated, use 'implementation ' instead).
+compile - Dependencies for source set 'main' (deprecated, use 'implementation' instead).
 +--- project :a
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
@@ -335,6 +336,36 @@ conf
           +--- org:leaf3:1.0
           \\--- org:leaf4:1.0
 """
+    }
+
+    def "mentions web-bsed dependency report after legend"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+        """
+
+        when:
+        run "dependencies"
+
+        then:
+        output.contains """(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency report is available by adding the --scan option."""
     }
 
     def "shows selected versions in case of a multi-phase conflict"() {
@@ -662,7 +693,7 @@ rootProject.name = 'root'
 
         then:
         output.contains """
-compile - Dependencies for source set 'main' (deprecated, use 'implementation ' instead).
+compile - Dependencies for source set 'main' (deprecated, use 'implementation' instead).
 +--- project :a
 |    \\--- foo:bar:1.0 -> 2.0
 +--- project :b
@@ -675,8 +706,7 @@ compile - Dependencies for source set 'main' (deprecated, use 'implementation ' 
 """
     }
 
-    def "reports external dependency replaced with project dependency"()
-    {
+    def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
         file("settings.gradle") << "include 'client', 'api2', 'impl'"
@@ -848,6 +878,55 @@ api (n)
 \\--- foo:foo:1.0 (n)
 
 (n) - Not resolved (configuration is not meant to be resolved)
+"""
+    }
+
+    @NotYetImplemented
+    void "reports custom selection reasons"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "2.0").publish()
+        mavenRepo.module("org", "baz", "1.0").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency {
+                        switch (it.requested.name) {
+                           case 'foo':
+                              it.because('because I am in control').useVersion('2.0')
+                              break
+                           case 'bar':
+                              it.because('why not?').useTarget('org.test:bar:2.0')
+                              break
+                           default:
+                              useVersion(it.requested.version)
+                        }
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0'
+                conf 'org:bar:1.0'
+                conf 'org:baz:1.0'
+            }
+        """
+
+        when:
+        run ":dependencies", "--configuration", "conf"
+
+        then:
+        output.contains """
+conf
++--- org:foo:1.0 -> 2.0 (because I am in control)
++--- org:bar:1.0 -> org.test:bar:2.0 (why not?)
+\\--- org:baz:1.0 (selected by rule)
+
 """
     }
 }

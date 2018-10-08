@@ -27,6 +27,10 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
     static api = "-api"
     static impl = "-impl"
 
+    def setup() {
+        executer.withRepositoryMirrors()
+    }
+
     def "test classpath contains impl and api classes"() {
         given:
         sample apiAndImpl

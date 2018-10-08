@@ -36,10 +36,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 public class ErrorHandlingConfigurationResolver implements ConfigurationResolver {
@@ -47,6 +49,11 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
     public ErrorHandlingConfigurationResolver(ConfigurationResolver delegate) {
         this.delegate = delegate;
+    }
+
+    @Override
+    public List<ResolutionAwareRepository> getRepositories() {
+        return delegate.getRepositories();
     }
 
     @Override

@@ -37,6 +37,9 @@
                 <td>forComponents</td>
             </tr>
             <tr>
+                <td>forModule</td>
+            </tr>
+            <tr>
                 <td>withArtifacts</td>
             </tr>
             <tr>

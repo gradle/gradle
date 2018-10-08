@@ -27,6 +27,10 @@ import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
+/**
+ * This test contains some of the original coverage for dependency resolution.
+ * These tests should be migrated to live with the rest of the coverage over time.
+ */
 @RunWith(FluidDependenciesResolveRunner)
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -431,134 +435,6 @@ task test {
 }
 """
         inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    public void "dependencies that are excluded by a dependency are not retrieved"() {
-        repo.module('org.gradle.test', 'one', '1.0').publish()
-        repo.module('org.gradle.test', 'two', '1.0').publish()
-        def module = repo.module('org.gradle.test', 'external1', '1.0')
-        module.dependsOn('org.gradle.test', 'one', '1.0')
-        module.artifact(classifier: 'classifier')
-        module.publish()
-
-        testFile('build.gradle') << """
-repositories {
-    maven { url '${repo.uri}' }
-}
-configurations {
-    reference
-    excluded
-    extendedExcluded.extendsFrom excluded
-    excludedWithClassifier
-}
-dependencies {
-    reference 'org.gradle.test:external1:1.0'
-    excluded 'org.gradle.test:external1:1.0', { exclude module: 'one' }
-    extendedExcluded 'org.gradle.test:two:1.0'
-    excludedWithClassifier 'org.gradle.test:external1:1.0', { exclude module: 'one' }
-    excludedWithClassifier 'org.gradle.test:external1:1.0:classifier', { exclude module: 'one' }
-}
-
-def checkDeps(config, expectedDependencies) {
-    assert config*.name as Set == expectedDependencies as Set
-}
-
-task test {
-    doLast {
-        checkDeps configurations.reference, ['external1-1.0.jar', 'one-1.0.jar']
-        checkDeps configurations.excluded, ['external1-1.0.jar']
-        checkDeps configurations.extendedExcluded, ['external1-1.0.jar', 'two-1.0.jar']
-        checkDeps configurations.excludedWithClassifier, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
-    }
-}
-"""
-        inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    public void "dependencies that are globally excluded are not retrieved"() {
-        repo.module('org.gradle.test', 'direct', '1.0').publish()
-        repo.module('org.gradle.test', 'transitive', '1.0').publish()
-        def module = repo.module('org.gradle.test', 'external', '1.0')
-        module.dependsOn('org.gradle.test', 'transitive', '1.0')
-        module.publish()
-
-        testFile('build.gradle') << """
-repositories {
-    maven { url '${repo.uri}' }
-}
-configurations {
-    excluded {
-        exclude module: 'direct'
-        exclude module: 'transitive'
-    }
-    extendedExcluded.extendsFrom excluded
-}
-dependencies {
-    excluded 'org.gradle.test:external:1.0'
-    excluded 'org.gradle.test:direct:1.0'
-}
-
-def checkDeps(config, expectedDependencies) {
-    assert config*.name as Set == expectedDependencies as Set
-}
-
-task test {
-    doLast {
-        checkDeps configurations.excluded, ['external-1.0.jar']
-        checkDeps configurations.extendedExcluded, ['external-1.0.jar']
-    }
-}
-"""
-        inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    public void "does not attempt to resolve an excluded dependency"() {
-        def module = repo.module('org.gradle.test', 'external', '1.0')
-        module.dependsOn('org.gradle.test', 'unknown1', '1.0')
-        module.dependsOn('org.gradle.test', 'unknown2', '1.0')
-        module.publish()
-
-        testFile('build.gradle') << """
-repositories {
-    maven { url '${repo.uri}' }
-}
-configurations {
-    excluded {
-        exclude module: 'unknown2'
-    }
-}
-dependencies {
-    excluded 'org.gradle.test:external:1.0', { exclude module: 'unknown1' }
-    excluded 'org.gradle.test:unknown2:1.0'
-}
-
-def checkDeps(config, expectedDependencies) {
-    assert config*.name as Set == expectedDependencies as Set
-}
-
-task test {
-    doLast {
-        checkDeps configurations.excluded, ['external-1.0.jar']
-    }
-}
-"""
-        inTestDirectory().withTasks('test').run()
-    }
-
-    @Test
-    @Issue("GRADLE-3124")
-    public void "typo in configuration excludes is detected"() {
-        testFile("build.gradle") << """
-            configurations { foo }
-            configurations.foo.exclude group: 'kafka', modue: 'kafka'
-        """
-
-        expect:
-        def failure = inTestDirectory().runWithFailure()
-        failure.assertHasCause("Could not set unknown property 'modue' for object of type org.gradle.api.internal.artifacts.DefaultExcludeRule.")
     }
 
     @Test

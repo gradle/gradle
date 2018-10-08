@@ -35,12 +35,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
      */
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
-        attachSettings(settings, gradle);
         load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
-    }
-
-    private void attachSettings(SettingsInternal settings, GradleInternal gradle) {
-        gradle.setSettings(settings);
     }
 
     private void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope buildRootClassLoaderScope) {

@@ -16,38 +16,64 @@
 
 package org.gradle.language.swift.internal;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
+import org.gradle.language.ComponentDependencies;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
+import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
 public class DefaultSwiftApplication extends DefaultSwiftComponent implements SwiftApplication {
-    private final DefaultSwiftExecutable debug;
-    private final DefaultSwiftExecutable release;
+    private final ObjectFactory objectFactory;
+    private final Property<SwiftExecutable> developmentBinary;
+    private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Debug", projectLayout, objectFactory, getModule(), true, true, getSwiftSource(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Release", projectLayout, objectFactory, getModule(), false, false, getSwiftSource(), configurations, getImplementationDependencies());
+    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
+        super(name, fileOperations, objectFactory);
+        this.objectFactory = objectFactory;
+        this.developmentBinary = objectFactory.property(SwiftExecutable.class);
+        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
     @Override
-    public SwiftExecutable getDevelopmentBinary() {
-        return debug;
+    public DisplayName getDisplayName() {
+        return Describables.withTypeAndName("Swift application", getName());
     }
 
     @Override
-    public SwiftExecutable getDebugExecutable() {
-        return debug;
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
     }
 
     @Override
-    public SwiftExecutable getReleaseExecutable() {
-        return release;
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
+    }
+
+    public SwiftExecutable addExecutable(NativeVariantIdentity identity, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftExecutable result = objectFactory.newInstance(DefaultSwiftExecutable.class, getNames().append(identity.getName()), getModule(), testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        getBinaries().add(result);
+        return result;
+    }
+
+    @Override
+    public Property<SwiftExecutable> getDevelopmentBinary() {
+        return developmentBinary;
     }
 }

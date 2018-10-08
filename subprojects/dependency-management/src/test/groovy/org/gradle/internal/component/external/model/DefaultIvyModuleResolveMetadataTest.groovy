@@ -16,28 +16,56 @@
 
 package org.gradle.internal.component.external.model
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.Exclude
+import org.gradle.util.TestUtil
 
-class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
+
+class DefaultIvyModuleResolveMetadataTest extends AbstractLazyModuleComponentResolveMetadataTest {
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+
     @Override
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, configurations, dependencies, artifacts)
-        metadata.excludes = excludes
-        return metadata.asImmutable()
+    ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {
+        ivyMetadataFactory.create(id, dependencies, configurations, artifacts, excludes).asImmutable()
     }
 
     List<Artifact> artifacts = []
     List<Exclude> excludes = []
+
+    def "builds and caches dependencies for a configuration"() {
+        given:
+        configuration("compile")
+        configuration("runtime", ["compile"])
+        dependency("org", "module", "1.1", "runtime", "a")
+        dependency("org", "module", "1.2", "*", "b")
+        dependency("org", "module", "1.3", "compile", "c")
+        dependency("org", "module", "1.4", "other", "d")
+        dependency("org", "module", "1.5", "%", "e")
+
+        when:
+        def md = metadata
+        def runtime = md.getConfiguration("runtime")
+        def compile = md.getConfiguration("compile")
+
+        then:
+        runtime.dependencies*.selector*.version == ["1.1", "1.2", "1.3", "1.5"]
+        runtime.dependencies.is(runtime.dependencies)
+
+        compile.dependencies*.selector*.version == ["1.2", "1.3", "1.5"]
+        compile.dependencies.is(compile.dependencies)
+    }
 
     def "builds and caches the configuration meta-data from the module descriptor"() {
         when:
@@ -59,10 +87,10 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
         def md = metadata
 
         then:
-        md.getConfiguration("a").hierarchy == ["a"]
-        md.getConfiguration("b").hierarchy == ["b", "a"]
-        md.getConfiguration("c").hierarchy == ["c", "a"]
-        md.getConfiguration("d").hierarchy == ["d", "b", "a", "c"]
+        md.getConfiguration("a").hierarchy as List == ["a"]
+        md.getConfiguration("b").hierarchy as List  == ["b", "a"]
+        md.getConfiguration("c").hierarchy as List  == ["c", "a"]
+        md.getConfiguration("d").hierarchy as List == ["d", "b", "a", "c"]
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -79,7 +107,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
         runtime.artifacts.is(runtime.artifacts)
     }
 
-    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+    def "each configuration contains a single variant containing the status attribute and the artifacts of the configuration"() {
         given:
         configuration("runtime")
         artifact("one", ["runtime"])
@@ -90,7 +118,8 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
         then:
         runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
+        runtime.variants.first().attributes.keySet().size() == 1
+        runtime.variants.first().attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE) == 'integration'
         runtime.variants.first().artifacts*.name.name == ["one", "two"]
     }
 
@@ -111,7 +140,6 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
     def "builds and caches exclude rules for a configuration"() {
         given:
-        def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
         configuration("compile")
         configuration("runtime", ["compile"])
         def rule1 = exclude("one", ["runtime"])
@@ -120,10 +148,13 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
         expect:
         def config = metadata.getConfiguration("runtime")
+        def excludes = config.excludes
+        excludes == [rule1, rule2]
+        config.excludes.is(excludes)
+    }
 
-        def exclusions = config.getExclusions(moduleExclusions)
-        exclusions == moduleExclusions.excludeAny(rule1, rule2)
-        exclusions.is(config.getExclusions(moduleExclusions))
+    def dependency(String org, String module, String version, String fromConf, String toConf) {
+        dependencies.add(new IvyDependencyDescriptor(newSelector(DefaultModuleIdentifier.newId(org, module), new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of(fromConf, toConf)))
     }
 
     def exclude(String name, List<String> confs = []) {

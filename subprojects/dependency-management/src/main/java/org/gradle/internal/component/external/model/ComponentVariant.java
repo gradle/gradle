@@ -18,17 +18,21 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 /**
  * An _immutable_ view of the variant of a component.
  *
- * TODO - this should replace or merge into VariantMetadata, OutgoingVariant, ConfigurationMetadata
+ * TODO - this should replace or merge into VariantResolveMetadata, OutgoingVariant, ConfigurationMetadata
  */
-public interface ComponentVariant extends VariantMetadata {
+public interface ComponentVariant extends VariantResolveMetadata {
     String getName();
 
     ImmutableList<? extends Dependency> getDependencies();
+
+    ImmutableList<? extends DependencyConstraint> getDependencyConstraints();
 
     ImmutableList<? extends File> getFiles();
 
@@ -38,6 +42,24 @@ public interface ComponentVariant extends VariantMetadata {
         String getModule();
 
         VersionConstraint getVersionConstraint();
+
+        ImmutableList<ExcludeMetadata> getExcludes();
+
+        String getReason();
+
+        ImmutableAttributes getAttributes();
+    }
+
+    interface DependencyConstraint {
+        String getGroup();
+
+        String getModule();
+
+        VersionConstraint getVersionConstraint();
+
+        String getReason();
+
+        ImmutableAttributes getAttributes();
     }
 
     interface File {

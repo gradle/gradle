@@ -17,6 +17,11 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+
+import javax.inject.Inject;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
@@ -50,9 +55,18 @@ import static org.gradle.util.ConfigureUtil.configure;
  * </pre>
  */
 public class EclipseWtp {
-
     private EclipseWtpComponent component;
     private EclipseWtpFacet facet;
+
+    /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
+     * @since 4.9
+     */
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Configures wtp component.
@@ -93,6 +107,11 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     public EclipseWtpFacet getFacet() {
+        if (facet == null) {
+            XmlTransformer xmlTransformer = new XmlTransformer();
+            xmlTransformer.setIndentation("\t");
+            facet = getObjectFactory().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(xmlTransformer));
+        }
         return facet;
     }
 
@@ -106,7 +125,7 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     public void facet(Closure action) {
-        configure(action, facet);
+        configure(action, getFacet());
     }
 
     /**
@@ -117,6 +136,6 @@ public class EclipseWtp {
      * @since 3.5
      */
     public void facet(Action<? super EclipseWtpFacet> action) {
-        action.execute(facet);
+        action.execute(getFacet());
     }
 }

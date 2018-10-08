@@ -111,15 +111,6 @@ public class ModelMapping {
     }
 
     @Nullable
-    public String getModelNameFromProtocolType(Class<?> protocolType) {
-        Class<?> modelType = MODEL_TO_PROTOCOL_MAP.inverse().get(protocolType);
-        if (modelType == null) {
-            return null;
-        }
-        return MODEL_NAME_MAP.get(modelType);
-    }
-
-    @Nullable
     public Class<?> getProtocolTypeFromModelName(String name) {
         Class<?> modelType = MODEL_NAME_MAP.inverse().get(name);
         if (modelType == null) {

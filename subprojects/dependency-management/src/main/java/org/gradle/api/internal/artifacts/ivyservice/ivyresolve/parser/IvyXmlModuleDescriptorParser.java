@@ -43,18 +43,21 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.url.URLHandlerRegistry;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
@@ -105,11 +108,16 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
     private final IvyModuleDescriptorConverter moduleDescriptorConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final IvyMutableModuleMetadataFactory metadataFactory;
 
-    public IvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository) {
+    public IvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter,
+                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                        FileResourceRepository fileResourceRepository,
+                                        IvyMutableModuleMetadataFactory metadataFactory) {
         super(fileResourceRepository);
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.metadataFactory = metadataFactory;
     }
 
     protected MutableIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
@@ -124,7 +132,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
-        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), moduleIdentifierFactory, properties);
+        return new Parser(parseContext, moduleDescriptorConverter, resource, resource.getFile().toURI().toURL(), moduleIdentifierFactory, metadataFactory, properties);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -179,6 +187,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         protected void checkErrors() throws ParseException {
             if (!errors.isEmpty()) {
                 throw new ParseException(Joiner.on(TextUtil.getPlatformLineSeparator()).join(errors), 0);
+            }
+            if (getMd().getModuleRevisionId() == null) {
+                throw new MetaDataParseException("Ivy file", getResource(), new GradleException("Not a valid Ivy file"));
             }
         }
 
@@ -465,6 +476,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final URL descriptorURL;
         private final IvyModuleDescriptorConverter moduleDescriptorConverter;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+        private final IvyMutableModuleMetadataFactory metadataFactory;
 
         private boolean validate = true;
 
@@ -481,17 +493,18 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private String[] publicationsDefaultConf;
         final Map<String, String> properties;
 
-        public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Map<String, String> properties) {
+        public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, ImmutableModuleIdentifierFactory moduleIdentifierFactory, IvyMutableModuleMetadataFactory metadataFactory, Map<String, String> properties) {
             super(res);
             this.parseContext = parseContext;
             this.moduleDescriptorConverter = moduleDescriptorConverter;
             this.descriptorURL = descriptorURL;
+            this.metadataFactory = metadataFactory;
             this.properties = properties;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
         }
 
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new Parser(parseContext, moduleDescriptorConverter, res, descriptorURL, moduleIdentifierFactory, properties);
+            Parser parser = new Parser(parseContext, moduleDescriptorConverter, res, descriptorURL, moduleIdentifierFactory, metadataFactory, properties);
             parser.setValidate(validate);
             return parser;
         }
@@ -786,7 +799,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation, String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
-            ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(parentOrganisation, parentModule, parentRevision);
+            ModuleComponentIdentifier importedId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(parentOrganisation, parentModule), parentRevision);
             LocallyAvailableExternalResource externalResource = parseContext.getMetaDataArtifact(importedId, ArtifactType.IVY_DESCRIPTOR);
 
             return parseModuleDescriptor(externalResource, externalResource.getFile().toURI().toURL());
@@ -1200,7 +1213,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
-                metaData = new IvyModuleResolveMetaDataBuilder(getMd(), moduleDescriptorConverter, moduleIdentifierFactory);
+                metaData = new IvyModuleResolveMetaDataBuilder(getMd(), moduleDescriptorConverter, metadataFactory);
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());

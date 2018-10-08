@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.util.CollectionUtils;
 
@@ -32,8 +32,8 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
-    private final ListMultimap<BuildOperationState, AsyncWorkCompletion> items = ArrayListMultimap.create();
-    private final Set<BuildOperationState> waiting = Sets.newHashSet();
+    private final ListMultimap<BuildOperationRef, AsyncWorkCompletion> items = ArrayListMultimap.create();
+    private final Set<BuildOperationRef> waiting = Sets.newHashSet();
     private final ReentrantLock lock = new ReentrantLock();
     private final ProjectLeaseRegistry projectLeaseRegistry;
 
@@ -42,7 +42,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void registerWork(BuildOperationState operation, AsyncWorkCompletion workCompletion) {
+    public void registerWork(BuildOperationRef operation, AsyncWorkCompletion workCompletion) {
         lock.lock();
         try {
             if (waiting.contains(operation)) {
@@ -55,7 +55,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
     }
 
     @Override
-    public void waitForCompletion(BuildOperationState operation, boolean releaseLocks) {
+    public void waitForCompletion(BuildOperationRef operation, boolean releaseLocks) {
         final List<AsyncWorkCompletion> workItems;
         lock.lock();
         try {
@@ -92,12 +92,31 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
+    @Override
+    public boolean hasUncompletedWork(BuildOperationRef operation) {
+        lock.lock();
+        try {
+            List<AsyncWorkCompletion> workItems = items.get(operation);
+            for (AsyncWorkCompletion workCompletion : workItems) {
+                if (!workCompletion.isComplete()) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
         final List<Throwable> failures = Lists.newArrayList();
         for (AsyncWorkCompletion item : workItems) {
             try {
                 item.waitForCompletion();
             } catch (Throwable t) {
+                if (Thread.currentThread().isInterrupted()) {
+                    cancel(workItems);
+                }
                 failures.add(t);
             }
         }
@@ -107,7 +126,13 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void startWaiting(BuildOperationState operation) {
+    private void cancel(Iterable<AsyncWorkCompletion> workItems) {
+        for (AsyncWorkCompletion workItem : workItems) {
+            workItem.cancel();
+        }
+    }
+
+    private void startWaiting(BuildOperationRef operation) {
         lock.lock();
         try {
             waiting.add(operation);
@@ -116,7 +141,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
-    private void stopWaiting(BuildOperationState operation) {
+    private void stopWaiting(BuildOperationRef operation) {
         lock.lock();
         try {
             waiting.remove(operation);

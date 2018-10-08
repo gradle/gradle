@@ -1,3 +1,6 @@
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -13,16 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
-apply from: "$rootDir/gradle/taskProperties.gradle"
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+plugins {
+    id 'java-library'
+}
 
 configurations {
     reports
 }
 
-classpathManifest {
+tasks.named("classpathManifest").configure {
     optionalProjects = ['gradle-kotlin-dsl']
 }
 
@@ -38,78 +40,93 @@ dependencies {
     api project(":persistentCache")
     api project(":buildCache")
     api project(":coreApi")
+    api project(":files")
 
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
-    api libraries.groovy
-    api libraries.ant
-    api libraries.guava
-    api libraries.inject
+    api libraries.groovy.coordinates
+    api libraries.ant.coordinates
+    api libraries.guava.coordinates
+    api libraries.inject.coordinates
 
     implementation project(":modelGroovy")
-    implementation libraries.asm
-    implementation libraries.slf4j_api
-    implementation libraries.commons_collections
-    implementation libraries.commons_io
-    implementation libraries.commons_lang
-    implementation libraries.jcip
-    implementation libraries.nativePlatform
-    implementation libraries.commons_compress
-    implementation libraries.xmlApis
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_commons.coordinates
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.commons_collections.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.nativePlatform.coordinates
+    implementation libraries.commons_compress.coordinates
+    implementation libraries.xmlApis.coordinates
 
     runtimeOnly project(":docs")
 
-    testImplementation libraries.jsoup
-    testImplementation libraries.log4j_to_slf4j
+    testImplementation testLibraries.jsoup
+    testImplementation libraries.log4j_to_slf4j.coordinates
+    testImplementation libraries.jcl_to_slf4j.coordinates
 
-    testRuntimeOnly libraries.xerces
+    testRuntimeOnly libraries.xerces.coordinates
     testRuntimeOnly project(":diagnostics")
     testRuntimeOnly project(":compositeBuilds")
 
     testFixturesImplementation project(":internalTesting")
-    testFixturesImplementation libraries.ivy
+    testFixturesImplementation libraries.ivy.coordinates
 
-    testFixturesRuntime project(':workers')
-    testFixturesRuntime project(':dependencyManagement')
-    testFixturesRuntime project(':pluginUse')
-    testFixturesRuntime project(':runtimeApiInfo')
+    testFixturesRuntimeOnly project(':runtimeApiInfo')
+    testFixturesRuntimeOnly rootProject.ext.allCoreRuntimeExtensions
+    testFixturesRuntimeOnly project(':testingJunitPlatform')
 
     integTestImplementation project(":internalIntegTesting")
+    integTestImplementation project(":plugins")
 
-    integTestRuntimeOnly project(":plugins")
     integTestRuntimeOnly project(':maven')
+    integTestRuntimeOnly project(':apiMetadata')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":coreApi")
-useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":modelCore")
-useTestFixtures(project: ":logging")
-useTestFixtures(project: ":baseServices")
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
 
-test {
+testFixtures {
+    from(':coreApi')
+    from(':messaging')
+    from(':modelCore')
+    from(':logging')
+    from(':baseServices')
+}
+
+tasks.named("test").configure {
     forkEvery = 200
 }
 
-[compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-task pluginsManifest(type: WriteProperties) {
+["compileGroovy", "compileTestGroovy"].each {
+    tasks.named(it).configure { it.groovyOptions.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G') }
+}
+
+def pluginsManifest = tasks.register("pluginsManifest", WriteProperties) {
     property("plugins") {
-        project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
-    outputFile = new File(project.generatedResourcesDir, "gradle-plugins.properties")
+    outputFile = new File(generatedResourcesDir, "gradle-plugins.properties")
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
-task implementationPluginsManifest(type: WriteProperties) {
+def implementationPluginsManifest = tasks.register("implementationPluginsManifest", WriteProperties) {
     property("plugins") {
-        project.implementationPluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getImplementationPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
-    outputFile = new File(project.generatedResourcesDir, "gradle-implementation-plugins.properties")
+    outputFile = new File(generatedResourcesDir, "gradle-implementation-plugins.properties")
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}

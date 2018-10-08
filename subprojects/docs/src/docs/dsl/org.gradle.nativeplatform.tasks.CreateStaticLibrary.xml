@@ -33,6 +33,9 @@
                 <td>toolChain</td>
             </tr>
             <tr>
+                <td>targetPlatform</td>
+            </tr>
+            <tr>
                 <td>staticLibArgs</td>
             </tr>
         </table>

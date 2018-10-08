@@ -21,11 +21,6 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
 class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
-        // Force a forking executer
-        // This is necessary since for the embedded executer
-        // the Task statistics are not part of the output
-        // returned by "this.output"
-        executer.requireGradleDistribution()
 
         file("input.txt") << "data"
         buildFile << """

@@ -19,9 +19,8 @@ package org.gradle.process.internal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.process.internal.streams.StreamsHandler;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,15 +31,15 @@ public class ExecHandleRunner implements Runnable {
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
     private final ProcessLauncher processLauncher;
-    private final ExecutorFactory executorFactory;
+    private final Executor executor;
 
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, ExecutorFactory executorFactory) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor) {
         this.processLauncher = processLauncher;
-        this.executorFactory = executorFactory;
+        this.executor = executor;
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
@@ -52,8 +51,12 @@ public class ExecHandleRunner implements Runnable {
     public void abortProcess() {
         lock.lock();
         try {
+            if (aborted) {
+                return;
+            }
             aborted = true;
             if (process != null) {
+                streamsHandler.disconnect();
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
                 process.destroy();
             }
@@ -64,10 +67,7 @@ public class ExecHandleRunner implements Runnable {
 
     public void run() {
         try {
-            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-            Process process = processLauncher.start(processBuilder);
-            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executorFactory);
-            setProcess(process);
+            startProcess();
 
             execHandle.started();
 
@@ -87,9 +87,15 @@ public class ExecHandleRunner implements Runnable {
         }
     }
 
-    private void setProcess(Process process) {
+    private void startProcess() {
         lock.lock();
         try {
+            if (aborted) {
+                throw new IllegalStateException("Process has already been aborted");
+            }
+            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+            Process process = processLauncher.start(processBuilder);
+            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
             this.process = process;
         } finally {
             lock.unlock();

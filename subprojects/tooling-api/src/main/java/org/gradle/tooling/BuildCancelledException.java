@@ -16,14 +16,11 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * Thrown when a {@link org.gradle.tooling.LongRunningOperation} is cancelled before the operation completes.
  *
  * @since 2.1
  */
-@Incubating
 public class BuildCancelledException extends GradleConnectionException {
     public BuildCancelledException(String message) {
         super(message);

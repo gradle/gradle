@@ -89,7 +89,7 @@ class ProgressEvents implements ProgressListener {
                         } else {
                             def duplicateName = operations.find({
                                 it.descriptor.displayName == descriptor.displayName &&
-                                it.parent.descriptor == descriptor.parent
+                                    it.parent.descriptor == descriptor.parent
                             })
                             if (duplicateName != null) {
                                 // Same display name and same parent
@@ -358,18 +358,23 @@ class ProgressEvents implements ProgressListener {
             return children.findAll { it.descriptor.displayName == displayName }
         }
 
-        Operation descendant(String displayName) {
+        List<Operation> descendants(Spec<? super Operation> filter) {
             def found = [] as List<Operation>
             def recurse
             recurse = { List<Operation> children ->
                 children.each { child ->
-                    if (child.descriptor.displayName == displayName) {
-                        found += child
+                    if (filter.isSatisfiedBy(child)) {
+                        found << child
                     }
                     recurse child.children
                 }
             }
             recurse children
+            found
+        }
+
+        Operation descendant(String displayName) {
+            def found = descendants { it.descriptor.displayName == displayName }
             if (found.size() == 1) {
                 return found[0]
             }

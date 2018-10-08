@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
+@SuppressWarnings('IntegrationTestFixtures')
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     void compilationFailureBreaksBuild() {

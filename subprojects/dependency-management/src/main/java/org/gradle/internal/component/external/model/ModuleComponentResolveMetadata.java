@@ -16,15 +16,13 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * The meta-data for a component that is resolved from a module in a binary repository.
@@ -35,7 +33,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     /**
      * {@inheritDoc}
      */
-    ModuleComponentIdentifier getComponentId();
+    ModuleComponentIdentifier getId();
 
     /**
      * {@inheritDoc}
@@ -50,23 +48,20 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     MutableModuleComponentResolveMetadata asMutable();
 
     /**
-     * Return the configurations of this component.
-     */
-    ImmutableMap<String, ? extends ConfigurationMetadata> getConfigurations();
-
-    /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
-    @Nullable
-    ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactOverrides();
-
     /**
      * Returns the hash of the resource(s) from which this metadata was created.
      */
-    HashValue getContentHash();
+    HashValue getOriginalContentHash();
 
-    @Override
-    List<? extends ModuleDependencyMetadata> getDependencies();
+    /**
+     * Returns the variants of this component
+     */
+    ImmutableList<? extends ComponentVariant> getVariants();
+
+    ImmutableAttributesFactory getAttributesFactory();
+
 }

@@ -108,4 +108,40 @@ three
         readFileQuietly(new File("missing")) == "Unable to read file 'missing' due to: org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: File 'missing' does not exist"
         readFileQuietly(temp.createDir("dir")).startsWith "Unable to read file"
     }
+
+    def "touch creates new empty file"() {
+        def foo = temp.file("foo.txt")
+
+        when:
+        touch(foo)
+        then:
+        foo.exists()
+        foo.length() == 0
+        foo.file
+    }
+
+    def "touch touches existing file"() {
+        def foo = temp.file("foo.txt") << "data"
+        def original = foo.makeOlder().lastModified()
+
+        when:
+        touch(foo)
+        then:
+        foo.file
+        foo.text == "data"
+        foo.lastModified() > original
+    }
+
+    def "touch touches existing directory"() {
+        def foo = temp.file("foo").createDir()
+        def child = foo.file("data.txt") << "data"
+        def original = foo.makeOlder().lastModified()
+
+        when:
+        touch(foo)
+        then:
+        foo.directory
+        foo.lastModified() > original
+        child.text == "data"
+    }
 }

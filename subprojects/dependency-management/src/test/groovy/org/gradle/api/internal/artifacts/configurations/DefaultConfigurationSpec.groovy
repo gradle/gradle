@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -32,6 +33,7 @@ import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -60,6 +62,7 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Issue
@@ -86,6 +89,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
+        _ * resolver.getRepositories() >> []
     }
 
     void defaultValues() {
@@ -446,12 +450,12 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     private void expectResolved(Set<File> files) {
-        def resolutionResults = Stub(ResolutionResult)
+        def resolutionResults = stubResolutionResults()
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
         _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l -> files.each { visitor.visitFile(null, null, it) } }
+            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l -> files.each { visitor.visitFile(null, null, null, it) } }
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
@@ -459,6 +463,19 @@ class DefaultConfigurationSpec extends Specification {
             resolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactSet)
             resolverResults.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifactSet)
         }
+        _ * resolver.getRepositories() >> []
+    }
+
+    private ResolutionResult stubResolutionResults() {
+        def resolutionResults
+        resolutionResults = Stub(ResolutionResult) {
+            hashCode() >> 123
+            equals(_) >> {
+                it[0].is(resolutionResults)
+            }
+            getRoot() >> Stub(ResolvedComponentResult)
+        }
+        resolutionResults
     }
 
     private void expectResolved(Throwable failure) {
@@ -509,7 +526,7 @@ class DefaultConfigurationSpec extends Specification {
         def artifact1 = artifact("name1")
 
         when:
-        configuration.outgoing.artifact(new File("f"))
+        configuration.outgoing.artifact(Stub(ConfigurablePublishArtifact))
 
         then:
         configuration.outgoing.artifacts.size() == 1
@@ -894,6 +911,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         interaction { resolveConfig(config) }
+        1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
@@ -998,7 +1016,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def result = Mock(ResolutionResult)
+        def result = stubResolutionResults()
 
         resolves(config, result, Mock(ResolvedConfiguration))
 
@@ -1006,7 +1024,7 @@ class DefaultConfigurationSpec extends Specification {
         def out = config.incoming.resolutionResult
 
         then:
-        out == result
+        out.root == result.root
     }
 
     def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
@@ -1054,7 +1072,7 @@ class DefaultConfigurationSpec extends Specification {
         when:
         def result = Mock(ResolutionResult)
         resolves(config, result, Mock(ResolvedConfiguration))
-        config.incoming.getResolutionResult()
+        config.incoming.getResolutionResult().root
 
         then:
         _ * listenerBroadcaster.getSource() >> listener
@@ -1081,6 +1099,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         }
+        1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
@@ -1121,10 +1140,11 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveGraph(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         }
+        1 * resolver.getRepositories() >> []
         0 * resolver._
 
         when:
-        config.incoming.getResolutionResult()
+        config.incoming.getResolutionResult().root
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
@@ -1157,7 +1177,7 @@ class DefaultConfigurationSpec extends Specification {
         0 * resolver._
 
         when:
-        config.incoming.getResolutionResult()
+        config.incoming.getResolutionResult().root
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
@@ -1170,6 +1190,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifacts())
         }
+        1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
@@ -1180,7 +1201,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> graphResolveRequired
 
         when:
-        config.incoming.getResolutionResult()
+        config.incoming.getResolutionResult().root
 
         then:
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
@@ -1193,6 +1214,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * resolver.resolveArtifacts(config, _) >> { ConfigurationInternal c, ResolverResults r ->
             r.artifactsResolved(Stub(ResolvedConfiguration), visitedArtifacts())
         }
+        1 * resolver.getRepositories() >> []
         0 * resolver._
 
         when:
@@ -1211,7 +1233,6 @@ class DefaultConfigurationSpec extends Specification {
 
     def "resolving configuration twice returns the same result objects"() {
         def config = conf("conf")
-
         when:
         expectResolved([new File("result")] as Set)
 
@@ -1230,6 +1251,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         0 * resolver._
+        nextResolutionResult.root // forces lazy resolution
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
         config.state == RESOLVED
 
@@ -1285,7 +1307,7 @@ class DefaultConfigurationSpec extends Specification {
 
         given:
         resolves(conf, result, Mock(ResolvedConfiguration))
-        conf.incoming.getResolutionResult()
+        conf.incoming.getResolutionResult().root
 
         when:
         conf.dependencies.add(Mock(Dependency))
@@ -1639,11 +1661,11 @@ All Artifacts:
                 return false
             }
         }
-        def useSite = ConfigurationUseSite.project(domainObjectContext.projectPath)
 
-        new DefaultConfiguration(domainObjectContext, useSite, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
+        def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
+        new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
     }
 
     private DefaultPublishArtifact artifact(String name) {

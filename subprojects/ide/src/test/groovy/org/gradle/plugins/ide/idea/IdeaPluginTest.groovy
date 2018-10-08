@@ -21,18 +21,43 @@ import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+
+import static org.gradle.api.reflect.TypeOf.typeOf
 
 class IdeaPluginTest extends AbstractProjectBuilderSpec {
     private ProjectInternal childProject
     private ProjectInternal anotherChildProject
 
     def setup() {
-        childProject = TestUtil.createChildProject(project, "child", new File("."))
-        anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
+        childProject = TestUtil.createChildProject(project, "child")
+        anotherChildProject = TestUtil.createChildProject(project, "child2")
+    }
+
+    def "adds extension to root project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.idea instanceof IdeaModel
+        project.idea.project != null
+        project.idea.project.location.get().asFile == project.file("test.ipr")
+        project.idea.module.outputFile == project.file("test.iml")
+    }
+
+    def "adds extension to child project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        childProject.idea instanceof IdeaModel
+        childProject.idea.project == null
+        childProject.idea.module.outputFile == childProject.file("child.iml")
     }
 
     def "adds 'ideaProject' task to root project"() {
@@ -50,6 +75,14 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
         childProject.tasks.findByName('ideaProject') == null
         childProject.tasks.findByName('cleanIdeaProject') == null
+    }
+
+    def "adds 'openIdea' task to root project"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.tasks.openIdea != null
     }
 
     def "configures idea project"() {
@@ -170,6 +203,18 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
+    }
+
+    def "declares public type of idea extension"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        publicTypeOfExtension("idea") == typeOf(IdeaModel)
+    }
+
+    private TypeOf<?> publicTypeOfExtension(String named) {
+        project.extensions.extensionsSchema.find { it.name == named }.publicType
     }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {

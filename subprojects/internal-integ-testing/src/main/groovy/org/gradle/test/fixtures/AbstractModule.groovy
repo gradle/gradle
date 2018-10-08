@@ -23,11 +23,15 @@ import org.gradle.internal.IoActions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractModule {
+abstract class AbstractModule implements Module {
     /**
      Last modified date for writeZipped to be able to create zipFiles with identical hashes
      */
     private static Date lmd = new Date();
+
+    private boolean hasModuleMetadata
+
+    Map<String, String> attributes = [:]
 
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
@@ -110,5 +114,14 @@ abstract class AbstractModule {
 
     protected BigInteger getHash(TestFile file, String algorithm) {
         HashUtil.createHash(file, algorithm.toUpperCase()).asBigInteger()
+    }
+
+    Module withModuleMetadata() {
+        hasModuleMetadata = true
+        return this
+    }
+
+    boolean isHasModuleMetadata() {
+        hasModuleMetadata
     }
 }

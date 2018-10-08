@@ -21,7 +21,22 @@ import org.gradle.internal.io.TextStream
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.util.concurrent.CountDownLatch
+
 class ExecOutputHandleRunnerTest extends Specification {
+    def "copies contents of stream when run"() {
+        def input = new ByteArrayInputStream("hello".bytes)
+        def output = new ByteArrayOutputStream()
+        def completed = new CountDownLatch(1)
+        def runner = new ExecOutputHandleRunner("test", input, output, 4, completed)
+
+        when:
+        runner.run()
+
+        then:
+        output.toByteArray() == "hello".bytes
+        completed.count == 0
+    }
 
     @Issue("GRADLE-3329")
     def "Handles exec output with line containing multi-byte unicode character at buffer boundary"() {
@@ -33,7 +48,7 @@ class ExecOutputHandleRunnerTest extends Specification {
         def action = Mock(TextStream)
         def output = new LineBufferingOutputStream(action)
         def input = new ByteArrayInputStream(text.getBytes("utf-8"))
-        def runner = new ExecOutputHandleRunner("test", input, output, bufferLength)
+        def runner = new ExecOutputHandleRunner("test", input, output, bufferLength, new CountDownLatch(1))
 
         when:
         runner.run()

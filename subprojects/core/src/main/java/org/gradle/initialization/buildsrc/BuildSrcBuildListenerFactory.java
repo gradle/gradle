@@ -16,7 +16,6 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.internal.Actions;
+import org.gradle.internal.InternalBuildAdapter;
 
 import java.io.File;
 import java.util.Collection;
@@ -42,31 +42,27 @@ public class BuildSrcBuildListenerFactory {
         this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
     }
 
-    Listener create(boolean rebuild) {
-        return new Listener(rebuild, buildSrcRootProjectConfiguration);
+    Listener create() {
+        return new Listener(buildSrcRootProjectConfiguration);
     }
 
-    public static class Listener extends BuildAdapter implements ModelConfigurationListener {
+    public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
         private Set<File> classpath;
-        private final boolean rebuild;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
-        private Listener(boolean rebuild, Action<ProjectInternal> rootProjectConfiguration) {
-            this.rebuild = rebuild;
+        private Listener(Action<ProjectInternal> rootProjectConfiguration) {
             this.rootProjectConfiguration = rootProjectConfiguration;
         }
 
         @Override
         public void projectsLoaded(Gradle gradle) {
             rootProjectConfiguration.execute((ProjectInternal)gradle.getRootProject());
-
         }
 
         @Override
         public void onConfigure(GradleInternal gradle) {
             BuildableJavaComponent mainComponent = mainComponentOf(gradle);
-            gradle.getStartParameter().setTaskNames(
-                rebuild ? mainComponent.getRebuildTasks() : mainComponent.getBuildTasks());
+            gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
             classpath = mainComponent.getRuntimeClasspath().getFiles();
         }
 

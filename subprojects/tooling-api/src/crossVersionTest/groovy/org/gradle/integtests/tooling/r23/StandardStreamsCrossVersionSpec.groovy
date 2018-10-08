@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
@@ -90,7 +91,12 @@ task log {
         output.toString().contains("warn logging")
         output.toString().contains("lifecycle logging")
         output.toString().contains("quiet logging")
-        error.toString().contains("error logging")
+        if (targetVersion.baseVersion >= GradleVersion.version('4.7')) {
+            // Changed handling of error log messages
+            output.toString().contains("error logging")
+        } else {
+            error.toString().contains("error logging")
+        }
 
         and:
         !stdOutAndErr.stdOut.contains("logging")

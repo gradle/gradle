@@ -91,7 +91,7 @@ dependencies {
         expectGetDynamicRevision(projectB1)
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.1",
+        checkResolve "group:projectA:1.+": ["group:projectA:1.1", "didn't match version 2.0"],
                      "group:projectB:latest.integration": "group:projectB:1.1"
 
         when:
@@ -105,7 +105,8 @@ dependencies {
 
         then:
         executer.withArgument("-PrefreshDynamicVersions")
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.integration": "group:projectB:2.2"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"],
+                "group:projectB:latest.integration": "group:projectB:2.2"
     }
 
     @Unroll
@@ -170,14 +171,14 @@ dependencies {
         projectB12.jar.expectGet()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"],
                      "group:projectB:latest.integration": "group:projectB:1.2"
 
         when: "result is cached"
         server.resetExpectations()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"],
                      "group:projectB:latest.integration": "group:projectB:1.2"
     }
 
@@ -212,7 +213,7 @@ dependencies {
         executer.withArgument('-PlatestRevision=release')
 
         then:
-        checkResolve "group:projectA:latest.release": "group:projectA:2.0"
+        checkResolve "group:projectA:latest.release": [ "group:projectA:2.0", "didn't match versions 2.2, 2.1"]
 
         when:
         server.resetExpectations()
@@ -220,14 +221,14 @@ dependencies {
         executer.withArgument('-PlatestRevision=milestone')
 
         then:
-        checkResolve "group:projectA:latest.milestone": "group:projectA:2.1"
+        checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
 
         when:
         server.resetExpectations()
         executer.withArgument('-PlatestRevision=milestone')
 
         then:
-        checkResolve "group:projectA:latest.milestone": "group:projectA:2.1"
+        checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
     }
 
     def "reuses cached meta-data when resolving latest.status"() {
@@ -271,13 +272,13 @@ task cache { doLast { configurations.staticVersions.files } }
         repo1ProjectA1.jar.expectGet()
 
         then:
-        checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
+        checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
 
         when:
         server.resetExpectations()
 
         then:
-        checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
+        checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
     def "can use latest version from different remote repositories"() {
@@ -304,13 +305,13 @@ task cache { doLast { configurations.staticVersions.files } }
         version12.ivy.expectGet()
 
         then:
-        checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
+        checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
 
         when:
         server.resetExpectations()
 
         then:
-        checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
+        checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
     def "checks new repositories before returning any cached value"() {
@@ -479,6 +480,57 @@ dependencies {
         }
     }
 
+    @Issue("gradle/gradle#3019")
+    def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { 
+    fresh
+    stale
+}
+configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+
+dependencies {
+    fresh group: "org.test", name: "projectA", version: "1.+"
+    stale group: "org.test", name: "projectA", version: "1.+"
+}
+
+task resolveStaleThenFresh {
+    doFirst {
+        println 'stale:' + configurations.stale.collect { it.name } + ',fresh:' + configurations.fresh.collect { it.name }
+    }
+}
+"""
+
+        when:
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        expectGetDynamicRevision(projectA12)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.2.jar]")
+
+        when:
+        def projectA13 = ivyHttpRepo.module("org.test", "projectA", "1.3").publish()
+        server.resetExpectations()
+
+        and:
+        // Should get the newer version when resolving 'fresh'
+        expectGetDynamicRevision(projectA13)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
+    }
+
     def "reuses cached version lists unless no matches"() {
         given:
         useRepository ivyHttpRepo
@@ -503,7 +555,7 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+                edge("org.test:projectA:1.+", "org.test:projectA:1.2").byReason("didn't match version 2.1")
             }
         }
 
@@ -523,8 +575,8 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:2.1").byConflictResolution()
-                edge("org.test:projectA:2.+", "org.test:projectA:2.1").byConflictResolution()
+                edge("org.test:projectA:1.+", "org.test:projectA:2.1").byConflictResolution("between versions 1.2 and 2.1")
+                edge("org.test:projectA:2.+", "org.test:projectA:2.1").byConflictResolution("between versions 1.2 and 2.1")
             }
         }
 
@@ -546,9 +598,9 @@ dependencies {
         succeeds "checkDeps"
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution()
-                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution()
-                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution()
+                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution("between versions 1.2, 2.1 and 3.0")
+                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution("between versions 1.2, 2.1 and 3.0")
+                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution("between versions 1.2, 2.1 and 3.0")
             }
         }
     }
@@ -804,14 +856,14 @@ dependencies {
 
         then:
         checkResolve "org.test:projectA:1.+": "org.test:projectA:1.3",
-                     "org.test:projectB:latest.milestone": "org.test:projectB:1.2"
+                     "org.test:projectB:latest.milestone": ["org.test:projectB:1.2", "didn't match version 1.3"]
 
         when: "resolve a second time"
         server.resetExpectations()
 
         then:
         checkResolve "org.test:projectA:1.+": "org.test:projectA:1.3",
-                     "org.test:projectB:latest.milestone": "org.test:projectB:1.2"
+                     "org.test:projectB:latest.milestone": ["org.test:projectB:1.2", "didn't match version 1.3"]
 
     }
 
@@ -898,11 +950,10 @@ dependencies {
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Versions that do not match:
-    3.0
-    1.2
-    1.1
-Searched in the following locations:
-    ${dirListRepo1.uri}
+  - 3.0
+  - 1.2
+  - 1.1
+Searched in the following locations: ${dirListRepo1.uri}
 Required by:
 """)
 
@@ -921,13 +972,13 @@ Required by:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Versions that do not match:
-    3.0
-    1.2
-    1.1
-    4.4
+  - 3.0
+  - 1.2
+  - 1.1
+  - 4.4
 Searched in the following locations:
-    ${dirListRepo1.uri}
-    ${dirListRepo2.uri}
+  - ${dirListRepo1.uri}
+  - ${dirListRepo2.uri}
 Required by:
 """)
 
@@ -940,13 +991,13 @@ Required by:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Versions that do not match:
-    3.0
-    1.2
-    1.1
-    4.4
+  - 3.0
+  - 1.2
+  - 1.1
+  - 4.4
 Searched in the following locations:
-    ${dirListRepo1.uri}
-    ${dirListRepo2.uri}
+  - ${dirListRepo1.uri}
+  - ${dirListRepo2.uri}
 Required by:
 """)
 
@@ -961,7 +1012,7 @@ Required by:
         projectA2.jar.expectGet()
 
         then:
-        checkResolve "group:projectA:2.+": "group:projectA:2.2"
+        checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 3.0, 1.2, 1.1, 4.4"]
     }
 
     def "reports and recovers from missing directory available for dynamic version"() {
@@ -981,8 +1032,7 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
-Searched in the following locations:
-    ${directoryList.uri}
+Searched in the following locations: ${directoryList.uri}
 Required by:
 """)
 
@@ -993,8 +1043,7 @@ Required by:
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
-Searched in the following locations:
-    ${directoryList.uri}
+Searched in the following locations: ${directoryList.uri}
 Required by:
 """)
 
@@ -1083,9 +1132,9 @@ dependencies {
         fails "checkDeps"
         failure.assertHasCause("""Could not find any matches for group:projectA:latest.release as no versions of group:projectA are available.
 Searched in the following locations:
-    ${directoryList.uri}
-    ${projectA.ivy.uri}
-    ${projectA.jar.uri}
+  - ${directoryList.uri}
+  - ${projectA.ivy.uri}
+  - ${projectA.jar.uri}
 Required by:
 """)
 
@@ -1141,7 +1190,10 @@ dependencies {
     def "finds best matching version in local and remote repository with #order"() {
         given:
         def fileRepo = ivyRepo("fileRepo")
-        def httpModule = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        fileRepo.module('group', 'projectB', '1.1').publish()
+        fileRepo.module('group', 'projectC', '1.1').publish()
+        def httpModuleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        def httpModuleC = ivyHttpRepo.module('group', 'projectC', '1.2').publish()
 
         and:
         if (localFirst) {
@@ -1152,32 +1204,33 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    compile 'group:projectA:1.+'
+    compile "group:\$moduleName:1.+"
 }
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 """
         when: "missing from local"
-        expectGetDynamicRevision(httpModule)
+        expectGetDynamicRevision(httpModuleA)
 
         then:
+        args '-PmoduleName=projectA'
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
 
         when: "missing from remote"
-        fileRepo.module('group', 'projectA', '1.1').publish()
-        ivyHttpRepo.directoryList("group", "projectA").expectGetMissing()
+        ivyHttpRepo.directoryList("group", "projectB").expectGetMissing()
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.1"
+        args '-PmoduleName=projectB'
+        checkResolve "group:projectB:1.+": "group:projectB:1.1"
 
         when: "present in both"
         server.resetExpectations()
-        httpModule = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
-        expectGetDynamicRevision(httpModule)
+        expectGetDynamicRevision(httpModuleC)
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.3"
+        args '-PmoduleName=projectC'
+        checkResolve "group:projectC:1.+": "group:projectC:1.2"
 
         where:
         order          | localFirst
@@ -1209,7 +1262,11 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edges.each {from, to ->
-                    edge(from, to)
+                    if (to instanceof List) {
+                        edge(from, to[0]).byReason(to[1])
+                    } else {
+                        edge(from, to)
+                    }
                 }
             }
         }

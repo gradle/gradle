@@ -36,9 +36,9 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         run "dependentComponents"
 
         then:
-        output.contains simpleCppUtilDependents()
-        output.contains simpleCppLibDependents()
-        output.contains simpleCppMainDependents()
+        outputContains simpleCppUtilDependents()
+        outputContains simpleCppLibDependents()
+        outputContains simpleCppMainDependents()
     }
 
     @Unroll
@@ -386,7 +386,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         then:
         failure.assertHasDescription "Execution failed for task ':dependentComponents'."
-        failure.error.contains '''
+        failure.assertHasCause '''
             Circular dependency between the following binaries:
             lib:sharedLibrary
             \\--- util:sharedLibrary
@@ -420,7 +420,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         then:
         failure.assertHasDescription "Execution failed for task ':dependentComponents'."
-        failure.error.contains '''
+        failure.assertHasCause '''
             Circular dependency between the following binaries:
             another:sharedLibrary
             \\--- util:sharedLibrary
@@ -454,7 +454,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         then:
         failure.assertHasDescription "Execution failed for task ':api:dependentComponents'."
-        failure.error.contains '''
+        failure.assertHasCause '''
             Circular dependency between the following binaries:
             :api:api:sharedLibrary
             \\--- :bootstrap:bootstrap:sharedLibrary
@@ -491,7 +491,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         succeeds("dependentComponents")
 
         then:
-        result.output.contains """
+        outputContains """
             ------------------------------------------------------------
             Root project
             ------------------------------------------------------------

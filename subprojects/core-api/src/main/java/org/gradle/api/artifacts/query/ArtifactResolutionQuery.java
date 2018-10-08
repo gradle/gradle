@@ -17,9 +17,11 @@ package org.gradle.api.artifacts.query;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.component.Artifact;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
+import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
+
+import java.util.Collection;
 
 /**
  * A builder to construct a query that can resolve selected software artifacts of the specified components.
@@ -60,6 +62,17 @@ public interface ArtifactResolutionQuery {
     ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds);
 
     /**
+     * Specifies a module component to include in the result using its GAV coordinates.
+     *
+     * @param group Module group.
+     * @param name Module name.
+     * @param version Module version.
+     *
+     * @since 4.5
+     */
+    ArtifactResolutionQuery forModule(String group, String name, String version);
+
+    /**
      * Defines the type of component that is expected in the result, and the artifacts to retrieve for components of this type.
      *
      * Presently, only a single component type and set of artifacts is permitted.
@@ -68,6 +81,18 @@ public interface ArtifactResolutionQuery {
      * @param artifactTypes The artifacts to retrieve for the queried components.
      */
     ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
+
+
+    /**
+     * Defines the type of component that is expected in the result, and the artifacts to retrieve for components of this type.
+     *
+     * Presently, only a single component type and set of artifacts is permitted.
+     *
+     * @param componentType The expected type of the component.
+     * @param artifactTypes The artifacts to retrieve for the queried components.
+     * @since 4.5
+     */
+    ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes);
 
     /**
      * Actually execute the query, returning a query result.

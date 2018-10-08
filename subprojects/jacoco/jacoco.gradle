@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -14,14 +16,19 @@
  * limitations under the License.
  */
 
-
-
 dependencies {
-	compile libraries.groovy
-	compile project(':core')
-	compile project(':plugins')
-	compile project(':reporting')
-    testCompile libraries.jsoup
+    compile libraries.groovy.coordinates
+    compile project(':core')
+    compile project(':plugins')
+    compile project(':reporting')
+    testCompile testLibraries.jsoup
+    testCompile project(':internalIntegTesting')
 }
 
-useTestFixtures()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+}

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
@@ -34,20 +35,22 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.Module;
@@ -55,25 +58,24 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -85,6 +87,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -99,6 +102,7 @@ import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
 import org.gradle.model.internal.core.Hidden;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -109,6 +113,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -133,7 +138,10 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
-public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
+public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware,
+    // These two are here to work around https://github.com/gradle/gradle/issues/6027
+    FileOperations, ProcessOperations {
+
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
     private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
@@ -188,14 +196,18 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private ArtifactHandler artifactHandler;
 
-    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
+
+    private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<RuleBasedPluginListener>(RuleBasedPluginListener.class);
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
     private final Path path;
+
     private Path identityPath;
+    private boolean preparedForRuleBasedPlugins;
 
     public DefaultProject(String name,
                           @Nullable ProjectInternal parent,
@@ -236,19 +248,24 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        populateModelRegistry(services.get(ModelRegistry.class));
+        ruleBasedPluginListenerBroadcast.add(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                populateModelRegistry(services.get(ModelRegistry.class));
+            }
+        });
     }
 
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
-        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ObjectFactory.class);
         }
 
         @Hidden @Model
-        ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ITaskFactory.class);
+        NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TaskInstantiator.class);
         }
 
         @Hidden @Model
@@ -285,6 +302,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         FileOperations fileOperations(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileOperations.class);
         }
+    }
+
+    private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
+        return new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
@@ -547,14 +568,14 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public int depthCompare(Project otherProject) {
-        return new Integer(getDepth()).compareTo(otherProject.getDepth());
+        return Ints.compare(getDepth(), otherProject.getDepth());
     }
 
     @Override
     public int compareTo(Project otherProject) {
         int depthCompare = depthCompare(otherProject);
         if (depthCompare == 0) {
-            return getPath().compareTo(otherProject.getPath());
+            return getProjectPath().compareTo(((ProjectInternal) otherProject).getProjectPath());
         } else {
             return depthCompare;
         }
@@ -739,7 +760,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
-        if (projectToEvaluate.getState().getExecuting()) {
+        if (projectToEvaluate.getState().isConfiguring()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }
@@ -807,8 +828,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return foundTasks;
     }
 
+    @Override
     @Inject
-    protected FileOperations getFileOperations() {
+    public FileOperations getFileOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -851,7 +873,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return getFileOperations().files(paths);
+        return getLayout().configurableFiles(paths);
     }
 
     @Override
@@ -901,11 +923,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return getProviders().provider(value);
-    }
-
-    @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return getProviders().property(clazz);
     }
 
     @Override
@@ -959,22 +976,26 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
-        evaluationListener.add("beforeEvaluate", action);
+        assertMutatingMethodAllowed("beforeEvaluate(Action)");
+        evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        evaluationListener.add("afterEvaluate", action);
+        assertMutatingMethodAllowed("afterEvaluate(Action)");
+        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
+        assertMutatingMethodAllowed("beforeEvaluate(Closure)");
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", closure)));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        assertMutatingMethodAllowed("afterEvaluate(Closure)");
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
     }
 
     @Override
@@ -1115,17 +1136,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        getProjectConfigurator().subprojects(getSubprojects(), configureClosure);
+        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        getProjectConfigurator().allprojects(getAllprojects(), configureClosure);
+        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return getProjectConfigurator().project(project(path), configureClosure);
+        return getProjectConfigurator().project(project(path), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
@@ -1183,6 +1204,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public Task task(Object task) {
         return taskContainer.create(task.toString());
+    }
+
+    @Override
+    public Task task(String task, Action<? super Task> configureAction) {
+        return taskContainer.create(task, configureAction);
     }
 
     @Override
@@ -1303,6 +1329,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     // Not part of the public API
     public void model(Closure<?> modelRules) {
+        prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = getModelRegistry();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
             ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, this.getRootProject().getFileResolver()), modelRules);
@@ -1322,6 +1349,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ListenerBuildOperationDecorator getListenerBuildOperationDecorator() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void addDeferredConfiguration(Runnable configuration) {
         getDeferredProjectConfiguration().add(configuration);
@@ -1330,6 +1362,24 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
+    }
+
+
+    @Override
+    public void addRuleBasedPluginListener(RuleBasedPluginListener listener) {
+        if (preparedForRuleBasedPlugins) {
+            listener.prepareForRuleBasedPlugins(this);
+        } else {
+            ruleBasedPluginListenerBroadcast.add(listener);
+        }
+    }
+
+    @Override
+    public void prepareForRuleBasedPlugins() {
+        if (!preparedForRuleBasedPlugins) {
+            preparedForRuleBasedPlugins = true;
+            ruleBasedPluginListenerBroadcast.getSource().prepareForRuleBasedPlugins(this);
+        }
     }
 
     @Inject
@@ -1343,4 +1393,53 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         configuration.execute(getNormalization());
     }
 
+    @Inject
+    @Override
+    public DependencyLockingHandler getDependencyLocking() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
+        configuration.execute(getDependencyLocking());
+    }
+
+    @Override
+    public ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> step) {
+        ListenerBroadcast<ProjectEvaluationListener> original = this.evaluationListener;
+        ListenerBroadcast<ProjectEvaluationListener> nextBatch = newProjectEvaluationListenerBroadcast();
+        this.evaluationListener = nextBatch;
+        try {
+            step.execute(listener);
+        } finally {
+            this.evaluationListener = original;
+        }
+        return nextBatch.isEmpty()
+            ? null
+            : nextBatch.getSource();
+    }
+
+    private void assertMutatingMethodAllowed(String methodName) {
+        MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
+    }
+
+    // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
+
+    @Override
+    @Deprecated
+    public ConfigurableFileCollection configurableFiles() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Deprecated
+    public ConfigurableFileCollection configurableFiles(Object... paths) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Deprecated
+    public FileCollection immutableFiles(Object... paths) {
+        throw new UnsupportedOperationException();
+    }
 }

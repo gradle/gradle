@@ -16,6 +16,8 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+
 import java.io.File;
 import java.util.List;
 
@@ -23,7 +25,7 @@ import java.util.List;
  * A deploy action that uses the baked in Maven wagon implementations, or a custom user-provided wagon implemented.
  */
 public class MavenWagonDeployAction extends MavenDeployAction {
-    public MavenWagonDeployAction(File pomFile, List<File> jars) {
-        super(pomFile, jars);
+    public MavenWagonDeployAction(String packaging, MavenProjectIdentity projectIdentity, List<File> jars) {
+        super(packaging, projectIdentity, jars);
     }
 }

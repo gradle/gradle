@@ -39,29 +39,19 @@ public class DefaultHeaderDependenciesCollector implements HeaderDependenciesCol
     }
 
     @Override
-    public ImmutableSortedSet<File> collectHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
-        final Set<File> headerDependencies = new HashSet<File>();
-        if (incrementalCompilation.isUnresolvedHeaders()) {
-            addIncludeRoots(taskPath, includeRoots, headerDependencies);
-        } else {
-            headerDependencies.addAll(incrementalCompilation.getDiscoveredInputs());
-        }
-        return ImmutableSortedSet.copyOf(headerDependencies);
-    }
-
-    @Override
     public ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation) {
         final Set<File> headerDependencies = new HashSet<File>();
         if (incrementalCompilation.isUnresolvedHeaders()) {
+            logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.", taskPath);
             addIncludeRoots(taskPath, includeRoots, headerDependencies);
         } else {
+            logger.info("Found all include files for '{}'", taskPath);
             headerDependencies.addAll(incrementalCompilation.getExistingHeaders());
         }
         return ImmutableSortedSet.copyOf(headerDependencies);
     }
 
     private void addIncludeRoots(String taskPath, List<File> includeRoots, final Set<File> headerDependencies) {
-        logger.info("After parsing the source files, Gradle cannot calculate the exact set of include files for '{}'. Every file in the include search path will be considered a header dependency.", taskPath);
         for (final File includeRoot : includeRoots) {
             logger.info("adding files in {} to header dependencies for {}", includeRoot, taskPath);
             directoryFileTreeFactory.create(includeRoot).visit(new EmptyFileVisitor() {

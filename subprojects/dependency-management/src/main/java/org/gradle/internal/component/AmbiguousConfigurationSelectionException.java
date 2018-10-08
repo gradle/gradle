@@ -33,18 +33,19 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
     public AmbiguousConfigurationSelectionException(AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
-                                                    ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent));
+                                                    ComponentResolveMetadata targetComponent,
+                                                    boolean variantAware) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot choose between the following configurations of ");
-        formatter.append(targetComponent.getComponentId().getDisplayName());
+        formatter.node("Cannot choose between the following " + (variantAware ? "variants" : "configurations") + " of ");
+        formatter.append(targetComponent.getId().getDisplayName());
         formatter.startChildren();
         for (String configuration : ambiguousConfigurations.keySet()) {
             formatter.node(configuration);
@@ -55,15 +56,19 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ConfigurationMetadata ambiguousConf : ambiguousConfigurations.values()) {
-            formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, ambiguousConf);
+            formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware);
         }
         formatter.endChildren();
         return formatter.toString();
     }
 
-    static void formatConfiguration(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration) {
+    static void formatConfiguration(TreeFormatter formatter, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration, boolean variantAware) {
         AttributeContainerInternal producerAttributes = configuration.getAttributes();
-        formatter.node("Configuration '");
+        if (variantAware) {
+            formatter.node("Variant '");
+        } else {
+            formatter.node("Configuration '");
+        }
         formatter.append(configuration.getName());
         formatter.append("'");
         formatAttributeMatches(formatter, consumerAttributes, attributeMatcher, producerAttributes);
@@ -86,7 +91,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             AttributeValue<Object> consumerValue = immmutableConsumer.findEntry(untyped);
             AttributeValue<?> producerValue = immutableProducer.findEntry(attribute.getName());
             if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.get(), consumerValue.get())) {
+                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
                     formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
                 } else {
                     formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");

@@ -291,18 +291,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     apiJarTask.setDescription("Creates the API binary file for " + binary + ".");
                     apiJarTask.setOutputFile(apiJarFile.getFile());
                     apiJarTask.setExportedPackages(exportedPackages);
-                    configureApiJarInputs(apiJarTask, assembly);
+                    apiJarTask.source(assembly.getClassDirectories());
                     apiJarTask.dependsOn(assembly);
                     apiJarFile.setBuildTask(apiJarTask);
                 }
             });
-        }
-
-        private void configureApiJarInputs(ApiJar apiJarTask, JvmAssembly assembly) {
-            int counter = 0;
-            for (File classDir : assembly.getClassDirectories()) {
-                apiJarTask.getInputs().dir(classDir).withPropertyName("classes$" + (++counter)).skipWhenEmpty();
-            }
         }
 
         private String apiJarTaskName(JarBinarySpecInternal binary) {

@@ -18,7 +18,6 @@ package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.filewatch.jdk7.WatchPointsRegistry.Delta
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -34,7 +33,7 @@ class WatchPointsRegistryTest extends Specification {
     TestFile rootDir
 
     def setup() {
-        registry = new WatchPointsRegistry(true, Stub(FileSystem))
+        registry = new WatchPointsRegistry(true)
         rootDir = testDir.createDir("root")
     }
 
@@ -70,7 +69,7 @@ class WatchPointsRegistryTest extends Specification {
 
     def "child doesn't get added when parent has already been added when createNewStartingPointsUnderExistingRoots==false"() {
         given:
-        registry = new WatchPointsRegistry(false, Stub(FileSystem))
+        registry = new WatchPointsRegistry(false)
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:

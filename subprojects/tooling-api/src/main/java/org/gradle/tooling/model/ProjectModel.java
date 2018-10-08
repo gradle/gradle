@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a model that is associated with some Gradle project.
  *
  * @since 3.0
  */
-@Incubating
 public interface ProjectModel {
     /**
      * Returns the identifier for the project that this model is associated with.

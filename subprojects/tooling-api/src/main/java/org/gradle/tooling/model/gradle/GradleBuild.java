@@ -27,14 +27,12 @@ import org.gradle.tooling.model.Model;
  *
  * @since 1.8
  */
-@Incubating
 public interface GradleBuild extends Model, BuildModel {
     /**
      * Returns the identifier for this Gradle build.
      *
      * @since 2.13
      */
-    @Incubating
     BuildIdentifier getBuildIdentifier();
 
     /**
@@ -52,10 +50,19 @@ public interface GradleBuild extends Model, BuildModel {
     DomainObjectSet<? extends BasicGradleProject> getProjects();
 
     /**
-     * Returns the builds that were included into this one.
+     * Returns the included builds that were referenced by this build. This is the set of builds that were directly included by this build via its {@link org.gradle.api.initialization.Settings} instance.
      *
      * @since 3.3
      */
-    @Incubating
     DomainObjectSet<? extends GradleBuild> getIncludedBuilds();
+
+    /**
+     * Returns all builds contained in this build for which tooling models should be built when importing into an IDE.
+     *
+     * <p>This is not always the same the builds returned by {@link #getIncludedBuilds()}. For the root build, the 'editable' builds set contains all builds that participate in the composite build, including those directly included by the root build plus all builds included by any nested included builds transitively. For all other builds, this set is empty.</p>
+     *
+     * @since 4.10
+     */
+    @Incubating
+    DomainObjectSet<? extends GradleBuild> getEditableBuilds();
 }

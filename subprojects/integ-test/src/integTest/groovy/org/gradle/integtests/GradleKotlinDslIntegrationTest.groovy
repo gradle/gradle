@@ -17,13 +17,13 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 
-@Requires([KOTLIN_SCRIPT, NOT_WINDOWS])
+@Requires([KOTLIN_SCRIPT])
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
@@ -52,9 +52,10 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         run 'build'
 
         then:
-        result.output.contains('it works!')
+        outputContains('it works!')
     }
 
+    @LeaksFileHandles
     def 'can apply Groovy script from url'() {
         given:
         executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
@@ -81,7 +82,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         run 'hello'
 
         then:
-        result.output.contains("Hello!")
+        outputContains("Hello!")
 
         when:
         server.stop()
@@ -89,9 +90,13 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'hello'
-        result.output.contains("Hello!")
+        outputContains("Hello!")
+
+        cleanup: // wait for all daemons to shutdown so the test dir can be deleted
+        executer.cleanup()
     }
 
+    @LeaksFileHandles
     def 'can apply Kotlin script from url'() {
         given:
         executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
@@ -100,7 +105,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         def scriptFile = file("script.gradle.kts") << """
             tasks {
-                "hello" {
+                register("hello") {
                     doLast { 
                         println("Hello!") 
                     }
@@ -112,10 +117,10 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
 
         when:
-        run 'hello'
+        succeeds 'hello'
 
         then:
-        result.output.contains("Hello!")
+        outputContains("Hello!")
 
         when:
         server.stop()
@@ -123,11 +128,17 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'hello'
-        result.output.contains("Hello!")
+        outputContains("Hello!")
+
+        cleanup: // wait for all daemons to shutdown so the test dir can be deleted
+        executer.cleanup()
     }
 
     def 'can query KotlinBuildScriptModel'() {
         given:
+        // TODO Remove this once the Kotlin DSL upgrades 'pattern("layout") {' to 'patternLayout {
+        // Using expectDeprecationWarning did not work as some setup do not trigger one
+        executer.noDeprecationChecks()
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
         // of internal APIs is not broken by refactorings on the Gradle side
         buildFile << """
@@ -149,9 +160,9 @@ task("dumpKotlinBuildScriptModelClassPath") {
         """
 
         when:
-        run 'dumpKotlinBuildScriptModelClassPath'
+        succeeds 'dumpKotlinBuildScriptModelClassPath'
 
         then:
-        result.output.contains("gradle-kotlin-dsl!")
+        outputContains("gradle-kotlin-dsl!")
     }
 }

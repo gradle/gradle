@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class FindBugsResult implements Serializable {
@@ -29,7 +30,7 @@ public class FindBugsResult implements Serializable {
         this(bugCount, missingClassCount, errorCount, null);
     }
 
-    public FindBugsResult(int bugCount, int missingClassCount, int errorCount, Throwable exception) {
+    public FindBugsResult(int bugCount, int missingClassCount, int errorCount, @Nullable Throwable exception) {
         this.bugCount = bugCount;
         this.missingClassCount = missingClassCount;
         this.errorCount = errorCount;
@@ -48,6 +49,7 @@ public class FindBugsResult implements Serializable {
         return errorCount;
     }
 
+    @Nullable
     public Throwable getException() {
         return exception;
     }

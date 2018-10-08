@@ -1,17 +1,30 @@
-sourceCompatibility = 1.6
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    id 'gradlebuild.strict-compile'
+}
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':workers')
-    compile libraries.commons_collections
-    testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
+    compile libraries.commons_collections.coordinates
+    compile libraries.commons_lang.coordinates
 }
 
-//useClassycle(exclude: ['org.gradle.language.base.internal/**'])
-strictCompile()
-useTestFixtures()
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
 
+testFixtures {
+    from(':core')
+    from(':coreApi')
+    from(':core', 'testFixtures')
+    from(':modelCore', 'testFixtures')
+    from(':diagnostics', 'testFixtures')
+}
+
+// classycle {
+//     excludePatterns = ['org.gradle.language.base.internal/**']
+// }

@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,21 +15,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(':core')
     compile project(':platformNative')
     compile project(':maven')
+    compile project(':toolingApi')
 
-    integTestRuntime project(":ideNative")
+    implementation project(':versionControl')
+    implementation libraries.commons_io.coordinates
+
+    integTestRuntimeOnly project(":ideNative")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":versionControl")
-useTestFixtures(project: ":platformNative")
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":messaging")
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
 
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':versionControl')
+    from(':platformNative')
+    from(':platformBase')
+    from(':messaging')
+    from(':platformNative', 'testFixtures')
+}
 
+classycle {
+    excludePatterns = ['org/gradle/language/nativeplatform/internal/**']
+}

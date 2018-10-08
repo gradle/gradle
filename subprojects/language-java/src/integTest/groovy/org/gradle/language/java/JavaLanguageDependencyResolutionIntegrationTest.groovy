@@ -523,7 +523,7 @@ model {
 }
 '''
         file('settings.gradle') << 'include "dep"'
-        file('dep/build.gradle') << ''
+        file('dep/build.gradle') << "apply plugin: 'java'"
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:

@@ -17,14 +17,19 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata
 
 import org.gradle.api.Transformer
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TreeVisitor
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,7 +40,6 @@ import static org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccCompi
 
 @UsesNativeServices
 class GccMetadataProviderTest extends Specification {
-    def execActionFactory = Mock(ExecActionFactory)
     static def gcc4 = """#define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
 #define __GNUC__ 4
@@ -62,6 +66,11 @@ class GccMetadataProviderTest extends Specification {
 #define __GNUC_PATCHLEVEL__ 1
 #define __GNUC__ 4
 #define __amd64__ 1
+"""
+    static def gccCygwin64 = """#define __CYGWIN__ 1
+#define __GNUC__ 7
+#define __GNUC_MINOR__ 3
+#define __x86_64__ 1
 """
     static def clang = """#define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
@@ -99,7 +108,7 @@ ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
 ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../../x86_64-linux-gnu/include"
 #include "..." search starts here:
 #include <...> search starts here:
-${includes.collect { " ${it}" }.join('\n') }
+${includes.collect { " ${it}" }.join('\n')}
 End of search list.
 """
     }
@@ -114,8 +123,8 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
 clang -cc1 version ${version}.0 (clang-${versionWithoutDots}0.0.38) default target x86_64-apple-darwin16.7.0
 #include "..." search starts here:
 #include <...> search starts here:
-${includes.collect { " ${it}" }.join('\n') }
-${frameworks.collect { " ${it} (framework directory)" }.join('\n') }
+${includes.collect { " ${it}" }.join('\n')}
+${frameworks.collect { " ${it} (framework directory)" }.join('\n')}
  /System/Library/Frameworks (framework directory)
  /Library/Frameworks (framework directory)
 End of search list.
@@ -159,12 +168,16 @@ ignoring nonexistent directory "/include"
 End of search list.
 """
 
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def execActionFactory = Mock(ExecActionFactory)
+
     @Unroll
     "can scrape version number from output of GCC #versionNumber"() {
         expect:
         def result = output(gcc, gccVerboseOutput(versionNumber.toString()))
         result.available
-        result.version == VersionNumber.parse(versionNumber)
+        result.component.version == VersionNumber.parse(versionNumber)
 
         where:
         gcc          | versionNumber
@@ -179,17 +192,17 @@ End of search list.
         expect:
         def result = output(gcc4, gccVerboseOutput('4.2.1', []))
         result.available
-        result.vendor == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
+        result.component.vendor == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
     }
 
     @Unroll
     "can scrape architecture from GCC output"() {
         expect:
         def x86 = output(gccX86, gccVerboseOutput())
-        x86.defaultArchitecture.isI386()
+        x86.component.defaultArchitecture.isI386()
 
         def amd64 = output(gccAmd64, gccVerboseOutput())
-        amd64.defaultArchitecture.isAmd64()
+        amd64.component.defaultArchitecture.isAmd64()
     }
 
     def "handles output that cannot be parsed"() {
@@ -234,7 +247,7 @@ End of search list.
         def binary = new File("g++")
 
         when:
-        def result = metadataProvider.getCompilerMetaData(binary, [])
+        def result = metadataProvider.getCompilerMetaData(binary, [], [])
 
         then:
         1 * execActionFactory.newExecAction() >> action
@@ -255,8 +268,8 @@ End of search list.
         expect:
         def result = output stdin, stderr, CLANG
         result.available
-        result.version == VersionNumber.parse(version)
-        result.vendor == vendor
+        result.component.version == VersionNumber.parse(version)
+        result.component.vendor == vendor
 
         where:
         stdin        | stderr                    | version | vendor
@@ -295,8 +308,8 @@ End of search list.
     def "parses gcc system includes"() {
         def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
-        def result = output gcc4, gccVerboseOutput('4.2.1', includes), GCC
-        result.systemIncludes*.path == includes
+        def result = output(gcc4, gccVerboseOutput('4.2.1', includes), GCC)
+        result.component.systemIncludes*.path == includes
     }
 
     def "parses clang system includes"() {
@@ -307,8 +320,8 @@ End of search list.
         ])
         def frameworks = correctPathSeparators(['/System/Library/Frameworks', '/Library/Frameworks'])
         expect:
-        def result = output clang, clangVerboseOutput('5.0', includes, frameworks), CLANG
-        result.systemIncludes*.path == includes
+        def result = output(clang, clangVerboseOutput('5.0', includes, frameworks), CLANG)
+        result.component.systemIncludes*.path == includes
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -320,26 +333,62 @@ End of search list.
         ]
         def frameworkDirs = ['/System/Library/Frameworks', '/Library/Frameworks']
         expect:
-        def result = output gcc4, gccVerboseOutput('4.2.1', includes + frameworkDirs), GCC
-        result.systemIncludes*.path == includes
+        def result = output(gcc4, gccVerboseOutput('4.2.1', includes + frameworkDirs), GCC)
+        result.component.systemIncludes*.path == includes
+    }
+
+    def "parses gcc cygwin system includes and maps to windows paths"() {
+        def includes = [
+            '/usr/include',
+            '/usr/local/include'
+        ]
+        def mapped = [
+            'C:\\cygwin\\usr\\include',
+            'C:\\cygwin\\usr\\local\\include'
+        ]
+        def binDir = tmpDir.createDir('bin')
+        def cygpath = binDir.createFile(OperatingSystem.current().getExecutableName('cygpath'))
+
+        expect:
+        runsCompiler(gccCygwin64, gccVerboseOutput('7.3', includes))
+        mapsPath(cygpath, '/usr/include', 'C:\\cygwin\\usr\\include')
+        mapsPath(cygpath, '/usr/local/include', 'C:\\cygwin\\usr\\local\\include')
+        def provider = new GccMetadataProvider(execActionFactory, GCC)
+        def result = provider.getCompilerMetaData(new File("gcc"), [], [binDir])
+        result.component.systemIncludes*.path == mapped
     }
 
     def correctPathSeparators(Collection<String> paths) {
         paths.collect { it.replaceAll('/', Matcher.quoteReplacement(File.separator)) }
     }
 
-    GccMetadata output(String outputStr, GccCompilerType compilerType = GCC) {
+    SearchResult<GccMetadata> output(String outputStr, GccCompilerType compilerType = GCC) {
         output(outputStr, "", compilerType)
     }
 
-    GccMetadata output(String output, String error, GccCompilerType compilerType = GCC) {
+    SearchResult<GccMetadata> output(String output, String error, GccCompilerType compilerType = GCC, List<File> path = []) {
+        runsCompiler(output, error)
+        def provider = new GccMetadataProvider(execActionFactory, compilerType)
+        provider.getCompilerMetaData(new File("g++"), [], path)
+    }
+
+    void runsCompiler(String output, String error) {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.setErrorOutput(_) >> { OutputStream errorstr -> errorstr << error; action }
         1 * action.execute() >> result
-        new GccMetadataProvider(execActionFactory, compilerType).getCompilerMetaData(new File("g++"), [])
+    }
+
+    void mapsPath(TestFile cygpath, String from, String to) {
+        def action = Mock(ExecAction)
+        def execResult = Mock(ExecResult)
+        1 * execActionFactory.newExecAction() >> action
+        1 * action.commandLine(cygpath.absolutePath, '-w', from)
+        1 * action.setStandardOutput(_) >> { OutputStream outputStream -> outputStream.write(to.bytes) }
+        1 * action.execute() >> execResult
+        _ * execResult.assertNormalExitValue()
     }
 
     Transformer transformer(constant) {

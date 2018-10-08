@@ -1,6 +1,6 @@
 apply plugin: 'cpp'
 
-// START SNIPPET flavors
+// tag::flavors[]
 model {
     flavors {
         english
@@ -16,7 +16,7 @@ model {
         }
     }
 }
-// END SNIPPET flavors
+// end::flavors[]
 
 model {
     binaries {

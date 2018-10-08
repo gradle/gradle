@@ -18,7 +18,7 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.LogEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -37,13 +37,13 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         encoder.writeLong(event.getTimestamp());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
-        encoder.writeString(event.getMessage());
+        encoder.writeNullableString(event.getMessage());
         throwableSerializer.write(encoder, event.getThrowable());
         if (event.getBuildOperationId() == null) {
             encoder.writeBoolean(false);
         } else {
             encoder.writeBoolean(true);
-            encoder.writeSmallLong(((OperationIdentifier) event.getBuildOperationId()).getId());
+            encoder.writeSmallLong(event.getBuildOperationId().getId());
         }
     }
 
@@ -52,9 +52,9 @@ public class LogEventSerializer implements Serializer<LogEvent> {
         long timestamp = decoder.readLong();
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
-        String message = decoder.readString();
+        String message = decoder.readNullableString();
         Throwable throwable = throwableSerializer.read(decoder);
-        Object buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
         return new LogEvent(timestamp, category, logLevel, message, throwable, buildOperationId);
     }
 }

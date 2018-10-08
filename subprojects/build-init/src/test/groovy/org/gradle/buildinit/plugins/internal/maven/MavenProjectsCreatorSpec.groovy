@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal.maven
 
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -114,31 +115,59 @@ class MavenProjectsCreatorSpec extends Specification {
         ex.message == "Unable to create Maven project model. The POM file $pom does not exist."
     }
 
-    def "can translate dependency assigned to Maven provided scope into compileOnly"() {
+    def "creates multi module project with same artifactId"() {
         given:
-            def pom = temp.file("pom.xml")
-            pom.text = """<project>
+        def parentPom = temp.file("pom.xml")
+        parentPom.text = """\
+<project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>util</groupId>
-  <artifactId>util</artifactId>
-  <version>2.5</version>
-  <packaging>jar</packaging>
-  <dependencies>
-    <dependency>
-        <groupId>org.gradle</groupId>
-        <artifactId>build-init</artifactId>
-        <version>1.0.0</version>
-        <scope>provided</scope>
-    </dependency>
-  </dependencies>
-</project>"""
-        def mavenProjects = creator.create(settings.buildSettings(), pom)
-        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory)
+  <packaging>pom</packaging>
+  <groupId>org.gradle</groupId>
+  <artifactId>test</artifactId>
+  <version>0</version>
 
-        when:
-        def gradleProject = converter.convert()
+  <modules>
+    <module>commons</module>
+  </modules>
+</project>
+"""
 
-        then:
-        gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
+        temp.file("commons/pom.xml").text = """\
+<project>
+  <parent>
+    <groupId>org.gradle</groupId>
+    <artifactId>test</artifactId>
+    <version>0</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>commons</artifactId>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>commons</module>
+  </modules>
+
+</project>
+"""
+        temp.file("commons/commons/pom.xml").text = """\
+<project>
+  <parent>
+    <groupId>org.gradle</groupId>
+    <artifactId>commons</artifactId>
+    <version>0</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.commons</groupId>
+  <artifactId>commons</artifactId>
+  
+</project>
+"""
+        def mavenProjects = creator.create(settings.buildSettings(), parentPom)
+        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory, Stub(BuildScriptBuilderFactory))
+
+        expect:
+        converter.convert()
     }
 }

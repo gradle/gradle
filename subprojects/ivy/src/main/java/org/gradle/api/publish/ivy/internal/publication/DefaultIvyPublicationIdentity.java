@@ -16,12 +16,18 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
+    private Module delegate;
     private String organisation;
     private String module;
     private String revision;
+
+    public DefaultIvyPublicationIdentity(Module delegate) {
+        this.delegate = delegate;
+    }
 
     public DefaultIvyPublicationIdentity(String organisation, String module, String revision) {
         this.organisation = organisation;
@@ -30,7 +36,7 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     }
 
     public String getOrganisation() {
-        return organisation;
+        return organisation != null ? organisation : (delegate != null ? delegate.getGroup() : null);
     }
 
     public void setOrganisation(String organisation) {
@@ -38,7 +44,7 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     }
 
     public String getModule() {
-        return module;
+        return module != null ? module : (delegate != null ? delegate.getName() : null);
     }
 
     public void setModule(String module) {
@@ -46,7 +52,7 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     }
 
     public String getRevision() {
-        return revision;
+        return revision != null ? revision : (delegate != null ? delegate.getVersion() : null);
     }
 
     public void setRevision(String revision) {

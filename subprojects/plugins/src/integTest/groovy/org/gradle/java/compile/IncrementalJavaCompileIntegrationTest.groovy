@@ -17,6 +17,7 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
 
@@ -118,39 +119,47 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         succeeds appCompileJava
 
         and:
-        result.output.contains "None of the classes needs to be compiled!"
-        result.output.contains "${appCompileJava} UP-TO-DATE"
+        outputContains "None of the classes needs to be compiled!"
+        outputContains "${appCompileJava} UP-TO-DATE"
         executedAndNotSkipped(libraryCompileJava)
     }
 
-    def "recompiles inner class if they are in a separate source file"() {
+    @Unroll
+    def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
         given:
-        file('src/main/java/Test.java') << 'public class Test{}'
-        file('src/main/java/Test$$InnerClass.java') << 'public class Test$$InnerClass{}'
-        buildFile << '''
-            apply plugin: 'java'
-            tasks.compileJava.options.incremental = true
-        '''.stripIndent()
+        libraryAppProjectWithIncrementalCompilation()
 
         when:
-        succeeds ':compileJava'
+        buildFile << """
+            subprojects {
+                tasks.compileJava.options.incremental = $from
+            }
+        """
+        run appCompileJava
 
         then:
-        executedAndNotSkipped ':compileJava'
-        file('build/classes/java/main/Test.class').assertExists()
-        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+        executedAndNotSkipped libraryCompileJava
+        executedAndNotSkipped appCompileJava
 
         when:
-        file('src/main/java/Test.java').text = 'public class Test{ void foo() {} }'
-        succeeds ':compileJava'
+        buildFile << """
+            subprojects {
+                tasks.compileJava.options.incremental = $to
+            }
+        """
+        run appCompileJava
 
         then:
-        executedAndNotSkipped ':compileJava'
-        file('build/classes/java/main/Test.class').assertExists()
-        file('build/classes/java/main/Test$$InnerClass.class').assertExists()
+        skipped libraryCompileJava
+        skipped appCompileJava
+
+        where:
+        from  | to
+        true  | false
+        false | true
     }
 
-    private String getBasicInterface() {
+    private static String getBasicInterface() {
         '''
             interface IPerson {
                 String getName();
@@ -158,7 +167,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         '''.stripIndent()
     }
 
-    private String getExtendedInterface() {
+    private static String getExtendedInterface() {
         '''
             interface IPerson {
                 String getName();
@@ -167,7 +176,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         '''.stripIndent()
     }
 
-    private String getClassImplementingBasicInterface() {
+    private static String getClassImplementingBasicInterface() {
         '''
             class Person implements IPerson {
                 public String getName() {

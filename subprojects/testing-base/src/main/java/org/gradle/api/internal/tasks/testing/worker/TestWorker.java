@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.security.AccessControlException;
 import java.util.concurrent.CountDownLatch;
 
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable {
@@ -57,6 +58,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     public void execute(final WorkerProcessContext workerProcessContext) {
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
+        SecurityManager securityManager = System.getSecurityManager();
         completed = new CountDownLatch(1);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
@@ -68,12 +70,19 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             try {
                 completed.await();
             } catch (InterruptedException e) {
-                throw new UncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
-            // Clean out any security manager the tests might have installed
-            System.setSecurityManager(null);
+
+            if (System.getSecurityManager() != securityManager) {
+                try {
+                    // Reset security manager the tests seem to have installed
+                    System.setSecurityManager(securityManager);
+                } catch (SecurityException e) {
+                    LOGGER.warn("Unable to reset SecurityManager. Continuing anyway...", e);
+                }
+            }
             testServices.close();
         }
     }
@@ -106,6 +115,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         Thread.currentThread().setName("Test worker");
         try {
             processor.processTestClass(testClass);
+        } catch (AccessControlException e) {
+            completed.countDown();
+            throw e;
         } finally {
             // Clean the interrupted status
             Thread.interrupted();
@@ -119,6 +131,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             processor.stop();
         } finally {
             completed.countDown();
+            // Clean the interrupted status
+            // because some test class processors do work here, e.g. JUnitPlatform
+            Thread.interrupted();
         }
     }
 

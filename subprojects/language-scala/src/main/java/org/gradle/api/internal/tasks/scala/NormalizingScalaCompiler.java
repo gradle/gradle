@@ -17,9 +17,10 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -44,7 +45,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
 
     @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        resolveAndFilterSourceFiles(spec);
+        resolveSourceFiles(spec);
         resolveClasspath(spec);
         resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
@@ -52,8 +53,8 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
         return delegateAndHandleErrors(spec);
     }
 
-    private void resolveAndFilterSourceFiles(final ScalaJavaJointCompileSpec spec) {
-        spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
+    private void resolveSourceFiles(JavaCompileSpec spec) {
+        spec.setSourceFiles(ImmutableSet.copyOf(spec.getSourceFiles()));
     }
 
     private void resolveClasspath(ScalaJavaJointCompileSpec spec) {
@@ -78,7 +79,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             builder.append('\n');
             builder.append(file);
         }

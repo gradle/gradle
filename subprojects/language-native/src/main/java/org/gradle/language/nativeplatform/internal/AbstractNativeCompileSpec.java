@@ -16,17 +16,22 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec implements NativeCompileSpec {
 
     private List<File> includeRoots = new ArrayList<File>();
+    private List<File> systemIncludeRoots = new ArrayList<File>();
     private List<File> sourceFiles = new ArrayList<File>();
     private List<File> removedSourceFiles = new ArrayList<File>();
     private boolean incrementalCompile;
@@ -38,9 +43,8 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
-    private Map<File, IncludeDirectives> sourceFileIncludeDirectives;
+    private List<File> sourceFilesForPch = new ArrayList<File>();
     private String preCompiledHeader;
-    private DiscoveredInputRecorder discoveredInputRecorder;
 
     @Override
     public List<File> getIncludeRoots() {
@@ -55,6 +59,16 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     @Override
     public void include(Iterable<File> includeRoots) {
         addAll(this.includeRoots, includeRoots);
+    }
+
+    @Override
+    public List<File> getSystemIncludeRoots() {
+        return systemIncludeRoots;
+    }
+
+    @Override
+    public void systemInclude(Iterable<File> systemIncludeRoots) {
+        addAll(this.systemIncludeRoots, systemIncludeRoots);
     }
 
     @Override
@@ -206,22 +220,12 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public Map<File, IncludeDirectives> getSourceFileIncludeDirectives() {
-        return sourceFileIncludeDirectives;
+    public List<File> getSourceFilesForPch() {
+        return sourceFilesForPch;
     }
 
     @Override
-    public void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map) {
-        this.sourceFileIncludeDirectives = map;
-    }
-
-    @Override
-    public void setDiscoveredInputRecorder(DiscoveredInputRecorder inputs) {
-        this.discoveredInputRecorder = inputs;
-    }
-
-    @Override
-    public DiscoveredInputRecorder getDiscoveredInputRecorder() {
-        return discoveredInputRecorder;
+    public void setSourceFilesForPch(List<File> sourceFilesForPch) {
+        this.sourceFilesForPch = sourceFilesForPch;
     }
 }

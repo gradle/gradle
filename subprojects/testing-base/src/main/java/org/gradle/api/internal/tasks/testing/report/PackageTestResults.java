@@ -51,14 +51,22 @@ public class PackageTestResults extends CompositeTestResults {
     }
 
     public TestResult addTest(long classId, String className, String testName, long duration) {
-        ClassTestResults classResults = addClass(classId, className);
-        return addTest(classResults.addTest(testName, duration));
+        return addTest(classId, className, className, testName, testName, duration);
+    }
+
+    public TestResult addTest(long classId, String className, String classDisplayName, String testName, String testDisplayName, long duration) {
+        ClassTestResults classResults = addClass(classId, className, classDisplayName);
+        return addTest(classResults.addTest(testName, testDisplayName, duration));
     }
 
     public ClassTestResults addClass(long classId, String className) {
+        return addClass(classId, className, className);
+    }
+
+    public ClassTestResults addClass(long classId, String className, String classDisplayName) {
         ClassTestResults classResults = classes.get(className);
         if (classResults == null) {
-            classResults = new ClassTestResults(classId, className, this);
+            classResults = new ClassTestResults(classId, className, classDisplayName, this);
             classes.put(className, classResults);
         }
         return classResults;

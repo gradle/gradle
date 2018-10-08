@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.util.Requires
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -81,7 +82,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << annotationProcessorDependency(annotationProcessorPublisher.repoDir, annotationProcessorPublisher.dependencyCoordinates)
         buildFile << """
             compileJava {
-                options.compilerArgs += ['-processorpath', configurations.customAnnotation.asPath]
+                options.annotationProcessorPath = configurations.customAnnotation
             }
         """
 
@@ -117,7 +118,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
             compileGroovy {
                 groovyOptions.javaAnnotationProcessing = true
-                options.compilerArgs += ['-processorpath', configurations.customAnnotation.asPath]
+                options.annotationProcessorPath = configurations.customAnnotation
             }
         """
 
@@ -158,6 +159,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             class MyClass {}
         """
 
+        executer.expectDeprecationWarning()
         succeeds 'compileKotlin'
 
         then:
@@ -168,12 +170,13 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             class FailingClass { < }
         """
 
-        def result = fails 'compileKotlin'
+        executer.expectDeprecationWarning()
+        fails 'compileKotlin'
 
         then:
         executedAndNotSkipped(':compileKotlin')
-        result.error.contains('> Compilation error. See log for more details')
-        result.error.contains('FailingClass.kt: (2, 34): Expecting member declaration')
+        failure.assertHasCause('Compilation error. See log for more details')
+        failure.assertHasErrorOutput('FailingClass.kt: (2, 34): Expecting member declaration')
     }
 
     static String basicJavaProject() {
@@ -241,6 +244,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         private void writeBuildFile() {
             def processorBuildFile = file("$name/build.gradle")
+            FeaturePreviewsFixture.enableStablePublishing(file("$name/settings.gradle"))
             processorBuildFile << basicJavaProject()
             processorBuildFile << """
                 apply plugin: 'maven-publish'

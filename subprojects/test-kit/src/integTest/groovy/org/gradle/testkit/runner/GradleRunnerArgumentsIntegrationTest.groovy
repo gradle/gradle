@@ -24,7 +24,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
     def "can execute build without specifying any arguments"() {
         given:
         buildScript """
-            task help {
+            help {
                 doLast {
                     file('out.txt').text = "help"
                 }
@@ -89,7 +89,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
         when:
         runner("writeValue", "--parallel")
-            .withGradleVersion("3.1")
+            .withGradleVersion(determineMinimumVersionThatRunsOnCurrentJavaVersion("4.1"))
             .build()
 
         then:

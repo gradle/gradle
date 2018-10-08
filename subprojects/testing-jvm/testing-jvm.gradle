@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -13,8 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Test execution
-sourceCompatibility = 1.6
+plugins {
+    // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
+    // id 'gradlebuild.strict-compile'
+    // id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(':core')
@@ -22,25 +27,32 @@ dependencies {
     compile project(':languageJava')
     compile project(':testingBase')
 
-    compile libraries.junit
-    compile libraries.testng
-    compile libraries.bsh
+    implementation libraries.asm.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.junit.coordinates
+    implementation libraries.testng.coordinates
+    implementation libraries.bsh.coordinates
 
-    testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
+    testCompile ('com.google.inject:guice:2.0') {
+        because 'This is for TestNG'
+    }
 
+    integTestRuntime project(':testingJunitPlatform')
 }
 
-configure([test, java9Test]) {
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
+tasks.named("test").configure {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }
 
-useTestFixtures()
-useTestFixtures(project: ':testingBase')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ':baseServices')
-
-// TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-//useClassycle()
-//strictCompile()
+testFixtures {
+    from(':core')
+    from(':testingBase')
+    from(':diagnostics')
+    from(':messaging')
+    from(':baseServices')
+}

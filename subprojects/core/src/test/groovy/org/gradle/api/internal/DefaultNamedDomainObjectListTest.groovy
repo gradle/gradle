@@ -15,19 +15,27 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.Specification
-import org.gradle.api.Namer
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Namer
 import org.gradle.internal.reflect.DirectInstantiator
 
-class DefaultNamedDomainObjectListTest extends Specification {
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.*
+
+class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollectionSpec<CharSequence> {
     final Namer<Object> toStringNamer = new Namer<Object>() {
         String determineName(Object object) {
             return object.toString()
         }
     }
-    final DefaultNamedDomainObjectList<String> list = new DefaultNamedDomainObjectList<String>(String, DirectInstantiator.INSTANCE, toStringNamer)
+    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer)
+
+    final DefaultNamedDomainObjectList<String> container = list
+    final StringBuffer a = new StringBuffer("a")
+    final StringBuffer b = new StringBuffer("b")
+    final StringBuffer c = new StringBuffer("c")
+    final StringBuilder d = new StringBuilder("d")
+    final boolean externalProviderAllowed = true
 
     def "can add element at given index"() {
         given:
@@ -66,7 +74,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'a' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'a' as a CharSequence with that name already exists."
         list == ['a']
     }
 
@@ -142,7 +150,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'a' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'a' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
 
@@ -300,7 +308,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'b' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'b' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
 
@@ -345,7 +353,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'b' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'b' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
 
@@ -453,5 +461,26 @@ class DefaultNamedDomainObjectListTest extends Specification {
         iter.nextIndex() == 1
         iter.next() == "c"
         !iter.hasNext()
+    }
+
+    @Override
+    protected def getInvalidCallFromLazyConfiguration() {
+        def result = []
+        result.addAll(super.getInvalidCallFromLazyConfiguration())
+        result.add(["add(int, T)"            , CallInsertFactory.AsAction])
+        result.add(["add(int, T)"            , CallInsertFactory.AsClosure])
+        result.add(["addAll(int, Collection)", CallInsertAllFactory.AsAction])
+        result.add(["addAll(int, Collection)", CallInsertAllFactory.AsClosure])
+        result.add(["set(int, T)"            , CallSetFactory.AsAction])
+        result.add(["set(int, T)"            , CallSetFactory.AsClosure])
+        result.add(["remove(int)"            , CallRemoveWithIndexFactory.AsAction])
+        result.add(["remove(int)"            , CallRemoveWithIndexFactory.AsClosure])
+        result.add(["listIterator().add(T)"  , CallAddOnListIteratorFactory.AsAction])
+        result.add(["listIterator().add(T)"  , CallAddOnListIteratorFactory.AsClosure])
+        result.add(["listIterator().set(T)"  , CallSetOnListIteratorFactory.AsAction])
+        result.add(["listIterator().set(T)"  , CallSetOnListIteratorFactory.AsClosure])
+        result.add(["listIterator().remove()", CallRemoveOnListIteratorFactory.AsAction])
+        result.add(["listIterator().remove()", CallRemoveOnListIteratorFactory.AsClosure])
+        return result
     }
 }

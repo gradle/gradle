@@ -40,7 +40,9 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     def setup() {
         moduleA = publishMavenModule(mavenHttpRepo, 'a')
         downloadedLibsDir = file('build/libs')
-        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        executer.beforeExecute {
+            executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        }
     }
 
     void blockingForProtocol(String protocol, HttpResource... resources) {

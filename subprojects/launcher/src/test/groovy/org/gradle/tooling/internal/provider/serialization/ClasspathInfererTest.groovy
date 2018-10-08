@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.serialization
 
 import org.gradle.internal.classloader.VisitableURLClassLoader
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.internal.provider.AbstractClassGraphSpec
@@ -41,7 +42,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
 
@@ -53,7 +54,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
 
@@ -66,7 +67,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
 
@@ -79,7 +80,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
 
@@ -95,7 +96,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def loader
         try {
             loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-            def action = loader.loadClass(CustomAction.name).newInstance()
+            def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
             action.execute(null)
         } finally {
             loader?.close()

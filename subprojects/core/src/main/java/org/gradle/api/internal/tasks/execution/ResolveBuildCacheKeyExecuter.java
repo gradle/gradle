@@ -23,36 +23,54 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBuildCacheKeyExecuter.class);
+    private static final Logger LOGGER = Logging.getLogger(ResolveBuildCacheKeyExecuter.class);
     private static final String BUILD_OPERATION_NAME = "Snapshot task inputs";
 
     private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean buildCacheDebugLogging;
 
-    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor, boolean buildCacheDebugLogging) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     @Override
@@ -66,12 +84,13 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             This operation represents the work of analyzing the inputs.
             Therefore, it should encompass all of the file IO and compute necessary to do this.
             This effectively happens in the first call to context.getTaskArtifactState().getStates().
-            If build caching is enabled, this is the first time that this will be called so it effectively
+            If build caching is enabled or the build scan plugin is applied, this is the first time that this will be called so it effectively
             encapsulates this work.
 
-            If build cache isn't enabled, this executer isn't in the mix and therefore the work of hashing
+            If build cache isn't enabled and the build scan plugin is not applied,
+            this executer isn't in the mix and therefore the work of hashing
             the inputs will happen later in the executer chain, and therefore they aren't wrapped in an operation.
-            We avoid adding this executer if build caching is not enabled due to concerns of performance impact
+            We avoid adding this executer due to concerns of performance impact.
 
             So, later, we either need always have this executer in the mix or make the input hashing
             an explicit step that always happens earlier and wrap it.
@@ -98,10 +117,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     private TaskOutputCachingBuildCacheKey doResolve(TaskInternal task, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
         TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
-        if (task.getOutputs().getHasOutput()) { // A task with no outputs an no cache key.
-            if (cacheKey.isValid()) {
-                LOGGER.info("Build cache key for {} is {}", task, cacheKey.getHashCode());
-            }
+        if (context.getTaskProperties().hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
+            LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
+            LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
         }
         return cacheKey;
     }
@@ -112,7 +130,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     @VisibleForTesting
-    static class OperationResultImpl implements SnapshotTaskInputsBuildOperationType.Result {
+    static class OperationResultImpl implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
         @VisibleForTesting
         final TaskOutputCachingBuildCacheKey key;
@@ -123,8 +141,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
         @Nullable
         @Override
-        public Map<String, String> getInputHashes() {
-            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputHashes();
+        public Map<String, String> getInputValueHashes() {
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
             if (inputHashes == null || inputHashes.isEmpty()) {
                 return null;
             } else {
@@ -135,6 +153,149 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                     }
                 });
             }
+        }
+
+        @Override
+        public Map<String, String> getInputHashes() {
+            ImmutableSortedMap.Builder<String, String> builder = ImmutableSortedMap.naturalOrder();
+            Map<String, String> inputValueHashes = getInputValueHashes();
+            if (inputValueHashes != null) {
+                builder.putAll(inputValueHashes);
+            }
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles != null) {
+                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
+                    builder.put(entry.getKey(), entry.getValue().getHash().toString());
+                }
+            }
+            ImmutableSortedMap<String, String> map = builder.build();
+            return map.isEmpty() ? null : map;
+        }
+
+        @NonNullApi
+        private static class State implements VisitState, FileSystemSnapshotVisitor {
+            final InputFilePropertyVisitor visitor;
+
+            Map<String, FileSystemLocationFingerprint> fingerprints;
+            String propertyName;
+            HashCode propertyHash;
+            FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
+            String name;
+            String path;
+            HashCode hash;
+            int depth;
+
+            public State(InputFilePropertyVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public String getPropertyName() {
+                return propertyName;
+            }
+
+            @Override
+            public String getPropertyHash() {
+                return propertyHash.toString();
+            }
+
+            @Override
+            public String getPropertyNormalizationStrategyName() {
+                return propertyNormalizationStrategyIdentifier.name();
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public String getHash() {
+                return hash.toString();
+            }
+
+            @Override
+            public boolean preVisitDirectory(DirectorySnapshot physicalSnapshot) {
+                this.path = physicalSnapshot.getAbsolutePath();
+                this.name = physicalSnapshot.getName();
+                this.hash = null;
+
+                if (depth++ == 0) {
+                    visitor.preRoot(this);
+                }
+
+                visitor.preDirectory(this);
+
+                return true;
+            }
+
+            @Override
+            public void visit(FileSystemLocationSnapshot snapshot) {
+                this.path = snapshot.getAbsolutePath();
+                this.name = snapshot.getName();
+
+                FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
+                if (fingerprint == null) {
+                    return;
+                }
+
+                this.hash = fingerprint.getNormalizedContentHash();
+
+                boolean isRoot = depth == 0;
+                if (isRoot) {
+                    visitor.preRoot(this);
+                }
+
+                visitor.file(this);
+
+                if (isRoot) {
+                    visitor.postRoot();
+                }
+            }
+
+            @Override
+            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                visitor.postDirectory();
+                if (--depth == 0) {
+                    visitor.postRoot();
+                }
+            }
+        }
+
+        @Override
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            State state = new State(visitor);
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles == null) {
+                return;
+            }
+            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
+                CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+
+                state.propertyName = entry.getKey();
+                state.propertyHash = fingerprint.getHash();
+                state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                state.fingerprints = fingerprint.getFingerprints();
+
+                visitor.preProperty(state);
+                fingerprint.accept(state);
+                visitor.postProperty();
+            }
+        }
+
+        @Nullable
+        @Override
+        public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
+            SortedSet<String> inputPropertiesLoadedByUnknownClassLoader = key.getInputs().getInputPropertiesLoadedByUnknownClassLoader();
+            if (inputPropertiesLoadedByUnknownClassLoader == null || inputPropertiesLoadedByUnknownClassLoader.isEmpty()) {
+                return null;
+            }
+            return inputPropertiesLoadedByUnknownClassLoader;
         }
 
         @Nullable
@@ -188,6 +349,143 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         public String getBuildCacheKey() {
             return key.isValid() ? key.getHashCode() : null;
         }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            Map<String, Object> model = new TreeMap<String, Object>();
+            model.put("actionClassLoaderHashes", getActionClassLoaderHashes());
+            model.put("actionClassNames", getActionClassNames());
+            model.put("buildCacheKey", getBuildCacheKey());
+            model.put("classLoaderHash", getClassLoaderHash());
+            model.put("inputFileProperties", fileProperties());
+            model.put("inputHashes", getInputHashes());
+            model.put("inputPropertiesLoadedByUnknownClassLoader", getInputPropertiesLoadedByUnknownClassLoader());
+            model.put("inputValueHashes", getInputValueHashes());
+            model.put("outputPropertyNames", getOutputPropertyNames());
+            return model;
+        }
+
+        protected Map<String, Object> fileProperties() {
+            final Map<String, Object> fileProperties = new TreeMap<String, Object>();
+            visitInputFileProperties(new InputFilePropertyVisitor() {
+                Property property;
+                Deque<DirEntry> dirStack = new ArrayDeque<DirEntry>();
+
+                class Property {
+                    private final String hash;
+                    private final String normalization;
+                    private final List<Entry> roots = new ArrayList<Entry>();
+
+                    public Property(String hash, String normalization) {
+                        this.hash = hash;
+                        this.normalization = normalization;
+                    }
+
+                    public String getHash() {
+                        return hash;
+                    }
+
+                    public String getNormalization() {
+                        return normalization;
+                    }
+
+                    public Collection<Entry> getRoots() {
+                        return roots;
+                    }
+                }
+
+                abstract class Entry {
+                    private final String path;
+
+                    public Entry(String path) {
+                        this.path = path;
+                    }
+
+                    public String getPath() {
+                        return path;
+                    }
+
+                }
+
+                class FileEntry extends Entry {
+                    private final String hash;
+
+                    FileEntry(String path, String hash) {
+                        super(path);
+                        this.hash = hash;
+                    }
+
+                    public String getHash() {
+                        return hash;
+                    }
+                }
+
+                class DirEntry extends Entry {
+                    private final List<Entry> children = new ArrayList<Entry>();
+
+                    DirEntry(String path) {
+                        super(path);
+                    }
+
+                    public Collection<Entry> getChildren() {
+                        return children;
+                    }
+                }
+
+                @Override
+                public void preProperty(VisitState state) {
+                    property = new Property(state.getPropertyHash(), state.getPropertyNormalizationStrategyName());
+                    fileProperties.put(state.getPropertyName(), property);
+                }
+
+                @Override
+                public void preRoot(VisitState state) {
+
+                }
+
+                @Override
+                public void preDirectory(VisitState state) {
+                    boolean isRoot = dirStack.isEmpty();
+                    DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
+                    if (isRoot) {
+                        property.roots.add(dir);
+                    } else {
+                        //noinspection ConstantConditions
+                        dirStack.peek().children.add(dir);
+                    }
+                    dirStack.push(dir);
+                }
+
+                @Override
+                public void file(VisitState state) {
+                    boolean isRoot = dirStack.isEmpty();
+                    FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), state.getHash());
+                    if (isRoot) {
+                        property.roots.add(file);
+                    } else {
+                        //noinspection ConstantConditions
+                        dirStack.peek().children.add(file);
+                    }
+                }
+
+                @Override
+                public void postDirectory() {
+                    dirStack.pop();
+                }
+
+                @Override
+                public void postRoot() {
+
+                }
+
+                @Override
+                public void postProperty() {
+
+                }
+            });
+            return fileProperties;
+        }
+
     }
 
 }

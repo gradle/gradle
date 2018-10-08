@@ -17,25 +17,22 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: "java"
+            apply plugin: "java-gradle-plugin"
 
             dependencies {
                 compile gradleApi()
             }
 
-            tasks.create("validateTaskProperties", org.gradle.plugin.devel.tasks.ValidateTaskProperties) { validator ->
-                def sourceSet = sourceSets.main
-                validator.dependsOn sourceSet.output
-                validator.classpath = sourceSet.runtimeClasspath
-                validator.failOnWarning = true
-                validator.classes = sourceSets.main.output.classesDirs
+            validateTaskProperties {
+                failOnWarning = true
             }
-            tasks.check.dependsOn validateTaskProperties
         """
     }
 
@@ -54,9 +51,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     return count;
                 }
 
-                // Ignored because not a JavaBean getter
                 public long getter() {
-                    return System.currentTimeMillis();
+                    return 0L;
                 }
 
                 // Ignored because static
@@ -107,6 +103,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -144,6 +147,11 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
     }
 
     def "no problems with Copy task"() {
@@ -213,6 +221,156 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 public Boolean isEnabled() {
                     return enabled;
                 }
+            }
+        """
+
+        expect:
+        succeeds "validateTaskProperties"
+
+        file("build/reports/task-properties/report.txt").text == ""
+    }
+
+    def "detects problems with file inputs"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            @CacheableTask
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver;
+
+                public long getBadTime() {
+                    return 0;
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGoodNested() {
+                        return "good";
+                    }
+                    public String getBadNested(){
+                        return "bad";
+                    }
+                }
+                
+                @OutputDirectory
+                public File getOutputDir() {
+                    return new File("outputDir");
+                }
+                
+                @InputDirectory
+                @Optional
+                public File getInputDirectory() {
+                    return new File("inputDir");
+                }
+                
+                @Input
+                public File getFile() {
+                    return new File("some-file");
+                }
+                
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
+            Warning: Task type 'MyTask': property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can validate task classes using external types"() {
+        buildFile << """
+            ${jcenterRepository()}
+
+            dependencies {
+                compile 'com.typesafe:config:1.3.2'
+            }
+        """
+
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+            import com.typesafe.config.Config;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+                
+                @Input
+                public Config getConfig() { return null; } 
+            }
+        """
+
+        expect:
+        succeeds "validateTaskProperties"
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can validate task classes using types from other projects"() {
+        settingsFile << """include 'lib'"""
+        buildFile << """  
+            allprojects {
+                ${jcenterRepository()}
+            }
+
+            project(':lib') {
+                apply plugin: 'java'
+
+                dependencies {
+                    compile 'com.typesafe:config:1.3.2'
+                }
+            }          
+
+            dependencies {
+                compile project(':lib')
+            }
+        """
+        file("lib/src/main/java/MyUtil.java") << """
+            import com.typesafe.config.Config;
+
+            public class MyUtil {
+                public Config getConfig() {
+                    return null;
+                }
+            }
+        """
+
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+                
+                @Input
+                public MyUtil getUtil() { return null; } 
             }
         """
 

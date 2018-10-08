@@ -39,7 +39,7 @@ public interface DependencyGraphNode {
 
     DependencyGraphComponent getOwner();
 
-    Set<? extends DependencyGraphEdge> getIncomingEdges();
+    Collection<? extends DependencyGraphEdge> getIncomingEdges();
 
     Collection<? extends DependencyGraphEdge> getOutgoingEdges();
 

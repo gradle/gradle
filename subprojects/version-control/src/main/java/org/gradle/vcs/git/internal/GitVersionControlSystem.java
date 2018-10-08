@@ -19,68 +19,104 @@ package org.gradle.vcs.git.internal;
 import com.google.common.collect.Sets;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.VersionControlSystem;
-import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.git.GitVersionControlSpec;
+import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionRef;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * A Git {@link VersionControlSystem} implementation.
  */
 public class GitVersionControlSystem implements VersionControlSystem {
-    @Override
-    public File populate(File versionDir, VersionRef ref, VersionControlSpec spec) {
-        GitVersionControlSpec gitSpec = cast(spec);
-        File workingDir = new File(versionDir, gitSpec.getRepoName());
 
-        // TODO: Assuming the default branch for the repository
-        File dbDir = new File(workingDir, ".git");
-        if (dbDir.exists() && dbDir.isDirectory()) {
-            updateRepo(workingDir, gitSpec);
+    private static final Logger LOGGER = Logging.getLogger(GitVersionControlSystem.class);
+
+    @Override
+    public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        LOGGER.info("Populating VCS workingDir {}/{} with ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
+        if (workingDir.isDirectory() && workingDir.list().length > 0) {
+            resetRepo(workingDir, gitSpec, ref);
         } else {
-            cloneRepo(workingDir, gitSpec);
+            cloneRepo(workingDir, gitSpec, ref);
         }
-        return workingDir;
     }
 
     @Override
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
-        Collection<Ref> refs;
-        try {
-            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
-        } catch (URISyntaxException e) {
-            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
-        } catch (GitAPIException e) {
-            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
-        }
+        Collection<Ref> refs = getRemoteRefs(gitSpec, true, false);
         Set<VersionRef> versions = Sets.newHashSet();
         for (Ref ref : refs) {
-            versions.add(GitVersionRef.from(ref));
+            GitVersionRef gitRef = GitVersionRef.from(ref);
+            versions.add(gitRef);
         }
         return versions;
     }
 
-    private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec) {
-        CloneCommand clone = Git.cloneRepository().setURI(gitSpec.getUrl().toString()).setDirectory(workingDir);
+    @Override
+    public VersionRef getDefaultBranch(VersionControlSpec spec) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
+        for (Ref ref : refs) {
+            if (ref.getName().equals("refs/heads/master")) {
+                return GitVersionRef.from(ref);
+            }
+        }
+        throw new UnsupportedOperationException("Git repository has no master branch");
+    }
+
+    @Nullable
+    @Override
+    public VersionRef getBranch(VersionControlSpec spec, String branch) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
+        String refName = "refs/heads/" + branch;
+        for (Ref ref : refs) {
+            if (ref.getName().equals(refName)) {
+                return GitVersionRef.from(ref);
+            }
+        }
+        return null;
+    }
+
+    private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
+        try {
+            return Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+        } catch (URISyntaxException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        } catch (GitAPIException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        }
+    }
+
+    private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
+        CloneCommand clone = Git.cloneRepository().
+            setURI(gitSpec.getUrl().toString()).
+            setDirectory(workingDir).
+            setCloneSubmodules(true);
         Git git = null;
         try {
             git = clone.call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
         } catch (GitAPIException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } catch (JGitInternalException e) {
@@ -92,19 +128,18 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private static void updateRepo(File workingDir, GitVersionControlSpec gitSpec) {
+    private static void resetRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
             git = Git.open(workingDir);
-            git.pull().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            updateSubModules(git);
         } catch (IOException e) {
-            throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
-        } catch (URISyntaxException e) {
-            throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
+            throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } catch (GitAPIException e) {
-            throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
+            throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } catch (JGitInternalException e) {
-            throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
+            throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } finally {
             if (git != null) {
                 git.close();
@@ -112,22 +147,24 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    // This method is only necessary until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525300 is fixed.
-    private static String getRemoteForUrl(Repository repository, URI url) throws URISyntaxException {
-        Config config = repository.getConfig();
-        Set<String> remotes = config.getSubsections("remote");
-        Set<String> foundUrls = new HashSet<String>();
-        String normalizedUrl = normalizeUri(url);
-
-        for (String remote : remotes) {
-            String remoteUrl = config.getString("remote", remote, "url");
-            if (remoteUrl.equals(normalizedUrl)) {
-                return remote;
-            } else {
-                foundUrls.add(remoteUrl);
+    private static void updateSubModules(Git git) throws IOException, GitAPIException {
+        SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
+        try {
+            while (walker.next()) {
+                Repository submodule = walker.getRepository();
+                try {
+                    Git submoduleGit = Git.wrap(submodule);
+                    submoduleGit.fetch().call();
+                    git.submoduleUpdate().addPath(walker.getPath()).call();
+                    submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    updateSubModules(submoduleGit);
+                } finally {
+                    submodule.close();
+                }
             }
+        } finally {
+            walker.close();
         }
-        throw new GradleException(String.format("Could not find remote with url: %s. Found: %s", url, foundUrls));
     }
 
     private static String normalizeUri(URI uri) throws URISyntaxException {

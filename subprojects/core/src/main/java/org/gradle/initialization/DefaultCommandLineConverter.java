@@ -93,6 +93,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             option.applyFromCommandLine(options, startParameter);
         }
 
+        for (String deprecation : layout.getDeprecations()) {
+            startParameter.addDeprecation(deprecation);
+        }
+
         return startParameter;
     }
 

@@ -20,10 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -51,7 +52,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             }
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
@@ -74,27 +75,27 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void stop() {
         completed.countDown();
-        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
+        CurrentBuildOperationRef.instance().clear();
     }
 
     @Override
-    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
+    public void runThenStop(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation) {
         try {
-            run(methodName, paramTypes, args, operationIdentifier);
+            run(methodName, paramTypes, args, buildOperation);
         } finally {
             stop();
         }
     }
 
     @Override
-    public void run(String methodName, Class<?>[] paramTypes, Object[] args, Object operationIdentifier) {
+    public void run(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation) {
         if (failure != null) {
             responder.infrastructureFailed(failure);
             return;
         }
         try {
             Method method = workerImplementation.getDeclaredMethod(methodName, paramTypes);
-            BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(operationIdentifier);
+            CurrentBuildOperationRef.instance().set(buildOperation);
             Object result;
             try {
                 result = method.invoke(implementation, args);
@@ -112,7 +113,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         } catch (Throwable t) {
             responder.infrastructureFailed(t);
         } finally {
-            BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier();
+            CurrentBuildOperationRef.instance().clear();
         }
     }
 

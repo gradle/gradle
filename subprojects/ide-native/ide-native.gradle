@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,19 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
     compile project(':core')
     compile project(":ide")
     compile project(':platformNative')
     compile project(':languageNative')
     compile project(':testingNative')
-    compile libraries.plist
+    compile libraries.plist.coordinates
 
-    testFixturesCompile project(':internalTesting')
+    testFixturesApi project(':internalTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useClassycle()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+    from(':platformNative')
+    from(':versionControl')
+    from(':ide', 'testFixtures')
+}

@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
-abstract public class TestOutputStoreBackedResultsProvider implements TestResultsProvider {
+public abstract class TestOutputStoreBackedResultsProvider implements TestResultsProvider {
     private final TestOutputStore outputStore;
     private final ConcurrentMap<Thread, TestOutputStore.Reader> readers;
 

@@ -17,7 +17,7 @@ package org.gradle.api.publish.ivy
 
 class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
-    public void "can publish WAR only for mixed java and WAR project"() {
+    void "can publish WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
@@ -58,7 +58,7 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then: "module is published with artifacts"
-        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
+        def ivyModule = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
         ivyModule.assertPublishedAsWebModule()
 
         and: "correct configurations and depdendencies declared"
@@ -71,6 +71,6 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and: "can resolve warfile"
-        resolveArtifacts(ivyModule) == ["publishTest-1.9.war"]
+        resolveArtifacts(ivyModule) { expectFiles "publishTest-1.9.war" }
     }
 }

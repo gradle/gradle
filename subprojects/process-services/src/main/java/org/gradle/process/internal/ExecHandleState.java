@@ -17,11 +17,21 @@
 package org.gradle.process.internal;
 
 public enum ExecHandleState {
-    INIT,
-    STARTING,
-    STARTED,
-    ABORTED,
-    FAILED,
-    DETACHED,
-    SUCCEEDED
+    INIT(false),
+    STARTING(false),
+    STARTED(false),
+    ABORTED(true),
+    FAILED(true),
+    DETACHED(true),
+    SUCCEEDED(true);
+
+    private final boolean terminal;
+
+    ExecHandleState(boolean terminal) {
+        this.terminal = terminal;
+    }
+
+    public boolean isTerminal() {
+        return terminal;
+    }
 }

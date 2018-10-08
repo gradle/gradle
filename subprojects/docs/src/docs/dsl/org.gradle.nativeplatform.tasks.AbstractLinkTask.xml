@@ -36,7 +36,7 @@
                 <td>linkerArgs</td>
             </tr>
             <tr>
-                <td>binaryFile</td>
+                <td>linkedFile</td>
             </tr>
             <tr>
                 <td>toolChain</td>

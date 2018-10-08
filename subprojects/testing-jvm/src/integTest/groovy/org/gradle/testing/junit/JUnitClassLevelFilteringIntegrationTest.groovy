@@ -18,18 +18,20 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
-@TargetCoverage({JUnitCoverage.LARGE_COVERAGE})
-public class JUnitClassLevelFilteringIntegrationTest extends MultiVersionIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
+
+@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
+class JUnitClassLevelFilteringIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "runs all tests for class instead of method when runner is not filterable"() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:${version}' }
-            test { useJUnit() }
+            dependencies { testCompile '${dependencyNotation}' }
+            test { use${testFramework}() }
         """
         file("src/test/java/FooTest.java") << """
             import org.junit.*;

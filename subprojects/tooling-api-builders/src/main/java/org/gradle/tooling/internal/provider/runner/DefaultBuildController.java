@@ -20,7 +20,7 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
@@ -130,7 +130,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             return rootBuild;
         }
         for (IncludedBuild includedBuild : rootBuild.getIncludedBuilds()) {
-            GradleInternal matchingBuild = findBuild(((IncludedBuildInternal) includedBuild).getConfiguredBuild(), buildIdentity);
+            GradleInternal matchingBuild = findBuild(((IncludedBuildState) includedBuild).getConfiguredBuild(), buildIdentity);
             if (matchingBuild != null) {
                 return matchingBuild;
             }

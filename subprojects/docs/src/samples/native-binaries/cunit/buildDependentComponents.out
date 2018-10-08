@@ -1,0 +1,17 @@
+> Task :compileOperatorsTestPassingCUnitExeOperatorsC
+> Task :operatorsTestCUnitLauncher
+> Task :compileOperatorsTestPassingCUnitExeOperatorsTestC
+> Task :compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher
+> Task :linkOperatorsTestPassingCUnitExe
+> Task :operatorsTestPassingCUnitExe
+> Task :installOperatorsTestPassingCUnitExe
+> Task :runOperatorsTestPassingCUnitExe
+> Task :checkOperatorsTestPassingCUnitExe
+> Task :buildDependentsOperatorsTestPassingCUnitExe
+> Task :compileOperatorsPassingStaticLibraryOperatorsC
+> Task :createOperatorsPassingStaticLibrary
+> Task :operatorsPassingStaticLibrary
+> Task :buildDependentsOperatorsPassingStaticLibrary
+
+BUILD SUCCESSFUL in 0s
+9 actionable tasks: 9 executed

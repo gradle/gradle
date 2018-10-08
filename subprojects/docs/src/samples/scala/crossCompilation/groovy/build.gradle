@@ -1,0 +1,44 @@
+plugins {
+    id 'scala'
+}
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala-library:2.11.12'
+    testImplementation 'org.scalatest:scalatest_2.11:3.0.0'
+    testImplementation 'junit:junit:4.12'
+}
+
+// tag::scala-cross-compilation[]
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_6
+}
+
+assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
+def javaExecutablesPath = new File(java6Home, 'bin')
+def javaExecutables = [:].withDefault { execName ->
+    def executable = new File(javaExecutablesPath, execName)
+    assert executable.exists() : "There is no ${execName} executable in ${javaExecutablesPath}"
+    executable
+}
+
+tasks.withType(AbstractCompile) {
+    options.with {
+        fork = true
+        forkOptions.javaHome = file(java6Home)
+    }
+}
+tasks.withType(Test) {
+    executable = javaExecutables.java
+}
+tasks.withType(JavaExec) {
+    executable = javaExecutables.java
+}
+tasks.withType(Javadoc) {
+    executable = javaExecutables.javadoc
+}
+// end::scala-cross-compilation[]

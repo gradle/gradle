@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.startsWith
 //These tests depend on https://plugins.gradle.org
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
-class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
+class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
 
     private final static String HELLO_WORLD_PLUGIN_ID = "org.gradle.hello-world"
     private final static String HELLO_WORLD_PLUGIN_VERSION = "0.2"
@@ -107,7 +107,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
         failureDescriptionContains("""
-            - Plugin Repositories (could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
+            - Plugin Repositories (could not resolve plugin marker 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
               Searched in the following repositories:
                 Gradle Central Plugin Repository
         """.stripIndent().trim())

@@ -1,10 +1,10 @@
-// START SNIPPET declare-inputs-and-outputs
+// tag::declare-inputs-and-outputs[]
 task transform {
     ext.srcFile = file('mountains.xml')
     ext.destDir = new File(buildDir, 'generated')
     inputs.file srcFile
     outputs.dir destDir
-// END SNIPPET declare-inputs-and-outputs
+// end::declare-inputs-and-outputs[]
     doLast {
         println "Transforming source file."
         destDir.mkdirs()
@@ -16,6 +16,6 @@ task transform {
             destFile.text = "$name -> ${height}\n"
         }
     }
-// START SNIPPET declare-inputs-and-outputs
+// tag::declare-inputs-and-outputs[]
 }
-// END SNIPPET declare-inputs-and-outputs
+// end::declare-inputs-and-outputs[]

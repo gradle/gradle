@@ -17,17 +17,20 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.ConfigureDelegate;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public abstract class AbstractPolymorphicDomainObjectContainer<T>
@@ -61,6 +64,37 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
             configuration.execute(object);
         }
         return object;
+    }
+
+    @Override
+    public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type) throws InvalidUserDataException {
+        return createDomainObjectProvider(name, type, null);
+    }
+
+    @Override
+    public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
+        return createDomainObjectProvider(name, type, configurationAction);
+    }
+
+    protected <U extends T> NamedDomainObjectProvider<U> createDomainObjectProvider(String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
+        assertCanAdd(name);
+        NamedDomainObjectProvider<U> provider = Cast.uncheckedCast(
+            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractPolymorphicDomainObjectContainer.this, name, type, configurationAction)
+        );
+        addLater(provider);
+        return provider;
+    }
+
+    // Cannot be private due to reflective instantiation
+    public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
+        public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
+            super(name, type, configureAction);
+        }
+
+        @Override
+        protected I createDomainObject() {
+            return doCreate(getName(), getType());
+        }
     }
 
     @Override

@@ -1,9 +1,0 @@
-// START SNIPPET execute-build
-task build(type: GradleBuild) {
-    buildFile = 'other.gradle'
-    tasks = ['hello']
-// END SNIPPET execute-build
-    startParameter.searchUpwards = false
-// START SNIPPET execute-build
-}
-// END SNIPPET execute-build

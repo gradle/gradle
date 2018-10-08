@@ -16,15 +16,16 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -36,6 +37,10 @@ public class TestBuildScopeServices extends BuildScopeServices {
     public TestBuildScopeServices(ServiceRegistry parent, File homeDir) {
         super(parent);
         this.homeDir = homeDir;
+    }
+
+    protected BuildDefinition createBuildDefinition(StartParameter startParameter) {
+        return BuildDefinition.fromStartParameter(startParameter, null);
     }
 
     protected BuildCancellationToken createBuildCancellationToken() {
@@ -53,12 +58,12 @@ public class TestBuildScopeServices extends BuildScopeServices {
     protected NestedBuildFactory createNestedBuildFactory() {
         return new NestedBuildFactory() {
             @Override
-            public GradleLauncher nestedInstance(StartParameter startParameter) {
+            public GradleLauncher nestedInstance(BuildDefinition buildDefinition, NestedBuildState build) {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public BuildController nestedBuildController(StartParameter startParameter) {
+            public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedBuildState build) {
                 throw new UnsupportedOperationException();
             }
         };

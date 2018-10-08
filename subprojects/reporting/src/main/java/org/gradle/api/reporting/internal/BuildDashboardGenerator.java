@@ -26,7 +26,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Comparator;
@@ -51,7 +50,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         HtmlReportRenderer renderer = new HtmlReportRenderer();
         renderer.renderRawSinglePage(reports, new ReportRenderer<Collection<Report>, HtmlPageBuilder<Writer>>() {
             @Override
-            public void render(Collection<Report> model, HtmlPageBuilder<Writer> builder) throws IOException {
+            public void render(Collection<Report> model, HtmlPageBuilder<Writer> builder) {
                 generate(builder);
             }
         }, outputFile);

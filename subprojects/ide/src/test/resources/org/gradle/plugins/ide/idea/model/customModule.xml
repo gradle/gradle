@@ -10,6 +10,10 @@
             <sourceFolder url="file://$MODULE_DIR$/generated-src" isTestSource="false" generated="true"/>
             <sourceFolder url="file://$MODULE_DIR$/srcTest" isTestSource="true"/>
             <sourceFolder url="file://$MODULE_DIR$/generated-test-src" isTestSource="true" generated="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/resource" type="java-resource"/>
+            <sourceFolder url="file://$MODULE_DIR$/test-resource" type="java-test-resource"/>
+            <sourceFolder url="file://$MODULE_DIR$/generated-resource" type="java-resource" generated="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/generated-test-resource" type="java-test-resource" generated="true"/>
             <excludeFolder url="file://$MODULE_DIR$/target"/>
         </content>
         <orderEntry type="sourceFolder" forTests="false"/>

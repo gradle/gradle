@@ -58,7 +58,7 @@ public class IdeaWorkspace {
      * For example see docs for {@link IdeaWorkspace}
      */
     public void iws(Closure closure) {
-        configure(closure, getIws());
+        configure(closure, iws);
     }
 
     /**
@@ -69,7 +69,7 @@ public class IdeaWorkspace {
      * @since 3.5
      */
     public void iws(Action<? super XmlFileContentMerger> action) {
-        action.execute(getIws());
+        action.execute(iws);
     }
 
     public void mergeXmlWorkspace(Workspace xmlWorkspace) {

@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.Configuration
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
@@ -41,7 +42,7 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
 
     def "can add configuration"() {
         when:
-        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null, true, true)
+        metadata.addConfiguration("configName", ["one", "two", "three"] as Set, true, true)
 
         then:
         metadata.configurations.size() == 1

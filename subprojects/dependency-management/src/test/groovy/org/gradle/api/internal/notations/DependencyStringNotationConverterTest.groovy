@@ -22,10 +22,11 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
+import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
-public class DependencyStringNotationConverterTest extends Specification {
-    def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultExternalModuleDependency.class);
+class DependencyStringNotationConverterTest extends Specification {
+    def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
 
     def "with artifact"() {
         when:
@@ -35,7 +36,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '4.4-beta2'
+        d.versionConstraint.requiredVersion == '4.4-beta2'
         d.versionConstraint.preferredVersion == '4.4-beta2'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
 
         !d.force
@@ -54,7 +57,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.requiredVersion == '10'
         d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
 
         !d.force
@@ -73,7 +78,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.requiredVersion == '10'
         d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -95,7 +102,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.requiredVersion == '1.0'
         d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -111,7 +120,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == '1.0'
+        d.versionConstraint.requiredVersion == '1.0'
         d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -127,7 +138,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.group == 'hey'
         d.name == 'foo'
         d.version == null
-        d.versionConstraint.preferredVersion == null
+        d.versionConstraint.requiredVersion == ''
+        d.versionConstraint.preferredVersion == ''
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -143,7 +156,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == null
-        d.versionConstraint.preferredVersion == null
+        d.versionConstraint.requiredVersion == ''
+        d.versionConstraint.preferredVersion == ''
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -152,7 +167,7 @@ public class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "can create client module"() {
-        def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultClientModule);
+        def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultClientModule, SimpleMapInterner.notThreadSafe());
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10')
@@ -162,7 +177,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.requiredVersion == '10'
         d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -170,7 +187,7 @@ public class DependencyStringNotationConverterTest extends Specification {
     }
 
     def "client module ignores the artifact only notation"() {
-        def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultClientModule);
+        def parser = new DependencyStringNotationConverter(DirectInstantiator.INSTANCE, DefaultClientModule, SimpleMapInterner.notThreadSafe());
 
         when:
         def d = parse(parser, 'org.gradle:gradle-core:10@jar')
@@ -180,7 +197,9 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10@jar'
+        d.versionConstraint.requiredVersion == '10@jar'
         d.versionConstraint.preferredVersion == '10@jar'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 

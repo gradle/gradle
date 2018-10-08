@@ -21,6 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -38,7 +39,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -402,7 +402,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the property
      * @param value The value of the property
      */
-    void setProperty(String name, Object value) throws MissingPropertyException;
+    void setProperty(String name, @Nullable Object value) throws MissingPropertyException;
 
     /**
      * <p>Returns this project. This method is useful in build files to explicitly access project properties and
@@ -518,6 +518,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Task task(String name, Closure configureClosure);
 
     /**
+     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
+     * action is executed to configure the task.</p> <p>After the task is added to the project, it is made
+     * available as a property of the project, so that you can reference the task by name in your build file.  See <a
+     * href="#properties">here</a> for more details</p>
+     *
+     * @param name The name of the task to be created
+     * @param configureAction The action to use to configure the created task.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @see TaskContainer#create(String, Action)
+     * @since 4.10
+     */
+    @Incubating
+    Task task(String name, Action<? super Task> configureAction);
+
+    /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
@@ -615,7 +631,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Map<Project, Set<Task>> getAllTasks(boolean recursive);
 
     /**
-     * <p>Returns the set of tasks with the given name contained in this project, and optionally its subprojects.</p>
+     * <p>Returns the set of tasks with the given name contained in this project, and optionally its subprojects.
+     *
+     * <b>NOTE:</b> This is an expensive operation since it requires all projects to be configured.
+     * </p>
      *
      * @param name The name of the task to locate.
      * @param recursive If true, returns the tasks of this project and its subprojects. If false, returns the tasks of
@@ -937,20 +956,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     <T> Provider<T> provider(Callable<T> value);
 
     /**
-     * Creates a {@code PropertyState} implementation based on the provided class.
-     *
-     * @param clazz The class to be used for property state.
-     * @return The property state. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided class is null.
-     * @see org.gradle.api.provider.ProviderFactory#property(Class)
-     * @since 4.0
-     * @deprecated Use {@link ObjectFactory#property(Class)} instead.
-     */
-    @Incubating
-    @Deprecated
-    <T> PropertyState<T> property(Class<T> clazz);
-
-    /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
      *
      * @since 4.0
@@ -1229,7 +1234,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
-     * using <code>convention</code>. You can also can also access the properties and methods of the convention object
+     * using <code>convention</code>. You can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
      * @return The <code>Convention</code>. Never returns null.
@@ -1407,7 +1412,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
      */
-    @Incubating @Nullable
+    @Nullable
     Object findProperty(String propertyName);
 
     /**
@@ -1734,4 +1739,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     void normalization(Action<? super InputNormalizationHandler> configuration);
+
+    /**
+     * Configures dependency locking
+     *
+     * @since 4.8
+     */
+    @Incubating
+    void dependencyLocking(Action<? super DependencyLockingHandler> configuration);
+
+    /**
+     * Provides access to configuring dependency locking
+     *
+     * @since 4.8
+     */
+    @Incubating
+    DependencyLockingHandler getDependencyLocking();
 }

@@ -17,12 +17,12 @@
 package org.gradle.internal.scan.config;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.VersionNumber;
 
@@ -88,7 +88,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     private void warnIfBuildScanPluginNotApplied() {
         // Note: this listener manager is scoped to the root Gradle object.
-        listenerManager.addListener(new BuildAdapter() {
+        listenerManager.addListener(new InternalBuildAdapter() {
             @Override
             public void projectsEvaluated(Gradle gradle) {
                 if (gradle.getParent() == null && !collected) {

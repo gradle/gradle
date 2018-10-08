@@ -28,17 +28,17 @@ public class AntProjectIntegrationTest extends AbstractIntegrationTest {
     public void antTargetsAndGradleTasksCanDependOnEachOther() {
         testFile('build.xml') << """
 <project>
-    <target name='target1' depends='target2,init'>
+    <target name='target1' depends='target2,initialize'>
         <touch file='build/target1.txt'/>
     </target>
-    <target name='target2' depends='init'>
+    <target name='target2' depends='initialize'>
         <touch file='build/target2.txt'/>
     </target>
 </project>
 """
         testFile('build.gradle') << """
 ant.importBuild(file('build.xml'))
-task init { doLast { buildDir.mkdirs() } }
+task initialize { doLast { buildDir.mkdirs() } }
 task ant(dependsOn: target1)
 """
         TestFile target1File = testFile('build/target1.txt')
@@ -46,7 +46,7 @@ task ant(dependsOn: target1)
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecutedInOrder(':init', ':target2', ':target1', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksExecutedInOrder(':initialize', ':target2', ':target1', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()

@@ -295,8 +295,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     if (phase == Phases.CANONICALIZATION) {
                         Set<String> deprecatedImports = resolveVisitor.getDeprecatedImports();
                         if (!deprecatedImports.isEmpty()) {
-                            DeprecationLogger.nagUserWith(StringUtils.capitalize(script.getDisplayName()) + " is using " + Joiner.on(" and ").join(deprecatedImports)
-                                + " from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0");
+                            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("The support for implicit import of internal classes",
+                                "Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.",
+                                StringUtils.capitalize(script.getDisplayName()) + " is using " + Joiner.on(" and ").join(deprecatedImports) + " from the private org.gradle.util package.");
                         }
                     }
                 }
@@ -351,7 +352,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
                 try {
                     // Classloader scope will be handled by the cache, class will be released when the classloader is.
-                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, classLoader, new DefaultClassPath(scriptCacheDir), sourceHashCode));
+                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, classLoader, DefaultClassPath.of(scriptCacheDir), sourceHashCode));
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");

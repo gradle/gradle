@@ -19,6 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -753,8 +754,8 @@ afterEvaluate {
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
-    ${m.pom.file.toURL()}
-    ${m.artifact.file.toURL()}
+  - ${m.pom.file.toURL()}
+  - ${m.artifact.file.toURL()}
 Required by:
     project :buildC""")
 

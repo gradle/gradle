@@ -31,7 +31,6 @@ class DataSeriesTest extends Specification {
         series.min == v1
         series.max == v3
         series.standardError == DataAmount.bytes(8360.92)
-        series.standardErrorOfMean == DataAmount.bytes(4827.179413)
     }
 
     def "ignores null values"() {
@@ -58,6 +57,5 @@ class DataSeriesTest extends Specification {
         series.min == null
         series.max == null
         series.standardError == null
-        series.standardErrorOfMean == null
     }
 }

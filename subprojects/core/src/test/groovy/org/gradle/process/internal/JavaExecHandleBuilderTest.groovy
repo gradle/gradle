@@ -16,16 +16,18 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
+import java.util.concurrent.Executor
 
 import static java.util.Arrays.asList
 
-public class JavaExecHandleBuilderTest extends Specification {
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver())
+class JavaExecHandleBuilderTest extends Specification {
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), Mock(Executor), new DefaultBuildCancellationToken())
 
     public void cannotSetAllJvmArgs() {
         when:
@@ -84,5 +86,4 @@ public class JavaExecHandleBuilderTest extends Specification {
             it.value ? "-D$it.key=$it.value" : "-D$it.key"
         }
     }
-
 }

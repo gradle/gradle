@@ -1,4 +1,4 @@
-// START SNIPPET complete-example
+// tag::complete-example[]
 apply plugin: "cpp"
 apply plugin: 'google-test-test-suite'
 
@@ -35,7 +35,7 @@ model {
         }
     }
 }
-// START SNIPPET configure-test-binary
+// tag::configure-test-binary[]
 model {
     binaries {
         withType(GoogleTestTestSuiteBinarySpec) {
@@ -48,12 +48,29 @@ model {
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'
                 linker.args '-pthread'
+
+                if (toolChain instanceof Gcc || toolChain instanceof Clang) {
+                    // Use C++03 with the old ABIs, as this is what the googletest binaries were built with
+                    cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                    linker.args '-std=c++03'
+                }
             }
         }
     }
 }
-// END SNIPPET configure-test-binary
-// END SNIPPET complete-example
+// end::configure-test-binary[]
+// end::complete-example[]
+
+model {
+    binaries {
+        all {
+            if (toolChain instanceof Gcc) {
+                cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                linker.args '-std=c++03'
+            }
+        }
+    }
+}
 
 tasks.withType(RunTestExecutable) {
     args "--gtest_output=xml:test_detail.xml"

@@ -26,6 +26,7 @@ import spock.lang.Specification
 
 class ArtifactBackedResolvedVariantTest extends Specification {
     def variant = Mock(AttributeContainerInternal)
+    def variantDisplayName = Describables.of("<variant>")
     def queue = new TestBuildOperationExecutor.TestBuildOperationQueue()
     def artifact1 = Mock(TestArtifact)
     def artifact2 = Mock(TestArtifact)
@@ -53,10 +54,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         _ * listener.requireArtifactFiles() >> false
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact2)
+        1 * visitor.visitArtifact(variantDisplayName, variant, artifact2)
         0 * _
 
         when:
@@ -64,7 +65,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         _ * listener.requireArtifactFiles() >> false
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
         0 * _
     }
 
@@ -83,10 +84,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         _ * listener.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
         _ * artifact2.id >> Stub(ComponentArtifactIdentifier)
-        1 * artifact1.resolved >> false
+        1 * artifact1.resolveSynchronously >> false
         1 * artifact1.file >> f1
         1 * listener.artifactAvailable(artifact1)
-        1 * artifact2.resolved >> false
+        1 * artifact2.resolveSynchronously >> false
         1 * artifact2.file >> f2
         1 * listener.artifactAvailable(artifact2)
         0 * _
@@ -95,10 +96,10 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         result.visit(visitor)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact2)
+        1 * visitor.visitArtifact(variantDisplayName, variant, artifact2)
         0 * _
 
         when:
@@ -107,7 +108,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         _ * listener.requireArtifactFiles() >> true
         _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
-        1 * artifact1.resolved >> false
+        1 * artifact1.resolveSynchronously >> false
         1 * artifact1.file >> f1
         1 * listener.artifactAvailable(artifact1)
         0 * _
@@ -116,7 +117,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         result2.visit(visitor)
 
         then:
-        1 * visitor.visitArtifact(variant, artifact1)
+        1 * visitor.visitArtifact(variantDisplayName, variant, artifact1)
         0 * _
     }
 
@@ -148,7 +149,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(artifacts) {
-        return ArtifactBackedResolvedVariant.create(Describables.of("<variant>"), variant, artifacts)
+        return ArtifactBackedResolvedVariant.create(variantDisplayName, variant, artifacts)
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable { }

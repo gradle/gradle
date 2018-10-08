@@ -19,6 +19,8 @@ package org.gradle.api.tasks.bundling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -399,7 +401,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }
 
-    @Issue('GRADLE-1506')
+    // Only works on Java 8, see https://bugs.openjdk.java.net/browse/JDK-7050570
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Issue(['GRADLE-1506'])
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildScript """
@@ -597,7 +601,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             assert manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
             assert manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
         } finally {
-            jar.close();
+            jar.close()
         }
 
         where:

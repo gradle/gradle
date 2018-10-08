@@ -17,12 +17,12 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new SwiftAppWithLibraries()
 
@@ -58,10 +58,10 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
             sourceControl {
                 vcsMappings {
-                    addRule("org.gradle.swift VCS rule") { details ->
+                    all { details ->
                         if (details.requested.group == "org.gradle.swift") {
-                            from vcs(GitVersionControlSpec) {
-                                url = file(details.requested.module).toURI()
+                            from(GitVersionControlSpec) {
+                                url = uri(details.requested.module)
                             }
                         }
                     }
@@ -87,7 +87,11 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
     }
 
     private void assertTasksExecutedFor(String buildType) {
-        assert result.assertTasksExecuted(":hello:compile${buildType}Swift", ":hello:link${buildType}", ":log:compile${buildType}Swift", ":log:link${buildType}", ":app:compile${buildType}Swift", ":app:link${buildType}", ":app:install${buildType}")
+        def tasks = [":hello:compile${buildType}Swift", ":hello:link${buildType}", ":log:compile${buildType}Swift", ":log:link${buildType}", ":app:compile${buildType}Swift", ":app:link${buildType}", ":app:install${buildType}"]
+        if (buildType == "Release") {
+            tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
+        }
+        assert result.assertTasksExecuted(tasks)
     }
 
     private void assertAppHasOutputFor(String buildType) {
@@ -95,9 +99,9 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
     }
 
     private writeApp() {
-        app.executable.writeToProject(file("app"))
+        app.application.writeToProject(file("app"))
         file("app/build.gradle") << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             group = 'org.gradle.swift'
             version = '1.0'
 
@@ -109,7 +113,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     private writeHelloLibrary() {
         def libraryPath = file("hello")
-        def libraryRepo = GitRepository.init(libraryPath)
+        def libraryRepo = GitFileRepository.init(libraryPath)
         app.library.writeToProject(libraryPath)
         libraryPath.file("build.gradle") << """
             apply plugin: 'swift-library'
@@ -121,13 +125,13 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
             }
         """
         libraryPath.file("settings.gradle").touch()
-        libraryRepo.commit("initial commit", libraryRepo.listFiles())
+        libraryRepo.commit("initial commit")
         libraryRepo.close()
     }
 
     private writeLogLibrary() {
         def logPath = file("log")
-        def logRepo = GitRepository.init(logPath)
+        def logRepo = GitFileRepository.init(logPath)
         app.logLibrary.writeToProject(logPath)
         logPath.file("build.gradle") << """
             apply plugin: 'swift-library'
@@ -135,7 +139,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
             version = '1.0'
         """
         logPath.file("settings.gradle").touch()
-        logRepo.commit("initial commit", logRepo.listFiles())
+        logRepo.commit("initial commit")
         logRepo.close()
     }
 }

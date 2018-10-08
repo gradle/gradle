@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -13,10 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
-    compile libraries.groovy
-    compile libraries.commons_io
+    implementation libraries.groovy.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.snakeyaml.coordinates
+    implementation libraries.gson.coordinates
+
     compile project(':core')
     compile project(':platformBase')
     compile project(':diagnostics')
@@ -25,20 +34,27 @@ dependencies {
     // Required to test visual studio project file generation for generated sources
     integTestRuntime project(':ideNative')
 
-    testFixturesCompile project(':internalIntegTesting')
+    testFixturesApi project(':internalIntegTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':modelCore')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':baseServices')
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
 
-strictCompile()
-useClassycle(exclude: ['org/gradle/nativeplatform/plugins/**',
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':ide', 'testFixtures')
+    from(':messaging')
+    from(':platformBase')
+    from(':modelCore')
+    from(':diagnostics')
+    from(':baseServices')
+}
+
+classycle {
+    excludePatterns = ['org/gradle/nativeplatform/plugins/**',
                        'org/gradle/nativeplatform/tasks/**',
                        'org/gradle/nativeplatform/internal/resolve/**',
-                       'org/gradle/nativeplatform/toolchain/internal/**'])
-
+                       'org/gradle/nativeplatform/toolchain/internal/**']
+}

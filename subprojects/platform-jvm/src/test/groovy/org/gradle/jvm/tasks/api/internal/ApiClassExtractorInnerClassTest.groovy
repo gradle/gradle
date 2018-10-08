@@ -21,6 +21,8 @@ import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
 
+import static org.gradle.internal.reflect.JavaReflectionUtil.newInstance
+
 class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
@@ -51,11 +53,12 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = !(modifier =~ /static/) ? extractedInner.newInstance(extractedOuter.newInstance()) : extractedInner.newInstance()
+        def o = (modifier =~ /static/) ? newInstance(extractedInner) : extractedInner.newInstance(newInstance(extractedOuter))
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
 
         where:
         modifier           | access

@@ -69,7 +69,6 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "actions.clear()"                                           | "Task.getActions().clear()"
         "def iter = actions.iterator(); iter.next(); iter.remove()" | "Task.getActions().remove()"
         "actions = []"                                              | "Task.setActions(List<Action>)"
-        "deleteAllActions()"                                        | "Task.deleteAllActions()"
         "onlyIf { }"                                                | "Task.onlyIf(Closure)"
         "onlyIf({ } as Spec)"                                       | "Task.onlyIf(Spec)"
         "setOnlyIf({ })"                                            | "Task.setOnlyIf(Closure)"

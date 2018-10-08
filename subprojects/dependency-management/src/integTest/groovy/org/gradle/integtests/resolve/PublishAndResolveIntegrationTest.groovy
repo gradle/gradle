@@ -17,12 +17,14 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.TextUtil
 
 class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
         settingsFile << "rootProject.name = 'root'"
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
         buildFile << """
             allprojects {
                 apply plugin: 'java'

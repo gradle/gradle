@@ -19,8 +19,8 @@ import org.gradle.cache.internal.BinaryStore;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder;
 
 import java.io.Closeable;
 import java.io.File;
@@ -32,7 +32,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 class DefaultBinaryStore implements BinaryStore, Closeable {
     private File file;
-    private KryoBackedEncoder encoder;
+    private StringDeduplicatingKryoBackedEncoder encoder;
     private int offset = -1;
 
     public DefaultBinaryStore(File file) {
@@ -42,7 +42,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
     public void write(WriteAction write) {
         if (encoder == null) {
             try {
-                encoder = new KryoBackedEncoder(new FileOutputStream(file));
+                encoder = new StringDeduplicatingKryoBackedEncoder(new FileOutputStream(file));
             } catch (FileNotFoundException e) {
                 throw throwAsUncheckedException(e);
             }
@@ -72,6 +72,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
     public BinaryData done() {
         try {
             if (encoder != null) {
+                encoder.done();
                 encoder.flush();
             }
             return new SimpleBinaryData(file, offset, diagnose());
@@ -121,7 +122,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                 if (decoder == null) {
                     RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
                     randomAccess.seek(offset);
-                    decoder = new KryoBackedDecoder(new RandomAccessFileInputStream(randomAccess));
+                    decoder = new StringDeduplicatingKryoBackedDecoder(new RandomAccessFileInputStream(randomAccess));
                     resources = new CompositeStoppable().add(randomAccess, decoder);
                 }
                 return readAction.read(decoder);

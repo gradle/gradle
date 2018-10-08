@@ -16,16 +16,18 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationProgressEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
@@ -37,7 +39,6 @@ import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEve
 import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -49,7 +50,9 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     private final BuildEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
     private final BuildOperationListener delegate;
-    private final Set<Object> skipEvents = new HashSet<Object>();
+
+    // BuildOperationListener dispatch is not serialized
+    private final Set<Object> skipEvents = Sets.newConcurrentHashSet();
 
     ClientForwardingTaskOperationListener(BuildEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
         this.eventConsumer = eventConsumer;
@@ -59,7 +62,8 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (skipEvents.contains(buildOperation.getParentId())) {
+        OperationIdentifier parentId = buildOperation.getParentId();
+        if (parentId != null && skipEvents.contains(parentId)) {
             skipEvents.add(buildOperation.getId());
             return;
         }
@@ -78,7 +82,7 @@ class ClientForwardingTaskOperationListener implements BuildOperationListener {
     }
 
     @Override
-    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
+    public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
     }
 
     @Override

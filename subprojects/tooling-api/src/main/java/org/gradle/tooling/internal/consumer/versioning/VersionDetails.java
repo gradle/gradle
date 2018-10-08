@@ -36,6 +36,9 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public static VersionDetails from(GradleVersion version) {
+        if (version.getBaseVersion().compareTo(GradleVersion.version("4.8")) >= 0) {
+            return new R48VersionDetails(version.getVersion());
+        }
         if (version.getBaseVersion().compareTo(GradleVersion.version("4.4")) >= 0) {
             return new R44VersionDetails(version.getVersion());
         }
@@ -90,6 +93,10 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public boolean supportsParameterizedToolingModels() {
+        return false;
+    }
+
+    public boolean supportsRunPhasedActions() {
         return false;
     }
 
@@ -185,6 +192,17 @@ public abstract class VersionDetails implements Serializable {
 
         @Override
         public boolean supportsParameterizedToolingModels() {
+            return true;
+        }
+    }
+
+    private static class R48VersionDetails extends R44VersionDetails {
+        public R48VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsRunPhasedActions() {
             return true;
         }
     }

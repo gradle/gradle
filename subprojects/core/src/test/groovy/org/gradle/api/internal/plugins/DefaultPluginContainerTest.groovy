@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
+import org.gradle.configuration.internal.TestUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
@@ -28,14 +29,14 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-public class DefaultPluginContainerTest extends Specification {
+class DefaultPluginContainerTest extends Specification {
 
-    def PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
+    PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def target = Mock(PluginTarget)
     def instantiator = DirectInstantiator.INSTANCE
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor())
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationExecutor(), new TestUserCodeApplicationContext())
 
     @Subject
     def container = pluginManager.pluginContainer
@@ -124,15 +125,14 @@ public class DefaultPluginContainerTest extends Specification {
     }
 
     def "executes action for plugin with given id"() {
-        def plugin = plugin1Class.newInstance()
         def plugins = []
-        container.add(plugin)
+        container.apply(plugin1Class)
 
         when:
         container.withId("plugin") { plugins << it }
 
         then:
-        plugins == [plugin]
+        plugins[0].class == plugin1Class
     }
 
     def "executes action when plugin with given id is added later"() {
@@ -155,9 +155,6 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(groovyLoader))
-        def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
-        def plugin = pluginClass.newInstance()
         def plugins = []
 
         when:
@@ -167,10 +164,10 @@ public class DefaultPluginContainerTest extends Specification {
         plugins.empty
 
         when:
-        container.add(plugin)
+        container.apply(pluginClass)
 
         then:
-        plugins == [plugin]
+        plugins[0].class == pluginClass
     }
 
     def "executes action when plugin with given id, of plugin not in registry, is added later"() {
@@ -191,30 +188,27 @@ public class DefaultPluginContainerTest extends Specification {
                 }
             }
         """
-        classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
+        classPathAdditions.file("META-INF/gradle-plugins/plugin2.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(groovyLoader.parent))
-        def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
-        def plugin = pluginClass.newInstance()
         def plugins = []
 
         when:
-        container.apply("plugin")
+        container.apply("plugin2")
 
         then:
         thrown UnknownPluginException
 
         when:
-        container.withId("plugin") { plugins << it }
+        container.withId("plugin2") { plugins << it }
 
         then:
         plugins.empty
 
         when:
-        container.add(plugin)
+        container.apply(pluginClass)
 
         then:
-        plugins == [plugin]
+        plugins[0].class == pluginClass
     }
 
     def "no error when withId used and plugin with no id"() {
@@ -234,25 +228,22 @@ public class DefaultPluginContainerTest extends Specification {
             }
         """
 
-        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(groovyLoader.parent))
-        def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
-        def plugin = pluginClass.newInstance()
         def plugins = []
 
         when:
-        container.apply("plugin")
+        container.apply("plugin2")
 
         then:
         thrown UnknownPluginException
 
         when:
-        container.withId("plugin") { plugins << it }
+        container.withId("plugin2") { plugins << it }
 
         then:
         plugins.empty
 
         when:
-        container.add(plugin)
+        container.apply(pluginClass)
 
         then:
         plugins == []

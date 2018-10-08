@@ -71,7 +71,7 @@ public class ScalaRuntime {
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
-        // alternatively, we could return project.files(Runnable)
+        // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override

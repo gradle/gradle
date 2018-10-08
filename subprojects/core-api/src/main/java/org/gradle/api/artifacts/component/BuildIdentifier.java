@@ -19,7 +19,7 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * Identifies a Gradle build.
+ * Identifies a Gradle build. The identifier is unique within a Gradle invocation, so for example, each included build will have a different identifier.
  */
 @Incubating
 public interface BuildIdentifier {

@@ -91,7 +91,7 @@ public interface Report extends Serializable, Configurable<Report> {
      *
      * @return The location on the filesystem of the report when it is generated
      */
-    @Internal
+    @Internal("Implementations need to add the correct annotation, @OutputDirectory or @OutputFile")
     File getDestination();
 
     /**

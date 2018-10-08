@@ -86,6 +86,32 @@ configurations.conf.defaultDependencies { deps ->
         succeeds "checkExplicit"
     }
 
+    @Issue("gradle/gradle#3908")
+    def "defaultDependencies action is executed only when configuration participates in resolution"() {
+        buildFile << """
+configurations {
+    other
+    conf {
+        defaultDependencies { deps ->
+            println 'project.status == ' + project.status
+            assert project.status == 'foo'
+            deps.add project.dependencies.create("org:default-dependency:1.0")
+        }
+    }
+}
+dependencies {
+    other "org:explicit-dependency:1.0"
+}
+// Resolve unrelated configuration should not realize defaultDependencies
+println configurations.other.files
+
+project.status = 'foo'
+"""
+
+        expect:
+        succeeds "checkDefault"
+    }
+
     @Issue("gradle/gradle#812")
     def "can use defaultDependencies in a multi-project build"() {
         buildFile.text = """

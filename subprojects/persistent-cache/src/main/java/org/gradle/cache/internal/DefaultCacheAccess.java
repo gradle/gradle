@@ -165,6 +165,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             // Take ownership
             takeOwnershipNow();
+            if (fileLockHeldByOwner != null) {
+                fileLockHeldByOwner.run();
+            }
+            crossProcessCacheAccess.close();
             if (cleanupAction != null) {
                 try {
                     if (cleanupAction.requiresCleanup()) {
@@ -174,10 +178,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
                     LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
                 }
             }
-            if (fileLockHeldByOwner != null) {
-                fileLockHeldByOwner.run();
-            }
-            crossProcessCacheAccess.close();
             if (cacheClosedCount != 1) {
                 LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
             }
@@ -283,7 +283,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             if (entry == null) {
                 final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
-                LOG.info("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
+                LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
                 Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
                     public BTreePersistentIndexedCache<K, V> create() {
                         return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());

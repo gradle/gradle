@@ -30,6 +30,7 @@ import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -168,6 +169,7 @@ public class ZincScalaCompilerFactory {
         private ZincCompilerServices(File gradleUserHome) {
             super(NativeServices.getInstance());
 
+            addProvider(LoggingServiceRegistry.NO_OP);
             addProvider(new GlobalScopeServices(true));
             addProvider(new CacheRepositoryServices(gradleUserHome, null));
         }

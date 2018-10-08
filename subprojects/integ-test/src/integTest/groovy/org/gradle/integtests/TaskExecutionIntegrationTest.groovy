@@ -19,7 +19,6 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -272,44 +271,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
      \\--- :a (*)
 
 (*) - details omitted (listed previously)"""
-    }
-
-    @Ignore("Re-enable when work on realising only the required tasks instead of the whole task container is finished")
-    def "placeholder actions not triggered when not requested"() {
-        when:
-        buildFile << """
-        task thing
-        tasks.addPlaceholderAction("b", DefaultTask) {
-            throw new RuntimeException()
-        }
-        task otherThing { dependsOn tasks.thing }
-"""
-        then:
-        succeeds 'thing'
-        succeeds 'th'
-        succeeds 'otherThing'
-        succeeds 'oTh'
-    }
-
-    def "explicit tasks are preferred over placeholder tasks"() {
-        buildFile << """
-        task someTask { doLast {println "explicit sometask"} }
-        tasks.addPlaceholderAction("someTask", DefaultTask) {
-            println  "placeholder action triggered"
-            it.doLast { throw new RuntimeException() }
-        }
-"""
-        when:
-        succeeds 'sometask'
-
-        then:
-        output.contains("explicit sometask")
-
-        when:
-        succeeds 'someT'
-
-        then:
-        output.contains("explicit sometask")
     }
 
     def "honours mustRunAfter task ordering"() {
@@ -682,6 +643,23 @@ task someTask(dependsOn: [someDep, someOtherDep])
         failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
     }
 
+    def "produces a sensible error when a task declares both local state and destroys"() {
+        buildFile << """
+            task a {
+                localState.register('foo')
+                destroyables.register('bar')
+            }
+        """
+        file('foo') << 'foo'
+        file('bar') << 'bar'
+
+        when:
+        fails 'a'
+
+        then:
+        failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/2401")
     def "re-run task does not query inputs after execution"() {
         buildFile << """
@@ -713,44 +691,4 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         succeeds "custom", "--rerun-tasks"
     }
-
-    def "calling `Task.execute()` is deprecated"() {
-        buildFile << """
-            task myTask
-            
-            task executer {
-                doLast {
-                    myTask.execute()
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "executer"
-
-        then:
-        output.contains("The TaskInternal.execute() method has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
-    }
-
-    def "#description `Task.executer` is deprecated"() {
-        buildFile << """
-            task myTask
-
-            myTask${scriptSnippet}            
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "myTask"
-
-        then:
-        output.contains("The TaskInternal.executer property has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
-
-        where:
-        description | scriptSnippet
-        "getting" | ".executer"
-        "setting" | ".executer = null"
-    }
-
 }

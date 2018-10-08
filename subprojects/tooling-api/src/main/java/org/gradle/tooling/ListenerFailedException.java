@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
@@ -26,7 +24,6 @@ import java.util.List;
  *
  * @since 2.5
  */
-@Incubating
 public class ListenerFailedException extends GradleConnectionException {
     private final List<? extends Throwable> listenerFailures;
 

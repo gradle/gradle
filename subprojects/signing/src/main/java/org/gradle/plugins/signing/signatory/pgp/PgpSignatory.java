@@ -55,10 +55,6 @@ public class PgpSignatory extends SignatorySupport {
         this.privateKey = createPrivateKey(secretKey, password);
     }
 
-    public PgpKeyId getKeyId() {
-        return new PgpKeyId(secretKey.getKeyID());
-    }
-
     @Override
     public final String getName() {
         return name;
@@ -80,8 +76,14 @@ public class PgpSignatory extends SignatorySupport {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (PGPException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public String getKeyId() {
+        PgpKeyId id = new PgpKeyId(secretKey.getKeyID());
+        return id == null ? null : id.getAsHex();
     }
 
     private void feedGeneratorWith(InputStream toSign, PGPSignatureGenerator generator) throws IOException {
@@ -106,7 +108,7 @@ public class PgpSignatory extends SignatorySupport {
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;
         } catch (PGPException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -115,7 +117,7 @@ public class PgpSignatory extends SignatorySupport {
             PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(password.toCharArray());
             return secretKey.extractPrivateKey(decryptor);
         } catch (PGPException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

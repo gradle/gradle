@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
@@ -25,20 +24,58 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
-@LeaksFileHandles("isolated daemons are not always stopped in time") //may fail with 'Unable to delete file: daemon.out.log'
+@LeaksFileHandles("isolated daemons are not always stopped in time")
+//may fail with 'Unable to delete file: daemon.out.log'
 class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
+    def "init scripts from client distribution are used, not the one the daemon was started with"() {
+        given:
+        def distro1 = createDistribution(1)
+        def distro2 = createDistribution(2)
+
+        and:
+        file("buildSrc/build.gradle") << """
+            println "buildSrc: runtime gradle home: \${gradle.gradleHomeDir}"
+        """
+        buildFile << """
+            println "main build: runtime gradle home: \${gradle.gradleHomeDir}"
+        """
+
+        and:
+        executer.withTasks("help")
+
+        when:
+        def distro1Result = runWithGradleHome(distro1)
+
+        then:
+        distro1Result.assertOutputContains "from distro 1"
+        distro1Result.assertOutputContains "buildSrc: runtime gradle home: ${distro1.absolutePath}"
+        distro1Result.assertOutputContains "main build: runtime gradle home: ${distro1.absolutePath}"
+
+        when:
+        def distro2Result = runWithGradleHome(distro2)
+
+        then:
+        distro2Result.assertNotOutput "from distro 1"
+        distro2Result.assertOutputContains "from distro 2"
+        distro2Result.assertOutputContains "buildSrc: runtime gradle home: ${distro1.absolutePath}"
+        distro2Result.assertOutputContains "main build: runtime gradle home: ${distro1.absolutePath}"
+
+        and:
+        daemons.daemons.size() == 1
+    }
     TestFile createDistribution(int i) {
         def distro = file("distro$i")
         distro.copyFrom(distribution.getGradleHomeDir())
         distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'
         distro.file("init.d/init.gradle") << """
-            gradle.allprojects {
-                task echo { doLast { println "from distro $i" } }
+            gradle.rootProject {
+                println "from distro $i"
             }
         """
         distro
@@ -48,41 +85,6 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
         def copiedDistro = new DefaultGradleDistribution(executer.distribution.version, gradleHome, null)
         def daemonExecuter = new DaemonGradleExecuter(copiedDistro, executer.testDirectoryProvider)
         executer.copyTo(daemonExecuter)
-        try {
-            return daemonExecuter.run()
-        } finally {
-            daemonExecuter.cleanup();
-        }
+        return daemonExecuter.run()
     }
-
-    def "init scripts from client distribution are used, not from the test"() {
-        given:
-        def distro1 = createDistribution(1)
-        def distro2 = createDistribution(2)
-
-        and:
-        buildFile << """
-            echo.doLast {
-                println "runtime gradle home: \${gradle.gradleHomeDir}"
-            }
-        """
-
-        and:
-        executer.withTasks("echo")
-
-        when:
-        def distro1Result = runWithGradleHome(distro1)
-
-        then:
-        distro1Result.output.contains "from distro 1"
-        distro1Result.output.contains "runtime gradle home: ${distro1.absolutePath}"
-
-        when:
-        def distro2Result = runWithGradleHome(distro2)
-
-        then:
-        distro2Result.output.contains "from distro 2"
-        distro2Result.output.contains "runtime gradle home: ${distro2.absolutePath}"
-    }
-
 }

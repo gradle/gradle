@@ -17,6 +17,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>jvmArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
                 <td>systemProperties</td>
                 <td><literal>[:]</literal></td>
             </tr>
@@ -42,6 +46,10 @@
             </tr>
             <tr>
                 <td>args</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>argumentProviders</td>
                 <td><literal>[]</literal></td>
             </tr>
             <tr>

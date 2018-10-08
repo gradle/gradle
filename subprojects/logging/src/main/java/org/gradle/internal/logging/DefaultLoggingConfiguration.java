@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningMode;
 
 import java.io.Serializable;
 
@@ -29,6 +30,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
+    private WarningMode warningMode =  WarningMode.Summary;
 
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
@@ -58,6 +60,16 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     @Incubating
     public void setConsoleOutput(ConsoleOutput consoleOutput) {
         this.consoleOutput = consoleOutput;
+    }
+
+    @Override
+    public WarningMode getWarningMode() {
+        return warningMode;
+    }
+
+    @Override
+    public void setWarningMode(WarningMode warningMode) {
+        this.warningMode = warningMode;
     }
 
     @Override

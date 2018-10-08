@@ -27,20 +27,25 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class ArgWriter implements ArgCollector {
+
     private static final Pattern WHITESPACE = Pattern.compile("\\s");
+    private static final Pattern WHITESPACE_OR_HASH = Pattern.compile("\\s|#");
+
     private final PrintWriter writer;
     private final boolean backslashEscape;
+    private final Pattern quotablePattern;
 
-    private ArgWriter(PrintWriter writer, boolean backslashEscape) {
+    private ArgWriter(PrintWriter writer, boolean backslashEscape, Pattern quotablePattern) {
         this.writer = writer;
         this.backslashEscape = backslashEscape;
+        this.quotablePattern = quotablePattern;
     }
 
     /**
      * Double quotes around args containing whitespace, backslash chars are escaped using double backslash, platform line separators.
      */
     public static ArgWriter unixStyle(PrintWriter writer) {
-        return new ArgWriter(writer, true);
+        return new ArgWriter(writer, true, WHITESPACE);
     }
 
     public static Transformer<ArgWriter, PrintWriter> unixStyleFactory() {
@@ -52,10 +57,27 @@ public class ArgWriter implements ArgCollector {
     }
 
     /**
+     * Double quotes around args containing whitespace or #, backslash chars are escaped using double backslash, platform line separators.
+     *
+     * See <a href='https://docs.oracle.com/javase/9/tools/java.htm#JSWOR-GUID-4856361B-8BFD-4964-AE84-121F5F6CF111'>java Command-Line Argument Files</a>.
+     */
+    public static ArgWriter javaStyle(PrintWriter writer) {
+        return new ArgWriter(writer, true, WHITESPACE_OR_HASH);
+    }
+
+    public static Transformer<ArgWriter, PrintWriter> javaStyleFactory() {
+        return new Transformer<ArgWriter, PrintWriter>() {
+            public ArgWriter transform(PrintWriter original) {
+                return javaStyle(original);
+            }
+        };
+    }
+
+    /**
      * Double quotes around args containing whitespace, platform line separators.
      */
     public static ArgWriter windowsStyle(PrintWriter writer) {
-        return new ArgWriter(writer, false);
+        return new ArgWriter(writer, false, WHITESPACE);
     }
 
     public static Transformer<ArgWriter, PrintWriter> windowsStyleFactory() {
@@ -108,7 +130,7 @@ public class ArgWriter implements ArgCollector {
             }
             if (str.isEmpty()) {
                 writer.print("\"\"");
-            } else if (WHITESPACE.matcher(str).find()) {
+            } else if (needsQuoting(str)) {
                 writer.print('\"');
                 writer.print(str);
                 writer.print('\"');
@@ -118,6 +140,10 @@ public class ArgWriter implements ArgCollector {
         }
         writer.println();
         return this;
+    }
+
+    private boolean needsQuoting(String str) {
+        return quotablePattern.matcher(str).find();
     }
 
     public ArgCollector args(Iterable<?> args) {

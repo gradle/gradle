@@ -16,31 +16,26 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.GUtil;
+import org.gradle.api.internal.DocumentationRegistry;
 
-public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDescriptor {
+public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
+    private final DocumentationRegistry documentationRegistry;
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    private final TemplateOperationFactory templateOperationBuilder;
-    private final PathToFileResolver fileResolver;
-
-    public SimpleGlobalFilesBuildSettingsDescriptor(TemplateOperationFactory templateOperationBuilder, PathToFileResolver fileResolver) {
-        this.templateOperationBuilder = templateOperationBuilder;
-        this.fileResolver = fileResolver;
+    public SimpleGlobalFilesBuildSettingsDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
+        this.scriptBuilderFactory = scriptBuilderFactory;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        templateOperationBuilder.newTemplateOperation()
-            .withTemplate("settings.gradle.template")
-            .withTarget("settings.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_multiproject", "multi_project_builds"))
-            .withBindings(GUtil.map("rootProjectName", fileResolver.resolve(".").getName()))
-            .create().generate();
-    }
-
-    @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    public void generate(InitSettings settings) {
+        scriptBuilderFactory.script(settings.getDsl(), "settings")
+            .fileComment(
+                "The settings file is used to specify which projects to include in your build.\n\n"
+                    + "Detailed information about configuring a multi-project build in Gradle can be found\n"
+                    + "in the user guide at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
+            .propertyAssignment(null, "rootProject.name", settings.getProjectName())
+            .create()
+            .generate();
     }
 }

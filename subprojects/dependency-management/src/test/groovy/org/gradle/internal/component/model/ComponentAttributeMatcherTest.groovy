@@ -22,8 +22,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.CompatibilityCheckResult
-import org.gradle.api.internal.attributes.MultipleCandidatesResult
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -185,8 +184,8 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.accept(attr, "requested", "value2")
         schema.select(attr, rule)
 
-        rule.execute({it.consumerValue == "requested"}) >> { MultipleCandidatesDetails details -> details.closestMatch("value2") }
-        rule.execute({it.consumerValue == null}) >> { MultipleCandidatesDetails details -> details.closestMatch("value1") }
+        rule.execute({ it.consumerValue == "requested" }) >> { MultipleCandidatesDetails details -> details.closestMatch("value2") }
+        rule.execute({ it.consumerValue == null }) >> { MultipleCandidatesDetails details -> details.closestMatch("value1") }
 
         given:
         def candidate1 = attributes()
@@ -205,6 +204,34 @@ class ComponentAttributeMatcherTest extends Specification {
         expect:
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested1, null) == [candidate3]
         matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested2, null) == [candidate1]
+    }
+
+    def "disambiguation rule is presented with all non-null candidate values"() {
+        def rule = Mock(AttributeDisambiguationRule)
+        def attr = Attribute.of(String)
+        schema.attribute(attr)
+        schema.accept(attr, "requested", "value1")
+        schema.accept(attr, "requested", "value2")
+        schema.select(attr, rule)
+
+        rule.execute({ it.consumerValue == "requested" }) >> { MultipleCandidatesDetails details ->
+            assert details.candidateValues == ["value1", "value2"] as Set
+            details.closestMatch("value1")
+        }
+
+        given:
+        def candidate1 = attributes()
+        candidate1.attribute(attr, "value1")
+        def candidate2 = attributes()
+        candidate2.attribute(attr, "value2")
+        def candidate3 = attributes()
+        def requested1 = attributes()
+        requested1.attribute(attr, "requested")
+
+        def matcher = new ComponentAttributeMatcher()
+
+        expect:
+        matcher.match(schema, [candidate1, candidate2, candidate3], requested1, null) == [candidate1]
     }
 
     def "prefers match with superset of matching attributes"() {
@@ -239,7 +266,7 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [candidate2, candidate3, candidate4], requested, null) == [candidate3]
     }
 
-    def "disambiguates using ignored producer attributes" () {
+    def "disambiguates using ignored producer attributes"() {
         def key1 = Attribute.of("a1", String)
         def key2 = Attribute.of("a2", String)
         schema.attribute(key1)
@@ -255,6 +282,36 @@ class ComponentAttributeMatcherTest extends Specification {
         candidate2.attribute(key2, "ignore2")
         def requested = attributes()
         requested.attribute(key1, "value1")
+
+        expect:
+        def matcher = new ComponentAttributeMatcher()
+
+        def matches = matcher.match(schema, [candidate1, candidate2], requested, null)
+        matches == [candidate2]
+    }
+
+    def "ignores extra attributes if match is found after disambiguation requested attributes"() {
+        def key1 = Attribute.of("a1", String)
+        schema.attribute(key1)
+        schema.accept(key1, "foo", "bar")
+        schema.accept(key1, "foo", "baz")
+        schema.prefer(key1, "baz")
+
+        def key2 = Attribute.of("a2", String)
+        schema.attribute(key2)
+        schema.prefer(key2, "ignored1")
+
+        given:
+        def candidate1 = attributes()
+        candidate1.attribute(key1, "bar")
+        candidate1.attribute(key2, "ignored1")
+
+        def candidate2 = attributes()
+        candidate2.attribute(key1, "baz")
+        candidate2.attribute(key2, "ignored2")
+
+        def requested = attributes()
+        requested.attribute(key1, "foo")
 
         expect:
         def matcher = new ComponentAttributeMatcher()
@@ -379,12 +436,14 @@ class ComponentAttributeMatcherTest extends Specification {
 
     private static class TestSchema implements AttributeSelectionSchema {
         Set<Attribute<?>> attributes = []
+        Map<String, Attribute<?>> attributesByName = [:]
         Map<Attribute<?>, Object> preferredValue = [:]
         Map<Attribute<?>, AttributeDisambiguationRule> rules = [:]
         Map<Attribute<?>, Multimap<Object, Object>> compatibleValues = [:]
 
         void attribute(Attribute<?> attribute) {
             attributes.add(attribute)
+            attributesByName.put(attribute.getName(), attribute)
         }
 
         void accept(Attribute<?> attribute, Object consumer, Object producer) {
@@ -408,41 +467,47 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
-            if (attributes.contains(attribute)) {
-                if (compatibleValues.containsKey(attribute)) {
-                    if (compatibleValues.get(attribute).get(result.consumerValue).contains(result.producerValue)) {
-                        result.compatible()
-                        return
-                    }
-                }
-                if (result.consumerValue == result.producerValue) {
-                    result.compatible()
-                    return
-                }
-            }
-
-            result.incompatible()
+        Attribute<?> getAttribute(String name) {
+            return attributesByName.get(name)
         }
 
         @Override
-        void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
+            if (attributes.contains(attribute)) {
+                if (compatibleValues.containsKey(attribute)) {
+                    if (compatibleValues.get(attribute).get(requested).contains(candidate)) {
+                        return true
+                    }
+                }
+                if (requested == candidate) {
+                    return true
+                }
+            }
+
+            return false
+        }
+
+        @Override
+        Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
+            def result = new DefaultMultipleCandidateResult(requested, candidates)
 
             def rule = rules.get(attribute)
             if (rule != null) {
                 rule.execute(result)
-                return
+                return result.matches
             }
 
             def preferred = preferredValue.get(attribute)
-            if (preferred != null && result.candidateValues.contains(preferred)) {
-                result.closestMatch(preferred)
-                return
+            if (preferred != null && candidates.contains(preferred)) {
+                return [preferred]
             }
 
-            for (Object match : result.candidateValues) {
-                result.closestMatch(match)
-            }
+            candidates
+        }
+
+        @Override
+        Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested) {
+            AttributeSelectionUtils.collectExtraAttributes(this, candidates, requested)
         }
     }
 }

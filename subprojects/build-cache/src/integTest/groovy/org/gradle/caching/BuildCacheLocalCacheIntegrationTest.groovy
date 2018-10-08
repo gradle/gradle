@@ -17,14 +17,13 @@
 package org.gradle.caching
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 
-class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
-    def remoteCacheDir = file("remote-cache")
+    def localCache = new TestBuildCache(file("local-cache"))
+    def remoteCache = new TestBuildCache(file("remote-cache"))
 
     void cached() {
         assert ":t" in skippedTasks
@@ -62,20 +61,9 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec implem
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
-        settingsFile << """
-            buildCache {
-                remote(DirectoryBuildCache) {
-                    push = true
-                    directory = '${TextUtil.escapeString(remoteCacheDir.absolutePath)}' 
-                }
-            }
-        """
+        settingsFile << localCache.localCacheConfiguration() << remoteCache.remoteCacheConfiguration()
 
         executer.beforeExecute { it.withBuildCacheEnabled() }
-    }
-
-    List<TestFile> remoteCacheArtifacts() {
-        listCacheFiles(remoteCacheDir)
     }
 
     def "remote loads are cached locally"() {
@@ -89,8 +77,8 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         executed()
-        listCacheFiles().empty
-        remoteCacheArtifacts().size() == 1
+        localCache.empty
+        remoteCache.listCacheFiles().size() == 1
 
         when:
         settingsFile << """
@@ -100,13 +88,13 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         cached()
-        listCacheFiles().size() == 1
+        localCache.listCacheFiles().size() == 1
 
         when:
         settingsFile << """
             buildCache.remote.enabled = false
         """
-        assert remoteCacheDir.deleteDir()
+        assert remoteCache.cacheDir.deleteDir()
         execute()
 
         then:
@@ -125,8 +113,8 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         executed()
-        listCacheFiles().empty
-        remoteCacheArtifacts().size() == 1
+        localCache.empty
+        remoteCache.listCacheFiles().size() == 1
 
         when:
         settingsFile << """
@@ -138,10 +126,10 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         cached()
-        listCacheFiles().size() == 0
+        localCache.empty
 
         when:
-        assert remoteCacheDir.deleteDir()
+        assert remoteCache.cacheDir.deleteDir()
         settingsFile << """
             buildCache.remote.enabled = false
             buildCache.local.enabled = true

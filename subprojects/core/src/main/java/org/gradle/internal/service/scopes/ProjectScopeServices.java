@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -49,16 +50,20 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
@@ -70,6 +75,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -83,7 +89,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
@@ -115,7 +121,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
         PluginRegistry parentRegistry;
         if (project.getParent() == null) {
-            parentRegistry = rootRegistry;
+            parentRegistry = rootRegistry.createChild(project.getBaseClassLoaderScope());
         } else {
             parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
         }
@@ -130,8 +136,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir(), patternSetFactory);
     }
 
-    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new DefaultSourceDirectorySetFactory(fileResolver, directoryFileTreeFactory);
+    protected SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
+        return new DefaultSourceDirectorySetFactory(objectFactory);
     }
 
     protected LoggingManagerInternal createLoggingManager() {
@@ -142,12 +148,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher);
+    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, TextResourceLoader textResourceLoader) {
+        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader);
     }
 
-    protected DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {
-        return new DefaultExecActionFactory(fileResolver);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory) {
+        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorate());
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -166,21 +172,25 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry(buildScopedToolingModelBuilders);
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
-        PluginTarget target = new RuleBasedPluginTarget<ProjectInternal>(
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+        PluginTarget target = new RuleBasedPluginTarget(
             project,
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)
         );
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext);
     }
 
-    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
-        return parentFactory.createChild(project, get(InstantiatorFactory.class).injectAndDecorate(this));
+    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, InstantiatorFactory instantiatorFactory) {
+        return parentFactory.createChild(project, instantiatorFactory.injectAndDecorate(this));
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal() {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class));
+    protected TaskInstantiator createTaskInstantiator(ITaskFactory taskFactory) {
+        return new TaskInstantiator(taskFactory, project);
+    }
+
+    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator);
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer() {
@@ -282,16 +292,16 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver) {
-        return new DefaultProjectLayout(project.getProjectDir(), fileResolver);
+        return new DefaultProjectLayout(project.getProjectDir(), fileResolver, project.getTasks());
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
         return ConfigurationTargetIdentifier.of(project);
     }
 
-    protected ObjectFactory createObjectFactory(final InstantiatorFactory instantiatorFactory) {
+    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
         Instantiator instantiator = instantiatorFactory.injectAndDecorate(ProjectScopeServices.this);
-        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE);
+        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory, filePropertyFactory);
     }
 
 }

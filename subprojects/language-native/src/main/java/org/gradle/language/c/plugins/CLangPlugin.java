@@ -28,7 +28,6 @@ import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.c.tasks.CPreCompiledHeaderCompile;
-import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
@@ -37,6 +36,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
@@ -52,7 +52,6 @@ public class CLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
-        project.getPluginManager().apply(DependPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -85,6 +84,11 @@ public class CLangPlugin implements Plugin<Project> {
         @Override
         public String getLanguageName() {
             return "c";
+        }
+
+        @Override
+        public ToolType getToolType() {
+            return ToolType.C_COMPILER;
         }
 
         @Override

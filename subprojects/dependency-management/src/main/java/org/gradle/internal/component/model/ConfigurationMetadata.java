@@ -16,26 +16,34 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
+     *
+     * It would be good to remove this from the API, as consumers of this interface generally have no need
+     * for this information. However it _is_ currently used by {@link MavenDependencyDescriptor#selectLegacyConfigurations}
+     * to determine if the target 'runtime' configuration includes the target 'compile' configuration.
      */
-    Collection<String> getHierarchy();
+    ImmutableSet<String> getHierarchy();
 
     String getName();
 
     DisplayName asDescribable();
 
+    /**
+     * Attributes are immutable on ConfigurationMetadata
+     */
     @Override
     ImmutableAttributes getAttributes();
 
@@ -55,13 +63,14 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getVariants();
 
     /**
-     * Returns the exclusions to apply to outgoing dependencies from this configuration.
-     * @param moduleExclusions the module exclusions factory
+     * Returns the exclusions to apply to this configuration:
+     * - Module exclusions apply to all outgoing dependencies from this configuration
+     * - Artifact exclusions apply to artifacts obtained from this configuration
      */
-    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
+    ImmutableList<ExcludeMetadata> getExcludes();
 
     boolean isTransitive();
 
@@ -79,4 +88,6 @@ public interface ConfigurationMetadata extends HasAttributes {
      * (For external module components, we just instantiate a new artifact metadata).
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
+
+    CapabilitiesMetadata getCapabilities();
 }

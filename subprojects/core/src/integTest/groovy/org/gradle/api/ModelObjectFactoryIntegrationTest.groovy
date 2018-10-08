@@ -177,7 +177,7 @@ class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         fails("changeDynProp")
 
         then:
-        failure.assertHasCause("No signature of method: Thing\$Impl.setProperty() is applicable for argument types: (java.lang.String, java.lang.String) values: [name, 123]")
+        failure.assertHasCause("No signature of method: Thing\$Impl.setProperty() is applicable for argument types: (String, String) values: [name, 123]")
 
         when:
         fails("changeField")

@@ -51,7 +51,9 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         }
         builder.heading(heading);
 
-        builder.item("build using task", binary.getBuildTask().getPath());
+        if (binary.getBuildTask() != null) {
+            builder.item("build using task", binary.getBuildTask().getPath());
+        }
 
         T specialized = getTargetType().cast(binary);
 

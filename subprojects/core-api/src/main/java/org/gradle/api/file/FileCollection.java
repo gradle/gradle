@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -108,41 +107,12 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection filter(Spec<? super File> filterSpec);
 
     /**
-     * <p>Converts this collection into an object of the specified type. Supported types are: {@code Collection}, {@code
-     * List}, {@code Set}, {@code Object[]}, {@code File[]}, {@code File}, and {@link FileTree}.</p>
-     *
-     * <p>You can call this method in your build script using the {@code as} operator.</p>
-     *
-     * @param type The type to convert to.
-     * @return The converted value.
-     * @throws UnsupportedOperationException When an unsupported type is specified.
-     */
-    Object asType(Class<?> type) throws UnsupportedOperationException;
-
-    /**
-     * <p>Adds another collection to this collection. This is an optional operation.</p>
-     *
-     * @param collection The collection to add.
-     * @return This
-     * @throws UnsupportedOperationException When this collection does not allow modification.
-     */
-    FileCollection add(FileCollection collection) throws UnsupportedOperationException;
-
-    /**
      * Returns true if this collection is empty. Generally, calling this method is more efficient than calling {@code
      * getFiles().isEmpty()}.
      *
      * @return true if this collection is empty, false otherwise.
      */
     boolean isEmpty();
-
-    /**
-     * Throws a {@link StopExecutionException} if this collection is empty.
-     *
-     * @return this
-     * @throws StopExecutionException When this collection is empty.
-     */
-    FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 
     /**
      * Converts this collection to a {@link FileTree}. Generally, for each file in this collection, the resulting file

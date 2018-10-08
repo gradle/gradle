@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 2.4
  */
-@Incubating
 @UsedByScanPlugin
 public interface OperationResult {
 

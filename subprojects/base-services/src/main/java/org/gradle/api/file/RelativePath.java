@@ -15,11 +15,11 @@
  */
 package org.gradle.api.file;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.file.FilePathUtil;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
@@ -30,10 +30,8 @@ import java.util.ListIterator;
  *
  * <p>{@code RelativePath} instances are immutable.</p>
  */
-public class RelativePath implements Serializable, Comparable<RelativePath> {
+public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence {
     public static final RelativePath EMPTY_ROOT = new RelativePath(false);
-    private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
-    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -66,21 +64,13 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     }
 
     private static void copySegments(String[] target, String[] source, int length) {
-        // No String instance interning is needed since Strings are from other
-        // RelativePath instances which contain only interned String instances
         System.arraycopy(source, 0, target, 0, length);
     }
 
     private static void copyAndInternSegments(String[] target, int targetOffset, String[] source) {
         for (int i = 0; i < source.length; i++) {
-            target[targetOffset + i] = internPathSegment(source[i]);
+            target[targetOffset + i] = source[i];
         }
-    }
-
-    private static String internPathSegment(String sample) {
-        // Intern all String instances added to RelativePath instances to minimize memory use
-        // by de-duplicating all path segment String instances
-        return PATH_SEGMENT_STRING_INTERNER.intern(sample);
     }
 
     public String[] getSegments() {
@@ -110,6 +100,45 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
         return path.toString();
     }
 
+    @Override
+    public int length() {
+        if (segments.length == 0) {
+            return 0;
+        }
+        int length = segments.length - 1;
+        for (String segment : segments) {
+            length += segment.length();
+        }
+        return length;
+    }
+
+    @Override
+    public char charAt(int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
+        int remaining = index;
+        int nextSegment = 0;
+        while (nextSegment < segments.length) {
+            String segment = segments[nextSegment];
+            int length = segment.length();
+            if (remaining < length) {
+                return segment.charAt(remaining);
+            } else if (remaining == length) {
+                return '/';
+            } else {
+                remaining -= length + 1;
+                nextSegment++;
+            }
+        }
+        throw new IndexOutOfBoundsException(String.valueOf(index));
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        return CharBuffer.wrap(this, start, end);
+    }
+
     public File getFile(File baseDir) {
         return new File(baseDir, getPathString());
     }
@@ -136,11 +165,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
         if (endsWithFile != that.endsWithFile) {
             return false;
         }
-        if (!Arrays.equals(segments, that.segments)) {
-            return false;
-        }
-
-        return true;
+        return Arrays.equals(segments, that.segments);
     }
 
     @Override
@@ -178,7 +203,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     }
 
     public static RelativePath parse(boolean isFile, RelativePath parent, String path) {
-        String[] names = StringUtils.split(path, FILE_PATH_SEPARATORS);
+        String[] names = FilePathUtil.getPathSegments(path);
         return new RelativePath(isFile, parent, names);
     }
 
@@ -191,7 +216,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     public RelativePath replaceLastName(String name) {
         String[] newSegments = new String[segments.length];
         copySegments(newSegments, segments, segments.length - 1);
-        newSegments[segments.length - 1] = internPathSegment(name);
+        newSegments[segments.length - 1] = name;
         return new RelativePath(endsWithFile, newSegments);
     }
 

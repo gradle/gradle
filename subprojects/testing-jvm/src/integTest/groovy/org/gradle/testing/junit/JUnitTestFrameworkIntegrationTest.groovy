@@ -41,6 +41,8 @@ class JUnitTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegration
                     System.err.println("some error output");
                     org.junit.Assert.fail(\"test failure message\");
                 }
+                @org.junit.Test
+                public void ${passingTestCaseName}() { }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """

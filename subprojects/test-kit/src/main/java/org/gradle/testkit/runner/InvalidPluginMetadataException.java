@@ -16,15 +16,12 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
-
 /**
  * Thrown when the plugin under test metadata cannot be read.
  *
  * @since 2.13
  * @see GradleRunner#withPluginClasspath()
  */
-@Incubating
 public class InvalidPluginMetadataException extends IllegalStateException {
 
     public InvalidPluginMetadataException(String s) {

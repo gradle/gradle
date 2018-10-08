@@ -16,17 +16,18 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-
 import java.util.Set;
 
-public interface Exclude {
-    ModuleIdentifier getModuleId();
-
-    IvyArtifactName getArtifact();
-
+/**
+ * Represents the Ivy descriptor representation of an exclude.
+ * In an Ivy descriptor, and exclude can apply to a number of configurations.
+ */
+public interface Exclude extends ExcludeMetadata {
+    /**
+     * The configurations that this exclude will apply to.
+     * NOTE: only supported for exclude rules sourced from an Ivy module descriptor (ivy.xml).
+     *
+     * @return The set of configurations that apply, or an empty set if this exclude applies to _all_ configurations.
+     */
     Set<String> getConfigurations();
-
-    String getMatcher();
-
 }

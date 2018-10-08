@@ -16,24 +16,61 @@
 
 package org.gradle.api.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
 import org.gradle.api.Rule
+import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import spock.lang.Specification
 
-class DefaultNamedDomainObjectCollectionTest extends Specification {
+class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCollectionSpec<Bean> {
 
     private final Namer<Bean> namer = new Namer<Bean>() {
-        public String determineName(Bean bean) { return bean.name; }
+        String determineName(Bean bean) { return bean.name }
     };
 
-    Instantiator instantiator = Mock(Instantiator)
-
-    private final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<CharSequence>(Bean, new HashSet<>(), instantiator, namer);
+    Instantiator instantiator = DirectInstantiator.INSTANCE
     Set<Bean> store
+
+    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer)
+    final Bean a = new BeanSub1("a")
+    final Bean b = new BeanSub1("b")
+    final Bean c = new BeanSub1("c")
+    final Bean d = new BeanSub2("d")
+    final boolean externalProviderAllowed = true
 
     def setup() {
         container.clear()
+    }
+
+    def "named finds objects created by rules"() {
+        def rule = Mock(Rule)
+        def bean = new Bean("bean")
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.named("bean")
+
+        then:
+        result.present
+        result.get() == bean
+
+        and:
+        1 * rule.apply("bean") >> {
+            container.add(bean)
+        }
+        0 * rule._
+    }
+
+    def "named finds objects added to container"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        then:
+        result.present
+        result.get() == a
     }
 
     def "getNames"() {
@@ -106,11 +143,166 @@ class DefaultNamedDomainObjectCollectionTest extends Specification {
         0 * rule._
     }
 
-    private class Bean {
-        public final String name;
+    def "can configure domain objects through provider"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        result.configure {
+            it.value = "changed"
+        }
+        then:
+        result.get().value == "changed"
+    }
 
-        public Bean(String name) {
-            this.name = name;
+    def "can remove element using named provider"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean')
+
+        then:
+        provider.present
+        provider.orNull == bean
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'bean' (Bean) for this provider is no longer present in its container."
+    }
+
+    def "can find object by name and type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean', Bean)
+        then:
+        provider.present
+        provider.orNull == bean
+    }
+
+    def "can configure object by name and type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean', Bean) {
+            it.value = "changed"
+        }
+        then:
+        provider.present
+        provider.orNull == bean
+        provider.get().value == "changed"
+    }
+
+    def "can configure object by name"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean') {
+            it.value = "changed"
+        }
+        then:
+        provider.present
+        provider.orNull == bean
+        provider.get().value == "changed"
+    }
+
+    def "gets useful error when trying to find object by name and improper type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        container.named('bean', String)
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The domain object 'bean' (${Bean.class.canonicalName}) is not a subclass of the given type (java.lang.String)."
+    }
+
+    def "can extract schema from collection with domain objects"() {
+        container.add(a)
+        expect:
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+        )
+        // schema isn't cached
+        container.add(b)
+        container.add(d)
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+        )
+    }
+
+    def "can extract schema from empty collection"() {
+        expect:
+        assertSchemaIs([:])
+    }
+
+    protected void assertSchemaIs(Map<String, String> expectedSchema) {
+        def actualSchema = container.collectionSchema
+        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
+            [ schema.name, schema.publicType.simpleName ]
+        }
+        // Same size
+        assert expectedSchema.size() == actualSchemaMap.size()
+        // Same keys
+        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
+        // Keys have the same values
+        expectedSchema.each { entry ->
+            assert entry.value == actualSchemaMap[entry.key]
+        }
+    }
+
+    static class Bean {
+        public final String name
+
+        String value = "original"
+
+        Bean(String name) {
+            this.name = name
+        }
+
+        @Override
+        String toString() {
+            return name
+        }
+    }
+
+    static class BeanSub1 extends Bean {
+        BeanSub1(String name) {
+            super(name)
+        }
+    }
+
+    static class BeanSub2 extends Bean {
+        BeanSub2(String name) {
+            super(name)
         }
     }
 }

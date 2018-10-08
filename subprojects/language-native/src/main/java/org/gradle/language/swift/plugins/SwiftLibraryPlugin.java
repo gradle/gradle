@@ -16,26 +16,48 @@
 
 package org.gradle.language.swift.plugins;
 
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppBinary;
+import org.gradle.api.provider.Provider;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
+import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.ComponentWithNames;
+import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
-import org.gradle.language.swift.tasks.SwiftCompile;
+import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
+import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.Callable;
+
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -48,89 +70,196 @@ import javax.inject.Inject;
  */
 @Incubating
 public class SwiftLibraryPlugin implements Plugin<Project> {
-    private final FileOperations fileOperations;
+    private final NativeComponentFactory componentFactory;
+    private final ToolChainSelector toolChainSelector;
+    private final ImmutableAttributesFactory attributesFactory;
 
     @Inject
-    public SwiftLibraryPlugin(FileOperations fileOperations) {
-        this.fileOperations = fileOperations;
+    public SwiftLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory) {
+        this.componentFactory = componentFactory;
+        this.toolChainSelector = toolChainSelector;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        TaskContainer tasks = project.getTasks();
-        ConfigurationContainer configurations = project.getConfigurations();
-        ObjectFactory objectFactory = project.getObjects();
+        final ConfigurationContainer configurations = project.getConfigurations();
+        final ObjectFactory objectFactory = project.getObjects();
 
-        SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        final DefaultSwiftLibrary library = componentFactory.newInstance(SwiftLibrary.class, DefaultSwiftLibrary.class, "main");
+        project.getExtensions().add(SwiftLibrary.class, "library", library);
         project.getComponents().add(library);
-        SwiftSharedLibrary debugSharedLibrary = library.getDebugSharedLibrary();
-        project.getComponents().add(debugSharedLibrary);
-        SwiftSharedLibrary releaseSharedLibrary = library.getReleaseSharedLibrary();
-        project.getComponents().add(releaseSharedLibrary);
 
         // Setup component
         final Property<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
-        // Configure compile task
-        final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(final Project project) {
+                library.getOperatingSystems().lockNow();
+                Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
+                if (operatingSystemFamilies.isEmpty()) {
+                    throw new IllegalArgumentException("An operating system needs to be specified for the library.");
+                }
 
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
+                library.getLinkage().lockNow();
+                Set<Linkage> linkages = library.getLinkage().get();
+                if (linkages.isEmpty()) {
+                    throw new IllegalArgumentException("A linkage needs to be specified for the library.");
+                }
 
-        // TODO - add lifecycle tasks
-        // TODO - extract some common code to setup the configurations
-        // TODO - extract common code with C++ plugins
+                Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+                Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
 
-        Configuration implementation = library.getImplementationDependencies();
-        Configuration api = library.getApiDependencies();
+                for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
+                    for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
+                        for (Linkage linkage : linkages) {
 
-        Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
-        debugApiElements.extendsFrom(api);
-        debugApiElements.setCanBeResolved(false);
-        debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        debugApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
-        debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
+                            String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
+                            String linkageSuffix = createDimensionSuffix(linkage, linkages);
+                            String variantName = buildType.getName() + linkageSuffix + operatingSystemSuffix;
 
-        Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
-        debugLinkElements.extendsFrom(implementation);
-        debugLinkElements.setCanBeResolved(false);
-        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        debugLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
-        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
-        debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
+                            Provider<String> group = project.provider(new Callable<String>() {
+                                @Override
+                                public String call() throws Exception {
+                                    return project.getGroup().toString();
+                                }
+                            });
 
-        Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
-        debugRuntimeElements.extendsFrom(implementation);
-        debugRuntimeElements.setCanBeResolved(false);
-        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        debugRuntimeElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, true);
-        // TODO - should distinguish between link-time and runtime files
-        debugRuntimeElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
+                            Provider<String> version = project.provider(new Callable<String>() {
+                                @Override
+                                public String call() throws Exception {
+                                    return project.getVersion().toString();
+                                }
+                            });
 
-        Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
-        releaseApiElements.extendsFrom(api);
-        releaseApiElements.setCanBeResolved(false);
-        releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        releaseApiElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
+                            AttributeContainer runtimeAttributes = attributesFactory.mutable();
+                            runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                            runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                            runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                            runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
+                            runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
-        Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
-        releaseLinkElements.extendsFrom(implementation);
-        releaseLinkElements.setCanBeResolved(false);
-        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        releaseLinkElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
-        releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
+                            AttributeContainer linkAttributes = attributesFactory.mutable();
+                            linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
+                            linkAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                            linkAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                            linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
+                            linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
 
-        Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
-        releaseRuntimeElements.extendsFrom(implementation);
-        releaseRuntimeElements.setCanBeResolved(false);
-        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        releaseRuntimeElements.getAttributes().attribute(CppBinary.DEBUGGABLE_ATTRIBUTE, false);
-        // TODO - should distinguish between link-time and runtime files
-        releaseRuntimeElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
+                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                                new DefaultUsageContext(variantName + "Link", linkUsage, linkAttributes),
+                                new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes));
+                            // TODO: publish Swift libraries
+                            // library.getMainPublication().addVariant(variantIdentity);
+
+                            if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
+                                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+
+                                if (linkage == Linkage.SHARED) {
+                                    SwiftSharedLibrary sharedLibrary = library.addSharedLibrary(variantName, buildType == BuildType.DEBUG, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
+
+                                    // Use the debug shared library as the development binary
+                                    if (buildType == BuildType.DEBUG) {
+                                        library.getDevelopmentBinary().set(sharedLibrary);
+                                    }
+
+                                } else {
+                                    SwiftStaticLibrary staticLibrary = library.addStaticLibrary(variantName, buildType == BuildType.DEBUG, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
+
+                                    if (!linkages.contains(Linkage.SHARED) && buildType == BuildType.DEBUG) {
+                                        // Use the debug static library as the development binary
+                                        library.getDevelopmentBinary().set(staticLibrary);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
+                    @Override
+                    public void execute(SwiftSharedLibrary sharedLibrary) {
+                        Names names = ((ComponentWithNames) sharedLibrary).getNames();
+                        Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                        // TODO This should actually extend from the api dependencies, but since Swift currently
+                        // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                        // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                        apiElements.extendsFrom(((DefaultSwiftSharedLibrary)sharedLibrary).getImplementationDependencies());
+                        apiElements.setCanBeResolved(false);
+                        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                        apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
+                        apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
+                        apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
+                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetPlatform().getOperatingSystemFamily());
+                        apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
+                    }
+                });
+
+                library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
+                    @Override
+                    public void execute(SwiftStaticLibrary staticLibrary) {
+                        Names names = ((ComponentWithNames) staticLibrary).getNames();
+                        Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                        // TODO This should actually extend from the api dependencies, but since Swift currently
+                        // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                        // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                        apiElements.extendsFrom(((DefaultSwiftStaticLibrary)staticLibrary).getImplementationDependencies());
+                        apiElements.setCanBeResolved(false);
+                        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                        apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
+                        apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
+                        apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
+                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetPlatform().getOperatingSystemFamily());
+                        apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
+                    }
+                });
+
+                library.getBinaries().realizeNow();
+            }
+        });
+    }
+
+    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+        if (isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+        }
+        return "";
+    }
+
+    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+        return multivalueProperty.size() > 1;
+    }
+
+    private static final class BuildType implements Named {
+        private static final BuildType DEBUG = new BuildType("debug", true, false);
+        private static final BuildType RELEASE = new BuildType("release", true, true);
+        public static final Collection<BuildType> DEFAULT_BUILD_TYPES = Arrays.asList(DEBUG, RELEASE);
+
+        private final boolean debuggable;
+        private final boolean optimized;
+        private final String name;
+
+        private BuildType(String name, boolean debuggable, boolean optimized) {
+            this.debuggable = debuggable;
+            this.optimized = optimized;
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        public boolean isDebuggable() {
+            return debuggable;
+        }
+
+        public boolean isOptimized() {
+            return optimized;
+        }
     }
 }

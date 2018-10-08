@@ -18,7 +18,7 @@ package org.gradle.internal.logging.serializer
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OperationIdentifier
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import spock.lang.Subject
@@ -62,6 +62,21 @@ class LogEventSerializerTest extends LogSerializerSpec {
         result.category == CATEGORY
         result.logLevel == LogLevel.LIFECYCLE
         result.message == MESSAGE
+        result.throwable == null
+        result.buildOperationId == null
+    }
+
+    def "can serialize null value"() {
+        when:
+        def event = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, null, null, null)
+        def result = serialize(event, serializer)
+
+        then:
+        result instanceof LogEvent
+        result.timestamp == TIMESTAMP
+        result.category == CATEGORY
+        result.logLevel == LogLevel.LIFECYCLE
+        result.message == null
         result.throwable == null
         result.buildOperationId == null
     }

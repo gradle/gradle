@@ -20,7 +20,6 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -40,7 +39,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        !errorOutput
         javaClassFile("compile/test/Person.class").exists()
     }
 
@@ -51,7 +49,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         fails("compileJava")
         output.contains(logStatement())
-        compilerErrorOutput.contains("';' expected")
+        failure.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -65,7 +63,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("compileJava")
         output.contains(logStatement())
-        compilerErrorOutput.contains("';' expected")
+        result.assertHasErrorOutput("';' expected")
         javaClassFile("").assertHasDescendants()
     }
 
@@ -83,7 +81,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         expect:
         succeeds("run")
         output.contains(logStatement())
-        !errorOutput
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
@@ -125,7 +122,9 @@ compileJava.options.debug = false
         !noDebug.debugIncludesLocalVariables
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    // JavaFx was removed in JDK 10
+    // Only oracle distribution contains JavaFx
+    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''
@@ -176,13 +175,8 @@ compileJava.options.compilerArgs.addAll(['--release', '7'])
         expect:
         fails 'compileJava'
         output.contains(logStatement())
-        compilerErrorOutput.contains("cannot find symbol")
-        compilerErrorOutput.contains("class Optional")
-
-    }
-
-    def getCompilerErrorOutput() {
-        return errorOutput
+        failure.assertHasErrorOutput("cannot find symbol")
+        failure.assertHasErrorOutput("class Optional")
     }
 
     def buildScript() {
@@ -270,13 +264,13 @@ class Main {
         return new ClassFile(javaClassFile(path))
     }
 
-    @LeaksFileHandles("holds processor.jar open for in process compiler")
     def "can use annotation processor"() {
         when:
         buildFile << """
             apply plugin: "java"
             dependencies {
-                compile project(":processor")
+                compileOnly project(":processor")
+                annotationProcessor project(":processor")
             }
         """
         settingsFile << "include 'processor'"
@@ -328,8 +322,8 @@ class Main {
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -389,11 +383,7 @@ class Main {
 
         then:
         fails("compileJava")
-        compilerErrorOutput.contains("package ${gradleBaseServicesClass.package.name} does not exist")
-    }
-
-    protected boolean gradleLeaksIntoAnnotationProcessor() {
-        return false;
+        failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
     }
 
 }

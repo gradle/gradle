@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.tasks.scala
 
-import groovy.transform.InheritConstructors
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
@@ -33,10 +32,10 @@ class NormalizingScalaCompilerTest extends Specification {
 
     def setup() {
         spec.destinationDir = new File("dest")
-        spec.source = files("Source1.java", "Source2.java", "Source3.java")
+        spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar")]
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
         spec.scalaCompileOptions = new BaseScalaCompileOptions()
     }
 
@@ -48,7 +47,7 @@ class NormalizingScalaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source as List == old(spec.source as List)
+            assert spec.sourceFiles == old(spec.sourceFiles)
 
             workResult
         }
@@ -115,11 +114,7 @@ class NormalizingScalaCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        new TestFileCollection(paths.collect { new File(it) })
+        paths.collect { new File(it) } as Set
     }
-
-    // file collection whose type is distinguishable from SimpleFileCollection
-    @InheritConstructors
-    static class TestFileCollection extends SimpleFileCollection {}
 }
 

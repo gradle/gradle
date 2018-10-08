@@ -17,6 +17,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
+import org.gradle.internal.logging.events.FlushOutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.time.MockClock
@@ -30,71 +31,28 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
 
     @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, clock)
 
-    def "forwards events to listener"() {
-        def event = event('message')
-
-        when:
-        renderer.onOutput(event)
-
-        then:
-        1 * listener.onOutput(event)
-        0 * _
-    }
-
-    def "queues events received soon after first and forwards in batch"() {
-        def event1 = event('1')
-        def event2 = event('2')
-        def event3 = event('3')
-        def event4 = event('4')
+    def "queues events until update event received"() {
+        def event1 = event('message')
+        def event2 = event('message')
 
         when:
         renderer.onOutput(event1)
         renderer.onOutput(event2)
-        renderer.onOutput(event3)
+
+        then:
+        0 * _
+
+        when:
+        executor.runFixedScheduledActionsNow()
 
         then:
         1 * listener.onOutput(event1)
-        0 * _
-
-        when:
-        flushSingleScheduledActions()
-
-        then:
         1 * listener.onOutput(event2)
-        1 * listener.onOutput(event3)
-        0 * _
-
-        when:
-        renderer.onOutput(event4)
-
-        then:
+        1 * listener.onOutput(_ as UpdateNowEvent)
         0 * _
     }
 
-    def "forwards event received significantly after first"() {
-        def event1 = event('1')
-        def event2 = event('2')
-        def event3 = event('3')
-
-        given:
-        renderer.onOutput(event1)
-
-        when:
-        clock.increment(100)
-        renderer.onOutput(event2)
-
-        then:
-        1 * listener.onOutput(event2)
-        0 * _
-
-        when:
-        renderer.onOutput(event3)
-
-        then:
-        0 * _
-    }
-
-    def forwardsQueuedEventsOnEndOfOutputEvent() {
+    def "flushes events on end of output"() {
         def event1 = event('1')
         def event2 = event('2')
         def event3 = event('3')
@@ -106,42 +64,69 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
         renderer.onOutput(event3)
 
         then:
-        1 * listener.onOutput(event1)
         0 * _
 
         when:
         renderer.onOutput(end)
 
         then:
+        1 * listener.onOutput(event1)
         1 * listener.onOutput(event2)
         1 * listener.onOutput(event3)
         1 * listener.onOutput(end)
         0 * _
     }
 
-    def backgroundFlushDoesNothingWhenEventsAlreadyFlushed() {
+    def "flushes events on flush event"() {
         def event1 = event('1')
         def event2 = event('2')
-        def end = new EndOutputEvent()
+        def event3 = event('3')
+        def flush = new FlushOutputEvent()
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(event3)
+
+        then:
+        0 * _
+
+        when:
+        renderer.onOutput(flush)
+
+        then:
+        1 * listener.onOutput(event1)
+        1 * listener.onOutput(event2)
+        1 * listener.onOutput(event3)
+        1 * listener.onOutput(flush)
+        0 * _
+    }
+
+    def "background flush does nothing when events already flushed"() {
+        def event1 = event('1')
+        def event2 = event('2')
+        def flush = new FlushOutputEvent()
 
         given:
         renderer.onOutput(event1)
         renderer.onOutput(event2)
-        renderer.onOutput(end)
+        renderer.onOutput(flush)
 
         when:
-        flushSingleScheduledActions()
+        executor.runFixedScheduledActionsNow()
 
         then:
+        1 * listener.onOutput(_ as UpdateNowEvent)
         0 * _
     }
 
     def "executor emits update now event when executing"() {
         when:
-        flushFixedScheduledActions()
+        executor.runFixedScheduledActionsNow()
 
         then:
         1 * listener.onOutput(_ as UpdateNowEvent)
+        0 * _
     }
 
     def "shuts down executor when receiving end output event"() {
@@ -153,13 +138,5 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
 
         then:
         executor.isShutdown()
-    }
-
-    private void flushSingleScheduledActions() {
-        executor.runSingleScheduledActionsNow()
-    }
-
-    private void flushFixedScheduledActions() {
-        executor.runFixedScheduledActionsNow()
     }
 }

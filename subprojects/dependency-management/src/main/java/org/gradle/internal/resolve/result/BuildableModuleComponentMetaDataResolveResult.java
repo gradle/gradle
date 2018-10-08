@@ -70,4 +70,5 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     boolean isAuthoritative();
 
     void setAuthoritative(boolean authoritative);
+
 }

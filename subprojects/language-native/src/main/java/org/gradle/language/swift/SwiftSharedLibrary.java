@@ -17,8 +17,10 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
+import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 
 /**
  * A shared library built from Swift source.
@@ -26,11 +28,5 @@ import org.gradle.api.provider.Provider;
  * @since 4.2
  */
 @Incubating
-public interface SwiftSharedLibrary extends SwiftBinary {
-    /**
-     * Returns the run-time file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getRuntimeFile();
+public interface SwiftSharedLibrary extends SwiftBinary, ComponentWithSharedLibrary, ComponentWithRuntimeUsage, ComponentWithLinkUsage, ComponentWithOutputs {
 }

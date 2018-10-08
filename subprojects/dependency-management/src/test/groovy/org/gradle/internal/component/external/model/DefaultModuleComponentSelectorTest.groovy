@@ -16,61 +16,91 @@
 
 package org.gradle.internal.component.external.model
 
-import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
+import static org.gradle.util.TestUtil.attributes
 
 class DefaultModuleComponentSelectorTest extends Specification {
-    private static VersionConstraint v(String version) {
-        if (version!=null) {
-            return DefaultImmutableVersionConstraint.of(version)
-        }
+    private static ImmutableVersionConstraint v(String version) {
+        return DefaultImmutableVersionConstraint.of(version)
+    }
+
+    private static ImmutableVersionConstraint v(String version, String branch) {
+        return new DefaultImmutableVersionConstraint("", version, "", [], branch)
+    }
+
+    private static ImmutableVersionConstraint b(String branch) {
+        return new DefaultImmutableVersionConstraint("", "", "", [], branch)
     }
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
 
         then:
-        defaultModuleComponentSelector.group == 'some-group'
-        defaultModuleComponentSelector.module == 'some-name'
-        defaultModuleComponentSelector.version == '1.0'
-        defaultModuleComponentSelector.versionConstraint.preferredVersion == '1.0'
-        defaultModuleComponentSelector.versionConstraint.rejectedVersions == []
-        defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
-        defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
+        selector.group == 'some-group'
+        selector.module == 'some-name'
+        selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.strictVersion == ''
+        selector.versionConstraint.rejectedVersions == []
+        selector.displayName == 'some-group:some-name:1.0'
+        selector.attributes.empty
+        selector.toString() == 'some-group:some-name:1.0'
+    }
+
+    def "formats a display name"() {
+        expect:
+        def versionSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
+        versionSelector.displayName == "some-group:some-name:1.0"
+        versionSelector.toString() == "some-group:some-name:1.0"
+
+        def branchSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), b('release'))
+        branchSelector.displayName == "some-group:some-name (branch: release)"
+        branchSelector.toString() == "some-group:some-name (branch: release)"
+
+        def bothSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0', 'release'))
+        bothSelector.displayName == "some-group:some-name:1.0 (branch: release)"
+        bothSelector.toString() == "some-group:some-name:1.0 (branch: release)"
+
+        def noSelector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v(''))
+        noSelector.displayName == "some-group:some-name"
+        noSelector.toString() == "some-group:some-name"
     }
 
     @Unroll
-    def "is instantiated with null constructor parameter values (#group, #name, #version)"() {
+    def "is instantiated with null constructor parameter values (#group, #name, #version, #attrs)"() {
         when:
-        new DefaultModuleComponentSelector(group, name, v(version))
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version, attrs)
 
         then:
         Throwable t = thrown(AssertionError)
         assert t.message == assertionMessage
 
         where:
-        group        | name        | version | assertionMessage
-        null         | 'some-name' | '1.0'   | 'group cannot be null'
-        'some-group' | null        | '1.0'   | 'module cannot be null'
-        'some-group' | 'some-name' | null    | 'version cannot be null'
+        group        | name        | version  | attrs                     | assertionMessage
+        null         | 'some-name' | v('1.0') | attributes(custom: 'foo') | 'group cannot be null'
+        'some-group' | null        | v('1.0') | attributes(custom: 'foo') | 'name cannot be null'
+        'some-group' | 'some-name' | null     | attributes(custom: 'foo') | 'version cannot be null'
+        'some-group' | 'some-name' | v('1.0') | null                      | 'attributes cannot be null'
     }
 
     @Unroll
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
-        ModuleComponentSelector defaultModuleComponentSelector1 = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
-        ModuleComponentSelector defaultModuleComponentSelector2 = new DefaultModuleComponentSelector(group, name, v(version))
-        strictlyEquals(defaultModuleComponentSelector1, defaultModuleComponentSelector2) == equality
-        (defaultModuleComponentSelector1.hashCode() == defaultModuleComponentSelector2.hashCode()) == hashCode
-        (defaultModuleComponentSelector1.toString() == defaultModuleComponentSelector2.toString()) == stringRepresentation
+        def selector1 = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
+        def selector2 = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), v(version))
+        strictlyEquals(selector1, selector2) == equality
+        (selector1.hashCode() == selector2.hashCode()) == hashCode
+        (selector1.toString() == selector2.toString()) == stringRepresentation
 
         where:
         group         | name         | version | equality | hashCode | stringRepresentation
@@ -82,22 +112,46 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "can create new selector"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = DefaultModuleComponentSelector.newSelector('some-group', 'some-name', v('1.0'))
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
 
         then:
-        defaultModuleComponentSelector.group == 'some-group'
-        defaultModuleComponentSelector.module == 'some-name'
-        defaultModuleComponentSelector.version == '1.0'
-        defaultModuleComponentSelector.versionConstraint.preferredVersion == '1.0'
-        defaultModuleComponentSelector.versionConstraint.rejectedVersions == []
-        defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
-        defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
+        selector.group == 'some-group'
+        selector.module == 'some-name'
+        selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.strictVersion == ''
+        selector.versionConstraint.rejectedVersions == []
+        selector.displayName == 'some-group:some-name:1.0'
+        selector.toString() == 'some-group:some-name:1.0'
+    }
+
+    def "can create new selector with attributes"() {
+        def customAttr = Attribute.of('custom', String)
+        def otherAttr = Attribute.of('other', String)
+
+        when:
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), attributes(custom: 'foo', other: 'bar'))
+
+        then:
+        selector.group == 'some-group'
+        selector.module == 'some-name'
+        selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.strictVersion == ''
+        selector.versionConstraint.rejectedVersions == []
+        selector.attributes.keySet() == [customAttr, otherAttr] as Set
+        selector.attributes.getAttribute(customAttr) == 'foo'
+        selector.attributes.getAttribute(otherAttr) == 'bar'
+        selector.displayName == 'some-group:some-name:1.0'
+        selector.toString() == 'some-group:some-name:1.0'
     }
 
     def "prevents matching of null id"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
-        defaultModuleComponentSelector.matchesStrictly(null)
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
+        selector.matchesStrictly(null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -106,8 +160,8 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "does not match id for unexpected component selector type"() {
         when:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
-        boolean matches = defaultModuleComponentSelector.matchesStrictly(newProjectId(':mypath'))
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
+        boolean matches = selector.matchesStrictly(newProjectId(':mypath'))
 
         then:
         assert !matches
@@ -116,9 +170,9 @@ class DefaultModuleComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#group, #name, #version)"() {
         expect:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', v('1.0'))
-        ModuleComponentIdentifier defaultModuleComponentIdentifier = new DefaultModuleComponentIdentifier(group, name, version)
-        defaultModuleComponentSelector.matchesStrictly(defaultModuleComponentIdentifier) == matchesId
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
+        def id = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), version)
+        selector.matchesStrictly(id) == matchesId
 
         where:
         group         | name         | version | matchesId
@@ -127,4 +181,5 @@ class DefaultModuleComponentSelectorTest extends Specification {
         'some-group'  | 'other-name' | '1.0'   | false
         'some-group'  | 'some-name'  | '2.0'   | false
     }
+
 }

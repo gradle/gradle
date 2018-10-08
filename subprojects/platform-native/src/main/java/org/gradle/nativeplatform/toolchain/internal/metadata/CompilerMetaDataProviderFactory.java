@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadataProvider;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -52,18 +53,18 @@ public class CompilerMetaDataProviderFactory {
 
     private static class CachingCompilerMetaDataProvider<T extends CompilerMetadata> implements CompilerMetaDataProvider<T> {
         private final CompilerMetaDataProvider<T> delegate;
-        private final Map<Key, T> resultMap = new HashMap<Key, T>();
+        private final Map<Key, SearchResult<T>> resultMap = new HashMap<Key, SearchResult<T>>();
 
         private CachingCompilerMetaDataProvider(CompilerMetaDataProvider<T> delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public T getCompilerMetaData(File binary, List<String> additionalArgs) {
-            Key key = new Key(binary, additionalArgs);
-            T result = resultMap.get(key);
+        public SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> path) {
+            Key key = new Key(binary, additionalArgs, path);
+            SearchResult<T> result = resultMap.get(key);
             if (result == null) {
-                result = delegate.getCompilerMetaData(binary, additionalArgs);
+                result = delegate.getCompilerMetaData(binary, additionalArgs, path);
                 resultMap.put(key, result);
             }
             return result;
@@ -78,21 +79,23 @@ public class CompilerMetaDataProviderFactory {
     private static class Key {
         final File gccBinary;
         final List<String> args;
+        final List<File> path;
 
-        private Key(File gccBinary, List<String> args) {
+        private Key(File gccBinary, List<String> args, List<File> path) {
             this.gccBinary = gccBinary;
             this.args = args;
+            this.path = path;
         }
 
         @Override
         public boolean equals(Object obj) {
             Key other = (Key) obj;
-            return other.gccBinary.equals(gccBinary) && other.args.equals(args);
+            return other.gccBinary.equals(gccBinary) && other.args.equals(args) && other.path.equals(path);
         }
 
         @Override
         public int hashCode() {
-            return gccBinary.hashCode() ^ args.hashCode();
+            return gccBinary.hashCode() ^ args.hashCode() ^ path.hashCode();
         }
     }
 }

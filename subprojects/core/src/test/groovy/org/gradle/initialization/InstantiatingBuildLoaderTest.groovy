@@ -19,7 +19,6 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
@@ -64,25 +63,6 @@ class InstantiatingBuildLoaderTest extends Specification {
         childProject = project(childDescriptor, rootProject)
         build = Mock(GradleInternal)
         build.getStartParameter() >> startParameter
-    }
-
-    def "attaches settings when loaded"() {
-        given:
-        def settings = Stub(SettingsInternal) {
-            getRootProject() >> rootDescriptor
-            getDefaultProject() >> rootDescriptor
-            getRootClassLoaderScope() >> baseClassLoaderScope
-        }
-
-        when:
-        buildLoader.load(settings, build)
-
-        then:
-        1 * build.getRootProject() >> rootProject
-        1 * projectFactory.createProject(rootDescriptor, null, !null, rootProjectClassLoaderScope, baseClassLoaderScope) >> rootProject
-
-        and:
-        1 * build.setSettings(settings)
     }
 
     def createsBuildWithRootProjectAsTheDefaultOne() {

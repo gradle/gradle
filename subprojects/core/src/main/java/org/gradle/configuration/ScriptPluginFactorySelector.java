@@ -18,12 +18,15 @@ package org.gradle.configuration;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.scripts.ScriptingLanguage;
+
+import java.util.List;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
@@ -77,18 +80,17 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private final ScriptPluginFactory defaultScriptPluginFactory;
-    private final ScriptingLanguages scriptingLanguages;
     private final ProviderInstantiator providerInstantiator;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
-                                       ScriptingLanguages scriptingLanguages,
                                        ProviderInstantiator providerInstantiator,
-                                       BuildOperationExecutor buildOperationExecutor) {
+                                       BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
-        this.scriptingLanguages = scriptingLanguages;
         this.providerInstantiator = providerInstantiator;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -96,28 +98,27 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
                                ClassLoaderScope baseScope, boolean topLevelScript) {
         ScriptPlugin scriptPlugin = scriptPluginFactoryFor(scriptSource.getFileName())
             .create(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript);
-        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor);
+        return new BuildOperationScriptPlugin(scriptPlugin, buildOperationExecutor, userCodeApplicationContext);
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {
-        return fileName.endsWith(".gradle")
-            ? defaultScriptPluginFactory
-            : findScriptPluginFactoryFor(fileName);
-    }
-
-    private ScriptPluginFactory findScriptPluginFactoryFor(String fileName) {
-        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
+        for (ScriptingLanguage scriptingLanguage : scriptingLanguages()) {
             if (fileName.endsWith(scriptingLanguage.getExtension())) {
-                ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryFor(scriptingLanguage);
-                if (scriptPluginFactory != null) {
-                    return scriptPluginFactory;
+                String provider = scriptingLanguage.getProvider();
+                if (provider != null) {
+                    return instantiate(provider);
                 }
+                return defaultScriptPluginFactory;
             }
         }
         return defaultScriptPluginFactory;
     }
 
-    private ScriptPluginFactory scriptPluginFactoryFor(ScriptingLanguage scriptingLanguage) {
-        return providerInstantiator.instantiate(scriptingLanguage.getProvider());
+    private List<ScriptingLanguage> scriptingLanguages() {
+        return ScriptingLanguages.all();
+    }
+
+    private ScriptPluginFactory instantiate(String provider) {
+        return providerInstantiator.instantiate(provider);
     }
 }

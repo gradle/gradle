@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -37,14 +38,6 @@ public class IntegrationTestBuildContext {
         return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir()));
     }
 
-    public TestFile getUserGuideOutputDir() {
-        return file("integTest.userGuideOutputDir", "subprojects/docs/src/samples/userguideOutput");
-    }
-
-    public TestFile getUserGuideInfoDir() {
-        return file("integTest.userGuideInfoDir", "subprojects/docs/build/src");
-    }
-
     public TestFile getDistributionsDir() {
         return file("integTest.distsDir", "build/distributions");
     }
@@ -59,6 +52,11 @@ public class IntegrationTestBuildContext {
 
     public TestFile getGradleUserHomeDir() {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
+    }
+
+    @Nullable
+    public TestFile getGradleGeneratedApiJarCacheDir() {
+        return optionalFile("integTest.gradleGeneratedApiJarCacheDir");
     }
 
     public TestFile getTmpDir() {
@@ -105,21 +103,30 @@ public class IntegrationTestBuildContext {
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
-    protected static TestFile file(String propertyName, String defaultFile) {
-        String defaultPath;
-        if (defaultFile == null) {
-            defaultPath = null;
-        } else if (new File(defaultFile).isAbsolute()) {
-            defaultPath = defaultFile;
-        } else {
-            defaultPath = TEST_DIR.file(defaultFile).getAbsolutePath();
+    protected static TestFile file(String propertyName, String defaultPath) {
+        TestFile testFile = optionalFile(propertyName);
+        if (testFile != null) {
+            return testFile;
         }
-        String path = System.getProperty(propertyName, defaultPath);
-        if (path == null) {
-            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
-                propertyName, defaultFile));
+        if (defaultPath == null) {
+            throw new RuntimeException("You must set the '" + propertyName + "' property to run the integration tests.");
         }
-        return new TestFile(new File(path));
+        return testFile(defaultPath);
+    }
+
+    @Nullable
+    private static TestFile optionalFile(String propertyName) {
+        String path = System.getProperty(propertyName);
+        // MODULE_WORKING_DIR doesn't seem to work correctly and MODULE_DIR seems to be in `.idea/modules/<path-to-subproject>`
+        // See https://youtrack.jetbrains.com/issue/IDEA-194910
+        return path != null ? new TestFile(new File(path.replace(".idea/modules/", ""))) : null;
+    }
+
+    private static TestFile testFile(String path) {
+        File file = new File(path);
+        return file.isAbsolute()
+            ? new TestFile(file)
+            : new TestFile(TEST_DIR.file(path).getAbsoluteFile());
     }
 
 }

@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -32,16 +34,23 @@ import java.io.File;
 import java.util.Collection;
 
 public class TestArtifactSet implements ResolvedArtifactSet {
+    public static final String DEFAULT_TEST_VARIANT = "test variant";
+    private final DisplayName variantName;
     private final AttributeContainer variant;
     private final ImmutableSet<ResolvedArtifact> artifacts;
 
-    private TestArtifactSet(AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
+    private TestArtifactSet(String variantName, AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
+        this.variantName = Describables.of(variantName);
         this.variant = variant;
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
+    public static ResolvedArtifactSet create(String variantName, AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+        return new TestArtifactSet(variantName, variantAttributes, artifacts);
+    }
+
     public static ResolvedArtifactSet create(AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
-        return new TestArtifactSet(variantAttributes, artifacts);
+        return new TestArtifactSet(DEFAULT_TEST_VARIANT, variantAttributes, artifacts);
     }
 
     @Override
@@ -50,7 +59,7 @@ public class TestArtifactSet implements ResolvedArtifactSet {
             @Override
             public void visit(ArtifactVisitor visitor) {
                 for (final ResolvedArtifact artifact : artifacts) {
-                    visitor.visitArtifact(variant, new Adapter(artifact));
+                    visitor.visitArtifact(variantName, variant, new Adapter(artifact));
                 }
             }
         };
@@ -76,7 +85,7 @@ public class TestArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public boolean isResolved() {
+        public boolean isResolveSynchronously() {
             return false;
         }
 

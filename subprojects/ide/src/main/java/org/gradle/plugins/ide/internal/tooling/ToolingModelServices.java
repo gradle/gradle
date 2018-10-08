@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -35,7 +35,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
 
     private static class BuildScopeToolingServices {
 
-        protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectPathRegistry projectRegistry) {
+        protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateRegistry projectRegistry) {
             return new DefaultUniqueProjectNameProvider(projectRegistry);
         }
 

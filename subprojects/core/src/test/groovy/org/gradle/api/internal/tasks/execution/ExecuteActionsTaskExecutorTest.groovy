@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -27,6 +25,7 @@ import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.operations.BuildOperationContext
@@ -43,15 +42,13 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def action1 = Mock(ContextAwareTaskAction)
     def action2 = Mock(ContextAwareTaskAction)
     def state = new TaskStateInternal()
-    def taskArtifactState = Mock(TaskArtifactState)
     def executionContext = Mock(TaskExecutionContext)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
-    def publicListener = Mock(TaskActionListener)
-    def internalListener = Mock(TaskOutputsGenerationListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker)
+
+    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, new DefaultBuildCancellationToken())
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -59,7 +56,6 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
-        executionContext.taskArtifactState >> taskArtifactState
     }
 
     void noMoreInteractions() {
@@ -67,28 +63,19 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             0 * action1._
             0 * action2._
             0 * executionContext._
-            0 * taskArtifactState._
             0 * standardOutputCapture._
-            0 * publicListener._
-            0 * internalListener._
         }
     }
 
     def doesNothingWhenTaskHasNoActions() {
         given:
         task.getTaskActions() >> emptyList()
+        task.hasTaskActions() >> false
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
-
-        then:
-        1 * publicListener.afterActions(task)
         noMoreInteractions()
 
         state.outcome == TaskExecutionOutcome.UP_TO_DATE
@@ -100,18 +87,17 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def executesEachActionInOrder() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
             assert state.executing
@@ -121,13 +107,13 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
         then:
         1 * action2.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action2.execute(task)
         then:
@@ -135,13 +121,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
-        then:
-        1 * publicListener.afterActions(task)
         noMoreInteractions()
 
         !state.executing
@@ -156,20 +137,19 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         interaction {
             task.getActions() >> [action1]
             task.getTaskActions() >> [action1]
+            task.hasTaskActions() >> true
         }
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
 
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
             task.getActions().add(action2)
@@ -179,19 +159,15 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
-        then:
-        1 * publicListener.afterActions(task)
         noMoreInteractions()
     }
 
     def stopsAtFirstActionWhichThrowsException() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
         def failure = new RuntimeException("failure")
         action1.execute(task) >> {
             throw failure
@@ -201,25 +177,17 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
-        then:
-        1 * publicListener.afterActions(task)
 
         !state.executing
         state.didWork
@@ -236,14 +204,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def stopsAtFirstActionWhichThrowsStopExecutionException() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
 
-        then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -260,10 +225,6 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
-        then:
-        1 * publicListener.afterActions(task)
         state.didWork
         !state.executing
         state.outcome == TaskExecutionOutcome.EXECUTED
@@ -274,18 +235,17 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def skipsActionWhichThrowsStopActionException() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
             throw new StopActionException('stop')
@@ -295,13 +255,13 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
         then:
         1 * action2.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action2.execute(task)
         then:
@@ -309,13 +269,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
-        then:
-        1 * publicListener.afterActions(task)
 
         state.didWork
         state.outcome == TaskExecutionOutcome.EXECUTED
@@ -329,18 +283,17 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def "captures exceptions from async work"() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.releaseContext()
         then:
@@ -348,13 +301,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
-        then:
-        1 * publicListener.afterActions(task)
 
         !state.executing
         state.didWork
@@ -373,6 +320,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def "captures exceptions from both task action and async work"() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
         action1.execute(task) >> {
             throw new RuntimeException("failure from task action")
         }
@@ -381,13 +329,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.releaseContext()
         then:
@@ -395,13 +341,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
-        then:
-        1 * publicListener.afterActions(task)
 
         !state.executing
         state.didWork
@@ -421,19 +361,18 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def "a single exception from async work is not wrapped in a multicause exception"() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
         def failure = new RuntimeException("failure 1")
 
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * publicListener.beforeActions(task)
-        then:
-        1 * internalListener.beforeTaskOutputsGenerated()
-        then:
         1 * standardOutputCapture.start()
         then:
         1 * action1.contextualise(executionContext)
+        then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.releaseContext()
         then:
@@ -441,13 +380,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
             throw new DefaultMultiCauseException("mock failures", failure)
         }
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
-        then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException})
-        then:
-        1 * publicListener.afterActions(task)
 
         !state.executing
         state.didWork

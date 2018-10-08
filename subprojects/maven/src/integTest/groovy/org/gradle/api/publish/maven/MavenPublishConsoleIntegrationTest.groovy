@@ -16,14 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec.workInProgressLine
-
-class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -111,7 +110,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module"))
+             assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded"))
         }
 
         when:

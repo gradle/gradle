@@ -16,7 +16,9 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.util.VersionNumber
 
 abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
     RunningPlayApp runningApp
@@ -24,10 +26,23 @@ abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVe
 
     def setup() {
         runningApp = new RunningPlayApp(testDirectory)
+        executer.withPluginRepositoryMirror()
     }
 
     def startBuild(tasks) {
-        build = executer.withTasks(tasks).withForceInteractive(true).withStdinPipe().start()
+        build = executer.withTasks(tasks).withForceInteractive(true).withStdinPipe().noDeprecationChecks().start()
         runningApp.initialize(build)
+    }
+
+    static java9AddJavaSqlModuleArgs() {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return "forkOptions.jvmArgs += ['--add-modules', 'java.sql']"
+        } else {
+            return ""
+        }
+    }
+
+    String determineRoutesClassName() {
+        return versionNumber >= VersionNumber.parse('2.4.0') ? "router/Routes.class" : "Routes.class"
     }
 }

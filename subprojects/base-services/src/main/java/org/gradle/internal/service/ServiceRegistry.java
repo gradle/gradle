@@ -57,6 +57,15 @@ public interface ServiceRegistry {
     Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException;
 
     /**
+     * Locates the service of the given type, returning null if no such service.
+     *
+     * @param serviceType The service type.
+     * @return The service instance. Returns {@code null} if no such service exists.
+     * @throws ServiceLookupException On failure to lookup the specified service.
+     */
+    Object find(Type serviceType) throws ServiceLookupException;
+
+    /**
      * Locates a factory which can create services of the given type.
      *
      * @param type The service type that the factory should create.
@@ -77,7 +86,4 @@ public interface ServiceRegistry {
      * @throws ServiceLookupException On failure to lookup the specified service factory.
      */
     <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException;
-
-    boolean hasService(Class<?> serviceType);
-
 }

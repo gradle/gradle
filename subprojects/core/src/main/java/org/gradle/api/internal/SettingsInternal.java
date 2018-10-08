@@ -24,6 +24,9 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.IncludedBuildSpec;
+
+import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal {
     /**
@@ -48,4 +51,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
 
     @Override
     GradleInternal getGradle();
+
+    List<IncludedBuildSpec> getIncludedBuilds();
+
 }

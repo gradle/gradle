@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.resolve.http.AbstractHttpsRepoResolveIntegrationTest
 
 class IvyHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
-    protected String setupRepo(boolean useAuth = false) {
+    protected void setupRepo(boolean useAuth = false) {
         def module = ivyHttpRepo('repo1').module('my-group', 'my-module').publish()
         if (useAuth) {
             module.ivy.allowGetOrHead('user', 'secret')
@@ -28,6 +28,10 @@ class IvyHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegra
             module.ivy.allowGetOrHead()
             module.jar.allowGetOrHead()
         }
-        "ivy"
+    }
+
+    @Override
+    protected String getRepoType() {
+        return "ivy"
     }
 }

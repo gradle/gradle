@@ -20,13 +20,15 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
+import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -36,13 +38,15 @@ import javax.xml.namespace.QName
 import static java.util.Collections.emptySet
 import static org.gradle.util.CollectionUtils.toSet
 
-public class ValidatingIvyPublisherTest extends Specification {
+class ValidatingIvyPublisherTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def delegate = Mock(IvyPublisher)
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository())
+    IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
+
+    def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository(), metadataFactory)
 
     def "delegates when publication is valid"() {
         when:
@@ -203,16 +207,15 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def "reports and fails with invalid descriptor file"() {
         given:
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version"))
-        final artifact = new DefaultIvyArtifact(null, "name", "ext", "type", "classifier")
+        def identity = new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version")
+        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(identity)
+        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity)
         artifact.setConf("unknown")
         ivyFileGenerator.addArtifact(artifact)
-
-        def ivyFile = testDirectoryProvider.file("ivy")
-        ivyFileGenerator.writeTo(ivyFile)
+        def ivyFile = ivyFile(ivyFileGenerator)
 
         and:
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", identity, ivyFile, emptySet())
         def repository = Mock(PublicationAwareRepository)
 
         when:

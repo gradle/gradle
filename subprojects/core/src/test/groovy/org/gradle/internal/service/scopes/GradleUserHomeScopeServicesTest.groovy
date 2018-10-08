@@ -20,8 +20,6 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
-import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
@@ -37,6 +35,7 @@ import org.gradle.concurrent.ParallelismConfiguration
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -51,23 +50,26 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.remote.MessagingServer
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.snapshot.FileSystemMirror
+import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.time.Clock
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.WorkspaceTest
 import spock.lang.Unroll
 
-class GradleUserHomeScopeServicesTest extends Specification {
+class GradleUserHomeScopeServicesTest extends WorkspaceTest {
     ServiceRegistry parent = Stub(ServiceRegistry)
     ServiceRegistry registry
 
     def setup() {
-        parent.hasService(_) >> true
         parent.getAll(PluginServiceRegistry) >> []
         registry =  ServiceRegistryBuilder.builder()
             .parent(parent)
@@ -79,6 +81,9 @@ class GradleUserHomeScopeServicesTest extends Specification {
                             return new File("")
                         }
                     }
+                }
+                ProgressLoggerFactory createProgressLoggerFactory() {
+                    return new NoOpProgressLoggerFactory();
                 }
             })
             .provider(new GradleUserHomeScopeServices(parent))
@@ -98,7 +103,10 @@ class GradleUserHomeScopeServicesTest extends Specification {
             _ * it.decorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
-            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) { _ * getBaseDir() >> Mock(File) }
+            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) {
+                getBaseDir() >> file("caches").createDir().absoluteFile
+                useCache(_) >> { Factory<?> factory -> factory.create() }
+            }
         }
         expectParentServiceLocated(LoggingManagerInternal)
         expectParentServiceLocated(Clock)
@@ -139,7 +147,8 @@ class GradleUserHomeScopeServicesTest extends Specification {
             CachedClasspathTransformer,
             WorkerProcessFactory,
             ClassPathRegistry,
-            WorkerProcessClassPathProvider
+            WorkerProcessClassPathProvider,
+            FileAccessTimeJournal
         ]
     }
 

@@ -16,49 +16,99 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.DefaultClassDependenciesAnalyzer;
-import org.gradle.api.internal.tasks.compile.incremental.cache.CompileCaches;
-import org.gradle.api.internal.tasks.compile.incremental.jar.CachingJarSnapshotter;
-import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotFactory;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.cache.TaskScopedCompileCaches;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClasspathEntrySnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotter;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotFactory;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotMaker;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationOutputAnalyzer;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceToNameConverter;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.base.internal.compile.Compiler;
-
-import java.util.List;
 
 public class IncrementalCompilerFactory {
 
-    private final IncrementalCompilerDecorator incrementalSupport;
-    private final IncrementalTaskInputs inputs;
+    private final FileOperations fileOperations;
+    private final StreamHasher streamHasher;
+    private final GeneralCompileCaches generalCompileCaches;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final StringInterner interner;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileHasher fileHasher;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                      List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs, FileCollection annotationProcessorClasspath) {
-        this.inputs = inputs;
-        //bunch of services that enable incremental java compilation.
-        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), compileCaches.getClassAnalysisCache());
-        JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(streamHasher, fileHasher, analyzer, compileCaches.getJarSnapshotCache());
-        JarClasspathSnapshotMaker jarClasspathSnapshotMaker = new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
-        CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
-        SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs); //TODO SF replace with converter that parses input source class
-        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
-        ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
-        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations);
-        incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer,
-                cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorClasspath);
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter, FileHasher fileHasher) {
+        this.fileOperations = fileOperations;
+        this.streamHasher = streamHasher;
+        this.generalCompileCaches = generalCompileCaches;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.interner = interner;
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.fileHasher = fileHasher;
     }
 
-    public Compiler<JavaCompileSpec> createCompiler() {
+    public Compiler<JavaCompileSpec> makeIncremental(CleaningJavaCompiler cleaningJavaCompiler, String taskPath, IncrementalTaskInputs inputs, FileTree sources) {
+        TaskScopedCompileCaches compileCaches = createCompileCaches(taskPath);
+        Compiler<JavaCompileSpec> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
+        ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), compileCaches.getClassAnalysisCache());
+        ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(fileHasher, streamHasher, fileSystemSnapshotter, analyzer, compileCaches.getClasspathEntrySnapshotCache(), fileOperations);
+        ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor));
+        CompilationSourceDirs sourceDirs = new CompilationSourceDirs((FileTreeInternal) sources);
+        SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs);
+        RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter);
+        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations, sources);
+        PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer = new PreviousCompilationOutputAnalyzer(fileHasher, streamHasher, analyzer, fileOperations);
+        IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(classpathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, recompilationSpecProvider, sourceDirs, rebuildAllCompiler, previousCompilationOutputAnalyzer, interner);
         return incrementalSupport.prepareCompiler(inputs);
+    }
+
+    private TaskScopedCompileCaches createCompileCaches(String path) {
+        final PreviousCompilationStore previousCompilationStore = generalCompileCaches.createPreviousCompilationStore(path);
+        return new TaskScopedCompileCaches() {
+            @Override
+            public ClassAnalysisCache getClassAnalysisCache() {
+                return generalCompileCaches.getClassAnalysisCache();
+            }
+
+            @Override
+            public ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache() {
+                return generalCompileCaches.getClasspathEntrySnapshotCache();
+            }
+
+            @Override
+            public PreviousCompilationStore getPreviousCompilationStore() {
+                return previousCompilationStore;
+            }
+
+        };
+    }
+
+    private Compiler<JavaCompileSpec> createRebuildAllCompiler(final CleaningJavaCompiler cleaningJavaCompiler, final FileTree sourceFiles) {
+        return new Compiler<JavaCompileSpec>() {
+            @Override
+            public WorkResult execute(JavaCompileSpec spec) {
+                spec.setSourceFiles(sourceFiles);
+                return cleaningJavaCompiler.execute(spec);
+            }
+        };
     }
 }

@@ -1,6 +1,8 @@
-apply plugin: 'javascript-base'
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-sourceCompatibility = 1.6
+plugins {
+    id 'javascript-base'
+}
 
 configurations {
     reports
@@ -11,21 +13,29 @@ repositories {
 }
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
     compile project(':core')
-    compile libraries.jatl
+    compile libraries.jatl.coordinates
 
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
     integTestRuntime project(':codeQuality')
     integTestRuntime project(':jacoco')
 
     reports "jquery:jquery.min:1.11.0@js"
 }
 
-task reportResources(type: Copy) {
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
+testFixtures {
+    from(':core')
+}
+
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
+
+def reportResources = tasks.register("reportResources", Copy) {
     from configurations.reports
     into "$generatedResourcesDir/org/gradle/reporting"
 }
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
-
-useTestFixtures()

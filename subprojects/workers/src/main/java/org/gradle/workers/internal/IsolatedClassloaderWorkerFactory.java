@@ -22,7 +22,7 @@ import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -34,14 +34,12 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
-import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.util.GUtil;
 import org.gradle.workers.IsolationMode;
 
@@ -56,13 +54,11 @@ import java.util.concurrent.Callable;
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     private final ClassLoaderFactory classLoaderFactory;
-    private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
 
-    public IsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
+    public IsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationExecutor buildOperationExecutor) {
         this.classLoaderFactory = classLoaderFactory;
-        this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -71,27 +67,22 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         return new Worker() {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                return execute(spec, workerLeaseRegistry.getCurrentWorkerLease(), buildOperationExecutor.getCurrentOperation());
+                return execute(spec, buildOperationExecutor.getCurrentOperation());
             }
 
             @Override
-            public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationState parentBuildOperation) {
-                WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = parentWorkerWorkerLease.startChild();
-                try {
-                    return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
-                        @Override
-                        public DefaultWorkResult call(BuildOperationContext context) {
-                            return executeInWorkerClassLoader(spec, forkOptions);
-                        }
+            public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
+                return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
+                    @Override
+                    public DefaultWorkResult call(BuildOperationContext context) {
+                        return executeInWorkerClassLoader(spec, forkOptions);
+                    }
 
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
-                        }
-                    });
-                } finally {
-                    workerLease.leaseFinish();
-                }
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                    }
+                });
             }
         };
     }
@@ -104,7 +95,6 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
-
         ClassLoader workerClassLoader = createWorkerClassLoader(actionClasspathLoader, forkOptions.getSharedPackages(), spec.getClass());
 
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
@@ -116,14 +106,13 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            // Eventually shutdown any leaky groovy runtime loaded from action classpath loader
             actionClasspathGroovy.shutdown();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
 
     private ClassLoader createActionClasspathLoader(DaemonForkOptions forkOptions) {
-        return classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
+        return classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(forkOptions.getClasspath()));
     }
 
     private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<?> actionClass) {
@@ -181,7 +170,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         @Override
         public Object call() throws Exception {
             // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
-            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             WorkerProtocol<ActionExecutionSpec> worker = new DefaultWorkerServer(instantiatorFactory.inject());
             return worker.execute(spec);
         }

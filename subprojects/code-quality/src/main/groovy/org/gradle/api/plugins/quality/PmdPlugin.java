@@ -48,7 +48,7 @@ import java.util.concurrent.Callable;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "5.6.1";
+    public static final String DEFAULT_PMD_VERSION = "6.7.0";
     private PmdExtension extension;
 
     @Override
@@ -65,8 +65,8 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
-        extension.setRuleSets(new ArrayList<String>(Arrays.asList("java-basic")));
-        extension.setRuleSetFiles(project.files());
+        extension.setRuleSets(new ArrayList<String>(Arrays.asList("category/java/errorprone.xml")));
+        extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", new Callable<Object>() {
             @Override
             public Object call() {
@@ -87,9 +87,13 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Override
-    protected void configureTaskDefaults(Pmd task, String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("pmd");
+    protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
+    }
+
+    @Override
+    protected void configureTaskDefaults(Pmd task, String baseName) {
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }
@@ -184,7 +188,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("classpath", new Callable<FileCollection>() {
             @Override
-            public FileCollection call() throws Exception {
+            public FileCollection call() {
                 return sourceSet.getOutput().plus(sourceSet.getCompileClasspath());
             }
         });

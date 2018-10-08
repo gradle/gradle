@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.hash.HashValue
@@ -34,7 +37,7 @@ import static org.gradle.internal.component.external.model.AbstractMutableModule
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specification {
-    def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+    def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
     def configurations = []
     def dependencies = []
 
@@ -51,68 +54,24 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def "can replace identifiers"() {
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def metadata = getMetadata()
 
         given:
-        metadata.componentId = newId
+        metadata.id = newId
 
         expect:
-        metadata.componentId == newId
-        metadata.id == DefaultModuleVersionIdentifier.newId(newId)
-        metadata.asImmutable().componentId == newId
-        metadata.asImmutable().asMutable().componentId == newId
-    }
-
-    def "builds and caches the dependency meta-data"() {
-        given:
-        configuration("compile")
-        configuration("runtime", ["compile"])
-        dependency("org", "module", "1.2", ["compile"])
-        dependency("org", "another", "1.2", ["runtime"])
-
-        when:
-        def deps = metadata.dependencies
-
-        then:
-        deps.size() == 2
-        deps[0].selector == newSelector("org", "module", v("1.2"))
-        deps[1].selector == newSelector("org", "another", v("1.2"))
-
-        and:
-        def immutable = metadata.asImmutable()
-        immutable.dependencies.size() == 2
-        immutable.dependencies[0].selector == newSelector("org", "module", v("1.2"))
-        immutable.dependencies[1].selector == newSelector("org", "another", v("1.2"))
-        immutable.getConfiguration("compile").dependencies.size() == 1
-        immutable.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
-        immutable.getConfiguration("runtime").dependencies.size() == 2
-        immutable.getConfiguration("runtime").dependencies[0] == immutable.dependencies[0]
-        immutable.getConfiguration("runtime").dependencies[1] == immutable.dependencies[1]
-
-        and:
-        def copy = immutable.asMutable()
-        copy.dependencies.size() == 2
-        copy.dependencies[0].selector == newSelector("org", "module", v("1.2"))
-        copy.dependencies[1].selector == newSelector("org", "another", v("1.2"))
-
-        and:
-        def immutable2 = copy.asImmutable()
-        immutable2.dependencies.size() == 2
-        immutable2.dependencies[0].selector == newSelector("org", "module", v("1.2"))
-        immutable2.dependencies[1].selector == newSelector("org", "another", v("1.2"))
-        immutable2.getConfiguration("compile").dependencies.size() == 1
-        immutable2.getConfiguration("compile").dependencies[0] == immutable.dependencies[0]
-        immutable2.getConfiguration("runtime").dependencies.size() == 2
-        immutable2.getConfiguration("runtime").dependencies[0] == immutable.dependencies[0]
-        immutable2.getConfiguration("runtime").dependencies[1] == immutable.dependencies[1]
+        metadata.id == newId
+        metadata.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
+        metadata.asImmutable().id == newId
+        metadata.asImmutable().asMutable().id == newId
     }
 
     def "can create default metadata"() {
         def metadata = createMetadata(id)
 
         expect:
-        metadata.componentId == id
+        metadata.id == id
         metadata.dependencies.empty
         !metadata.changing
         !metadata.missing
@@ -121,12 +80,12 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.contentHash == EMPTY_CONTENT
 
         def immutable = metadata.asImmutable()
-        immutable.componentId == id
+        immutable.id == id
         !immutable.changing
         !immutable.missing
         immutable.status == "integration"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
-        immutable.contentHash == EMPTY_CONTENT
+        immutable.originalContentHash == EMPTY_CONTENT
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
         immutable.getConfiguration("default").artifacts.first().name.name == id.module
@@ -152,7 +111,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.changing
         immutable.missing
         immutable.status == "broken"
-        immutable.contentHash == contentHash
+        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing
@@ -164,7 +123,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable2.changing
         immutable2.missing
         immutable2.status == "broken"
-        immutable2.contentHash == contentHash
+        immutable2.originalContentHash == contentHash
     }
 
     def "can changes to mutable metadata does not affect copies"() {
@@ -190,7 +149,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         immutable.changing
         immutable.missing
         immutable.status == "broken"
-        immutable.contentHash == contentHash
+        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing
@@ -199,73 +158,191 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         copy.contentHash == contentHash
     }
 
-    def "can replace the dependencies for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime", ["compile"])
+    def "can attach variants with files"() {
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def metadata = createMetadata(id)
 
-        dependency("foo", "bar", "1.0")
-        def metadata = getMetadata()
-        metadata.configurations
+        given:
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"),)
+        v1.addFile("f1", "dir/f1")
+        v1.addFile("f2.jar", "f2-1.2.jar")
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"),)
+        v2.addFile("f1", "dir/f1")
 
-        then:
-        metadata.dependencies*.selector*.toString() == ["foo:bar:1.0"]
-
-        when:
-        def dependency1 = dependency("foo", "bar", "1.2", ["runtime"])
-        def dependency2 = dependency("foo", "baz", "1.2", ["compile"])
-        metadata.dependencies = [dependency1, dependency2]
-
-        then:
-        metadata.dependencies == [dependency1, dependency2]
+        expect:
+        metadata.variants.size() == 2
+        metadata.variants[0].name == "api"
+        metadata.variants[0].asDescribable().displayName == "group:module:version variant api"
+        metadata.variants[0].attributes == attributes(usage: "compile")
+        metadata.variants[0].files.size() == 2
+        metadata.variants[0].files[0].name == "f1"
+        metadata.variants[0].files[0].uri == "dir/f1"
+        metadata.variants[0].files[1].name == "f2.jar"
+        metadata.variants[0].files[1].uri == "f2-1.2.jar"
+        metadata.variants[1].name == "runtime"
+        metadata.variants[1].asDescribable().displayName == "group:module:version variant runtime"
+        metadata.variants[1].attributes == attributes(usage: "runtime")
+        metadata.variants[1].files.size() == 1
+        metadata.variants[1].files[0].name == "f1"
+        metadata.variants[1].files[0].uri == "dir/f1"
 
         def immutable = metadata.asImmutable()
-        immutable.getConfiguration("compile").dependencies == [dependency2]
-        immutable.getConfiguration("runtime").dependencies == [dependency1, dependency2]
+        immutable.variants.size() == 2
+        immutable.variants[0].name == "api"
+        immutable.variants[0].files.size() == 2
+        immutable.variants[1].name == "runtime"
+        immutable.variants[1].files.size() == 1
 
-        when:
+        def metadata2 = immutable.asMutable()
+        metadata2.variants.size() == 2
+        metadata2.variants[0].name == "api"
+        metadata2.variants[0].files.size() == 2
+        metadata2.variants[1].name == "runtime"
+        metadata2.variants[1].files.size() == 1
+
+        def immutable2 = metadata2.asImmutable()
+        immutable2.variants.size() == 2
+        immutable2.variants[0].name == "api"
+        immutable2.variants[0].files.size() == 2
+        immutable2.variants[1].name == "runtime"
+        immutable2.variants[1].files.size() == 1
+
         def copy = immutable.asMutable()
-        copy.dependencies = [dependency1]
+        copy.addVariant("link", attributes())
 
-        then:
-        def immutable2 = copy.asImmutable()
-        immutable2.getConfiguration("compile").dependencies == []
-        immutable2.getConfiguration("runtime").dependencies == [dependency1]
+        copy.variants.size() == 3
+        copy.variants[0].name == "api"
+        copy.variants[0].files.size() == 2
+        copy.variants[1].name == "runtime"
+        copy.variants[1].files.size() == 1
+        copy.variants[2].name == "link"
+        copy.variants[2].files.empty
+
+        def immutable3 = copy.asImmutable()
+        immutable3.variants.size() == 3
+        immutable3.variants[0].name == "api"
+        immutable3.variants[0].files.size() == 2
+        immutable3.variants[1].name == "runtime"
+        immutable3.variants[1].files.size() == 1
+        immutable3.variants[2].name == "link"
+        immutable3.variants[2].files.empty
     }
 
-    def "can replace the artifacts for the component"() {
-        when:
-        configuration("compile")
-        configuration("runtime")
-        def metadata = getMetadata()
-        metadata.configurations
-        def a1 = metadata.artifact("jar", "jar", null)
-        def a2 = metadata.artifact("pom", "pom", null)
-        metadata.artifactOverrides = [a1, a2]
+    def "can attach variants with dependencies"() {
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def metadata = createMetadata(id)
 
-        then:
+        given:
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"),)
+        v1.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY)
+        v1.addDependency("g2", "m2", v("v2"), [], "v2 is tested", ImmutableAttributes.EMPTY)
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"),)
+        v2.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY)
+
+        expect:
+        metadata.variants.size() == 2
+        metadata.variants[0].dependencies.size() == 2
+        metadata.variants[0].dependencies[0].group == "g1"
+        metadata.variants[0].dependencies[0].module == "m1"
+        metadata.variants[0].dependencies[0].versionConstraint.requiredVersion == "v1"
+        metadata.variants[0].dependencies[1].group == "g2"
+        metadata.variants[0].dependencies[1].module == "m2"
+        metadata.variants[0].dependencies[1].versionConstraint.requiredVersion == "v2"
+        metadata.variants[0].dependencies[1].reason == "v2 is tested"
+        metadata.variants[1].dependencies.size() == 1
+        metadata.variants[1].dependencies[0].group == "g1"
+        metadata.variants[1].dependencies[0].module == "m1"
+        metadata.variants[1].dependencies[0].versionConstraint.requiredVersion == "v1"
+
         def immutable = metadata.asImmutable()
-        immutable.artifactOverrides == [a1, a2]
-        immutable.getConfiguration("compile").artifacts == [a1, a2]
-        immutable.getConfiguration("runtime").artifacts == [a1, a2]
+        immutable.variants.size() == 2
+        immutable.variants[0].dependencies.size() == 2
+        immutable.variants[1].dependencies.size() == 1
+
+        def immutable2 = immutable.asMutable().asImmutable()
+        immutable2.variants[0].dependencies.size() == 2
+        immutable2.variants[1].dependencies.size() == 1
 
         def copy = immutable.asMutable()
-        copy.artifactOverrides == [a1, a2]
+        copy.variants.size() == 2
+        copy.addVariant("link", attributes())
+        copy.variants.size() == 3
 
-        when:
-        metadata.artifactOverrides = [a2]
-
-        then:
-        def immutable2 = metadata.asImmutable()
-        immutable2.artifactOverrides == [a2]
-        immutable2.getConfiguration("compile").artifacts == [a2]
-        immutable2.getConfiguration("runtime").artifacts == [a2]
+        def immutable3 = copy.asImmutable()
+        immutable3.variants.size() == 3
+        immutable3.variants[0].dependencies.size() == 2
+        immutable3.variants[1].dependencies.size() == 1
+        immutable3.variants[2].dependencies.empty
     }
+
+    def "variants are attached as consumable configurations used for variant aware selection"() {
+        def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
+        def metadata = createMetadata(id)
+
+        def attributes1 = attributes(usage: "compile")
+        def attributes2 = attributes(usage: "runtime")
+
+        def v1 = metadata.addVariant("api", attributes1,)
+        v1.addFile("f1.jar", "f1.jar")
+        v1.addFile("f2.jar", "f2-1.2.jar")
+        v1.addDependency("g1", "m1", v("v1"), [], null, ImmutableAttributes.EMPTY)
+        def v2 = metadata.addVariant("runtime", attributes2,)
+        v2.addFile("f2", "f2-version.zip")
+        v2.addDependency("g2", "m2", v("v2"), [], null, ImmutableAttributes.EMPTY)
+        v2.addDependency("g3", "m3", v("v3"), [], null, ImmutableAttributes.EMPTY)
+
+        expect:
+        def immutable = metadata.asImmutable()
+        def variantsForTraversal = immutable.getVariantsForGraphTraversal().orNull()
+        variantsForTraversal.size() == 2
+        variantsForTraversal[0].name == 'api'
+        variantsForTraversal[0].dependencies.size() == 1
+        variantsForTraversal[1].name == 'runtime'
+        variantsForTraversal[1].dependencies.size() == 2
+
+        def api = variantsForTraversal[0]
+        api.name == 'api'
+        api.asDescribable().displayName == 'group:module:version variant api'
+        api.attributes == attributes1
+
+        api.dependencies.size() == 1
+        api.dependencies[0].selector.group == "g1"
+        api.dependencies[0].selector.module == "m1"
+        api.dependencies[0].selector.version == "v1"
+
+        api.variants.size() == 1
+        api.variants[0].asDescribable().displayName == "group:module:version variant api"
+        api.variants[0].attributes == attributes1
+        api.variants[0].artifacts.size() == 2
+        def artifacts1 = api.variants[0].artifacts as List
+        artifacts1[0].name.name == 'f1'
+        artifacts1[0].name.type == 'jar'
+        artifacts1[0].name.classifier == null
+        artifacts1[0].name.extension == 'jar'
+
+        def runtime = variantsForTraversal[1]
+        runtime.name == 'runtime'
+        runtime.asDescribable().displayName == 'group:module:version variant runtime'
+        runtime.attributes == attributes2
+        runtime.variants.size() == 1
+
+        runtime.dependencies.size() == 2
+
+        runtime.variants[0].asDescribable().displayName == "group:module:version variant runtime"
+        runtime.variants[0].attributes == attributes2
+        runtime.variants[0].artifacts.size() == 1
+        def artifacts2 = runtime.variants[0].artifacts as List
+        artifacts2[0].name.name == 'f2'
+        artifacts2[0].name.type == 'zip'
+        artifacts2[0].name.classifier == null
+        artifacts2[0].name.extension == 'zip'
+    }
+
 
     def dependency(String org, String module, String version, List<String> confs = []) {
         def builder = ImmutableListMultimap.builder()
         confs.each { builder.put(it, it) }
-        def dependency = new IvyDependencyMetadata(newSelector(org, module, v(version)), builder.build())
+        def dependency = new IvyDependencyDescriptor(newSelector(DefaultModuleIdentifier.newId(org, module), v(version)), builder.build())
         dependencies.add(dependency)
         return dependency
     }
@@ -275,12 +352,13 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def attributes(Map<String, String> values) {
-        def attrs = ImmutableAttributes.EMPTY
+        def attrs = TestUtil.attributesFactory().mutable()
+        attrs.attribute(ProjectInternal.STATUS_ATTRIBUTE, 'integration')
         if (values) {
             values.each { String key, String value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, String), value)
+                attrs.attribute(Attribute.of(key, String), value)
             }
         }
-        return attrs
+        return attrs.asImmutable()
     }
 }

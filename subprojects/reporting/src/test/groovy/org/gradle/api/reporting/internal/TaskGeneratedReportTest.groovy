@@ -31,7 +31,7 @@ class TaskGeneratedReportTest extends Specification {
         given:
         Project project = ProjectBuilder.builder().build()
         Task task = project.task("task", type: Copy)
-        TaskGeneratedReport report = new TaskGeneratedReport("report", Report.OutputType.FILE, task)
+        TaskGeneratedReport report = new TaskGeneratedReport("report", Report.OutputType.FILE, task) {}
         File destinationFile = project.file("foo")
 
         when:

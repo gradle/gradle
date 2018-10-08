@@ -16,21 +16,32 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/customizedLayout')
+@Requires(KOTLIN_SCRIPT)
+class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Test
-    public void canBuildAndUploadJar() {
-        TestFile javaprojectDir = sample.dir
-                                                      
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
+
+    def setup() {
+        executer.withRepositoryMirrors()
+    }
+
+    @Unroll
+    @UsesSample('java/customizedLayout')
+    def "can build and upload jar with #dsl dsl"() {
+        TestFile javaprojectDir = sample.dir.file(dsl)
+
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
@@ -48,5 +59,8 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class'
         )
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

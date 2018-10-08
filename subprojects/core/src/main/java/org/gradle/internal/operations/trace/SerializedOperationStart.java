@@ -17,19 +17,17 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.OperationStartEvent;
 
-import java.util.HashMap;
 import java.util.Map;
 
-class SerializedOperationStart {
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
-    final Object id;
-    final Object parentId;
+class SerializedOperationStart implements SerializedOperation {
+
+    final long id;
+    final Long parentId;
     final String displayName;
 
     final long startTime;
@@ -38,49 +36,25 @@ class SerializedOperationStart {
     final String detailsClassName;
 
     SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {
-        this.id = ((OperationIdentifier) descriptor.getId()).getId();
-        this.parentId = descriptor.getParentId() == null ? null : ((OperationIdentifier) descriptor.getParentId()).getId();
+        this.id = descriptor.getId().getId();
+        this.parentId = descriptor.getParentId() == null ? null : descriptor.getParentId().getId();
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
-        this.details = transform(descriptor.getDetails());
+        this.details = toSerializableModel(descriptor.getDetails());
         this.detailsClassName = details == null ? null : descriptor.getDetails().getClass().getName();
     }
 
-    private Object transform(Object details) {
-        if (details instanceof ExecuteTaskBuildOperationType.Details) {
-            ExecuteTaskBuildOperationType.Details cast = (ExecuteTaskBuildOperationType.Details) details;
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("buildPath", cast.getBuildPath());
-            map.put("taskPath", cast.getTaskPath());
-            map.put("taskClass", cast.getTaskClass().getName());
-            map.put("taskId", cast.getTaskId());
-            return map;
-        }
-
-        if (details instanceof ApplyPluginBuildOperationType.Details) {
-            ApplyPluginBuildOperationType.Details cast = (ApplyPluginBuildOperationType.Details) details;
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("pluginId", cast.getPluginId());
-            map.put("pluginClass", cast.getPluginClass().getName());
-            map.put("targetType", cast.getTargetType());
-            map.put("targetPath", cast.getTargetPath());
-            map.put("buildPath", cast.getBuildPath());
-            return map;
-        }
-
-        return details;
-    }
-
     SerializedOperationStart(Map<String, ?> map) {
-        this.id = map.get("id");
-        this.parentId = map.get("parentId");
+        this.id = ((Integer) map.get("id")).longValue();
+        Integer parentId = (Integer) map.get("parentId");
+        this.parentId = parentId == null ? null : parentId.longValue();
         this.displayName = (String) map.get("displayName");
         this.startTime = (Long) map.get("startTime");
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");
     }
 
-    Map<String, ?> toMap() {
+    public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         // Order is optimised for humans looking at the log.

@@ -1,0 +1,134 @@
+repositories {
+    ivy {
+        url "$projectDir/repo"
+    }
+}
+
+configurations {
+    config1
+    config2
+    config3
+    config4
+    config5
+    config6
+}
+
+// tag::latest-selector[]
+dependencies {
+    config1 "org.sample:client:latest.integration"
+    config2 "org.sample:client:latest.release"
+}
+
+task listConfigs {
+    doLast {
+        configurations.config1.each { println it.name }
+        println()
+        configurations.config2.each { println it.name }
+    }
+}
+// end::latest-selector[]
+
+// tag::custom-status-scheme[]
+class CustomStatusRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        def details = context.details
+        if (details.id.group == "org.sample" && details.id.name == "api") {
+            details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+        }
+    }
+}
+
+dependencies {
+    config3 "org.sample:api:latest.silver"
+    components {
+        all(CustomStatusRule)
+    }
+}
+// end::custom-status-scheme[]
+
+task listApi {
+    doLast {
+        configurations.config3.each { println "Resolved: ${it.name}" }
+    }
+}
+
+// tag::custom-status-scheme-module[]
+class ModuleStatusRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        context.details.statusScheme = ["int", "rc", "prod"]
+    }
+}
+
+dependencies {
+    config4 "org.sample:lib:latest.prod"
+    components {
+        withModule('org.sample:lib', ModuleStatusRule)
+    }
+}
+// end::custom-status-scheme-module[]
+
+task listLib {
+    doLast {
+        configurations.config4.each { println "Resolved: ${it.name}" }
+    }
+}
+
+// tag::ivy-component-metadata-rule[]
+class IvyComponentRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        def descriptor = context.getDescriptor(IvyModuleDescriptor)
+        if (descriptor != null && descriptor.branch == 'testing') {
+            context.details.status = "rc"
+        }
+    }
+}
+dependencies {
+    config5 "org.sample:lib:latest.rc"
+    components {
+        withModule("org.sample:lib", IvyComponentRule)
+    }
+}
+// end::ivy-component-metadata-rule[]
+
+task listWithIvyRule {
+    doLast {
+        configurations.config5.each { println "Resolved: ${it.name}" }
+    }
+}
+
+// tag::config-component-metadata-rule[]
+class ConfiguredRule implements ComponentMetadataRule {
+    String param
+
+    @javax.inject.Inject
+    ConfiguredRule(String param) {
+        this.param = param
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+        if (param == 'sampleValue') {
+            context.details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+        }
+    }
+}
+dependencies {
+    config6 "org.sample:api:latest.gold"
+    components {
+        withModule('org.sample:api', ConfiguredRule, {
+            params('sampleValue')
+        })
+    }
+}
+
+// end::config-component-metadata-rule[]
+
+task listWithConfiguredRule {
+    doLast {
+        configurations.config6.each { println "Resolved: ${it.name}" }
+    }
+}
+

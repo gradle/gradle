@@ -16,23 +16,13 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.build.IncludedBuildState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencySubstitutionsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(IncludedBuildDependencySubstitutionsBuilder.class);
@@ -45,34 +35,21 @@ public class IncludedBuildDependencySubstitutionsBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public void build(IncludedBuildInternal build) {
+    public void build(IncludedBuildState build) {
         DependencySubstitutionsInternal substitutions = resolveDependencySubstitutions(build);
         if (!substitutions.hasRules()) {
-            // Configure the included build to discover substitutions
-            LOGGER.info("[composite-build] Configuring build: " + build.getProjectDir());
-            Gradle gradle = build.getConfiguredBuild();
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                registerProject(build, (ProjectInternal) project);
-            }
+            // Configure the included build to discover available modules
+            LOGGER.info("[composite-build] Configuring build: " + build.getModel().getProjectDir());
+            context.addAvailableModules(build.getAvailableModules());
         } else {
             // Register the defined substitutions for included build
             context.registerSubstitution(substitutions.getRuleAction());
         }
     }
 
-    private void registerProject(IncludedBuild build, ProjectInternal project) {
-        LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
-        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
-        context.registerSubstitution(originalComponent.getId(), componentIdentifier);
-    }
-
-    private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildInternal build) {
+    private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory);
-        for (Action<? super DependencySubstitutions> action : build.getRegisteredDependencySubstitutions()) {
-            action.execute(dependencySubstitutions);
-        }
+        build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }
 

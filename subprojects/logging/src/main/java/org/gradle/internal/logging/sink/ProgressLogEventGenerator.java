@@ -18,7 +18,6 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -26,11 +25,11 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -44,12 +43,10 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     private static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
     private final OutputEventListener listener;
-    private final boolean deferHeader;
     private final Map<OperationIdentifier, Operation> operations = new LinkedHashMap<OperationIdentifier, Operation>();
 
-    public ProgressLogEventGenerator(OutputEventListener listener, boolean deferHeader) {
+    public ProgressLogEventGenerator(OutputEventListener listener) {
         this.listener = listener;
-        this.deferHeader = deferHeader;
     }
 
     public void onOutput(OutputEvent event) {
@@ -74,19 +71,6 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     private void onComplete(ProgressCompleteEvent progressCompleteEvent) {
         assert !operations.isEmpty();
         Operation operation = operations.remove(progressCompleteEvent.getProgressOperationId());
-
-        // Didn't find an operation with that id in the map
-        if (operation == null) {
-            // Remove last operation and complete that
-            Iterator<Map.Entry<OperationIdentifier, Operation>> entryIterator = operations.entrySet().iterator();
-            Map.Entry<OperationIdentifier, Operation> lastEntry = entryIterator.next();
-            while (entryIterator.hasNext()) {
-                lastEntry = entryIterator.next();
-            }
-            entryIterator.remove();
-            operation = lastEntry.getValue();
-            // TODO: Do we actually run into this case anymore?
-        }
         completeOperation(progressCompleteEvent, operation);
     }
 
@@ -99,16 +83,12 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     private void onStart(ProgressStartEvent progressStartEvent) {
         Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getBuildOperationId());
         operations.put(progressStartEvent.getProgressOperationId(), operation);
-
-        if (!deferHeader || !(progressStartEvent.getLoggingHeader() != null && progressStartEvent.getLoggingHeader().equals(progressStartEvent.getShortDescription()))) {
-            operation.startHeader();
-        }
     }
 
     enum State {None, HeaderStarted, HeaderCompleted, Completed}
 
     private class Operation {
-        private final Object buildOperationIdentifier;
+        private final OperationIdentifier buildOperationIdentifier;
         private final String category;
         private final String loggingHeader;
         private final long startTime;
@@ -117,7 +97,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private State state = State.None;
         private long completeTime;
 
-        private Operation(String category, String loggingHeader, long startTime, Object buildOperationIdentifier) {
+        private Operation(String category, String loggingHeader, long startTime, OperationIdentifier buildOperationIdentifier) {
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.startTime = startTime;

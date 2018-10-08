@@ -13,127 +13,136 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file
 
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitorUtil;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.util.GUtil;
+import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitorUtil
+import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices;
-import org.junit.Rule;
-import spock.lang.Specification;
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContains
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileSet
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForMatchingTask
+import static org.gradle.util.Matchers.isEmpty
+import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.WrapUtil.toSet
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
+import static org.junit.Assert.fail
 
 @UsesNativeServices
-public class AbstractFileCollectionTest extends Specification {
+class AbstractFileCollectionTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    final TaskDependency dependency = Mock(TaskDependency.class);
+    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final TaskDependency dependency = Mock(TaskDependency.class)
 
-    public void usesDisplayNameAsToString() {
-        TestFileCollection collection = new TestFileCollection();
-
-        expect:
-        assertThat(collection.toString(), equalTo("collection-display-name"));
-    }
-
-    public void canIterateOverFiles() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        TestFileCollection collection = new TestFileCollection(file1, file2);
+    void usesDisplayNameAsToString() {
+        TestFileCollection collection = new TestFileCollection()
 
         expect:
-        Iterator<File> iterator = collection.iterator();
-        assertThat(iterator.next(), sameInstance(file1));
-        assertThat(iterator.next(), sameInstance(file2));
-        assertFalse(iterator.hasNext());
+        assertThat(collection.toString(), equalTo("collection-display-name"))
     }
 
-    public void canGetSingleFile() {
-        File file = new File("f1");
-        TestFileCollection collection = new TestFileCollection(file);
+    void canIterateOverFiles() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        TestFileCollection collection = new TestFileCollection(file1, file2)
 
         expect:
-        assertThat(collection.getSingleFile(), sameInstance(file));
+        Iterator<File> iterator = collection.iterator()
+        assertThat(iterator.next(), sameInstance(file1))
+        assertThat(iterator.next(), sameInstance(file2))
+        assertFalse(iterator.hasNext())
     }
 
-    public void failsToGetSingleFileWhenCollectionContainsMultipleFiles() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        TestFileCollection collection = new TestFileCollection(file1, file2);
+    void canGetSingleFile() {
+        File file = new File("f1")
+        TestFileCollection collection = new TestFileCollection(file)
 
         expect:
-        try {
-            collection.getSingleFile();
-            fail();
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains 2 files."));
-        }
+        assertThat(collection.getSingleFile(), sameInstance(file))
     }
 
-    public void failsToGetSingleFileWhenCollectionIsEmpty() {
-        TestFileCollection collection = new TestFileCollection();
+    void failsToGetSingleFileWhenCollectionContainsMultipleFiles() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        TestFileCollection collection = new TestFileCollection(file1, file2)
 
         expect:
         try {
-            collection.getSingleFile();
-            fail();
+            collection.getSingleFile()
+            fail()
         } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains no files."));
+            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains more than one file."))
         }
     }
 
-    public void containsFile() {
-        File file1 = new File("f1");
-        TestFileCollection collection = new TestFileCollection(file1);
+    void failsToGetSingleFileWhenCollectionIsEmpty() {
+        TestFileCollection collection = new TestFileCollection()
 
         expect:
-        assertTrue(collection.contains(file1));
-        assertFalse(collection.contains(new File("f2")));
+        try {
+            collection.getSingleFile()
+            fail()
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains no files."))
+        }
     }
 
-    public void canGetFilesAsAPath() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        TestFileCollection collection = new TestFileCollection(file1, file2);
+    void containsFile() {
+        File file1 = new File("f1")
+        TestFileCollection collection = new TestFileCollection(file1)
 
         expect:
-        assertThat(collection.getAsPath(), equalTo(file1.path + File.pathSeparator + file2.path));
+        assertTrue(collection.contains(file1))
+        assertFalse(collection.contains(new File("f2")))
     }
 
-    public void canAddCollectionsTogether() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+    void canGetFilesAsAPath() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        TestFileCollection collection = new TestFileCollection(file1, file2)
+
+        expect:
+        assertThat(collection.getAsPath(), equalTo(file1.path + File.pathSeparator + file2.path))
+    }
+
+    void canAddCollectionsTogether() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
-        FileCollection sum = collection1.plus(collection2);
+        FileCollection sum = collection1.plus(collection2)
 
         then:
-        assertThat(sum, instanceOf(UnionFileCollection.class));
-        assertThat(sum.getFiles(), equalTo(toLinkedSet(file1, file2, file3)));
+        assertThat(sum, instanceOf(UnionFileCollection.class))
+        assertThat(sum.getFiles(), equalTo(toLinkedSet(file1, file2, file3)))
     }
 
     def "can add collections using + operator"() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
         FileCollection sum = collection1 + collection2
@@ -144,11 +153,11 @@ public class AbstractFileCollectionTest extends Specification {
     }
 
     def "can add a list of collections"() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
         FileCollection sum = collection1.plus(collection2)
@@ -159,11 +168,11 @@ public class AbstractFileCollectionTest extends Specification {
     }
 
     def "can add list of collections using + operator"() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
         FileCollection sum = collection1 + collection2
@@ -173,26 +182,26 @@ public class AbstractFileCollectionTest extends Specification {
         sum.getFiles() == toLinkedSet(file1, file2, file3)
     }
 
-    public void canSubtractCollections() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+    void canSubtractCollections() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
-        FileCollection difference = collection1.minus(collection2);
+        FileCollection difference = collection1.minus(collection2)
 
         then:
-        assertThat(difference.getFiles(), equalTo(toLinkedSet(file1)));
+        assertThat(difference.getFiles(), equalTo(toLinkedSet(file1)))
     }
 
     def "can subtract a collection using - operator"() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
         FileCollection difference = collection1 - collection2
@@ -202,11 +211,11 @@ public class AbstractFileCollectionTest extends Specification {
     }
 
     def "can subtract a list of collection"() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
         FileCollection difference = collection1.minus(collection2)
@@ -216,11 +225,11 @@ public class AbstractFileCollectionTest extends Specification {
     }
 
     def "can subtract a list of collections using - operator"() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("f3");
-        TestFileCollection collection1 = new TestFileCollection(file1, file2);
-        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        TestFileCollection collection1 = new TestFileCollection(file1, file2)
+        TestFileCollection collection2 = new TestFileCollection(file2, file3)
 
         when:
         FileCollection difference = collection1 - collection2
@@ -229,196 +238,131 @@ public class AbstractFileCollectionTest extends Specification {
         difference.files == toLinkedSet(file1)
     }
 
-    public void cannotAddCollectionToThisCollection() {
-        expect:
-        try {
-            new TestFileCollection().add(new TestFileCollection());
-            fail();
-        } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo("Collection-display-name does not allow modification."));
-        }
-    }
-
-    public void canAddToAntBuilderAsResourceCollection() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        TestFileCollection collection = new TestFileCollection(file1, file2);
+    void canAddToAntBuilderAsResourceCollection() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        TestFileCollection collection = new TestFileCollection(file1, file2)
 
         expect:
-        assertSetContains(collection, toSet("f1", "f2"));
+        assertSetContains(collection, toSet("f1", "f2"))
     }
 
-    public void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
-        TestFile testDir = this.testDir.getTestDirectory();
-        TestFile file1 = testDir.file("f1").touch();
-        TestFile dir1 = testDir.file("dir1").createDir();
-        TestFile file2 = dir1.file("f2").touch();
-        TestFile missing = testDir.file("f3");
-        testDir.file("f2").touch();
-        testDir.file("ignored1").touch();
-        dir1.file("f1").touch();
-        dir1.file("ignored1").touch();
-        TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing);
+    void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
+        TestFile testDir = this.testDir.getTestDirectory()
+        TestFile file1 = testDir.file("f1").touch()
+        TestFile dir1 = testDir.file("dir1").createDir()
+        TestFile file2 = dir1.file("f2").touch()
+        TestFile missing = testDir.file("f3")
+        testDir.file("f2").touch()
+        testDir.file("ignored1").touch()
+        dir1.file("f1").touch()
+        dir1.file("ignored1").touch()
+        TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing)
 
         expect:
-        assertSetContainsForFileSet(collection, toSet("f1", "f2"));
-        assertSetContainsForMatchingTask(collection, toSet("f1", "f2"));
+        assertSetContainsForFileSet(collection, toSet("f1", "f2"))
+        assertSetContainsForMatchingTask(collection, toSet("f1", "f2"))
     }
 
-    public void isEmptyWhenFilesIsEmpty() {
+    void isEmptyWhenFilesIsEmpty() {
         expect:
-        assertTrue(new TestFileCollection().isEmpty());
-        assertFalse(new TestFileCollection(new File("f1")).isEmpty());
+        assertTrue(new TestFileCollection().isEmpty())
+        assertFalse(new TestFileCollection(new File("f1")).isEmpty())
     }
 
-    public void throwsStopExceptionWhenEmpty() {
-        TestFileCollection collection = new TestFileCollection();
-
-        expect:
-        try {
-            collection.stopExecutionIfEmpty();
-            fail();
-        } catch (StopExecutionException e) {
-            assertThat(e.getMessage(), equalTo("Collection-display-name does not contain any files."));
-        }
-    }
-
-    public void doesNotThrowStopExceptionWhenNotEmpty() {
-        TestFileCollection collection = new TestFileCollection(new File("f1"));
-
-        when:
-        collection.stopExecutionIfEmpty();
-
-        then:
-        noExceptionThrown()
-    }
-
-    public void canConvertToCollectionTypes() {
-        File file = new File("f1");
-        TestFileCollection collection = new TestFileCollection(file);
+    void canConvertToCollectionTypes() {
+        File file = new File("f1")
+        TestFileCollection collection = new TestFileCollection(file)
 
         expect:
-        assertThat(collection.asType(Collection.class), equalTo((Object) toLinkedSet(file)));
-        assertThat(collection.asType(Set.class), equalTo((Object) toLinkedSet(file)));
-        assertThat(collection.asType(List.class), equalTo((Object) toList(file)));
+        collection as Collection == toList(file)
+        collection as Set == toLinkedSet(file)
+        collection as List == toList(file)
     }
 
-    public void canConvertToArray() {
-        File file = new File("f1");
-        TestFileCollection collection = new TestFileCollection(file);
+    void toFileTreeReturnsSingletonTreeForEachFileInCollection() {
+        File file = testDir.createFile("f1")
+        File file2 = testDir.createFile("f2")
+
+        TestFileCollection collection = new TestFileCollection(file, file2)
+        FileTree tree = collection.getAsFileTree()
 
         expect:
-        assertThat(collection.asType(File[].class), equalTo((Object) toArray(file)));
+        FileVisitorUtil.assertVisits(tree, GUtil.map("f1", file, "f2", file2))
     }
 
-    public void canConvertCollectionWithSingleFileToFile() {
-        File file = new File("f1");
-        TestFileCollection collection = new TestFileCollection(file);
+    void canFilterContentsOfCollectionUsingSpec() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
 
-        expect:
-        assertThat(collection.asType(File.class), equalTo((Object) file));
-    }
-
-    public void canConvertToFileTree() {
-        TestFileCollection collection = new TestFileCollection();
-
-        expect:
-        assertThat(collection.asType(FileTree.class), notNullValue());
-    }
-
-    public void throwsUnsupportedOperationExceptionWhenConvertingToUnsupportedType() {
-        expect:
-        try {
-            new TestFileCollection().asType(Integer.class);
-            fail();
-        } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer, as this type is not supported."));
-        }
-    }
-
-    public void toFileTreeReturnsSingletonTreeForEachFileInCollection() {
-        File file = testDir.createFile("f1");
-        File file2 = testDir.createFile("f2");
-
-        TestFileCollection collection = new TestFileCollection(file, file2);
-        FileTree tree = collection.getAsFileTree();
-
-        expect:
-        FileVisitorUtil.assertVisits(tree, GUtil.map("f1", file, "f2", file2));
-    }
-
-    public void canFilterContentsOfCollectionUsingSpec() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-
-        TestFileCollection collection = new TestFileCollection(file1, file2);
+        TestFileCollection collection = new TestFileCollection(file1, file2)
         FileCollection filtered = collection.filter(new Spec<File>() {
-            public boolean isSatisfiedBy(File element) {
-                return element.getName().equals("f1");
+            boolean isSatisfiedBy(File element) {
+                return element.getName().equals("f1")
             }
-        });
+        })
 
         expect:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)));
+        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
     }
 
-    public void canFilterContentsOfCollectionUsingClosure() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
+    void canFilterContentsOfCollectionUsingClosure() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
 
-        TestFileCollection collection = new TestFileCollection(file1, file2);
-        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"));
+        TestFileCollection collection = new TestFileCollection(file1, file2)
+        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"))
 
         expect:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)));
+        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
     }
 
-    public void filteredCollectionIsLive() {
-        File file1 = new File("f1");
-        File file2 = new File("f2");
-        File file3 = new File("dir/f1");
-        TestFileCollection collection = new TestFileCollection(file1, file2);
+    void filteredCollectionIsLive() {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("dir/f1")
+        TestFileCollection collection = new TestFileCollection(file1, file2)
 
         when:
-        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"));
+        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"))
 
         then:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)));
+        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
 
         when:
-        collection.files.add(file3);
+        collection.files.add(file3)
 
         then:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1, file3)));
+        assertThat(filtered.getFiles(), equalTo(toSet(file1, file3)))
     }
 
-    public void hasNoDependencies() {
+    void hasNoDependencies() {
         expect:
-        assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty());
+        assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty())
     }
 
-    public void fileTreeHasSameDependenciesAsThis() {
-        TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
-        collection.files.add(new File("f1"));
-
-        expect:
-        assertHasSameDependencies(collection.getAsFileTree());
-        assertHasSameDependencies(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE));
-    }
-
-    public void filteredCollectionHasSameDependenciesAsThis() {
-        TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
+    void fileTreeHasSameDependenciesAsThis() {
+        TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency()
+        collection.files.add(new File("f1"))
 
         expect:
-        assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")));
+        assertHasSameDependencies(collection.getAsFileTree())
+        assertHasSameDependencies(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE))
     }
 
-    public void canVisitRootElements() {
+    void filteredCollectionHasSameDependenciesAsThis() {
+        TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency()
+
+        expect:
+        assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")))
+    }
+
+    void canVisitRootElements() {
         def collection = new TestFileCollection()
-        def visitor = Mock(FileCollectionVisitor)
+        def visitor = Mock(FileCollectionLeafVisitor)
 
         when:
-        collection.visitRootElements(visitor)
+        collection.visitLeafCollections(visitor)
 
         then:
         1 * visitor.visitCollection(collection)
@@ -426,26 +370,33 @@ public class AbstractFileCollectionTest extends Specification {
     }
 
     private void assertHasSameDependencies(FileCollection tree) {
-        final Task task = Mock(Task.class);
-        final Task depTask = Mock(Task.class);
+        final Task task = Mock(Task.class)
+        final Task depTask = Mock(Task.class)
         1 * dependency.getDependencies(task) >> { [ depTask ] }
 
-        assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)));
+        assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)))
     }
 
-    private class TestFileCollection extends AbstractFileCollection {
-        Set<File> files = new LinkedHashSet<File>();
+    static class TestFileCollection extends AbstractFileCollection {
+        Set<File> files = new LinkedHashSet<File>()
 
         TestFileCollection(File... files) {
-            this.files.addAll(Arrays.asList(files));
+            this.files.addAll(Arrays.asList(files))
         }
 
-        public String getDisplayName() {
-            return "collection-display-name";
+        @Override
+        String getDisplayName() {
+            return "collection-display-name"
         }
 
-        public Set<File> getFiles() {
-            return files;
+        @Override
+        Set<File> getFiles() {
+            return files
+        }
+
+        @Override
+        TaskDependency getBuildDependencies() {
+            TaskDependencyInternal.EMPTY
         }
     }
 
@@ -455,8 +406,8 @@ public class AbstractFileCollectionTest extends Specification {
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return dependency;
+        TaskDependency getBuildDependencies() {
+            return dependency
         }
     }
 }

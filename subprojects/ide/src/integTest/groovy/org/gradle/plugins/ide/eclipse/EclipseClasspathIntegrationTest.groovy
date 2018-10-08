@@ -109,16 +109,11 @@ dependencies {
     }
 }
 """
-        String expected = """:eclipseClasspath
-Could not resolve: myGroup:missing-artifact:1.0
+        String expected = """Could not resolve: myGroup:missing-artifact:1.0
 Could not resolve: myGroup:missing-extra-artifact:1.0
-:eclipseJdt
-:eclipseProject
-:eclipse
 """
-        result.assertOutputContains(expected)
+        result.groupedOutput.task(":eclipseClasspath").output == expected
     }
-
 
     @Test
     @Issue("GRADLE-1622")
@@ -320,8 +315,8 @@ configure(project(":c")){
         def eclipseClasspath = classpath("a")
         assert eclipseClasspath.projects == ['/b', '/c']
         eclipseClasspath.libs[0].assertHasJar(file("a/bar.jar"))
-        eclipseClasspath.libs[1].assertHasJar(file("c/foo.jar"))
-        eclipseClasspath.libs[2].assertHasJar(file("b/baz.jar"))
+        eclipseClasspath.libs[1].assertHasJar(file("b/baz.jar"))
+        eclipseClasspath.libs[2].assertHasJar(file("c/foo.jar"))
     }
 
     @Test
@@ -1014,8 +1009,8 @@ dependencies {
         def libraries = classpath.libs
         assert libraries.size() == 3
         libraries[0].assertHasJar(repoJar)
-        libraries[1].assertHasJar(file('unresolved dependency - i.dont Exist 1.0'))
-        libraries[2].assertHasJar(localJar)
+        libraries[1].assertHasJar(localJar)
+        libraries[2].assertHasJar(file('unresolved dependency - i.dont Exist 1.0'))
     }
 
     @Test

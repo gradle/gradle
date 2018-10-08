@@ -176,6 +176,40 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes implementation properties"() {
+        def original = [a: ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes implementation properties with unknown classloader"() {
+        def original = ImplementationSnapshot.of("someClassName", null)
+        def originalMap = [a: original]
+        write(originalMap)
+
+        expect:
+        ImplementationSnapshot copy = written.a
+        copy.typeName == original.typeName
+        copy.classLoaderHash == null
+        copy.unknown
+        copy.unknownReason.contains("unknown classloader")
+    }
+
+    def "serializes implementation properties with lambda"() {
+        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', HashCode.fromInt(1234))
+        def originalMap = [a: original]
+        write(originalMap)
+
+        expect:
+        ImplementationSnapshot copy = written.a
+        copy.typeName == original.typeName
+        copy.classLoaderHash == null
+        copy.isUnknown()
+        copy.unknownReason.contains("lambda")
+    }
+
     private ArrayValueSnapshot array(ValueSnapshot... elements) {
         return new ArrayValueSnapshot(elements)
     }

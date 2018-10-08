@@ -51,4 +51,23 @@ public interface DependencySubstitution {
      * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
      */
     void useTarget(Object notation);
+
+    /**
+     * This method can be used to replace a dependency before it is resolved,
+     * e.g. change group, name or version (or all three of them), or replace it
+     * with a project dependency and provides a human readable reason for diagnostics.
+     *
+     * Accepted notations are:
+     * <ul>
+     *     <li>Strings encoding group:module:version, like 'org.gradle:gradle-core:2.4'</li>
+     *     <li>Maps like [group: 'org.gradle', name: 'gradle-core', version: '2.4']</li>
+     *     <li>Project instances like <code>project(":api")</code></li>
+     *     <li>Any instance of <code>ModuleComponentSelector</code> or <code>ProjectComponentSelector</code></li>
+     * </ul>
+     *
+     * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
+     *
+     * @since 4.5
+     */
+    void useTarget(Object notation, String reason);
 }

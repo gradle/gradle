@@ -24,7 +24,7 @@ class JavascriptPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "com.eriwen.gradle.js" version "2.14.1"
+                id "com.eriwen.gradle.js" version "${TestedVersions.gradleJs}"
             }
 
             javascript.source {
@@ -75,7 +75,7 @@ class JavascriptPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "com.eriwen.gradle.css" version "2.14.0"
+                id "com.eriwen.gradle.css" version "${TestedVersions.gradleCss}"
             }
 
             // Declare your sources

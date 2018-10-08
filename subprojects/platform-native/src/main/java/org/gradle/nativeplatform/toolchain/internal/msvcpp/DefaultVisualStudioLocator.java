@@ -16,24 +16,32 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.platform.Architecture;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
+import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetaDataProvider;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioVersionLocator;
+import org.gradle.platform.base.internal.toolchain.ComponentFound;
+import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*;
 
@@ -45,6 +53,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String VS2017_COMPILER_FILENAME = "HostX86/x86/cl.exe";
 
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
+    private final Set<File> brokenInstalls = new LinkedHashSet<File>();
     private final VisualStudioVersionLocator commandLineLocator;
     private final VisualStudioVersionLocator windowsRegistryLocator;
     private final VisualStudioVersionLocator systemPathLocator;
@@ -61,35 +70,21 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     @Override
-    public List<SearchResult> locateAllVisualStudioVersions() {
+    public List<? extends VisualStudioInstall> locateAllComponents() {
         initializeVisualStudioInstalls();
 
-        List<VisualStudioInstall> sortedInstalls = CollectionUtils.sort(foundInstalls.values(), new Comparator<VisualStudioInstall>() {
+        return CollectionUtils.sort(foundInstalls.values(), new Comparator<VisualStudioInstall>() {
             @Override
             public int compare(VisualStudioInstall o1, VisualStudioInstall o2) {
                 return o2.getVersion().compareTo(o1.getVersion());
             }
         });
-
-        if (sortedInstalls.isEmpty()) {
-            return Lists.newArrayList((SearchResult)new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path."));
-        } else {
-            return CollectionUtils.collect(sortedInstalls, new Transformer<SearchResult, VisualStudioInstall>() {
-                @Override
-                public SearchResult transform(VisualStudioInstall visualStudioInstall) {
-                    return new InstallFound(visualStudioInstall);
-                }
-            });
-        }
     }
 
     @Override
-    public SearchResult locateDefaultVisualStudioInstall() {
-        return locateDefaultVisualStudioInstall(null);
-    }
+    public SearchResult<VisualStudioInstall> locateComponent(@Nullable File candidate) {
+        initializeVisualStudioInstalls();
 
-    @Override
-    public SearchResult locateDefaultVisualStudioInstall(File candidate) {
         if (candidate != null) {
             return locateUserSpecifiedInstall(candidate);
         }
@@ -100,11 +95,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private void initializeVisualStudioInstalls() {
         if (!initialised) {
             locateInstallsWith(commandLineLocator);
-
-            if (foundInstalls.isEmpty()) {
-                locateInstallsWith(windowsRegistryLocator);
-            }
-
+            locateInstallsWith(windowsRegistryLocator);
             if (foundInstalls.isEmpty()) {
                 locateInstallsWith(systemPathLocator);
             }
@@ -114,19 +105,22 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private void locateInstallsWith(VisualStudioVersionLocator versionLocator) {
-        List<VisualStudioMetadata> installs = versionLocator.getVisualStudioInstalls();
+        List<VisualStudioInstallCandidate> installs = versionLocator.getVisualStudioInstalls();
 
-        for (VisualStudioMetadata install : installs) {
+        for (VisualStudioInstallCandidate install : installs) {
             addInstallIfValid(install, versionLocator.getSource());
         }
     }
 
-    private boolean addInstallIfValid(VisualStudioMetadata install, String source) {
+    private boolean addInstallIfValid(VisualStudioInstallCandidate install, String source) {
         File visualCppDir = install.getVisualCppDir();
         File visualStudioDir = install.getInstallDir();
 
         if (foundInstalls.containsKey(visualStudioDir)) {
             return true;
+        }
+        if (brokenInstalls.contains(visualStudioDir)) {
+            return false;
         }
 
         if (isValidInstall(install) && install.getVisualCppVersion() != VersionNumber.UNKNOWN) {
@@ -139,23 +133,24 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return true;
         } else {
             LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
+            brokenInstalls.add(visualStudioDir);
             return false;
         }
     }
 
-    private SearchResult locateUserSpecifiedInstall(File candidate) {
-        VisualStudioMetadata install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
+    private SearchResult<VisualStudioInstall> locateUserSpecifiedInstall(File candidate) {
+        VisualStudioInstallCandidate install = versionDeterminer.getVisualStudioMetadataFromInstallDir(candidate);
 
         if (install != null && addInstallIfValid(install, "user provided path")) {
-            return new InstallFound(foundInstalls.get(install.getInstallDir()));
+            return new ComponentFound<VisualStudioInstall>(foundInstalls.get(install.getInstallDir()));
         } else {
             LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
-            return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
+            return new ComponentNotFound<VisualStudioInstall>(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
         }
     }
 
     private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version, Compatibility compatibility) {
-        switch(compatibility) {
+        switch (compatibility) {
             case LEGACY:
                 return buildLegacyVisualCppInstall(name, vsPath, basePath, version);
             case VS2017_OR_LATER:
@@ -183,9 +178,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
+        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(basePath, vsPath);
+            ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -211,9 +206,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
-        Map<Architecture, ArchitectureDescriptor> descriptors = Maps.newHashMap();
+        Map<Architecture, ArchitectureSpecificVisualCpp> descriptors = Maps.newHashMap();
         for (ArchitectureDescriptorBuilder architectureDescriptorBuilder : architectureDescriptorBuilders) {
-            ArchitectureDescriptor descriptor = architectureDescriptorBuilder.buildDescriptor(basePath, vsPath);
+            ArchitectureSpecificVisualCpp descriptor = architectureDescriptorBuilder.buildDescriptor(version, basePath, vsPath);
             if (descriptor.isInstalled()) {
                 descriptors.put(architectureDescriptorBuilder.architecture, descriptor);
             }
@@ -222,9 +217,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new VisualCppInstall(name, version, descriptors);
     }
 
-    private SearchResult determineDefaultInstall() {
-        initializeVisualStudioInstalls();
-
+    private SearchResult<VisualStudioInstall> determineDefaultInstall() {
         VisualStudioInstall candidate = null;
 
         for (VisualStudioInstall visualStudio : foundInstalls.values()) {
@@ -233,11 +226,24 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
         }
 
-        return candidate == null ? new InstallNotFound("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.") : new InstallFound(candidate);
+        if (candidate != null) {
+            return new ComponentFound<VisualStudioInstall>(candidate);
+        }
+        if (brokenInstalls.isEmpty()) {
+            return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.");
+        }
+        return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
+            CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), new Transformer<String, File>() {
+                @Override
+                public String transform(File file) {
+                    return file.getAbsolutePath();
+                }
+            })
+        );
     }
 
-    private static boolean isValidInstall(VisualStudioMetadata install) {
-        switch(install.getCompatibility()) {
+    private static boolean isValidInstall(VisualStudioInstallCandidate install) {
+        switch (install.getCompatibility()) {
             case LEGACY:
                 return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
                     && isLegacyVisualCpp(install.getVisualCppDir());
@@ -255,50 +261,5 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     private static boolean isVS2017VisualCpp(File candidate) {
         return new File(candidate, PATH_BIN + VS2017_COMPILER_FILENAME).isFile();
-    }
-
-    private static class InstallFound implements SearchResult {
-        private final VisualStudioInstall install;
-
-        public InstallFound(VisualStudioInstall install) {
-            this.install = Preconditions.checkNotNull(install);
-        }
-
-        @Override
-        public VisualStudioInstall getVisualStudio() {
-            return install;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return true;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-        }
-    }
-
-    private static class InstallNotFound implements SearchResult {
-        private final String message;
-
-        private InstallNotFound(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public VisualStudioInstall getVisualStudio() {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(message);
-        }
     }
 }

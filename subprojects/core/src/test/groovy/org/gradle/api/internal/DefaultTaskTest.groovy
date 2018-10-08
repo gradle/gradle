@@ -22,14 +22,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.AbstractTaskTest
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerManager
-import org.gradle.util.WrapUtil
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
@@ -58,11 +58,13 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        Task task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        Task task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
 
         expect:
         task.dependsOn.isEmpty()
         task.actions == []
+        (task as TaskInternal).taskIdentity == identity
     }
 
     def "useful toString()"() {
@@ -72,11 +74,13 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
 
         expect:
         task.project.is(project)
         task.name == TEST_TASK_NAME
+        (task as TaskInternal).taskIdentity == identity
     }
 
     def "dependsOn() works"() {
@@ -443,29 +447,6 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.services.get(ListenerManager) != null
     }
 
-    def "test dependsOnTaskDidWork()"() {
-        given:
-        final task1 = Mock(Task)
-        final task2 = Mock(Task)
-        final dependencyMock = Mock(TaskDependency)
-        dependencyMock.getDependencies(getTask()) >> WrapUtil.toList(task1, task2)
-
-        when:
-        getTask().dependsOn(dependencyMock)
-        assert !getTask().dependsOnTaskDidWork()
-
-        then:
-        1 * task1.getDidWork() >> false
-        1 * task2.getDidWork() >> false
-
-        when:
-        assert getTask().dependsOnTaskDidWork()
-
-        then:
-        1 * task1.getDidWork() >> false
-        1 * task2.getDidWork() >> true
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-2022")
     def "good error message when task instantiated directly"() {
         when:
@@ -541,6 +522,18 @@ class DefaultTaskTest extends AbstractTaskTest {
 
         then:
         task.actions[0].displayName == "Execute unnamed action"
+    }
+
+    def "can replace task logger"() {
+        expect:
+        task.logger == AbstractTask.BUILD_LOGGER
+
+        when:
+        def logger = Mock(Logger)
+        task.replaceLogger(logger)
+
+        then:
+        task.logger == logger
     }
 }
 

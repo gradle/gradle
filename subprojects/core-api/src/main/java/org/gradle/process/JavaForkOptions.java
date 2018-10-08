@@ -16,13 +16,16 @@
 
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +71,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
      */
-     @Optional @Input
+    @Nullable @Optional @Input
      String getDefaultCharacterEncoding();
 
     /**
@@ -80,14 +83,14 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
      */
-     void setDefaultCharacterEncoding(String defaultCharacterEncoding);
+     void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
 
     /**
      * Returns the minimum heap size for the process, if any.
      *
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
      */
-    @Optional @Input
+    @Nullable @Optional @Input
     String getMinHeapSize();
 
     /**
@@ -95,14 +98,14 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param heapSize The minimum heap size. Use null for the default minimum heap size.
      */
-    void setMinHeapSize(String heapSize);
+    void setMinHeapSize(@Nullable String heapSize);
 
     /**
      * Returns the maximum heap size for the process, if any.
      *
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
      */
-    @Optional @Input
+    @Nullable @Optional @Input
     String getMaxHeapSize();
 
     /**
@@ -110,7 +113,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param heapSize The heap size. Use null for the default maximum heap size.
      */
-    void setMaxHeapSize(String heapSize);
+    void setMaxHeapSize(@Nullable String heapSize);
 
     /**
      * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
@@ -118,7 +121,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
-    @Optional @Input
+    @Nullable @Optional @Input
     List<String> getJvmArgs();
 
     /**
@@ -128,7 +131,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param arguments The arguments. Must not be null.
      * @since 4.0
      */
-    void setJvmArgs(List<String> arguments);
+    void setJvmArgs(@Nullable List<String> arguments);
 
     /**
      * Sets the extra arguments to use to launch the JVM for the process. System properties
@@ -136,7 +139,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param arguments The arguments. Must not be null.
      */
-    void setJvmArgs(Iterable<?> arguments);
+    void setJvmArgs(@Nullable Iterable<?> arguments);
 
     /**
      * Adds some arguments to use to launch the JVM for the process.
@@ -153,6 +156,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return this
      */
     JavaForkOptions jvmArgs(Object... arguments);
+
+    /**
+     * Command line argument providers for the java process to fork.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    @Nested
+    List<CommandLineArgumentProvider> getJvmArgumentProviders();
 
     /**
      * Returns the bootstrap classpath to use for the process. The default bootstrap classpath for the JVM is used when
@@ -195,8 +207,10 @@ public interface JavaForkOptions extends ProcessForkOptions {
     void setEnableAssertions(boolean enabled);
 
     /**
-     * Returns true if debugging is enabled for the process. When enabled, the process is started suspended and
-     * listening on port 5005.
+     * Determines whether debugging is enabled for the test process. When enabled — {@code debug = true} — the process
+     * is started in a suspended state, listening on port 5005. You should disable parallel test execution when
+     * debugging and you will need to reattach the debugger occasionally if you use a non-zero value for
+     * {@link org.gradle.api.tasks.testing.Test#getForkEvery()}.
      *
      * @return true when debugging is enabled, false to disable.
      */

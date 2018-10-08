@@ -26,9 +26,11 @@ import org.gradle.internal.Cast;
 import java.util.Map;
 
 /**
- * This in-memory cache is responsible for caching compiled build scripts during a build session.
+ * This in-memory cache is responsible for caching compiled build scripts during a build.
  * If the compiled script is not found in this cache, it will try to find it in the global cache,
- * which will use the delegate script class compiler in case of a miss.
+ * which will use the delegate script class compiler in case of a miss. The lookup in this cache is
+ * more efficient than looking in the global cache, as we do not check the script's hash code here,
+ * assuming that it did not change during the build.
  */
 public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
     private final CrossBuildInMemoryCachingScriptClassCache cache;

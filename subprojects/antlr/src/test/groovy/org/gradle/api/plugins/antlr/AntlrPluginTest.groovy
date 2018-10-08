@@ -19,6 +19,8 @@ package org.gradle.api.plugins.antlr
 import org.gradle.api.Action
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import static org.gradle.api.reflect.TypeOf.typeOf
+
 class AntlrPluginTest extends AbstractProjectBuilderSpec {
 
     def addsAntlrPropertiesToEachSourceSet() {
@@ -83,4 +85,12 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
     }
 
+    def 'source set convention exposes its public type'() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        then:
+        def main = project.sourceSets.main
+        main.convention.plugins['antlr'].publicType == typeOf(AntlrSourceVirtualDirectory)
+    }
 }

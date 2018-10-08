@@ -16,31 +16,40 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
+import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
+import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.SafeStreams;
-import org.gradle.process.internal.streams.StreamsForwarder;
-import org.gradle.process.internal.streams.StreamsHandler;
+import org.gradle.process.internal.streams.OutputStreamsForwarder;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
+    private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
+    private final BuildCancellationToken buildCancellationToken;
+    private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input;
+    private StreamsHandler inputHandler = DEFAULT_STDIN;
     private String displayName;
-    private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
-    boolean ignoreExitValue;
-    boolean redirectErrorStream;
+    private boolean ignoreExitValue;
+    private boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
+    private Executor executor;
 
-    public AbstractExecHandleBuilder(PathToFileResolver fileResolver) {
+    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver);
+        this.buildCancellationToken = buildCancellationToken;
+        this.executor = executor;
         standardOutput = SafeStreams.systemOut();
         errorOutput = SafeStreams.systemErr();
         input = SafeStreams.emptyInput();
@@ -57,7 +66,12 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
         this.input = inputStream;
+        this.inputHandler = new ForwardStdinStreamsHandler(inputStream);
         return this;
+    }
+
+    public StreamsHandler getInputHandler() {
+        return inputHandler;
     }
 
     public InputStream getStandardInput() {
@@ -107,9 +121,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
-        if (listeners == null) {
-            throw new IllegalArgumentException("listeners == null!");
-        }
         this.listeners.add(listener);
         return this;
     }
@@ -120,9 +131,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             throw new IllegalStateException("execCommand == null!");
         }
 
-        StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
+        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon);
+                effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {
@@ -131,7 +142,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             effectiveHandler = this.streamsHandler;
         } else {
             boolean shouldReadErrorStream = !redirectErrorStream;
-            effectiveHandler = new StreamsForwarder(standardOutput, errorOutput, input, shouldReadErrorStream);
+            effectiveHandler = new OutputStreamsForwarder(standardOutput, errorOutput, shouldReadErrorStream);
         }
         return effectiveHandler;
     }
@@ -141,6 +152,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
+    /**
+     * Merge the process' error stream into its output stream
+     */
     public AbstractExecHandleBuilder redirectErrorStream() {
         this.redirectErrorStream = true;
         return this;

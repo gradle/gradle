@@ -95,6 +95,14 @@ class DescribablesTest extends Specification {
         value.capitalizedDisplayName == "F two three"
     }
 
+    def "creates from type and name"() {
+        expect:
+        def value = Describables.withTypeAndName("some type", "name")
+        value.displayName == "some type 'name'"
+        value.toString() == "some type 'name'"
+        value.capitalizedDisplayName == "Some type 'name'"
+    }
+
     def "memoizes another describable"() {
         def d1 = Mock(Describable)
         def d2 = Mock(DisplayName)

@@ -158,6 +158,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         classpath.addAll(workerMainClassPath);
         classpath.addAll(applicationClasspath);
         List<String> argumentList = Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath));
-        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.unixStyleFactory()).transform(argumentList);
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
     }
 }

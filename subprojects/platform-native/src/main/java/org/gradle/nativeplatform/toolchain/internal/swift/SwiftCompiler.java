@@ -23,7 +23,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -36,6 +38,9 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,19 +50,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
+// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to SwiftCompiler)
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
+
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
+    private final VersionNumber swiftCompilerVersion;
+    private final SwiftDepsHandler swiftDepsHandler;
 
-    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService) {
+    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService, VersionNumber swiftCompilerVersion) {
         super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.objectFileExtension = objectFileExtension;
+        this.swiftCompilerVersion = swiftCompilerVersion;
+        this.swiftDepsHandler = new SwiftDepsHandler();
     }
 
     @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    }
+
+    @Override
+    public WorkResult execute(SwiftCompileSpec spec) {
+        if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion()) {
+            throw new IllegalArgumentException(String.format("Swift compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
+        }
+        return super.execute(spec);
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
@@ -68,9 +86,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             .withOutputBaseFolder(objectFileDir)
             .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs();
-        }
+        GFileUtils.mkdirs(outputDirectory);
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
@@ -83,13 +99,17 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
 
                 OutputFileMap outputFileMap = new OutputFileMap();
+
+                File moduleSwiftDeps = new File(objectDir, "module.swiftdeps");
+                outputFileMap.root().swiftDependenciesFile(moduleSwiftDeps);
+
                 for (File sourceFile : spec.getSourceFiles()) {
                     outputFileMap.newEntry(sourceFile.getAbsolutePath())
                         .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
+                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"))
                         .objectFile(getOutputFileDir(sourceFile, objectDir, objectFileExtension))
                         .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
-                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"))
-                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"));
+                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"));
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
                 if (null != spec.getModuleName()) {
@@ -98,7 +118,14 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add("-emit-module-path");
                     genericArgs.add(spec.getModuleFile().getAbsolutePath());
                 }
-                genericArgs.add("-v");
+
+
+                boolean canSafelyCompileIncrementally = swiftDepsHandler.adjustTimestampsFor(moduleSwiftDeps, spec.getChangedFiles());
+                if (canSafelyCompileIncrementally) {
+                    genericArgs.add("-incremental");
+                    genericArgs.add("-emit-dependencies");
+                }
+
                 genericArgs.add("-emit-object");
 
                 File outputFileMapFile = new File(spec.getObjectFileDir(), "output-file-map.json");
@@ -120,8 +147,19 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add("-O");
                 }
 
+                genericArgs.addAll(CollectionUtils.collect(spec.getMacros().keySet(), new Transformer<String, String>() {
+                    @Override
+                    public String transform(String macro) {
+                        return "-D" + macro;
+                    }
+                }));
+
+                genericArgs.add("-swift-version");
+                genericArgs.add(String.valueOf(spec.getSourceCompatibility().getVersion()));
+
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());
+                perFileInvocation.getEnvironment().put("TMPDIR", spec.getTempDir().getAbsolutePath());
                 buildQueue.add(perFileInvocation);
             }
         };
@@ -136,6 +174,10 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     private static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
+
+        public Builder root() {
+            return newEntry("");
+        }
 
         public Builder newEntry(String name) {
             Entry entry = new Entry();

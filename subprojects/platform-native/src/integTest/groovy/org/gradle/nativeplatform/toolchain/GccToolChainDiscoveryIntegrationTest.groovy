@@ -106,6 +106,8 @@ model {
                 staticLibArchiver.executable = 'does-not-exist'
                 objcCompiler.executable = 'does-not-exist'
                 objcppCompiler.executable = 'does-not-exist'
+                symbolExtractor.executable = 'does-not-exist'
+                stripper.executable = 'does-not-exist'
             }
         }
     }

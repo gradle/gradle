@@ -46,7 +46,7 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
 
     @Override
     public void load(BuildCacheKey key, Action<? super File> reader) {
-        service.load(key, reader);
+        service.loadLocally(key, reader);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
 
     @Override
     public void store(BuildCacheKey key, File file) {
-        service.store(key, file);
+        service.storeLocally(key, file);
     }
 
     @Override

@@ -23,6 +23,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
+import javax.inject.Inject;
+
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
  *
@@ -68,6 +70,7 @@ public class EclipseJdt {
 
     private final PropertiesFileContentMerger file;
 
+    @Inject
     public EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file;
     }

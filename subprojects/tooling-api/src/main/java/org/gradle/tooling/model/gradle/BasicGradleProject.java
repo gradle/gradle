@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.gradle;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectIdentifier;
@@ -30,14 +29,12 @@ import java.io.File;
  *
  * @since 1.8
  */
-@Incubating
 public interface BasicGradleProject extends Model, ProjectModel {
     /**
      * Returns the identifier for this Gradle project.
      *
      * @since 2.13
      */
-    @Incubating
     ProjectIdentifier getProjectIdentifier();
 
     /**

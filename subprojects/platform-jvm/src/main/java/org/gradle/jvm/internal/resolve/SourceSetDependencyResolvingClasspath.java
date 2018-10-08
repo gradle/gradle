@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm.internal.resolve;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -38,12 +39,16 @@ public class SourceSetDependencyResolvingClasspath extends DependencyResolvingCl
         List<ResolutionAwareRepository> remoteRepositories,
         AttributesSchemaInternal attributesSchema,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        BuildOperationExecutor buildOperationExecutor) {
+        BuildOperationExecutor buildOperationExecutor,
+        BuildIdentifier thisBuild) {
         super(binarySpec,
             "source set '" + sourceSet.getDisplayName() + "'",
             dependencyResolver,
             remoteRepositories,
-            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName(), moduleIdentifierFactory), attributesSchema, buildOperationExecutor);
+            new JvmLibraryResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName(), moduleIdentifierFactory),
+            attributesSchema,
+            buildOperationExecutor,
+            thisBuild);
     }
 
 }

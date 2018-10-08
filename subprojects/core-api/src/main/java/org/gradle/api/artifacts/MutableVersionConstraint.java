@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
  * A configurable version constraint. This is exposed to the build author, so that one can express
  * more constraints on a version,
@@ -27,19 +29,59 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface MutableVersionConstraint extends VersionConstraint {
+    /**
+     * Returns the branch to select versions from. When not {@code null}, select only versions that were built from the given branch.
+     *
+     * @since 4.6
+     */
+    @Nullable
+    String getBranch();
 
     /**
-     * Sets the preferred version of this module. Any other rejection/strict constraint will be overriden.
+     * Specifies the branch to select versions from.
+     *
+     * @param branch The branch, possibly null.
+     * @since 4.6
+     */
+    void setBranch(@Nullable String branch);
+
+    /**
+     * Sets the required version of this module. Any other version constraints will be overriden.
+     * @param version the preferred version of this module
+     * @since 5.0
+     */
+    void require(String version);
+
+    /**
+     * Sets the preferred version of this module. Any other version constraints will be overriden.
      * @param version the preferred version of this module
      */
     void prefer(String version);
 
     /**
      * Sets the version as strict, meaning that if any other dependency version for this module disagrees with
-     * this version, resolution will fail.
+     * this version, resolution will fail. Any other version constraints will be overriden.
      *
      * @param version the strict version to be used for this module
      */
     void strictly(String version);
+
+    /**
+     * Declares a list of rejected versions. If such a version is found during dependency resolution, it will not
+     * be selected.
+     *
+     * @param versions the rejected versions
+     *
+     * @since 4.5
+     */
+    void reject(String... versions);
+
+    /**
+     * Rejects all versions of this component. Can be used to declare that a component is incompatible with another
+     * (typically, cannot have both a 2 different implementations of the same API).
+     *
+     * @since 4.5
+     */
+    void rejectAll();
 
 }

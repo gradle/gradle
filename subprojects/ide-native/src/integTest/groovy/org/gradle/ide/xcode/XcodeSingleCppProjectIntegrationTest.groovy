@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -26,11 +26,12 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    def "can create xcode project for C++ executable"() {
+    def "can create xcode project for C++ application"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         def app = new CppApp()
@@ -43,7 +44,7 @@ apply plugin: 'cpp-executable'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Headers'])
@@ -56,7 +57,7 @@ apply plugin: 'cpp-executable'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("build/exe/main/debug/app").absolutePath
+        project.products.children[0].path == exe("build/install/main/debug/lib/app").absolutePath
     }
 
     def "can create xcode project for C++ library"() {
@@ -76,7 +77,7 @@ apply plugin: 'cpp-library'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources', 'Headers'])
@@ -99,7 +100,7 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         def lib = new CppLib()
@@ -109,31 +110,31 @@ apply plugin: 'cpp-executable'
         when:
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App Executable")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("App")
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultDebug.error.contains("Scheme App Executable is not currently configured for the test action.")
+        resultDebug.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App Executable")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRelease.error.contains("Scheme App Executable is not currently configured for the test action.")
+        resultRelease.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRunner = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App Executable")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRunner.error.contains("Scheme App Executable is not currently configured for the test action.")
+        resultRunner.error.contains("Scheme App is not currently configured for the test action.")
     }
 
     @Requires(TestPrecondition.XCODE)
@@ -152,76 +153,82 @@ apply plugin: 'cpp-library'
         when:
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App SharedLibrary")
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .withScheme("App")
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultDebug.error.contains("Scheme App SharedLibrary is not currently configured for the test action.")
+        resultDebug.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App SharedLibrary")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRelease.error.contains("Scheme App SharedLibrary is not currently configured for the test action.")
+        resultRelease.error.contains("Scheme App is not currently configured for the test action.")
 
         when:
         def resultRunner = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme("App SharedLibrary")
+            .withScheme("App")
             .withConfiguration(DefaultXcodeProject.TEST_DEBUG)
-            .fails(XcodebuildExecuter.XcodeAction.TEST)
+            .fails(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultRunner.error.contains("Scheme App SharedLibrary is not currently configured for the test action.")
+        resultRunner.error.contains("Scheme App is not currently configured for the test action.")
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can build C++ executable from Xcode"() {
         useXcodebuildTool()
         def app = new CppApp()
+        def debugBinary = exe("build/exe/main/debug/App")
+        def releaseBinary = exe("build/exe/main/release/App")
 
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
 
         when:
-        exe("build/exe/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        exe("build/exe/main/debug/App").exec().out == app.expectedOutput
+        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        debugBinary.exec().out == app.expectedOutput
+        fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
 
         when:
-        exe("build/exe/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App Executable')
+            .withScheme('App')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        exe("build/exe/main/release/App").exec().out == app.expectedOutput
+        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
+        releaseBinary.exec().out == app.expectedOutput
+        fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
 
     @Requires(TestPrecondition.XCODE)
     def "can build C++ library from Xcode"() {
         useXcodebuildTool()
         def lib = new CppLib()
+        def debugBinary = sharedLib("build/lib/main/debug/App")
+        def releaseBinary = sharedLib("build/lib/main/release/App")
 
         given:
         buildFile << """
@@ -232,35 +239,37 @@ apply plugin: 'cpp-library'
         succeeds("xcode")
 
         when:
-        sharedLib("build/lib/main/debug/App").assertDoesNotExist()
+        debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App SharedLibrary')
+            .withScheme('App')
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        sharedLib("build/lib/main/debug/App").assertExists()
+        resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+        debugBinary.assertExists()
+        fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
 
         when:
-        sharedLib("build/lib/main/release/App").assertDoesNotExist()
+        releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
             .withProject(rootXcodeProject)
-            .withScheme('App SharedLibrary')
+            .withScheme('App')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___App_Release')
-        sharedLib("build/lib/main/release/App").assertExists()
+        resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
+        releaseBinary.assertExists()
+        fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
     def "adds new source files in the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         when:
@@ -284,7 +293,7 @@ apply plugin: 'cpp-executable'
     def "removes deleted source files from the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 """
 
         when:
@@ -309,9 +318,9 @@ apply plugin: 'cpp-executable'
     def "includes source files in a non-default location in C++ executable project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 
-executable {
+application {
     source.from 'Sources'
     privateHeaders.from 'Sources/include'
 }
@@ -357,12 +366,12 @@ library {
         rootXcodeProject.projectFile.headers.assertHasChildren(lib.headers.files*.name)
     }
 
-    def "honors changes to executable output locations"() {
+    def "honors changes to application output locations"() {
         given:
         buildFile << """
-apply plugin: 'cpp-executable'
+apply plugin: 'cpp-application'
 buildDir = 'output'
-executable.baseName = 'test_app'
+application.baseName = 'test_app'
 """
 
         def app = new CppApp()
@@ -372,19 +381,19 @@ executable.baseName = 'test_app'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
 
-        project.targets[0].name == 'App Executable'
-        project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
+        project.targets[0].name == 'Test_app'
+        project.targets[0].productReference.path == exe("output/install/main/debug/lib/test_app").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/debug/lib").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/install/main/release/lib").absolutePath
 
         project.products.children.size() == 1
-        project.products.children[0].path == exe("output/exe/main/debug/test_app").absolutePath
+        project.products.children[0].path == exe("output/install/main/debug/lib/test_app").absolutePath
     }
 
     def "honors changes to library output locations"() {
@@ -402,16 +411,16 @@ library.baseName = 'test_lib'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeScheme", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
 
-        project.targets[0].name == 'App SharedLibrary'
+        project.targets[0].name == 'Test_lib'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/test_lib").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release/stripped").absolutePath
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/test_lib").absolutePath

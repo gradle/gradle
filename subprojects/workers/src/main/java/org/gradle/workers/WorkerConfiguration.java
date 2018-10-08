@@ -22,6 +22,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -121,4 +122,11 @@ public interface WorkerConfiguration extends Describable, ActionConfiguration {
      * @param displayName the name of this item of work
      */
     void setDisplayName(String displayName);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    String getDisplayName();
 }

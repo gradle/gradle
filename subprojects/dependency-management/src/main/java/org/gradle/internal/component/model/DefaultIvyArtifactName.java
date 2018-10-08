@@ -16,11 +16,12 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Objects;
+import com.google.common.io.Files;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 import static com.google.common.base.Objects.equal;
 
@@ -37,6 +38,13 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         }
         String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
         return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+    }
+
+    public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {
+        String fileName = file.getName();
+        String name = Files.getNameWithoutExtension(fileName);
+        String extension = Files.getFileExtension(fileName);
+        return new DefaultIvyArtifactName(name, extension, extension, classifier);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {
@@ -58,7 +66,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             result.append("-");
             result.append(classifier);
         }
-        if (GUtil.isTrue(extension)) {
+        if (GUtil.isTrue(extension) && !Files.getFileExtension(name).equals(extension)) {
             result.append(".");
             result.append(extension);
         }
@@ -67,7 +75,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, type, extension, classifier);
+        return name.hashCode() ^ type.hashCode() ^ (extension == null ? 0 : extension.hashCode()) ^ (classifier == null ? 0 : classifier.hashCode());
     }
 
     @Override

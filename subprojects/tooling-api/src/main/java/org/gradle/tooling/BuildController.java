@@ -17,7 +17,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -28,7 +27,6 @@ import javax.annotation.Nullable;
  *
  * @since 1.8
  */
-@Incubating
 public interface BuildController {
     /**
      * Fetches a snapshot of the model of the given type for the default project. The default project is generally the

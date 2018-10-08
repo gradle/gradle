@@ -1,0 +1,4 @@
+# tag::registering-incremental-annotation-processors[]
+EntityProcessor,isolating
+ServiceRegistryProcessor,dynamic
+# end::registering-incremental-annotation-processors[]

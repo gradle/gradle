@@ -20,5 +20,12 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 public interface NodeRenderer {
+    NodeRenderer NO_OP = new NodeRenderer() {
+        @Override
+        public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
+
+        }
+    };
+
     void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered);
 }

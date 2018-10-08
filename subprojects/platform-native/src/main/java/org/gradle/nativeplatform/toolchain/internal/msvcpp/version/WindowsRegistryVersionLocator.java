@@ -39,8 +39,8 @@ public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLo
     }
 
     @Override
-    protected List<VisualStudioMetadata> locateInstalls() {
-        List<VisualStudioMetadata> installs = Lists.newArrayList();
+    protected List<VisualStudioInstallCandidate> locateInstalls() {
+        List<VisualStudioInstallCandidate> installs = Lists.newArrayList();
         for (String baseKey : REGISTRY_BASEPATHS) {
             locateInstallsInRegistry(installs, baseKey);
         }
@@ -52,7 +52,7 @@ public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLo
         return "windows registry";
     }
 
-    private void locateInstallsInRegistry(List<VisualStudioMetadata> installs, String baseKey) {
+    private void locateInstallsInRegistry(List<VisualStudioInstallCandidate> installs, String baseKey) {
         List<String> visualCppVersions;
         try {
             visualCppVersions = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC);

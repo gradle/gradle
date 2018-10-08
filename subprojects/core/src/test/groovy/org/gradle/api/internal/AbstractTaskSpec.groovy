@@ -17,40 +17,27 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
-import org.gradle.api.Task
-import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor
-import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
 import static org.junit.Assert.assertTrue
 
 class AbstractTaskSpec extends AbstractProjectBuilderSpec {
     def instantiator = TestUtil.instantiatorFactory().decorate()
-    def taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
-    private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(taskClassInfoStore, new TaskFactory(new AsmBackedClassGenerator()))
 
-    public static class TestTask extends AbstractTask {
+    static class TestTask extends AbstractTask {
     }
 
-    public TaskInternal createTask(String name) {
+    TestTask createTask(String name) {
         project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-        DefaultServiceRegistry registry = new DefaultServiceRegistry()
-        registry.add(Instantiator, DirectInstantiator.INSTANCE)
-        TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask, Task.TASK_NAME, name))
+        def task = TestUtil.create(temporaryFolder).createTask(TestTask, project, name)
         assertTrue(TestTask.isAssignableFrom(task.getClass()))
         return task
     }
 
     def "can add action to a task via Task.getActions() List"() {
         setup:
-        TestTask task = createTask("task")
+        def task = createTask("task")
         when:
         def actions = task.actions
         and:

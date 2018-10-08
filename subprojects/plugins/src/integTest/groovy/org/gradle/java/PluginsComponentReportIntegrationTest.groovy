@@ -49,13 +49,11 @@ JVM resources 'test:resources'
 Additional binaries
 -------------------
 Classes 'main'
-    build using task: :classes
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/main
     resources dir: build/resources/main
 Classes 'test'
-    build using task: :testClasses
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/test
@@ -113,13 +111,11 @@ JVM resources 'test:resources'
 Additional binaries
 -------------------
 Classes 'main'
-    build using task: :classes
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/main
     resources dir: build/resources/main
 Classes 'test'
-    build using task: :testClasses
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/test
@@ -168,19 +164,16 @@ JVM resources 'test:resources'
 Additional binaries
 -------------------
 Classes 'custom'
-    build using task: :customClasses
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/custom
     resources dir: build/resources/custom
 Classes 'main'
-    build using task: :classes
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/main
     resources dir: build/resources/main
 Classes 'test'
-    build using task: :testClasses
     target platform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/java/test

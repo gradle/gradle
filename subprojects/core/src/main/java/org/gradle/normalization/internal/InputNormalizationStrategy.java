@@ -22,7 +22,7 @@ import java.util.Collections;
  * The input normalization strategy.
  */
 public class InputNormalizationStrategy {
-    public static final InputNormalizationStrategy NOT_CONFIGURED = new InputNormalizationStrategy(
+    public static final InputNormalizationStrategy NO_NORMALIZATION = new InputNormalizationStrategy(
         new RuntimeClasspathNormalizationStrategy(Collections.<String>emptySet())
     );
     private final RuntimeClasspathNormalizationStrategy runtimeClasspathNormalizationStrategy;

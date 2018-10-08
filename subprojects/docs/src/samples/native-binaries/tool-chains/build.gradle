@@ -1,6 +1,6 @@
 apply plugin: 'cpp'
 
-// START SNIPPET toolChains
+// tag::toolChains[]
 model {
     toolChains {
         visualCpp(VisualCpp) {
@@ -14,10 +14,10 @@ model {
         clang(Clang)
     }
 }
-// END SNIPPET toolChains
+// end::toolChains[]
 
 
-// START SNIPPET withArguments
+// tag::withArguments[]
 model {
     toolChains {
         visualCpp(VisualCpp) {
@@ -42,7 +42,7 @@ model {
         }
     }
 }
-// END SNIPPET withArguments
+// end::withArguments[]
 
 model {
     components {
@@ -50,7 +50,7 @@ model {
     }
 }
 
-// START SNIPPET buildable
+// tag::buildable[]
 model {
     tasks {
         buildAllExecutables(Task) {
@@ -58,4 +58,4 @@ model {
         }
     }
 }
-// END SNIPPET buildable
+// end::buildable[]

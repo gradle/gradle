@@ -27,7 +27,6 @@ import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.IoActions
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -35,16 +34,12 @@ import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.internal.resource.transport.aws.s3.S3RegionalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-import static org.gradle.util.TestPrecondition.JDK9_OR_LATER
 
 class S3ClientIntegrationTest extends Specification {
 
@@ -67,21 +62,7 @@ class S3ClientIntegrationTest extends Specification {
         awsCredentials.setSecretKey(secret)
     }
 
-    @Requires(JDK9_OR_LATER)
-    def "should inform the user to add the 'java.xml.bind' jigsaw module"() {
-        given:
-        def s3Client = new S3Client(null, new S3ConnectionProperties())
-
-        when:
-        s3Client.put(null, null, null)
-
-        then:
-        GradleException jigsawException = thrown()
-        jigsawException.getMessage().contains('-addmods java.xml.bind')
-    }
-
     @Unroll
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     @Issue("Currently the 'javax.xml.bind' jigsaw module is not automatically required on the Gradle Jvm")
     def "should perform #authenticationType put get and list on an S3 bucket"() {
         setup:

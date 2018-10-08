@@ -93,16 +93,16 @@ class HttpBuildCacheServiceTest extends Specification {
         destFile.bytes == content
     }
 
-    def "can cache artifact with redirect"() {
-        def destFile = tempDir.file("cached.zip")
+    def "storing to cache does not follow redirects"() {
         def content = "Data".bytes
         server.expectPutRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
-        server.expectPut("/redirect/cache/${key.hashCode}", destFile, HttpStatus.SC_OK, null, content.length)
 
         when:
         cache.store(key, writer(content))
         then:
-        destFile.bytes == content
+        BuildCacheException exception = thrown()
+
+        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when storing entry at '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
 
     private static BuildCacheEntryWriter writer(byte[] content) {
@@ -134,11 +134,10 @@ class HttpBuildCacheServiceTest extends Specification {
         receivedInput == "Data"
     }
 
-    def "can load artifact from cache through redirect"() {
+    def "loading from cache does not follow redirects"() {
         def srcFile = tempDir.file("cached.zip")
         srcFile.text = "Data"
         server.expectGetRedirected("/cache/${key.hashCode}", "/redirect/cache/${key.hashCode}")
-        server.expectGet("/redirect/cache/${key.hashCode}", srcFile)
 
         when:
         def receivedInput = null
@@ -147,7 +146,9 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        receivedInput == "Data"
+        BuildCacheException exception = thrown()
+
+        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
 
     def "reports cache miss on 404"() {

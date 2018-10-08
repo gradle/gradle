@@ -17,50 +17,41 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
+import spock.lang.Ignore
 
 class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration('runtime')
     MavenModule bom
     MavenModule moduleA
 
     def setup() {
         resolve.prepare()
-        ExperimentalFeaturesFixture.enable(settingsFile)
         settingsFile << "rootProject.name = 'testproject'"
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             configurations { compile }
         """
-        bom = mavenHttpRepo.module('group', 'bom', '1.0').hasType("pom").allowAll().publish()
-        bom.pomFile.text = bom.pomFile.text.replace("</project>", '''
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>group</groupId>
-                        <artifactId>moduleA</artifactId>
-                        <version>2.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>group</groupId>
-                        <artifactId>moduleB</artifactId>
-                        <version>2.0</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </project>
-        ''')
         moduleA = mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()
+        bom = mavenHttpRepo.module('group', 'bom', '1.0')
+            .hasType("pom")
+            .allowAll()
+    }
+
+    MavenModule bomDependency(String artifact, List<Map<String, String>> exclusions = null) {
+        bom.dependencyConstraint(mavenHttpRepo.module('group', artifact, '2.0'), exclusions: exclusions)
     }
 
     def "can use a bom to select a version"() {
         given:
+        bomDependency('moduleA').publish()
         buildFile << """
             dependencies {
                 compile "group:moduleA"
-                compile "group:bom:1.0"
+                compile platform("group:bom:1.0")
             }
         """
 
@@ -70,60 +61,25 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module("group:bom:1.0", {
+                module("group:bom:1.0:platform-runtime") {
                     module("group:moduleA:2.0")
-                }).noArtifacts()
-                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
-            }
-        }
-    }
-
-    def "can import a bom transitively"() {
-        given:
-        mavenHttpRepo.module('group', 'main', '5.0').allowAll().dependsOn(bom).publish()
-
-        buildFile << """
-            dependencies {
-                compile "group:moduleA"
-                compile "group:main:5.0"
-            }
-        """
-
-        when:
-        succeeds 'checkDep'
-
-        then:
-        resolve.expectGraph {
-            root(':', ':testproject:') {
-                module("group:main:5.0") {
-                    module("group:bom:1.0", {
-                        module("group:moduleA:2.0")
-                    }).noArtifacts()
+                    noArtifacts()
                 }
-                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
     }
 
-    def "a bom can declare excludes"() {
+    def "a bom dependencyManagement entry can declare excludes which are applied unconditionally to module"() {
         given:
         moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
-        bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", '''
-                        <version>2.0</version>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>group</groupId>
-                                <artifactId>moduleC</artifactId>
-                            </exclusion>
-                        </exclusions>
-        ''')
+        bomDependency('moduleA', [[group: 'group', module: 'moduleC']])
+        bomDependency('moduleB', [[group: 'group', module: 'moduleC']]).publish()
 
         buildFile << """
             dependencies {
-                compile("group:moduleA") {
-                    exclude(group: 'group')
-                }
-                compile "group:bom:1.0"
+                compile "group:moduleA"
+                compile platform("group:bom:1.0")
             }
         """
 
@@ -133,33 +89,100 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module("group:bom:1.0", {
+                module("group:bom:1.0:platform-runtime") {
                     module("group:moduleA:2.0")
-                }).noArtifacts()
-                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
+    }
+
+    def "exclusions from multiple bom dependencyManagement entries are additive"() {
+        given:
+        moduleA
+            .dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish())
+            .dependsOn(mavenHttpRepo.module("group", "moduleD", "1.0").allowAll().publish())
+            .publish()
+
+        bom.dependencyConstraint(moduleA, exclusions: [[group: 'group', module: 'moduleC']]).publish()
+
+        def bom2 = mavenHttpRepo.module('group', 'bom2', '1.0').hasType("pom").allowAll()
+        bom2.dependencyConstraint(moduleA, exclusions: [[group: 'group', module: 'moduleD']]).publish()
+
+
+        buildFile << """
+            dependencies {
+                compile "group:moduleA"
+                compile platform("group:bom:1.0")
+                compile platform("group:bom2:1.0")
+            }
+        """
 
         when:
-        //we remove the exclude in the build script: the excludes are merged and the one in the bom has no effect anymore
-        buildFile.text = buildFile.text.replace("exclude(group: 'group')", "")
         succeeds 'checkDep'
 
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module("group:bom:1.0", {
-                    module("group:moduleA:2.0") {
-                        module("group:moduleC:1.0")
-                    }
-                }).noArtifacts()
-                edge("group:moduleA:", "group:moduleA:2.0").byConflictResolution()
+                module("group:bom:1.0:platform-runtime") {
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                module("group:bom2:1.0:platform-runtime") {
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
+            }
+        }
+    }
+
+    @Ignore("This isn't true anymore: a POM is either a platform (BOM) or a library")
+    def "a bom can declare dependencies"() {
+        given:
+        mavenHttpRepo.module('group', 'moduleC', '1.0').allowAll().publish()
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
+        bom.pomFile.text = bom.pomFile.text.replace("</project>", '''
+                <dependencies>
+                    <dependency>
+                        <groupId>group</groupId>
+                        <artifactId>moduleC</artifactId>
+                        <version>1.0</version>
+                    </dependency>
+                </dependencies>
+            </project>''')
+
+        buildFile << """
+            dependencies {
+                compile "group:bom:1.0"
+                compile "group:moduleA"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0") {
+                    module("group:moduleA:2.0")
+                    module("group:moduleC:1.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
     }
 
     def "a parent pom is not a bom"() {
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
 
         buildFile << """
             dependencies {
@@ -178,6 +201,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     def "a parent pom with dependency entries without versions does not fail the build"() {
         given:
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
 
         buildFile << """
@@ -201,6 +227,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def "does not fail for unused dependency entries without version"() {
         given:
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
         buildFile << """
             dependencies {
@@ -221,6 +250,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def "fails late for dependency entries that fail to provide a missing version"() {
         given:
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
         buildFile << """
             dependencies {
@@ -234,6 +266,64 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         failure.assertHasCause "Could not find group:moduleA:."
-        !failure.error.contains("Could not parse POM ${mavenHttpRepo.uri}/group/bom/1.0/bom-1.0.pom")
+        failure.assertNotOutput("parse")
+    }
+
+    def 'a BOM dependencyManagement entry preserves exclusions declared in build file'() {
+        def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
+        moduleA.dependsOn(modB).publish()
+        bomDependency('moduleA').publish()
+
+        buildFile << """
+            dependencies {
+                compile("group:moduleA") {
+                    exclude(group: 'group')
+                }
+                compile platform("group:bom:1.0")
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0:platform-runtime") {
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
+            }
+        }
+    }
+
+    def 'a BOM dependencyManagement entry preserves transitive=false declared in build file'() {
+        def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
+        moduleA.dependsOn(modB).publish()
+        bomDependency('moduleA').publish()
+
+        buildFile << """
+            dependencies {
+                compile("group:moduleA") {
+                    transitive = false
+                }
+                compile platform("group:bom:1.0")
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0:platform-runtime") {
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
+            }
+        }
     }
 }

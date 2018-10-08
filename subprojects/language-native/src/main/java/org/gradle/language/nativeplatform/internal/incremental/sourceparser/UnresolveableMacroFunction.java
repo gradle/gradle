@@ -16,57 +16,23 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
+import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.IncludeType;
-import org.gradle.language.nativeplatform.internal.MacroFunction;
 
-public class UnresolveableMacroFunction implements MacroFunction {
-    private final String name;
-    private final int parameters;
+import java.util.List;
+
+/**
+ * A macro function whose body cannot be resolved.
+ */
+public class UnresolveableMacroFunction extends AbstractMacroFunction {
+    private static final SimpleExpression UNRESOLVED_EXPRESSION = new SimpleExpression(null, IncludeType.OTHER);
 
     public UnresolveableMacroFunction(String name, int parameters) {
-        this.name = name;
-        this.parameters = parameters;
+        super(name, parameters);
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public int getParameterCount() {
-        return parameters;
-    }
-
-    @Override
-    public IncludeType getType() {
-        return IncludeType.OTHER;
-    }
-
-    @Override
-    public String getValue() {
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        return "{" + name + "()->???}";
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        UnresolveableMacroFunction other = (UnresolveableMacroFunction) obj;
-        return other.name.equals(name) && parameters == other.parameters;
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
+    public Expression evaluate(List<Expression> arguments) {
+        return UNRESOLVED_EXPRESSION;
     }
 }

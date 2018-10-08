@@ -16,12 +16,14 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -29,20 +31,32 @@ import java.util.Set;
  */
 public interface TaskExecutionPlan extends Describable {
     /**
-     * Signals to the plan that execution of this task has completed. Execution is complete if the task succeeds, fails, or an exception is thrown during execution.
-     * @param task the completed task.
+     * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
      */
-    void taskComplete(TaskInfo task);
+    @Nullable
+    WorkInfo selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
+
+    void workComplete(WorkInfo workInfo);
+
+    void abortAllAndFail(Throwable t);
+
+    void cancelExecution();
 
     /**
-     * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
+     * <p>Returns the dependencies of a task which are part of the execution plan.</p>
+     *
+     * @return The tasks. Returns an empty set if there are no dependent tasks.
+     * @throws IllegalStateException When the task is not part of the execution plan.
+     *
+     * @since 4.5
      */
-    void awaitCompletion();
+    @Incubating
+    Set<Task> getDependencies(Task task);
 
     /**
-     * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
+     * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
-    List<Task> getTasks();
+    Set<Task> getTasks();
 
     /**
      * @return The set of all filtered tasks that don't get executed.
@@ -50,12 +64,16 @@ public interface TaskExecutionPlan extends Describable {
     Set<Task> getFilteredTasks();
 
     /**
-     * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
-     * can be executed.  If all tasks have been executed, returns false.
-     *
-     * @param parentWorkerLease
-     * @param taskExecution
-     * @return true if there are more tasks waiting to execute, false if all tasks have executed.
+     * Collects the current set of task failures into the given collection.
      */
-    boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInfo> taskExecution);
+    void collectFailures(Collection<? super Throwable> failures);
+
+    boolean allTasksComplete();
+
+    boolean hasWorkRemaining();
+
+    /**
+     * Returns the number of work items in the plan.
+     */
+    int size();
 }

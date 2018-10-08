@@ -16,13 +16,16 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
 class ToolingApiUnsupportedClientJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -32,13 +35,10 @@ apply plugin: 'application'
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 repositories {
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
+    ${RepoScriptBlockUtil.gradleRepositoryDefintion()}
     maven {
         url '${buildContext.libsRepo.toURI()}'
     }
-    ${mavenCentralRepository()}
 }
 
 dependencies {
@@ -73,18 +73,18 @@ public class TestClient {
         targetDist.executer(temporaryFolder, getBuildContext()).inDirectory(projectDir).withTasks("installDist").requireGradleDistribution().run()
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     @TargetGradleVersion("current")
     @ToolingApiVersion("current")
-    def "cannot use tooling API from Java 6 or earlier"() {
+    def "cannot use tooling API from Java 7 or earlier"() {
         when:
         def out = runScript(jdk)
 
         then:
-        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
     def runScript(def jdk) {

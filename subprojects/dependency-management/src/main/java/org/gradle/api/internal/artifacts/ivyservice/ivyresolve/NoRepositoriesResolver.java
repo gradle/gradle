@@ -17,9 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -64,7 +66,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result) {
         result.failed(new ModuleVersionNotFoundException(dependency.getSelector(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getSelector())));
     }
 
@@ -80,7 +82,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions, ImmutableAttributes overriddenAttributes) {
         throw new UnsupportedOperationException();
     }
 

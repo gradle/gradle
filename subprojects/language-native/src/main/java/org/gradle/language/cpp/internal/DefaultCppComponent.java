@@ -17,24 +17,30 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.internal.DefaultBinaryCollection;
+import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
-public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
+public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
     private final FileCollection cppSource;
     private final String name;
     private final FileOperations fileOperations;
@@ -42,25 +48,26 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final FileCollection privateHeadersWithConvention;
     private final Property<String> baseName;
     private final Names names;
-    private final Configuration implementation;
+    private final DefaultBinaryCollection<CppBinary> binaries;
+    private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
-        privateHeaders = fileOperations.files();
+        privateHeaders = fileOperations.configurableFiles();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
-
         names = Names.of(name);
-        implementation = configurations.maybeCreate(names.withSuffix("implementation"));
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
+        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
+        operatingSystems = new LockableSetProperty<OperatingSystemFamily>(objectFactory.setProperty(OperatingSystemFamily.class)).empty();
+        operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
     }
 
-    protected Names getNames() {
+    @Override
+    public Names getNames() {
         return names;
     }
 
@@ -70,11 +77,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
-        return fileOperations.files(new Callable<Object>() {
+        return fileOperations.immutableFiles(new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
+            public Object call() {
                 if (dirs.getFrom().isEmpty()) {
-                    return fileOperations.files(conventionLocation);
+                    return fileOperations.immutableFiles(conventionLocation);
                 }
                 return dirs;
             }
@@ -107,16 +114,21 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public Configuration getImplementationDependencies() {
-        return implementation;
-    }
-
-    @Override
     public FileTree getHeaderFiles() {
         return getAllHeaderDirs().getAsFileTree().matching(new PatternSet().include("**/*.h"));
     }
 
     public FileCollection getAllHeaderDirs() {
         return privateHeadersWithConvention;
+    }
+
+    @Override
+    public DefaultBinaryCollection<CppBinary> getBinaries() {
+        return binaries;
+    }
+
+    @Override
+    public LockableSetProperty<OperatingSystemFamily> getOperatingSystems() {
+        return operatingSystems;
     }
 }

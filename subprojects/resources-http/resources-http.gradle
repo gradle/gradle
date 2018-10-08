@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,29 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    // Cannot use strict compile because JDK 7 doesn't recognize
+    // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
+    // in the context of a delegation pattern
+    // id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     api project(':resources')
     api project(':baseServices')
     api project(':core')
-    api libraries.commons_httpclient
+    api libraries.commons_httpclient.coordinates
 
-    implementation libraries.slf4j_api
-    implementation libraries.jcifs
-    implementation libraries.guava
-    implementation libraries.commons_lang
-    implementation libraries.commons_io
-    implementation libraries.xerces
-    implementation libraries.nekohtml
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.jcl_to_slf4j.coordinates
+    implementation libraries.jcifs.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.xerces.coordinates
+    implementation libraries.nekohtml.coordinates
 
-    testImplementation libraries.jetty
+    testImplementation testLibraries.jetty
+
+    testFixturesImplementation project(":internalIntegTesting")
 }
 
-useTestFixtures()
-useTestFixtures(project: ':logging')
-useClassycle()
-// Cannot use strict compile because JDK 7 doesn't recognize
-// @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
-// in the context of a delegation pattern
-//strictCompile()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+    from(':logging')
+}

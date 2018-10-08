@@ -16,7 +16,6 @@
 
 package org.gradle.internal.event;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
@@ -24,13 +23,13 @@ import org.gradle.internal.dispatch.ReflectionDispatch;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -38,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultListenerManager implements ListenerManager {
     private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
-    private final Map<Class<?>, EventBroadcast> broadcasters = new HashMap<Class<?>, EventBroadcast>();
+    private final Map<Class<?>, EventBroadcast> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast>();
     private final Object lock = new Object();
     private final DefaultListenerManager parent;
 
@@ -50,6 +49,7 @@ public class DefaultListenerManager implements ListenerManager {
         this.parent = parent;
     }
 
+    @Override
     public void addListener(Object listener) {
         ListenerDetails details = null;
         synchronized (lock) {
@@ -63,6 +63,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public void removeListener(Object listener) {
         ListenerDetails details;
         synchronized (lock) {
@@ -76,6 +77,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public void useLogger(Object logger) {
         ListenerDetails details = null;
         synchronized (lock) {
@@ -89,10 +91,12 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public <T> T getBroadcaster(Class<T> listenerClass) {
         return getBroadcasterInternal(listenerClass).getBroadcaster();
     }
 
+    @Override
     public <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
         ListenerBroadcast<T> broadcast = new ListenerBroadcast(listenerClass);
         broadcast.add(getBroadcasterInternal(listenerClass).getDispatch(true));
@@ -116,6 +120,7 @@ public class DefaultListenerManager implements ListenerManager {
         }
     }
 
+    @Override
     public ListenerManager createChild() {
         return new DefaultListenerManager(this);
     }
@@ -384,7 +389,7 @@ public class DefaultListenerManager implements ListenerManager {
             // block until the listener has finished notifying.
             notifyingLock.lock();
             try {
-                for (EventBroadcast<?> broadcaster : Lists.newArrayList(broadcasters.values())) {
+                for (EventBroadcast<?> broadcaster : broadcasters.values()) {
                     broadcaster.maybeRemove(this);
                 }
             } finally {

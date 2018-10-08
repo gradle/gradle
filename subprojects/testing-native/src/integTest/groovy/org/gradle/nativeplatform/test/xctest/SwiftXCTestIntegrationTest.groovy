@@ -16,16 +16,16 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftAppTest
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithSingleXCTestSuite
-import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
@@ -35,19 +35,17 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
-import org.gradle.nativeplatform.fixtures.xctest.XCTestFinderFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import spock.lang.Unroll
 
-@Requires([TestPrecondition.SWIFT_SUPPORT])
-class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
     def setup() {
-        def xcTestFinder = new XCTestFinderFixture(toolChain)
         buildFile << """
 apply plugin: 'xctest'
 """
-        buildFile << xcTestFinder.buildscript()
+        // TODO: Temporarily disable XCTests with Swift3 on macOS
+        Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
     }
 
     def "fails when test cases fail"() {
@@ -67,40 +65,6 @@ apply plugin: 'xctest'
     }
 
     def "succeeds when test cases pass"() {
-        given:
-        def lib = new SwiftLibWithXCTest()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        lib.assertTestCasesRan(testExecutionResult)
-    }
-
-    @Unroll
-    def "runs tests when #task lifecycle task executes"() {
-        given:
-        def lib = new SwiftLibWithXCTest()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds(task)
-
-        then:
-        executed(":xcTest")
-        lib.assertTestCasesRan(testExecutionResult)
-
-        where:
-        task << ["test", "check", "build"]
-    }
-
-    def "can test public and internal features of a Swift library"() {
         given:
         def lib = new SwiftLibWithXCTest()
         settingsFile << "rootProject.name = '${lib.projectName}'"
@@ -164,22 +128,6 @@ apply plugin: 'xctest'
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
-    }
-
-    def "skips test tasks as up-to-date when nothing changes between invocation"() {
-        given:
-        def lib = new SwiftLibWithXCTest()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "build logic can change source layout convention"() {
@@ -267,10 +215,10 @@ dependencies {
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    def "skips test tasks when no source is available for Swift executable"() {
+    def "skips test tasks when no source is available for Swift application"() {
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
@@ -281,30 +229,13 @@ apply plugin: 'swift-executable'
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
-    def "can test public and internal features of a Swift executable"() {
-        given:
-        def app = new SwiftAppWithXCTest()
-        settingsFile << "rootProject.name = '${app.projectName}'"
-        buildFile << """
-apply plugin: 'swift-executable'
-"""
-        app.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
-        app.assertTestCasesRan(testExecutionResult)
-    }
-
-    def "can test public and internal features of a Swift executable with a single source file"() {
+    def "can test public and internal features of a Swift application with a single source file"() {
         given:
         def main = new SwiftSingleFileApp()
         def test = new SwiftAppTest(main, main.greeter, main.sum, main.multiply)
         settingsFile << "rootProject.name = '${main.projectName}'"
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
         main.writeToProject(testDirectory)
         test.writeToProject(testDirectory)
@@ -318,12 +249,12 @@ apply plugin: 'swift-executable'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    def "can test features of a Swift executable using a single test source file"() {
+    def "can test features of a Swift application using a single test source file"() {
         given:
         def app = new SwiftAppWithSingleXCTestSuite()
         settingsFile << "rootProject.name = '${app.projectName}'"
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
         app.writeToProject(testDirectory)
 
@@ -354,6 +285,59 @@ apply plugin: 'swift-library'
         assertMainSymbolIsAbsent(objectFiles(lib.test, "build/obj/test"))
         assertMainSymbolIsAbsent(machOBundle("build/exe/test/${lib.test.moduleName}"))
         lib.assertTestCasesRan(testExecutionResult)
+    }
+
+    def "relinks when main sources change in ABI compatible way"() {
+        given:
+        def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
+
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << """
+apply plugin: 'swift-library'
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+
+        when:
+        file("src/main/swift/combined.swift").replace("Hello,", "Goodbye,")
+        then:
+        succeeds("test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(":compileTestSwift")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+    }
+
+    def "recompiles when main sources change in non-ABI compatible way"() {
+        given:
+        def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
+
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << """
+apply plugin: 'swift-library'
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        succeeds("test")
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+
+        when:
+        file("src/main/swift/combined.swift").replace("sayHello", "sayAloha")
+        then:
+        fails("test")
+        failure.assertHasErrorOutput("value of type 'Greeter' has no member 'sayHello'")
+
+        when:
+        file("src/test/swift/CombinedTests.swift").replace("sayHello", "sayAloha")
+        then:
+        succeeds("test")
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksNotSkipped(":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "build passes when tests have unicode characters"() {
@@ -438,7 +422,7 @@ apply plugin: 'swift-library'
             include 'hello', 'log'
         """
         buildFile << """
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             dependencies {
                 implementation project(':hello')
             }
@@ -453,7 +437,7 @@ apply plugin: 'swift-library'
             }
         """
 
-        app.executable.writeToProject(testDirectory)
+        app.application.writeToProject(testDirectory)
         app.greeter.writeToProject(file('hello'))
         app.logger.writeToProject(file('log'))
 
@@ -484,8 +468,8 @@ apply plugin: 'swift-library'
             include 'hello', 'log'
         """
         buildFile << """
-            apply plugin: 'swift-executable'
-            executable {
+            apply plugin: 'swift-application'
+            application {
                 source.from rootProject.file('Sources/App')
             }
             xctest {
@@ -512,7 +496,7 @@ apply plugin: 'swift-library'
             }
         """
 
-        app.executable.writeToProject(file('Sources/App'))
+        app.application.writeToProject(file('Sources/App'))
         app.greeter.writeToProject(file('Sources/Hello'))
         app.logger.writeToProject(file('Sources/Log'))
 
@@ -535,6 +519,26 @@ apply plugin: 'swift-library'
             ':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest', ':xcTest', ':test')
     }
 
+    @Unroll
+    def "can use broken test filter [#testFilter]"() {
+        given:
+        def lib = new SwiftLibWithXCTest()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        buildFile << "apply plugin: 'swift-library'"
+        lib.writeToProject(testDirectory)
+
+        when:
+        runAndFail('xcTest', '--tests', testFilter)
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest")
+        failure.assertHasCause("No tests found for given includes: [$testFilter](--tests filter)")
+
+        where:
+        testFilter << ['.SumTestSuite.testCanAddSumOf42', 'GreeterTest.SumTestSuite.', 'GreeterTest..testCanAddSumOf42']
+    }
+
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
         binaries.each {
             assertMainSymbolIsAbsent(it)
@@ -543,9 +547,5 @@ apply plugin: 'swift-library'
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
-    }
-
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

@@ -16,19 +16,24 @@
 
 package org.gradle.api.tasks;
 
+import org.apache.tools.ant.types.Commandline;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -278,6 +283,29 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * Parses an argument list from {@code args} and passes it to {@link #setArgs(List)}.
+     *
+     * <p>
+     * The parser supports both single quote ({@code '}) and double quote ({@code "}) as quote delimiters.
+     * For example, to pass the argument {@code foo bar}, use {@code "foo bar"}.
+     * </p>
+     * <p>
+     * Note: the parser does <strong>not</strong> support using backslash to escape quotes. If this is needed,
+     * use the other quote delimiter around it.
+     * For example, to pass the argument {@code 'singly quoted'}, use {@code "'singly quoted'"}.
+     * </p>
+     *
+     * @param args Args for the main class. Will be parsed into an argument list.
+     * @return this
+     * @since 4.9
+     */
+    @Incubating
+    @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
+    public JavaExec setArgsString(String args) {
+        return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
+    }
+
+    /**
      * {@inheritDoc}
      */
     public JavaExec setArgs(List<String> applicationArgs) {
@@ -307,6 +335,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public JavaExecSpec args(Iterable<?> args) {
         javaExecHandleBuilder.args(args);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return javaExecHandleBuilder.getArgumentProviders();
     }
 
     /**
@@ -343,7 +379,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Nullable @Optional @Input
     public String getExecutable() {
         return javaExecHandleBuilder.getExecutable();
     }
@@ -509,5 +545,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     public List<String> getCommandLine() {
         return javaExecHandleBuilder.getCommandLine();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return javaExecHandleBuilder.getJvmArgumentProviders();
     }
 }

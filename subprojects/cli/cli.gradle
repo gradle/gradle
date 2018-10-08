@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -20,8 +22,15 @@
     It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
     It has no dependencies, and should never have any.
 */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'gradlebuild.classycle'
+}
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+dependencies{
+    compile project(':distributionsDependencies')
+}
 
-useClassycle()
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}

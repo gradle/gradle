@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -33,7 +35,14 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory)
+    final ProjectStateRegistry projectRegistry = Stub()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectRegistry)
+
+    def setup() {
+        def projectState = Stub(ProjectState)
+        _ * projectRegistry.stateFor(_) >> projectState
+        _ * projectState.withMutableState(_) >> { Runnable action -> action.run() }
+    }
 
     def "resolves project dependency"() {
         setup:
@@ -43,11 +52,10 @@ class ProjectDependencyResolverTest extends Specification {
         def dependencyMetaData = Stub(DependencyMetadata) {
             getSelector() >> selector
         }
-        def targetModuleId = Stub(ModuleIdentifier)
         def id = newProjectId(":project")
 
         when:
-        resolver.resolve(dependencyMetaData, result)
+        resolver.resolve(dependencyMetaData, null, result)
 
         then:
         1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
@@ -77,7 +85,7 @@ class ProjectDependencyResolverTest extends Specification {
         def targetModuleId = Stub(ModuleIdentifier)
 
         when:
-        resolver.resolve(dependencyMetaData, result)
+        resolver.resolve(dependencyMetaData, null, result)
 
         then:
         0 * registry.getComponent(_)

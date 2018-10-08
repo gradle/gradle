@@ -137,10 +137,10 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         file('build/install/sample').exists()
 
         when:
-        ExecutionResult result = runViaUnixStartScript()
+        runViaUnixStartScript()
 
         then:
-        result.output.contains('Hello World!')
+        outputContains('Hello World!')
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
@@ -156,10 +156,10 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         file('build/install/sample').exists()
 
         when:
-        ExecutionResult result = runViaUnixStartScriptWithJavaHome(testJavaHome.absolutePath)
+        runViaUnixStartScriptWithJavaHome(testJavaHome.absolutePath)
 
         then:
-        result.output.contains('Hello World!')
+        outputContains('Hello World!')
 
         cleanup:
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
@@ -193,10 +193,10 @@ $binFile.text
         file('build/install/sample').exists()
 
         when:
-        ExecutionResult result = runViaWindowsStartScript()
+        runViaWindowsStartScript()
 
         then:
-        result.output.contains('Hello World!')
+        outputContains('Hello World!')
     }
 
     ExecutionResult runViaUnixStartScript() {
@@ -256,6 +256,32 @@ dependencies {
 
         then:
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
+    }
+
+    def "executables can be placed at the root of the distribution"() {
+        given:
+        buildFile << """
+executableDir = ''
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/sample').exists()
+        file('build/install/sample/sample.bat').exists()
+    }
+
+    def "executables can be placed in a custom directory"() {
+        given:
+        buildFile << """
+executableDir = 'foo/bar'
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/foo/bar/sample').exists()
+        file('build/install/sample/foo/bar/sample.bat').exists()
     }
 
     def "includes transitive implementation dependencies in distribution"() {
@@ -436,10 +462,10 @@ startScripts {
         when:
         succeeds('installDist')
         and:
-        ExecutionResult result = runViaStartScript()
+        runViaStartScript()
 
         then:
-        result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
+        outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
     ExecutionResult runViaStartScript() {
@@ -539,5 +565,27 @@ rootProject.name = 'sample'
 
         then:
         skippedTasks.contains(":startScripts")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4627")
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "distribution not in root directory has correct permissions set"() {
+        given:
+        buildFile << """
+            distributions {
+                main {
+                    contents {
+                        into "/not-the-root"
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("installDist")
+
+        then:
+        file('build/install/sample/').allDescendants() == ["not-the-root/bin/sample", "not-the-root/bin/sample.bat", "not-the-root/lib/sample.jar"] as Set
+        assert file("build/install/sample/not-the-root/bin/sample").permissions == "rwxr-xr-x"
     }
 }

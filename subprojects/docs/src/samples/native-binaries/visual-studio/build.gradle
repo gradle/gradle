@@ -1,23 +1,23 @@
 apply plugin: 'cpp'
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'visual-studio'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
-// START SNIPPET configure-locations
+// tag::configure-locations[]
 model {
     visualStudio {
         projects.all {
             projectFile.location = "vs/${name}.vcxproj"
             filtersFile.location = "vs/${name}.vcxproj.filters"
         }
-        solutions.all {
+        solution {
             solutionFile.location = "vs/${name}.sln"
         }
     }
 }
-// END SNIPPET configure-locations
+// end::configure-locations[]
 
-// START SNIPPET customize-project-files
+// tag::customize-project-files[]
 model {
     visualStudio {
         projects.all { project ->
@@ -28,11 +28,11 @@ model {
         }
     }
 }
-// END SNIPPET customize-project-files
-// START SNIPPET customize-solution-files
+// end::customize-project-files[]
+// tag::customize-solution-files[]
 model {
     visualStudio {
-        solutions.all { solution ->
+        solution { solution ->
             solutionFile.withContent { content ->
                 def sourceControlSection = """
     GlobalSection(SolutionNotes) = postSolution
@@ -42,7 +42,7 @@ model {
         Text1 = This is a shared note.
         Name2 = SecondNote
         Issue2 = N
-        Text2 = The projects in this solution are ${solution.projects*.name}.
+        Text2 = The projects in this solution are ${projects*.name}.
     EndGlobalSection
 """
                 def insertPos = content.text.lastIndexOf("EndGlobal")
@@ -51,7 +51,7 @@ model {
         }
     }
 }
-// END SNIPPET customize-solution-files
+// end::customize-solution-files[]
 
 model {
     components {

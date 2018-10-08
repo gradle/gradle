@@ -20,8 +20,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.specs.Spec;
@@ -35,9 +35,11 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -48,11 +50,11 @@ import java.util.concurrent.Callable;
 @Incubating
 public abstract class JacocoReportBase extends JacocoBase {
 
-    private FileCollection executionData;
-    private FileCollection sourceDirectories;
-    private FileCollection classDirectories;
-    private FileCollection additionalClassDirs;
-    private FileCollection additionalSourceDirs;
+    private final ConfigurableFileCollection executionData = getProject().files();
+    private final ConfigurableFileCollection sourceDirectories = getProject().files();
+    private final ConfigurableFileCollection classDirectories = getProject().files();
+    private final ConfigurableFileCollection additionalClassDirs = getProject().files();
+    private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
 
     public JacocoReportBase() {
         onlyIf(new Spec<Task>() {
@@ -88,7 +90,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     public void setExecutionData(FileCollection executionData) {
-        this.executionData = executionData;
+        this.executionData.setFrom(executionData);
     }
 
     /**
@@ -101,7 +103,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     public void setSourceDirectories(FileCollection sourceDirectories) {
-        this.sourceDirectories = sourceDirectories;
+        this.sourceDirectories.setFrom(sourceDirectories);
     }
 
     /**
@@ -114,7 +116,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     }
 
     public void setClassDirectories(FileCollection classDirectories) {
-        this.classDirectories = classDirectories;
+        this.classDirectories.setFrom(classDirectories);
     }
 
     /**
@@ -127,8 +129,12 @@ public abstract class JacocoReportBase extends JacocoBase {
         return additionalClassDirs;
     }
 
-    public void setAdditionalClassDirs(FileCollection additionalClassDirs) {
-        this.additionalClassDirs = additionalClassDirs;
+    public void setAdditionalClassDirs(@Nullable FileCollection additionalClassDirs) {
+        if (additionalClassDirs!=null) {
+            this.additionalClassDirs.setFrom(additionalClassDirs);
+        } else {
+            this.additionalClassDirs.setFrom();
+        }
     }
 
     /**
@@ -141,8 +147,12 @@ public abstract class JacocoReportBase extends JacocoBase {
         return additionalSourceDirs;
     }
 
-    public void setAdditionalSourceDirs(FileCollection additionalSourceDirs) {
-        this.additionalSourceDirs = additionalSourceDirs;
+    public void setAdditionalSourceDirs(@Nullable FileCollection additionalSourceDirs) {
+        if (additionalSourceDirs!=null) {
+            this.additionalSourceDirs.setFrom(additionalSourceDirs);
+        } else {
+            this.additionalSourceDirs.setFrom();
+        }
     }
 
     /**
@@ -151,11 +161,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param files one or more files to add
      */
     public void executionData(Object... files) {
-        if (executionData == null) {
-            executionData = getProject().files(files);
-        } else {
-            executionData = executionData.plus(getProject().files(files));
-        }
+        executionData.from(files);
     }
 
     /**
@@ -199,10 +205,6 @@ public abstract class JacocoReportBase extends JacocoBase {
      */
     @Internal
     public FileCollection getAllClassDirs() {
-        FileCollection additionalDirs = getAdditionalClassDirs();
-        if (additionalDirs == null) {
-            return classDirectories;
-        }
         return classDirectories.plus(getAdditionalClassDirs());
     }
 
@@ -214,10 +216,6 @@ public abstract class JacocoReportBase extends JacocoBase {
      */
     @Internal
     public FileCollection getAllSourceDirs() {
-        FileCollection additionalDirs = getAdditionalSourceDirs();
-        if (additionalDirs == null) {
-            return sourceDirectories;
-        }
         return sourceDirectories.plus(getAdditionalSourceDirs());
     }
 
@@ -228,23 +226,15 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param sourceSets one or more source sets to report on
      */
     public void sourceSets(final SourceSet... sourceSets) {
-        getProject().afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                for (SourceSet sourceSet : sourceSets) {
-                    if (getSourceDirectories() == null) {
-                        setSourceDirectories(getProject().files(sourceSet.getAllJava().getSrcDirs()));
-                    } else {
-                        setSourceDirectories(getSourceDirectories().plus(getProject().files(sourceSet.getAllJava().getSrcDirs())));
-                    }
-                    if (getClassDirectories() == null) {
-                        setClassDirectories(sourceSet.getOutput());
-                    } else {
-                        setClassDirectories(getClassDirectories().plus(sourceSet.getOutput()));
-                    }
+        for (final SourceSet sourceSet : sourceSets) {
+            sourceDirectories.from(new Callable<Set<File>>() {
+                @Override
+                public Set<File> call() throws Exception {
+                    return sourceSet.getAllJava().getSrcDirs();
                 }
-            }
-        });
+            });
+            classDirectories.from(sourceSet.getOutput());
+        }
     }
 
     /**
@@ -262,11 +252,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param dirs a {@code FileCollection} of directories containing classes to report coverage of
      */
     public void additionalClassDirs(FileCollection dirs) {
-        if (additionalClassDirs == null) {
-            additionalClassDirs = dirs;
-        } else {
-            additionalClassDirs = additionalClassDirs.plus(dirs);
-        }
+        additionalClassDirs.from(dirs);
     }
 
     /**
@@ -284,10 +270,6 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param dirs a {@code FileCollection} of directories containing source files for the classes included in the report
      */
     public void additionalSourceDirs(FileCollection dirs) {
-        if (additionalSourceDirs == null) {
-            additionalSourceDirs = dirs;
-        } else {
-            additionalSourceDirs = additionalSourceDirs.plus(dirs);
-        }
+        additionalSourceDirs.from(dirs);
     }
 }

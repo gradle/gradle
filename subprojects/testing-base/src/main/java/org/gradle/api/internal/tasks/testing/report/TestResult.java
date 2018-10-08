@@ -27,11 +27,17 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     final ClassTestResults classResults;
     final List<TestFailure> failures = new ArrayList<TestFailure>();
     final String name;
+    final String displayName;
     boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
+        this(name, name, duration, classResults);
+    }
+
+    public TestResult(String name, String displayName, long duration, ClassTestResults classResults) {
         this.name = name;
         this.duration = duration;
+        this.displayName = displayName;
         this.classResults = classResults;
     }
 
@@ -41,6 +47,10 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
 
     public String getName() {
         return name;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override

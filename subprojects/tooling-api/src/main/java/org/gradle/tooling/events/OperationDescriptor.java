@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -29,7 +28,6 @@ import javax.annotation.Nullable;
  *
  * @since 2.4
  */
-@Incubating
 @HasInternalProtocol
 public interface OperationDescriptor {
 

@@ -33,6 +33,10 @@ class PotentialConflictFactory {
         return new HasConflict(conflict.participants);
     }
 
+    static PotentialConflict noConflict() {
+        return NO_CONFLICT;
+    }
+
     private static class HasConflict implements PotentialConflict {
 
         private final Set<ModuleIdentifier> participants;

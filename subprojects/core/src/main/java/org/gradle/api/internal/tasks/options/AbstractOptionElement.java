@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.exceptions.ValueCollectingDiagnosticsVisitor;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -28,13 +29,19 @@ import java.util.Set;
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
-    private final int order;
     private final Class<?> optionType;
     private final NotationParser<CharSequence, ?> notationParser;
 
+    public AbstractOptionElement(String optionName, org.gradle.api.internal.tasks.options.Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
+        this(readDescription(option, optionName, declaringClass), optionName, optionType, notationParser);
+    }
+
     public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
-        this.description = readDescription(option, optionName, declaringClass);
-        this.order = option.order();
+        this(readDescription(option, optionName, declaringClass), optionName, optionType, notationParser);
+    }
+
+    private AbstractOptionElement(String description, String optionName, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
+        this.description = description;
         this.optionName = optionName;
         this.optionType = optionType;
         this.notationParser = notationParser;
@@ -50,7 +57,15 @@ abstract class AbstractOptionElement implements OptionElement {
         return optionType;
     }
 
-    private String readDescription(Option option, String optionName, Class<?> declaringClass) {
+    private static String readDescription(Option option, String optionName, Class<?> declaringClass) {
+        try {
+            return option.description();
+        } catch (IncompleteAnnotationException ex) {
+            throw new OptionValidationException(String.format("No description set on option '%s' at for class '%s'.", optionName, declaringClass.getName()));
+        }
+    }
+
+    private static String readDescription(org.gradle.api.internal.tasks.options.Option option, String optionName, Class<?> declaringClass) {
         try {
             return option.description();
         } catch (IncompleteAnnotationException ex) {
@@ -69,10 +84,6 @@ abstract class AbstractOptionElement implements OptionElement {
 
     public String getDescription() {
         return description;
-    }
-
-    public int getOrder() {
-        return order;
     }
 
     protected NotationParser<CharSequence, ?> getNotationParser() {

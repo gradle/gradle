@@ -17,6 +17,7 @@
 package org.gradle.performance.measure;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,8 +34,6 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
     private final Amount<Q> min;
     // https://en.wikipedia.org/wiki/Standard_error
     private final Amount<Q> standardError;
-    // https://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean
-    private final Amount<Q> standardErrorOfMean;
 
     public DataSeries(Iterable<? extends Amount<Q>> values) {
         for (Amount<Q> value : values) {
@@ -49,7 +48,6 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
             max = null;
             min = null;
             standardError = null;
-            standardErrorOfMean = null;
             return;
         }
 
@@ -85,7 +83,6 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         BigDecimal result = BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(size()), BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
 
         standardError = Amount.valueOf(result, baseUnits);
-        standardErrorOfMean = standardError.div(BigDecimal.valueOf(Math.sqrt(size())));
     }
 
     public Amount<Q> getAverage() {
@@ -108,7 +105,11 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         return standardError;
     }
 
-    public Amount<Q> getStandardErrorOfMean() {
-        return standardErrorOfMean;
+    public static double confidenceInDifference(DataSeries first, DataSeries second) {
+        return 1 - new MannWhitneyUTest().mannWhitneyUTest(first.asDoubleArray(), second.asDoubleArray());
+    }
+
+    private double[] asDoubleArray() {
+        return stream().map(Amount::getValue).mapToDouble(BigDecimal::doubleValue).toArray();
     }
 }

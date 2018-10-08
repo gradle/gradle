@@ -36,8 +36,6 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
             
             test {
                 jacoco {
-                    // No caching when append is enabled
-                    append = false
                     classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
                 }
             }
@@ -46,7 +44,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "jacoco file results are cached"() {
         when:
-        withBuildCache().succeeds "test", "jacocoTestReport"
+        withBuildCache().run "test", "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
@@ -58,7 +56,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertDoesNotExist()
 
         when:
-        withBuildCache().succeeds "jacocoTestReport"
+        withBuildCache().run "jacocoTestReport"
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertContentsHaveNotChangedSince(snapshot)
@@ -72,7 +70,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
             }
         """
         when:
-        withBuildCache().succeeds "jacocoTestReport"
+        withBuildCache().run "jacocoTestReport"
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertIsFile()
@@ -83,16 +81,16 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertDoesNotExist()
 
         when:
-        withBuildCache().succeeds("integrationTest", "jacocoIntegrationTestReport")
+        withBuildCache().run("integrationTest", "jacocoIntegrationTestReport")
         and:
-        withBuildCache().succeeds "jacocoTestReport"
+        withBuildCache().run "jacocoTestReport"
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
     }
 
     def "test execution is cached with different gradle user home"() {
         when:
-        withBuildCache().succeeds "test", "jacocoTestReport"
+        withBuildCache().run "test", "jacocoTestReport"
         def snapshot = reportFile.snapshot()
         then:
         nonSkippedTasks.containsAll ":test", ":jacocoTestReport"
@@ -105,7 +103,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
 
         when:
         executer.requireOwnGradleUserHomeDir()
-        withBuildCache().succeeds "jacocoTestReport"
+        withBuildCache().run "jacocoTestReport"
         then:
         skippedTasks.containsAll ":test", ":jacocoTestReport"
         reportFile.assertContentsHaveNotChangedSince(snapshot)
@@ -120,7 +118,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
             }
         """
         when:
-        withBuildCache().succeeds "test"
+        withBuildCache().run "test"
         then:
         nonSkippedTasks.containsAll ":test"
 
@@ -131,7 +129,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
 
         when:
         executer.requireOwnGradleUserHomeDir()
-        withBuildCache().succeeds "test"
+        withBuildCache().run "test"
         then:
         skippedTasks.containsAll ":test"
     }

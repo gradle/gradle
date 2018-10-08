@@ -18,19 +18,30 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.Describables;
+
+import static org.gradle.api.artifacts.result.ComponentSelectionCause.REQUESTED;
+import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
     private final ComponentSelector requested;
-    private ComponentSelectionReason selectionReason;
+    private ComponentSelectionDescriptorInternal selectionDescription;
     private ComponentSelector target;
 
-    public DefaultDependencySubstitution(ComponentSelector requested) {
+    public DefaultDependencySubstitution(ComponentSelector requested, String reason) {
         this.requested = requested;
         this.target = requested;
+        if (reason != null) {
+            this.selectionDescription = VersionSelectionReasons.REQUESTED.withReason(Describables.of(reason));
+        } else {
+            this.selectionDescription = VersionSelectionReasons.REQUESTED;
+        }
     }
 
     @Override
@@ -44,15 +55,20 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     }
 
     @Override
-    public void useTarget(Object notation, ComponentSelectionReason selectionReason) {
+    public void useTarget(Object notation, String reason) {
+        useTarget(notation, new DefaultComponentSelectionDescriptor(SELECTED_BY_RULE, Describables.of(reason)));
+    }
+
+    @Override
+    public void useTarget(Object notation, ComponentSelectionDescriptor selectionDescription) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
-        this.selectionReason = selectionReason;
+        this.selectionDescription = (ComponentSelectionDescriptorInternal) selectionDescription;
         validateTarget(target);
     }
 
     @Override
-    public ComponentSelectionReason getSelectionReason() {
-        return selectionReason;
+    public ComponentSelectionDescriptorInternal getSelectionDescription() {
+        return selectionDescription;
     }
 
     @Override
@@ -62,7 +78,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return selectionReason != null;
+        return selectionDescription.getCause() != REQUESTED;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {

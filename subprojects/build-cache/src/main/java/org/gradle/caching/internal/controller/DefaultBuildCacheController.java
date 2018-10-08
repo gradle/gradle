@@ -44,9 +44,9 @@ import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -69,6 +69,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private final BuildCacheTempFileStore tmp;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean emitDebugLogging;
 
     private boolean closed;
 
@@ -76,9 +77,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
         BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
         File gradleUserHomeDir,
-        boolean logStackTraces
+        boolean logStackTraces,
+        boolean emitDebugLogging
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.emitDebugLogging = emitDebugLogging;
 
         if (config.local instanceof LocalBuildCacheService) {
             LocalBuildCacheService castLocal = (LocalBuildCacheService) config.local;
@@ -88,10 +91,20 @@ public class DefaultBuildCacheController implements BuildCacheController {
         } else {
             this.local = NullLocalBuildCacheServiceHandle.INSTANCE;
             this.legacyLocal = toHandle(config.local, config.localPush, BuildCacheServiceRole.LOCAL, buildOperationExecutor, logStackTraces);
-            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"), BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"));
         }
 
         this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean isEmitDebugLogging() {
+        return emitDebugLogging;
     }
 
     @Nullable
@@ -112,7 +125,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         if (legacyLocal.canLoad() || remote.canLoad()) {
-            tmp.allocateTempFile(command.getKey(), new Action<File>() {
+            tmp.withTempFile(command.getKey(), new Action<File>() {
                 @Override
                 public void execute(File file) {
                     LoadTarget loadTarget = new LoadTarget(file);
@@ -205,7 +218,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         final BuildCacheKey key = command.getKey();
         final Pack pack = new Pack(command);
 
-        tmp.allocateTempFile(command.getKey(), new Action<File>() {
+        tmp.withTempFile(command.getKey(), new Action<File>() {
             @Override
             public void execute(File file) {
                 pack.execute(file);

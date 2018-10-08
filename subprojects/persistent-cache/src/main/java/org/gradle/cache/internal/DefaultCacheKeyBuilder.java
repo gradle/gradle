@@ -60,6 +60,9 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
     }
 
     private HashCode hashOf(Object component) {
+        if (component instanceof HashCode) {
+            return (HashCode) component;
+        }
         if (component instanceof String) {
             return hashFunction.hashString((String) component);
         }
@@ -85,8 +88,8 @@ class DefaultCacheKeyBuilder implements CacheKeyBuilder {
 
     private HashCode combinedHashOf(Object[] components) {
         Hasher hasher = hashFunction.newHasher();
-        for (Object c : components) {
-            hasher.putBytes(hashOf(c).toByteArray());
+        for (Object component : components) {
+            hasher.putHash(hashOf(component));
         }
         return hasher.hash();
     }

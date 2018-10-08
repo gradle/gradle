@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 
 public interface DependencySubstitutionInternal extends DependencySubstitution {
-    void useTarget(Object notation, ComponentSelectionReason selectionReason);
+    void useTarget(Object notation, ComponentSelectionDescriptor selectionDescription);
 
     ComponentSelector getTarget();
 
-    ComponentSelectionReason getSelectionReason();
+    ComponentSelectionDescriptorInternal getSelectionDescription();
 
     boolean isUpdated();
 }

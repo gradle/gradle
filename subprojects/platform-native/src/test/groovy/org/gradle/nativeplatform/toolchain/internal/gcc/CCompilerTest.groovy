@@ -32,7 +32,7 @@ class CCompilerTest extends GccCompatibleNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [ '-x', 'c' ] + super.getCompilerSpecificArguments(includeDir)
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
+        [ '-x', 'c' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

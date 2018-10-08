@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,20 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import java.io.File;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-public class IdeExtendedRepoFileDependency extends IdeRepoFileDependency {
-    private static final Comparator<File> FILE_COMPARATOR = new FileNameComparator();
-    private final SortedSet<File> sourceFiles = new TreeSet<File>(FILE_COMPARATOR);
-    private final SortedSet<File> javadocFiles = new TreeSet<File>(FILE_COMPARATOR);
+/**
+ * TODO only here because Kotlin DSL uses this. Please remove once that is fixed.
+ */
+public class IdeExtendedRepoFileDependency {
 
-    public IdeExtendedRepoFileDependency(File file) {
-        super(file);
+    private ModuleVersionIdentifier id;
+
+    public ModuleVersionIdentifier getId() {
+        return id;
     }
 
-    public File getSourceFile() {
-        return sourceFiles.isEmpty() ? null : sourceFiles.first();
-    }
-
-    public Set<File> getSourceFiles() {
-        return sourceFiles;
-    }
-
-    public void addSourceFile(File sourceFile) {
-        sourceFiles.add(sourceFile);
-    }
-
-    public File getJavadocFile() {
-        return javadocFiles.isEmpty() ? null : javadocFiles.first();
-    }
-
-    public Set<File> getJavadocFiles() {
-        return javadocFiles;
-    }
-
-    public void addJavadocFile(File javadocFile) {
-        javadocFiles.add(javadocFile);
-    }
-
-    private static class FileNameComparator implements Comparator<File> {
-        public int compare(File o1, File o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
+    public void setId(ModuleVersionIdentifier id) {
+        this.id = id;
     }
 }

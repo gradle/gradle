@@ -16,11 +16,12 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
@@ -28,9 +29,9 @@ class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        file("src/main/java/Foo.java") << "public class Foo {}"
-        file("src/test/java/FooTest.java") << """
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("src/main/java/Foo.java") << "public class Foo {}"
+        projectDir.file("src/test/java/FooTest.java") << """
             import org.junit.*;
 
             public class FooTest {
@@ -41,7 +42,7 @@ class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
             }
         """
 
-        file("build.gradle") << """
+        projectDir.file("build.gradle") << """
             apply plugin: "java"
 
             ${mavenCentralRepository()}
@@ -55,16 +56,8 @@ class TestTaskRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     }
 
     @Override
-    protected void moveFilesAround() {
-        buildFile << """
-            sourceSets.test.java.outputDir = file("build/test-classes")
-        """
-        file("build/classes/test").assertIsDir().deleteDir()
-    }
-
-    @Override
-    protected extractResults() {
-        def contents = normaliseLineSeparators(file("build/reports/tests/test/index.html").text)
+    protected extractResultsFrom(TestFile projectDir) {
+        def contents = normaliseLineSeparators(projectDir.file("build/reports/tests/test/index.html").text)
         contents = contents.replaceAll(/(<a href=".*">Gradle .*?<\/a>) at [^<]+/, '$1 at [DATE]' )
         contents = contents.replaceAll(/\b\d+(\.\d+)?s\b/, "[TIME]")
         return contents

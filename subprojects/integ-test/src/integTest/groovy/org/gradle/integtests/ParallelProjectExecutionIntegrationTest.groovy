@@ -85,8 +85,8 @@ allprojects {
         fails ':a:pingServer'
 
         then:
-        failure.error =~ 'b failed'
-        failure.error =~ 'c failed'
+        failure.assertHasCause('b failed')
+        failure.assertHasCause('c failed')
     }
 
     def "tasks are executed when they are ready and not necessarily alphabetically"() {
@@ -102,6 +102,20 @@ allprojects {
         blockingServer.expect(':b:pingC')
 
         run 'b:pingC'
+    }
+
+    def "finalizer tasks are run in parallel"() {
+        buildFile << """
+            tasks.getByPath(':c:ping').dependsOn ":a:ping", ":b:ping"
+            tasks.getByPath(':d:ping').finalizedBy ":c:ping"
+        """
+
+        expect:
+        blockingServer.expect(':d:ping')
+        blockingServer.expectConcurrent(':a:ping', ':b:ping')
+        blockingServer.expect(':c:ping')
+
+        run 'd:ping'
     }
 
     void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {

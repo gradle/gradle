@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.Matchers
 
 /**
  * Tests for resolving dependency cycles in a composite build.
@@ -86,11 +85,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure
-            .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle:")
-            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
-            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
+        failure.assertHasDescription("Included build dependency cycle: build 'buildC' -> build 'buildB' -> build 'buildC'")
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -137,10 +132,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure
-            .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle:")
-            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildD'"))
+        failure.assertHasDescription("Included build dependency cycle: build 'buildD' -> build 'buildC' -> build 'buildD'")
     }
 
     // Not actually a cycle, just documenting behaviour
@@ -180,11 +172,7 @@ project(':b1') {
         resolveFails(":resolveArtifacts")
 
         then:
-        failure
-            .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle:")
-            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
-            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
+        failure.assertHasDescription("Included build dependency cycle: build 'buildC' -> build 'buildB' -> build 'buildC'")
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -218,11 +206,7 @@ project(':b1') {
         resolveFails(":resolveArtifacts")
 
         then:
-        failure
-            .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle:")
-            .assertThatCause(Matchers.containsText("build 'buildC' -> build 'buildB'"))
-            .assertThatCause(Matchers.containsText("build 'buildB' -> build 'buildC'"))
+        failure.assertHasDescription("Included build dependency cycle: build 'buildC' -> build 'buildB' -> build 'buildC'")
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
@@ -270,8 +254,8 @@ project(':b1') {
         resolveFails(":resolveArtifacts")
 
         then:
-        failure
-            .assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure.assertThatDescription(containsNormalizedString(":buildB:b1:classes"))
     }
 
     protected void resolveSucceeds(String task) {

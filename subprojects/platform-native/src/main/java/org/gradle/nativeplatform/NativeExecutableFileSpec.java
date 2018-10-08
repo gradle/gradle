@@ -18,7 +18,7 @@ package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.UnmanagedStruct;
-import org.gradle.platform.base.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 import java.io.File;
 
@@ -31,7 +31,7 @@ import java.io.File;
 public class NativeExecutableFileSpec {
 
     private File file;
-    private ToolChain toolChain;
+    private NativeToolChain toolChain;
 
     public File getFile() {
         return file;
@@ -41,11 +41,19 @@ public class NativeExecutableFileSpec {
         this.file = file;
     }
 
-    public ToolChain getToolChain() {
+    /**
+     * The Tool Chain that produces the native executable.
+     * @since 4.7
+     */
+    public NativeToolChain getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(ToolChain toolChain) {
+    /**
+     * Sets the Tool Chain that produces the native executable.
+     * @since 4.7
+     */
+    public void setToolChain(NativeToolChain toolChain) {
         this.toolChain = toolChain;
     }
 }

@@ -33,7 +33,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -84,6 +86,7 @@ import java.io.File;
  * <li>{@code optsEnvironmentVar}</li>
  * <li>{@code exitEnvironmentVar}</li>
  * <li>{@code mainClassName}</li>
+ * <li>{@code executableDir}</li>
  * <li>{@code defaultJvmOpts}</li>
  * <li>{@code appNameSystemProperty}</li>
  * <li>{@code appHomeRelativePath}</li>
@@ -101,6 +104,7 @@ import java.io.File;
 public class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
+    private String executableDir = "bin";
     private String mainClassName;
     private Iterable<String> defaultJvmOpts = Lists.newLinkedList();
     private String applicationName;
@@ -113,8 +117,9 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The environment variable to use to provide additional options to the JVM.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getOptsEnvironmentVar() {
         if (GUtil.isTrue(optsEnvironmentVar)) {
             return optsEnvironmentVar;
@@ -130,8 +135,9 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The environment variable to use to control exit value (Windows only).
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getExitEnvironmentVar() {
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
@@ -164,56 +170,79 @@ public class CreateStartScripts extends ConventionTask {
      * The directory to write the scripts into.
      */
     @OutputDirectory
+    @Nullable
     public File getOutputDir() {
         return outputDir;
     }
 
-    public void setOutputDir(File outputDir) {
+    public void setOutputDir(@Nullable File outputDir) {
         this.outputDir = outputDir;
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     * @since 4.5
+     */
+    @Incubating
+    @Input
+    public String getExecutableDir() {
+        return executableDir;
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     * @since 4.5
+     */
+    @Incubating
+    public void setExecutableDir(String executableDir) {
+        this.executableDir = executableDir;
     }
 
     /**
      * The main classname used to start the Java application.
      */
     @Input
+    @Nullable
     public String getMainClassName() {
         return mainClassName;
     }
 
-    public void setMainClassName(String mainClassName) {
+    public void setMainClassName(@Nullable String mainClassName) {
         this.mainClassName = mainClassName;
     }
 
     /**
      * The application's default JVM options. Defaults to an empty list.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public Iterable<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
     }
 
-    public void setDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
+    public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
         this.defaultJvmOpts = defaultJvmOpts;
     }
 
     /**
      * The application's name.
      */
+    @Nullable
     @Input
     public String getApplicationName() {
         return applicationName;
     }
 
-    public void setApplicationName(String applicationName) {
+    public void setApplicationName(@Nullable String applicationName) {
         this.applicationName = applicationName;
     }
 
-    public void setOptsEnvironmentVar(String optsEnvironmentVar) {
+    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
-    public void setExitEnvironmentVar(String exitEnvironmentVar) {
+    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
@@ -221,11 +250,12 @@ public class CreateStartScripts extends ConventionTask {
      * The class path for the application.
      */
     @Internal
+    @Nullable
     public FileCollection getClasspath() {
         return classpath;
     }
 
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
     }
 
@@ -268,7 +298,7 @@ public class CreateStartScripts extends ConventionTask {
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
         generator.setClasspath(getRelativeClasspath());
-        generator.setScriptRelPath("bin/" + getUnixScript().getName());
+        generator.setScriptRelPath(getExecutableDir() + "/" + getUnixScript().getName());
         generator.generateUnixScript(getUnixScript());
         generator.generateWindowsScript(getWindowsScript());
     }
@@ -277,7 +307,11 @@ public class CreateStartScripts extends ConventionTask {
     protected Iterable<String> getRelativeClasspath() {
         //a list instance is needed here, as org.gradle.api.internal.changedetection.state.ValueSnapshotter.processValue() does not support
         //serializing Iterators directly
-        return Lists.newArrayList(Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
+        final FileCollection classpathNullable = getClasspath();
+        if (classpathNullable == null) {
+            return Collections.emptyList();
+        }
+        return Lists.newArrayList(Iterables.transform(classpathNullable.getFiles(), new Function<File, String>() {
             @Override
             public String apply(File input) {
                 return "lib/" + input.getName();

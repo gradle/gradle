@@ -33,4 +33,6 @@ public interface TransformedFileCache {
      * @param transformer The transformer to apply to produce the output, if not already available
      */
     List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer);
+
+    boolean contains(File absoluteFile, HashCode inputsHash);
 }

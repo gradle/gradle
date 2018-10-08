@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
@@ -57,7 +58,7 @@ public class DefaultCacheRepository implements CacheRepository {
         Map<String, ?> properties = Collections.emptyMap();
         CacheValidator validator;
         Action<? super PersistentCache> initializer;
-        Action<? super PersistentCache> cleanup;
+        CleanupAction cleanup;
         LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
@@ -108,7 +109,7 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        public CacheBuilder withCleanup(Action<? super PersistentCache> cleanup) {
+        public CacheBuilder withCleanup(CleanupAction cleanup) {
             this.cleanup = cleanup;
             return this;
         }

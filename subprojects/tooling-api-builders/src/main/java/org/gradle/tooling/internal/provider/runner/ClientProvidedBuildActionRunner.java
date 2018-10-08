@@ -16,13 +16,14 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.composite.internal.IncludedBuildInternal;
-import org.gradle.execution.ProjectConfigurer;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -49,7 +50,12 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
         final Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
-        gradle.addBuildListener(new BuildAdapter() {
+        gradle.addBuildListener(new InternalBuildAdapter() {
+            @Override
+            public void projectsEvaluated(Gradle gradle) {
+                forceFullConfiguration((GradleInternal) gradle);
+            }
+
             @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
@@ -67,8 +73,6 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
     @SuppressWarnings("deprecation")
     private BuildActionResult buildResult(Object clientAction, GradleInternal gradle) {
-        forceFullConfiguration(gradle);
-
         DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;
         Throwable failure = null;
@@ -96,7 +100,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         try {
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
             for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-                GradleInternal build = ((IncludedBuildInternal) includedBuild).getConfiguredBuild();
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
                 forceFullConfiguration(build);
             }
         } catch (BuildCancelledException e) {

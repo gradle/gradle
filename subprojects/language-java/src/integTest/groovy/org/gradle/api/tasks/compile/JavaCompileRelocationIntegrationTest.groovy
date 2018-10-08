@@ -16,11 +16,12 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.JarUtils.jarWithContents
 
-class JavaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class JavaCompileRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
@@ -28,37 +29,26 @@ class JavaCompileRelocationIntegrationTest extends AbstractTaskRelocationIntegra
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        file("libs").createDir()
-        file("libs/lib1.jar") << jarWithContents("data.txt": "data1")
-        file("libs/lib2.jar") << jarWithContents("data.txt": "data2")
-        file("src/main/java/sub-dir").createDir()
-        file("src/main/java/Foo.java") << "public class Foo {}"
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("libs").createDir()
+        projectDir.file("libs/lib1.jar") << jarWithContents("data.txt": "data1")
+        projectDir.file("libs/lib2.jar") << jarWithContents("data.txt": "data2")
+        projectDir.file("src/main/java/sub-dir").createDir()
+        projectDir.file("src/main/java/Foo.java") << "public class Foo {}"
 
-        buildFile << buildFileWithClasspath("libs")
-    }
-
-    private static String buildFileWithClasspath(String classpath) {
-        """
+        projectDir.file("build.gradle") << """
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
                 destinationDir = file("build/classes")
                 source "src/main/java"
-                classpath = files('$classpath')
+                classpath = files('libs')
             }
         """
     }
 
     @Override
-    protected void moveFilesAround() {
-        file("src/main/java/Foo.java").moveToDirectory(file("src/main/java/sub-dir"))
-        file("libs").renameTo(file("lobs"))
-        buildFile.text = buildFileWithClasspath("lobs")
-    }
-
-    @Override
-    protected extractResults() {
-        return file("build/classes/Foo.class").bytes
+    protected extractResultsFrom(TestFile projectDir) {
+        return projectDir.file("build/classes/Foo.class").bytes
     }
 }

@@ -23,34 +23,18 @@ import java.io.File;
 /**
  * <p>A {@link Convention} used for the WarPlugin.</p>
  */
-public class WarPluginConvention {
-    private String webAppDirName;
-    private final Project project;
-
-    public WarPluginConvention(Project project) {
-        this.project = project;
-        webAppDirName = "src/main/webapp";
-    }
-
+public abstract class WarPluginConvention {
     /**
      * Returns the web application directory.
      */
-    public File getWebAppDir() {
-        return project.file(webAppDirName);
-    }
+    public abstract File getWebAppDir();
 
     /**
      * The name of the web application directory, relative to the project directory.
      */
-    public String getWebAppDirName() {
-        return webAppDirName;
-    }
+    public abstract String getWebAppDirName();
 
-    public void setWebAppDirName(String webAppDirName) {
-        this.webAppDirName = webAppDirName;
-    }
+    public abstract void setWebAppDirName(String webAppDirName);
 
-    public final Project getProject() {
-        return project;
-    }
+    public abstract Project getProject();
 }

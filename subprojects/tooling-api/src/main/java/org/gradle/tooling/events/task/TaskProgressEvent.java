@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
@@ -23,7 +22,6 @@ import org.gradle.tooling.events.ProgressEvent;
  *
  * @since 2.5
  */
-@Incubating
 public interface TaskProgressEvent extends ProgressEvent {
     /**
      * Returns the description of the task for which progress is reported.

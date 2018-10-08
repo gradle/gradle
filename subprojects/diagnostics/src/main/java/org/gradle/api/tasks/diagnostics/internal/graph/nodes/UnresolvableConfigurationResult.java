@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-public class UnresolvableConfigurationResult implements RenderableDependency {
+public class UnresolvableConfigurationResult extends AbstractRenderableDependency {
     private final Configuration configuration;
 
     public UnresolvableConfigurationResult(Configuration configuration) {
@@ -63,7 +63,7 @@ public class UnresolvableConfigurationResult implements RenderableDependency {
         }
         Set<RenderableDependency> children = Sets.newLinkedHashSet();
         for (final Dependency dependency : dependencies) {
-            children.add(new RenderableDependency() {
+            children.add(new AbstractRenderableDependency() {
                 @Override
                 public Object getId() {
                     return dependency;
@@ -80,20 +80,6 @@ public class UnresolvableConfigurationResult implements RenderableDependency {
                     return label;
                 }
 
-                @Override
-                public String getDescription() {
-                    return null;
-                }
-
-                @Override
-                public ResolutionState getResolutionState() {
-                    return ResolutionState.UNRESOLVED;
-                }
-
-                @Override
-                public Set<? extends RenderableDependency> getChildren() {
-                    return Collections.emptySet();
-                }
             });
         }
         return children;

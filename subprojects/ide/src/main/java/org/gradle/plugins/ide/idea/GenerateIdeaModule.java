@@ -16,10 +16,12 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Module;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -33,6 +35,13 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     private IdeaModule module;
 
+    public GenerateIdeaModule() {}
+
+    @Inject
+    public GenerateIdeaModule(IdeaModule module) {
+        this.module = module;
+    }
+
     @Override
     protected Module create() {
         return new Module(getXmlTransformer(), module.getPathFactory());
@@ -41,6 +50,14 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     @Override
     protected void configure(Module xmlModule) {
         getModule().mergeXmlModule(xmlModule);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (module == null) {
+            return super.getXmlTransformer();
+        }
+        return module.getIml().getXmlTransformer();
     }
 
     /**

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.java;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 
 import java.io.File;
@@ -26,7 +25,6 @@ import java.io.File;
  *
  * @since 2.11
  */
-@Incubating
 public interface InstalledJdk {
     /***
      * The version of the Java installation.

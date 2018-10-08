@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ import java.util.List;
  */
 @Incubating
 @NonExtensible
-public interface ComponentMetadataDetails extends ComponentMetadata {
+public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigurableAttributes<ComponentMetadataDetails> {
     /**
      * Sets whether the component is changing or immutable.
      *
@@ -62,5 +63,33 @@ public interface ComponentMetadataDetails extends ComponentMetadata {
      *
      * @since 4.4
      */
-    void withVariant(String name, Action<VariantMetadata> action);
+    void withVariant(String name, Action<? super VariantMetadata> action);
+
+    /**
+     * Add a rule for adjusting all variants of a component.
+     *
+     * @param action the action to be executed on each variant.
+     *
+     * @since 4.5
+     */
+    void allVariants(Action<? super VariantMetadata> action);
+
+    /**
+     * Declares that this component belongs to a virtual platform, which should be
+     * considered during dependency resolution.
+     * @param notation the coordinates of the owner
+     *
+     * @since 4.10
+     */
+    void belongsTo(Object notation);
+
+    /**
+     * Declares that this component belongs to a platform, which should be
+     * considered during dependency resolution.
+     * @param notation the coordinates of the owner
+     * @param virtual must be set to true if the platform is a virtual platform, or false if it's a published platform
+     *
+     * @since 5.0
+     */
+    void belongsTo(Object notation, boolean virtual);
 }

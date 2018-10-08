@@ -21,7 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.internal.operations.BuildOperationType
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * Tests for composite build.
  */
@@ -29,7 +32,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     BuildTestFile buildA
     List<File> includedBuilds = []
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
-
 
     def setup() {
         buildTestFixture.withBuildInSubDir()
@@ -71,19 +73,19 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     protected void execute(BuildTestFile build, String[] tasks, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(tasks)
-        assertSingleBuildOperationsTree()
+        assertSingleBuildOperationsTreeOfType(RunBuildBuildOperationType)
     }
 
     protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(task)
-        assertSingleBuildOperationsTree()
+        assertSingleBuildOperationsTreeOfType(RunBuildBuildOperationType)
     }
 
     protected void fails(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         fails(task)
-        assertSingleBuildOperationsTree()
+        assertSingleBuildOperationsTreeOfType(RunBuildBuildOperationType)
     }
 
     private void prepare(BuildTestFile build, Iterable<String> arguments) {
@@ -99,15 +101,9 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     protected void executed(String... tasks) {
-        def executedTasks = result.executedTasks
         for (String task : tasks) {
-            containsOnce(executedTasks, task)
+            result.assertTaskExecuted(task)
         }
-    }
-
-    protected static void containsOnce(List<String> tasks, String task) {
-        assert tasks.contains(task)
-        assert tasks.findAll({ it == task }).size() == 1
     }
 
     void assertTaskExecuted(String build, String taskPath) {
@@ -128,8 +124,8 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         }
     }
 
-    void assertSingleBuildOperationsTree() {
-        assert operations.roots().size() == 1
+    private <T extends BuildOperationType<?, ?>> void assertSingleBuildOperationsTreeOfType(Class<T> type) {
+        assert operations.root(type) != null
     }
 
     TestFile getRootDir() {
@@ -153,7 +149,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         singleProjectBuild(name) {
             buildFile << """
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'maven-publish'
 
 gradlePlugin {
     plugins {
@@ -180,5 +175,12 @@ public class ${className} implements Plugin<Project> {
 """
         }
 
+    }
+
+    void outputContains(String string) {
+        // intentionally override outputContains, because this test may find messages
+        // which are after the build finished message
+        def output = result.output
+        assert output.contains(string.trim())
     }
 }

@@ -15,13 +15,14 @@
  */
 package org.gradle.internal.buildevents;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
+import org.gradle.util.SingleMessageLogger;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
@@ -29,7 +30,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHea
 /**
  * A {@link org.gradle.BuildListener} which logs the final result of the build.
  */
-public class BuildResultLogger extends BuildAdapter {
+public class BuildResultLogger extends InternalBuildAdapter {
 
     private final StyledTextOutputFactory textOutputFactory;
     private final BuildStartedTime buildStartedTime;
@@ -44,6 +45,9 @@ public class BuildResultLogger extends BuildAdapter {
     }
 
     public void buildFinished(BuildResult result) {
+        // Summary of deprecations is considered a part of the build summary
+        SingleMessageLogger.reportSuppressedDeprecations();
+
         boolean buildSucceeded = result.getFailure() == null;
 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);

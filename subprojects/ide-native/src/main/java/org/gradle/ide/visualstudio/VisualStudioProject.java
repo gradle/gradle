@@ -16,18 +16,23 @@
 
 package org.gradle.ide.visualstudio;
 
-import org.gradle.api.BuildableComponentSpec;
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.api.Named;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A visual studio project, created from one or more {@link org.gradle.nativeplatform.NativeBinary} instances.
+ * A visual studio project, created from one or more native binaries.
  *
  * <p>
  *
  * The content and location of the generate project file can be modified by the supplied methods:
  *
  * <pre class='autoTested'>
+ *  apply plugin: "cpp"
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {
@@ -43,19 +48,25 @@ import org.gradle.nativeplatform.NativeComponentSpec;
  * </pre>
  */
 @Incubating
-public interface VisualStudioProject extends BuildableComponentSpec {
-    /**
-     * The component that this project represents.
-     */
-    NativeComponentSpec getComponent();
-
+@HasInternalProtocol
+public interface VisualStudioProject extends Named, Buildable {
     /**
      * Configuration for the generated project file.
      */
+    @Internal
     XmlConfigFile getProjectFile();
 
     /**
      * Configuration for the generated filters file.
      */
+    @Internal
     XmlConfigFile getFiltersFile();
+
+    @Override
+    @Internal
+    TaskDependency getBuildDependencies();
+
+    @Override
+    @Input
+    String getName();
 }

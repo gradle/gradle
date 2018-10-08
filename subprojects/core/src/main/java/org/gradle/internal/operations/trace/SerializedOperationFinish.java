@@ -17,17 +17,16 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.OperationFinishEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.OperationFinishEvent;
 
-import java.util.Collections;
 import java.util.Map;
 
-class SerializedOperationFinish {
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
-    final Object id;
+class SerializedOperationFinish implements SerializedOperation {
+
+    final long id;
 
     final long endTime;
 
@@ -37,31 +36,22 @@ class SerializedOperationFinish {
     final String failureMsg;
 
     SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent) {
-        this.id = ((OperationIdentifier) descriptor.getId()).getId();
+        this.id = descriptor.getId().getId();
         this.endTime = finishEvent.getEndTime();
-        this.result = transform(finishEvent.getResult());
+        this.result = toSerializableModel(finishEvent.getResult());
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
     }
 
-    private Object transform(Object result) {
-        if (result instanceof ResolveConfigurationDependenciesBuildOperationType.Result) {
-            ResolveConfigurationDependenciesBuildOperationType.Result cast = (ResolveConfigurationDependenciesBuildOperationType.Result) result;
-            return Collections.singletonMap("resolvedDependenciesCount", cast.getRootComponent().getDependencies().size());
-        }
-
-        return result;
-    }
-
     SerializedOperationFinish(Map<String, ?> map) {
-        this.id = map.get("id");
+        this.id = ((Integer) map.get("id")).longValue();
         this.endTime = (Long) map.get("endTime");
         this.result = map.get("result");
         this.resultClassName = (String) map.get("resultClassName");
         this.failureMsg = (String) map.get("failure");
     }
 
-    Map<String, ?> toMap() {
+    public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         // Order is optimised for humans looking at the log.

@@ -42,7 +42,7 @@ class DefaultReportContainerTest extends Specification {
 
             c.delegate = new Object() {
                 Report createReport(String name) {
-                    add(SimpleReport, name, name, Report.OutputType.FILE, TestFiles.resolver(), DefaultReportContainerTest.project)
+                    add(SimpleReport, name, name, Report.OutputType.FILE, TestFiles.pathToFileResolver(), DefaultReportContainerTest.project)
                 }
             }
 
@@ -78,7 +78,7 @@ class DefaultReportContainerTest extends Specification {
 
     def "container is immutable"() {
         when:
-        container.add(new SimpleReport("d", "d", Report.OutputType.FILE, TestFiles.resolver(), project))
+        container.add(new SimpleReport("d", "d", Report.OutputType.FILE, TestFiles.pathToFileResolver(), project))
 
         then:
         thrown(ReportContainer.ImmutableViolationException)

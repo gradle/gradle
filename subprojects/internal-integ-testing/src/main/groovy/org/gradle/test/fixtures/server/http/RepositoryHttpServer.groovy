@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.server.RepositoryServer
@@ -48,7 +49,7 @@ class RepositoryHttpServer extends HttpServer implements RepositoryServer {
     }
 
     IvyHttpRepository getRemoteIvyRepo(boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
-        return new IvyHttpRepository(this, '/repo', getBackingRepository(m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern), m2Compatible)
+        return new IvyHttpRepository(this, '/repo', HttpRepository.MetadataType.DEFAULT, getBackingRepository(m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern), m2Compatible)
     }
 
     IvyHttpRepository getRemoteIvyRepo(String contextPath) {

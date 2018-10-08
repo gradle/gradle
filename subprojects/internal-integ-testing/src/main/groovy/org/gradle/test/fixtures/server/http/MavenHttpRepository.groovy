@@ -19,7 +19,6 @@ package org.gradle.test.fixtures.server.http
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
-
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
  */
@@ -28,13 +27,15 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
 
     private final MavenFileRepository backingRepository
     private final String contextPath
+    private final HttpRepository.MetadataType metadataType
 
-    MavenHttpRepository(HttpServer server, String contextPath = "/repo", MavenFileRepository backingRepository) {
+    MavenHttpRepository(HttpServer server, String contextPath = "/repo", HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT, MavenFileRepository backingRepository) {
         if (!contextPath.startsWith("/")) {
             throw new IllegalArgumentException("Context path must start with '/'")
         }
         this.contextPath = contextPath
         this.server = server
+        this.metadataType = metadataType
         this.backingRepository = backingRepository
     }
 
@@ -44,6 +45,11 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
 
     HttpResource getModuleMetaData(String groupId, String artifactId) {
         return module(groupId, artifactId).rootMetaData
+    }
+
+    @Override
+    HttpDirectoryResource directoryList(String organisation, String module) {
+        return directory(organisation, module)
     }
 
     HttpDirectoryResource directory(String groupId, String artifactId) {
@@ -58,5 +64,10 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
     MavenHttpModule module(String groupId, String artifactId, String version) {
         def backingModule = backingRepository.module(groupId, artifactId, version)
         return new MavenHttpModule(server, contextPath, backingModule)
+    }
+
+    @Override
+    HttpRepository.MetadataType getProvidesMetadata() {
+        return metadataType
     }
 }

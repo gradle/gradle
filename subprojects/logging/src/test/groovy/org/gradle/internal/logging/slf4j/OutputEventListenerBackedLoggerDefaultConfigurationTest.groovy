@@ -18,26 +18,30 @@ package org.gradle.internal.logging.slf4j
 
 import org.gradle.api.logging.Logging
 import org.gradle.internal.time.Time
+import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
 
 class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specification {
 
-    def outStream = new ByteArrayOutputStream()
-    def errStream = new ByteArrayOutputStream()
-
-    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream), Time.clock())
+    @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
     String getOut() {
-        outStream.toString()
+        outputs.stdOut
     }
 
     String getErr() {
-        errStream.toString()
+        outputs.stdErr
     }
 
+    def context
+
     Logger logger() {
+        if (context == null) {
+            context = new OutputEventListenerBackedLoggerContext(Time.clock())
+        }
         context.getLogger("foo")
     }
 

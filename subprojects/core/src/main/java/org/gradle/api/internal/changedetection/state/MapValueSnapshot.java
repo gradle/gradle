@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
@@ -37,7 +37,7 @@ public class MapValueSnapshot implements ValueSnapshot, Isolatable<Map> {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putString("Map");
         hasher.putInt(entries.size());
         for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : entries.entrySet()) {

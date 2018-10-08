@@ -19,7 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.DisplayName;
 
+import javax.annotation.Nullable;
+
+/**
+ * The final representation of a component in the resolved dependency graph.
+ * This is the type that is serialized on resolve and deserialized when we later need to build a `ResolutionResult`.
+ */
 public interface ComponentResult {
     /**
      * Returns a simple id for this component, unique across components in the same graph.
@@ -28,14 +36,37 @@ public interface ComponentResult {
     Long getResultId();
 
     /**
+     * Returns a unique id for this component.
+     */
+    ComponentIdentifier getComponentId();
+
+    /**
      * Returns the module version for this component.
      */
     ModuleVersionIdentifier getModuleVersion();
 
+    /**
+     * The reason this component was selected in the graph.
+     */
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns a unique id for this component.
+     * Returns the name of the resolved variant. This can currently be 2 different things: for legacy components,
+     * it's going to be the name of a "configuration" (either a project configuration, an Ivy configuration name or a Maven "scope").
+     * For components with variants, it's going to be the name of the variant. This name is going to be used for reporting purposes.
      */
-    ComponentIdentifier getComponentId();
+    DisplayName getVariantName();
+
+    /**
+     * Returns the attributes of the resolved variant. This is going to be used for reporting purposes. In practice, variant attributes
+     * should effectively be what defines the _identity_ of the variant. In practice, because we have multiple kind of components, it's
+     * not necessarily the case.
+     */
+    AttributeContainer getVariantAttributes();
+
+    /**
+     * Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
+     */
+    @Nullable
+    String getRepositoryName();
 }

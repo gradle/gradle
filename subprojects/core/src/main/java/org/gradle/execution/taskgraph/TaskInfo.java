@@ -16,131 +16,31 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.internal.TaskInternal;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
-import java.util.TreeSet;
+import java.util.NavigableSet;
+import java.util.Set;
 
-public class TaskInfo implements Comparable<TaskInfo> {
+public abstract class TaskInfo extends WorkInfo {
 
-    private enum TaskExecutionState {
-        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
-    }
+    private final NavigableSet<WorkInfo> mustSuccessors = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> shouldSuccessors = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> finalizers = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> finalizingSuccessors = Sets.newTreeSet();
 
-    private final TaskInternal task;
-    private TaskExecutionState state;
-    private Throwable executionFailure;
-    private boolean dependenciesProcessed;
-    private final TreeSet<TaskInfo> dependencyPredecessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> dependencySuccessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
-
-    public TaskInfo(TaskInternal task) {
-        this.task = task;
-        this.state = TaskExecutionState.UNKNOWN;
-    }
-
-    public TaskInternal getTask() {
-        return task;
-    }
-
-    public boolean isRequired() {
-        return state == TaskExecutionState.SHOULD_RUN;
-    }
-
-    public boolean isMustNotRun() {
-        return state == TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public boolean isIncludeInGraph() {
-        return state == TaskExecutionState.NOT_REQUIRED || state == TaskExecutionState.UNKNOWN;
-    }
-
-    public boolean isReady() {
-        return state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_RUN;
-    }
-
-    public boolean isInKnownState() {
-        return state != TaskExecutionState.UNKNOWN;
-    }
-
-    public boolean isComplete() {
-        return state == TaskExecutionState.EXECUTED
-                || state == TaskExecutionState.SKIPPED
-                || state == TaskExecutionState.UNKNOWN
-                || state == TaskExecutionState.NOT_REQUIRED
-                || state == TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public boolean isSuccessful() {
-        return (state == TaskExecutionState.EXECUTED && !isFailed())
-                || state == TaskExecutionState.NOT_REQUIRED
-                || state == TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public boolean isFailed() {
-        return getTaskFailure() != null || getExecutionFailure() != null;
-    }
-
-    public void startExecution() {
-        assert isReady();
-        state = TaskExecutionState.EXECUTING;
-    }
-
-    public void finishExecution() {
-        assert state == TaskExecutionState.EXECUTING;
-        state = TaskExecutionState.EXECUTED;
-    }
-
-    public void skipExecution() {
-        assert state == TaskExecutionState.SHOULD_RUN;
-        state = TaskExecutionState.SKIPPED;
-    }
-
-    public void abortExecution() {
-        assert isReady();
-        state = TaskExecutionState.SKIPPED;
-    }
-
-    public void require() {
-        state = TaskExecutionState.SHOULD_RUN;
-    }
-
-    public void doNotRequire() {
-        state = TaskExecutionState.NOT_REQUIRED;
-    }
-
-    public void mustNotRun() {
-        state = TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public void enforceRun() {
-        assert state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_NOT_RUN || state == TaskExecutionState.MUST_RUN;
-        state = TaskExecutionState.MUST_RUN;
-    }
-
-    public void setExecutionFailure(Throwable failure) {
-        assert state == TaskExecutionState.EXECUTING;
-        this.executionFailure = failure;
-    }
-
-    public Throwable getExecutionFailure() {
-        return this.executionFailure;
-    }
-
-    public Throwable getTaskFailure() {
-        return this.getTask().getState().getFailure();
-    }
-
+    @Override
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : mustSuccessors) {
+        if (!super.allDependenciesComplete()) {
+            return false;
+        }
+        for (WorkInfo dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
 
-        for (TaskInfo dependency : dependencySuccessors) {
+        for (WorkInfo dependency : finalizingSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -149,69 +49,66 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return true;
     }
 
-    public boolean allDependenciesSuccessful() {
-        for (TaskInfo dependency : dependencySuccessors) {
-            if (!dependency.isSuccessful()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public TreeSet<TaskInfo> getDependencyPredecessors() {
-        return dependencyPredecessors;
-    }
-
-    public TreeSet<TaskInfo> getDependencySuccessors() {
-        return dependencySuccessors;
-    }
-
-    public TreeSet<TaskInfo> getMustSuccessors() {
+    public Set<WorkInfo> getMustSuccessors() {
         return mustSuccessors;
     }
 
-    public TreeSet<TaskInfo> getFinalizers() {
+    public Set<WorkInfo> getFinalizers() {
         return finalizers;
     }
 
-    public TreeSet<TaskInfo> getShouldSuccessors() {
+    public Set<WorkInfo> getFinalizingSuccessors() {
+        return finalizingSuccessors;
+    }
+
+    public Set<WorkInfo> getShouldSuccessors() {
         return shouldSuccessors;
     }
 
-    public boolean getDependenciesProcessed() {
-        return dependenciesProcessed;
-    }
-
-    public void dependenciesProcessed() {
-        dependenciesProcessed = true;
-    }
-
-    public void addDependencySuccessor(TaskInfo toNode) {
-        dependencySuccessors.add(toNode);
-        toNode.dependencyPredecessors.add(this);
-    }
-
-    public void addMustSuccessor(TaskInfo toNode) {
+    protected void addMustSuccessor(WorkInfo toNode) {
         mustSuccessors.add(toNode);
     }
 
-    public void addFinalizer(TaskInfo finalizerNode) {
-        finalizers.add(finalizerNode);
+    protected void addFinalizingSuccessor(TaskInfo finalized) {
+        finalizingSuccessors.add(finalized);
     }
 
-    public void addShouldSuccessor(TaskInfo toNode) {
+    protected void addFinalizer(TaskInfo finalizerNode) {
+        finalizers.add(finalizerNode);
+        finalizerNode.addFinalizingSuccessor(this);
+    }
+
+    protected void addShouldSuccessor(WorkInfo toNode) {
         shouldSuccessors.add(toNode);
     }
 
-    public void removeShouldRunAfterSuccessor(TaskInfo toNode) {
+    public void removeShouldSuccessor(TaskInfo toNode) {
         shouldSuccessors.remove(toNode);
     }
 
-    public int compareTo(TaskInfo otherInfo) {
-        return task.compareTo(otherInfo.getTask());
+    @Override
+    public Iterable<WorkInfo> getAllSuccessors() {
+        return Iterables.concat(getMustSuccessors(), getFinalizingSuccessors(), super.getAllSuccessors());
+    }
+    @Override
+    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
+        return Iterables.concat(
+            super.getAllSuccessorsInReverseOrder(),
+            mustSuccessors.descendingSet(),
+            finalizingSuccessors.descendingSet(),
+            shouldSuccessors.descendingSet()
+        );
     }
 
-    public String toString() {
-        return task.getPath();
+    @Override
+    public boolean hasHardSuccessor(WorkInfo successor) {
+        if (super.hasHardSuccessor(successor)) {
+            return true;
+        }
+        if (!(successor instanceof TaskInfo)) {
+            return false;
+        }
+        return getMustSuccessors().contains(successor)
+            || getFinalizingSuccessors().contains(successor);
     }
 }

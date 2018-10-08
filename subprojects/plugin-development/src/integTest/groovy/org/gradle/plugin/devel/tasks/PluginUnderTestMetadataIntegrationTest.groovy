@@ -41,7 +41,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         fails TASK_NAME
 
         then:
-        failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
         failure.assertHasCause("No value has been specified for property 'outputDirectory'.")
     }
 
@@ -49,7 +48,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = files()
                 outputDirectory = file('build/$TASK_NAME')
             }
         """
@@ -67,7 +65,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
+                pluginClasspath.setFrom(sourceSets.main.runtimeClasspath)
                 outputDirectory = file('build/some/other')
             }
         """
@@ -79,52 +77,11 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         file("build/some/other/$METADATA_FILE_NAME").exists()
     }
 
-    def "hash changes when plugin classpath changes"() {
-        given:
-        buildFile << """
-            task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
-                outputDirectory = file('build/$TASK_NAME')
-            }
-        """
-        def sourceFile = file("src/main/java/Thing.java") << "class Thing { int foo; }"
-        def metadataFile = file("build/$TASK_NAME/$METADATA_FILE_NAME")
-
-        when:
-        succeeds TASK_NAME
-        def hash1 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
-
-        sourceFile.text = "class Thing { int foofoo; }"
-        succeeds TASK_NAME
-
-        then:
-        executedAndNotSkipped(":$TASK_NAME")
-        def hash2 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
-        hash2 != hash1
-
-        when:
-        sourceFile.text = "class Thing { int foofoo;                 }" // change source, but not class file
-        succeeds TASK_NAME
-
-        then:
-        executedAndNotSkipped(":compileJava")
-        skipped(":$TASK_NAME")
-
-        when:
-        metadataFile.delete()
-        succeeds TASK_NAME
-
-        then:
-        executedAndNotSkipped(":$TASK_NAME")
-        def hash3 = GUtil.loadProperties(metadataFile).getProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY)
-        hash3 == hash2
-    }
-
     def "not up-to-date if pluginClasspath change"() {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
+                pluginClasspath.setFrom(sourceSets.main.runtimeClasspath)
                 outputDirectory = file('build/$TASK_NAME')
             }
         """
@@ -138,7 +95,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             sourceSets.create("mainAlt")
 
-            ${TASK_NAME}.pluginClasspath = sourceSets.mainAlt.runtimeClasspath
+            ${TASK_NAME}.pluginClasspath.setFrom(sourceSets.mainAlt.runtimeClasspath)
         """
         succeeds TASK_NAME
 

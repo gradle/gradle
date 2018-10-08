@@ -1,21 +1,21 @@
 apply plugin: 'java'
 
-// START SNIPPET file-set
+// tag::file-set[]
 task zipWithFileSet(type: Zip) {
     from ('contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')
     }
 }
-// END SNIPPET file-set
+// end::file-set[]
 
-// START SNIPPET files
+// tag::files[]
 task zipWithFiles(type: Zip) {
     from 'path_to_file1', 'path_to_file2'
 }
-// END SNIPPET files
+// end::files[]
 
-// START SNIPPET zip-file-set
+// tag::zip-file-set[]
 task zipWithZipFileSet(type: Zip) {
     from('contentDir') {
         include '**/*.txt'
@@ -23,9 +23,9 @@ task zipWithZipFileSet(type: Zip) {
         into 'myprefix'
     }
 }
-// END SNIPPET zip-file-set
+// end::zip-file-set[]
 
-// START SNIPPET tar-file-set
+// tag::tar-file-set[]
 task tarWithFileSet(type: Tar) {
     from('contentDir') {
         include('**/*.txt')
@@ -33,4 +33,4 @@ task tarWithFileSet(type: Tar) {
         uid = 'myuid'
     }
 }
-// END SNIPPET tar-file-set
+// end::tar-file-set[]

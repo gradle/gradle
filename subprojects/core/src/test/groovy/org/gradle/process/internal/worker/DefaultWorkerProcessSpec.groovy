@@ -176,5 +176,26 @@ class DefaultWorkerProcessSpec extends Specification {
         1 * acceptor.requestStop()
         1 * connection.stop()
     }
+
+    def "stopNow ignores exit value"() {
+        when:
+        workerProcess.startAccepting(acceptor)
+        workerProcess.setExecHandle(execHandle)
+
+        op.start {
+            op.callbackLater {
+                workerProcess.onConnect(connection)
+            }
+            workerProcess.start()
+            workerProcess.stopNow()
+        }
+
+        then:
+        1 * execHandle.start()
+        0 * execHandle.waitForFinish()
+        1 * execHandle.abort()
+        1 * acceptor.requestStop()
+        1 * connection.stop()
+    }
 }
 

@@ -16,13 +16,16 @@
 
 package org.gradle.internal.hash;
 
-public class DefaultContentHasherFactory implements ContentHasherFactory {
-    private static final byte[] SIGNATURE = Hashing.md5().hashString(DefaultContentHasherFactory.class.getName()).toByteArray();
+import javax.annotation.Nonnull;
 
+public class DefaultContentHasherFactory implements ContentHasherFactory {
+    private static final HashCode SIGNATURE = Hashing.signature(DefaultContentHasherFactory.class);
+
+    @Nonnull
     @Override
-    public Hasher create() {
-        Hasher hasher = Hashing.md5().newHasher();
-        hasher.putBytes(SIGNATURE);
+    public PrimitiveHasher create() {
+        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
+        hasher.putHash(SIGNATURE);
         return hasher;
     }
 }

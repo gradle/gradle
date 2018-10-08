@@ -16,22 +16,43 @@
 
 package org.gradle.nativeplatform.test.cpp.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.language.cpp.CppComponent
-import org.gradle.nativeplatform.test.cpp.CppTestSuite
+import org.gradle.language.cpp.CppPlatform
+import org.gradle.language.cpp.internal.NativeVariantIdentity
+import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultCppTestSuiteTest extends Specification {
-    def "has only a single executables"() {
-        def componentUnderTest = Mock(CppComponent)
-        CppTestSuite testSuite = new DefaultCppTestSuite("unitTest", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
-        testSuite.testedComponent.set(componentUnderTest)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def testSuite = new DefaultCppTestSuite("test", project.objects, project.services.get(FileOperations))
+
+    def "has display name"() {
         expect:
-        testSuite.developmentBinary.name == "unitTestExecutable"
-        testSuite.developmentBinary.debuggable
-        testSuite.testedComponent.get() == componentUnderTest
+        testSuite.displayName.displayName == "C++ test suite 'test'"
+        testSuite.toString() == "C++ test suite 'test'"
+    }
+
+    def "has implementation dependencies"() {
+        expect:
+        testSuite.implementationDependencies == project.configurations['testImplementation']
+    }
+
+    def "can add executable"() {
+        expect:
+        def exe = testSuite.addExecutable(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'testExecutable'
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return Stub(NativeVariantIdentity) {
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+        }
     }
 }

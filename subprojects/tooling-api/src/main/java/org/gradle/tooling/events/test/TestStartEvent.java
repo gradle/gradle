@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.StartEvent;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 2.4
  */
-@Incubating
 public interface TestStartEvent extends TestProgressEvent, StartEvent {
 }

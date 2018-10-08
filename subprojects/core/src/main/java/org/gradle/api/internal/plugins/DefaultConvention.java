@@ -21,8 +21,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -34,22 +34,20 @@ import org.gradle.util.ConfigureUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
-
-    private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
+    private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final Instantiator instantiator;
 
+    private Map<String, Object> plugins;
     private Map<Object, BeanDynamicObject> dynamicObjects;
 
     /**
@@ -66,11 +64,14 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
-        add(ExtraPropertiesExtension.class, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
+        add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
     @Override
     public Map<String, Object> getPlugins() {
+        if (plugins == null) {
+            plugins = Maps.newLinkedHashMap();
+        }
         return plugins;
     }
 
@@ -98,6 +99,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
+        if (plugins == null) {
+            return null;
+        }
         List<T> values = new ArrayList<T>();
         for (Object object : plugins.values()) {
             if (type.isInstance(object)) {
@@ -119,7 +123,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            addWithDefaultPublicType(extension.getClass(), name, extension);
+            addWithDefaultPublicType(name, extension);
         }
     }
 
@@ -136,7 +140,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     @Override
     public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
         T instance = instantiate(instanceType, constructionArguments);
-        addWithDefaultPublicType(instanceType, name, instance);
+        addWithDefaultPublicType(name, instance);
         return instance;
     }
 
@@ -159,6 +163,15 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, TypeOf<?>> getSchema() {
+        Map<String, TypeOf<?>> map = new HashMap<String, TypeOf<?>>();
+        for (ExtensionsSchema.ExtensionSchema schema : getExtensionsSchema()) {
+            map.put(schema.getName(), schema.getPublicType());
+        }
+        return map;
+    }
+
+    @Override
+    public ExtensionsSchema getExtensionsSchema() {
         return extensionsStorage.getSchema();
     }
 
@@ -221,15 +234,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(name, value);
     }
 
-    private void addWithDefaultPublicType(Class<?> defaultType, String name, Object extension) {
-        add(preferredPublicTypeOf(extension, defaultType), name, extension);
-    }
-
-    private TypeOf<Object> preferredPublicTypeOf(Object extension, Class<?> defaultType) {
-        if (extension instanceof HasPublicType) {
-            return uncheckedCast(((HasPublicType) extension).getPublicType());
-        }
-        return TypeOf.<Object>typeOf(defaultType);
+    private void addWithDefaultPublicType(String name, Object extension) {
+        add(new DslObject(extension).getPublicType(), name, extension);
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {
@@ -247,6 +253,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             if (extensionsStorage.hasExtension(name)) {
                 return true;
             }
+            if (plugins == null) {
+                return false;
+            }
             for (Object object : plugins.values()) {
                 if (asDynamicObject(object).hasProperty(name)) {
                     return true;
@@ -258,10 +267,12 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         @Override
         public Map<String, Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();
-            List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
-            Collections.reverse(reverseOrder);
-            for (Object object : reverseOrder) {
-                properties.putAll(asDynamicObject(object).getProperties());
+            if (plugins != null) {
+                List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
+                Collections.reverse(reverseOrder);
+                for (Object object : reverseOrder) {
+                    properties.putAll(asDynamicObject(object).getProperties());
+                }
             }
             properties.putAll(extensionsStorage.getAsMap());
             return properties;
@@ -272,6 +283,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             Object extension = extensionsStorage.findByName(name);
             if (extension != null) {
                 return DynamicInvokeResult.found(extension);
+            }
+            if (plugins == null) {
+                return DynamicInvokeResult.notFound();
             }
             for (Object object : plugins.values()) {
                 DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
@@ -290,6 +304,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         @Override
         public DynamicInvokeResult trySetProperty(String name, Object value) {
             checkExtensionIsNotReassigned(name);
+            if (plugins == null) {
+                return DynamicInvokeResult.notFound();
+            }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
@@ -309,6 +326,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             if (isConfigureExtensionMethod(name, args)) {
                 return DynamicInvokeResult.found(configureExtension(name, args));
             }
+            if (plugins == null) {
+                return DynamicInvokeResult.notFound();
+            }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
@@ -327,6 +347,9 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         public boolean hasMethod(String name, Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return true;
+            }
+            if (plugins == null) {
+                return false;
             }
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object);

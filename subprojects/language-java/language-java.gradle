@@ -1,8 +1,15 @@
-// Compiler daemon
-sourceCompatibility = 1.6
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
-    compile libraries.groovy
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_commons.coordinates
+    implementation libraries.groovy.coordinates
+
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")
@@ -11,14 +18,25 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
-// These public packages have classes that are tangled with the corresponding internal package.
-useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**", ])
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.ENTRY_POINT
+}
 
-strictCompile()
-useTestFixtures()
-useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":launcher")
+testFixtures {
+    from(':core')
+    from(':languageJvm', 'testFixtures')
+    from(':platformBase')
+    from(':launcher')
+}
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+classycle {
+    // These public packages have classes that are tangled with the corresponding internal package.
+    excludePatterns = ['org/gradle/api/tasks/compile/**',
+                       'org/gradle/external/javadoc/**']
+}
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}

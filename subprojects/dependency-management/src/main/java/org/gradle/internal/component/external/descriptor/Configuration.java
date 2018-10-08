@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.descriptor;
 
+import com.google.common.base.Objects;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -48,5 +49,25 @@ public class Configuration {
 
     public List<String> getExtendsFrom() {
         return extendsFrom;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Configuration that = (Configuration) o;
+        return transitive == that.transitive
+            && visible == that.visible
+            && Objects.equal(name, that.name)
+            && Objects.equal(extendsFrom, that.extendsFrom);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, transitive, visible, extendsFrom);
     }
 }

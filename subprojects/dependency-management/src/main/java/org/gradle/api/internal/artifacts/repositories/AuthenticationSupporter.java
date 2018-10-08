@@ -21,12 +21,15 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
+import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
+import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
@@ -135,8 +138,10 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
             return Cast.uncheckedCast(DefaultPasswordCredentials.class);
         } else if (publicType == AwsCredentials.class) {
             return Cast.uncheckedCast(DefaultAwsCredentials.class);
+        } else if (publicType == HttpHeaderCredentials.class) {
+            return Cast.uncheckedCast(DefaultHttpHeaderCredentials.class);
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName()));
+            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s, %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName(), HttpHeaderCredentials.class.getName()));
         }
     }
 
@@ -145,8 +150,10 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
             return Cast.uncheckedCast(PasswordCredentials.class);
         } else if (AwsCredentials.class.isAssignableFrom(implType)) {
             return Cast.uncheckedCast(AwsCredentials.class);
+        } else if (HttpHeaderCredentials.class.isAssignableFrom(implType)) {
+            return Cast.uncheckedCast(HttpHeaderCredentials.class);
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName()));
+            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
         }
     }
 }

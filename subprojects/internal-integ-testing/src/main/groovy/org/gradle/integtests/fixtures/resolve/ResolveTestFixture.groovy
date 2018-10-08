@@ -21,14 +21,18 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assert
+import org.junit.ComparisonFailure
+
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -36,6 +40,7 @@ import org.junit.Assert
 class ResolveTestFixture {
     private final TestFile buildFile
     private final String config
+    private String defaultConfig = "default"
     private boolean buildArtifacts = true
 
     ResolveTestFixture(TestFile buildFile, String config = "compile") {
@@ -44,28 +49,39 @@ class ResolveTestFixture {
     }
 
     ResolveTestFixture withoutBuildingArtifacts() {
-        buildArtifacts = false;
-        return this;
+        buildArtifacts = false
+        return this
+    }
+
+    ResolveTestFixture expectDefaultConfiguration(String config) {
+        defaultConfig = config
+        return this
     }
 
     /**
      * Injects the appropriate stuff into the build script.
      */
-    void prepare(String existingScript = '') {
+    void prepare(String additionalContent = '') {
+        def existingScript = buildFile.exists() ? buildFile.text : ""
+        def start = existingScript.indexOf("RESOLVE_TEST_FIXTURE_START") - 2
+        def end = existingScript.indexOf("RESOLVE_TEST_FIXTURE_END") + 25
+        if (start >= 0) {
+            existingScript = existingScript.substring(0, start) + existingScript.substring(end, existingScript.length())
+        }
         def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
-        buildFile << """
+        buildFile.text = existingScript + """//RESOLVE_TEST_FIXTURE_START
 buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
-$existingScript
+$additionalContent
 allprojects {
-    tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
+    tasks.register("checkDeps", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
         it.buildArtifacts = ${buildArtifacts}
         ${inputs}
     }
-}
+}//RESOLVE_TEST_FIXTURE_END
 """
     }
 
@@ -77,7 +93,7 @@ allprojects {
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
-        def graph = new GraphBuilder()
+        def graph = new GraphBuilder(defaultConfig)
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
         closure.call()
@@ -91,9 +107,9 @@ allprojects {
 
         def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
-        assert actualRoot == expectedRoot
+        assert actualRoot.startsWith(expectedRoot)
 
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
+        def expectedFirstLevel = graph.root.deps.findAll { !graph.constraints.contains(it.selected) }.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
 
         def actualFirstLevel = findLines(configDetails, 'first-level')
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
@@ -108,12 +124,15 @@ allprojects {
         compare("lenient filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
 
         def actualConfigurations = findLines(configDetails, 'configuration') as Set
-        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]" }
+        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() }
         compare("configurations in graph", actualConfigurations, expectedConfigurations)
 
         def actualComponents = findLines(configDetails, 'component')
-        def expectedComponents = graph.nodes.collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
-        compare("components in graph", actualComponents, expectedComponents)
+        def expectedComponents = graph.nodes.collect {
+            def variantDetails = it.checkVariant ? "[variant:name:${it.variantName} attributes:${it.variantAttributes}]" : ''
+            "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]$variantDetails"
+        }
+        compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
 
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
@@ -178,15 +197,136 @@ allprojects {
         return lines.findAll { it.startsWith(prefix + ":") }.collect { it.substring(prefix.length() + 1) }
     }
 
+    static List<ParsedNode> parseNodes(List<String> nodes) {
+        nodes.collect { parseNode(it) }
+    }
+
+    static ParsedNode parseNode(String line) {
+        int start = 4
+        // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
+        // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
+        int idx = line.indexOf('][')
+        String id = line.substring(start, idx) // [id:
+        start = idx + 5
+        idx = line.indexOf('][', start)
+        String module = line.substring(start, idx) // [mv:
+        start = idx + 9
+        idx = line.indexOf(']', start) // [reason:
+        List<String> reasons = line.substring(start, idx).split('!!') as List<String>
+        start = idx + 15
+        String variant = null
+        Map<String, String> attributes = [:]
+        if (start<line.length()) {
+            idx = line.indexOf(' attributes:', start) // [variant name:
+            variant = line.substring(start, idx)
+            start = idx + 12
+            idx = line.indexOf(']', start) // attributes:
+            attributes = line.substring(start, idx)
+                .split(',') // attributes are separated by commas
+                .findAll() // only keep non empty entries (thank you, split!)
+                .collectEntries { it.split('=') as List }
+        }
+        new ParsedNode(id: id, module:module, reasons: reasons, variant: variant, attributes: attributes)
+    }
+
+    static class ParsedNode {
+        String id
+        String module
+        List<String> reasons
+        String variant
+        Map<String, String> attributes
+
+        boolean diff(ParsedNode actual, StringBuilder sb) {
+            List<String> errors = []
+            if (id != actual.id) {
+                errors << "Expected ID '$id' but was: $actual.id"
+            }
+            if (module != actual.module) {
+                errors << "Expected module '$module' but was: $actual.module"
+            }
+            if (!actual.reasons.containsAll(reasons)) {
+                reasons.each { reason ->
+                    if (!actual.reasons.contains(reason)) {
+                        errors << "Expected reason '$reason' but wasn't found. Actual reasons: ${actual.reasons}"
+                    }
+                }
+            }
+            if (variant) {
+                if (variant != actual.variant) {
+                    errors << "Expected variant name $variant, but was: $actual.variant"
+                }
+                if (attributes != actual.attributes) {
+                    errors << "Expected variant attributes $attributes, but was: $actual.attributes"
+                }
+            }
+
+            if (errors) {
+                sb.append("On component $id:\n")
+                errors.each {
+                    sb.append("   - ").append(it).append("\n")
+                }
+                return true
+            }
+            return false
+        }
+
+        String toString() {
+            "id: $id, module: $module, reasons: ${reasons}${variant?', variant ' + variant:''}${attributes?', variant attributes' + attributes:''}"
+        }
+    }
+
+    static void compareNodes(String compType, Collection<ParsedNode> actual, Collection<ParsedNode> expected) {
+        def actualSorted = actual.sort { it.id }
+        def expectedSorted = expected.sort { it.id }
+        StringBuilder errors = new StringBuilder()
+        StringBuilder matched = new StringBuilder()
+        expectedSorted.each { node ->
+            def actualNode = actualSorted.find { it.id == node.id }
+
+            if (!actualNode) {
+                errors.append("Expected to find node ${node.id} but wasn't present in result\n")
+            } else if (!node.diff(actualNode, errors)) {
+                matched.append("   - $node\n")
+            }
+        }
+        actualSorted.each { node ->
+            if (!expectedSorted.find { it.id == node.id } ) {
+                errors.append("Found unexpected node $node")
+            }
+        }
+        if (errors.length()>0) {
+            throw new AssertionError("Result contains unexpected $compType\n${errors}\nMatched $compType:\n${matched}")
+        }
+    }
+
     void compare(String compType, Collection<String> actual, Collection<String> expected) {
-        def actualFormatted = Joiner.on("\n").join(new ArrayList<String>(actual).sort())
-        def expectedFormatted = Joiner.on("\n").join(new ArrayList<String>(expected).sort())
-        Assert.assertEquals("Result contains unexpected $compType", expectedFormatted, actualFormatted)
+        def actualSorted = new ArrayList<String>(actual).sort()
+        def expectedSorted = new ArrayList<String>(expected).sort()
+        boolean equals = actual.size() == expectedSorted.size()
+        if (equals) {
+            for (int i = 0; i < actual.size(); i++) {
+                equals &= actualSorted.get(i).startsWith(expectedSorted.get(i))
+            }
+        }
+        def actualFormatted = Joiner.on("\n").join(actualSorted)
+        def expectedFormatted = Joiner.on("\n").join(expectedSorted)
+        if (!equals) {
+            throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
+        }
+
     }
 
     static class GraphBuilder {
         private final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
         private NodeBuilder root
+        private String defaultConfig
+
+        final Set<NodeBuilder> constraints = new LinkedHashSet<>()
+        final Set<String> virtualConfigurations = []
+
+        GraphBuilder(String defaultConfig) {
+            this.defaultConfig = defaultConfig
+        }
 
         Collection<NodeBuilder> getNodes() {
             return nodes.values()
@@ -196,6 +336,10 @@ allprojects {
             def nodes = new HashSet<>()
             visitDeps(root.deps, nodes, new HashSet<>())
             return nodes
+        }
+
+        void virtualConfiguration(String id) {
+            virtualConfigurations << id
         }
 
         private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
@@ -216,13 +360,13 @@ allprojects {
 
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
             Set<NodeBuilder> nodesToVisit = []
-            for (EdgeBuilder edge: node.deps) {
+            for (EdgeBuilder edge : node.deps) {
                 def targetNode = edge.selected
                 if (result.add(targetNode)) {
                     nodesToVisit << targetNode
                 }
             }
-            for(NodeBuilder child: nodesToVisit) {
+            for (NodeBuilder child : nodesToVisit) {
                 visitNodes(child, result)
             }
         }
@@ -235,7 +379,7 @@ allprojects {
         }
 
         private visitEdges(NodeBuilder node, Set<NodeBuilder> seenNodes, Set<EdgeBuilder> edges) {
-            for (EdgeBuilder edge: node.deps) {
+            for (EdgeBuilder edge : node.deps) {
                 edges.add(edge)
                 if (seenNodes.add(edge.selected)) {
                     visitEdges(edge.selected, seenNodes, edges)
@@ -306,6 +450,9 @@ allprojects {
         def node(String id, String moduleVersion, Map attrs) {
             def node = nodes[moduleVersion]
             if (!node) {
+                if (!attrs.configuration) {
+                    attrs.configuration = defaultConfig
+                }
                 node = new NodeBuilder(id, moduleVersion, attrs, this)
                 nodes[moduleVersion] = node
             }
@@ -372,15 +519,21 @@ allprojects {
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
+        String variantName
+        String variantAttributes
+
+        boolean checkVariant
 
         NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
             this.group = attrs.group
             this.module = attrs.module
             this.version = attrs.version
-            this.configuration = attrs.configuration ? attrs.configuration : "default"
+            this.configuration = attrs.configuration
             this.moduleVersionId = moduleVersionId
             this.id = id
+            this.variantName = attrs.variantName
+            this.variantAttributes = attrs.variantAttributes
         }
 
         Set<ExpectedArtifact> getArtifacts() {
@@ -388,7 +541,7 @@ allprojects {
         }
 
         String getReason() {
-            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join(',')
+            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join('!!')
         }
 
         private NodeBuilder addNode(String id, String moduleVersionId = id) {
@@ -416,10 +569,38 @@ allprojects {
         }
 
         /**
+         * Defines a dependency on a unique snapshot module.
+         */
+        NodeBuilder snapshot(String moduleVersionId, String timestamp) {
+            def id = moduleVersionId + ":" + timestamp
+            def parts = moduleVersionId.split(':')
+            assert parts.length == 3
+            def attrs = [group: parts[0], module: parts[1], version: parts[2]]
+            def node = graph.node(id, moduleVersionId, attrs)
+            deps << new EdgeBuilder(this, moduleVersionId, node)
+            return node
+        }
+
+        /**
          * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
             def node = addNode("project $path", value)
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
+            return node
+        }
+
+        /**
+         * Defines a link between nodes created through a dependency constraint.
+         */
+        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
+            deps << new EdgeBuilder(this, requested, node)
+            if (this == graph.root) {
+                graph.constraints.add(node)
+            }
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
@@ -488,7 +669,15 @@ allprojects {
          * Marks that this node was selected due to conflict resolution.
          */
         NodeBuilder byConflictResolution() {
-            reasons << 'conflict'
+            reasons << 'conflict resolution'
+            this
+        }
+
+        /**
+         * Marks that this node was selected due to conflict resolution.
+         */
+        NodeBuilder byConflictResolution(String message) {
+            reasons << "${ComponentSelectionCause.CONFLICT_RESOLUTION.defaultReason}: $message".toString()
             this
         }
 
@@ -496,7 +685,16 @@ allprojects {
          * Marks that this node was selected by a rule.
          */
         NodeBuilder selectedByRule() {
-            reasons << 'selectedByRule'
+            reasons << 'selected by rule'
+            this
+        }
+
+
+        /**
+         * Marks that this node was selected by a rule.
+         */
+        NodeBuilder selectedByRule(String message) {
+            reasons << "${ComponentSelectionCause.SELECTED_BY_RULE.defaultReason}: $message".toString()
             this
         }
 
@@ -521,6 +719,29 @@ allprojects {
          */
         NodeBuilder byReason(String reason) {
             reasons << reason
+            this
+        }
+
+        NodeBuilder byConstraint(String reason) {
+            reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
+            this
+        }
+
+        /**
+         * Marks that this node was selected by the given reason
+         */
+        NodeBuilder byReasons(List<String> reasons) {
+            this.reasons.addAll(reasons)
+            this
+        }
+
+        NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
+            checkVariant = true
+            variantName = name
+            variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
+            if (id.startsWith("project ")) {
+                configuration = variantName
+            }
             this
         }
     }
@@ -623,20 +844,27 @@ class GenerateGraphTask extends DefaultTask {
     }
 
     def formatComponent(ResolvedComponentResult result) {
-        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}]"
+        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][variant:${formatVariant(result.variant)}]"
     }
 
-    def formatReason(ComponentSelectionReason reason) {
-        def reasons = []
-        if (reason.conflictResolution) {
-            reasons << "conflict"
-        }
-        if (reason.forced) {
-            reasons << "forced"
-        }
-        if (reason.selectedByRule) {
-            reasons << "selectedByRule"
-        }
-        return reasons.empty ? reason.description : reasons.join(',')
+    def formatVariant(ResolvedVariantResult variant) {
+        return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
+    }
+
+    def formatAttributes(AttributeContainer attributes) {
+        attributes.keySet().collect {
+            "$it.name=${attributes.getAttribute(it)}"
+        }.sort().join(',')
+    }
+
+    def formatReason(ComponentSelectionReasonInternal reason) {
+        def reasons = reason.descriptions.collect {
+            if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
+                "${it.cause.defaultReason}: ${it.description}".replaceAll('\n', ' ')
+            } else {
+                it.description
+            }
+        }.join('!!')
+        return reasons
     }
 }

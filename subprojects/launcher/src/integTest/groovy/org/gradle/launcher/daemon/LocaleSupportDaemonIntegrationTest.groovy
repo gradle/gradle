@@ -18,7 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.apache.commons.lang.LocaleUtils
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
+import spock.lang.Unroll
 
 @Issue("https://issues.gradle.org/browse/GRADLE-3142")
 class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
@@ -84,8 +86,40 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 1
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/4973")
+    @Unroll
+    def "can use a locale without region (#overrideVersion)"() {
+        Locale locale = Locale.ENGLISH
+        buildScript """
+            import org.gradle.util.GradleVersion
+            
+            task printLocale {
+                doFirst {
+                    println "GradleVersion: " + GradleVersion.current()
+                    println "defaultLocale: " + Locale.default
+                }
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(("${GradleVersion.VERSION_OVERRIDE_VAR}".toString()): overrideVersion)
+        runWithLocale(locale)
+
+        then:
+        outputContains("GradleVersion: Gradle ${overrideVersion}")
+
+        and:
+        ranWithLocale(locale)
+
+        where:
+        // We want to test with both the development and release version here because the development version
+        // (with timestamp) causes the Java Calendar object to initialize before log initialization, which can
+        // mask issues involving the Calendar initialization publishing messages to the log infrastructure.
+        overrideVersion << [GradleVersion.current().baseVersion.version, GradleVersion.current().version]
+    }
+
     void ranWithLocale(Locale locale) {
-        assert result.output.contains("defaultLocale: " + locale)
+        outputContains("defaultLocale: " + locale)
     }
 
     void runWithLocale(Locale locale) {

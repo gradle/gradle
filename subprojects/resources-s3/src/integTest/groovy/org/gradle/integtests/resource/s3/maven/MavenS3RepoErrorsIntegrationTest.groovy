@@ -114,8 +114,8 @@ repositories {
         failure.assertHasCause(
                 """Could not find org.gradle:test:1.85.
 Searched in the following locations:
-    ${module.pom.uri}
-    ${module.artifact.uri}
+  - ${module.pom.uri}
+  - ${module.artifact.uri}
 Required by:
 """)
     }

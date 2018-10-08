@@ -30,11 +30,11 @@ class MonkeyPatchRelocationIntegrationTest extends AbstractIntegrationSpec imple
         setupProjectIn(relocated)
 
         inDirectory(original)
-        withBuildCache().succeeds "broken"
+        withBuildCache().run "broken"
 
         when:
         inDirectory(relocated)
-        withBuildCache().succeeds "broken"
+        withBuildCache().run "broken"
         then:
         skipped ":broken"
     }
@@ -47,7 +47,7 @@ class MonkeyPatchRelocationIntegrationTest extends AbstractIntegrationSpec imple
         dir.file("build.gradle") << """
             @CacheableTask
             class Broken extends DefaultTask {
-                FileCollection processorListFile = project.files("input.txt")
+                FileCollection processorListFile = project.layout.files("input.txt")
 
                 @InputFiles
                 FileCollection getProcessorListFile() {

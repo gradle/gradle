@@ -1,1 +1,1 @@
-org.gradle.vcs.internal.VersionControlServices
+org.gradle.vcs.internal.services.VersionControlServices

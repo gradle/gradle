@@ -37,15 +37,15 @@ class LinkSharedLibraryTest extends Specification {
         provider.producesImportLibrary() >> false
 
         when:
-        link.toolChain = toolChain
-        link.targetPlatform = platform
+        link.toolChain.set(toolChain)
+        link.targetPlatform.set(platform)
 
         then:
-        !link.binaryFile.present
+        !link.linkedFile.present
         !link.importLibrary.present
 
         when:
-        link.binaryFile = tmpDir.file("shared/lib.dll")
+        link.linkedFile = tmpDir.file("shared/lib.dll")
 
         then:
         !link.importLibrary.present
@@ -60,22 +60,22 @@ class LinkSharedLibraryTest extends Specification {
         provider.getImportLibraryName(_) >> { String n -> n.replace(".dll", ".lib") }
 
         when:
-        link.toolChain = toolChain
-        link.targetPlatform = platform
+        link.toolChain.set(toolChain)
+        link.targetPlatform.set(platform)
 
         then:
-        !link.binaryFile.present
+        !link.linkedFile.present
         !link.importLibrary.present
 
         when:
-        link.binaryFile = tmpDir.file("shared/lib.dll")
+        link.linkedFile = tmpDir.file("shared/lib.dll")
 
         then:
         link.importLibrary.get().asFile == tmpDir.file("shared/lib.lib")
 
         when:
-        link.importLibrary = tmpDir.file("import/lib_debug.lib")
-        link.binaryFile = tmpDir.file("ignore-me")
+        link.importLibrary.set(tmpDir.file("import/lib_debug.lib"))
+        link.linkedFile.set(tmpDir.file("ignore-me"))
 
         then:
         link.importLibrary.get().asFile == tmpDir.file("import/lib_debug.lib")

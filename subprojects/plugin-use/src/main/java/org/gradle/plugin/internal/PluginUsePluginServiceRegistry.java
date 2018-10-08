@@ -17,6 +17,7 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -60,11 +61,6 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
     }
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildSessionScopeServices());
-    }
-
-    @Override
     public void registerSettingsServices(ServiceRegistration registration) {
         registration.addProvider(new SettingsScopeServices());
     }
@@ -77,23 +73,20 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         }
     }
 
-    private static class BuildSessionScopeServices {
-
-        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(StartParameter startParameter) {
-            return new DefaultAutoAppliedPluginRegistry(startParameter);
+    private static class BuildScopeServices {
+        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
+            return new DefaultAutoAppliedPluginRegistry(buildDefinition);
         }
 
         AutoAppliedPluginHandler createAutoAppliedPluginHandler(AutoAppliedPluginRegistry registry) {
             return new DefaultAutoAppliedPluginHandler(registry);
         }
-    }
 
-    private static class BuildScopeServices {
-
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry,
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, PluginInspector pluginInspector,
+                                                          DocumentationRegistry documentationRegistry,
                                                           InjectedClasspathPluginResolver injectedClasspathPluginResolver,
                                                           PluginDependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, versionSelectorScheme);
+            return new PluginResolverFactory(pluginRegistry, pluginInspector, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, versionSelectorScheme);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,

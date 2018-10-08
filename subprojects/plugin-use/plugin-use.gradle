@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,6 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(":core")
@@ -26,6 +31,16 @@ dependencies {
     integTestRuntime project(':toolingApiBuilders')
 }
 
-useClassycle()
-verifyTestFilesCleanup.errorWhenNotEmpty = false
 
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}
+
+testFixtures {
+    from(":resourcesHttp")
+}

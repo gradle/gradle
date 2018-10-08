@@ -16,18 +16,19 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Rule
     Resources resources = new Resources()
@@ -522,12 +523,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.withFullDeprecationStackTraceDisabled().withStackTraceChecksDisabled()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on compile classpath'
+        outputContains 'Could not read annotation processor declarations'
 
     }
 
@@ -545,14 +546,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
         resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'compileJava'
+        run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [broken-utf8.jar] found on classpath'
+        outputContains "Malformed jar 'broken-utf8.jar' found on classpath"
 
     }
 
@@ -576,14 +577,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         '''
         file('foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'compileJava'
+        run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on classpath.'
+        outputContains "Malformed jar 'foo.jar' found on classpath."
     }
 
     @Issue("gradle/gradle#1358")
@@ -598,14 +599,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         '''
         file('classes/foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'compileJava'
+        run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed class file [foo.class] found on compile classpath'
+        outputContains"Malformed class file 'foo.class' found on compile classpath"
     }
 
     @Issue("gradle/gradle#1359")
@@ -631,6 +632,34 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
         executedAndNotSkipped ':compileJava'
+    }
+
+    @ToBeImplemented
+    @Issue(["https://github.com/gradle/gradle/issues/2463", "https://github.com/gradle/gradle/issues/3444"])
+    def "non-incremental java compilation ignores empty packages"() {
+        given:
+        buildFile << """
+            plugins { id 'java' }
+            compileJava.options.incremental = false
+        """
+
+        file('src/main/java/org/gradle/test/MyTest.java').text = """
+            package org.gradle.test;
+            
+            class MyTest {}
+        """
+
+        when:
+        run 'compileJava'
+        then:
+        executedAndNotSkipped(':compileJava')
+
+        when:
+        file('src/main/java/org/gradle/different').createDir()
+        run('compileJava', '--info')
+        then:
+        // FIXME: should be skipped
+        executedAndNotSkipped(':compileJava')
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -746,7 +775,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        result.output.contains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
+        outputContains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
         file("build/classes/java/main/example/module-info.class").exists()
         file("build/classes/java/main/example/io/example/Example.class").exists()
         file("build/classes/java/main/another/module-info.class").exists()
@@ -775,7 +804,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Square.class').exists()
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
-        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
     def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
@@ -797,10 +826,10 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Square.class').exists()
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
-        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
@@ -815,6 +844,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 } else if (project.hasProperty("java8")) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
                 } 
+                options.fork = true
             }
         """
         file('src/main/java/Main.java') << """
@@ -830,38 +860,77 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.withJavaHome jdk8.javaHome
         succeeds "clean", "compileJava"
 
-        executer.withJavaHome jdk8.javaHome
         executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
-        errorOutput.contains "Main.java:8: error: cannot find symbol"
+        failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 
-        executer.withJavaHome jdk8.javaHome
-        succeeds "-Pjava8", "clean", "compileJava"
-
-        executer.withJavaHome jdk7.javaHome
         succeeds "-Pjava8", "clean", "compileJava"
     }
 
-    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
-    def "CompileOptions.bootclasspath is deprecated"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
+    def "deletes empty packages dirs"() {
+        given:
         buildFile << """
             apply plugin: 'java'
-            
-            compileJava {
-                options.bootClasspath = "$bootClasspath"
+        """
+        def a = file('src/main/java/com/foo/internal/A.java') << """
+            package com.foo.internal;
+            public class A {}
+        """
+        file('src/main/java/com/bar/B.java') << """
+            package com.bar;
+            public class B {}
+        """
+
+        succeeds "compileJava"
+        a.delete()
+
+        when:
+        succeeds "compileJava"
+
+        then:
+        ! file("build/classes/java/main/com/foo").exists()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can configure custom header output"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+        """
+        file('src/main/java/Foo.java') << """
+            public class Foo {
+                public native void foo();
             }
         """
-        file('src/main/java/Main.java') << "public class Main {}"
-
-        expect:
-        executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
+        when:
         succeeds "compileJava"
-        output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
+
+        then:
+        file("build/headers/java/main/Foo.h").exists()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "deletes stale header files"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+        """
+        def header = file('src/main/java/Foo.java') << """
+            public class Foo {
+                public native void foo();
+            }
+        """
+        succeeds "compileJava"
+
+        when:
+        header.delete()
+        succeeds "compileJava"
+
+        then:
+        !file("build/headers/java/main/Foo.h").exists()
     }
 }

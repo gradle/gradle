@@ -18,10 +18,11 @@ package org.gradle.configuration.project;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceLocator;
 
-public class PluginsProjectConfigureActions implements ProjectConfigureAction {
+public class PluginsProjectConfigureActions implements ProjectConfigureAction, InternalAction<ProjectInternal> {
 
     public static ProjectConfigureAction from(ServiceLocator serviceLocator) {
         return of(ProjectConfigureAction.class, serviceLocator);

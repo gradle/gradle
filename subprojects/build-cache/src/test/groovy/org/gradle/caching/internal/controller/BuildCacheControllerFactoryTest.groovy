@@ -48,6 +48,9 @@ class BuildCacheControllerFactoryTest extends Specification {
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
     ])
 
+    boolean logStacktraces
+    boolean emitDebugLogging
+
     private DefaultBuildCacheController createController() {
         createController(DefaultBuildCacheController)
     }
@@ -60,7 +63,8 @@ class BuildCacheControllerFactoryTest extends Specification {
             config,
             buildCacheEnabled ? ENABLED : DISABLED,
             ONLINE,
-            false,
+            logStacktraces,
+            emitDebugLogging,
             DirectInstantiator.INSTANCE
         )
         assert controllerType.isInstance(controller)
@@ -136,6 +140,19 @@ class BuildCacheControllerFactoryTest extends Specification {
             local.type == "directory"
             remote.type == "remote"
         }
+    }
+
+    def "respects debug logging setting - #setting"() {
+        when:
+        emitDebugLogging = setting
+        config.remote(TestRemoteBuildCache)
+        def c = createController()
+
+        then:
+        c.emitDebugLogging == setting
+
+        where:
+        setting << [true, false]
     }
 
     def 'when caching is disabled no services are created'() {
@@ -226,12 +243,12 @@ class BuildCacheControllerFactoryTest extends Specification {
 
     static class TestLocalBuildCacheService implements LocalBuildCacheService, BuildCacheService {
         @Override
-        void store(BuildCacheKey key, File file) {
+        void storeLocally(BuildCacheKey key, File file) {
 
         }
 
         @Override
-        void load(BuildCacheKey key, Action<? super File> reader) {
+        void loadLocally(BuildCacheKey key, Action<? super File> reader) {
 
         }
 
@@ -251,7 +268,7 @@ class BuildCacheControllerFactoryTest extends Specification {
         }
 
         @Override
-        void allocateTempFile(BuildCacheKey key, Action<? super File> action) {
+        void withTempFile(BuildCacheKey key, Action<? super File> action) {
 
         }
     }

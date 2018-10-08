@@ -17,9 +17,14 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
-import org.objectweb.asm.*;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +70,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
         private boolean found;
 
         private AnnotationDetector() {
-            super(Opcodes.ASM6);
+            super(AsmConstants.ASM_LEVEL);
         }
 
         @Override
@@ -79,7 +84,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
 
     private static class TransformingAdapter extends ClassVisitor {
         public TransformingAdapter(ClassWriter classWriter) {
-            super(Opcodes.ASM6, classWriter);
+            super(AsmConstants.ASM_LEVEL, classWriter);
         }
 
         @Override
@@ -94,13 +99,13 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
             private final List<String> names = new ArrayList<String>();
 
             public AnnotationTransformingVisitor(AnnotationVisitor annotationVisitor) {
-                super(Opcodes.ASM6, annotationVisitor);
+                super(AsmConstants.ASM_LEVEL, annotationVisitor);
             }
 
             @Override
             public AnnotationVisitor visitArray(String name) {
                 if (name.equals("classes")) {
-                    return new AnnotationVisitor(Opcodes.ASM6){
+                    return new AnnotationVisitor(AsmConstants.ASM_LEVEL){
                         @Override
                         public void visit(String name, Object value) {
                             Type type = (Type) value;
@@ -108,7 +113,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
                         }
                     };
                 } else if (name.equals("value")) {
-                    return new AnnotationVisitor(Opcodes.ASM6) {
+                    return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
                         @Override
                         public void visit(String name, Object value) {
                             String type = (String) value;

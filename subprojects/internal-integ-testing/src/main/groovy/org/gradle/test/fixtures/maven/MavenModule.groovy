@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.maven
 
-import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
@@ -61,6 +60,10 @@ interface MavenModule extends Module {
 
     MavenModule dependsOn(String group, String artifactId, String version, String type, String scope, String classifier)
 
+    MavenModule dependencyConstraint(Module module)
+
+    MavenModule dependencyConstraint(Map<String, ?> attributes, Module module)
+
     MavenModule hasPackaging(String packaging)
 
     /**
@@ -91,11 +94,6 @@ interface MavenModule extends Module {
      */
     ModuleArtifact getPom()
 
-    /**
-     * Returns the Gradle module metadata file of this module
-     */
-    ModuleArtifact getModuleMetadata()
-
     TestFile getPomFile()
 
     /**
@@ -111,7 +109,7 @@ interface MavenModule extends Module {
     ModuleArtifact getArtifact(Map<String, ?> options)
 
     /**
-     * Returns a file relative to this module, use a relative path.
+     * Returns a file relative to this module, using a relative path.
      */
     ModuleArtifact getArtifact(String relativePath)
 
@@ -123,11 +121,13 @@ interface MavenModule extends Module {
 
     MavenPom getParsedPom()
 
-    GradleModuleMetadata getParsedModuleMetadata()
-
     ModuleArtifact getRootMetaData()
 
+    ModuleArtifact getSnapshotMetaData()
+
     boolean getUniqueSnapshots()
+
+    String getUniqueSnapshotVersion()
 
     /**
      * Asserts pom and module files have not been published.

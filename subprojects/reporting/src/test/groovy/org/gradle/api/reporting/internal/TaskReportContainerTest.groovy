@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -46,10 +47,10 @@ class TaskReportContainerTest extends Specification {
 
             c.delegate = new Object() {
                 Report file(String name) {
-                    add(TaskGeneratedReport, name, Report.OutputType.FILE, task)
+                    add(TaskGeneratedSingleFileReport, name, task)
                 }
                 Report dir(String name) {
-                    add(TaskGeneratedReport, name, Report.OutputType.DIRECTORY, task)
+                    add(TaskGeneratedSingleDirectoryReport, name, task, null)
                 }
             }
 
@@ -72,7 +73,13 @@ class TaskReportContainerTest extends Specification {
     }
 
     List<String> getInputPropertyValue() {
-        task.inputs.properties["reports.enabledReportNames"] as List<String>
+        TaskPropertyTestUtils.getProperties(task).keySet().findAll {
+            (it.startsWith('reports.enabledReports.'))
+        }.collect {
+            it.substring('reports.enabledReports.'.length())
+        }.findAll {
+            !it.contains('.')
+        }.unique().sort()
     }
 
     @Unroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")

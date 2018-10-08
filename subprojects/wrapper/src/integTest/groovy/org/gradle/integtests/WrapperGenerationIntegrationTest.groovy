@@ -49,7 +49,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 54 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 55 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -105,5 +105,13 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
+    }
+
+    def "generated wrapper scripts for given distribution SHA-256 hash sum from command-line"() {
+        when:
+        run "wrapper", "--gradle-distribution-sha256-sum", "somehash"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionSha256Sum=somehash")
     }
 }

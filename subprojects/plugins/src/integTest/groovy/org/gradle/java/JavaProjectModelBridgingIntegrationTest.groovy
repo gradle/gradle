@@ -32,9 +32,17 @@ model {
                 def binaries = $.binaries
                 assert binaries.size() == 2
                 assert binaries.main instanceof ClassDirectoryBinarySpec
-                assert binaries.main.buildTask.name == 'classes'
+                assert binaries.main.buildTask == null
+                assert binaries.main.tasks.size() == 3
+                assert binaries.main.tasks.find { it.name == 'classes' }
+                assert binaries.main.tasks.find { it.name == 'processResources' }
+                assert binaries.main.tasks.find { it.name == 'compileJava' }
                 assert binaries.test instanceof ClassDirectoryBinarySpec
-                assert binaries.test.buildTask.name == 'testClasses'
+                assert binaries.test.buildTask == null
+                assert binaries.test.tasks.size() == 3
+                assert binaries.test.tasks.find { it.name == 'testClasses' }
+                assert binaries.test.tasks.find { it.name == 'processTestResources' }
+                assert binaries.test.tasks.find { it.name == 'compileTestJava' }
                 def sources = $.sources
                 assert sources.size() == 4
                 assert sources.withType(JavaSourceSet).size() == 2

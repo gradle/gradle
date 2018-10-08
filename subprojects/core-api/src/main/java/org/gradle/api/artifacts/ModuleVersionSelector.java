@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Selects a module version.
  * If you need to change this interface, you're probably doing it wrong:
@@ -41,21 +43,13 @@ public interface ModuleVersionSelector {
     String getName();
 
     /**
-     * The version of the module
+     * The version of the module. May be null.
      *
      * @return module version
      *
      */
+    @Nullable
     String getVersion();
-
-    /**
-     * Returns the version constraint to be used during selection.
-     * @return the version constraint
-     *
-     * @since 4.4
-     */
-    @Incubating
-    VersionConstraint getVersionConstraint();
 
     /**
      * To match strictly means that the given identifier needs to have
@@ -67,4 +61,15 @@ public interface ModuleVersionSelector {
      */
     @Incubating
     boolean matchesStrictly(ModuleVersionIdentifier identifier);
+
+    /**
+     * The module identifier of the component. Returns the same information
+     * as {@link #getGroup()} and {@link #getName()}.
+     *
+     * @return the module identifier
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ModuleIdentifier getModule();
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
@@ -27,12 +28,14 @@ import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 /**
  * A {@code SourceTask} performs some operation on source files.
  */
+@NonNullApi
 public class SourceTask extends ConventionTask implements PatternFilterable {
     protected final List<Object> source = new ArrayList<Object>();
     private final PatternFilterable patternSet;
@@ -56,7 +59,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     public FileTree getSource() {
         ArrayList<Object> copy = new ArrayList<Object>(this.source);
         FileTree src = getProject().files(copy).getAsFileTree();
-        return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
+        return src.matching(patternSet);
     }
 
     /**
@@ -86,9 +89,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      * @return this
      */
     public SourceTask source(Object... sources) {
-        for (Object source : sources) {
-            this.source.add(source);
-        }
+        Collections.addAll(this.source, sources);
         return this;
     }
 

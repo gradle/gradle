@@ -18,13 +18,13 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def app = new SwiftAppWithLibraries()
@@ -36,7 +36,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         '''
         project.file('settings.gradle') << localCacheConfiguration()
         project.file('build.gradle').text = '''
-            apply plugin: 'swift-executable'
+            apply plugin: 'swift-application'
             dependencies {
                 implementation project(':hello')
             }
@@ -53,7 +53,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         '''
         app.logLibrary.writeToProject(project.file('log'))
         app.library.writeToProject(project.file('hello'))
-        app.executable.writeToProject(project)
+        app.application.writeToProject(project)
     }
 
     def 'compilation can be cached'() {
@@ -130,7 +130,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         executer.beforeExecute {
             inDirectory(newLocation)
         }
-        withBuildCache().succeeds upstreamCompileTasks
+        withBuildCache().run upstreamCompileTasks
 
         then:
         skipped upstreamCompileTasks

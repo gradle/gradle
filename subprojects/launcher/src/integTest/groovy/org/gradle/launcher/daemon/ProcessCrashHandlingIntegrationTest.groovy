@@ -171,7 +171,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         def failure = build.waitForFailure()
 
         then:
-        failure.error.contains("----- Last  20 lines from daemon log file")
+        failure.assertHasErrorOutput("----- Last  20 lines from daemon log file")
         failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
     }
 
@@ -184,8 +184,8 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         def failure = executer.runWithFailure()
 
         then:
-        failure.error.contains("----- Last  20 lines from daemon log file")
-        failure.error.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
+        failure.assertHasErrorOutput("----- Last  20 lines from daemon log file")
+        failure.assertHasErrorOutput(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
         failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
 
         and:

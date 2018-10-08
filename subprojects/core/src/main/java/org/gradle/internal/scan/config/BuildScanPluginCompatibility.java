@@ -20,26 +20,27 @@ import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibility {
 
-    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("1.8");
+    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("1.13");
     public static final String UNSUPPORTED_PLUGIN_VERSION_MESSAGE =
         "This version of Gradle requires version " + MIN_SUPPORTED_VERSION + " of the build scan plugin or later.\n"
             + "Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.";
 
-    public static final VersionNumber MIN_VERSION_AWARE_OF_VCS_MAPPINGS = VersionNumber.parse("1.11");
-    public static final String UNSUPPORTED_VCS_MAPPINGS_MESSAGE =
-        "Build scans are not supported when using VCS mappings. It may be supported when using newer versions of the build scan plugin.";
+    public static final VersionNumber MIN_VERSION_FOR_KOTLIN_SCRIPT_BUILD_CACHING = VersionNumber.parse("1.15.2");
+    public static final String UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE =
+        "Build scans are not supported when using using the build cache to cache Kotlin build scripts.";
 
     // Used just to test the mechanism
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
+    public static final String KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE = "org.gradle.kotlin.dsl.caching.buildcache";
 
     String unsupportedReason(VersionNumber pluginVersion, BuildScanConfig.Attributes attributes) {
-        if (pluginVersion.compareTo(MIN_SUPPORTED_VERSION) < 0) {
+        if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
             return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
         }
 
-        if (pluginVersion.compareTo(MIN_VERSION_AWARE_OF_VCS_MAPPINGS) < 0 && attributes.isRootProjectHasVcsMappings()) {
-            return UNSUPPORTED_VCS_MAPPINGS_MESSAGE;
+        if (isEarlierThan(pluginVersion, MIN_VERSION_FOR_KOTLIN_SCRIPT_BUILD_CACHING) && isKotlinBuildCachingEnabled()) {
+            return UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE;
         }
 
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
@@ -47,6 +48,14 @@ class BuildScanPluginCompatibility {
         }
 
         return null;
+    }
+
+    private boolean isKotlinBuildCachingEnabled() {
+        return Boolean.getBoolean(KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE);
+    }
+
+    private static boolean isEarlierThan(VersionNumber pluginVersion, VersionNumber minSupportedVersion) {
+        return pluginVersion.compareTo(minSupportedVersion) < 0;
     }
 
     UnsupportedBuildScanPluginVersionException unsupportedVersionException() {

@@ -18,172 +18,203 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.DependencyMetadataRules;
+import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantMetadata;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
- * This should be made immutable. It is currently effectively immutable. Should also be specialized for Maven, Ivy and Gradle metadata as much of this state is required only for Ivy.
+ * Effectively immutable implementation of ConfigurationMetadata.
+ * Used to represent Ivy and Maven modules in the dependency graph.
  */
-abstract class DefaultConfigurationMetadata implements ConfigurationMetadata {
-    private final ModuleComponentIdentifier componentId;
-    private final String name;
-    private final ImmutableList<? extends DefaultConfigurationMetadata> parents;
-    private final List<ModuleDependencyMetadata> configDependencies = Lists.newArrayList();
-    private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-    private final boolean transitive;
-    private final boolean visible;
-    private final List<String> hierarchy;
+public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata {
 
-    private DependencyMetadataRules dependencyMetadataRules;
+    private final VariantMetadataRules componentMetadataRules;
+
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
-    DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<? extends DefaultConfigurationMetadata> parents, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts) {
-        this.componentId = componentId;
-        this.name = name;
-        this.parents = parents;
-        this.transitive = transitive;
-        this.visible = visible;
-        this.artifacts = artifacts;
-        this.hierarchy = calculateHierarchy();
+    private final ImmutableAttributes componentLevelAttributes;
+
+    // Could be precomputed, but we avoid doing so if attributes are never requested
+    private ImmutableAttributes computedAttributes;
+    private CapabilitiesMetadata computedCapabilities;
+
+    public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+                                        ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                        VariantMetadataRules componentMetadataRules,
+                                        ImmutableList<ExcludeMetadata> excludes,
+                                        ImmutableAttributes componentLevelAttributes) {
+        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, null);
     }
 
-    @Override
-    public DisplayName asDescribable() {
-        return Describables.of(componentId, "configuration", name);
-    }
-
-    @Override
-    public String toString() {
-        return asDescribable().getDisplayName();
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    public ImmutableList<? extends DefaultConfigurationMetadata> getParents() {
-        return parents;
-    }
-
-    @Override
-    public Collection<String> getHierarchy() {
-        return hierarchy;
-    }
-
-    private List<String> calculateHierarchy() {
-        List<? extends DefaultConfigurationMetadata> parents = getParents();
-        if (parents.isEmpty()) {
-            return Collections.singletonList(name);
-        }
-        Set<String> hierarchy = new LinkedHashSet<String>(1 + parents.size());
-        populateHierarchy(hierarchy);
-        return ImmutableList.copyOf(hierarchy);
-    }
-
-    private void populateHierarchy(Set<String> accumulator) {
-            accumulator.add(name);
-        for (DefaultConfigurationMetadata parent : getParents()) {
-            parent.populateHierarchy(accumulator);
-        }
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return visible;
+    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                         VariantMetadataRules componentMetadataRules,
+                                         ImmutableList<ExcludeMetadata> excludes,
+                                         ImmutableAttributes attributes,
+                                         ImmutableList<ModuleDependencyMetadata> configDependencies) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, ImmutableCapabilities.EMPTY);
+        this.componentMetadataRules = componentMetadataRules;
+        this.componentLevelAttributes = attributes;
     }
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return ImmutableAttributes.EMPTY;
-    }
-
-    @Override
-    public boolean isCanBeConsumed() {
-        return true;
-    }
-
-    @Override
-    public boolean isCanBeResolved() {
-        return false;
+        if (computedAttributes == null) {
+            computedAttributes = componentMetadataRules.applyVariantAttributeRules(this, super.getAttributes());
+        }
+        return computedAttributes;
     }
 
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            if (dependencyMetadataRules == null) {
-                calculatedDependencies = configDependencies;
-            } else {
-                calculatedDependencies = dependencyMetadataRules.execute(configDependencies);
-            }
+            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(this, getConfigDependencies());
         }
         return calculatedDependencies;
     }
 
-    void populateDependencies(Iterable<? extends ModuleDependencyMetadata> dependencies, DependencyMetadataRules dependencyMetadataRules) {
-        for (ModuleDependencyMetadata dependency : dependencies) {
-            if (include(dependency)) {
-                this.configDependencies.add(dependency);
+    @Override
+    public CapabilitiesMetadata getCapabilities() {
+        if (computedCapabilities == null) {
+            computedCapabilities = componentMetadataRules.applyCapabilitiesRules(this, super.getCapabilities());
+        }
+        return computedCapabilities;
+    }
+
+    public DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+    }
+
+    public DefaultConfigurationMetadata withAttributes(String newName, ImmutableAttributes attributes) {
+        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+    }
+
+    public DefaultConfigurationMetadata withForcedDependencies() {
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), componentLevelAttributes, force(getConfigDependencies()));
+    }
+
+    private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {
+        ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>();
+        for (ModuleDependencyMetadata configDependency : configDependencies) {
+            if (configDependency instanceof ForcingDependencyMetadata) {
+                dependencies.add((ModuleDependencyMetadata) ((ForcingDependencyMetadata) configDependency).forced());
+            } else {
+                dependencies.add(new ForcedDependencyMetadataWrapper(configDependency));
             }
         }
-        this.calculatedDependencies = null;
-        this.dependencyMetadataRules = dependencyMetadataRules;
+        return dependencies.build();
     }
 
-    private boolean include(DependencyMetadata dependency) {
-        Collection<String> hierarchy = getHierarchy();
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
-            if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                return true;
-            }
-            if (moduleConfiguration.equals("*")) {
-                boolean include = true;
-                for (String conf2 : dependency.getModuleConfigurations()) {
-                    if (conf2.startsWith("!") && conf2.substring(1).equals(getName())) {
-                        include = false;
-                        break;
-                    }
-                }
-                if (include) {
-                    return true;
-                }
+    public DefaultConfigurationMetadata withoutConstraints() {
+        return withConstraints(false);
+    }
+
+    public DefaultConfigurationMetadata withConstraintsOnly() {
+        return withConstraints(true);
+    }
+
+    private DefaultConfigurationMetadata withConstraints(boolean constraint) {
+        ImmutableList<ModuleDependencyMetadata> configDependencies = getConfigDependencies();
+        if (configDependencies.isEmpty()) {
+            return this;
+        }
+        int count = 0;
+        ImmutableList.Builder<ModuleDependencyMetadata> filtered = new ImmutableList.Builder<ModuleDependencyMetadata>();
+        for (ModuleDependencyMetadata configDependency : configDependencies) {
+            if (configDependency.isConstraint() == constraint) {
+                filtered.add(configDependency);
+                count++;
             }
         }
-        return false;
+        if (count == configDependencies.size()) {
+            // Avoid creating a copy if the resulting configuration is identical
+            return this;
+        }
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), componentLevelAttributes, filtered.build());
     }
 
-    @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifacts() {
-        return artifacts;
-    }
+    private static class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadata, ModuleDependencyMetadata {
+        private final ModuleDependencyMetadata delegate;
 
-    @Override
-    public Set<? extends VariantMetadata> getVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts()));
-    }
+        private ForcedDependencyMetadataWrapper(ModuleDependencyMetadata delegate) {
+            this.delegate = delegate;
+        }
 
-    @Override
-    public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+        @Override
+        public ModuleComponentSelector getSelector() {
+            return delegate.getSelector();
+        }
+
+        @Override
+        public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
+            return new ForcedDependencyMetadataWrapper(delegate.withRequestedVersion(requestedVersion));
+        }
+
+        @Override
+        public ModuleDependencyMetadata withReason(String reason) {
+            return new ForcedDependencyMetadataWrapper(delegate.withReason(reason));
+        }
+
+        @Override
+        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+            return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
+        }
+
+        @Override
+        public List<ExcludeMetadata> getExcludes() {
+            return delegate.getExcludes();
+        }
+
+        @Override
+        public List<IvyArtifactName> getArtifacts() {
+            return delegate.getArtifacts();
+        }
+
+        @Override
+        public DependencyMetadata withTarget(ComponentSelector target) {
+            return new ForcedDependencyMetadataWrapper((ModuleDependencyMetadata) delegate.withTarget(target));
+        }
+
+        @Override
+        public boolean isChanging() {
+            return delegate.isChanging();
+        }
+
+        @Override
+        public boolean isTransitive() {
+            return delegate.isTransitive();
+        }
+
+        @Override
+        public boolean isConstraint() {
+            return delegate.isConstraint();
+        }
+
+        @Override
+        public String getReason() {
+            return delegate.getReason();
+        }
+
+        @Override
+        public boolean isForce() {
+            return true;
+        }
+
+        @Override
+        public ForcingDependencyMetadata forced() {
+            return this;
+        }
     }
 }

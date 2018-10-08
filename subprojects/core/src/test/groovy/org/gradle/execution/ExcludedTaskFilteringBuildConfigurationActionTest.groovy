@@ -23,7 +23,7 @@ import spock.lang.Specification
 class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     final BuildExecutionContext context = Mock()
     final StartParameter startParameter = Mock()
-    final TaskGraphExecuter taskGraph = Mock()
+    final TaskExecutionGraphInternal taskGraph = Mock()
     final TaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
     final action = new ExcludedTaskFilteringBuildConfigurationAction(selector)

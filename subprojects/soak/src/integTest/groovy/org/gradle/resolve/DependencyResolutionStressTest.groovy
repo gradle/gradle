@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.ExternalResource
@@ -41,28 +39,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 @Category(SoakTest)
-@Requires(TestPrecondition.NOT_WINDOWS) //TODO this test leaves behind files on Windows: Execution failed for task ':soak:verifyTestFilesCleanup'.
-// - handles_concurrent_...artifacts\64jeg\2\.gradle\4.2-20170814004107+0000\fileChanges\last-build.bin
-// - handles_concurrent_...artifacts\64jeg\2\.gradle\4.2-20170814004107+0000\fileHashes\fileHashes.bin;
-// - handles_concurrent_...artifacts\64jeg\2\.gradle\4.2-20170814004107+0000\fileHashes\fileHashes.lock;
-// - handles_concurrent_...artifacts\64jeg\2\.gradle\4.2-20170814004107+0000\taskHistory\taskHistory.lock
-// - handles_concurrent_...artifacts\64jeg\2\.gradle\buildOutputCleanup\buildOutputCleanup.lock
-// - handles_concurrent_...artifacts\64jeg\2\.gradle\buildOutputCleanup\cache.properties
-// - handles_concurrent_...artifacts\64jeg\2\build.gradle
-// - handles_concurrent_...artifacts\ogsj2\1\.gradle\4.2-20170814004107+0000\fileChanges\last-build.bin
-// - handles_concurrent_...artifacts\ogsj2\1\.gradle\4.2-20170814004107+0000\fileHashes\fileHashes.bin
-// - handles_concurrent_...artifacts\ogsj2\1\.gradle\4.2-20170814004107+0000\fileHashes\fileHashes.lock
-// - handles_concurrent_...artifacts\ogsj2\1\.gradle\4.2-20170814004107+0000\taskHistory\taskHistory.lock
-// - handles_concurrent_...artifacts\ogsj2\1\.gradle\buildOutputCleanup\buildOutputCleanup.lock
-// - handles_concurrent_...artifacts\ogsj2\1\.gradle\buildOutputCleanup\cache.properties
-// - handles_concurrent_...artifacts\ogsj2\1\build.gradle
-// - handles_concurrent_...artifacts\oq65h\0\.gradle\4.2-20170814004107+0000\fileChanges\last-build.bin
-// - handles_concurrent_...artifacts\oq65h\0\.gradle\4.2-20170814004107+0000\fileHashes\fileHashes.bin
-// - handles_concurrent_...artifacts\oq65h\0\.gradle\4.2-20170814004107+0000\fileHashes\fileHashes.lock
-// - handles_concurrent_...artifacts\oq65h\0\.gradle\4.2-20170814004107+0000\taskHistory\taskHistory.lock
-// - handles_concurrent_...artifacts\oq65h\0\.gradle\buildOutputCleanup\buildOutputCleanup.lock
-// - handles_concurrent_...artifacts\oq65h\0\.gradle\buildOutputCleanup\cache.properties
-// - handles_concurrent_...artifacts\oq65h\0\build.gradle
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
@@ -76,8 +52,8 @@ class DependencyResolutionStressTest extends Specification {
     def "handles concurrent access to changing artifacts"() {
         expect:
         4.times { count ->
+            def buildDir = workspace.file(count)
             concurrent.start {
-                def buildDir = workspace.file(count)
                 buildDir.file('build.gradle') << """
 import java.util.zip.*
 

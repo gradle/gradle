@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskInputFilePropertySpec extends TaskFilePropertySpec {
+public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, LifecycleAwareTaskProperty {
     boolean isSkipWhenEmpty();
 }

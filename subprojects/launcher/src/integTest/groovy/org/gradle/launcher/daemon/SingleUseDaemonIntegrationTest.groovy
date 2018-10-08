@@ -30,6 +30,7 @@ import java.nio.charset.Charset
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.withArgument("--no-daemon")
         executer.requireIsolatedDaemons()
     }
 
@@ -81,7 +82,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
         then:
         wasForked()
-        output.contains("javaHome=${javaHome}")
+        outputContains("javaHome=${javaHome}")
         daemons.daemon.stops()
     }
 
@@ -148,7 +149,7 @@ assert System.getProperty('some-prop') == 'some-value'
         run "encoding", "-Dfile.encoding=$encoding"
 
         then:
-        output.contains "encoding = $encoding"
+        outputContains "encoding = $encoding"
 
         and:
         wasNotForked()
@@ -162,7 +163,7 @@ assert System.getProperty('some-prop') == 'some-value'
         succeeds()
 
         then:
-        !output.contains(DaemonStartupMessage.STARTING_DAEMON_MESSAGE)
+        outputDoesNotContain(DaemonStartupMessage.STARTING_DAEMON_MESSAGE)
         wasForked()
         daemons.daemon.stops()
     }
@@ -176,12 +177,12 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private void wasForked() {
-        assert result.output.contains(SingleUseDaemonClient.MESSAGE)
+        outputContains(SingleUseDaemonClient.MESSAGE)
         assert daemons.daemons.size() == 1
     }
 
     private void wasNotForked() {
-        assert !result.output.contains(SingleUseDaemonClient.MESSAGE)
+        outputDoesNotContain(SingleUseDaemonClient.MESSAGE)
         assert daemons.daemons.size() == 0
     }
 

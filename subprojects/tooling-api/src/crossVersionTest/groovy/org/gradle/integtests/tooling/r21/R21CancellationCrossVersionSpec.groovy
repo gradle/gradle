@@ -137,7 +137,7 @@ task notExecuted(dependsOn: hang) {
 
         then:
         resultHandler.assertFailedWith(GradleConnectionException)
-        resultHandler.failure.cause.message.contains('Build cancelled.')
+        resultHandler.failure.cause.message.contains('Build cancelled')
 
         and:
         daemons.daemon.assertIdle()

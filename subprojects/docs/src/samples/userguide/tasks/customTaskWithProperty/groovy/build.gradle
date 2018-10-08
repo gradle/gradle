@@ -1,0 +1,18 @@
+// tag::add-property[]
+class GreetingTask extends DefaultTask {
+    String greeting = 'hello from GreetingTask'
+
+    @TaskAction
+    def greet() {
+        println greeting
+    }
+}
+
+// Use the default greeting
+task hello(type: GreetingTask)
+
+// Customize the greeting
+task greeting(type: GreetingTask) {
+    greeting = 'greetings from GreetingTask'
+}
+// end::add-property[]

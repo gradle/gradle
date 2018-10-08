@@ -148,10 +148,6 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         }
     }}
 
-    private final LogOutput brokenBuild = new LogOutput() {{
-        error('FAILURE: Build failed with an exception.')
-    }}
-
     @Test
     public void quietLogging() {
         checkOutput(this.&run, logOutput.quiet)
@@ -172,27 +168,22 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         checkOutput(this.&run, logOutput.debug)
     }
 
-    @Test
-    public void lifecycleLoggingForBrokenBuild() {
-        checkOutput(this.&runBroken, brokenBuild.lifecycle)
-    }
-
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleQuietLogging() {
         checkOutput(this.&runSample, sample.quiet)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleLifecycleLogging() {
         checkOutput(this.&runSample, sample.lifecycle)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleInfoLogging() {
         checkOutput(this.&runSample, sample.info)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleDebugLogging() {
         checkOutput(this.&runSample, sample.debug)
     }

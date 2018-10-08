@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 public class DefaultModuleIdentifier implements ModuleIdentifier {
@@ -23,8 +24,6 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
     private final String name;
 
     private DefaultModuleIdentifier(String group, String name) {
-        assert group != null : "group cannot be null";
-        assert name != null : "name cannot be null";
         this.group = group;
         this.name = name;
     }
@@ -54,25 +53,20 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (obj == null || obj.getClass() != getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultModuleIdentifier other = (DefaultModuleIdentifier) obj;
-        if (!name.equals(other.name)) {
-            return false;
-        }
-        if (!group.equals(other.group)) {
-            return false;
-        }
-        return true;
+        DefaultModuleIdentifier that = (DefaultModuleIdentifier) o;
+        return Objects.equal(group, that.group) &&
+            Objects.equal(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return 31 * name.hashCode() ^ group.hashCode();
+        return group.hashCode() ^ name.hashCode();
     }
 }

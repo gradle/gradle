@@ -16,10 +16,23 @@
 
 package org.gradle.internal.component.external.descriptor;
 
+/**
+ * A "scope" taken from a Maven POM. Note that the order of this enum is important for the module metadata cache.
+ */
 public enum MavenScope {
-    Compile,
-    Runtime,
-    Provided,
-    Test,
-    System
+    Compile("compile"),
+    Runtime("runtime"),
+    Provided("provided"),
+    Test("test"),
+    System("system");
+
+    private final String lowerName;
+
+    MavenScope(String lowerName) {
+        this.lowerName = lowerName;
+    }
+
+    public String getLowerName() {
+        return lowerName;
+    }
 }

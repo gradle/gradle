@@ -44,12 +44,33 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.start(10, { action1.set(true) })
         handler.start(11, { action2.set(true) })
 
-        client.maybePingOwner(port, 10, "lock 1", 50000)
-        client.maybePingOwner(port, 11, "lock 2", 50000)
+        client.maybePingOwner(port, 10, "lock 1", 50000, null)
+        client.maybePingOwner(port, 11, "lock 2", 50000, null)
 
         then:
         poll {
             assert action1.get() && action2.get()
+        }
+    }
+
+    def "client receives signal when lock is released"() {
+        def signaled = new AtomicBoolean()
+
+        when:
+        int port = handler.reservePort()
+        handler.start(10) { signal ->
+            signal.trigger()
+        }
+
+        client.reservePort()
+        client.start(11) {}
+        client.maybePingOwner(port, 10, "lock 1", 50000) {
+            signaled.set(true)
+        }
+
+        then:
+        poll {
+            assert signaled.get()
         }
     }
 
@@ -59,9 +80,9 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
         when:
         handler.reservePort()
-        handler.start(10, {} as Runnable)
-        handler.start(11, {} as Runnable)
-        handler.start(12, {} as Runnable)
+        handler.start(10, {})
+        handler.start(11, {})
+        handler.start(12, {})
 
         then:
         2 * factory.create(_ as String) >> Mock(ManagedExecutor)
@@ -71,7 +92,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.stop()
 
         when:
-        handler.start(10, {} as Runnable)
+        handler.start(10, {})
 
         then:
         thrown(IllegalStateException)
@@ -79,7 +100,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
     def "cannot start contention handling when the handler was not initialized"() {
         when:
-        handler.start(10, {} as Runnable)
+        handler.start(10, {})
 
         then:
         thrown(IllegalStateException)
@@ -88,10 +109,10 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     def "handler can be closed and contended action does not run"() {
         when:
         int port = handler.reservePort();
-        handler.start(10, { throw new RuntimeException("Boo!") } as Runnable)
+        handler.start(10, { throw new RuntimeException("Boo!") })
         handler.stop()
 
-        client.maybePingOwner(port, 10, "lock 1", 50000)
+        client.maybePingOwner(port, 10, "lock 1", 50000, null)
 
         then:
         noExceptionThrown()
@@ -100,14 +121,14 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     def "can receive request for lock that is already closed"() {
         when:
         int port = handler.reservePort()
-        handler.start(10, { assert false } as Runnable)
+        handler.start(10, { assert false })
         sleep(300) //so that it starts receiving
 
         //close the lock
         handler.stop(10)
 
         //receive request for lock that is already closed
-        client.maybePingOwner(port, 10, "lock 1", 50000)
+        client.maybePingOwner(port, 10, "lock 1", 50000, null)
 
         then:
         canHandleMoreRequests()
@@ -116,8 +137,8 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     private void canHandleMoreRequests() {
         def executed = new AtomicBoolean()
         int port = handler.reservePort();
-        handler.start(15, { executed.set(true) } as Runnable)
-        client.maybePingOwner(port, 15, "lock", 50000)
+        handler.start(15, { executed.set(true) })
+        client.maybePingOwner(port, 15, "lock", 50000, null)
         poll { assert executed.get() }
     }
 
@@ -158,7 +179,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
         when:
         handler.reservePort()
-        handler.start(10, {} as Runnable)
+        handler.start(10, {})
         handler.stop()
 
         then:

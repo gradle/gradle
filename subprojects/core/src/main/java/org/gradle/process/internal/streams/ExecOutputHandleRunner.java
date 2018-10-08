@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
 
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
@@ -31,22 +32,33 @@ public class ExecOutputHandleRunner implements Runnable {
     private final InputStream inputStream;
     private final OutputStream outputStream;
     private final int bufferSize;
+    private final CountDownLatch completed;
+    private volatile boolean closed;
 
-    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream) {
-        this(displayName, inputStream, outputStream, 2048);
+    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
+        this(displayName, inputStream, outputStream, 2048, completed);
     }
 
-    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize) {
+    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, CountDownLatch completed) {
         this.displayName = displayName;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
         this.bufferSize = bufferSize;
+        this.completed = completed;
     }
 
     public void run() {
+        try {
+            forwardContent();
+        } finally {
+            completed.countDown();
+        }
+    }
+
+    private void forwardContent() {
         byte[] buffer = new byte[bufferSize];
         try {
-            while (true) {
+            while (!closed) {
                 int nread = inputStream.read(buffer);
                 if (nread < 0) {
                     break;
@@ -56,16 +68,31 @@ public class ExecOutputHandleRunner implements Runnable {
             }
             CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
-            LOGGER.error(String.format("Could not %s.", displayName), t);
+            if (!closed && !wasInterrupted(t)) {
+                LOGGER.error(String.format("Could not %s.", displayName), t);
+            }
         }
     }
 
+    /**
+     * This can happen e.g. on IBM JDK when a remote process was terminated. Instead of
+     * returning -1 on the next read() call, it will interrupt the current read call.
+     */
+    private boolean wasInterrupted(Throwable t) {
+        return t instanceof IOException && "Interrupted system call".equals(t.getMessage());
+    }
+
     public void closeInput() throws IOException {
+        disconnect();
         inputStream.close();
     }
 
     @Override
     public String toString() {
         return displayName;
+    }
+
+    public void disconnect() {
+        closed = true;
     }
 }

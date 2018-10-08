@@ -18,17 +18,19 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
-class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements DirectoryBuildCacheFixture, CppTaskNames {
+class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
 
     def setupProject(TestFile project = temporaryFolder.testDirectory) {
         project.file('settings.gradle') << "include 'lib1', 'lib2'"
         project.file('settings.gradle') << localCacheConfiguration()
         project.file('build.gradle').text = """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             dependencies {
                 implementation project(':lib1')
             }
@@ -46,12 +48,10 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         app.greeterLib.writeToProject(project.file('lib1'))
         app.loggerLib.writeToProject(project.file("lib2"))
         app.main.writeToProject(project)
-        executer.beforeExecute {
-            withArgument("-Dorg.gradle.caching.native=true")
-        }
     }
 
-    def 'compilation can be cached'() {
+    @Unroll
+    def 'compilation can be cached (#buildType)'() {
         setupProject()
 
         when:
@@ -67,11 +67,21 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
         compileIsCached(buildType)
         installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
 
+        when:
+        file('lib1/src/main/public/greeter.h') << """
+            // changed
+        """
+        withBuildCache().run 'clean', installTask(buildType)
+
+        then:
+        compileIsNotCached(buildType)
+
         where:
         buildType << [debug, release]
     }
 
-    def "compilation task is relocatable"() {
+    def "compilation task is relocatable for release"() {
+
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
         setupProject(originalLocation)
@@ -79,35 +89,33 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         when:
         inDirectory(originalLocation)
-        withBuildCache().run compileTask(buildType)
+        withBuildCache().run compileTask(release)
 
         def snapshotsInOriginalLocation = snapshotObjects(originalLocation)
 
         then:
-        compileIsNotCached(buildType)
+        compileIsNotCached(release)
 
         when:
         executer.beforeExecute {
             inDirectory(newLocation)
         }
-        run compileTask(buildType)
+        run compileTask(release)
 
         then:
-        compileIsNotCached(buildType)
-        assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        compileIsNotCached(release)
+        assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
 
         when:
         run 'clean'
-        withBuildCache().run compileTask(buildType), installTask(buildType)
+        withBuildCache().run compileTask(release), installTask(release)
 
         then:
-        compileIsCached(buildType, newLocation)
-        assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
-        installation(newLocation.file("build/install/main/${buildType.toLowerCase()}")).exec().out == app.expectedOutput
-
-        where:
-        buildType << [debug, release]
+        compileIsCached(release, newLocation)
+        assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        installation(newLocation.file("build/install/main/${release.toLowerCase()}")).exec().out == app.expectedOutput
     }
+
 
     String getSourceType() {
         return 'Cpp'
@@ -129,7 +137,8 @@ class CppCachingIntegrationTest extends AbstractCppInstalledToolChainIntegration
     }
 
     boolean isAbsolutePathsInFile(String buildType) {
-        buildType == debug || clangOnLinux
+        // TODO Making release also debuggable means the object files always have paths - we need a strategy for this
+        (buildType == release || debug) || clangOnLinux
     }
 
     static boolean isClangOnLinux() {

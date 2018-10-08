@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -35,7 +34,6 @@ import java.util.concurrent.Callable;
  *
  * @since 2.4
  */
-@Incubating
 public abstract class AbstractPublishToMaven extends DefaultTask {
 
     private MavenPublicationInternal publication;
@@ -45,7 +43,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
                 MavenPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
             }
         }).withPropertyName("publication.publishableFiles");
 

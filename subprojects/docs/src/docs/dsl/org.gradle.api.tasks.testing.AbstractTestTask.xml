@@ -76,6 +76,9 @@
             <tr>
                 <td>reports</td>
             </tr>
+            <tr>
+                <td>setTestNameIncludePatterns</td>
+            </tr>
         </table>
     </section>
 </section>

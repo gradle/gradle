@@ -34,7 +34,7 @@ class ProjectBuilderTest extends Specification {
     @Rule
     public final Resources resources = new Resources()
 
-    def canCreateARootProject() {
+    def "can create a root project"() {
 
         when:
         def project = ProjectBuilder.builder().build()
@@ -44,10 +44,24 @@ class ProjectBuilderTest extends Specification {
         project.name == 'test'
         project.path == ':'
         project.projectDir.parentFile != null
+        project.buildFile == project.file("build.gradle")
         project.gradle != null
         project.gradle.rootProject == project
         project.gradle.gradleHomeDir == project.file('gradleHome')
         project.gradle.gradleUserHomeDir == project.file('userHome')
+    }
+
+    def "can create a child project"() {
+
+        when:
+        def root = ProjectBuilder.builder().build()
+        def child = ProjectBuilder.builder().withParent(root).build()
+
+        then:
+        child.name == 'test'
+        child.path == ':test'
+        child.projectDir == root.file("test")
+        child.buildFile == child.file("build.gradle")
     }
 
     private Project buildProject() {

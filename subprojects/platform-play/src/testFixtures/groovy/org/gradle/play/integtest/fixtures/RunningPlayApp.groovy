@@ -67,7 +67,7 @@ class RunningPlayApp {
 
 
     static int regexParseHttpPortStandalone(output, int occurrence) {
-        return parseHttpPort(output, /play - Listening for HTTP on .*:([0-9]+)/, occurrence)
+        return parseHttpPort(output, /(?:play|Server) - Listening for HTTP on .*:([0-9]+)/, occurrence)
     }
 
 
@@ -110,7 +110,7 @@ class RunningPlayApp {
     }
 
     void waitForStarted(int occurrence = 0) {
-        int timeout = 60
+        int timeout = 120
         ConcurrentTestUtil.poll(timeout) {
             assert parseHttpPort(occurrence) != UNASSIGNED : "Could not parse Play http port from spec output after ${timeout} seconds"
         }

@@ -16,15 +16,12 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
-
 /**
  * Thrown when executing a build that was expected to succeed, but failed.
  *
  * @since 2.6
  * @see GradleRunner#build()
  */
-@Incubating
 public class UnexpectedBuildFailure extends UnexpectedBuildResultException {
     public UnexpectedBuildFailure(String message, BuildResult buildResult) {
         super(message, buildResult);

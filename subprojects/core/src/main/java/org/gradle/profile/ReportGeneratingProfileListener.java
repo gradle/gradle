@@ -15,9 +15,10 @@
  */
 package org.gradle.profile;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -26,7 +27,9 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ReportGeneratingProfileListener extends BuildAdapter implements ProfileListener {
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
+
+public class ReportGeneratingProfileListener extends InternalBuildAdapter implements ProfileListener {
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private final StyledTextOutputFactory textOutputFactory;
     private File buildDir;
@@ -52,6 +55,10 @@ public class ReportGeneratingProfileListener extends BuildAdapter implements Pro
         textOutput.println();
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(reportFile);
         textOutput.formatln("See the profiling report at: %s", reportUrl);
+        textOutput.text("A fine-grained performance profile is available: use the ");
+        textOutput.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        textOutput.text(" option.");
+        textOutput.println();
     }
 }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -27,7 +28,7 @@ class ComponentArtifactMetadataSerializerTest extends SerializerSpec {
 
     def "converts ModuleComponentArtifactMetadata"() {
         given:
-        ModuleComponentArtifactMetadata identifier = new DefaultModuleComponentArtifactMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), new DefaultIvyArtifactName("art-name", "type", "ext", "classifier"))
+        ModuleComponentArtifactMetadata identifier = new DefaultModuleComponentArtifactMetadata(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version"), new DefaultIvyArtifactName("art-name", "type", "ext", "classifier"))
 
         when:
         ModuleComponentArtifactMetadata result = serialize(identifier, serializer)

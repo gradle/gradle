@@ -89,6 +89,8 @@ class ForkingGradleHandleTest extends Specification {
     def "recreates exception from error output"() {
         when:
         def error = """
+FAILURE: broken
+
 * What went wrong:
 The exception message
 
@@ -99,7 +101,7 @@ Run with --info or --debug option to get more log output.
 java.lang.IllegalArgumentException: The exception message
     at org.gradle.internal.SomeClass(SomeClass.java:34)
 """
-        forkingGradleHandle.errorOutputCapturer.outputStream.write(error.bytes)
+        forkingGradleHandle.standardOutputCapturer.outputStream.write(error.bytes)
         def executionResult = forkingGradleHandle.waitForFailure()
 
         then:

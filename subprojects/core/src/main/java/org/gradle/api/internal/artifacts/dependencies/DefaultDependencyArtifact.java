@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyArtifact;
 
 public class DefaultDependencyArtifact implements DependencyArtifact {
@@ -33,6 +34,13 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         this.extension = extension;
         this.classifier = classifier;
         this.url = url;
+        validate();
+    }
+
+    protected void validate() {
+        if (this.name == null) {
+            throw new InvalidUserDataException("Artifact name must not be null!");
+        }
     }
 
     public String getName() {

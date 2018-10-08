@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+
 import java.io.File;
 
 public interface TaskOutputFilesRepository {
     boolean isGeneratedByGradle(File file);
 
-    void recordOutputs(Iterable<String> outputFilePaths);
+    void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints);
 }

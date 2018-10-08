@@ -16,13 +16,17 @@
 
 package org.gradle.language.objectivecpp
 
+import org.gradle.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
-import org.gradle.language.objectivec.ObjectiveCLanguageIncrementalBuildIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+
+@RequiresInstalledToolChain(GCC_COMPATIBLE)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends ObjectiveCLanguageIncrementalBuildIntegrationTest{
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

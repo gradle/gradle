@@ -126,7 +126,7 @@ public class DefaultResolvedDependencyTest {
             allowing(resolvedDependency).getModule();
             will(returnValue(version));
             allowing(version).getId();
-            will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
+            will(returnValue(DefaultModuleVersionIdentifier.newId("group", name, "1.2")));
         }});
         return new DefaultResolvedArtifact(resolvedDependency.getModule().getId(), artifactStub, context.mock(ComponentArtifactIdentifier.class), context.mock(TaskDependency.class), artifactSource);
     }
@@ -227,7 +227,7 @@ public class DefaultResolvedDependencyTest {
     }
 
     public static ResolvedConfigurationIdentifier newId(String group, String name, String version, String config) {
-        return new ResolvedConfigurationIdentifier(new DefaultModuleVersionIdentifier(group, name, version), config);
+        return new ResolvedConfigurationIdentifier(DefaultModuleVersionIdentifier.newId(group, name, version), config);
     }
 
 }

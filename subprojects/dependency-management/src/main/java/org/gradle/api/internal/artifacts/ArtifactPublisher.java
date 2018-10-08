@@ -21,6 +21,9 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 
 import java.io.File;
 
+/**
+ * Service used by `Upload` task for publishing
+ */
 public interface ArtifactPublisher {
     void publish(Iterable<? extends PublicationAwareRepository> repositories, Module module, Configuration configuration, File descriptor) throws PublishException;
 }

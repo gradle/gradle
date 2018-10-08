@@ -1,0 +1,22 @@
+// tag::custom-source-set[]
+sourceSets {
+    integTest {
+        java.srcDir file('src/integTest/java')
+        resources.srcDir file('src/integTest/resources')
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+// end::custom-source-set[]
+
+// tag::test-task[]
+task integTest(type: Test) {
+    description = 'Runs the integration tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.integTest.output.classesDirs
+    classpath = sourceSets.integTest.runtimeClasspath
+    mustRunAfter test
+}
+
+check.dependsOn integTest
+// end::test-task[]

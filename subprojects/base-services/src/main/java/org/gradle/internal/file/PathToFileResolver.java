@@ -16,8 +16,6 @@
 
 package org.gradle.internal.file;
 
-import org.gradle.internal.Factory;
-
 import java.io.File;
 
 /**
@@ -30,12 +28,14 @@ public interface PathToFileResolver {
     File resolve(Object path);
 
     /**
-     * Returns a factory that resolves the given path to a file on each call to {@link Factory#create()}.
-     */
-    Factory<File> resolveLater(Object path);
-
-    /**
      * Returns a resolver that resolves paths relative to the given base dir.
      */
     PathToFileResolver newResolver(File baseDir);
+
+    /**
+     * Indicates if this resolver is able to resolved relative paths.
+     *
+     * @return {@code true} if it can resolve relative path, {@code false} otherwise.
+     */
+    boolean canResolveRelativePath();
 }

@@ -554,7 +554,7 @@ task print(type: MyTask) {
 
         expect:
         succeeds("print")
-        result.output.contains("transform(Class)")
+        outputContains("transform(Class)")
     }
 
     def failsWhenTryingToCallMethodWithClassValue() {

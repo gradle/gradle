@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.resolve.result;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultBuildableModuleVersionListingResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionListingResolveResult {
@@ -54,7 +54,7 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
 
     public void listed(Collection<String> versions) {
         reset(State.Listed);
-        this.versions = new LinkedHashSet<String>(versions);
+        this.versions = ImmutableSet.copyOf(versions);
         this.authoritative = true;
     }
 

@@ -16,15 +16,23 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.Set;
 
 public interface BuildableLocalComponentMetadata {
+    /**
+     * Returns the identifier for this component.
+     */
+    ComponentIdentifier getId();
+
     /**
      * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children. These are used only for publishing.
      */
@@ -40,22 +48,12 @@ public interface BuildableLocalComponentMetadata {
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
      */
-    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved);
+    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities);
 
     /**
-     * Adds a dependency to this component. Dependencies are attached to the configuration specified by {@link LocalOriginDependencyMetadata#getModuleConfiguration()} and each of its children.
+     * Provides a backing configuration instance from which dependencies and excludes will be sourced.
+     * @param configuration The configuration instance that provides dependencies and excludes
+     * @param localConfigurationMetadataBuilder A builder for translating Configuration to LocalConfigurationMetadata
      */
-    void addDependency(LocalOriginDependencyMetadata dependency);
-
-    /**
-     * Adds an exclude rule to this component. Exclude rules are attached to the configurations specified by {@link Exclude#getConfigurations()} and each of their children.
-     */
-    void addExclude(Exclude exclude);
-
-    /**
-     * Adds some files to this component.  The files are attached to the given configuration and each of its children.
-     *
-     * These files should be treated as dependencies of this component, however they are currently treated separately as a migration step.
-     */
-    void addFiles(String configuration, LocalFileDependencyMetadata files);
+    void addDependenciesAndExcludesForConfiguration(ConfigurationInternal configuration, LocalConfigurationMetadataBuilder localConfigurationMetadataBuilder);
 }

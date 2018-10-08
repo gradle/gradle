@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
@@ -46,12 +45,10 @@ import java.io.File;
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final ComponentResolvers mainResolvers;
     private final FileResourceRepository fileResourceRepository;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository) {
         this.mainResolvers = mainResolvers;
         this.fileResourceRepository = fileResourceRepository;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override
@@ -63,7 +60,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     @Override
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleDependencyMetadata dependencyMetadata, ArtifactType artifactType) {
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        mainResolvers.getComponentIdResolver().resolve(dependencyMetadata, idResolveResult);
+        mainResolvers.getComponentIdResolver().resolve(dependencyMetadata, null, idResolveResult);
         return getMetaDataArtifact((ModuleComponentIdentifier) idResolveResult.getId(), artifactType);
     }
 
@@ -73,11 +70,11 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         componentResolver.resolve(moduleComponentIdentifier, new DefaultComponentOverrideMetadata(), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        artifactResolver.resolveArtifactsWithType(moduleVersionResolveResult.getMetaData(), artifactType, moduleArtifactsResolveResult);
+        artifactResolver.resolveArtifactsWithType(moduleVersionResolveResult.getMetadata(), artifactType, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
         ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getResult().iterator().next();
-        artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getMetaData().getSource(), artifactResolveResult);
+        artifactResolver.resolveArtifact(artifactMetaData, moduleVersionResolveResult.getMetadata().getSource(), artifactResolveResult);
         return artifactResolveResult.getResult();
     }
 }

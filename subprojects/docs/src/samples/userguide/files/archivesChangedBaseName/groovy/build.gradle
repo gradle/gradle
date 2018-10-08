@@ -1,0 +1,24 @@
+plugins {
+    id 'base'
+}
+
+version = 1.0
+archivesBaseName = "gradle"
+
+task myZip(type: Zip) {
+    from 'somedir'
+}
+
+task myOtherZip(type: Zip) {
+    appendix = 'wrapper'
+    classifier = 'src'
+    from 'somedir'
+}
+
+task echoNames {
+    doLast {
+        println "Project name: ${project.name}"
+        println myZip.archiveName
+        println myOtherZip.archiveName
+    }
+}

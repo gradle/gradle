@@ -22,6 +22,8 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.util.Message;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.Transformers;
 
 import java.util.LinkedList;
@@ -83,7 +85,21 @@ public class DefaultIvyContextManager implements IvyContextManager {
         } finally {
             lock.unlock();
         }
-        return Ivy.newInstance(new IvySettings());
+        return createNewIvyInstance();
+    }
+
+    /*
+     * Syncronizes on the system properties, because IvySettings iterates
+     * over them without taking a defensive copy. This can fail if another
+     * process sets a system property at that moment.
+     */
+    private Ivy createNewIvyInstance() {
+        return SystemProperties.getInstance().withSystemProperties(new Factory<Ivy>() {
+            @Override
+            public Ivy create() {
+                return Ivy.newInstance(new IvySettings());
+            }
+        });
     }
 
     private void releaseIvy(Ivy ivy) {

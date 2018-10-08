@@ -15,44 +15,29 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.build.docs.AssembleSamplesDocTask
-import org.gradle.build.docs.CacheableAsciidoctorTask
+import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
-import org.gradle.build.docs.ExtractSamplesTask
-import org.gradle.build.docs.ExtractSnippetsTask
-import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
-import org.gradle.build.docs.Xhtml2Pdf
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
-import org.gradle.plugins.pegdown.PegDown
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.PublicApi
+import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.stream.StreamResult
-import javax.xml.transform.stream.StreamSource
-
-apply plugin: 'base'
-apply plugin: 'pegdown'
-apply plugin: 'jsoup'
-apply plugin: 'javascript-base'
-apply plugin: 'org.asciidoctor.convert'
+plugins {
+    id 'base'
+    id 'gradlebuild.jsoup'
+    id 'javascript-base'
+    id 'org.asciidoctor.convert'
+}
 
 repositories {
     javaScript.googleApis()
-
-    ivy {
-        name "Google Fonts"
-        url "http://themes.googleusercontent.com/static/fonts/"
-        layout 'pattern', {
-            artifact '[organisation]/v[revision](/[classifier])(.[ext])'
-            ivy '[organisation]/v[revision]/ivy(.[ext])'
-        }
-    }
-
-    maven { url 'https://repo.gradle.org/gradle/gradle-build-internal' }
 }
 
 configurations {
@@ -60,48 +45,50 @@ configurations {
     userGuideTask
     jquery
     jqueryTipTip
-    fonts
+
+    cssElements {
+        // define an outgoing configuration, aimed at consumers looking
+        // for CSS resources
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'css-resources'))
+        }
+        canBeResolved = false
+        canBeConsumed = true
+    }
 }
 
 dependencies {
-    asciidoctor 'org.asciidoctor:asciidoctorj:1.5.6'
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
+    asciidoctor project.files("src/main/resources")
 
-    userGuideTask 'xalan:xalan:2.7.1', libraries.xerces
-    userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
-        dependency 'itext:itext:2.0.8@jar'
-    }
-    userGuideTask 'xslthl:xslthl:2.0.1@jar'
+    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
+    userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
+    userGuideTask 'itext:itext:2.0.8'
+    userGuideTask 'xslthl:xslthl:2.0.1'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    fonts \
-        "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
-        "lato:regular-italic:6:LqowQDslGv4DmUBAfWa2Vw@ttf",
-        "lato:bold:6:DvlFBScY1r-FMtZSYIYoYw@ttf",
-        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYEKCWcynf_cDxXwCLxiixG1c@ttf",
-        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkZ0EAVxt0G0biEntp43Qt6E@ttf",
-        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
-        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
-        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
-
     testCompile "org.pegdown:pegdown:1.1.0"
-    testCompile libraries.jsoup
-    testCompile "org.gebish:geb-spock:0.9.3"
-    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    testCompile libraries.commons_httpclient
-    testCompile 'org.apache.httpcomponents:httpmime:4.4.1'
+    testCompile testLibraries.jsoup
+    testCompile("org.gebish:geb-spock:2.2")
+    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
+    testCompile libraries.commons_httpclient.coordinates
+    testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 ext {
     srcDocsDir = file('src/docs')
+    releaseFeaturesFile = file("$srcDocsDir/release/release-features.txt")
     userguideSrcDir = new File(srcDocsDir, 'userguide')
-    asciidocSanitizeStylesheet = file("$srcDocsDir/stylesheets/asciidocSanitize.xsl")
-    asciidocOutputDir = new File(buildDir, 'asciidoc/userguide')
+    userguideIntermediateOutputDir = new File(buildDir, 'userguideIntermediate')
+    userguideSinglePageOutputDir = new File(buildDir, 'userguideSinglePage')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
@@ -122,113 +109,65 @@ outputs.docs = files(docsDir) {
     builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
-tasks.withType(CacheableAsciidoctorTask) {
-    backends = ['docbook']
-    separateOutputDirs = false
-    options doctype: 'book'
-    inputs.file asciidocSanitizeStylesheet withPropertyName "sanitizerStylesheet" withPathSensitivity PathSensitivity.NONE
-
-    extensions {
-        inlinemacro (name: "api") {
-            parent, target, attributes ->
-            def (className, method) = target.split('#', 2) as List
-            def content = "<apilink class=\"$className\""
-            if (method) {
-                // Add space after comma, because we can't have spaces in api: targets
-                // Restore Asciidoc's '&hellip;&zwsp;' replacement to the original '...'
-                content += " method=\"${method.replaceAll(/,\s*/, ', ').replaceAll(/\&#8230;\&#8203;/, '...')}\""
-            }
-            content += " />"
-            return content
-        }
-    }
-
-    attributes website: 'http://www.gradle.org'
-
+def configureCss = tasks.register("configureCss") {
     doLast {
-        outputDir.eachFileMatch(~/.*.xml/) { File file ->
-            def contents = file.getText("utf-8")
-            try {
-                def transformer = TransformerFactory.newInstance().newTransformer(new StreamSource(asciidocSanitizeStylesheet))
-                transformer.transform(new StreamSource(new StringReader(contents)), new StreamResult(file))
-            } catch (Exception ex) {
-                throw new RuntimeException("Couldn't process $file:\n" + contents, ex)
-            }
-        }
-    }
-}
-
-tasks.withType(Docbook2Xhtml) {
-    dependsOn userguideStyleSheets
-    classpath = configurations.userGuideTask
-    stylesheetsDir = userguideStyleSheets.destinationDir
-}
-
-tasks.withType(UserGuideTransformTask) {
-    dependsOn samples, dslDocbook
-    snippetsDir = samples.snippetsDir
-    linksFile = dslDocbook.linksFile
-    websiteUrl = 'http://www.gradle.org'
-
-    if (name in ["pdfUserguideDocbook"]) {
-        // These will only be valid for releases, but that's ok
-        javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
-        dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
-    } else {
-        javadocUrl = '../javadoc'
-        dsldocUrl = '../dsl'
-    }
-}
-
-tasks.withType(AssembleDslDocTask) {
-    classDocbookDir = dslSrcDir
-}
-
-task configureCss {
-    doLast {
-        def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        def tokens = fileTree(dir: "src/docs/css/images", include: "*.*").collectEntries {
             [it.name, it.bytes.encodeBase64().toString()]
         }
 
-        def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
-            def id = it.moduleVersion.id
-            ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
-        }
-
-        ext.tokens = images + fonts
         css.inputs.property 'tokens', tokens
         css.filter ReplaceTokens, tokens: tokens
     }
 }
 
-task css(type: Sync, dependsOn: configureCss) {
+def css = tasks.register("css", Sync) {
+    dependsOn configureCss
     into "$buildDir/css"
     from "src/docs/css"
     include "*.css"
     include "*.svg"
 }
 
-ext.cssFiles = fileTree(css.destinationDir) {
+artifacts {
+    // declare that the generated css directory is an output of cssElements
+    cssElements file: css.get().destinationDir, builtBy: css
+}
+
+// TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
+// Don't publish the CSS artifacts when calling uploadArchives
+afterEvaluate {
+    def notCssElements = configurations.archives.artifacts.findAll { !(it in configurations.cssElements.artifacts) }
+    configurations.archives.artifacts.clear()
+    artifacts {
+        archives notCssElements
+    }
+}
+
+ext.cssFiles = fileTree(css.map { it.destinationDir }) {
     builtBy css
 }
 
-task samples(type: ExtractSnippetsTask) {
-    samples = samplesSrcDir
-    destDir = samplesDir
-    excludes = ['userguideOutput/**',
-                '**/readme.xml',
-                '**/build/**',
-                '**/.gradle/**']
-    nonFiltered = [ 'userguide/tutorial/antLoadfileResources/**',
-                    'native-binaries/cunit/libs/**',
-                    'native-binaries/google-test/libs/**' ]
-    snippetsDir = new File(buildDir, 'snippets')
+def imageFiles = fileTree(userguideSrcDir) {
+    include 'img/*.png'
+    include 'img/*.gif'
+    include 'img/*.jpg'
+}
+def resourceFiles = imageFiles + cssFiles
+
+def samples = tasks.register("samples", Copy) {
+    from samplesSrcDir
+    into samplesDir
+
+    exclude '**/readme.xml'
+    exclude '**/build/**'
+    exclude '**/.gradle/**'
 }
 
-task userguideStyleSheets(type: Copy) {
+tasks.register("userguideStyleSheets", Copy) {
     File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
     into new File(buildDir, 'stylesheets')
     from(stylesheetsDir) {
+        include '**/*.xml'
         include '*.xsl'
     }
     from(cssFiles)
@@ -238,49 +177,27 @@ task userguideStyleSheets(type: Copy) {
     }
 }
 
-tasks.remove(asciidoctor)
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-task userguideAsciidoc(type: CacheableAsciidoctorTask) {
-    sourceDir = userguideSrcDir
-    sources { include '*.adoc' }
-    outputDir = asciidocOutputDir
-    inputs.file { defaultImports.importsDestFile } withPropertyName 'defaultImports' withPathSensitivity PathSensitivity.NONE
-
-    // we pull the default-imports from here:
-    resources {
-        from(generatedResourcesDir)
-        include "**/*.txt"
-    }
-}
-
-task samplesDocbook(type: AssembleSamplesDocTask) {
-    source samplesSrcDir
-    include '**/readme.xml'
-    destFile = new File(docbookSrc, 'samplesList.xml')
-}
-
-task samplesDocs(type: Docbook2Xhtml) {
-    source samplesDocbook
-    destFile = new File(samples.destDir, 'readme.html')
-    stylesheetName = 'standaloneHtml.xsl'
-}
-
-task dslMetaData(type: ExtractDslMetaDataTask) {
+def dslMetaData = tasks.register("dslMetaData", ExtractDslMetaDataTask) {
     source { javadocAll.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
 
-task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
+def dslDocbook = tasks.register("dslDocbook", AssembleDslDocTask) {
+    dependsOn dslMetaData
     sources = fileTree(dir: dslSrcDir, includes: ['*.xml'])
     sourceFile = new File(dslSrcDir, 'dsl.xml')
-    classMetaDataFile = dslMetaData.destFile
+    classDocbookDir = dslSrcDir
+    classMetaDataFile = dslMetaData.get().destFile
     pluginsMetaDataFile = new File(dslSrcDir, 'plugins.xml')
     destFile = new File(docbookSrc, 'dsl.xml')
     linksFile = new File(docbookSrc, 'api-links.bin')
 }
 
-task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
-    metaDataFile = dslMetaData.destFile
+def defaultImports = tasks.register("defaultImports", GenerateDefaultImportsTask) {
+    dependsOn dslMetaData
+    metaDataFile = dslMetaData.get().destFile
     importsDestFile = new File(generatedResourcesDir, "default-imports.txt")
     mappingDestFile = new File(generatedResourcesDir, "api-mapping.txt")
     // These are part of the API, but not the DSL
@@ -299,16 +216,24 @@ task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
     excludePackage 'org.gradle.platform.base.test'
 }
 
-task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
-    sourceFile = dslDocbook.destFile
+def dslStandaloneDocbook = tasks.register("dslStandaloneDocbook", UserGuideTransformTask) {
+    dependsOn dslDocbook
+    sourceFile = dslDocbook.get().destFile
     destFile = new File(docbookSrc, 'dsl-standalone.xml')
     dsldocUrl = '.'
+    linksFile = new File(docbookSrc, 'api-links.bin')
+    javadocUrl = '../javadoc'
+    dsldocUrl = '../dsl'
+    websiteUrl = 'https://gradle.org'
 }
 
-task dslHtml(type: Docbook2Xhtml) {
+def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     group = "Documentation"
+    dependsOn userguideStyleSheets
     source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
+    classpath = configurations.userGuideTask
+    stylesheetsDir = userguideStyleSheets.destinationDir
     stylesheetName = 'dslHtml.xsl'
     resources = cssFiles + fileTree(dslSrcDir) {
         include '*.js'
@@ -316,95 +241,23 @@ task dslHtml(type: Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
-task checkSectionIds(type: UserGuideSectionVerifier) {
-    dependsOn userguideAsciidoc
-    docbookFiles = files(
-        fileTree(userguideSrcDir) { include "**/*.xml" },
-        userguideAsciidoc.outputs.files
-    )
-}
+def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask) {
+    sourceDir = userguideSrcDir
+    sources { include 'userguide_single.adoc' }
+    outputDir = userguideSinglePageOutputDir
+    backends = ['pdf', 'html5']
 
-[configureCss, samples, samplesDocbook]*.mustRunAfter(checkSectionIds)
-
-task extractSamples(type: ExtractSamplesTask) {
-    // We need default imports since it is included by userguide.xml
-    // We need samplesList.xml (generated by samplesDocbook) since it is included by userguide.xml
-    // Both files are not an input since they do not affect the generated samples.xml
-    dependsOn defaultImports, samplesDocbook, userguideAsciidoc
-    sourceFile = new File(userguideSrcDir, 'userguide.xml')
-    destFile = new File(docbookSrc, 'samples.xml')
-}
-
-// This is used in the distribution and for the online version
-task userguideDocbook(type: UserGuideTransformTask) {
-    destFile = new File(docbookSrc, 'userguide.xml')
-    dependsOn checkSectionIds
-}
-
-// This is used for the PDF, where we need absolute links to the javadoc etc.
-task pdfUserguideDocbook(type: UserGuideTransformTask) {
-    destFile = new File(docbookSrc, 'remoteUserguide.xml')
-}
-
-configure([userguideDocbook, pdfUserguideDocbook]) {
-    // The master userguide.xml pulls these files in via xi:include, making them input
-    includes = files(
-        samplesDocbook,
-        defaultImports.importsDestFile,
-        fileTree(dir: userguideSrcDir, includes: ['*.xml']),
-        userguideAsciidoc.outputs.files
-    )
-
-    dependsOn samples, samplesDocbook, defaultImports
-
-    sourceFile new File(userguideSrcDir, 'userguide.xml')
-}
-
-def imageFiles = fileTree(userguideSrcDir) {
-    include 'img/*.png'
-    include 'img/*.gif'
-    include 'img/*.jpg'
-}
-def resourceFiles = imageFiles + cssFiles
-
-task userguideHtml(type: Docbook2Xhtml) {
-    group = "Documentation"
-    source userguideDocbook
-    destDir = userguideDir
-    stylesheetName = 'userGuideHtml.xsl'
-    resources = resourceFiles
-    ext.entryPoint = "$destDir/userguide.html"
-}
-
-task userguideSingleHtml(type: Docbook2Xhtml) {
-    group = "Documentation"
-    source userguideDocbook
-    destFile = new File(userguideDir, 'userguide_single.html')
-    stylesheetName = 'userGuideSingleHtml.xsl'
-    resources = resourceFiles
-    ext.entryPoint = destFile
-}
-
-task pdfUserguideXhtml(type: Docbook2Xhtml) {
-    source pdfUserguideDocbook
-    destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
-    stylesheetName = 'userGuidePdf.xsl'
-    resources = resourceFiles
-    ext.entryPoint = destFile
-}
-
-task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
-    sourceFile = pdfUserguideXhtml.destFile
-    destFile = new File(userguideDir, 'userguide.pdf')
-    classpath = configurations.userGuideTask
-    resources = resourceFiles
+    attributes \
+        toc                 : 'macro',
+        toclevels           : 2,
+        'source-highlighter': 'coderay'
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
-def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
-def mavenApiUrl = "http://maven.apache.org/ref/${versions.maven}/maven-model/apidocs"
+def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
+def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
-task javadocAll(type: Javadoc) {
+def javadocAll = tasks.register("javadocAll", Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
     inputs.file stylesheetFile withPropertyName "stylesheetFile" withPathSensitivity PathSensitivity.NAME_ONLY
 
@@ -412,17 +265,17 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (javaVersion.isJava8Compatible()) {
+    if (BuildEnvironment.javaVersion.isJava8Compatible()) {
         options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
-    source publicGroovyProjects.collect {project -> project.sourceSets.main.allJava }
+    source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
-    publicApiIncludes.each {
+    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    PublicApi.includes.each {
         include it
     }
-    publicApiExcludes.each {
+    PublicApi.excludes.each {
         exclude it
     }
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
@@ -430,40 +283,126 @@ task javadocAll(type: Javadoc) {
     ext.entryPoint = "$destinationDir/index.html"
 }
 
-task checkstyleApi(type: Checkstyle) {
-    source javadocAll.source
+tasks.register("checkstyleApi", Checkstyle) {
+    source javadocAll.get().source
     configFile = new File(checkstyle.configDir, "checkstyle-api.xml")
     classpath = files()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-task distDocs(type: Docbook2Xhtml) {
-    dependsOn userguideAsciidoc
-    source new File(asciidocOutputDir, 'gettingStarted.xml')
-    destFile = new File(distDocsDir, 'getting-started.html')
-    stylesheetName = 'standaloneHtml.xsl'
+def distDocs = tasks.register("distDocs", AsciidoctorTask) {
+    sourceDir = userguideSrcDir
+    outputDir = distDocsDir
+    sources { include 'getting-started.adoc' }
+    backends = ['html5']
 }
 
-task userguide {
-    dependsOn userguideHtml, userguideSingleHtml, userguidePdf
-    description = 'Generates the userguide'
+asciidoctorj {
+    noDefaultRepositories = true
+    version = '1.5.7'
+}
+
+tasks.withType(AsciidoctorTask).configureEach {
+    dependsOn css, samples, defaultImports
+
+    separateOutputDirs = false
+    options doctype: 'book'
+
+    inputs.file "$srcDocsDir/css/manual.css"
+    inputs.dir file("src/main/resources")
+    inputs.dir samplesSrcDir
+
+    attributes stylesdir           : '../css/',
+        stylesheet          : 'manual.css',
+        imagesdir           : 'img',
+        nofooter            : true,
+        sectanchors         : true,
+        sectlinks           : true,
+        linkattrs           : true,
+        reproducible        : '',
+        lang                : 'en-US',
+        encoding            : 'utf-8',
+        idprefix            : '',
+        website             : 'https://gradle.org',
+        javaApi             : 'https://docs.oracle.com/javase/7/docs/api',
+        antManual           : 'https://ant.apache.org/manual',
+        docsUrl             : 'https://docs.gradle.org',
+        guidesUrl           : 'https://guides.gradle.org',
+        gradleVersion       : version,
+        groovyDslPath       : "../dsl",
+        javadocPath         : "../javadoc",
+        samplesPath         : "../../samples",
+        'samples-dir'       : "$projectDir/src/samples"
+}
+
+def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
+    sourceDir = userguideSrcDir
+
+    sources {
+        include '*.adoc'
+        exclude 'javaProject*Layout.adoc'
+        exclude 'userguide_single.adoc'
+    }
+    outputDir = userguideIntermediateOutputDir
+
+    backends = ['html5']
+
+    attributes \
+        icons               : null,
+        'note-caption'      : '&#10024;',
+        'tip-caption'       : '&#128161;',
+        'important-caption' : '&#10071;️',
+        'caution-caption'   : '&#9888;',
+        'warning-caption'   : '&#9888;',
+        'source-highlighter': 'prettify',
+        toc                 : 'auto',
+        toclevels           : 1,
+        'toc-title'         : 'Contents'
+}
+
+// Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
+def userguide = tasks.register("userguide", Copy) {
+    dependsOn userguideMultiPage, userguideSinglePage
+    description = 'Generates the userguide HTML and PDF'
     group = 'documentation'
+
+    from resourceFiles
+    from userguideIntermediateOutputDir
+    from userguideSinglePageOutputDir
+
+    into userguideDir
+    rename 'userguide_single.pdf', 'userguide.pdf'
 }
 
-task editReleaseNotes() {
-    group = "release notes"
-    doLast {
-        Class.forName("java.awt.Desktop").newInstance().edit(file("src/docs/release/notes.md"))
+tasks.register("serveDocs", Exec) {
+    description = 'Runs webserver to serve generate userguide docs'
+    group = 'documentation'
+
+    def webserverPort = 8000
+    workingDir docsDir
+    executable "python"
+    args "-m", "SimpleHTTPServer", webserverPort
+
+    dependsOn userguide
+
+    doFirst {
+        logger.lifecycle("ctrl+C to restart, serving Gradle docs at http://localhost:${webserverPort}")
     }
 }
 
-task releaseNotesMarkdown(type: PegDown) {
+tasks.register("editReleaseNotes") {
     group = "release notes"
-    markdownFile = file("src/docs/release/notes.md")
-    destination = new File(buildDir, "release-notes-raw/release-notes.html")
+    doLast {
+        Class.forName("java.awt.Desktop").getDesktop().edit(file("src/docs/release/notes.md"))
+    }
 }
 
-task releaseNotes(type: Copy) {
+def releaseNotesMarkdown = tasks.register("releaseNotesMarkdown", PegDown, file("src/docs/release/notes.md"), new File(buildDir, "release-notes-raw/release-notes.html"))
+releaseNotesMarkdown.configure {
+    group = "release notes"
+}
+
+def releaseNotes = tasks.register("releaseNotes", Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
     into "$docsDir"
@@ -482,32 +421,36 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
             tasks.create(taskName) {
                 dependsOn task
                 doLast {
-                    Class.forName("java.awt.Desktop").newInstance().browse(file(task.entryPoint).toURI())
+                    Class.forName("java.awt.Desktop").getDesktop().browse(file(task.entryPoint).toURI())
                 }
             }
         }
     }
 }
 
-sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
-
-['test', 'java9Test'].each {
-    tasks[it].configure {
-        dependsOn releaseNotes
-        inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
-        inputs.dir releaseNotes.destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
-        inputs.property "systemProperties", [:]
-        systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
-        systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
-    }
+def copyReleaseFeatures = tasks.register("copyReleaseFeatures", Copy) {
+    from releaseFeaturesFile
+    into generatedResourcesDir
 }
 
-task docs {
-    dependsOn javadocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
+sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
+
+tasks.named("test").configure {
+    dependsOn releaseNotes
+    inputs.files releaseNotesMarkdown.get().markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE
+    inputs.dir releaseNotes.get().destinationDir withPropertyName "releaseNotesRendered" withPathSensitivity PathSensitivity.NONE
+    inputs.property "systemProperties", [:]
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.get().markdownFile
+    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.get().destinationDir, releaseNotes.get().fileName)
+    systemProperty "org.gradle.docs.releasefeatures", releaseFeaturesFile
+}
+
+tasks.register("docs") {
+    dependsOn javadocAll, userguide, distDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
     group = 'documentation'
 }
 
-task docsZip(type: Zip) {
+tasks.register("docsZip", Zip) {
     from project.outputs.docs
 }

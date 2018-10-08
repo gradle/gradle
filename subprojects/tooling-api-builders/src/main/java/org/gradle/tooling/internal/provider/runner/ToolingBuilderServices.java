@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.progress.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
@@ -34,7 +34,8 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
                     Arrays.asList(
                         new BuildModelActionRunner(),
                         new TestExecutionRequestActionRunner(buildOperationListenerManager),
-                        new ClientProvidedBuildActionRunner()));
+                        new ClientProvidedBuildActionRunner(),
+                        new ClientProvidedPhasedActionRunner()));
             }
 
             ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration() {

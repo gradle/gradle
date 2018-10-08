@@ -23,14 +23,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A BuildOperationExecutor for tests.
@@ -38,18 +35,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
-    public final BuildOperationLog log = new BuildOperationLog();
+    public final Log log = new Log();
 
     @Override
-    public BuildOperationState getCurrentOperation() {
-        return new BuildOperationState() {
+    public BuildOperationRef getCurrentOperation() {
+        return new BuildOperationRef() {
             @Override
-            public Object getId() {
+            public OperationIdentifier getId() {
                 return new OperationIdentifier(1L);
             }
 
             @Override
-            public Object getParentId() {
+            public OperationIdentifier getParentId() {
                 return null;
             }
         };
@@ -104,13 +101,13 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     public static class TestBuildOperationQueue<O extends RunnableBuildOperation> implements BuildOperationQueue<O> {
 
-        public final BuildOperationLog log;
+        public final Log log;
 
         public TestBuildOperationQueue() {
-            this(new BuildOperationLog());
+            this(new Log());
         }
 
-        private TestBuildOperationQueue(BuildOperationLog log) {
+        private TestBuildOperationQueue(Log log) {
             this.log = log;
         }
 
@@ -135,8 +132,8 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         }
     }
 
-    public static class BuildOperationLog {
-        private final List<Record> records = new CopyOnWriteArrayList<Record>();
+    public static class Log {
+        public final List<Record> records = Collections.synchronizedList(new ArrayList<Record>());
 
         public List<BuildOperationDescriptor> getDescriptors() {
             return Lists.transform(new ArrayList<Record>(records), new Function<Record, BuildOperationDescriptor>() {
@@ -190,7 +187,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             return mostRecent(type).failure;
         }
 
-        private static class Record {
+        public static class Record {
 
             public final BuildOperationDescriptor descriptor;
 
@@ -214,12 +211,18 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             try {
                 buildOperation.run(context);
             } catch (Throwable failure) {
+                if (record.result == null) {
+                    record.result = context.result;
+                }
                 if (record.failure == null) {
                     record.failure = failure;
                 }
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
             record.result = context.result;
+            if (context.failure != null) {
+                record.failure = context.failure;
+            }
         }
 
         private <T> T call(CallableBuildOperation<T> buildOperation) {
@@ -238,5 +241,9 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             record.result = context.result;
             return t;
         }
+    }
+
+    public void reset() {
+        log.records.clear();
     }
 }

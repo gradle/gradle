@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven;
 
+import groovy.lang.Closure;
 import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.ModuleArtifact;
@@ -95,9 +96,22 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public T dependencyConstraint(Module module) {
+        backingModule.dependencyConstraint(module);
+        return t();
+    }
+
+    @Override
+    public T dependencyConstraint(Map<String, ?> attributes, Module module) {
+        backingModule.dependencyConstraint(attributes, module);
+        return t();
+    }
+
+    @Override
     public TestFile getArtifactFile() {
         return backingModule.getArtifactFile();
     }
+
     @Override
     public TestFile getArtifactFile(Map options) {
         return backingModule.getArtifactFile(options);
@@ -146,6 +160,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public ModuleArtifact getRootMetaData() {
         return backingModule.getRootMetaData();
+    }
+
+    public ModuleArtifact getSnapshotMetaData() {
+        return backingModule.getSnapshotMetaData();
     }
 
     @Override
@@ -236,5 +254,20 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public boolean getUniqueSnapshots() {
         return backingModule.getUniqueSnapshots();
+    }
+
+    @Override
+    public String getUniqueSnapshotVersion() {
+        return backingModule.getUniqueSnapshotVersion();
+    }
+
+    @Override
+    public void withVariant(String name, Closure<?> action) {
+        backingModule.withVariant(name, action);
+    }
+
+    @Override
+    public Map<String, String> getAttributes() {
+        return backingModule.getAttributes();
     }
 }

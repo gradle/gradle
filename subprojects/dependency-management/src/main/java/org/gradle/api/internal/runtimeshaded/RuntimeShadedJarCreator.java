@@ -26,6 +26,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -69,7 +70,7 @@ import java.util.zip.ZipOutputStream;
 
 class RuntimeShadedJarCreator {
 
-    public static final int ADDITIONAL_PROGRESS_STEPS = 2;
+    private static final int ADDITIONAL_PROGRESS_STEPS = 2;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
 
@@ -88,10 +89,9 @@ class RuntimeShadedJarCreator {
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
-        LOGGER.info("Generating JAR file: " + outputJar.getAbsolutePath());
+        LOGGER.info("Generating " + outputJar.getAbsolutePath());
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
-        progressLogger.setDescription("Gradle JARs generation");
-        progressLogger.setLoggingHeader("Generating JAR file '" + outputJar.getName() + "'");
+        progressLogger.setDescription("Generating " + outputJar.getName());
         progressLogger.started();
 
         try {
@@ -412,7 +412,7 @@ class RuntimeShadedJarCreator {
 
         @Override
         public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
-            return new MethodVisitor(Opcodes.ASM6, super.visitMethod(access, name, desc, signature, exceptions)) {
+            return new MethodVisitor(AsmConstants.ASM_LEVEL, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {

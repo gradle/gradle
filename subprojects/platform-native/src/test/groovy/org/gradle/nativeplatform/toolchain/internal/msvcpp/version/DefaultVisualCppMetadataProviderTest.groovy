@@ -36,7 +36,7 @@ class DefaultVisualCppMetadataProviderTest extends Specification {
         1 * windowsRegistry.getStringValue(_, _, "14.0") >> visualCppDir
 
         when:
-        VisualCppMetadata metadata = metadataProvider.getVisualCppFromRegistry("14.0")
+        VisualCppInstallCandidate metadata = metadataProvider.getVisualCppFromRegistry("14.0")
 
         then:
         metadata.version == VersionNumber.parse("14.0")
@@ -58,7 +58,7 @@ class DefaultVisualCppMetadataProviderTest extends Specification {
         installDir.createFile("VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt").text = "1.2.3.4"
 
         when:
-        VisualCppMetadata metadata = metadataProvider.getVisualCppFromMetadataFile(installDir)
+        VisualCppInstallCandidate metadata = metadataProvider.getVisualCppFromMetadataFile(installDir)
 
         then:
         metadata.version == VersionNumber.parse("1.2.3.4")

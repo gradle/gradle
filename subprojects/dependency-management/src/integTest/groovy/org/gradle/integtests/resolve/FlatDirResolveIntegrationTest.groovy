@@ -44,6 +44,36 @@ task check {
         expect:
         succeeds "check"
     }
+    
+    def "can resolve dynamic versions from a flat dir repository"() {
+        given:
+        file("repo/a.jar").createFile()
+        file("repo/a-1.4.jar").createFile()
+        file("repo/a-1.5.jar").createFile()
+        file("repo/a-2.0.jar").createFile()
+        file("repo/b-1.4-classifier.jar").createFile()
+        file("repo/b-1.5-classifier.jar").createFile()
+        file("repo/b-1.6.jar").createFile()
+
+        and:
+        buildFile << """
+repositories { flatDir { dir 'repo' } }
+configurations { compile }
+dependencies {
+    compile 'group:a:1.+'
+    compile 'group:b:1.+:classifier'
+}
+
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['a-1.5.jar', 'b-1.5-classifier.jar']
+    }
+}
+"""
+
+        expect:
+        succeeds "check"
+    }
 
     def "can use a classifier to refer to artifacts in flat dir repository"() {
         given:

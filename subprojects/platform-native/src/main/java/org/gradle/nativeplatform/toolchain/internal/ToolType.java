@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.util.GUtil;
 
+// Should use stronger modelling for this and make the set of tools open, rather than hard-coding here
 public enum ToolType {
     CPP_COMPILER("C++ compiler"),
     C_COMPILER("C compiler"),
@@ -27,7 +28,9 @@ public enum ToolType {
     ASSEMBLER("Assembler"),
     LINKER("Linker"),
     STATIC_LIB_ARCHIVER("Static library archiver"),
-    SWIFT_COMPILER("Swift compiler");
+    SWIFT_COMPILER("Swift compiler"),
+    SYMBOL_EXTRACTOR("Symbol extractor"),
+    STRIPPER("Stripper");
 
     private final String toolName;
 

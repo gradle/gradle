@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.test.googletest
 
-import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
@@ -91,6 +90,13 @@ model {
             if (targetPlatform.operatingSystem.linux) {
                 cppCompiler.args '-pthread'
                 linker.args '-pthread'
+           
+                if (toolChain instanceof Gcc || toolChain instanceof Clang) {
+                    // Use C++03 with the old ABIs, as this is what the googletest binaries were built with
+                    // Later, Gradle's dependency management will understand ABI
+                    cppCompiler.args '-std=c++03', '-D_GLIBCXX_USE_CXX11_ABI=0'
+                    linker.args '-std=c++03'
+                }
             }
         }
     }
@@ -328,9 +334,6 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    // RunTestExecutable is not incremental yet
-    @Issue("GRADLE-3528")
-    @NotYetImplemented
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -406,11 +409,11 @@ tasks.withType(RunTestExecutable) {
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 
         when:
-        succeeds "helloTestVisualStudio"
+        succeeds "visualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("helloTestExe.sln"))
-        mainSolution.assertHasProjects("helloTestExe")
+        final mainSolution = new SolutionFile(file("test.sln"))
+        mainSolution.assertHasProjects("helloTestExe", "helloLib", "helloDll")
 
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))

@@ -26,7 +26,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         project_a_depends_on_project_b()
 
         when:
-        withBuildCache().succeeds 'assemble'
+        withBuildCache().run 'assemble'
 
         then:
         executedAndNotSkipped ':b:jar'
@@ -35,7 +35,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         when:
         make_abi_compatible_change_on_b()
 
-        withBuildCache().succeeds 'clean', 'assemble'
+        withBuildCache().run 'clean', 'assemble'
 
         then:
         executedAndNotSkipped ':b:jar'
@@ -47,7 +47,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         project_a_depends_on_project_b()
 
         when:
-        withBuildCache().succeeds 'assemble'
+        withBuildCache().run 'assemble'
 
         then:
         executedAndNotSkipped ':b:jar'
@@ -56,7 +56,7 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         when:
         make_abi_breaking_change_on_b()
 
-        withBuildCache().succeeds 'clean', 'assemble'
+        withBuildCache().run 'clean', 'assemble'
 
         then:
         executedAndNotSkipped ':b:jar', ':a:compileJava'
@@ -87,7 +87,6 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         buildFile << '''
             allprojects {
                 apply plugin: 'java'
-                compileJava.options.fork = true // Use forking to work around javac's jar cache
             }
         '''
         file('a/build.gradle') << '''

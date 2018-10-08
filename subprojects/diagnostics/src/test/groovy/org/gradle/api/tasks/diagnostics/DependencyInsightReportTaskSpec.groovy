@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
-    def task
+    DependencyInsightReportTask task
 
     def setup() {
         task = TestUtil.createTask(DependencyInsightReportTask, project)
@@ -74,5 +74,18 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         then:
         task.dependencySpec != null
         task.configuration.name == 'foo'
+    }
+
+    def "can limit the paths to a dependency"() {
+        when:
+        project.configurations.create("foo")
+        task.setConfiguration 'foo'
+        task.setDependencySpec 'bar'
+        task.setShowSinglePathToDependency true
+
+        then:
+        task.dependencySpec != null
+        task.configuration.name == 'foo'
+        task.showSinglePathToDependency == true
     }
 }

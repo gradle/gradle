@@ -16,13 +16,17 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 
-class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestProgressLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule final TestResources resources = new TestResources(temporaryFolder)
     @Rule ProgressLoggingFixture events = new ProgressLoggingFixture(executer, temporaryFolder)
 

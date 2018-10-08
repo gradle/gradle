@@ -23,15 +23,19 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
+
 /**
  * Runs a test separately for each installed tool chain.
  */
 @RunWith(SingleToolChainTestRunner.class)
-abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain
     File initScript
+
+    AvailableToolChains.InstalledToolChain getToolchainUnderTest() { toolChain }
 
     def setup() {
         initScript = file("init.gradle") << """
@@ -48,10 +52,6 @@ allprojects { p ->
         executer.beforeExecute({
             usingInitScript(initScript)
         })
-    }
-
-    NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
-        return new NativeInstallationFixture(file(installDir), os)
     }
 
     String executableName(Object path) {
@@ -76,15 +76,27 @@ allprojects { p ->
     }
 
     String withLinkLibrarySuffix(Object path) {
-        return path + OperatingSystem.current().linkLibrarySuffix
+        return path + (toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix : OperatingSystem.current().sharedLibrarySuffix)
     }
 
     String linkLibraryName(Object path) {
-        return OperatingSystem.current().getLinkLibraryName(path.toString())
+        return toolChain.visualCpp ? OperatingSystem.current().getLinkLibraryName(path.toString()) : OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
     String getLinkLibrarySuffix() {
-        return OperatingSystem.current().linkLibrarySuffix.substring(1)
+        return toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix.substring(1) : OperatingSystem.current().sharedLibrarySuffix.substring(1)
+    }
+
+    String staticLibraryName(Object path) {
+        return OperatingSystem.current().getStaticLibraryName(path.toString())
+    }
+
+    String withStaticLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().staticLibrarySuffix
+    }
+
+    String getStaticLibraryExtension() {
+        return OperatingSystem.current().staticLibrarySuffix.substring(1)
     }
 
     String withSharedLibrarySuffix(Object path) {
@@ -159,5 +171,9 @@ allprojects { p ->
             def nextSecond = now % 1000
             Thread.sleep(1200 - nextSecond)
         }
+    }
+
+    protected String getCurrentOsFamilyName() {
+        DefaultNativePlatform.currentOperatingSystem.toFamilyName()
     }
 }

@@ -16,20 +16,23 @@
 
 package org.gradle.caching.local.internal;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
+import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,20 +46,24 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private static final String BUILD_CACHE_VERSION = "1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
     private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final CacheRepository cacheRepository;
     private final CacheScopeMapping cacheScopeMapping;
     private final PathToFileResolver resolver;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
+    private final CleanupActionFactory cleanupActionFactory;
+    private final FileAccessTimeJournal fileAccessTimeJournal;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, BuildOperationExecutor buildOperationExecutor, DirectoryBuildCacheFileStoreFactory fileStoreFactory) {
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, CacheScopeMapping cacheScopeMapping, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+                                             CleanupActionFactory cleanupActionFactory, FileAccessTimeJournal fileAccessTimeJournal) {
         this.cacheRepository = cacheRepository;
         this.cacheScopeMapping = cacheScopeMapping;
         this.resolver = resolver;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.fileStoreFactory = fileStoreFactory;
+        this.cleanupActionFactory = cleanupActionFactory;
+        this.fileAccessTimeJournal = fileAccessTimeJournal;
     }
 
     @Override
@@ -70,23 +77,23 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        long targetSizeInMB = configuration.getTargetSizeInMB();
-        String humanReadableCacheSize = FileUtils.byteCountToDisplaySize(targetSizeInMB *1024*1024);
+        int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
-            config("targetSize", humanReadableCacheSize);
+            config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetSizeInMB, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX))
+            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target);
+        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
-        return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, FAILED_READ_SUFFIX);
+        return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
     private static void checkDirectory(File directory) {

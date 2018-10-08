@@ -1,18 +1,29 @@
-sourceCompatibility = 1.6
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(":platformBase")
     compile project(":core")
     compile project(":diagnostics")
 
+    implementation libraries.asm.coordinates
+    implementation libraries.commons_io.coordinates
+
     // To pick up JavaToolChainInternal implementation
     // TODO - get rid of cycle
     integTestRuntime project(':languageJava')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
 
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':diagnostics')
+    from(':platformBase')
+}

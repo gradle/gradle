@@ -16,11 +16,17 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
-import org.gradle.vcs.internal.DirectoryRepositorySpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.vcs.fixtures.GitFileRepository
+import org.gradle.vcs.git.GitVersionControlSpec
+import org.junit.Rule
 
-class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CppAppWithLibraries()
+    @Rule
+    GitFileRepository repo = new GitFileRepository(testDirectory)
 
     def "can combine C++ builds in a composite"() {
         given:
@@ -52,16 +58,15 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
     def "from VCS"() {
         given:
         settingsFile << """
-            import ${DirectoryRepositorySpec.canonicalName}
-
             include 'app'
 
             sourceControl {
                 vcsMappings {
-                    addRule("org.gradle.cpp VCS rule") { details ->
+                    all { details ->
                         if (details.requested.group == "org.gradle.cpp") {
-                            from vcs(DirectoryRepositorySpec) {
-                                sourceDir = file(details.requested.module)
+                            from(${GitVersionControlSpec.name}) {
+                                url = uri("${repo.url}")
+                                rootDir = details.requested.module
                             }
                         }
                     }
@@ -70,8 +75,9 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
         """
 
         writeApp()
-        writeHelloLibrary()
-        writeLogLibrary()
+        writeHelloLibrary(repo.workTree)
+        writeLogLibrary(repo.workTree)
+        repo.commit('first')
 
         when:
         succeeds ":app:installDebug"
@@ -87,7 +93,11 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
     }
 
     private void assertTasksExecutedFor(String buildType) {
-        assert result.assertTasksExecuted(":app:depend${buildType}Cpp", ":hello:depend${buildType}Cpp", ":log:depend${buildType}Cpp", ":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}")
+        def tasks = [":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}"]
+        if (buildType == "Release" && !toolChain.visualCpp) {
+            tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
+        }
+        assert result.assertTasksExecuted(tasks)
     }
 
     private void assertAppHasOutputFor(String buildType) {
@@ -97,7 +107,7 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
     private writeApp() {
         app.main.writeToProject(file("app"))
         file("app/build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             group = 'org.gradle.cpp'
             version = '1.0'
 
@@ -107,8 +117,8 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
         """
     }
 
-    private writeHelloLibrary() {
-        def libraryPath = file("hello")
+    private writeHelloLibrary(TestFile dir = testDirectory) {
+        def libraryPath = dir.file("hello")
         app.greeterLib.writeToProject(libraryPath)
         libraryPath.file("build.gradle") << """
             apply plugin: 'cpp-library'
@@ -119,17 +129,15 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
                 api 'org.gradle.cpp:log:latest.integration'
             }
         """
-        libraryPath.file("settings.gradle").touch()
     }
 
-    private writeLogLibrary() {
-        def logPath = file("log")
+    private writeLogLibrary(TestFile dir = testDirectory) {
+        def logPath = dir.file("log")
         app.loggerLib.writeToProject(logPath)
         logPath.file("build.gradle") << """
             apply plugin: 'cpp-library'
             group = 'org.gradle.cpp'
             version = '1.0'
         """
-        logPath.file("settings.gradle").touch()
     }
 }

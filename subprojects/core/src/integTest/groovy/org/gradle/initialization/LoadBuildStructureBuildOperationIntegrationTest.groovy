@@ -135,13 +135,13 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
 
 
         then:
-        def rootBuildOperation = operations()[1]
+        def rootBuildOperation = operations()[0]
         rootBuildOperation.result.buildPath == ":"
         rootBuildOperation.result.rootProject.path == ":"
         verifyProject(rootBuildOperation.result.rootProject, 'root', ':', [':a'], testDirectory, 'root.gradle')
         verifyProject(project(":a", rootBuildOperation), 'a')
 
-        def nestedBuildOperation = operations()[0]
+        def nestedBuildOperation = operations()[1]
         nestedBuildOperation.result.buildPath == ":nested"
         nestedBuildOperation.result.rootProject.path == ":"
         verifyProject(nestedBuildOperation.result.rootProject, 'nested', ':nested', [':b'], testDirectory.file('nested'))

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.slf4j.Logger;
@@ -44,6 +45,16 @@ public class NonCancellableConsumerConnectionAdapter implements ConsumerConnecti
         Runnable callback = handleCancellationPreOperation(operationParameters.getCancellationToken());
         try {
             return delegate.run(action, operationParameters);
+        } finally {
+            handleCancellationPostOperation(operationParameters.getCancellationToken(), callback);
+        }
+    }
+
+    @Override
+    public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
+        Runnable callback = handleCancellationPreOperation(operationParameters.getCancellationToken());
+        try {
+            delegate.run(phasedBuildAction, operationParameters);
         } finally {
             handleCancellationPostOperation(operationParameters.getCancellationToken(), callback);
         }

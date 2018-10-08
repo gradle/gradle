@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
@@ -38,21 +39,21 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         return artifact.getExtension() != null ? artifact.getExtension() : artifact.getType();
     }
 
-    protected List<Exclude> convertExcludeRules(final String configuration, Set<ExcludeRule> excludeRules) {
-        return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, new Transformer<Exclude, ExcludeRule>() {
+    protected List<ExcludeMetadata> convertExcludeRules(final String configuration, Set<ExcludeRule> excludeRules) {
+        return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, new Transformer<ExcludeMetadata, ExcludeRule>() {
             @Override
-            public Exclude transform(ExcludeRule excludeRule) {
-                return excludeRuleConverter.convertExcludeRule(configuration, excludeRule);
+            public ExcludeMetadata transform(ExcludeRule excludeRule) {
+                return excludeRuleConverter.convertExcludeRule(excludeRule);
             }
         });
     }
 
-    protected Set<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
-        return CollectionUtils.collect(dependencyArtifacts, new Transformer<IvyArtifactName, DependencyArtifact>() {
-            @Override
-            public IvyArtifactName transform(DependencyArtifact dependencyArtifact) {
-                return new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
-            }
-        });
+    protected ImmutableList<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
+        ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
+        for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
+            DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
+            names.add(name);
+        }
+        return names.build();
     }
 }

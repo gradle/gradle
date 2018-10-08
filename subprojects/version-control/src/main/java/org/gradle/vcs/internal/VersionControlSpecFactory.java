@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,12 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.git.GitVersionControlSpec;
-import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
 
-import javax.annotation.Nullable;
+import java.net.URI;
 
-public class VersionControlSpecFactory {
-    private final Instantiator instantiator;
+public interface VersionControlSpecFactory {
+    <T extends VersionControlSpec> T create(Class<T> specType);
 
-    public VersionControlSpecFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
-    @Nullable
-    public <T extends VersionControlSpec> T create(Class<T> specType) {
-        if (GitVersionControlSpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class));
-        } else if (DirectoryRepositorySpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class));
-        }
-        return null;
-    }
+    <T extends VersionControlSpec> DefaultVersionControlRepository create(Class<T> specType, URI uri);
 }

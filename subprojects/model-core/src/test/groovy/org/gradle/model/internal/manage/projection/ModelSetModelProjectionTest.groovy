@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.projection
 
-import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.ReadOnlyModelViewException
@@ -26,6 +25,7 @@ import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.type.ModelType
+import org.gradle.util.ClosureBackedAction
 import spock.lang.Unroll
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType

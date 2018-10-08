@@ -55,7 +55,7 @@ public class Output implements ClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map<String, Object> attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
         attributes.put("kind", getKind());
         attributes.put("path", path);
         node.appendNode("classpathentry", attributes);

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.hamcrest.Matchers.startsWith
 
 class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
@@ -47,7 +48,7 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassStartsWith("Gradle Test Executor").assertTestFailed("execution failure",
+        result.testClassStartsWith("Gradle Test Executor").assertTestFailed(EXECUTION_FAILURE,
                 startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
     }
 }

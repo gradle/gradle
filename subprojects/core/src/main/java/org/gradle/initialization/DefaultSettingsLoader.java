@@ -86,7 +86,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 return;
             }
         }
-        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated and will be removed in Gradle 5.0. You should create a empty settings file in " + projectDir.getAbsolutePath());
+        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated.", "You should create a empty settings file in " + projectDir.getAbsolutePath() + ".");
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
@@ -104,9 +104,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
         // We found the desired settings file, now build the associated buildSrc before loading settings.  This allows
         // the settings script to reference classes in the buildSrc.
-        StartParameter buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(), DefaultSettings.DEFAULT_BUILD_SRC_DIR));
-        ClassLoaderScope buildSourceClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
+        ClassLoaderScope buildSourceClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(settingsLocation.getSettingsDir(), startParameter);
 
         return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoaderScope, startParameter);
     }

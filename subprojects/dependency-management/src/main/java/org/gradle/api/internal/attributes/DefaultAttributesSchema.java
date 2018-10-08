@@ -23,14 +23,20 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
+import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
+import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,12 +45,18 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
-    private final DefaultAttributeMatcher matcher;
+    private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
 
-    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
+    private final DefaultAttributeMatcher matcher;
+    private final IsolatableFactory isolatableFactory;
+    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
+
+    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
+        this.isolatableFactory = isolatableFactory;
+        PlatformSupport.configureSchema(this);
     }
 
     @Override
@@ -65,8 +77,9 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory));
+            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
             strategies.put(attribute, strategy);
+            attributesByName.put(attribute.getName(), attribute);
         }
         if (configureAction != null) {
             configureAction.execute(strategy);
@@ -132,9 +145,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
-            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
-            effectiveSchema.matchValue(attribute, result);
-            return result.isCompatible();
+            return effectiveSchema.matchValue(attribute, requested, candidate);
         }
 
         @Override
@@ -145,6 +156,10 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         @Override
         public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
+        }
+
+        public List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+            return componentAttributeMatcher.describeMatching(effectiveSchema, candidate, requested);
         }
     }
 
@@ -157,55 +172,148 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public boolean hasAttribute(Attribute<?> attribute) {
-            return getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
+            return DefaultAttributesSchema.this.getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
         }
 
         @Override
-        public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        public Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
+            DefaultMultipleCandidateResult<Object> result = null;
+
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
 
             rules = producerSchema.disambiguationRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                if (result == null) {
+                    result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                }
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
 
-            Object requested = result.getConsumerValue();
-            if (requested != null && result.getCandidateValues().contains(requested)) {
-                result.closestMatch(requested);
-                return;
+            if (requested != null && candidates.contains(requested)) {
+                return Collections.singleton(requested);
             }
 
-            // Select all candidates
-            for (Object candidate : result.getCandidateValues()) {
-                result.closestMatch(candidate);
-            }
+            return candidates;
         }
 
         @Override
-        public void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
-            if (result.getConsumerValue().equals(result.getProducerValue())) {
-                result.compatible();
-                return;
+        public boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
+            if (requested.equals(candidate)) {
+                return true;
             }
+
+            CompatibilityCheckResult<Object> result = null;
 
             CompatibilityRule<Object> rules = compatibilityRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
-            }
-            rules = producerSchema.compatibilityRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
             }
 
-            // If no result, the values are not compatible
-            result.incompatible();
+            rules = producerSchema.compatibilityRules(attribute);
+            if (rules.doesSomething()) {
+                if (result == null) {
+                    result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                }
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public Attribute<?> getAttribute(String name) {
+            Attribute<?> attribute = attributesByName.get(name);
+            if (attribute != null) {
+                return attribute;
+            }
+            if (producerSchema instanceof DefaultAttributesSchema) {
+                return ((DefaultAttributesSchema) producerSchema).attributesByName.get(name);
+            }
+            for (Attribute<?> producerAttribute : producerSchema.getAttributes()) {
+                if (producerAttribute.getName().equals(name)) {
+                    return producerAttribute;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
+            // It's almost always the same attribute sets which are compared, so in order to avoid a lot of memory allocation
+            // during computation of the intersection, we cache the result here.
+            ExtraAttributesEntry entry = new ExtraAttributesEntry(candidateAttributeSets, requested);
+            Attribute<?>[] attributes = extraAttributesCache.get(entry);
+            if (attributes == null) {
+                attributes = AttributeSelectionUtils.collectExtraAttributes(this, candidateAttributeSets, requested);
+                extraAttributesCache.put(entry, attributes);
+            }
+            return attributes;
+        }
+
+    }
+
+    /**
+     * A cache entry key, leveraging _identity_ as the key, because we do interning.
+     * This is a performance optimization.
+     */
+    private static class ExtraAttributesEntry {
+        private final ImmutableAttributes[] candidateAttributeSets;
+        private final ImmutableAttributes requestedAttributes;
+        private final int hashCode;
+
+        private ExtraAttributesEntry(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requestedAttributes) {
+            this.candidateAttributeSets = candidateAttributeSets;
+            this.requestedAttributes = requestedAttributes;
+            int hash = Arrays.hashCode(candidateAttributeSets);
+            hash = 31 * hash + requestedAttributes.hashCode();
+            this.hashCode = hash;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ExtraAttributesEntry that = (ExtraAttributesEntry) o;
+            if (requestedAttributes != that.requestedAttributes) {
+                return false;
+            }
+            if (candidateAttributeSets.length != that.candidateAttributeSets.length) {
+                return false;
+            }
+            for (int i = 0; i < candidateAttributeSets.length; i++) {
+                if (candidateAttributeSets[i] != that.candidateAttributeSets[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
         }
     }
+
 }

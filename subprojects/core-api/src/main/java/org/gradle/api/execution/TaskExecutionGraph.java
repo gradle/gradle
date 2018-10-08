@@ -16,11 +16,12 @@
 package org.gradle.api.execution;
 
 import groovy.lang.Closure;
-
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>A <code>TaskExecutionGraph</code> is responsible for managing the execution of the {@link Task} instances which
@@ -144,4 +145,15 @@ public interface TaskExecutionGraph {
      * @throws IllegalStateException When this graph has not been populated.
      */
     List<Task> getAllTasks();
+
+    /**
+     * <p>Returns the dependencies of a task which are part of the execution graph.</p>
+     *
+     * @return The tasks. Returns an empty set if there are no dependent tasks.
+     * @throws IllegalStateException When this graph has not been populated or the task is not part of it.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    Set<Task> getDependencies(Task task);
 }

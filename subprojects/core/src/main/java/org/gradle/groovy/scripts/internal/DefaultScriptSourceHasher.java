@@ -16,14 +16,16 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 public class DefaultScriptSourceHasher implements ScriptSourceHasher {
     private final FileHasher fileHasher;
@@ -39,9 +41,16 @@ public class DefaultScriptSourceHasher implements ScriptSourceHasher {
         TextResource resource = scriptSource.getResource();
         File file = resource.getFile();
         if (file != null) {
-            return fileHasher.hash(file);
+            try {
+                return fileHasher.hash(file);
+            } catch (UncheckedIOException e) {
+                if (e.getCause() instanceof FileNotFoundException) {
+                    throw new UncheckedIOException("Could not read " + scriptSource.getDisplayName() + " as it does not exist.", e.getCause());
+                }
+                throw e;
+            }
         }
-        Hasher hasher = contentHasherFactory.create();
+        PrimitiveHasher hasher = contentHasherFactory.create();
         hasher.putString(resource.getText());
         return hasher.hash();
     }

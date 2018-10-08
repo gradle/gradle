@@ -17,8 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
-import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.Set;
@@ -26,33 +24,18 @@ import java.util.Set;
 /**
  * The conventional configuration for the `ProjectReportsPlugin`.
  */
-public class ProjectReportsPluginConvention {
-    private String projectReportDirName = "project";
-    private final Project project;
-
-    public ProjectReportsPluginConvention(Project project) {
-        this.project = project;
-    }
-
+public abstract class ProjectReportsPluginConvention {
     /**
      * The name of the directory to generate the project reports into, relative to the project's reports dir.
      */
-    public String getProjectReportDirName() {
-        return projectReportDirName;
-    }
+    public abstract String getProjectReportDirName();
 
-    public void setProjectReportDirName(String projectReportDirName) {
-        this.projectReportDirName = projectReportDirName;
-    }
+    public abstract void setProjectReportDirName(String projectReportDirName);
 
     /**
      * Returns the directory to generate the project reports into.
      */
-    public File getProjectReportDir() {
-        return project.getExtensions().getByType(ReportingExtension.class).file(projectReportDirName);
-    }
+    public abstract File getProjectReportDir();
 
-    public Set<Project> getProjects() {
-        return WrapUtil.toSet(project);
-    }
+    public abstract Set<Project> getProjects();
 }

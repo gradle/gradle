@@ -21,16 +21,30 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
-public class UnavailablePlatformToolProvider implements PlatformToolProvider {
+import java.io.File;
+
+import static org.gradle.internal.FileUtils.withExtension;
+
+public class UnavailablePlatformToolProvider implements PlatformToolProvider, CommandLineToolSearchResult {
     private final ToolSearchResult failure;
     private final OperatingSystemInternal targetOperatingSystem;
 
     public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchResult failure) {
         this.targetOperatingSystem = targetOperatingSystem;
         this.failure = failure;
+    }
+
+    public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, String failure) {
+        this.targetOperatingSystem = targetOperatingSystem;
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.unavailable(failure);
+        this.failure = result;
     }
 
     @Override
@@ -50,6 +64,12 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
+    public boolean requiresDebugBinaryStripping() {
+        // Doesn't really make sense
+        return true;
+    }
+
+    @Override
     public String getObjectFileExtension() {
         throw failure();
     }
@@ -66,7 +86,8 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
 
     @Override
     public boolean producesImportLibrary() {
-        return targetOperatingSystem.getInternalOs().isWindows();
+        // Doesn't really make sense
+        return targetOperatingSystem.isWindows();
     }
 
     @Override
@@ -85,6 +106,16 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
+    public String getLibrarySymbolFileName(String libraryPath) {
+        return withExtension(getSharedLibraryName(libraryPath), SymbolExtractorOsConfig.current().getExtension());
+    }
+
+    @Override
+    public String getExecutableSymbolFileName(String executablePath) {
+        return withExtension(getExecutableName(executablePath), SymbolExtractorOsConfig.current().getExtension());
+    }
+
+    @Override
     public <T> T get(Class<T> toolType) {
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
@@ -94,4 +125,23 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         throw failure();
     }
 
+    @Override
+    public CommandLineToolSearchResult locateTool(ToolType compilerType) {
+        return this;
+    }
+
+    @Override
+    public File getTool() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SystemLibraries getSystemLibraries(ToolType compilerType) {
+        return new EmptySystemLibraries();
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata(ToolType compilerType) {
+        throw failure();
+    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.filter
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class TestSelectionMatcherTest extends Specification {
 
@@ -61,15 +62,15 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest.test"]         | "FooTest"                 | "test"                | true
         ["FooTest.test"]         | "Footest"                 | "test"                | false
         ["FooTest.test"]         | "FooTest"                 | "TEST"                | false
-        ["FooTest.test"]         | "com.foo.FooTest"         | "test"                | false
+        ["FooTest.test"]         | "com.foo.FooTest"         | "test"                | true
         ["FooTest.test"]         | "Foo.test"                | ""                    | false
 
         ["FooTest.*slow*"]       | "FooTest"                 | "slowUiTest"          | true
         ["FooTest.*slow*"]       | "FooTest"                 | "veryslowtest"        | true
-        ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | true
+        ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | false
         ["FooTest.*slow*"]       | "FooTest"                 | "a slow test"         | true
         ["FooTest.*slow*"]       | "FooTest"                 | "aslow"               | true
-        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | false
+        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | true
         ["FooTest.*slow*"]       | "FooTest"                 | "verySlowTest"        | false
 
         ["com.FooTest***slow*"]  | "com.FooTest"             | "slowMethod"          | true
@@ -102,7 +103,7 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest", "*BarTest"]             | "FooTest"                 | "xxxx"                | true
         ["FooTest", "*BarTest"]             | "BarTest"                 | "xxxx"                | true
         ["FooTest", "*BarTest"]             | "com.foo.BarTest"         | "xxxx"                | true
-        ["FooTest", "*BarTest"]             | "com.foo.FooTest"         | "xxxx"                | false
+        ["FooTest", "*BarTest"]             | "com.foo.FooTest"         | "xxxx"                | true
     }
 
     def "regexp chars are handled"() {
@@ -139,5 +140,77 @@ class TestSelectionMatcherTest extends Specification {
         input               | inputCommandLine | className  | methodName | match
         ["FooTest", "Bar" ] | []               | "FooTest"  | "whatever" | true
         ["FooTest"]         | ["Bar"]          | "FooTest"  | "whatever" | false
+    }
+
+    @Unroll
+    def 'can exclude as many classes as possible'() {
+        expect:
+        new TestSelectionMatcher(input, []).mayIncludeClass(fullQualifiedName) == maybeMatch
+        new TestSelectionMatcher([], input).mayIncludeClass(fullQualifiedName) == maybeMatch
+
+        where:
+        input                             | fullQualifiedName    | maybeMatch
+        ['.']                             | 'FooTest'            | false
+        ['.FooTest.']                     | 'FooTest'            | false
+        ['FooTest']                       | 'FooTest'            | true
+        ['FooTest']                       | 'org.gradle.FooTest' | true
+        ['FooTest']                       | 'org.foo.FooTest'    | true
+        ['FooTest']                       | 'BarTest'            | false
+        ['FooTest']                       | 'org.gradle.BarTest' | false
+        ['FooTest.testMethod']            | 'FooTest'            | true
+        ['FooTest.testMethod']            | 'BarTest'            | false
+        ['FooTest.testMethod']            | 'org.gradle.FooTest' | true
+        ['FooTest.testMethod']            | 'org.gradle.BarTest' | false
+        ['org.gradle.FooTest.testMethod'] | 'FooTest'            | false
+        ['org.gradle.FooTest.testMethod'] | 'org.gradle.FooTest' | true
+        ['org.gradle.FooTest.testMethod'] | 'org.gradle.BarTest' | false
+        ['org.foo.FooTest.testMethod']    | 'org.gradle.FooTest' | false
+        ['org.foo.FooTest']               | 'org.gradle.FooTest' | false
+
+        ['*FooTest*']                     | 'org.gradle.FooTest' | true
+        ['*FooTest*']                     | 'aaa'                | true
+        ['*FooTest']                      | 'org.gradle.FooTest' | true
+        ['*FooTest']                      | 'FooTest'            | true
+        ['*FooTest']                      | 'org.gradle.BarTest' | true // org.gradle.BarTest.testFooTest
+
+        ['or*']                           | 'org.gradle.FooTest' | true
+        ['org*']                          | 'org.gradle.FooTest' | true
+        ['org.*']                         | 'org.gradle.FooTest' | true
+        ['org.g*']                        | 'org.gradle.FooTest' | true
+        ['org*']                          | 'FooTest'            | false
+        ['org.*']                         | 'com.gradle.FooTest' | false
+        ['org*']                          | 'com.gradle.FooTest' | false
+        ['org.*']                         | 'com.gradle.FooTest' | false
+        ['org.g*']                        | 'com.gradle.FooTest' | false
+        ['FooTest*']                      | 'FooTest'            | true
+        ['FooTest*']                      | 'org.gradle.FooTest' | true
+        ['FooTest*']                      | 'BarTest'            | false
+        ['FooTest*']                      | 'org.gradle.BarTest' | false
+        ['org.gradle.FooTest*']           | 'org.gradle.BarTest' | false
+        ['FooTest.testMethod*']           | 'FooTest'            | true
+        ['FooTest.testMethod*']           | 'org.gradle.FooTest' | true
+        ['org.foo.FooTest*']              | 'FooTest'            | false
+        ['org.foo.FooTest*']              | 'org.gradle.FooTest' | false
+        ['org.foo.*FooTest*']             | 'org.gradle.FooTest' | false
+        ['org.foo.*FooTest*']             | 'org.foo.BarTest'    | true // org.foo.BarTest.testFooTest
+
+        ['Foo']                           | 'FooTest'            | false
+        ['org.gradle.Foo']                | 'org.gradle.FooTest' | false
+        ['org.gradle.Foo.*']              | 'org.gradle.FooTest' | false
+    }
+
+    @Unroll
+    def 'can use multiple patterns'() {
+        expect:
+        new TestSelectionMatcher(pattern1, pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
+
+        where:
+        pattern1                | pattern2                 | fullQualifiedName    | maybeMatch
+        ['FooTest*']            | ['FooTest']              | 'FooTest'            | true
+        ['FooTest*']            | ['BarTest*']             | 'FooTest'            | false
+        ['FooTest*']            | ['BarTest*']             | 'FooBarTest'         | false
+        []                      | []                       | 'anything'           | true
+        ['org.gradle.FooTest*'] | ['org.gradle.BarTest*']  | 'org.gradle.FooTest' | false
+        ['org.gradle.FooTest*'] | ['*org.gradle.BarTest*'] | 'org.gradle.FooTest' | true
     }
 }

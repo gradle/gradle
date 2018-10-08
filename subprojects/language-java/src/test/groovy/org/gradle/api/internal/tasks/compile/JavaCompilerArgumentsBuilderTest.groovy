@@ -16,7 +16,8 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -38,7 +39,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -169,23 +170,12 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
+        def compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
+        compileOptions.bootstrapClasspath = ImmutableFileCollection.of(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "generates -bootclasspath option via deprecated property"() {
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
-        spec.compileOptions = compileOptions
-        def options = builder.build()
-
-        expect:
-        options == ["-bootclasspath", new File("/lib/lib1.jar").path + File.pathSeparator + new File("/lib/lib2.jar").path] + defaultOptions
     }
 
     def "generates -extdirs option"() {
@@ -312,7 +302,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "can include/exclude source files"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.source = new SimpleFileCollection(file1, file2)
+        spec.sourceFiles = [file1, file2]
 
         when:
         builder.includeSourceFiles(true)
@@ -330,7 +320,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "does not include source files by default"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.source = new SimpleFileCollection(file1, file2)
+        spec.sourceFiles = [file1, file2]
 
         expect:
         builder.build() == defaultOptions
@@ -389,6 +379,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     String asPath(File... files) {
-        new SimpleFileCollection(files).asPath
+        ImmutableFileCollection.of(files).asPath
     }
 }

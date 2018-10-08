@@ -610,8 +610,11 @@ class ValueSnapshotterTest extends Specification {
 
         def snapshot4 = snapshotter.snapshot([new Bean(prop: "value1"), new Bean(prop: "value2")])
         snapshotter.snapshot([new Bean(prop: "value1"), new Bean(prop: "value2")], snapshot4).is(snapshot4)
-
         snapshotter.snapshot([new Bean(prop: "value1"), new Bean(prop: "value3")], snapshot4) != snapshot4
+
+        def snapshot5 = snapshotter.snapshot(["abc", "123"])
+        def snapshot6 = snapshotter.snapshot(["abc", "123", "xyz"], snapshot5)
+        snapshotter.snapshot(["abc", "123", "xyz"], snapshot6).is(snapshot6)
     }
 
     def "creates snapshot for set from candidates"() {

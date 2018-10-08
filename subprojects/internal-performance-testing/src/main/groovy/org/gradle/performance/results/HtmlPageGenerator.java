@@ -16,16 +16,19 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
-import org.gradle.performance.util.Git;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.util.Git;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
 
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -176,7 +179,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     td().text("").end();
                 } else {
                     Amount<T> value = data.getMedian();
-                    Amount<T> stddev = data.getStandardError();
+                    Amount<T> se = data.getStandardError();
                     String classAttr = "numeric";
                     if (value.equals(min)) {
                         classAttr += " min-value";
@@ -186,12 +189,12 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     }
                     td()
                         .classAttr(classAttr)
-                        .title("median: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + stddev + ", values: " + data)
+                        .title("median: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", se: " + se + ", values: " + data)
                         .text(value.format())
                         .end();
                     td()
                         .classAttr("numeric more-detail")
-                        .text("s: " + stddev.format())
+                        .text("se: " + se.format())
                         .end();
                 }
             }
@@ -209,5 +212,13 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             }
         }
         return Collections.emptyList();
+    }
+
+    protected String urlEncode(String str) {
+        try {
+            return URLEncoder.encode(str, Charsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

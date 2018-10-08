@@ -1,9 +1,0 @@
-// START SNIPPET declare-task
-task myCopy(type: Copy)
-// END SNIPPET declare-task
-
-myCopy {
-   from 'resources'
-   into 'target'
-   include('**/*.txt', '**/*.xml', '**/*.properties')
-}

@@ -19,15 +19,17 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovyRuntime;
@@ -46,15 +48,15 @@ import java.util.concurrent.Callable;
 public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
-    private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory, ModuleRegistry moduleRegistry) {
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry) {
+        this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
     }
 
@@ -74,10 +76,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults() {
-        project.getTasks().withType(GroovyCompile.class, new Action<GroovyCompile>() {
+        project.getTasks().withType(GroovyCompile.class).configureEach(new Action<GroovyCompile>() {
             public void execute(final GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return groovyRuntime.inferGroovyClasspath(compile.getClasspath());
                     }
                 });
@@ -87,8 +89,8 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults() {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
-            public void execute(SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
+            public void execute(final SourceSet sourceSet) {
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir("src/" + sourceSet.getName() + "/groovy");
@@ -100,26 +102,38 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(groovySourceSet.getGroovy());
                 sourceSet.getAllSource().source(groovySourceSet.getGroovy());
 
-                String compileTaskName = sourceSet.getCompileTaskName("groovy");
-                GroovyCompile compile = project.getTasks().create(compileTaskName, GroovyCompile.class);
-                SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, project);
-                compile.dependsOn(sourceSet.getCompileJavaTaskName());
-                compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
-                compile.setSource(groovySourceSet.getGroovy());
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, groovySourceSet.getGroovy(), project);
+                final Provider<GroovyCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
+                    @Override
+                    public void execute(GroovyCompile compile) {
+                        SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);
+                        compile.dependsOn(sourceSet.getCompileJavaTaskName());
+                        compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
+                        compile.setSource(groovySourceSet.getGroovy());
+                    }
+                });
 
-                project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(compileTaskName);
+
+                // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
+                // doesn't need to do this.
+                project.getTasks().named(sourceSet.getClassesTaskName(), new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        task.dependsOn(compileTask);
+                    }
+                });
             }
         });
     }
 
     private void configureGroovydoc() {
-        project.getTasks().withType(Groovydoc.class, new Action<Groovydoc>() {
+        project.getTasks().withType(Groovydoc.class).configureEach(new Action<Groovydoc>() {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
                         FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                         // Jansi is required to log errors when generating Groovydoc
-                        ConfigurableFileCollection jansi = project.files(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
+                        ConfigurableFileCollection jansi = project.getLayout().configurableFiles(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                         return groovyClasspath.plus(jansi);
                     }
                 });

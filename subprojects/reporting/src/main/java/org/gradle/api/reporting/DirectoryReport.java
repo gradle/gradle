@@ -18,6 +18,7 @@ package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputDirectory;
 
 import java.io.File;
 
@@ -40,6 +41,7 @@ public interface DirectoryReport extends ConfigurableReport {
     @Internal
     File getEntryPoint();
 
+    @OutputDirectory
     @Override
     File getDestination();
 

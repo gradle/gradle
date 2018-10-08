@@ -32,7 +32,7 @@ class AssemblerTest extends GccCompatibleNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [ '-x', 'assembler' ] + super.getCompilerSpecificArguments(includeDir)
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
+        [ '-x', 'assembler' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

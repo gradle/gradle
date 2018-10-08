@@ -19,7 +19,30 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 
 class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    def "create empty xcode project when no language plugins are applied"() {
+    def "create xcode workspace when no language plugins are applied"() {
+        when:
+        succeeds("xcode")
+
+        then:
+        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
+
+        def workspace = rootXcodeWorkspace
+        workspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
+
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(['build.gradle'])
+        project.assertNoTargets()
+    }
+
+    def "create empty xcode project when component does not target current OS"() {
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                operatingSystems = [objects.named(OperatingSystemFamily, 'foo')]
+            }
+        """
+
         when:
         succeeds("xcode")
 
@@ -32,16 +55,18 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     }
 
     def "cleanXcode remove all XCode generated project files"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
-apply plugin: 'swift-executable'
+apply plugin: 'swift-application'
 """
 
         when:
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject
         project.projectFile.getFile().assertExists()
@@ -53,7 +78,7 @@ apply plugin: 'swift-executable'
         succeeds("cleanXcode")
 
         then:
-        executedAndNotSkipped(":cleanXcode")
+        executedAndNotSkipped(":cleanXcodeProject")
 
         project.projectFile.getFile().assertDoesNotExist()
         project.schemeFiles*.file*.assertDoesNotExist()

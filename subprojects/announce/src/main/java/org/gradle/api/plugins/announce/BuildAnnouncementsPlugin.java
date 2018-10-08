@@ -19,13 +19,18 @@ package org.gradle.api.plugins.announce;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.announce.internal.AnnouncingBuildListener;
+import org.gradle.util.SingleMessageLogger;
 
 /**
  * A plugin which announces interesting build lifecycle events.
+ *
+ * @deprecated This plugin will be removed in the next major version.
  */
+@Deprecated
 public class BuildAnnouncementsPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(AnnouncePlugin.class);
+        SingleMessageLogger.nagUserOfDeprecatedPlugin("Build Announcements");
         AnnouncePluginExtension extension = project.getExtensions().findByType(AnnouncePluginExtension.class);
         AnnouncingBuildListener listener = new AnnouncingBuildListener(extension.getLocal());
         project.getGradle().addBuildListener(listener);

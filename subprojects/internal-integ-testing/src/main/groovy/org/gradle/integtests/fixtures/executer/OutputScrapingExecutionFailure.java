@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import junit.framework.AssertionFailedError;
+import org.gradle.internal.Pair;
 import org.gradle.util.TextUtil;
 import org.hamcrest.Matcher;
 
@@ -23,42 +25,81 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.isEmpty;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)FAILURE: .+$");
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("FAILURE: (.+)");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private static final Pattern EXCEPTION_PATTERN = Pattern.compile("(?ms)^\\* Exception is:$(.+?):(.+?)$");
     private static final Pattern EXCEPTION_CAUSE_PATTERN = Pattern.compile("(?ms)^Caused by: (.+?):(.+?)$");
-    private final String description;
+    private final String summary;
+    private final List<String> descriptions = new ArrayList<String>();
     private final String lineNumber;
     private final String fileName;
     private final String resolution;
     private final Exception exception;
     // with normalized line endings
     private final List<String> causes = new ArrayList<String>();
+    private final LogContent mainContent;
 
     static boolean hasFailure(String error) {
         return FAILURE_PATTERN.matcher(error).find();
     }
 
-    public OutputScrapingExecutionFailure(String output, String error) {
-        super(output, error);
+    /**
+     * Creates a result from the output of a <em>single</em> Gradle invocation.
+     *
+     * @param output The raw build stdout chars.
+     * @param error The raw build stderr chars.
+     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
+     */
+    public static OutputScrapingExecutionFailure from(String output, String error) {
+        return new OutputScrapingExecutionFailure(output, error);
+    }
 
-        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(error);
-        if (matcher.find()) {
-            if (matcher.find()) {
-                throw new AssertionError("Found multiple failure sections in build error output.");
+    protected OutputScrapingExecutionFailure(String output, String error) {
+        super(LogContent.of(output), LogContent.of(error));
+
+        LogContent withoutDebug = LogContent.of(output).removeAnsiChars().removeDebugPrefix();
+
+        // Find failure section
+        Pair<LogContent, LogContent> match = withoutDebug.splitOnFirstMatchingLine(FAILURE_PATTERN);
+        if (match == null) {
+            // Not present in output, check error output.
+            match = LogContent.of(error).removeAnsiChars().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
+            if (match != null) {
+                match = Pair.of(withoutDebug, match.getRight());
+            } else {
+                // Not present, assume no failure details
+                match = Pair.of(withoutDebug, LogContent.empty());
+            }
+        } else {
+            if (match.getRight().countMatches(FAILURE_PATTERN) != 1) {
+                throw new IllegalArgumentException("Found multiple failure sections in log output: " + output);
             }
         }
 
-        matcher = LOCATION_PATTERN.matcher(error);
+        LogContent failureContent = match.getRight();
+        this.mainContent = match.getLeft();
+
+        String failureText = failureContent.withNormalizedEol();
+
+        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(failureText);
+        if (matcher.lookingAt()) {
+            summary = matcher.group(1);
+        } else {
+            summary = "";
+        }
+
+        matcher = LOCATION_PATTERN.matcher(failureText);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
             lineNumber = matcher.group(3);
@@ -67,37 +108,41 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             lineNumber = "";
         }
 
-        matcher = DESCRIPTION_PATTERN.matcher(error);
+        matcher = DESCRIPTION_PATTERN.matcher(failureText);
         if (matcher.find()) {
             String problemStr = matcher.group(1);
             Problem problem = extract(problemStr);
-            description = problem.description;
+            descriptions.add(problem.description);
             causes.addAll(problem.causes);
             while (matcher.find()) {
                 problemStr = matcher.group(1);
                 problem = extract(problemStr);
+                descriptions.add(problem.description);
                 causes.addAll(problem.causes);
             }
-        } else {
-            description = "";
         }
 
-        matcher = RESOLUTION_PATTERN.matcher(error);
+        matcher = RESOLUTION_PATTERN.matcher(failureText);
         if (!matcher.find()) {
             resolution = "";
         } else {
             resolution = matcher.group(1).trim();
         }
 
-        matcher = EXCEPTION_PATTERN.matcher(error);
+        matcher = EXCEPTION_PATTERN.matcher(failureText);
         if (!matcher.find()) {
             exception = null;
         } else {
             String exceptionClass = matcher.group(1).trim();
             String exceptionMessage = matcher.group(2).trim();
-            matcher = EXCEPTION_CAUSE_PATTERN.matcher(error);
+            matcher = EXCEPTION_CAUSE_PATTERN.matcher(failureText);
             exception = recreateException(exceptionClass, exceptionMessage, matcher);
         }
+    }
+
+    @Override
+    public LogContent getMainContent() {
+        return mainContent;
     }
 
     private Problem extract(String problem) {
@@ -161,6 +206,17 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
+    public ExecutionFailure assertHasFailures(int count) {
+        assertThat(this.descriptions.size(), equalTo(count));
+        if (count == 1) {
+            assertThat(summary, equalTo("Build failed with an exception."));
+        } else {
+            assertThat(summary, equalTo(String.format("Build completed with %s failures.", count)));
+        }
+        return this;
+    }
+
     public ExecutionFailure assertHasCause(String description) {
         assertThatCause(startsWith(description));
         return this;
@@ -172,12 +228,23 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 return this;
             }
         }
-        fail(String.format("No matching cause found in %s", causes));
+        fail(String.format("No matching cause found in %s. Output: [%s], Error: [%s]", causes, getOutput(), getError()));
         return this;
     }
 
     public ExecutionFailure assertHasResolution(String resolution) {
-        assertThat(this.resolution, equalTo(resolution));
+        assertThat(this.resolution, containsString(resolution));
+        return this;
+    }
+
+    @Override
+    public ExecutionFailure assertHasNoCause(String description) {
+        Matcher<String> matcher = containsString(description);
+        for (String cause : causes) {
+            if (matcher.matches(cause)) {
+                throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
+            }
+        }
         return this;
     }
 
@@ -192,7 +259,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-        assertThat(description, matcher);
+        assertThat(descriptions, hasItem(matcher));
         return this;
     }
 

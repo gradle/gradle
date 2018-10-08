@@ -16,9 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import javax.xml.namespace.QName
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
+
+import javax.xml.namespace.QName
 
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
@@ -35,7 +36,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def status = identifier.safeForFileName().decorate("status")
         def module = ivyRepo.module(organisation, moduleName, version)
 
-        settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
+        settingsFile << "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
             apply plugin: 'ivy-publish'
             apply plugin: 'java'
@@ -76,7 +77,10 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         ]
 
         and:
-        resolveArtifactsWithStatus(module, status) == [moduleName + '-' + version + '.jar']
+        resolveArtifacts(module) {
+            setStatus(status)
+            expectFiles "${moduleName}-${version}.jar"
+        }
 
         where:
         identifier << Identifier.all
@@ -98,7 +102,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def conf = identifier.safeForFileName().decorate("conf").replace(",", "")
         def classifier = identifier.safeForFileName().decorate("classifier")
 
-        settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
+        settingsFile << "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
             apply plugin: 'ivy-publish'
 
@@ -125,7 +129,15 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         module.assertArtifactsPublished("ivy-${version}.xml", "${artifact}-${version}-${classifier}.${extension}")
 
         and:
-        resolveArtifacts(module, conf) == ["${artifact}-${version}-${classifier}.${extension}"]
+        resolveArtifacts(module) {
+            configuration = conf
+            withoutModuleMetadata {
+                expectFiles "${artifact}-${version}-${classifier}.${extension}"
+            }
+            withModuleMetadata {
+                noComponentPublished()
+            }
+        }
 
         where:
         identifier << Identifier.all

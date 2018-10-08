@@ -22,7 +22,7 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-public class BuildableComponentSpecTest extends Specification {
+class BuildableComponentSpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -49,7 +49,7 @@ public class BuildableComponentSpecTest extends Specification {
         element.getBuildDependencies().getDependencies(Stub(Task)) == [lifecycleTask] as Set
 
         and:
-        lifecycleTask.getTaskDependencies().getDependencies(Stub(Task)) == [dependedOn1, dependedOn2] as Set
+        lifecycleTask.getTaskDependencies().getDependencies(lifecycleTask) == [dependedOn1, dependedOn2] as Set
     }
 
     class TestBuildableComponentSpec extends AbstractBuildableComponentSpec {

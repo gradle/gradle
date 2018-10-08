@@ -18,6 +18,7 @@ package org.gradle.testing.testng
 
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
+import spock.lang.Issue
 
 class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
@@ -34,6 +35,8 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
                     System.err.println("some error output");
                     assert false : "test failure message"; 
                 }
+                @org.testng.annotations.Test
+                public void ${passingTestCaseName}() {}
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
@@ -71,5 +74,43 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     @Override
     String getFailingTestCaseName() {
         return "fail"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3545")
+    def "can run tests with ignored test class"() {
+        given:
+        file("src/test/java/DisabledTest.java") << """
+            @org.testng.annotations.Test(enabled = false)
+            public class DisabledTest {
+                public void testOne() {}
+                public void testTwo() {}
+            }
+        """
+
+        when:
+        succeeds "test"
+
+        then:
+        testResult.assertNoTestClassesExecuted()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3545")
+    def "can run tests with ignored test methods"() {
+        given:
+        file("src/test/java/DisabledTest.java") << """
+            public class DisabledTest {
+                @org.testng.annotations.Test(enabled = false)
+                public void testOne() {}
+                
+                @org.testng.annotations.Test(enabled = false)
+                public void testTwo() {}
+            }
+        """
+
+        when:
+        succeeds "test"
+
+        then:
+        testResult.assertNoTestClassesExecuted()
     }
 }

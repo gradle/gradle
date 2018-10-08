@@ -82,11 +82,21 @@ public class EmptySchema implements AttributesSchemaInternal {
         @Override
         public void execute(CompatibilityCheckResult<Object> result) {
         }
+
+        @Override
+        public boolean doesSomething() {
+            return false;
+        }
     }
 
     private static class DoNothingDisambiguationRule implements DisambiguationRule<Object> {
         @Override
         public void execute(MultipleCandidatesResult<Object> objectMultipleCandidatesResult) {
+        }
+
+        @Override
+        public boolean doesSomething() {
+            return false;
         }
     }
 }

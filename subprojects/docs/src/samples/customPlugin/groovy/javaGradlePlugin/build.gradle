@@ -1,0 +1,31 @@
+// tag::use-and-configure-plugin[]
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+// end::use-and-configure-plugin[]
+    id 'maven-publish'
+// tag::use-and-configure-plugin[]
+}
+
+// end::use-and-configure-plugin[]
+group = 'org.gradle'
+version = '1.0-SNAPSHOT'
+
+// tag::use-and-configure-plugin[]
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'org.samples.greeting'
+            implementationClass = 'org.gradle.GreetingPlugin'
+        }
+    }
+}
+// end::use-and-configure-plugin[]
+
+publishing {
+    repositories {
+        maven {
+            url = uri("$buildDir/repo")
+        }
+    }
+}

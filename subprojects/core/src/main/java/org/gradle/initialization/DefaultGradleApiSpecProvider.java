@@ -17,10 +17,20 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.groovy.json.DefaultFastStringServiceFactory;
+import org.apache.groovy.json.FastStringServiceFactory;
 
 import java.util.Set;
 
 public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdapter implements GradleApiSpecProvider {
+
+    @Override
+    public Set<Class<?>> getExportedClasses() {
+        return ImmutableSet.<Class<?>>of(
+            FastStringServiceFactory.class,
+            DefaultFastStringServiceFactory.class
+        );
+    }
 
     @Override
     public Set<String> getExportedPackages() {
@@ -33,12 +43,23 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.slf4j",
             "org.apache.commons.logging",
             "org.apache.log4j",
+            "javax.annotation",
             "javax.inject");
     }
 
     @Override
     public Set<String> getExportedResourcePrefixes() {
-        return ImmutableSet.of("META-INF/gradle-plugins");
+        return ImmutableSet.of(
+            "META-INF/gradle-plugins"
+        );
+    }
+
+    @Override
+    public Set<String> getExportedResources() {
+        return ImmutableSet.of(
+            "META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule",
+            "META-INF/services/org.apache.groovy.json.FastStringServiceFactory"
+        );
     }
 
     @Override

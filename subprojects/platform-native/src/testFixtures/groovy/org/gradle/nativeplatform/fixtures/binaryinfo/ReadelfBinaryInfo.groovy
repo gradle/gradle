@@ -53,7 +53,7 @@ class ReadelfBinaryInfo implements BinaryInfo {
     }
 
     List<BinaryInfo.Symbol> listSymbols() {
-        def process = ['nm', '-f', 'posix', binaryFile.absolutePath].execute()
+        def process = ['nm', '-a', '-f', 'posix', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
         return lines.collect { line ->
             // Looks like:
@@ -63,6 +63,22 @@ class ReadelfBinaryInfo implements BinaryInfo {
             char type = splits[1].getChars()[0]
             new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
         }
+    }
+
+    @Override
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        def process = ['readelf', '--debug-dump=info', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        def symbols = []
+
+        lines.each { line ->
+            def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
+            if (findSymbol.matches()) {
+                def name = new File(findSymbol[0][2] as String).name.trim()
+                symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
+            }
+        }
+        return symbols
     }
 
     String getSoName() {

@@ -21,6 +21,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
+import java.util.Collection;
+
 /**
  * A {@link org.gradle.execution.BuildExecutionAction} that disables all selected tasks before they are executed.
  */
@@ -31,7 +33,8 @@ public class DryRunBuildExecutionAction implements BuildExecutionAction {
         this.textOutputFactory = textOutputFactory;
     }
 
-    public void execute(BuildExecutionContext context) {
+    @Override
+    public void execute(BuildExecutionContext context, Collection<? super Throwable> taskFailures) {
         GradleInternal gradle = context.getGradle();
         if (gradle.getStartParameter().isDryRun()) {
             for (Task task : gradle.getTaskGraph().getAllTasks()) {

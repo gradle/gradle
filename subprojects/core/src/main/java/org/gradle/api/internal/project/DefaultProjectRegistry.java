@@ -56,6 +56,11 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
         }
     }
 
+    @Override
+    public int size() {
+        return projects.size();
+    }
+
     public Set<T> getAllProjects() {
         return new HashSet<T>(projects.values());
     }

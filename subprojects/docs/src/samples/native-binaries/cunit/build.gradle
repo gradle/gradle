@@ -1,5 +1,5 @@
-// START SNIPPET complete-example
-// START SNIPPET terse-example
+// tag::complete-example[]
+// tag::terse-example[]
 apply plugin: "c"
 apply plugin: 'cunit-test-suite'
 
@@ -13,7 +13,7 @@ model {
             architecture "x86"
         }
     }
-// END SNIPPET terse-example
+// end::terse-example[]
     repositories {
         libs(PrebuiltLibraries) {
             cunit {
@@ -26,7 +26,7 @@ model {
             }
         }
     }
-// START SNIPPET terse-example
+// tag::terse-example[]
     components {
         operators(NativeLibrarySpec) {
             targetPlatform "x86"
@@ -38,8 +38,8 @@ model {
         }
     }
 }
-// END SNIPPET terse-example
-// START SNIPPET configure-test-binary
+// end::terse-example[]
+// tag::configure-test-binary[]
 model {
     binaries {
         withType(CUnitTestSuiteBinarySpec) {
@@ -51,8 +51,8 @@ model {
         }
     }
 }
-// END SNIPPET configure-test-binary
-// END SNIPPET complete-example
+// end::configure-test-binary[]
+// end::complete-example[]
 
 def findCUnitLibForPlatform(Platform platform) {
     if (platform.operatingSystem.windows) {

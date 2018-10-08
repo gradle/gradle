@@ -27,7 +27,7 @@
                 <td>directory</td>
             </tr>
             <tr>
-                <td>targetSizeInMB</td>
+                <td>removeUnusedEntriesAfterDays</td>
             </tr>
         </table>
     </section>

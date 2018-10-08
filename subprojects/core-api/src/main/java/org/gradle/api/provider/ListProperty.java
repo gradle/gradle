@@ -23,43 +23,20 @@ import java.util.List;
 /**
  * Represents a property whose type is a {@link List} of elements of type {@link T}.
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
+ * <p>
+ * You can create a {@link ListProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
+ * </p>
+ *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  *
  * @param <T> the type of elements.
  * @since 4.3
  */
 @Incubating
-public interface ListProperty<T> extends Property<List<T>> {
+public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T> {
     /**
-     * Adds an element to the property without evaluating existing providers already present.
-     *
-     * @param element The element
-     * @throws NullPointerException if the specified element is null
-     * @since 4.4
+     * {@inheritDoc}
      */
-    void add(T element);
-
-    /**
-     * Adds an element to the property given by the provider without evaluating existing providers already present.
-     * <p>
-     *     The given provider will be queried when it's time to get the value of the property.
-     *     This property will be unchanged if its value is not defined.
-     * </p>
-     *
-     * @param provider Provider
-     * @since 4.4
-     */
-    void add(Provider<? extends T> provider);
-
-    /**
-     * Adds a collection of elements to the property given by the provider without evaluating existing providers
-     * <p>
-     *     The given provider will be queried when it's time to get the value of the property.
-     *     This property will be unchanged if its value is not defined.
-     * </p>
-     *
-     * @param provider Provider of elements
-     * @since 4.4
-     */
-    void addAll(Provider<? extends Iterable<T>> provider);
+    @Override
+    ListProperty<T> empty();
 }

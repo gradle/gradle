@@ -29,7 +29,7 @@ class MavenGcsRepoResolveIntegrationTest extends AbstractGcsDependencyResolution
         return '/maven/release/'
     }
 
-    def setup(){
+    def setup() {
         module = getMavenGcsRepo().module("org.gradle", "test", artifactVersion)
     }
 

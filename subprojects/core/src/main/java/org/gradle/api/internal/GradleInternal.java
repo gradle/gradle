@@ -17,13 +17,14 @@ package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -47,14 +48,15 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     GradleInternal getRoot();
 
-    @Nullable
-    BuildOperationState getBuildOperation();
-    void setBuildOperation(BuildOperationState operation);
+    /**
+     * Returns the {@link BuildState} that manages the state of this instance.
+     */
+    BuildState getOwner();
 
     /**
      * {@inheritDoc}
      */
-    TaskGraphExecuter getTaskGraph();
+    TaskExecutionGraphInternal getTaskGraph();
 
     /**
      * Returns the default project. This is used to resolve relative names and paths provided on the UI.
@@ -110,7 +112,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     ClassLoaderScope getClassLoaderScope();
 
-    void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
+    void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds);
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.
@@ -127,5 +129,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     void setIdentityPath(Path path);
 
-    ExperimentalFeatures getExperimentalFeatures();
+    String contextualize(String description);
+
+    PublicBuildPath getPublicBuildPath();
 }

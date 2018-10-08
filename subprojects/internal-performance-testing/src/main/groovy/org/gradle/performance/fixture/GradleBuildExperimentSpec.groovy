@@ -85,7 +85,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, listener, invocationCustomizer)
+            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, listener, invocationCustomizer)
         }
     }
 }

@@ -30,12 +30,21 @@
                                         <exclude>org.apache.maven</exclude>
                                         <exclude>org.apache.maven:badArtifact</exclude>
                                         <exclude>*:badArtifact</exclude>
+                                        <exclude>broken:*</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

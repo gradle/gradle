@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -39,6 +38,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.util.ClosureBackedAction;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -75,7 +75,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
-        antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
+        antLoader = classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(antClasspath));
         FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
         loggingLoaderSpec.allowPackage("org.slf4j");
         loggingLoaderSpec.allowPackage("org.apache.commons.logging");
@@ -107,7 +107,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         this.antLoader = copy.antLoader;
         this.baseAntLoader = copy.baseAntLoader;
         this.antAdapterLoader = copy.antAdapterLoader;
-        this.libClasspath = new DefaultClassPath(libClasspath);
+        this.libClasspath = DefaultClassPath.of(libClasspath);
         this.gradleApiGroovyLoader = copy.gradleApiGroovyLoader;
         this.antAdapterGroovyLoader = copy.antAdapterGroovyLoader;
         this.classLoaderCache = copy.classLoaderCache;
@@ -162,7 +162,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
         // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
         try {
-            return antAdapterLoader.loadClass(className).newInstance();
+            return antAdapterLoader.loadClass(className).getConstructor().newInstance();
         } catch (Exception e) {
             // should never happen
             throw UncheckedException.throwAsUncheckedException(e);

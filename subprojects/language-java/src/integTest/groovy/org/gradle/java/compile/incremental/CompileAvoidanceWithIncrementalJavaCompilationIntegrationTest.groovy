@@ -23,11 +23,7 @@ class CompileAvoidanceWithIncrementalJavaCompilationIntegrationTest extends Abst
 
     def setup() {
         buildFile << """
-            allprojects {
-                tasks.withType(JavaCompile) {
-                    options.incremental = true
-                }
-                
+            allprojects {                
                 ${jcenterRepository()}
             }
        """

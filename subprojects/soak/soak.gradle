@@ -1,18 +1,28 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-useTestFixtures()
-useClassycle()
-
-dependencies {
-    testFixturesCompile project(':internalIntegTesting')
+plugins {
+    id 'gradlebuild.classycle'
 }
 
-tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
+dependencies {
+    testFixturesApi project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
+testFixtures {
+    from(':core')
+}
+
+tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.configureEach {
     options {
         excludeCategories 'org.gradle.soak.categories.SoakTest'
     }
 }
 
-task('soakTest', type: org.gradle.testing.SoakTest) {
+tasks.register('soakTest', org.gradle.gradlebuild.test.integrationtests.SoakTest) {
     testClassesDirs = sourceSets.integTest.output.classesDirs
     classpath = sourceSets.integTest.runtimeClasspath
     systemProperties['org.gradle.soaktest'] = 'true'

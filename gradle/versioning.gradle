@@ -1,4 +1,5 @@
 import org.gradle.build.BuildReceipt
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 
 if (buildTypes.promotionBuild.active) {
@@ -28,7 +29,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     if (project.hasProperty("buildTimestamp")) {
         buildTime = timestampFormat.parse(buildTimestamp)
     } else {
-        if (isCiServer || ['install', 'installAll'].collectMany { [':' + it, it]}.any { gradle.startParameter.taskNames.contains(it) }) {
+        if (BuildEnvironment.isCiServer || ['install', 'installAll'].collectMany { [':' + it, it]}.any { gradle.startParameter.taskNames.contains(it) }) {
             buildTime = new Date()
         } else {
             def sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
@@ -39,7 +40,7 @@ if (!project.hasProperty("ignoreIncomingBuildReceipt") && new File(incomingBuild
     ext.buildTimestamp = timestampFormat.format(buildTime)
 }
 
-task determineCommitId {
+def determineCommitId = tasks.register("determineCommitId") {
     ext.commitId = null
 
     doLast {
@@ -97,9 +98,7 @@ task determineCommitId {
 
         // It's a source distribution, we don't know.
         strategies << {
-            if (!file("design-docs").directory) {
-                "<unknown>"
-            }
+            "<unknown>"
         }
 
         for (strategy in strategies) {
@@ -108,24 +107,21 @@ task determineCommitId {
                 break
             }
         }
-        if (!commitId) {
-            throw new InvalidUserDataException("Could not determine commit id")
-        }
     }
 }
 
-task configureBuildReceipt {
+def configureBuildReceipt = tasks.register("configureBuildReceipt") {
     dependsOn determineCommitId
     doLast {
         createBuildReceipt.versionNumber = rootProject.version
         createBuildReceipt.baseVersion = rootProject.baseVersion
         createBuildReceipt.snapshot = rootProject.isSnapshot
         createBuildReceipt.buildTimestamp = rootProject.buildTimestamp
-        createBuildReceipt.commitId = determineCommitId.commitId
+        createBuildReceipt.commitId = determineCommitId.get().commitId
     }
 }
 
-task createBuildReceipt(type: org.gradle.build.BuildReceipt) {
+tasks.register("createBuildReceipt", org.gradle.build.BuildReceipt) {
     dependsOn configureBuildReceipt
     destinationDir = file("${rootProject.buildDir}")
 }
@@ -148,7 +144,7 @@ if (finalRelease) {
 
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Version: $version (base version: $baseVersion, timestamp: $buildTimestamp, snapshot: $isSnapshot)"
-    if (isCiServer) {
+    if (BuildEnvironment.isCiServer) {
         logger.lifecycle "##teamcity[buildStatus text='{build.status.text}, Promoted version ${version}']"
     }
 }

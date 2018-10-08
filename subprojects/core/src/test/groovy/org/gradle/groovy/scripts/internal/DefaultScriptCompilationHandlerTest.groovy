@@ -39,6 +39,7 @@ import org.gradle.groovy.scripts.Transformer
 import org.gradle.internal.Actions
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
@@ -52,7 +53,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.instanceOf
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class DefaultScriptCompilationHandlerTest extends Specification {
 
@@ -124,7 +128,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         then:
         compiledScript.runDoesSomething
         compiledScript.data == null
-        Script script = compiledScript.loadClass().newInstance()
+        Script script = JavaReflectionUtil.newInstance(compiledScript.loadClass())
         evaluateScript(script)
     }
 
@@ -208,7 +212,7 @@ println 'hi'
         compiledScript.data == null
 
         and:
-        Script script = compiledScript.loadClass().newInstance()
+        Script script = JavaReflectionUtil.newInstance(compiledScript.loadClass())
         expectedScriptClass.isInstance(script)
         script.method(12) == "[12]"
     }
@@ -293,9 +297,15 @@ println 'hi'
             }
 
             @Override
+            String getStage() {
+                return "STAGE"
+            }
+
+            @Override
             public Transformer getTransformer() {
                 return visitor
             }
+
 
             @Override
             public String getExtractedData() {
@@ -320,7 +330,7 @@ println 'hi'
         compiledScript.runDoesSomething
         !compiledScript.hasMethods
         compiledScript.data == "extracted data"
-        def script = compiledScript.loadClass().newInstance()
+        def script = JavaReflectionUtil.newInstance(compiledScript.loadClass())
         evaluateScript(script)
     }
 
@@ -340,6 +350,11 @@ println 'hi'
             @Override
             public String getId() {
                 return "id"
+            }
+
+            @Override
+            String getStage() {
+                return "STAGE"
             }
 
             @Override
@@ -503,6 +518,6 @@ Outer.Inner.Deeper weMustGoDeeper = null
     }
 
     private static HashCode hashFor(String scriptText) {
-        Hashing.md5().hashString(scriptText)
+        Hashing.hashString(scriptText)
     }
 }

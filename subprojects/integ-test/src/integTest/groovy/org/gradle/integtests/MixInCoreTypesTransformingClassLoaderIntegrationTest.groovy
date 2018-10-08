@@ -17,9 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
-@Ignore
 class MixInCoreTypesTransformingClassLoaderIntegrationTest extends AbstractIntegrationSpec {
     def "custom task types have bridge methods for inputs/outputs"() {
         buildFile << """
@@ -41,14 +39,12 @@ class MixInCoreTypesTransformingClassLoaderIntegrationTest extends AbstractInteg
                     assertReturnTypesFor task, "getInputs", TaskInputs, TaskInputsInternal
 
                     // Internal return types leaked in Gradle 3.2
-                    assertReturnTypesFor task.inputs, "dir", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal, TaskInputs
-                    assertReturnTypesFor task.inputs, "file", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal, TaskInputs
-                    assertReturnTypesFor task.inputs, "files", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal, TaskInputs
+                    assertReturnTypesFor task.inputs, "dir", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    assertReturnTypesFor task.inputs, "file", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    assertReturnTypesFor task.inputs, "files", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
                 }
             }
         """
-
-        executer.requireGradleDistribution()
 
         expect:
         succeeds "customTask"

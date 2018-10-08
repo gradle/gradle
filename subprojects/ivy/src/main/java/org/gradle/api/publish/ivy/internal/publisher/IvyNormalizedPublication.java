@@ -25,14 +25,14 @@ public class IvyNormalizedPublication {
 
     private final String name;
     private final IvyPublicationIdentity projectIdentity;
-    private final File descriptorFile;
-    private final Set<IvyArtifact> artifacts;
+    private final File ivyDescriptorFile;
+    private final Set<IvyArtifact> allArtifacts;
 
-    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File descriptorFile, Set<IvyArtifact> artifacts) {
+    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
         this.name = name;
         this.projectIdentity = projectIdentity;
-        this.artifacts = artifacts;
-        this.descriptorFile = descriptorFile;
+        this.ivyDescriptorFile = ivyDescriptorFile;
+        this.allArtifacts = allArtifacts;
     }
 
     public String getName() {
@@ -43,11 +43,11 @@ public class IvyNormalizedPublication {
         return projectIdentity;
     }
 
-    public File getDescriptorFile() {
-        return descriptorFile;
+    public File getIvyDescriptorFile() {
+        return ivyDescriptorFile;
     }
 
-    public Set<IvyArtifact> getArtifacts() {
-        return artifacts;
+    public Set<IvyArtifact> getAllArtifacts() {
+        return allArtifacts;
     }
 }

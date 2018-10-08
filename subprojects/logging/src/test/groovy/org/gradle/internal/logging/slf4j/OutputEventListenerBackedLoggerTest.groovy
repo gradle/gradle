@@ -20,9 +20,10 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.operations.BuildOperationIdentifierRegistry
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.Clock
 import org.slf4j.Marker
 import spock.lang.Specification
@@ -30,7 +31,12 @@ import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.api.logging.LogLevel.*
+import static org.gradle.api.logging.LogLevel.DEBUG
+import static org.gradle.api.logging.LogLevel.ERROR
+import static org.gradle.api.logging.LogLevel.INFO
+import static org.gradle.api.logging.LogLevel.LIFECYCLE
+import static org.gradle.api.logging.LogLevel.QUIET
+import static org.gradle.api.logging.LogLevel.WARN
 import static org.slf4j.Logger.ROOT_LOGGER_NAME
 
 @Unroll
@@ -45,7 +51,8 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         }
 
     }
-    final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, timeProvider)
+    final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(timeProvider)
+    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance()
 
     def setup() {
         context.outputEventListener = Mock(OutputEventListener) {
@@ -339,31 +346,31 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
 
         when:
-        logger().debug((Marker)null, "message")
+        logger().debug((Marker) null, "message")
 
         then:
         singleLogEvent().message("message").logLevel(DEBUG).eventExpected(eventExpected)
 
         when:
-        logger().debug((Marker)null, "{}", arg1)
+        logger().debug((Marker) null, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(DEBUG).eventExpected(eventExpected)
 
         when:
-        logger().debug((Marker)null, "{} {}", arg1, arg2)
+        logger().debug((Marker) null, "{} {}", arg1, arg2)
 
         then:
         singleLogEvent().message("arg1 arg2").logLevel(DEBUG).eventExpected(eventExpected)
 
         when:
-        logger().debug((Marker)null, "{} {} {}", arg1, arg2, arg3)
+        logger().debug((Marker) null, "{} {} {}", arg1, arg2, arg3)
 
         then:
         singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).eventExpected(eventExpected)
 
         when:
-        logger().debug((Marker)null, "message", throwable)
+        logger().debug((Marker) null, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
@@ -442,31 +449,31 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
 
         when:
-        logger().info((Marker)null, "message")
+        logger().info((Marker) null, "message")
 
         then:
         singleLogEvent().message("message").logLevel(INFO).eventExpected(eventExpected)
 
         when:
-        logger().info((Marker)null, "{}", arg1)
+        logger().info((Marker) null, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(INFO).eventExpected(eventExpected)
 
         when:
-        logger().info((Marker)null, "{} {}", arg1, arg2)
+        logger().info((Marker) null, "{} {}", arg1, arg2)
 
         then:
         singleLogEvent().message("arg1 arg2").logLevel(INFO).eventExpected(eventExpected)
 
         when:
-        logger().info((Marker)null, "{} {} {}", arg1, arg2, arg3)
+        logger().info((Marker) null, "{} {} {}", arg1, arg2, arg3)
 
         then:
         singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).eventExpected(eventExpected)
 
         when:
-        logger().info((Marker)null, "message", throwable)
+        logger().info((Marker) null, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
@@ -789,31 +796,31 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
 
         when:
-        logger().warn((Marker)null, "message")
+        logger().warn((Marker) null, "message")
 
         then:
         singleLogEvent().message("message").logLevel(WARN).eventExpected(eventExpected)
 
         when:
-        logger().warn((Marker)null, "{}", arg1)
+        logger().warn((Marker) null, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(WARN).eventExpected(eventExpected)
 
         when:
-        logger().warn((Marker)null, "{} {}", arg1, arg2)
+        logger().warn((Marker) null, "{} {}", arg1, arg2)
 
         then:
         singleLogEvent().message("arg1 arg2").logLevel(WARN).eventExpected(eventExpected)
 
         when:
-        logger().warn((Marker)null, "{} {} {}", arg1, arg2, arg3)
+        logger().warn((Marker) null, "{} {} {}", arg1, arg2, arg3)
 
         then:
         singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).eventExpected(eventExpected)
 
         when:
-        logger().warn((Marker)null, "message", throwable)
+        logger().warn((Marker) null, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
@@ -892,31 +899,31 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(ERROR).throwable(throwable)
 
         when:
-        logger().error((Marker)null, "message")
+        logger().error((Marker) null, "message")
 
         then:
         singleLogEvent().message("message").logLevel(ERROR)
 
         when:
-        logger().error((Marker)null, "{}", arg1)
+        logger().error((Marker) null, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(ERROR)
 
         when:
-        logger().error((Marker)null, "{} {}", arg1, arg2)
+        logger().error((Marker) null, "{} {}", arg1, arg2)
 
         then:
         singleLogEvent().message("arg1 arg2").logLevel(ERROR)
 
         when:
-        logger().error((Marker)null, "{} {} {}", arg1, arg2, arg3)
+        logger().error((Marker) null, "{} {} {}", arg1, arg2, arg3)
 
         then:
         singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR)
 
         when:
-        logger().error((Marker)null, "message", throwable)
+        logger().error((Marker) null, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(ERROR).throwable(throwable)
@@ -938,17 +945,19 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
     def "log events include build operation id"() {
         given:
-        def operationId = new OperationIdentifier(42L)
-        BuildOperationIdentifierRegistry.setCurrentOperationIdentifier(operationId)
+        currentBuildOperationRef.set(new DefaultBuildOperationRef(
+            new OperationIdentifier(42),
+            new OperationIdentifier(1)
+        ))
 
         when:
         logger().error('message')
 
         then:
-        singleLogEvent().message('message').logLevel(ERROR).operationIdentifier(operationId).eventExpected(true)
+        singleLogEvent().message('message').logLevel(ERROR).operationIdentifier(new OperationIdentifier(42)).eventExpected(true)
 
         cleanup:
-        BuildOperationIdentifierRegistry.clearCurrentOperationIdentifier()
+        currentBuildOperationRef.clear()
     }
 
     private String stacktrace(Exception e) {

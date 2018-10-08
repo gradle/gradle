@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.UnsupportedVersionException;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.tooling.UnsupportedVersionException;
  * @see GradleRunner#build()
  * @see GradleRunner#buildAndFail()
  */
-@Incubating
 public class InvalidRunnerConfigurationException extends IllegalStateException {
     public InvalidRunnerConfigurationException(String s) {
         super(s);

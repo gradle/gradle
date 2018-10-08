@@ -19,18 +19,46 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
-import org.gradle.internal.Cast;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.SortedSet;
 
 @NonNullApi
 public class TaskPropertyUtils {
 
-    // Note: sorted set used to keep order of properties consistent
+    /**
+     * Visits both properties declared via annotations on the properties of the task type as well as
+     * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
+     */
+    public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
+        final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, ((ProjectInternal) task.getProject()).getFileResolver());
+        propertyWalker.visitProperties(specFactory, visitor, task);
+        if (!visitor.visitOutputFilePropertiesOnly()) {
+            task.getInputs().visitRegisteredProperties(visitor);
+        }
+        task.getOutputs().visitRegisteredProperties(visitor);
+        if (visitor.visitOutputFilePropertiesOnly()) {
+            return;
+        }
+        int destroyableCount = 0;
+        for (Object path : ((TaskDestroyablesInternal) task.getDestroyables()).getRegisteredPaths()) {
+            visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec("$" + ++destroyableCount, path));
+        }
+        int localStateCount = 0;
+        for (Object path : ((TaskLocalStateInternal) task.getLocalState()).getRegisteredPaths()) {
+            visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec("$" + ++localStateCount, path));
+        }
+    }
+
+    /**
+     * Collects property specs in a sorted set to ensure consistent ordering.
+     *
+     * @throws IllegalArgumentException if there are multiple properties declared with the same name.
+     */
     public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
         Set<String> names = Sets.newHashSet();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
@@ -45,48 +73,14 @@ public class TaskPropertyUtils {
         return builder.build();
     }
 
-    public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
-        int unnamedPropertyCounter = 0;
-        for (T propertySpec : properties) {
-            String propertyName = propertySpec.getPropertyName();
-            if (propertyName == null) {
-                propertyName = "$" + (++unnamedPropertyCounter);
-                propertySpec.withPropertyName(propertyName);
-            }
-        }
-    }
-
-    public static <T extends TaskFilePropertySpec> SortedSet<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {
-        ImmutableSortedSet.Builder<ResolvedTaskOutputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
-        for (T property : properties) {
-            CacheableTaskOutputFilePropertySpec cacheableProperty = Cast.uncheckedCast(property);
-            builder.add(new ResolvedTaskOutputFilePropertySpec(cacheableProperty.getPropertyName(), cacheableProperty.getOutputType(), cacheableProperty.getOutputFile()));
-        }
-        return builder.build();
-    }
-
-    @Nullable
-    public static String checkPropertyName(@Nullable String propertyName) {
-        if (propertyName != null) {
-            if (propertyName.length() == 0) {
-                throw new IllegalArgumentException("Property name must not be empty string");
-            }
-            if (!Character.isJavaIdentifierStart(propertyName.codePointAt(0))) {
-                throw new IllegalArgumentException(String.format("Property name '%s' must be a valid Java identifier", propertyName));
-            }
-            boolean previousCharWasADot = false;
-            for (int idx = 1; idx < propertyName.length(); idx++) {
-                int chr = propertyName.codePointAt(idx);
-                // Allow single dots except as the last element of the name
-                if (chr == '.' && !previousCharWasADot && idx < propertyName.length() - 1) {
-                    previousCharWasADot = true;
-                    continue;
-                }
-                if (!Character.isJavaIdentifierPart(chr)) {
-                    throw new IllegalArgumentException(String.format("Property name '%s' must be a valid Java identifier", propertyName));
-                }
-                previousCharWasADot = false;
-            }
+    /**
+     * Checks if the given string can be used as a property name.
+     *
+     * @throws IllegalArgumentException if given name is an empty string.
+     */
+    public static String checkPropertyName(String propertyName) {
+        if (propertyName.isEmpty()) {
+            throw new IllegalArgumentException("Property name must not be empty string");
         }
         return propertyName;
     }

@@ -28,14 +28,15 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.util.concurrent.atomic.AtomicBoolean
 
 class DropConnectionFilter implements Filter {
     private static final String HTTP_METHOD_PUT = "PUT"
-    private static final String HTTP_METHOD_GET = "GET"
-    private static final String HTTP_METHOD_DELETE = "DELETE"
     private FilterConfig filterConfig
     private final long dropConnectionForPutBytes
     private final HttpBuildCacheServer buildCache
+
+    private final AtomicBoolean fired = new AtomicBoolean()
 
     DropConnectionFilter(long dropConnectionForPutBytes, HttpBuildCacheServer buildCache) {
         this.dropConnectionForPutBytes = dropConnectionForPutBytes
@@ -57,12 +58,8 @@ class DropConnectionFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request
         HttpServletResponse httpResponse = (HttpServletResponse) response
 
-        if (httpRequest.getMethod().equals(HTTP_METHOD_GET)) {
-            chain.doFilter(httpRequest, httpResponse)
-        } else if (httpRequest.getMethod().equals(HTTP_METHOD_PUT)) {
+        if (httpRequest.getMethod().equals(HTTP_METHOD_PUT) && fired.compareAndSet(false, true)) {
             doPut(httpRequest, httpResponse)
-        } else if (httpRequest.getMethod().equals(HTTP_METHOD_DELETE)) {
-            chain.doFilter(request, response)
         } else {
             chain.doFilter(httpRequest, httpResponse)
         }
@@ -83,18 +80,16 @@ class DropConnectionFilter implements Filter {
             }
         }
 
-        FileOutputStream out = new FileOutputStream(file)
-        try {
+        new FileOutputStream(file).withStream { out ->
             def stream = request.getInputStream()
             IO.copy(ByteStreams.limit(stream, dropConnectionForPutBytes), out)
             stream.close()
-            buildCache.stop()
-        }
-        finally {
-            out.close()
-        }
 
-        response.setStatus(HttpServletResponse.SC_NO_CONTENT)
+            // Drop the current connection (by dropping all), but accept subsequent connections.
+            buildCache.stop()
+            buildCache.dropConnectionForPutAfterBytes(-1)
+            buildCache.start()
+        }
     }
 
     @Override

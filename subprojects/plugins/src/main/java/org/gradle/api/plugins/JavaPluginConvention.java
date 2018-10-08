@@ -19,49 +19,17 @@ package org.gradle.api.plugins;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.java.archives.Manifest;
-import org.gradle.api.java.archives.internal.DefaultManifest;
-import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.Actions;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import java.io.File;
-
-import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
  */
-public class JavaPluginConvention {
-    private ProjectInternal project;
-
-    private String docsDirName;
-
-    private String testResultsDirName;
-
-    private String testReportDirName;
-
-    private final SourceSetContainer sourceSets;
-
-    private JavaVersion srcCompat;
-    private JavaVersion targetCompat;
-
-    public JavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
-        this.project = project;
-        sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator,
-            project.getServices().get(SourceDirectorySetFactory.class));
-        docsDirName = "docs";
-        testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
-        testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
-    }
-
+public abstract class JavaPluginConvention {
     /**
      * Configures the source sets of this project.
      *
@@ -86,91 +54,65 @@ public class JavaPluginConvention {
      * @param closure The closure to execute.
      * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
      */
-    public Object sourceSets(Closure closure) {
-        return sourceSets.configure(closure);
-    }
+    public abstract Object sourceSets(Closure closure);
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.
      */
-    public File getDocsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(docsDirName);
-    }
+    public abstract File getDocsDir();
 
     /**
      * Returns a file pointing to the root directory of the test results.
      */
-    public File getTestResultsDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(project.getBuildDir()).resolve(testResultsDirName);
-    }
+    public abstract File getTestResultsDir();
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
      */
-    public File getTestReportDir() {
-        return project.getServices().get(FileLookup.class).getFileResolver(getReportsDir()).resolve(testReportDirName);
-    }
-
-    private File getReportsDir() {
-        return project.getExtensions().getByType(ReportingExtension.class).getBaseDir();
-    }
+    public abstract File getTestReportDir();
 
     /**
      * Returns the source compatibility used for compiling Java sources.
      */
-    public JavaVersion getSourceCompatibility() {
-        return srcCompat != null ? srcCompat : JavaVersion.current();
-    }
+    public abstract JavaVersion getSourceCompatibility();
 
     /**
      * Sets the source compatibility used for compiling Java sources.
      *
      * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
-    public void setSourceCompatibility(Object value) {
-        setSourceCompatibility(JavaVersion.toVersion(value));
-    }
+    public abstract void setSourceCompatibility(Object value);
 
     /**
      * Sets the source compatibility used for compiling Java sources.
      *
      * @param value The value for the source compatibility
      */
-    public void setSourceCompatibility(JavaVersion value) {
-        srcCompat = value;
-    }
+    public abstract void setSourceCompatibility(JavaVersion value);
 
     /**
      * Returns the target compatibility used for compiling Java sources.
      */
-    public JavaVersion getTargetCompatibility() {
-        return targetCompat != null ? targetCompat : getSourceCompatibility();
-    }
+    public abstract JavaVersion getTargetCompatibility();
 
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
      * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
-    public void setTargetCompatibility(Object value) {
-        setTargetCompatibility(JavaVersion.toVersion(value));
-    }
+    public abstract void setTargetCompatibility(Object value);
 
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
      * @param value The value for the target compatibility
      */
-    public void setTargetCompatibility(JavaVersion value) {
-        targetCompat = value;
-    }
+    public abstract void setTargetCompatibility(JavaVersion value);
 
     /**
      * Creates a new instance of a {@link Manifest}.
      */
-    public Manifest manifest() {
-        return manifest(Actions.<Manifest>doNothing());
-    }
+    public abstract Manifest manifest();
 
     /**
      * Creates and configures a new instance of a {@link Manifest}. The given closure configures
@@ -178,9 +120,7 @@ public class JavaPluginConvention {
      *
      * @param closure The closure to use to configure the manifest.
      */
-    public Manifest manifest(Closure closure) {
-        return configure(closure, createManifest());
-    }
+    public abstract Manifest manifest(Closure closure);
 
     /**
      * Creates and configures a new instance of a {@link Manifest}.
@@ -188,57 +128,33 @@ public class JavaPluginConvention {
      * @param action The action to use to configure the manifest.
      * @since 3.5
      */
-    public Manifest manifest(Action<? super Manifest> action) {
-        Manifest manifest = createManifest();
-        action.execute(manifest);
-        return manifest;
-    }
-
-    private Manifest createManifest() {
-        return new DefaultManifest(project.getFileResolver());
-    }
+    public abstract Manifest manifest(Action<? super Manifest> action);
 
     /**
      * The name of the docs directory. Can be a name or a path relative to the build dir.
      */
-    public String getDocsDirName() {
-        return docsDirName;
-    }
+    public abstract String getDocsDirName();
 
-    public void setDocsDirName(String docsDirName) {
-        this.docsDirName = docsDirName;
-    }
+    public abstract void setDocsDirName(String docsDirName);
 
     /**
      * The name of the test results directory. Can be a name or a path relative to the build dir.
      */
-    public String getTestResultsDirName() {
-        return testResultsDirName;
-    }
+    public abstract String getTestResultsDirName();
 
-    public void setTestResultsDirName(String testResultsDirName) {
-        this.testResultsDirName = testResultsDirName;
-    }
+    public abstract void setTestResultsDirName(String testResultsDirName);
 
     /**
      * The name of the test reports directory. Can be a name or a path relative to {@link org.gradle.api.reporting.ReportingExtension#getBaseDir}.
      */
-    public String getTestReportDirName() {
-        return testReportDirName;
-    }
+    public abstract String getTestReportDirName();
 
-    public void setTestReportDirName(String testReportDirName) {
-        this.testReportDirName = testReportDirName;
-    }
+    public abstract void setTestReportDirName(String testReportDirName);
 
     /**
      * The source sets container.
      */
-    public SourceSetContainer getSourceSets() {
-        return sourceSets;
-    }
+    public abstract SourceSetContainer getSourceSets();
 
-    public ProjectInternal getProject() {
-        return project;
-    }
+    public abstract ProjectInternal getProject();
 }

@@ -20,25 +20,24 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     private final ProjectComponentSelector selector;
     private final DependencyMetadata delegate;
+    private final boolean isTransitive;
 
     public DefaultProjectDependencyMetadata(ProjectComponentSelector selector, DependencyMetadata delegate) {
         this.selector = selector;
         this.delegate = delegate;
+        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -47,12 +46,7 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public List<Exclude> getExcludes() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<Exclude> getExcludes(Collection<String> configurations) {
+    public List<ExcludeMetadata> getExcludes() {
         return Collections.emptyList();
     }
 
@@ -70,37 +64,33 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public boolean isForce() {
-        return delegate.isForce();
-    }
-
-    @Override
-    public boolean isOptional() {
+    public boolean isConstraint() {
         return false;
     }
 
     @Override
+    public String getReason() {
+        return delegate.getReason();
+    }
+
+    @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return isTransitive;
     }
 
     @Override
-    public Set<String> getModuleConfigurations() {
-        return delegate.getModuleConfigurations();
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+        return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
     }
 
     @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return delegate.selectConfigurations(consumerAttributes, fromComponent, fromConfiguration, targetComponent, consumerSchema);
-    }
-
-    @Override
-    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
-        return delegate.getArtifacts(fromConfiguration, toConfiguration);
-    }
-
-    @Override
-    public Set<IvyArtifactName> getArtifacts() {
+    public List<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
     }
+
+    @Override
+    public DependencyMetadata withReason(String reason) {
+        return delegate.withReason(reason);
+    }
+
 }

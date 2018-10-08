@@ -22,6 +22,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Set;
 
 public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final TestFramework testFramework;
@@ -34,8 +35,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final long forkEvery;
     private final JavaForkOptions javaForkOptions;
     private final int maxParallelForks;
+    private final Set<String> previousFailedTestClasses;
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.candidateClassFiles = candidateClassFiles;
@@ -46,6 +48,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this.forkEvery = forkEvery;
         this.javaForkOptions = javaForkOptions;
         this.maxParallelForks = maxParallelForks;
+        this.previousFailedTestClasses = previousFailedTestClasses;
     }
 
     public TestFramework getTestFramework() {
@@ -86,5 +89,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public int getMaxParallelForks() {
         return maxParallelForks;
+    }
+
+    public Set<String> getPreviousFailedTestClasses() {
+        return previousFailedTestClasses;
     }
 }

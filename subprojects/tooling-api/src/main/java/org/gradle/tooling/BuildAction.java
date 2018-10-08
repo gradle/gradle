@@ -16,8 +16,6 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 import java.io.Serializable;
 
 /**
@@ -28,7 +26,6 @@ import java.io.Serializable;
  * @param <T> The type of result produced by this action.
  * @since 1.8
  */
-@Incubating
 public interface BuildAction<T> extends Serializable {
     /**
      * Executes this action and returns the result.

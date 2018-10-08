@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -23,6 +24,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -30,11 +32,12 @@ import org.gradle.process.internal.ExecActionFactory;
 /**
  * Compiler adapter for GCC.
  */
+@NonNullApi
 public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc {
     public static final String DEFAULT_NAME = "gcc";
 
-    public GccToolChain(Instantiator instantiator, String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, WorkerLeaseService workerLeaseService) {
-        super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.gcc(), instantiator, workerLeaseService);
+    public GccToolChain(Instantiator instantiator, String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, SystemLibraryDiscovery standardLibraryDiscovery, WorkerLeaseService workerLeaseService) {
+        super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.gcc(), standardLibraryDiscovery, instantiator, workerLeaseService);
     }
 
     @Override

@@ -16,9 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.JavaMethod;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -46,14 +43,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     static {
         EXT_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
-        Package[] systemPackages;
-        JavaMethod<ClassLoader, Package[]> method = ClassLoaderUtils.getPackagesMethod();
-        try {
-            systemPackages = method.invoke(EXT_CLASS_LOADER);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        for (Package p : systemPackages) {
+        for (Package p : new RetrieveSystemPackagesClassLoader(EXT_CLASS_LOADER).getPackages()) {
             SYSTEM_PACKAGES.add(p.getName());
         }
         try {
@@ -61,6 +51,16 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
+        }
+    }
+
+    private static class RetrieveSystemPackagesClassLoader extends ClassLoader {
+        RetrieveSystemPackagesClassLoader(ClassLoader parent) {
+            super(parent);
+        }
+
+        protected Package[] getPackages() {
+            return super.getPackages();
         }
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineArgumentException;
@@ -53,7 +52,7 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
-    public StartParameter toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
+    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameterInternal startParameter = new StartParameterInternal();
 
@@ -94,10 +93,6 @@ class ProviderStartParameterConverter {
 
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
-        }
-
-        if (parameters.getStandardInput() != null) {
-            startParameter.setInteractive(true);
         }
 
         return startParameter;

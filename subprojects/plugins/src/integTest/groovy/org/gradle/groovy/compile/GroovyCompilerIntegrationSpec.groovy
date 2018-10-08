@@ -91,7 +91,6 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
 
         expect:
         succeeds("compileGroovy")
-        !errorOutput
         groovyClassFile("GroovyCode.class").exists()
         groovyClassFile("JavaCode.class").exists()
     }

@@ -32,6 +32,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         verifySettings(operation(), settingsFile)
+        operation().details.buildPath == ":"
     }
 
     def "settings with master folder are exposed"() {
@@ -50,6 +51,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         verifySettings(operation(), customSettingsFile)
+        operation().details.buildPath == ":"
     }
 
     def "settings set via cmdline flag are exposed"() {
@@ -67,6 +69,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         verifySettings(operation(), customSettingsFile)
+        operation().details.buildPath == ":"
     }
 
     def "composite participants expose their settings details"() {
@@ -93,8 +96,19 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         operations().size() == 2
-        verifySettings(operations()[0], nestedSettingsFile)
-        verifySettings(operations()[1], settingsFile)
+        verifySettings(operations()[0], settingsFile)
+        operations()[0].details.buildPath == ":"
+        verifySettings(operations()[1], nestedSettingsFile)
+        operations()[1].details.buildPath == ":nested"
+    }
+
+    def 'can configure feature preview in settings'() {
+        given:
+        settingsFile << '''
+enableFeaturePreview('IMPROVED_POM_SUPPORT')
+'''
+        expect:
+        succeeds('help')
     }
 
     private List<BuildOperationRecord> operations() {

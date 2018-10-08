@@ -18,34 +18,24 @@ package org.gradle.internal.composite;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildRegistry;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
-
-import java.io.File;
+import org.gradle.internal.build.BuildStateRegistry;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
-    private final NestedBuildFactory nestedBuildFactory;
-    private final IncludedBuildRegistry includedBuildRegistry;
+    private final BuildStateRegistry buildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry) {
         this.delegate = delegate;
-        this.nestedBuildFactory = nestedBuildFactory;
-        this.includedBuildRegistry = includedBuildRegistry;
+        this.buildRegistry = buildRegistry;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
 
-        // Add all included builds from the command-line
-        for (File file : gradle.getStartParameter().getIncludedBuilds()) {
-            includedBuildRegistry.addExplicitBuild(file, nestedBuildFactory);
-        }
-
         // Lock-in explicitly included builds
-        includedBuildRegistry.validateExplicitIncludedBuilds(settings);
+        buildRegistry.registerRootBuild(settings);
 
         return settings;
     }

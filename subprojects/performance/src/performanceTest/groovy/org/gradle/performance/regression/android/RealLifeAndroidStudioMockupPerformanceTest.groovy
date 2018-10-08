@@ -26,12 +26,13 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         given:
 
         experiment(testProject) {
-            minimumVersion = "3.4"
-            targetVersions = ["4.2-20170817235727+0000"]
+            minimumVersion = "4.3.1"
+            targetVersions = ["5.0-20180914112317+0000"]
             action('org.gradle.performance.android.SyncAction') {
-                jvmArguments = customizeJvmOptions(["-Xms2g", "-Xmx2g"])
-                withArguments("android.builder.sdkDownload=true", "-Dcom.android.build.gradle.overrideVersionCheck=true")
+                jvmArguments = ["-Xms4g", "-Xmx4g"]
             }
+            invocationCount = iterations
+            warmUpCount = iterations
         }
 
         when:
@@ -41,7 +42,9 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["k9AndroidBuild", "largeAndroidBuild"]
+        testProject         | iterations
+        "k9AndroidBuild"    | 200
+        "largeAndroidBuild" | 40
     }
 
 }

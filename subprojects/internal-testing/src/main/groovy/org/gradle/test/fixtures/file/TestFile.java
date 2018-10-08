@@ -28,7 +28,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
-import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -56,7 +55,11 @@ import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
@@ -134,7 +137,7 @@ public class TestFile extends File {
     }
 
     public TestFile withExtension(String extension) {
-        return getParentFile().file(getName().replaceAll("\\..*$", "." + extension));
+        return getParentFile().file(org.gradle.internal.FileUtils.withExtension(getName(), extension));
     }
 
     public TestFile writelns(String... lines) {
@@ -340,7 +343,7 @@ public class TestFile extends File {
      * }
      * </pre>
      */
-    public TestFile create(@DelegatesTo(TestWorkspaceBuilder.class) Closure structure) {
+    public TestFile create(@DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure structure) {
         assertTrue(isDirectory() || mkdirs());
         new TestWorkspaceBuilder(this).apply(structure);
         return this;
@@ -374,6 +377,21 @@ public class TestFile extends File {
             throw new AssertionError("File " + this + " does not contain the expected text.");
         }
         setText(newContent);
+    }
+
+    /**
+     * Inserts the given text on a new line before the given text
+     */
+    public void insertBefore(String text, String newText) {
+        String original = getText();
+        int pos = original.indexOf(text);
+        if (pos < 0) {
+            throw new AssertionError("File " + this + " does not contain the expected text.");
+        }
+        StringBuilder newContent = new StringBuilder(original);
+        newContent.insert(pos, '\n');
+        newContent.insert(pos, newText);
+        setText(newContent.toString());
     }
 
     public TestFile assertExists() {
@@ -425,7 +443,7 @@ public class TestFile extends File {
     }
 
     public static HashCode md5(File file) {
-        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
             Files.copy(file, hashingStream);
         } catch (IOException e) {
@@ -499,16 +517,16 @@ public class TestFile extends File {
         Set<String> missing = new TreeSet<String>(expected);
         missing.removeAll(actual);
 
-        assertEquals(String.format("For dir: %s, extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
+        assertEquals(String.format("For dir: %s\n extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
 
         return this;
 
     }
 
     /**
-     * Asserts that this file contains the given set of descendants (and possibly other files).
+     * Convenience method for {@link #assertContainsDescendants(String...)}.
      */
-    public TestFile assertContainsDescendants(String... descendants) {
+    public TestFile assertContainsDescendants(Iterable<String> descendants) {
         assertIsDir();
         Set<String> actual = new TreeSet<String>();
         visit(actual, "", this);
@@ -518,9 +536,16 @@ public class TestFile extends File {
         Set<String> missing = new TreeSet<String>(expected);
         missing.removeAll(actual);
 
-        assertTrue(String.format("For dir: %s, missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
+        assertTrue(String.format("For dir: %s\n missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
 
         return this;
+    }
+
+    /**
+     * Asserts that this file contains the given set of descendants (and possibly other files).
+     */
+    public TestFile assertContainsDescendants(String... descendants) {
+        return assertContainsDescendants(Arrays.asList(descendants));
     }
 
     public TestFile assertIsEmptyDir() {

@@ -34,10 +34,10 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
             class TestTaskReportContainer extends TaskReportContainer<Report> {
                 TestTaskReportContainer(Task task) {
                     super(Report, task)
-                    add(TaskGeneratedReport, "file1", Report.OutputType.FILE, task)
-                    add(TaskGeneratedReport, "file2", Report.OutputType.FILE, task)
-                    add(TaskGeneratedReport, "dir1", Report.OutputType.DIRECTORY, task)
-                    add(TaskGeneratedReport, "dir2", Report.OutputType.DIRECTORY, task)
+                    add(TaskGeneratedSingleFileReport, "file1", task)
+                    add(TaskGeneratedSingleFileReport, "file2", task)
+                    add(TaskGeneratedSingleDirectoryReport, "dir1", task, null)
+                    add(TaskGeneratedSingleDirectoryReport, "dir2", task, null)
                 }
             }
 

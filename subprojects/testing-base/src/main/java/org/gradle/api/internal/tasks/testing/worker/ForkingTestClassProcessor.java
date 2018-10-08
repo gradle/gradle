@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.tasks.testing.JULRedirector;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -25,6 +27,7 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -33,6 +36,8 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerLeaseRegistry.WorkerLease currentWorkerLease;
@@ -42,12 +47,15 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
+    private final Lock lock = new ReentrantLock();
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
+    private DocumentationRegistry documentationRegistry;
+    private boolean stoppedNow;
 
-    public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry) {
+    public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
         this.currentWorkerLease = parentWorkerLease;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
@@ -55,6 +63,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.classPath = classPath;
         this.buildConfigAction = buildConfigAction;
         this.moduleRegistry = moduleRegistry;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -64,12 +73,28 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        if (remoteProcessor == null) {
-            completion = currentWorkerLease.startChild();
-            remoteProcessor = forkProcess();
-        }
+        lock.lock();
+        try {
+            if (stoppedNow) {
+                return;
+            }
 
-        remoteProcessor.processTestClass(testClass);
+            if (remoteProcessor == null) {
+                JULRedirector.checkDeprecatedProperty(options);
+                completion = currentWorkerLease.startChild();
+                try {
+                    remoteProcessor = forkProcess();
+                } catch (RuntimeException e) {
+                    completion.leaseFinish();
+                    completion = null;
+                    throw e;
+                }
+            }
+
+            remoteProcessor.processTestClass(testClass);
+        } finally {
+            lock.unlock();
+        }
     }
 
     RemoteTestClassProcessor forkProcess() {
@@ -104,6 +129,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-engine").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-launcher").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-commons").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
@@ -116,13 +145,40 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stop() {
-        if (remoteProcessor != null) {
-            try {
-                remoteProcessor.stop();
+        try {
+            if (remoteProcessor != null) {
+                lock.lock();
+                try {
+                    if (!stoppedNow) {
+                        remoteProcessor.stop();
+                    }
+                } finally {
+                    lock.unlock();
+                }
                 workerProcess.waitForStop();
-            } finally {
-                completion.leaseFinish();
             }
+        } catch (ExecException e) {
+            if (!stoppedNow) {
+                throw new ExecException(e.getMessage()
+                    + "\nThis problem might be caused by incorrect test process configuration."
+                    + "\nPlease refer to the test execution section in the user guide at "
+                    + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
+            }
+        } finally {
+            completion.leaseFinish();
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        lock.lock();
+        try {
+            stoppedNow = true;
+            if (remoteProcessor != null) {
+                workerProcess.stopNow();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }

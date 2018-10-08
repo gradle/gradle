@@ -17,12 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import spock.lang.Unroll
 
 class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
     def setup() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator())
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(), new VersionParser())
     }
 
     @Unroll
@@ -43,18 +44,6 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         ['1.1', '1.2', '1.0']        | '1.2'
         ['1.0', '1.0-beta-1']        | '1.0'
         ['1.0-beta-1', '1.0-beta-2'] | '1.0-beta-2'
-    }
-
-    def "rejections can fail conflict resolution"() {
-        given:
-        prefer('1.2')
-        strictly('1.1')
-
-        when:
-        resolveConflicts()
-
-        then:
-        resolutionFailedWith 'Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 1.2, prefers 1.1, rejects ]1.1,)'
     }
 
     def "can upgrade non strict version"() {

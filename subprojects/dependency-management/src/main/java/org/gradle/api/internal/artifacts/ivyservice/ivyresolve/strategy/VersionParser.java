@@ -16,20 +16,36 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import org.gradle.api.Transformer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class VersionParser implements Transformer<Version, String> {
-    public static final VersionParser INSTANCE = new VersionParser();
+    private final Map<String, Version> cache = Maps.newConcurrentMap();
 
     public VersionParser() {
     }
 
     @Override
     public Version transform(String original) {
+        Version version = cache.get(original);
+        if (version != null) {
+            return version;
+        }
+        return parseAndCache(original);
+    }
+
+    private Version parseAndCache(String original) {
+        Version version = parse(original);
+        cache.put(original, version);
+        return version;
+    }
+
+    private Version parse(String original) {
         List<String> parts = new ArrayList<String>();
         boolean digit = false;
         int startPart = 0;

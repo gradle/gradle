@@ -15,14 +15,11 @@
  */
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
-
 /**
  * Enumerates the different kinds of JVM tests. This allows to differentiate between test suites, atomic tests, etc.
  *
  * @since 2.4
  */
-@Incubating
 public enum JvmTestKind {
 
     SUITE("Test suite"),

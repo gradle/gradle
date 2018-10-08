@@ -91,7 +91,7 @@ public class ComponentSelectionRulesProcessor {
             return Collections.emptyList();
         }
 
-        if (!metadataProvider.resolve()) {
+        if (!metadataProvider.isUsable()) {
             return null;
         }
 

@@ -19,6 +19,7 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -33,7 +34,9 @@ public class BuildCacheKeyInputs {
     private final HashCode classLoaderHash;
     private final List<HashCode> actionClassLoaderHashes;
     private final ImmutableList<String> actionClassNames;
-    private final ImmutableSortedMap<String, HashCode> inputHashes;
+    private final ImmutableSortedMap<String, HashCode> inputValueHashes;
+    private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles;
+    private final ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
     public BuildCacheKeyInputs(
@@ -41,11 +44,15 @@ public class BuildCacheKeyInputs {
         @Nullable HashCode classLoaderHash,
         @Nullable List<HashCode> actionClassLoaderHashes,
         @Nullable ImmutableList<String> actionClassNames,
-        @Nullable ImmutableSortedMap<String, HashCode> inputHashes,
+        @Nullable ImmutableSortedMap<String, HashCode> inputValueHashes,
+        @Nullable ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles,
+        @Nullable ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader,
         @Nullable ImmutableSortedSet<String> outputPropertyNames
     ) {
         this.taskClass = taskClass;
-        this.inputHashes = inputHashes;
+        this.inputValueHashes = inputValueHashes;
+        this.inputFiles = inputFiles;
+        this.inputPropertiesLoadedByUnknownClassLoader = inputPropertiesLoadedByUnknownClassLoader;
         this.classLoaderHash = classLoaderHash;
         this.actionClassLoaderHashes = actionClassLoaderHashes;
         this.actionClassNames = actionClassNames;
@@ -58,8 +65,18 @@ public class BuildCacheKeyInputs {
     }
 
     @Nullable
-    public ImmutableSortedMap<String, HashCode> getInputHashes() {
-        return inputHashes;
+    public ImmutableSortedMap<String, HashCode> getInputValueHashes() {
+        return inputValueHashes;
+    }
+
+    @Nullable
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFiles() {
+        return inputFiles;
+    }
+
+    @Nullable
+    public ImmutableSortedSet<String> getInputPropertiesLoadedByUnknownClassLoader() {
+        return inputPropertiesLoadedByUnknownClassLoader;
     }
 
     @Nullable
@@ -88,7 +105,9 @@ public class BuildCacheKeyInputs {
             + "classLoaderHash=" + classLoaderHash
             + ", actionClassLoaderHashes=" + actionClassLoaderHashes
             + ", actionClassNames=" + actionClassNames
-            + ", inputHashes=" + inputHashes
+            + ", inputValueHashes=" + inputValueHashes
+            + ", inputFiles=" + inputFiles
+            + ", inputPropertyNamesLoadedByUnknownClassLoader=" + inputPropertiesLoadedByUnknownClassLoader
             + ", outputPropertyNames=" + outputPropertyNames
             + '}';
     }

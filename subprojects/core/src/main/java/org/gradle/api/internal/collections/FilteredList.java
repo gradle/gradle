@@ -15,24 +15,22 @@
  */
 package org.gradle.api.internal.collections;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public class FilteredList<T, S extends T> extends FilteredCollection<T, S> implements List<S> {
-    public FilteredList(Collection<T> collection, CollectionFilter<S> filter) {
+// TODO make this work with pending elements
+public class FilteredList<T, S extends T> extends FilteredCollection<T, S> implements IndexedElementSource<S> {
+    public FilteredList(ElementSource<T> collection, CollectionFilter<S> filter) {
         super(collection, filter);
     }
 
+    @Override
     public void add(int index, S element) {
         throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", element, this));
     }
 
-    public boolean addAll(int index, Collection<? extends S> c) {
-        throw new UnsupportedOperationException(String.format("Cannot add all from '%s' to '%s' as it is a filtered collection", c, this));
-    }
-
+    @Override
     public S get(int index) {
         int nextIndex = 0;
         for (T t : collection) {
@@ -47,14 +45,17 @@ public class FilteredList<T, S extends T> extends FilteredCollection<T, S> imple
         throw new IndexOutOfBoundsException();
     }
 
+    @Override
     public S set(int index, S element) {
         throw new UnsupportedOperationException(String.format("Cannot set '%s' in '%s' as it is a filtered collection", element, this));
     }
 
+    @Override
     public S remove(int index) {
         throw new UnsupportedOperationException(String.format("Cannot remove element from '%s' as it is a filtered collection", this));
     }
 
+    @Override
     public int indexOf(Object o) {
         int nextIndex = 0;
         for (T t : collection) {
@@ -69,6 +70,7 @@ public class FilteredList<T, S extends T> extends FilteredCollection<T, S> imple
         return -1;
     }
 
+    @Override
     public int lastIndexOf(Object o) {
         int nextIndex = 0;
         int lastMatch = -1;
@@ -84,10 +86,12 @@ public class FilteredList<T, S extends T> extends FilteredCollection<T, S> imple
         return lastMatch;
     }
 
+    @Override
     public ListIterator<S> listIterator() {
         return new FilteredListIterator<S>(iterator());
     }
 
+    @Override
     public ListIterator<S> listIterator(int index) {
         ListIterator<S> iterator = listIterator();
         for (int i = 0; i < index; i++) {
@@ -96,6 +100,7 @@ public class FilteredList<T, S extends T> extends FilteredCollection<T, S> imple
         return iterator;
     }
 
+    @Override
     public List<S> subList(int fromIndex, int toIndex) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
@@ -104,43 +109,52 @@ public class FilteredList<T, S extends T> extends FilteredCollection<T, S> imple
         private final Iterator<T> iterator;
         private int nextIndex;
 
-        public FilteredListIterator(Iterator<T> iterator) {
+        FilteredListIterator(Iterator<T> iterator) {
             this.iterator = iterator;
         }
 
+        @Override
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
+        @Override
         public boolean hasPrevious() {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
 
+        @Override
         public T next() {
             nextIndex++;
             return iterator.next();
         }
 
+        @Override
         public T previous() {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
 
+        @Override
         public int nextIndex() {
             return nextIndex;
         }
 
+        @Override
         public int previousIndex() {
             return nextIndex - 1;
         }
 
+        @Override
         public void add(T t) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void set(T t) {
             throw new UnsupportedOperationException();
         }

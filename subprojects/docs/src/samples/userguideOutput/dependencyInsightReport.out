@@ -1,3 +1,0 @@
-org.codehaus.groovy:groovy-all:2.4.10
-\--- project :api
-     \--- compile

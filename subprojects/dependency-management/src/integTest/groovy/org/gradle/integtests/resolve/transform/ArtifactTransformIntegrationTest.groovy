@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Issue
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -124,7 +125,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":jars", ":resolve")
+        executed(":jars", ":resolve")
 
         and:
         outputContains("variants: [{artifactType=size}, {artifactType=size}]")
@@ -144,7 +145,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":jars", ":resolve")
+        executed(":jars", ":resolve")
 
         and:
         output.count("Transforming") == 0
@@ -182,7 +183,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+        executed(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
@@ -201,10 +202,90 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+        executed(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
         output.count("Transforming") == 0
+    }
+
+    def "applies transforms to artifacts from local projects, files and external dependencies"() {
+        def dependency = mavenRepo.module("test", "test-dependency", "1.3").publish()
+        dependency.artifactFile.text = "dependency"
+        def binaryDependency = mavenRepo.module("test", "test", "1.3").dependsOn(dependency).publish()
+        binaryDependency.artifactFile.text = "1234"
+
+        settingsFile << """
+            include 'common'
+        """
+
+        given:
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(':common') {
+                task jar(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'common.jar'
+                }
+                artifacts {
+                    compile jar
+                    compile file("common-file.jar")
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib2.jar'
+                }
+
+                dependencies {
+                    compile "${binaryDependency.groupId}:${binaryDependency.artifactId}:${binaryDependency.version}"
+                    compile project(":common")
+                    compile files("file1.jar")
+                }
+
+                artifacts {
+                    compile jar1, jar2
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+        file("lib/file1.jar").text = "first"
+        file("common/common-file.jar").text = "first"
+
+        when:
+        run "resolve"
+
+        then:
+        executed(":common:jar", ":lib:jar1", ":lib:jar2", ":app:resolve")
+
+        and:
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
+        outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
+        file("app/build/libs").assertHasDescendants("common.jar.txt", "common-file.jar.txt", "file1.jar.txt", "lib1.jar.txt", "lib2.jar.txt", "test-1.3.jar.txt", "test-dependency-1.3.jar.txt")
+        file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
+
+        and:
+        output.count("Transforming") == 7
     }
 
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
@@ -245,7 +326,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:zip1", ":app:resolve")
+        executed(":lib:jar1", ":lib:zip1", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
@@ -351,11 +432,11 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":lib:jar2", ":app:resolve")
+        executed(":lib:jar1", ":lib:jar2", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
-        outputContains("ids: [lib1.jar.jar (project :lib), lib2.zip.jar (project :lib)]")
+        outputContains("ids: [lib1.jar (project :lib), lib2.zip.jar (project :lib)]")
         outputContains("components: [project :lib, project :lib]")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
 
@@ -445,7 +526,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
@@ -459,7 +540,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         output.count("Transforming") == 0
@@ -544,6 +625,7 @@ class FileSizer extends ArtifactTransform {
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".blue")
                     println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
                     output.text = String.valueOf(input.length())
                     return [output]
                 }
@@ -554,6 +636,7 @@ class FileSizer extends ArtifactTransform {
                     assert outputDirectory.directory && outputDirectory.list().length == 0
                     def output = new File(outputDirectory, input.name + ".red")
                     println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
                     output.text = String.valueOf(input.length())
                     return [output]
                 }
@@ -564,7 +647,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
@@ -582,7 +665,7 @@ class FileSizer extends ArtifactTransform {
         run "resolve"
 
         then:
-        result.assertTasksExecuted(":lib:jar1", ":app:resolve")
+        executed(":lib:jar1", ":app:resolve")
 
         and:
         output.count("Transforming") == 0
@@ -1502,7 +1585,7 @@ Found the following transforms:
         failure.assertHasCause("java.io.NotSerializableException: CustomType")
     }
 
-    def "Artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
+    def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
         module.getArtifactFile(classifier:"foo").text = "1234"
         module.getArtifactFile(classifier:"bar").text = "5678"
@@ -1544,7 +1627,145 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
-    def configurationAndTransform(String transformImplementation) {
+    def "transform runs only once even when variant is consumed from multiple projects"() {
+        given:
+        settingsFile << """
+            include 'app2'
+        """
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+
+                task lib1(type: Jar) {}
+    
+                dependencies {
+                    compile files(lib1)
+                }
+                artifacts {
+                    compile file1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+    
+            project(':app2') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+
+        when:
+        run "app:resolve", "app2:resolve"
+
+        then:
+        output.count("Transforming") == 1
+    }
+
+    def "can resolve transformed variant during configuration time"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                projectDir.mkdirs()
+                def jar1 = file('lib1.jar')
+                jar1.text = 'some text'
+                def file1 = file('lib1.size')
+                file1.text = 'some text'
+
+                dependencies {
+                    compile files(jar1)
+                }
+                artifacts {
+                    compile file1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+                ${declareTransform('FileSizer')}
+
+                task resolve(type: Copy) {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                        if (project.hasProperty("lenient")) {
+                            lenient(true)
+                        }
+                    }.artifacts
+                    // Resolve during configuration
+                    from artifacts.artifactFiles.files
+                    into "\${buildDir}/libs"
+                    doLast {
+                        // Do nothing
+                    }
+                }
+            }
+        """
+
+        when:
+        run "app:resolve"
+
+        then:
+        output.count("Transforming") == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6156")
+    def "stops resolving dependencies of task when artifact transforms are encountered"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                task jar(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+
+                artifacts {
+                    compile jar
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                ${configurationAndTransform()}
+
+                task dependent {
+                    dependsOn resolve
+                }
+            }
+
+            gradle.taskGraph.whenReady { taskGraph ->
+                taskGraph.allTasks.each { task ->
+                    task.taskDependencies.getDependencies(task).each { dependency ->
+                        println "> Dependency: \${task} -> \${dependency}"
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependent"
+
+        then:
+        output.count("> Dependency:") == 1
+        output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
+        output.contains("> Transform lib1.jar (project :lib) with FileSizer")
+        output.contains("> Task :app:resolve")
+    }
+
+    def declareTransform(String transformImplementation) {
         """
             dependencies {
                 registerTransform {
@@ -1553,6 +1774,12 @@ Found the following transforms:
                     artifactTransform(${transformImplementation})
                 }
             }
+        """
+    }
+
+    def configurationAndTransform(String transformImplementation = "FileSizer") {
+        """
+            ${declareTransform(transformImplementation)}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {

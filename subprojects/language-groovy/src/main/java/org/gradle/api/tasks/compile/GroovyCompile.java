@@ -23,17 +23,16 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -44,6 +43,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
@@ -84,9 +84,9 @@ public class GroovyCompile extends AbstractCompile {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory = getServices().get(IsolatedClassloaderWorkerFactory.class);
-            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            FileResolver fileResolver = getServices().get(FileResolver.class);
-            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, workerDaemonFactory, inProcessWorkerFactory, fileResolver);
+            PathToFileResolver fileResolver = getServices().get(PathToFileResolver.class);
+            AnnotationProcessorDetector processorDetector = getServices().get(AnnotationProcessorDetector.class);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, workerDaemonFactory, inProcessWorkerFactory, fileResolver, processorDetector);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
             compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
         }
@@ -95,7 +95,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private DefaultGroovyJavaJointCompileSpec createSpec() {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions).create();
-        spec.setSource(getSource());
+        spec.setSourceFiles(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
@@ -115,8 +115,8 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private List<File> calculateAnnotationProcessorClasspath() {
-        AnnotationProcessorDetector annotationProcessorDetector = getServices().get(AnnotationProcessorDetector.class);
-        FileCollection processorClasspath = annotationProcessorDetector.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
+        FileCollection processorClasspath = annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
         return Lists.newArrayList(processorClasspath);
     }
 

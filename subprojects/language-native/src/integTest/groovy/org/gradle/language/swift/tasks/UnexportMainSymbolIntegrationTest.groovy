@@ -18,60 +18,87 @@ package org.gradle.language.swift.tasks
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
-@Requires([TestPrecondition.SWIFT_SUPPORT])
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
         settingsFile << "rootProject.name = 'app'"
         buildFile << """
-            apply plugin: "swift-executable"
+            apply plugin: "swift-application"
             task unexport(type: UnexportMainSymbol) {
-                source components.main.developmentBinary.objects
+                outputDirectory = layout.buildDirectory.dir("relocated")
+                objects.from { components.main.developmentBinary.get().objects }
             }
         """
     }
 
-    def "relocate _main symbol with main.swift"() {
-        file("src/main/swift/main.swift") << """
-            print("hello world!")
-        """
+    @Issue("https://github.com/gradle/gradle-native/issues/304")
+    def "clean build works"() {
+        writeMainSwift()
+
+        expect:
+        succeeds("clean", "unexport")
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/297")
+    def "unexport is incremental"() {
+        writeMainSwift()
 
         when:
-        succeeds("unexport", "assemble")
+        succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
+        result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
+
+        when:
+        succeeds("unexport")
+        then:
+        result.assertTasksSkipped(":compileDebugSwift", ":unexport")
+
+        when:
+        updateMainSwift()
+        succeeds("unexport")
+        then:
+        result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
+    }
+
+    def "relocate _main symbol with main.swift"() {
+        writeMainSwift()
+
+        when:
+        succeeds("unexport")
+        then:
+        assertMainSymbolIsNotExported("build/relocated/main.o")
     }
 
     def "relocate _main symbol with notMain.swift"() {
-        file("src/main/swift/notMain.swift") << """
-            print("hello world!")
-        """
+        writeMainSwift("notMain.swift")
 
         when:
-        succeeds("unexport", "assemble")
+        succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/tmp/unexport/notMain.o")
+        assertMainSymbolIsNotExported("build/relocated/notMain.o")
     }
 
     def "relocate _main symbol with multiple swift files"() {
-        file("src/main/swift/main.swift") << """
-            print("hello world!")
-        """
+        writeMainSwift()
         file("src/main/swift/other.swift") << """
             class Other {}
         """
 
         when:
-        succeeds("unexport", "assemble")
+        succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
+        assertMainSymbolIsNotExported("build/relocated/main.o")
+        file("build/relocated").assertHasDescendants("main.o", "other.o")
     }
 
-    def "does not relocate when there is no main.swift"() {
+    def "can relocate when there is no main symbol"() {
         file("src/main/swift/notMain.swift") << """
             class NotMain {}
         """
@@ -82,7 +109,19 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         when:
         succeeds("unexport")
         then:
-        file("build/tmp/unexport/main.o").assertDoesNotExist()
+        file("build/relocated").assertHasDescendants("notMain.o", "other.o")
+    }
+
+    private TestFile writeMainSwift(String filename="main.swift") {
+        file("src/main/swift/${filename}") << """
+            print("hello world!")
+        """
+    }
+
+    private TestFile updateMainSwift(String filename="main.swift") {
+        file("src/main/swift/${filename}") << """
+            print("goodbye world!")
+        """
     }
 
     private void assertMainSymbolIsNotExported(String objectFile) {

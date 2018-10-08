@@ -20,7 +20,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * <p>A {@code LoggingManager} provides access to and control over the Gradle logging system. Using this interface, you
- * can control the current logging level and standard output and error capture.</p>
+ * can control standard output and error capture and receive logging events.</p>
  */
 @HasInternalProtocol
 public interface LoggingManager extends LoggingOutput {

@@ -17,50 +17,61 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.ComponentSelectionContext
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
+import org.gradle.util.TestUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultVersionedComponentChooserTest extends Specification {
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def versionParser = new VersionParser()
+    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
     def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
+    def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
+    def consumerAttributes = ImmutableAttributes.EMPTY
+    def cachePolicy = new DefaultCachePolicy()
 
-    def chooser = new DefaultVersionedComponentChooser(versionComparator, componentSelectionRules)
+    def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema)
 
     def "chooses latest version for component meta data"() {
         def one = Stub(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
         def two = Stub(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
         def three = Stub(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
         }
 
         when:
-        0 * componentSelectionRules.apply(_,_)
+        0 * componentSelectionRules.apply(_, _)
 
         then:
         chooser.selectNewestComponent(one, two) == two
 
         when:
-        0 * componentSelectionRules.apply(_,_)
+        0 * componentSelectionRules.apply(_, _)
 
         then:
         chooser.selectNewestComponent(two, three) == three
@@ -68,23 +79,23 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses non-generated descriptor over generated"() {
         def one = Mock(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
         def two = Mock(ComponentResolveMetadata) {
-            getId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 
         when:
         1 * one.missing >> true
         1 * two.missing >> false
-        0 * componentSelectionRules.apply(_,_)
+        0 * componentSelectionRules.apply(_, _)
 
         then:
         chooser.selectNewestComponent(one, two) == two
 
         when:
         1 * one.missing >> false
-        0 * componentSelectionRules.apply(_,_)
+        0 * componentSelectionRules.apply(_, _)
 
         then:
         chooser.selectNewestComponent(one, two) == one
@@ -92,137 +103,187 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses newest matching version without requiring metadata"() {
         given:
-        def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
+        def a = component('1.2')
+        def b = component('1.3')
+        def c = component('2.0')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("1.+"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("1.+"), null, consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
-        _ * a.id >> DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
-        _ * b.version >> version("1.3")
-        _ * b.id >> selected
-        _ * c.version >> version("2.0")
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched('2.0')
-        0 * selectedComponentResult.notMatched('1.2') // versions are checked latest first
-        1 * selectedComponentResult.matches(selected)
+        1 * selectedComponentResult.notMatched(c.id, _)
+        0 * selectedComponentResult.notMatched(a.id, _) // versions are checked latest first
+        1 * selectedComponentResult.matches(b.id)
+        0 * _
+
+    }
+
+    def "chooses newest non rejected matching version without requiring metadata"() {
+        given:
+        def a = component('1.2')
+        def b = component('1.3')
+        def c = component('2.0')
+        def d = component('1.1')
+        def selectedComponentResult = Mock(ComponentSelectionContext)
+
+        when:
+        chooser.selectNewestMatchingComponent([c, d, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("1.+"), versionSelectorScheme.parseSelector("1.3"), consumerAttributes)
+
+        then:
+        _ * componentSelectionRules.rules >> []
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.rejectedBySelector(b.id, _)
+        0 * selectedComponentResult.notMatched(d.id, _) // versions are checked latest first
+        1 * selectedComponentResult.matches(a.id)
         0 * _
 
     }
 
     def "chooses newest matching version requiring metadata"() {
         given:
-        def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
-        def dependency = Mock(DependencyMetadata)
+        def a = component('1.2')
+        def b = component('1.3', 'milestone')
+        def c = component('2.0', 'integration')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.milestone"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.milestone"), null, consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
-        _ * b.version >> version("1.3")
-        _ * b.id >> selected
-        _ * c.version >> version("2.0")
-        1 * c.resolve() >> resolvedWithStatus("integration")
-        1 * c.getComponentMetadataSupplier()
-        1 * b.resolve() >> resolvedWithStatus("milestone")
-        1 * b.getComponentMetadataSupplier()
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched('2.0')
-        1 * selectedComponentResult.matches(selected)
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.matches(b.id)
         0 * _
 
     }
 
-    def "rejects dynamic version by rule without metadata" () {
+    def "chooses newest non rejected matching version requiring metadata"() {
         given:
-        def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
-        def d = Mock(ModuleComponentResolveState)
+        def a = component('1.2', 'milestone')
+        def b = component('1.3', 'milestone')
+        def c = component('2.0', 'integration')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([d, c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("1.+"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.milestone"), versionSelectorScheme.parseSelector('1.3'), consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
-        _ * b.version >> version("1.3")
-        _ * b.id >> selected
-        _ * c.version >> version("2.0")
-        _ * d.version >> version("1.4")
-        _ * d.id >> DefaultModuleComponentIdentifier.newId("group", "name", "1.4")
-        _ * componentSelectionRules.rules >> rules({ComponentSelection selection ->
+        _ * componentSelectionRules.rules >> []
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.rejectedBySelector(b.id, _)
+        1 * selectedComponentResult.matches(a.id)
+        0 * _
+
+    }
+
+    def "rejects dynamic version by rule without metadata"() {
+        given:
+        def a = component('1.2')
+        def b = component('1.3')
+        def c = component('2.0')
+        def d = component('1.4')
+        def selectedComponentResult = Mock(ComponentSelectionContext)
+
+        when:
+        chooser.selectNewestMatchingComponent([d, c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("1.+"), null, consumerAttributes)
+
+        then:
+        _ * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             if (selection.candidate.version != '1.3') {
                 selection.reject("rejected")
             }
         })
-        1 * selectedComponentResult.notMatched('2.0')
-        1 * selectedComponentResult.rejected('1.4') // 1.2 won't be rejected because of latest first sorting
-        1 * selectedComponentResult.matches(selected)
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.rejectedByRule({it.id == d.id}) // 1.2 won't be rejected because of latest first sorting
+        1 * selectedComponentResult.matches(b.id)
         0 * _
     }
 
-    def "rejects dynamic version by rule with metadata" () {
+    def "rejects dynamic version by rule with metadata"() {
         given:
-        def selected = DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
+        def a = component('1.2')
+        def b = component('1.3', 'release')
+        def c = component('2.0', 'milestone')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.release"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.release"), null, consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
-        _ * b.version >> version("1.3")
-        _ * b.id >> selected
-        _ * c.version >> version("2.0")
-        1 * c.resolve() >> resolvedWithStatus("milestone")
-        1 * c.getComponentMetadataSupplier()
-        1 * b.resolve() >> resolvedWithStatus("release")
-        1 * b.getComponentMetadataSupplier()
-        1 * componentSelectionRules.rules >> rules({ComponentSelection selection ->
+        1 * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             if (selection.candidate.version == '1.3') {
                 selection.reject("rejected")
             }
         })
-        1 * selectedComponentResult.notMatched('2.0')
-        1 * selectedComponentResult.rejected('1.3')
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.rejectedByRule({it.id == b.id})
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
     }
 
+    @Unroll
+    def "rejects dynamic version by attributes with metadata using notation #notation"() {
+        given:
+        def a = component('1.2')
+        def b = component('1.3', 'release', [color: 'red'])
+        def c = component('1.4', 'release', [color: 'green'])
+        def d = component('2.0', 'release', [color: 'blue'])
+        def selectedComponentResult = Mock(ComponentSelectionContext)
+        consumerAttributes = TestUtil.attributes(color: 'red')
+
+        when:
+        chooser.selectNewestMatchingComponent([c, a, d, b], selectedComponentResult, versionSelectorScheme.parseSelector(notation), null, consumerAttributes)
+
+        then:
+        1 * componentSelectionRules.getRules() >> []
+        if (notation.indexOf('+') > 0) {
+            1 * selectedComponentResult.notMatched(d.id, _)
+        } else {
+            1 * selectedComponentResult.doesNotMatchConsumerAttributes({
+                it.id == d.id &&
+                    it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
+                        .with { match ->
+                        assert match.requestedValue.get() == 'red'
+                        assert match.found.get() == 'blue'
+                        match
+                    }
+            })
+        }
+        1 * selectedComponentResult.doesNotMatchConsumerAttributes({
+            it.id == c.id &&
+                it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
+                    .with { match ->
+                    assert match.requestedValue.get() == 'red'
+                    assert match.found.get() == 'green'
+                    match
+                }
+        })
+        1 * selectedComponentResult.matches(b.id)
+        0 * _
+
+        where:
+        notation << ["[1.0,)", "latest.release", "1.+", "1+", "+"]
+
+    }
+
     def "returns no match when no versions match without metadata"() {
         given:
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
+        def a = component('1.2')
+        def b = component('1.3')
+        def c = component('2.0')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, b, a], selectedComponentResult, versionSelectorScheme.parseSelector("1.1"))
+        chooser.selectNewestMatchingComponent([c, b, a], selectedComponentResult, versionSelectorScheme.parseSelector("1.1"), null, consumerAttributes)
 
         then:
         _ * componentSelectionRules.rules >> []
-        _ * a.version >> version("1.2")
-        _ * b.version >> version("1.3")
-        _ * c.version >> version("2.0")
-        1 * selectedComponentResult.notMatched('2.0')
-        1 * selectedComponentResult.notMatched('1.3')
-        1 * selectedComponentResult.notMatched('1.2')
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.notMatched(b.id, _)
+        1 * selectedComponentResult.notMatched(a.id, _)
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
@@ -230,28 +291,19 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "returns no match when no versions are chosen with metadata"() {
         given:
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
+        def a = component('1.2', 'integration')
+        def b = component('1.3', 'integration')
+        def c = component('2.0', 'integration')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.release"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.release"), null, consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
-        _ * b.version >> version("1.3")
-        _ * c.version >> version("2.0")
-        1 * a.resolve() >> resolvedWithStatus("integration")
-        1 * a.getComponentMetadataSupplier()
-        1 * b.resolve() >> resolvedWithStatus("integration")
-        1 * b.getComponentMetadataSupplier()
-        1 * c.resolve() >> resolvedWithStatus("integration")
-        1 * c.getComponentMetadataSupplier()
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched('2.0')
-        1 * selectedComponentResult.notMatched('1.3')
-        1 * selectedComponentResult.notMatched('1.2')
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.notMatched(b.id, _)
+        1 * selectedComponentResult.notMatched(a.id, _)
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
@@ -259,60 +311,52 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "returns no match when all matching versions match are rejected by rule"() {
         given:
-        def a = Mock(ModuleComponentResolveState)
-        def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
+        def a = component('1.2')
+        def b = component('1.3')
+        def c = component('2.0')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("+"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("+"), null, consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
-        _ * a.id >> Stub(ModuleComponentIdentifier)
-        _ * b.version >> version("1.3")
-        _ * b.id >> Stub(ModuleComponentIdentifier)
-        _ * c.version >> version("2.0")
-        _ * c.id >> Stub(ModuleComponentIdentifier)
         _ * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
         })
-        1 * selectedComponentResult.rejected('2.0')
-        1 * selectedComponentResult.rejected('1.3')
-        1 * selectedComponentResult.rejected('1.2')
+        1 * selectedComponentResult.rejectedByRule({it.id == c.id})
+        1 * selectedComponentResult.rejectedByRule({it.id == b.id})
+        1 * selectedComponentResult.rejectedByRule({it.id == a.id})
         1 * selectedComponentResult.noMatchFound()
         0 * _
     }
 
     def "stops when candidate cannot be resolved"() {
         given:
-        def a = Mock(ModuleComponentResolveState)
+        def a = component('1.2')
         def b = Mock(ModuleComponentResolveState)
-        def c = Mock(ModuleComponentResolveState)
+        def c = component('2.0', 'integration')
         def selectedComponentResult = Mock(ComponentSelectionContext)
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.release"))
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, versionSelectorScheme.parseSelector("latest.release"), null, consumerAttributes)
 
         then:
-        _ * a.version >> version("1.2")
         _ * b.version >> version("1.3")
-        _ * c.version >> version("2.0")
-        1 * c.resolve() >> resolvedWithStatus("integration")
-        1 * c.getComponentMetadataSupplier()
         1 * b.resolve() >> resolvedWithFailure()
         1 * b.getComponentMetadataSupplier()
+
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched('2.0')
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.failed(_ as ModuleVersionResolveException)
         0 * _
 
     }
 
-    def resolvedWithStatus(String status) {
+    def resolvedWithStatus(String status, Map<String, ?> attributes) {
         def meta = Stub(ModuleComponentResolveMetadata) {
             getStatusScheme() >> ["integration", "milestone", "release"]
             getStatus() >> status
+            getAttributes() >> TestUtil.attributes(attributes)
         }
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
         result.resolved(meta)
@@ -328,13 +372,39 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def rules(Closure closure) {
         return [
             new SpecRuleAction<ComponentSelection>(
-                    new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
-                    Specs.<ComponentSelection>satisfyAll()
+                new ClosureBackedRuleAction<ComponentSelection>(ComponentSelection, closure),
+                Specs.<ComponentSelection> satisfyAll()
             )
         ]
     }
 
+    ModuleComponentResolveState component(String v, String status = null, Map<String, ?> attributes = [:]) {
+        def mid = DefaultModuleIdentifier.newId('group', 'name')
+        def c = Stub(ModuleComponentResolveState) {
+            getId() >> DefaultModuleComponentIdentifier.newId(mid, v)
+            getVersion() >> version(v)
+            if (status == null && attributes.isEmpty()) {
+                resolve() >> { throw new RuntimeException("No metadata available") }
+            } else {
+                resolve() >> resolvedWithStatus(status, attributes)
+            }
+            getComponentMetadataSupplier() >> null
+            getCachePolicy() >> cachePolicy
+            getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
+        }
+        return c
+    }
+
+    ComponentMetadataSupplierRuleExecutor componentMetadataSupplierExecutor() {
+        Mock(ComponentMetadataSupplierRuleExecutor) {
+            execute(_, _, _, _, _) >> { args ->
+                def (key, rule, converter, producer, cachePolicy) = args
+                converter.transform(producer.transform(key))
+            }
+        }
+    }
+
     def version(String version) {
-        return VersionParser.INSTANCE.transform(version)
+        return versionParser.transform(version)
     }
 }

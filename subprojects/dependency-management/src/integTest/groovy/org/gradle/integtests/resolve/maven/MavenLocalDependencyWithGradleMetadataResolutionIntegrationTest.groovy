@@ -17,16 +17,18 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
 
 class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile)
 
     def setup() {
         resolve.prepare()
-        ExperimentalFeaturesFixture.enable(settingsFile)
         settingsFile << "rootProject.name = 'test'"
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
     }
 
     def "uses the module metadata when present and pom is not present"() {
@@ -51,7 +53,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
@@ -61,7 +63,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -77,7 +79,7 @@ dependencies {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -139,7 +141,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -202,7 +204,7 @@ task checkRelease {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "lot-o-files",
@@ -251,7 +253,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "lot-o-files",
@@ -298,7 +300,7 @@ task checkDebug {
         c.publish()
         c.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",
@@ -328,7 +330,7 @@ task checkDebug {
         a.publish()
         a.moduleMetadata.file.text = """
 {
-    "formatVersion": "0.2",
+    "formatVersion": "${FORMAT_VERSION}",
     "variants": [
         {
             "name": "debug",

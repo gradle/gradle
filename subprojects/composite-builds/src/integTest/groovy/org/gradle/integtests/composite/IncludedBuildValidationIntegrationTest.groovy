@@ -17,6 +17,8 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Ignore
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -42,8 +44,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build '${buildDir.absolutePath}' does not exist.")
+        failure.assertHasDescription("Included build '${buildDir.absolutePath}' does not exist.")
     }
 
     def "reports failure when included build directory is not a directory"() {
@@ -55,10 +56,10 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build '${buildDir.absolutePath}' is not a directory.")
+        failure.assertHasDescription("Included build '${buildDir.absolutePath}' is not a directory.")
     }
 
+    @Ignore
     def "reports failure when included build directory is not the root directory of build"() {
         when:
         includedBuilds << buildB.file('b1')
@@ -67,26 +68,8 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build 'b1' must have a settings file.")
+        failure.assertHasDescription("Included build 'b1' must have a settings file.")
     }
-
-    def "reports failure when included build is itself a composite"() {
-        when:
-        def buildC = singleProjectBuild("buildC")
-        buildB.settingsFile << """
-            includeBuild('${buildC.toURI()}')
-"""
-
-        includedBuilds << buildB
-
-        then:
-        fails(buildA, "help")
-
-        and:
-        failure.assertHasCause("Included build 'buildB' cannot have included builds.")
-    }
-
 
     def "reports failure for duplicate included build name"() {
         given:
@@ -98,7 +81,9 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build 'buildB' is not unique in composite.")
+        failure.assertHasDescription("""Multiple included builds have the same root project name 'buildB':
+  - Included build in ${buildB}
+  - Included build in ${buildC}""")
     }
 
     def "reports failure for included build name that conflicts with subproject name"() {
@@ -112,7 +97,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build 'buildB' collides with subproject of the same name.")
+        failure.assertHasDescription("Included build in ${buildB} has a root project whose name 'buildB' is the same as a project of the main build.")
     }
 
     def "reports failure for included build name that conflicts with root project name"() {
@@ -124,6 +109,6 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build 'buildA' collides with root project name.")
+        failure.assertHasDescription("Included build in ${buildC} has the same root project name 'buildA' as the main build.")
     }
 }

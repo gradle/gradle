@@ -16,60 +16,89 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import spock.lang.Unroll
 
-class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
+class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "src/main/scala/Library.scala"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/scala/LibrarySuite.scala"
+    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.scala"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibrarySuite.scala"
 
-    final wrapper = new WrapperTestFixture(testDirectory)
-
-    def "creates sample source if no source present"() {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'scala-library')
+        run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        targetDir.file("src/main/scala").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/scala").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
+        commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibrarySuite")
-        testResult.testClass("LibrarySuite").assertTestPassed("someLibraryMethod is always true")
+        assertTestPassed("some.thing.LibrarySuite", "someLibraryMethod is always true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when scala sources detected"() {
+    @Unroll
+    def "creates sample source with package and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
+
+        then:
+        targetDir.file("src/main/scala").assertHasDescendants("my/lib/Library.scala")
+        targetDir.file("src/test/scala").assertHasDescendants("my/lib/LibrarySuite.scala")
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibrarySuite", "someLibraryMethod is always true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/scala/org/acme/SampleMain.scala") << """
+        targetDir.file("src/main/scala/org/acme/SampleMain.scala") << """
             package org.acme;
 
             class SampleMain{
             }
     """
-        file("src/test/scala/org/acme/SampleMainTest.scala") << """
+        targetDir.file("src/test/scala/org/acme/SampleMainTest.scala") << """
                     package org.acme;
 
                     class SampleMainTest{
                     }
             """
+
         when:
-        succeeds('init', '--type', 'scala-library')
+        run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_LIBRARY_CLASS).exists()
-        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        targetDir.file("src/main/scala").assertHasDescendants("org/acme/SampleMain.scala")
+        targetDir.file("src/test/scala").assertHasDescendants("org/acme/SampleMainTest.scala")
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        executed(":test")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 }

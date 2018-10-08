@@ -16,9 +16,9 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.plugin.management.PluginResolveDetails;
@@ -29,7 +29,7 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
     private boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
-        listenerManager.addListener(new BuildAdapter(){
+        listenerManager.addListener(new InternalBuildAdapter(){
             @Override
             public void projectsLoaded(Gradle gradle) {
                 locked = true;

@@ -19,7 +19,6 @@ package org.gradle.api.initialization;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A build that is to be included in the composite.
@@ -27,7 +26,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 3.1
  */
 @Incubating
-@HasInternalProtocol
 public interface ConfigurableIncludedBuild extends IncludedBuild {
 
     /**

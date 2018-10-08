@@ -28,6 +28,6 @@ class FileCollectionBackedTarArchiveTextResourceTest extends AbstractTextResourc
         archiveEntry.text = "contents"
         project.ant.tar(basedir: project.file("archive"), destfile: archive, compression: "gzip")
         resource = new FileCollectionBackedArchiveTextResource(project.services.get(FileOperations),
-                project.services.get(TemporaryFileProvider), project.files(archive), "path/to/text", Charsets.UTF_8)
+                project.services.get(TemporaryFileProvider), project.layout.files(archive), "path/to/text", Charsets.UTF_8)
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 public interface PlatformToolProvider extends ToolProvider {
@@ -25,11 +27,29 @@ public interface PlatformToolProvider extends ToolProvider {
 
     String getSharedLibraryName(String libraryPath);
 
+    /**
+     * Does this tool chain produce an import library when linking a shared library?
+     */
     boolean producesImportLibrary();
+
+    /**
+     * Whether or not this tool chain requires a debuggable binary to be stripped or whether the binary is stripped by default.
+     */
+    boolean requiresDebugBinaryStripping();
 
     String getImportLibraryName(String libraryPath);
 
     String getSharedLibraryLinkFileName(String libraryPath);
 
     String getStaticLibraryName(String libraryPath);
+
+    String getExecutableSymbolFileName(String executablePath);
+
+    String getLibrarySymbolFileName(String libraryPath);
+
+    CompilerMetadata getCompilerMetadata(ToolType compilerType);
+
+    SystemLibraries getSystemLibraries(ToolType compilerType);
+
+    CommandLineToolSearchResult locateTool(ToolType compilerType);
 }

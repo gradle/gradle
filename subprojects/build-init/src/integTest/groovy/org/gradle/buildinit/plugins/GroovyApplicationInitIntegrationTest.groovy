@@ -16,96 +16,134 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import spock.lang.Unroll
 
-class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
+class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "src/main/groovy/App.groovy"
-    public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
+    public static final String SAMPLE_APP_CLASS = "some/thing/App.groovy"
+    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.groovy"
 
-    final wrapper = new WrapperTestFixture(testDirectory)
-
-    def "creates sample source if no source present"() {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application')
+        run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_APP_CLASS)
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonFilesGenerated(scriptDsl)
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
-        assertTestPassed("application has a greeting")
+        assertTestPassed("some.thing.AppTest", "application has a greeting")
 
         when:
-        succeeds("run")
+        run("run")
 
         then:
         outputContains("Hello world")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "creates sample source using spock instead of junit"() {
+    @Unroll
+    def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock')
+        run('init', '--type', 'groovy-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_APP_CLASS)
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonFilesGenerated(scriptDsl)
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
-        assertTestPassed("application has a greeting")
+        assertTestPassed("some.thing.AppTest", "application has a greeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "specifying TestNG is not supported"() {
+    @Unroll
+    def "specifying TestNG is not supported with #scriptDsl build scripts"() {
         when:
-        fails('init', '--type', 'groovy-application', '--test-framework', 'testng')
+        fails('init', '--type', 'groovy-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
-        errorOutput.contains("The requested test framework 'testng' is not supported in 'groovy-application' setup type")
+        failure.assertHasCause("The requested test framework 'testng' is not supported for 'groovy-application' setup type. Supported frameworks: 'spock'")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when groovy sources detected"() {
+    @Unroll
+    def "creates sample source with package and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'groovy-application', '--package', 'my.app', '--dsl', scriptDsl.id)
+
+        then:
+        targetDir.file("src/main/groovy").assertHasDescendants("my/app/App.groovy")
+        targetDir.file("src/test/groovy").assertHasDescendants("my/app/AppTest.groovy")
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.app.AppTest", "application has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello world")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/groovy/org/acme/SampleMain.groovy") << """
+        targetDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """
         package org.acme;
 
-        public class SampleMain{
+        public class SampleMain {
         }
 """
-        file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
+        targetDir.file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
                 package org.acme;
 
-                class SampleMain{
+                class SampleMainTest {
                 }
         """
         when:
-        succeeds('init', '--type', 'groovy-application')
+        run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_APP_CLASS).exists()
-        !file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
-    }
+        targetDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")
+        targetDir.file("src/test/groovy").assertHasDescendants("org/acme/SampleMainTest.groovy")
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
-    def assertTestPassed(String name) {
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("AppTest")
-        testResult.testClass("AppTest").assertTestPassed(name)
+        when:
+        run("build")
+
+        then:
+        executed(":test")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 }

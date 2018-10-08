@@ -261,6 +261,33 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         inEar "APP-INF/lib/child.jar"
     }
 
+    def supportsDuplicateDependencies() {
+        given:
+        def pojoProject = TestUtil.createChildProject(project, 'pojo')
+        pojoProject.pluginManager.apply(JavaPlugin)
+        def beanProject = TestUtil.createChildProject(project, 'bean')
+        beanProject.pluginManager.apply(JavaPlugin)
+
+        beanProject.dependencies {
+            runtime project(path: pojoProject.path, configuration: 'default')
+        }
+
+        when:
+        project.pluginManager.apply(EarPlugin)
+        project.dependencies {
+            deploy project(path: beanProject.path, configuration: 'default')
+            earlib project(path: beanProject.path, configuration: 'default')
+        }
+
+        and:
+        executeWithDependencies project.tasks[EarPlugin.EAR_TASK_NAME]
+
+        then:
+        inEar "bean.jar"
+        inEar "lib/pojo.jar"
+        notInEar "lib/bean.jar"
+    }
+
     def supportsGeneratingDeploymentDescriptor() {
         when:
         project.pluginManager.apply(EarPlugin)
@@ -334,5 +361,11 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def ear = project.zipTree("build/libs/${project.name}.ear")
         assert !ear.empty
         ear.matching { include path }.singleFile
+    }
+
+    void notInEar(path) {
+        def ear = project.zipTree("build/libs/${project.name}.ear")
+        assert !ear.empty
+        ear.matching { include path }.empty
     }
 }

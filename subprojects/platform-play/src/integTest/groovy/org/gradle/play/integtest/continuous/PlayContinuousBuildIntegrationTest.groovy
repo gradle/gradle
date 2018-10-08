@@ -23,7 +23,7 @@ import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
-    PlayApp playApp = new BasicPlayApp()
+    PlayApp playApp = new BasicPlayApp(versionNumber)
 
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
@@ -64,7 +64,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
         def original = file("app/controllers/Application.scala").text
 
         when: "source file is broken"
-        file("app/controllers/Application.scala").text = "object Application extends Controller {"
+        file("app/controllers/Application.scala").text = "class Application extends Controller {"
 
         then:
         fails("runPlayBinary")

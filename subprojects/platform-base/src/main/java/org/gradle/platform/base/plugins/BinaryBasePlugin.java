@@ -15,13 +15,25 @@
  */
 package org.gradle.platform.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.*;
-import org.gradle.platform.base.*;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -56,21 +68,25 @@ public class BinaryBasePlugin implements Plugin<Project> {
 
         @Mutate
         void copyBinaryTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
-            for (BinarySpec binary : binaries) {
-                tasks.addAll(binary.getTasks());
+            for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                TaskContainerInternal tasksInternal = (TaskContainerInternal) tasks;
+                if (binary.isLegacyBinary()) {
+                    continue;
+                }
+                tasksInternal.addAllInternal(binary.getTasks());
                 Task buildTask = binary.getBuildTask();
                 if (buildTask != null) {
-                    tasks.add(buildTask);
+                    tasksInternal.addInternal(buildTask);
                 }
             }
         }
 
         @Finalize
-        public void defineBuildLifecycleTask(@Each BinarySpecInternal binary, ITaskFactory taskFactory) {
+        public void defineBuildLifecycleTask(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
             if (binary.isLegacyBinary()) {
                 return;
             }
-            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getProjectScopedName(), DefaultTask.class);
+            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getProjectScopedName(), DefaultTask.class);
             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
             binary.setBuildTask(binaryLifecycleTask);

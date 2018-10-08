@@ -16,24 +16,37 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 
 import java.util.Set;
 
-public interface MavenPublicationInternal extends MavenPublication, PublicationInternal {
+public interface MavenPublicationInternal extends MavenPublication, PublicationInternal<MavenArtifact> {
 
     MavenPomInternal getPom();
 
-    void setPomFile(FileCollection pomFile);
+    void setPomGenerator(Task pomGenerator);
 
+    void setModuleDescriptorGenerator(Task moduleMetadataGenerator);
+
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
     FileCollection getPublishableFiles();
 
-    MavenProjectIdentity getMavenProjectIdentity();
+    MutableMavenProjectIdentity getMavenProjectIdentity();
+
+    Set<MavenDependency> getApiDependencyConstraints();
+
+    Set<MavenDependency> getRuntimeDependencyConstraints();
 
     Set<MavenDependencyInternal> getApiDependencies();
 
@@ -50,7 +63,5 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
      * This method enables this behaviour for the current publication.
      */
     void publishWithOriginalFileName();
-
-    boolean canPublishModuleMetadata();
 }
 

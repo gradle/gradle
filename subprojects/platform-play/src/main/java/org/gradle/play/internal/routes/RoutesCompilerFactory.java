@@ -33,19 +33,16 @@ public class RoutesCompilerFactory {
         String playVersion = playPlatform.getPlayVersion();
         String scalaVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_2_X:
-                return new RoutesCompilerAdapterV22X(playVersion);
             case PLAY_2_3_X:
                 return new RoutesCompilerAdapterV23X(playVersion);
             case PLAY_2_4_X:
-                if (VersionNumber.parse(playVersion).getMicro() < 6) {
+                if (VersionNumber.parse(playVersion).getMicro() < 6 && !"2.10".equals(scalaVersion)) {
                     LOGGER.warn("Asked to use scala version " + scalaVersion
                         + " on play < 2.4.6. Will have to use the 2.10 routes compiler");
                     scalaVersion = "2.10";
                 }
                 return new RoutesCompilerAdapterV24X(playVersion, scalaVersion);
             case PLAY_2_5_X:
-                return new RoutesCompilerAdapterV24X(playVersion, scalaVersion);
             case PLAY_2_6_X:
                 return new RoutesCompilerAdapterV24X(playVersion, scalaVersion);
             default:

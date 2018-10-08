@@ -21,24 +21,19 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.GUtil;
+import org.gradle.internal.util.PropertiesUtils;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 
-import static java.util.Collections.emptyList;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**
@@ -50,45 +45,35 @@ import static org.gradle.util.CollectionUtils.collect;
 public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
-    public static final String IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY = "implementation-classpath-hash";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
-    private FileCollection pluginClasspath;
-    private File outputDirectory;
+    private final ConfigurableFileCollection pluginClasspath = getProject().files();
+    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
     @Classpath
-    public FileCollection getPluginClasspath() {
+    public ConfigurableFileCollection getPluginClasspath() {
         return pluginClasspath;
-    }
-
-    public void setPluginClasspath(FileCollection pluginClasspath) {
-        this.pluginClasspath = pluginClasspath;
     }
 
     /**
      * The target output directory used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name"}.
      */
     @OutputDirectory
-    public File getOutputDirectory() {
+    public DirectoryProperty getOutputDirectory() {
         return outputDirectory;
-    }
-
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
     }
 
     @TaskAction
     public void generate() {
         Properties properties = new Properties();
 
-        if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
+        if (!getPluginClasspath().isEmpty()) {
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, implementationClasspathHash());
         }
 
-        File outputFile = new File(getOutputDirectory(), METADATA_FILE_NAME);
+        File outputFile = new File(getOutputDirectory().get().getAsFile(), METADATA_FILE_NAME);
         saveProperties(properties, outputFile);
     }
 
@@ -98,17 +83,9 @@ public class PluginUnderTestMetadata extends DefaultTask {
         return implementationClasspath.toString();
     }
 
-    private String implementationClasspathHash() {
-        // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
-        // We should be reusing those persistent snapshots to avoid reading into memory again.
-        ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
-        return classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
-    }
-
     private void saveProperties(Properties properties, File outputFile) {
         try {
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
-            GUtil.savePropertiesNoDateComment(properties, outputStream);
+            PropertiesUtils.store(properties, outputFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -116,19 +93,11 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     @Input
     protected List<String> getPaths() {
-        return collect(classpathFiles(), new Transformer<String, File>() {
+        return collect(getPluginClasspath(), new Transformer<String, File>() {
             @Override
             public String transform(File file) {
                 return file.getAbsolutePath().replaceAll("\\\\", "/");
             }
         });
     }
-
-    private Iterable<File> classpathFiles() {
-        if (getPluginClasspath() != null) {
-            return getPluginClasspath();
-        }
-        return emptyList();
-    }
-
 }

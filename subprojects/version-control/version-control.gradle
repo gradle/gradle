@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -13,19 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     api project(':coreApi')
 
     implementation project(':core')
-    implementation libraries.jgit
+    implementation project(':dependencyManagement')
+    implementation libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 
     testFixturesImplementation project(":internalTesting")
-    testFixturesCompile libraries.jgit
+    testFixturesImplementation project(":internalIntegTesting")
+    testFixturesApi libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 }
 
-useTestFixtures()
-useClassycle()
-strictCompile()
+gradlebuildJava {
+    moduleType = ModuleType.CORE
+}
+
+testFixtures {
+    from(':core')
+}

@@ -18,10 +18,10 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
@@ -43,34 +43,20 @@ public interface TaskInternal extends Task, Configurable<Task> {
     List<ContextAwareTaskAction> getTaskActions();
 
     @Internal
-    Spec<? super TaskInternal> getOnlyIf();
+    boolean hasTaskActions();
 
-    @Deprecated
-    void execute();
+    @Internal
+    Spec<? super TaskInternal> getOnlyIf();
 
     @Internal
     @SuppressWarnings("deprecation")
     StandardOutputCapture getStandardOutputCapture();
-
-    @Deprecated
-    @Internal
-    TaskExecuter getExecuter();
-
-    @Deprecated
-    void setExecuter(TaskExecuter executer);
 
     @Override
     TaskInputsInternal getInputs();
 
     @Override
     TaskOutputsInternal getOutputs();
-
-    @Deprecated
-    @Internal
-    List<TaskValidator> getValidators();
-
-    @Deprecated
-    void addValidator(TaskValidator validator);
 
     @Override
     TaskStateInternal getState();
@@ -97,4 +83,17 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     Path getIdentityPath();
+
+    @Internal
+    TaskIdentity<?> getTaskIdentity();
+
+    /**
+     * Replace this task's logger.
+     *
+     * Callers of {@link #getLogger()} will get the replacement logger after this method invocation.
+     *
+     * @param logger the replacement logger
+     */
+    @Deprecated
+    void replaceLogger(Logger logger);
 }

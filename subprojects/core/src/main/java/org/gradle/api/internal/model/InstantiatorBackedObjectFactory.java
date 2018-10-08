@@ -16,9 +16,14 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -31,17 +36,41 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException {
-        throw new UnsupportedOperationException("Instantiator does not support constructing named objects");
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named objects");
+    }
+
+    @Override
+    public SourceDirectorySet sourceDirectorySet(String name, String displayName) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing source directory sets");
     }
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
+        return new DefaultPropertyState<T>(valueType);
     }
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
-        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
+        return broken();
+    }
+
+    @Override
+    public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        return broken();
+    }
+
+    @Override
+    public DirectoryProperty directoryProperty() {
+        return broken();
+    }
+
+    @Override
+    public RegularFileProperty fileProperty() {
+        return broken();
+    }
+
+    private <T> T broken() {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing property objects");
     }
 
     @Override

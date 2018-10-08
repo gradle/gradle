@@ -45,7 +45,12 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
 
     @Override
     public void testClassStarted(String testClassName) {
-        currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
+        testClassStarted(testClassName, testClassName);
+    }
+
+    @Override
+    public void testClassStarted(String testClassName, String testClassDisplayName) {
+        currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName, testClassDisplayName);
         resultProcessor.started(currentTestClass, new TestStartEvent(clock.getCurrentTime()));
     }
 

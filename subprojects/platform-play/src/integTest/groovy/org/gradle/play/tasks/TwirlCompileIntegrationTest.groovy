@@ -321,6 +321,8 @@ Binaries
 
     @Unroll
     def "has reasonable error if Twirl template is configured incorrectly with (#template)"() {
+        given:
+        executer.noDeprecationChecks()
         buildFile << """
             model {
                 components {
@@ -336,9 +338,9 @@ Binaries
         """
 
         when:
-        fails("components")
+        result = executer.withTasks('components').runWithFailure()
         then:
-        result.error.contains(errorMessage)
+        result.assertHasCause(errorMessage)
 
         where:
         template                      | errorMessage
@@ -352,7 +354,7 @@ Binaries
         when:
         fails("compilePlayBinaryScala")
         then:
-        result.error.contains("Twirl compiler could not find a matching template for 'test.scala.custom'.")
+        failure.assertHasCause("Twirl compiler could not find a matching template for 'test.scala.custom'.")
     }
 
     def withTemplateSource(File templateFile) {

@@ -61,6 +61,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>jvmArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
                 <td>enableAssertions</td>
                 <td><literal><literal>true</literal></literal></td>
             </tr>
@@ -96,6 +100,10 @@
                 <td>testLogging</td>
                 <td/>
             </tr>
+            <tr>
+                <td>failFast</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -123,9 +131,6 @@
             </tr>
             <tr>
                 <td>executable</td>
-            </tr>
-            <tr>
-                <td>setTestNameIncludePatterns</td>
             </tr>
             <tr>
                 <td>systemProperties</td>

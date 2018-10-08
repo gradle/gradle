@@ -16,8 +16,10 @@
 
 package org.gradle.caching.internal.tasks.origin;
 
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+
 import java.io.InputStream;
 
 public interface TaskOutputOriginReader {
-    TaskOutputOriginMetadata execute(InputStream inputStream);
+    OriginTaskExecutionMetadata execute(InputStream inputStream);
 }

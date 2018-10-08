@@ -30,6 +30,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -99,8 +100,9 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @return The output file. May be null.
      */
-    @OutputFile
+    @Nullable
     @Optional
+    @OutputFile
     public File getOutputFile() {
         return outputFile;
     }
@@ -110,7 +112,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @param outputFile The output file. May be null.
      */
-    public void setOutputFile(File outputFile) {
+    public void setOutputFile(@Nullable File outputFile) {
         this.outputFile = outputFile;
     }
 

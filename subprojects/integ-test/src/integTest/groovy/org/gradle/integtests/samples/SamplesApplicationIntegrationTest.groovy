@@ -19,48 +19,87 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'application')
 
-    def canRunTheApplicationUsingRunTask() {
-        when:
-        def result = executer.inDirectory(sample.dir).withTasks('run').run()
-
-        then:
-        result.output.contains('Greetings from the sample application.')
+    def setup() {
+        executer.withRepositoryMirrors()
     }
 
-    def canBuildAndRunTheInstalledApplication() {
+    @Unroll
+    def "can run the application using run task with #dsl dsl"() {
         when:
-        executer.inDirectory(sample.dir).withTasks('installDist').run()
+        executer.inDirectory(sample.dir.file(dsl))
+        succeeds('run')
 
         then:
-        def installDir = sample.dir.file('build/install/application')
+        outputContains('Greetings from the sample application.')
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @Unroll
+    def "can build and run the installed application with #dsl dsl"() {
+        when:
+        def dslDir = sample.dir.file(dsl)
+        appendExecutableDir(dslDir, executableDir)
+        executer.inDirectory(dslDir)
+        succeeds('installDist')
+
+        then:
+        def installDir = dslDir.file('build/install/application')
         installDir.assertIsDir()
 
-        checkApplicationImage(installDir)
+        checkApplicationImage(installDir, executableDir)
+
+        where:
+        executableDir << ['bin', 'customBin']
+        dsl << ['groovy', 'kotlin']
     }
 
-    def canBuildAndRunTheZippedDistribution() {
+    @Unroll
+    def "can build and run the zipped distribution with #dsl dsl"() {
         when:
-        executer.inDirectory(sample.dir).withTasks('distZip').run()
+        def dslDir = sample.dir.file(dsl)
+        appendExecutableDir(dslDir, executableDir)
+        executer.inDirectory(dslDir)
+        succeeds('distZip')
 
         then:
-        def distFile = sample.dir.file('build/distributions/application-1.0.2.zip')
+        def distFile = dslDir.file('build/distributions/application-1.0.2.zip')
         distFile.assertIsFile()
 
-        def installDir = sample.dir.file('unzip')
+        def installDir = dslDir.file('unzip')
         distFile.usingNativeTools().unzipTo(installDir)
 
-        checkApplicationImage(installDir.file('application-1.0.2'))
+        checkApplicationImage(installDir.file('application-1.0.2'), executableDir)
+
+        where:
+        dsl << ['groovy', 'kotlin']
+        executableDir << ['bin', 'customBin']
     }
 
-    private void checkApplicationImage(TestFile installDir) {
-        installDir.file('bin/application').assertIsFile()
-        installDir.file('bin/application.bat').assertIsFile()
+    private void appendExecutableDir(TestFile dslDir, String executableDir) {
+        def extension = dslDir.name == 'groovy' ? 'gradle' : 'gradle.kts'
+        dslDir.file("build.$extension") << """
+application {
+    executableDir = "${executableDir}" 
+}
+"""
+    }
+
+    private void checkApplicationImage(TestFile installDir, String executableDir) {
+        installDir.file("${executableDir}/application").assertIsFile()
+        installDir.file("${executableDir}/application.bat").assertIsFile()
         installDir.file('lib/application-1.0.2.jar').assertIsFile()
         installDir.file('lib/commons-collections-3.2.2.jar').assertIsFile()
 
@@ -68,7 +107,7 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
         installDir.file('docs/readme.txt').assertIsFile()
 
         def builder = new ScriptExecuter()
-        builder.workingDir installDir.file('bin')
+        builder.workingDir installDir.file(executableDir)
         builder.executable 'application'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()

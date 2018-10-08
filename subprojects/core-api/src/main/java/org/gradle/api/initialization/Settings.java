@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
@@ -70,7 +71,7 @@ import java.io.File;
  * </ul>
  */
 @HasInternalProtocol
-public interface Settings extends PluginAware {
+public interface Settings extends PluginAware, ExtensionAware {
     /**
      * <p>The default name for the settings file.</p>
      */
@@ -239,7 +240,6 @@ public interface Settings extends PluginAware {
      *
      * @since 3.5
      */
-    @Incubating
     BuildCacheConfiguration getBuildCache();
 
     /**
@@ -247,7 +247,6 @@ public interface Settings extends PluginAware {
      *
      * @since 3.5
      */
-    @Incubating
     void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**
@@ -281,4 +280,14 @@ public interface Settings extends PluginAware {
      */
     @Incubating
     SourceControl getSourceControl();
+
+    /**
+     * Enables a feature preview by name.
+     *
+     * @param name the name of the feature to enable
+     *
+     * @since 4.6
+     */
+    @Incubating
+    void enableFeaturePreview(String name);
 }

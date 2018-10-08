@@ -18,8 +18,10 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +31,11 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
+    private NamedObjectInstantiator instantiator;
 
-    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
+    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
         this.isolatableFactory = isolatableFactory;
+        this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
         children.put(root, new ArrayList<DefaultImmutableAttributes>());
@@ -58,11 +62,23 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        return concat(node, key, isolatableFactory.isolate(value));
+        return doConcatIsolatable(node, key, isolate(value));
+    }
+
+    private <T> Isolatable<T> isolate(T value) {
+        if (value instanceof String) {
+            return (Isolatable<T>) new CoercingStringValueSnapshot((String) value, instantiator);
+        } else {
+            return isolatableFactory.isolate(value);
+        }
     }
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+        return doConcatIsolatable(node, key, value);
+    }
+
+    private <T> ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
         synchronized (this) {
             List<DefaultImmutableAttributes> nodeChildren = children.get(node);
             if (nodeChildren == null) {
@@ -86,9 +102,46 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
+        if (attributes1 == ImmutableAttributes.EMPTY) {
+            return attributes2;
+        }
+        if (attributes2 == ImmutableAttributes.EMPTY) {
+            return attributes1;
+        }
         ImmutableAttributes current = attributes2;
         for (Attribute attribute : attributes1.keySet()) {
-            if (!current.contains(attribute)) {
+            if (!current.findEntry(attribute.getName()).isPresent()) {
+                if (attributes1 instanceof DefaultImmutableAttributes) {
+                    current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+                } else {
+                    current = concat(current, attribute, attributes1.getAttribute(attribute));
+                }
+            }
+        }
+        return current;
+    }
+
+    @Override
+    public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
+        if (attributes1 == ImmutableAttributes.EMPTY) {
+            return attributes2;
+        }
+        if (attributes2 == ImmutableAttributes.EMPTY) {
+            return attributes1;
+        }
+        ImmutableAttributes current = attributes2;
+        for (Attribute attribute : attributes1.keySet()) {
+            AttributeValue<?> entry = current.findEntry(attribute.getName());
+            if (entry.isPresent()) {
+                Object currentAttribute = entry.get();
+                Object existingAttribute = attributes1.getAttribute(attribute);
+                if (!currentAttribute.equals(existingAttribute)) {
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
+                }
+            }
+            if (attributes1 instanceof DefaultImmutableAttributes) {
+                current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+            } else {
                 current = concat(current, attribute, attributes1.getAttribute(attribute));
             }
         }

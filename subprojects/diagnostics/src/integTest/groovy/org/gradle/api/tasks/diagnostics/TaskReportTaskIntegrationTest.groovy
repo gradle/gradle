@@ -395,6 +395,16 @@ d
         TASKS_DETAILED_REPORT_TASK | true
     }
 
+    def "can run multiple task reports in parallel"() {
+        given:
+        buildFile << multiProjectBuild()
+        def projects = (1..100).collect {"project$it"}
+        settingsFile << "include '${projects.join("', '")}'"
+
+        expect:
+        succeeds(":tasks", *projects.collect { "$it:tasks" }, "--parallel")
+    }
+
     protected static String getBuildScriptContent() {
         """
             tasks.addRule("test rule") {

@@ -23,6 +23,10 @@ import org.junit.Rule
 class SamplesClientModuleDependenciesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder, "clientModuleDependencies")
 
+    def setup() {
+        executer.withRepositoryMirrors()
+    }
+
     def "resolve shared"() {
         inDirectory(sample.dir.file("shared"))
 

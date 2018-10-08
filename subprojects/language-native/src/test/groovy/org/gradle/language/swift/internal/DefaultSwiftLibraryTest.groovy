@@ -17,36 +17,99 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileOperations
+import org.gradle.language.cpp.internal.DefaultUsageContext
+import org.gradle.language.cpp.internal.NativeVariantIdentity
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSwiftLibraryTest extends Specification {
-    def api = Stub(TestConfiguration)
-    def configurations = Stub(ConfigurationContainer)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
     DefaultSwiftLibrary library
 
     def setup() {
-        _ * configurations.maybeCreate("api") >> api
-        _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
-        library = new DefaultSwiftLibrary("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), configurations)
+        library = new DefaultSwiftLibrary("main", project.objects, project.fileOperations, project.configurations)
+    }
+
+    def "has display name"() {
+        expect:
+        library.displayName.displayName == "Swift library 'main'"
+        library.toString() == "Swift library 'main'"
+    }
+
+    def "has implementation configuration"() {
+        expect:
+        library.implementationDependencies == project.configurations.implementation
     }
 
     def "has api configuration"() {
         expect:
-        library.apiDependencies == api
+        library.apiDependencies == project.configurations.api
     }
 
-    def "has debug and release variants"() {
+    def "can create static binary"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        library.debugSharedLibrary.name == "mainDebug"
-        library.debugSharedLibrary.debuggable
-        library.releaseSharedLibrary.name == "mainRelease"
-        !library.releaseSharedLibrary.debuggable
-        library.developmentBinary == library.debugSharedLibrary
+        def binary = library.addStaticLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
+    }
+
+    def "can create shared binary"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
+        expect:
+        def binary = library.addSharedLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
+    }
+
+    def "throws exception when development binary is not available"() {
+        given:
+        library.binaries.realizeNow()
+
+        when:
+        library.developmentBinary.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return new NativeVariantIdentity("test", null, null, null, true, false, TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS),
+            new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable()),
+            new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable())
+        )
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {

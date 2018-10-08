@@ -23,28 +23,30 @@ import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.PerformanceTestConditions
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.CrossVersionResultsStore
+import org.gradle.performance.results.SlackReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import org.junit.experimental.categories.Category
+import spock.lang.Retry
 import spock.lang.Specification
+
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
+@Retry(condition = { PerformanceTestConditions.whenSlowerButNotAdhoc(failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class AbstractCrossVersionPerformanceTest extends Specification {
 
     private static def resultStore = new CrossVersionResultsStore()
+    private static def reporter = SlackReporter.wrap(resultStore)
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
-
-    @Rule
-    RetryRule retry = new PerformanceTestRetryRule()
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
@@ -57,6 +59,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         runner = new CrossVersionPerformanceTestRunner(
             new BuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
+            reporter,
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
@@ -73,6 +76,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
             resultStore.close()
+            reporter.close()
         }
     }
 }

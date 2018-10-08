@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -38,10 +38,14 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.util.DisconnectableInputStream
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Timeout
+
+import java.util.concurrent.TimeUnit
 
 class ContinuousBuildActionExecuterTest extends Specification {
 
@@ -99,6 +103,21 @@ class ContinuousBuildActionExecuterTest extends Specification {
 
         then:
         thrown(RuntimeException)
+    }
+
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    def "close System.in after build"() {
+        when:
+        singleBuild()
+        interactiveBuild()
+        executeBuild()
+
+        then:
+        1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * deploymentRegistry.runningDeployments >> []
+        0 * waiterFactory._
+        System.in instanceof DisconnectableInputStream
+        System.in.read() == -1
     }
 
     def "waits for waiter"() {
@@ -179,6 +198,10 @@ class ContinuousBuildActionExecuterTest extends Specification {
         actionParameters.continuous >> false
     }
 
+    private void interactiveBuild() {
+        requestMetadata.interactive >> true
+    }
+
     private void continuousBuild() {
         actionParameters.continuous >> true
     }
@@ -188,7 +211,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void declareInput(File file) {
-        inputsListener.onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
+        inputsListener.onExecute(Mock(TaskInternal), ImmutableFileCollection.of(file))
     }
 
     private ContinuousBuildActionExecuter executer() {

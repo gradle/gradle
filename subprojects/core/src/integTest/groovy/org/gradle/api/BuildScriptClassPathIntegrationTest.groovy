@@ -85,9 +85,9 @@ task foo {
 
         when:
         buildFile.text = buildFile.text.replaceAll('Original bar', 'New bar')
-        run 'foo'
+        succeeds 'foo'
 
         then:
-        !result.output.contains('Original bar')
+        outputDoesNotContain('Original bar')
     }
 }

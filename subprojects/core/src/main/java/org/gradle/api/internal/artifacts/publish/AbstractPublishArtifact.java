@@ -15,22 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
+
 public abstract class AbstractPublishArtifact implements PublishArtifact {
     private final DefaultTaskDependency taskDependency;
 
-    public AbstractPublishArtifact(TaskResolver resolver, Object... tasks) {
-        taskDependency = new DefaultTaskDependency(resolver);
-        taskDependency.add(tasks);
+    public AbstractPublishArtifact(@Nullable TaskResolver resolver, Object... tasks) {
+        taskDependency = new DefaultTaskDependency(resolver, ImmutableSet.copyOf(tasks));
     }
 
     public AbstractPublishArtifact(Object... tasks) {
-        taskDependency = new DefaultTaskDependency();
-        taskDependency.add(tasks);
+        this(null, tasks);
     }
 
     public TaskDependency getBuildDependencies() {

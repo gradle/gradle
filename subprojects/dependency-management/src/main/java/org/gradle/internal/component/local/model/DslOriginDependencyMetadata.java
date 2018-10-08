@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.component.model.DependencyMetadata;
 
 /**
@@ -32,5 +32,5 @@ public interface DslOriginDependencyMetadata extends DependencyMetadata {
      *
      * The goal is to eventually replace these uses, and remove this type.
      */
-    ModuleDependency getSource();
+    Dependency getSource();
 }

@@ -69,7 +69,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1762")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
+    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "build uses environment variables from where the build was launched"() {
         file('build.gradle') << "println System.getenv('foo')"
 
@@ -86,6 +86,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         out.contains("and will be even better")
     }
 
+    @Requires(TestPrecondition.WORKING_DIR)
     def "build is executed with working directory set to where the build was launched from"() {
         def project1 = file("project1")
         def project2 = file("project2")

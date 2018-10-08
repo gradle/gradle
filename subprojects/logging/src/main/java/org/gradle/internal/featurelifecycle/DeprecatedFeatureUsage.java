@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,88 +16,121 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang.StringUtils;
 
-/**
- * An immutable description of the usage of a deprecated feature.
- */
-public class DeprecatedFeatureUsage {
-    private final String message;
-    private final List<StackTraceElement> stack;
-    private final Class<?> calledFrom;
+import javax.annotation.Nullable;
 
-    public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
-        this.message = message;
-        this.calledFrom = calledFrom;
-        this.stack = Collections.emptyList();
+public class DeprecatedFeatureUsage extends FeatureUsage {
+
+    private final String removalDetails;
+    private final String advice;
+    private final String contextualAdvice;
+
+    private final Type type;
+
+    public DeprecatedFeatureUsage(
+        String summary,
+        String removalDetails,
+        @Nullable String advice,
+        @Nullable String contextualAdvice,
+        Type type,
+        Class<?> calledFrom
+    ) {
+        super(summary, calledFrom);
+        this.removalDetails = Preconditions.checkNotNull(removalDetails);
+        this.advice = advice;
+        this.contextualAdvice = contextualAdvice;
+        this.type = Preconditions.checkNotNull(type);
     }
 
-    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
-        if (stack == null) {
-            throw new NullPointerException("stack");
-        }
-        this.message = usage.message;
-        this.calledFrom = usage.calledFrom;
-        this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public List<StackTraceElement> getStack() {
-        return stack;
+    @VisibleForTesting
+    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, Exception traceException) {
+        super(usage.getSummary(), usage.getCalledFrom(), traceException);
+        this.removalDetails = usage.removalDetails;
+        this.advice = usage.advice;
+        this.contextualAdvice = usage.contextualAdvice;
+        this.type = usage.type;
     }
 
     /**
-     * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that
-     * this method is called from the same thread that triggered the usage.
+     * Indicates the type of usage, affecting the feedback that can be given.
      */
-    public DeprecatedFeatureUsage withStackTrace() {
-        if (!stack.isEmpty()) {
-            return this;
-        }
+    public enum Type {
 
-        StackTraceElement[] originalStack = new Exception().getStackTrace();
-        final String calledFromName = calledFrom.getName();
-        boolean calledFromFound = false;
-        int caller;
-        for (caller = 0; caller < originalStack.length; caller++) {
-            StackTraceElement current = originalStack[caller];
-            if (!calledFromFound) {
-                if (current.getClassName().startsWith(calledFromName)) {
-                    calledFromFound = true;
-                }
-            } else {
-                if (!current.getClassName().startsWith(calledFromName)) {
-                    break;
-                }
-            }
-        }
+        /**
+         * The key characteristic is that the trace to the usage indicates the offending user code.
+         *
+         * Example: calling a deprecated method.
+         */
+        USER_CODE_DIRECT,
 
-        caller = skipSystemStackElements(originalStack, caller);
+        /**
+         * The key characteristic is that the trace to the usage DOES NOT indicate the offending user code,
+         * but the usage happens during runtime and may be associated to a logical entity (e.g. task, plugin).
+         *
+         * The association between a usage and entity is not modelled by the usage,
+         * but can be inferred from the operation stream (for deprecations, for which operation progress events are emitted).
+         *
+         * Example: annotation processor on compile classpath (feature is used at compile, not classpath definition)
+         */
+        USER_CODE_INDIRECT,
 
-        List<StackTraceElement> result = new ArrayList<StackTraceElement>();
-        for (; caller < originalStack.length; caller++) {
-            result.add(originalStack[caller]);
-        }
-        return new DeprecatedFeatureUsage(this, result);
+        /**
+         * The key characteristic is that there is no useful “where was it used information”,
+         * as the usage relates to how/where Gradle was invoked.
+         *
+         * Example: deprecated CLI switch.
+         */
+        BUILD_INVOCATION
     }
 
-    private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
-        for (; caller < stackTrace.length; caller++) {
-            String currentClassName = stackTrace[caller].getClassName();
-            if (!currentClassName.startsWith("org.codehaus.groovy.")
-                && !currentClassName.startsWith("org.gradle.internal.metaobject.")
-                && !currentClassName.startsWith("groovy.")
-                && !currentClassName.startsWith("java.")
-                && !currentClassName.startsWith("jdk.internal.")
-                ) {
-                break;
-            }
-        }
-        return caller;
+    /**
+     * When the feature will be removed, and how if relevant.
+     *
+     * Example: This feature will be removed in Gradle 10.0.
+     */
+    public String getRemovalDetails() {
+        return removalDetails;
     }
+
+    /**
+     * General, non usage specific, advice on what to do about this notice.
+     *
+     * Example: Use method Foo.baz() instead.
+     */
+    @Nullable
+    public String getAdvice() {
+        return advice;
+    }
+
+    /**
+     * Advice on what to do about the notice, specific to this usage.
+     *
+     * Example: Annotation processors Foo, Bar and Baz were found on the compile classpath.
+     */
+    @Nullable
+    public String getContextualAdvice() {
+        return contextualAdvice;
+    }
+
+    public DeprecatedFeatureUsage.Type getType() {
+        return type;
+    }
+
+    public String formattedMessage() {
+        StringBuilder outputBuilder = new StringBuilder(getSummary());
+        append(outputBuilder, removalDetails);
+        append(outputBuilder, contextualAdvice);
+        append(outputBuilder, advice);
+        return outputBuilder.toString();
+    }
+
+    private void append(StringBuilder outputBuilder, String message) {
+        if (!StringUtils.isEmpty(message)) {
+            outputBuilder.append(" ").append(message);
+        }
+    }
+
 }

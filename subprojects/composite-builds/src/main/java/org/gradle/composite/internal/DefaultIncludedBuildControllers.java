@@ -16,25 +16,38 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 
+import java.util.Collection;
 import java.util.Map;
 
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final ManagedExecutor executorService;
-    private final IncludedBuildRegistry includedBuildRegistry;
-    private boolean taskExecutionStarted;
+    private final ResourceLockCoordinationService coordinationService;
+    private final BuildStateRegistry buildRegistry;
+    private BuildOperationRef rootBuildOperation;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuildRegistry includedBuildRegistry) {
-        this.includedBuildRegistry = includedBuildRegistry;
+    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService) {
+        this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
+        this.coordinationService = coordinationService;
+    }
+
+    @Override
+    public void rootBuildOperationStarted() {
+        rootBuildOperation = CurrentBuildOperationRef.instance().get();
     }
 
     public IncludedBuildController getBuildController(BuildIdentifier buildId) {
@@ -43,33 +56,26 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuild build = includedBuildRegistry.getBuild(buildId);
-        DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
+        IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
+        DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build, coordinationService);
         buildControllers.put(buildId, newBuildController);
-        executorService.submit(newBuildController);
-
-        // Required for build controllers created after initial start
-        if (taskExecutionStarted) {
-            newBuildController.startTaskExecution();
-        }
-
+        executorService.submit(new BuildOpRunnable(newBuildController, rootBuildOperation));
         return newBuildController;
     }
 
     @Override
     public void startTaskExecution() {
-        this.taskExecutionStarted = true;
-        populateTaskGraphs();
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
         }
     }
 
-    private void populateTaskGraphs() {
+    @Override
+    public void populateTaskGraphs() {
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
             tasksDiscovered = false;
-            for (IncludedBuildController buildController : buildControllers.values()) {
+            for (IncludedBuildController buildController : ImmutableList.copyOf(buildControllers.values())) {
                 if (buildController.populateTaskGraph()) {
                     tasksDiscovered = true;
                 }
@@ -78,13 +84,18 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void stopTaskExecution() {
+    public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
         for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.stopTaskExecution();
+            buildController.awaitTaskCompletion(taskFailures);
         }
+    }
+
+    @Override
+    public void finishBuild() {
+        CompositeStoppable.stoppable(buildControllers.values()).stop();
         buildControllers.clear();
-        for (IncludedBuild includedBuild : includedBuildRegistry.getIncludedBuilds().values()) {
-            ((IncludedBuildInternal) includedBuild).finishBuild();
+        for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
+            includedBuild.finishBuild();
         }
     }
 
@@ -92,5 +103,25 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     public void stop() {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
         executorService.stop();
+    }
+
+    private static class BuildOpRunnable implements Runnable {
+        private final DefaultIncludedBuildController newBuildController;
+        private final BuildOperationRef rootBuildOperation;
+
+        BuildOpRunnable(DefaultIncludedBuildController newBuildController, BuildOperationRef rootBuildOperation) {
+            this.newBuildController = newBuildController;
+            this.rootBuildOperation = rootBuildOperation;
+        }
+
+        @Override
+        public void run() {
+            CurrentBuildOperationRef.instance().set(rootBuildOperation);
+            try {
+                newBuildController.run();
+            } finally {
+                CurrentBuildOperationRef.instance().set(null);
+            }
+        }
     }
 }

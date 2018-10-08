@@ -16,9 +16,8 @@
 
 package org.gradle.normalization.internal;
 
-import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
-import org.gradle.api.internal.changedetection.state.ResourceHasher;
-import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
+import org.gradle.api.internal.changedetection.state.IgnoringResourceFilter;
+import org.gradle.api.internal.changedetection.state.ResourceFilter;
 
 import java.util.Set;
 
@@ -26,13 +25,13 @@ import java.util.Set;
  * Normalization strategy for the runtime classpath.
  */
 public class RuntimeClasspathNormalizationStrategy {
-    private final ResourceHasher runtimeClasspathResourceHasher;
+    private final ResourceFilter runtimeClasspathResourceFilter;
 
     public RuntimeClasspathNormalizationStrategy(Set<String> ignores) {
-        this.runtimeClasspathResourceHasher = new IgnoringResourceHasher(ignores, new RuntimeClasspathResourceHasher());
+        this.runtimeClasspathResourceFilter = ignores.isEmpty() ? ResourceFilter.FILTER_NOTHING : new IgnoringResourceFilter(ignores);
     }
 
-    public ResourceHasher getRuntimeClasspathResourceHasher() {
-        return runtimeClasspathResourceHasher;
+    public ResourceFilter getRuntimeClasspathResourceFilter() {
+        return runtimeClasspathResourceFilter;
     }
 }

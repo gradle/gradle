@@ -19,26 +19,73 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.execution.DefaultTaskProperties
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.*
+import static org.apache.commons.io.FileUtils.touch
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.Bean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.Bean2
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.NamedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBooleanInput
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBridgeMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithDestroyable
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithIncrementalAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInheritedMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInput
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithJavaBeanCornerCaseProperties
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithLocalState
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultiParamAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleIncrementalActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleMethods
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleProperties
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedBeanWithPrivateClass
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedIterable
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedObject
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalInputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalNestedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalNestedBeanWithPrivateType
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputDirs
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputDirs
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenIncrementalAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithProtectedMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithSingleParamAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithStaticMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TestTask
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
-    private TaskClassInfoStore taskClassInfoStore
-
-    private Map args = new HashMap()
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -51,7 +98,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
         factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
@@ -127,9 +173,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         expectTaskCreated(type)
 
         then:
-        def e = thrown Exception
-        e.cause instanceof GradleException
-        e.cause.message == failureMessage
+        def e = thrown GradleException
+        e.message == failureMessage
 
         where:
         type                               | failureMessage
@@ -196,7 +241,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "validation succeeds when optional #property is omitted on #type.simpleName"() {
         given:
-        def task = expectTaskCreated(type)
+        def task = expectTaskCreated(type, arguments as Object[])
 
         expect:
         execute(task)
@@ -210,6 +255,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDirs                | 'output-dirs'
         TaskWithOptionalNestedBean                | 'bean'
         TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
+        arguments = type == TaskWithOptionalNestedBean ? [null] : []
     }
 
     def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
@@ -309,7 +355,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
-        GFileUtils.touch(task.outputFile.getParentFile())
+        touch(task.outputFile.getParentFile())
 
         when:
         execute(task)
@@ -322,7 +368,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
-        GFileUtils.touch(task.outputFiles.get(0).getParentFile())
+        touch(task.outputFiles.get(0).getParentFile())
 
         when:
         execute(task)
@@ -359,7 +405,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, new File(testDir, "subdir/output"))
-        GFileUtils.touch(task.outputDir.getParentFile())
+        touch(task.outputDir.getParentFile())
 
         when:
         execute(task)
@@ -372,7 +418,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
-        GFileUtils.touch(task.outputDirs.get(0).getParentFile())
+        touch(task.outputDirs.get(0).getParentFile())
 
         when:
         execute(task)
@@ -397,7 +443,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenInputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
-        GFileUtils.touch(task.inputDir)
+        touch(task.inputDir)
 
         when:
         execute(task)
@@ -552,19 +598,108 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "registers input property for #prop on #type.simpleName"() {
         given:
-        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value)
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
 
         expect:
-        task.inputs.properties[prop] == expected
+        inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop         | value                    | expected
-        TaskWithNestedBean                        | "bean.class" | [null] as Object[]       | Bean.class.getName()
-        TaskWithNestedBeanWithPrivateClass        | "bean.class" | [null, null] as Object[] | Bean2.class.getName()
-        TaskWithOptionalNestedBean                | "bean.class" | null                     | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean.class" | null                     | null
-        TaskWithInput                             | "inputValue" | "value"                  | "value"
-        TaskWithBooleanInput                      | "inputValue" | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop                 | value                            | expected
+        TaskWithNestedBean                        | 'bean'               | [null]                           | Bean.class
+        TaskWithNestedObject                      | 'bean.key'           | [['key': new Bean()]]            | Bean.class
+        TaskWithNestedIterable                    | 'beans.$0'           | [new Bean()]                     | Bean.class
+        TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
+        TaskWithNestedBeanWithPrivateClass        | 'bean'               | [null, null]                     | Bean2.class
+        TaskWithOptionalNestedBean                | 'bean'               | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | 'bean'               | null                             | null
+        TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
+        TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
+    }
+
+    def "iterable nested properties are named by index"() {
+        given:
+        def task = expectTaskCreated(TaskWithNestedObject, [[new Bean(), new NamedBean('name', 'value'), new Bean()]] as Object[])
+
+        expect:
+        inputProperties(task).keySet() == ['bean.$0', 'bean.name$1', 'bean.name$1.value', 'bean.$2'] as Set
+    }
+
+    @Unroll
+    def "registers properties #allTaskProperties on #type.simpleName"() {
+        given:
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.inputPropertyValues.create().keySet() == inputs as Set
+        taskProperties.inputFileProperties*.propertyName as Set == inputFiles as Set
+        taskProperties.outputFileProperties*.propertyName as Set == outputFiles as Set
+        taskProperties.destroyableFiles.empty
+        taskProperties.localStateFiles.empty
+
+        where:
+        type                                      | value                          | inputs                                          | inputFiles              | outputFiles
+        TaskWithInput                             | ["value"]                      | ["inputValue"]                                  | []                      | []
+        TaskWithBooleanInput                      | [true]                         | ["inputValue"]                                  | []                      | []
+        TaskWithInputFile                         | [new File("some")]             | []                                              | ["inputFile"]           | []
+        TaskWithInputFiles                        | [[new File("some")]]           | []                                              | ["input"]               | []
+        BrokenTaskWithInputFiles                  | [[new File("some")]]           | []                                              | ["input"]               | []
+        TaskWithInputDir                          | [new File("some")]             | []                                              | ["inputDir"]            | []
+        BrokenTaskWithInputDir                    | [new File("some")]             | []                                              | ["inputDir"]            | []
+        TaskWithOptionalInputFile                 | null                           | []                                              | ["inputFile"]           | []
+        TaskWithOutputFile                        | [new File("some")]             | []                                              | []                      | ["outputFile"]
+        TaskWithOutputFiles                       | [[new File("some")]]           | []                                              | []                      | ["outputFiles\$1"]
+        TaskWithOutputDir                         | [new File("some")]             | []                                              | []                      | ["outputDir"]
+        TaskWithOutputDirs                        | [[new File("some")]]           | []                                              | []                      | ["outputDirs\$1"]
+        TaskWithOptionalOutputFile                | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputFiles               | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
+        TaskWithNestedBean                        | [null]                         | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0"]                                   | ["beans.\$0.inputFile"] | []
+        TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
+        TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBeanWithPrivateType | null                           | []                                              | []                      | []
+        TaskWithMultipleProperties                | [new File("some")]             | ["bean"]                                        | ["bean.inputFile"]      | ["outputFile"]
+        TaskWithBridgeMethod                      | null                           | ["nestedProperty"]                              | []                      | ["nestedProperty.someOutputFile"]
+        TaskWithJavaBeanCornerCaseProperties      | ["c", "C", "d", "U", "a", "b"] | ["cCompiler", "CFlags", "dns", "URL", "a", "b"] | []                      | []
+
+        allTaskProperties = inputs + inputFiles + outputFiles
+    }
+
+    def "registers local state"() {
+        def localState = new File(temporaryFolder.file('localState').createFile().absolutePath)
+        given:
+        def task = expectTaskCreated(TaskWithLocalState, localState)
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.localStateFiles.files as List == [localState]
+        taskProperties.inputPropertyValues.create().isEmpty()
+        taskProperties.inputFileProperties.empty
+        taskProperties.outputFileProperties.empty
+        taskProperties.destroyableFiles.empty
+    }
+
+    def "registers destroyables"() {
+        def destroyable = new File(temporaryFolder.file('destroyable').createFile().absolutePath)
+        given:
+        def task = expectTaskCreated(TaskWithDestroyable, destroyable)
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.destroyableFiles.files as List == [destroyable]
+        taskProperties.inputPropertyValues.create().isEmpty()
+        taskProperties.inputFileProperties.empty
+        taskProperties.outputFileProperties.empty
+        taskProperties.localStateFiles.empty
     }
 
     @Unroll
@@ -635,34 +770,38 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def propertyExtractionJavaBeanSpec() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, "c", "C", "d", "U", "a", "b")
+        def properties = inputProperties(task)
 
         expect:
-        task.inputs.properties["cCompiler"] != null
-        task.inputs.properties["CFlags"] != null
-        task.inputs.properties["dns"] != null
-        task.inputs.properties["URL"] != null
-        task.inputs.properties["a"] != null
-        task.inputs.properties["b"] != null
+        properties["cCompiler"] != null
+        properties["CFlags"] != null
+        properties["dns"] != null
+        properties["URL"] != null
+        properties["a"] != null
+        properties["b"] != null
     }
 
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
         final Class decorated = project.getServices().get(ClassGenerator).generate(type)
-        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<TaskInternal>() {
+        final String name = "task"
+        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<TaskInternal>() {
             TaskInternal call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
                 } else {
-                    return decorated.newInstance()
+                    return JavaReflectionUtil.newInstance(decorated)
                 }
             }
         })
-        return expectTaskCreated(task)
+        return expectTaskCreated(name, type, task)
     }
 
-    private TaskInternal expectTaskCreated(final TaskInternal task) {
+    private TaskInternal expectTaskCreated(final String name, final Class<? extends Task> type, final TaskInternal task) {
         // We cannot just stub here as we want to return a different task each time.
-        1 * delegate.createTask(args) >> task
-        assert factory.createTask(args).is(task)
+        def id = new TaskIdentity(type, name, null, null, null, 12)
+        1 * delegate.create(id) >> task
+        def createdTask = factory.create(id)
+        assert createdTask.is(task)
         return task
     }
 
@@ -670,5 +809,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
         assert exception.message.contains(expectedMessage)
         assert exception.causes.collect({ it.message }) as Set == causes as Set
+    }
+
+    private Map<String, Object> inputProperties(TaskInternal task) {
+        TaskPropertyTestUtils.getProperties(task, propertyWalker)
     }
 }

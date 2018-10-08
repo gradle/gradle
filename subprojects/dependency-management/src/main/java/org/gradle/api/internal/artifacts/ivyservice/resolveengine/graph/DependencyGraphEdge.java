@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import javax.annotation.Nullable;
-import java.util.Set;
+import java.util.List;
 
 /**
  * An edge in the dependency graph, between 2 nodes.
@@ -33,12 +33,18 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     DependencyGraphSelector getSelector();
 
-    ModuleExclusion getExclusions(ModuleExclusions moduleExclusions);
+    ModuleExclusion getExclusions();
 
-    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData);
+    boolean contributesArtifacts();
 
+    List<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
+
+    ImmutableAttributes getAttributes();
+
+    /**
+     * The original dependency instance declared in the build script, if any.
+     */
     @Nullable
-    ModuleDependency getModuleDependency();
+    Dependency getOriginalDependency();
 
-    Iterable<? extends DependencyGraphNode> getTargets();
 }

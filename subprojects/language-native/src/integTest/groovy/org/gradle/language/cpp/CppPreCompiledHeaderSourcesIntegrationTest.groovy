@@ -30,9 +30,6 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
 
     def "caching is disabled if precompiled headers are configured" () {
         writeStandardSourceFiles()
-        executer.beforeExecute {
-            withArgument("-Dorg.gradle.caching.native=true")
-        }
 
         when:
         buildFile << preCompiledHeaderComponent()

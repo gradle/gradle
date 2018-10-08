@@ -50,10 +50,10 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         """
 
         when:
-        run()
+        succeeds()
 
         then:
-        result.output.contains "Resolved at configuration time: [impl.jar, foo-1.0.jar]"
+        outputContains "Resolved at configuration time: [impl.jar, foo-1.0.jar]"
     }
 
     def "configuring project dependencies by map is validated"() {

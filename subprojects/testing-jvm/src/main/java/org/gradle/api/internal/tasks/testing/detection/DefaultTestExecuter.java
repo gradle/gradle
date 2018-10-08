@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -25,8 +26,11 @@ import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
@@ -55,10 +59,13 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final BuildOperationExecutor buildOperationExecutor;
     private final int maxWorkerCount;
     private final Clock clock;
+    private final DocumentationRegistry documentationRegistry;
+    private final DefaultTestFilter testFilter;
+    private TestClassProcessor processor;
 
     public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
                                WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
-                               Clock clock) {
+                               Clock clock, DocumentationRegistry documentationRegistry, DefaultTestFilter testFilter) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
@@ -66,6 +73,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         this.buildOperationExecutor = buildOperationExecutor;
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
+        this.documentationRegistry = documentationRegistry;
+        this.testFilter = testFilter;
     }
 
     @Override
@@ -77,7 +86,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(currentWorkerLease, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry);
+                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -85,12 +94,15 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
             }
         };
-        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory);
+        processor =
+            new PatternMatchTestClassProcessor(testFilter,
+                new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
+                    new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 
         Runnable detector;
-        if (testExecutionSpec.isScanForTestClasses()) {
+        if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(testExecutionSpec.getTestClassesDirs().getFiles());
             testFrameworkDetector.setTestClasspath(classpath);
@@ -102,6 +114,13 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();
 
         new TestMainAction(detector, processor, testResultProcessor, clock, testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+    }
+
+    @Override
+    public void stopNow() {
+        if (processor != null) {
+            processor.stopNow();
+        }
     }
 
     private int getMaxParallelForks(JvmTestExecutionSpec testExecutionSpec) {

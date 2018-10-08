@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
@@ -25,99 +23,43 @@ import java.io.File;
 /**
  * <p>A {@link Convention} used for the BasePlugin.</p>
  */
-public class BasePluginConvention {
-    private ProjectInternal project;
-
-    private String distsDirName;
-
-    private String libsDirName;
-
-    // cached resolved values
-    private File buildDir;
-    private File libsDir;
-    private File distsDir;
-
-    private String archivesBaseName;
-
-    public BasePluginConvention(Project project) {
-        this.project = (ProjectInternal) project;
-        archivesBaseName = project.getName();
-        distsDirName = "distributions";
-        libsDirName = "libs";
-    }
-
+public abstract class BasePluginConvention {
     /**
      * Returns the directory to generate TAR and ZIP archives into.
      *
      * @return The directory. Never returns null.
      */
-    public File getDistsDir() {
-        File curProjectBuildDir = project.getBuildDir();
-        if (distsDir != null && curProjectBuildDir.equals(buildDir)) {
-            return distsDir;
-        }
-        buildDir = curProjectBuildDir;
-        File dir = project.getServices().get(FileLookup.class).getFileResolver(curProjectBuildDir).resolve(distsDirName);
-        distsDir = dir;
-        return dir;
-    }
+    public abstract File getDistsDir();
 
     /**
      * Returns the directory to generate JAR and WAR archives into.
      *
      * @return The directory. Never returns null.
      */
-    public File getLibsDir() {
-        File curProjectBuildDir = project.getBuildDir();
-        if (libsDir != null && curProjectBuildDir.equals(buildDir)) {
-            return libsDir;
-        }
-        buildDir = curProjectBuildDir;
-        File dir = project.getServices().get(FileLookup.class).getFileResolver(curProjectBuildDir).resolve(libsDirName);
-        libsDir = dir;
-        return dir;
-    }
+    public abstract File getLibsDir();
 
-    public ProjectInternal getProject() {
-        return project;
-    }
+    public abstract ProjectInternal getProject();
 
-    public void setProject(ProjectInternal project) {
-        this.project = project;
-    }
+    public abstract void setProject(ProjectInternal project);
 
     /**
      * The name for the distributions directory. This in interpreted relative to the project' build directory.
      */
-    public String getDistsDirName() {
-        return distsDirName;
-    }
+    public abstract String getDistsDirName();
 
-    public void setDistsDirName(String distsDirName) {
-        this.distsDirName = distsDirName;
-        this.distsDir = null;
-    }
+    public abstract void setDistsDirName(String distsDirName);
 
     /**
      * The name for the libs directory. This in interpreted relative to the project' build directory.
      */
-    public String getLibsDirName() {
-        return libsDirName;
-    }
+    public abstract String getLibsDirName();
 
-    public void setLibsDirName(String libsDirName) {
-        this.libsDirName = libsDirName;
-        this.libsDir = null;
-    }
+    public abstract void setLibsDirName(String libsDirName);
 
     /**
      * The base name to use for archive files.
      */
-    public String getArchivesBaseName() {
-        return archivesBaseName;
-    }
+    public abstract String getArchivesBaseName();
 
-    public void setArchivesBaseName(String archivesBaseName) {
-        this.archivesBaseName = archivesBaseName;
-    }
+    public abstract void setArchivesBaseName(String archivesBaseName);
 }

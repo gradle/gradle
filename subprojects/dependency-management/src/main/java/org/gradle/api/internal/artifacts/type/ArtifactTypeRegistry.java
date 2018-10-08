@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.type;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.io.File;
 
 public interface ArtifactTypeRegistry extends Factory<ArtifactTypeContainer> {
-    ImmutableAttributes mapAttributesFor(VariantMetadata variant);
+    ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant);
 
     ImmutableAttributes mapAttributesFor(File file);
 }

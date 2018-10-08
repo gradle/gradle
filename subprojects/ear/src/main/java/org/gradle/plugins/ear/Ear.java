@@ -38,6 +38,7 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -209,13 +210,14 @@ public class Ear extends Jar {
     /**
      * The name of the library directory in the EAR file. Default is "lib".
      */
+    @Nullable
     @Optional
     @Input
     public String getLibDirName() {
         return libDirName;
     }
 
-    public void setLibDirName(String libDirName) {
+    public void setLibDirName(@Nullable String libDirName) {
         this.libDirName = libDirName;
     }
 

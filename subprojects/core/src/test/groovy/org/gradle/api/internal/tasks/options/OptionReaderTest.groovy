@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.options
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.options.Option
+import org.gradle.api.tasks.options.OptionValues
 import spock.lang.Specification
 
 class OptionReaderTest extends Specification {
@@ -178,13 +180,16 @@ class OptionReaderTest extends Specification {
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
     }
 
-    def "reads custom order"() {
+    def "Deprecated internal annotations can be used but output warnings"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(new WithCustomOrder())
+        List<InstanceOptionDescriptor> options = reader.getOptions(new DeprecatedInternalAnnotations());
 
         then:
-        options[0].order == 0
-        options[1].order == 1
+        options[0].name == "stringValue"
+        options[0].description == "string value"
+        options[0].argumentType == String
+        options[0].optionElement.elementName == "setStringValue"
+        options[0].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     public static class TestClass1{
@@ -326,13 +331,26 @@ class OptionReaderTest extends Specification {
 
     public static class WithCustomOrder {
 
-        @Option(option = "option0", description = "desc", order = 0)
+        @Option(option = "option0", description = "desc")
         public void setOption0(String value) {
         }
 
-        @Option(option = "option1", description = "desc", order = 1)
+        @Option(option = "option1", description = "desc")
         public void setOption1(String value) {
         }
+    }
+
+    public static class DeprecatedInternalAnnotations {
+
+        @org.gradle.api.internal.tasks.options.Option(option = "stringValue", description = "string value")
+        public void setStringValue(String value) {
+        }
+
+        @org.gradle.api.internal.tasks.options.OptionValues("stringValue")
+        public Collection<CustomClass> getAvailableValues() {
+            return Arrays.asList(new CustomClass(value: "dynValue1"), new CustomClass(value: "dynValue2"))
+        }
+
     }
 
     enum TestEnum {

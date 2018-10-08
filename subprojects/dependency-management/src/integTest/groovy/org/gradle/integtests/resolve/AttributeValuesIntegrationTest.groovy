@@ -54,9 +54,6 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
     def "can use attribute value that can be made isolated - #type"() {
         given:
         buildFile << """
-    class Thing implements Named, Serializable { 
-        String name
-    }
     interface Flavor extends Named { }
     def attr = Attribute.of($type)
     

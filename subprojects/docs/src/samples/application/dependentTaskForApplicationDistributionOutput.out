@@ -1,0 +1,10 @@
+> Task :createDocs
+> Task :compileJava
+> Task :processResources NO-SOURCE
+> Task :classes
+> Task :jar
+> Task :startScripts
+> Task :distZip
+
+BUILD SUCCESSFUL in 0s
+5 actionable tasks: 5 executed

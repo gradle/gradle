@@ -15,19 +15,21 @@
  */
 
 package org.gradle.play.integtest.fixtures
-import com.google.common.collect.Lists
+
 import org.apache.commons.io.output.CloseShieldOutputStream
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.ExecHandle
-import org.gradle.process.internal.DefaultExecHandleBuilder
+import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.ConcurrentTestUtil
 
-class DistributionTestExecHandleBuilder extends DefaultExecHandleBuilder {
+class DistributionTestExecHandleBuilder {
     final String port
+    @Delegate
+    ExecHandleBuilder builder = TestFiles.execHandleFactory().newExec()
 
     DistributionTestExecHandleBuilder(String port, String baseDirName) {
-        super()
         this.port = port
 
         def extension = ""
@@ -41,20 +43,15 @@ class DistributionTestExecHandleBuilder extends DefaultExecHandleBuilder {
     }
 
     @Override
-    List<String> getAllArguments() {
-        return Lists.newArrayList()
-    }
-
-    @Override
     ExecHandle build() {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream()
         ByteArrayOutputStream errorOutput = new ByteArrayOutputStream()
         this.setStandardOutput(new CloseShieldOutputStream(new TeeOutputStream(System.out, stdout)));
         this.setErrorOutput(new CloseShieldOutputStream(new TeeOutputStream(System.err, errorOutput)));
-        return new DistributionTestExecHandle(super.build(), stdout, errorOutput)
+        return new DistributionTestExecHandle(builder.build(), stdout, errorOutput)
     }
 
-    public static class DistributionTestExecHandle implements ExecHandle {
+    static class DistributionTestExecHandle implements ExecHandle {
         final private ByteArrayOutputStream standardOutput
         final private ByteArrayOutputStream errorOutput
 

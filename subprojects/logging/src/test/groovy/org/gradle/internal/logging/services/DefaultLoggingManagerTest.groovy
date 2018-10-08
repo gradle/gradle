@@ -22,6 +22,7 @@ import org.gradle.internal.logging.config.LoggingRouter
 import org.gradle.internal.logging.config.LoggingSourceSystem
 import org.gradle.internal.logging.config.LoggingSystem
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -480,15 +481,16 @@ public class DefaultLoggingManagerTest extends Specification {
     def "attaches console output on start and restores on stop"() {
         def snapshot = Stub(LoggingSystem.Snapshot)
         def output = Stub(OutputStream)
+        def error = Stub(OutputStream)
 
-        loggingManager.attachAnsiConsole(output)
+        loggingManager.attachConsole(output, error, ConsoleOutput.Verbose)
 
         when:
         loggingManager.start()
 
         then:
         1 * loggingRouter.snapshot() >> snapshot
-        1 * loggingRouter.attachAnsiConsole(output)
+        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, FallbackConsoleMetaData.INSTANCE)
         0 * loggingRouter._
 
         when:
@@ -502,6 +504,7 @@ public class DefaultLoggingManagerTest extends Specification {
     def "can attach console output while started"() {
         def snapshot = Stub(LoggingSystem.Snapshot)
         def output = Stub(OutputStream)
+        def error = Stub(OutputStream)
 
         when:
         loggingManager.start()
@@ -511,10 +514,10 @@ public class DefaultLoggingManagerTest extends Specification {
         0 * loggingRouter._
 
         when:
-        loggingManager.attachAnsiConsole(output)
+        loggingManager.attachConsole(output, error, ConsoleOutput.Verbose)
 
         then:
-        1 * loggingRouter.attachAnsiConsole(output)
+        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, FallbackConsoleMetaData.INSTANCE)
         0 * loggingRouter._
 
         when:

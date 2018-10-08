@@ -23,7 +23,7 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
 
     def "cannot compile against classes that are not part of Gradle's public API"() {
         when:
-        buildFile << testableGroovyProject()
+        buildFile << testablePluginProject()
 
         file('src/test/groovy/MyTest.groovy') << """
             class MyTest extends groovy.util.GroovyTestCase {
@@ -45,7 +45,7 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
 
     def "can reliably compile and unit test a plugin that depends on a conflicting version off a non-public Gradle API"() {
         when:
-        buildFile << testableGroovyProject()
+        buildFile << testablePluginProject()
         buildFile << """
             dependencies {
                 compile 'com.google.guava:guava:19.0'
@@ -103,7 +103,7 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
 
     def "can use ProjectBuilder to unit test a plugin"() {
         when:
-        buildFile << testableGroovyProject()
+        buildFile << testablePluginProject()
 
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 

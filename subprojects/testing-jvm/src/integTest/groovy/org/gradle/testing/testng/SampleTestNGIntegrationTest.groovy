@@ -20,12 +20,18 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.UsesSample
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider)
+
+    @Before
+    void setUp() {
+        executer.withRepositoryMirrors()
+    }
 
     @Test @UsesSample('testing/testng/suitexmlbuilder')
     public void suiteXmlBuilder() {

@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.containsString
 @InjectsPluginClasspath
 @InspectsBuildOutput
 @UsesNativeServices
+@SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def plugin = new PluginUnderTest(1, file("plugin"))

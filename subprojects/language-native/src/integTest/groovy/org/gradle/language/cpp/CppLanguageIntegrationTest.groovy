@@ -17,10 +17,12 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
 
@@ -52,6 +54,32 @@ model {
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    def "finds C and C++ standard library headers"() {
+        // https://github.com/gradle/gradle-native/issues/282
+        Assume.assumeFalse(toolChain.id == "gcccygwin")
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeLibrarySpec)
+                }
+            }
+         """
+
+        and:
+        file("src/main/cpp/includeIoStream.cpp") << """
+            #include <stdio.h>
+            #include <iostream>
+        """
+
+        when:
+        executer.withArgument("--info")
+        run 'mainSharedLibrary'
+
+        then:
+        output.contains("Found all include files for ':compileMainSharedLibraryMainCpp'")
+    }
+
     def "sources are compiled with C++ compiler"() {
         def app = new CppCompilerDetectingTestApp()
 
@@ -69,7 +97,7 @@ model {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/exe/main/main").exec().out == app.expectedOutput(AbstractInstalledToolChainIntegrationSpec.toolChain)
+        executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 
     def "can manually define C++ source sets"() {
@@ -119,5 +147,29 @@ model {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "system headers are not evaluated when compiler warnings are enabled"() {
+        def app = new CppCompilerDetectingTestApp()
+
+        given:
+        app.writeSources(file('src/main'))
+
+        and:
+        buildFile << """
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                cppCompiler.args "-Wall", "-Werror"
+            }
+        }
+    }
+}
+         """
+
+        expect:
+        succeeds "mainExecutable"
+        executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
+    }
 }
 

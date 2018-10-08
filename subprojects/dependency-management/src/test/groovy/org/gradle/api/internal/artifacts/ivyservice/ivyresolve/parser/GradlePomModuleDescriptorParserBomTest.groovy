@@ -21,7 +21,7 @@ import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDescriptorParserTest {
 
-    def "a pom file with packaging=pom is a bom - dependencies declared in dependencyManagement block are treated as optional dependencies"() {
+    def "a pom file with packaging=pom is a bom - dependencies declared in dependencyManagement block are treated as optional non-transitive dependencies"() {
         given:
         pomFile << """
 <project>
@@ -51,10 +51,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '1.0')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
+        !dep.transitive
     }
 
-    def "a pom with dependencies block is not a bom - dependencyManagement block is ignored"() {
+    def "a bom can combine dependencies and dependencyManagement constraints"() {
         given:
         pomFile << """
 <project>
@@ -66,8 +67,8 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     
     <dependencies>
         <dependency>
-            <groupId>group-b</groupId>
-            <artifactId>module-b</artifactId>
+            <groupId>group-a</groupId>
+            <artifactId>module-a</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>
@@ -79,11 +80,6 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
                 <artifactId>module-b</artifactId>
                 <version>2.0</version>
             </dependency>
-            <dependency>
-                <groupId>group-d</groupId>
-                <artifactId>module-d</artifactId>
-                <version>2.0</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
@@ -93,12 +89,17 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         parsePom()
 
         then:
-        def dep = single(metadata.dependencies)
-        dep.selector == moduleId('group-b', 'module-b', '1.0')
-        !dep.optional
+        def depA = metadata.dependencies.find { it.selector.group == 'group-a'}
+        depA.selector == moduleId('group-a', 'module-a', '1.0')
+        !depA.optional
+        depA.transitive
+        def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
+        depB.selector == moduleId('group-b', 'module-b', '2.0')
+        depB.constraint
+        !depB.transitive
     }
 
-    def "a parent pom is not a bom - dependencies declared in dependencyManagement block are ignored"() {
+    def "dependency management block from parent pom is inherited"() {
         given:
         pomFile << """
 <project>
@@ -139,7 +140,72 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         parsePom()
 
         then:
-        metadata.dependencies.empty
+        metadata.dependencies.size() == 1
+        metadata.dependencies[0].constraint
+        metadata.dependencies[0].selector.module == 'module-b'
+        metadata.dependencies[0].selector.version == '1.0'
+    }
+
+    def "a bom can have a parent pom - dependencyManagement entries are combined"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>module-a</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>group-a</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-c</groupId>
+                <artifactId>module-c</artifactId>
+                <version>2.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+                <version>1.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+
+        when:
+        parsePom()
+
+        then:
+        def depC = metadata.dependencies.find { it.selector.group == 'group-c'}
+        depC.selector == moduleId('group-c', 'module-c', '2.0')
+        depC.constraint
+        !depC.transitive
+        def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
+        depB.selector == moduleId('group-b', 'module-b', '1.0')
+        depB.constraint
+        !depB.transitive
     }
 
     def "an entry in the dependencyManagement block without version does not fail parsing"() {
@@ -171,10 +237,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
+        !dep.transitive
     }
 
-    def "a bom can declare an optional dependency with excludes"() {
+    def "a bom can declare a constraint with excludes"() {
         given:
         pomFile << """
 <project>
@@ -207,10 +274,9 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
 
         then:
         def dep = single(metadata.dependencies)
-        dep.excludes[0].moduleId.group == 'group-c'
-        dep.excludes[0].moduleId.name == 'module-c'
-        dep.excludes[0].artifact.name == '*'
-        dep.excludes[0].artifact.extension == '*'
+        dep.allExcludes[0].moduleId.group == 'group-c'
+        dep.allExcludes[0].moduleId.name == 'module-c'
+        dep.allExcludes[0].artifact == null
     }
 
     def "a bom version can be relocated"() {
@@ -260,7 +326,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '1.0')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
     }
 
     def "a bom can be composed of children and parents"() {
@@ -320,6 +386,41 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
 
         then:
         metadata.dependencies.size() == 3
-        metadata.dependencies.each { assert it.optional }
+        metadata.dependencies.each { assert it.constraint }
+    }
+
+    def "scopes defined in a bom are ignored"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>bom</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+                <version>1.0</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.selector == moduleId('group-b', 'module-b', '1.0')
+        dep.scope == MavenScope.Compile //compile is the 'default' scope
+        hasDefaultDependencyArtifact(dep)
+        dep.constraint
+        !dep.transitive
     }
 }

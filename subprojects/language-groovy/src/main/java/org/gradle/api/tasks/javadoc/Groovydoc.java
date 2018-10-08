@@ -35,6 +35,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -95,6 +96,7 @@ public class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
+        GFileUtils.cleanDirectory(getDestinationDir());
         getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(),
                 getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
                 getClasspath(), getProject());
@@ -237,8 +239,9 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getWindowTitle() {
         return windowTitle;
     }
@@ -248,15 +251,16 @@ public class Groovydoc extends SourceTask {
      *
      * @param windowTitle A text for the windows title
      */
-    public void setWindowTitle(String windowTitle) {
+    public void setWindowTitle(@Nullable String windowTitle) {
         this.windowTitle = windowTitle;
     }
 
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getDocTitle() {
         return docTitle;
     }
@@ -266,15 +270,16 @@ public class Groovydoc extends SourceTask {
      *
      * @param docTitle the docTitle as HTML
      */
-    public void setDocTitle(String docTitle) {
+    public void setDocTitle(@Nullable String docTitle) {
         this.docTitle = docTitle;
     }
 
     /**
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getHeader() {
         return header;
     }
@@ -284,15 +289,16 @@ public class Groovydoc extends SourceTask {
      *
      * @param header the header as HTML
      */
-    public void setHeader(String header) {
+    public void setHeader(@Nullable String header) {
         this.header = header;
     }
 
     /**
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getFooter() {
         return footer;
     }
@@ -302,15 +308,16 @@ public class Groovydoc extends SourceTask {
      *
      * @param footer the footer as HTML
      */
-    public void setFooter(String footer) {
+    public void setFooter(@Nullable String footer) {
         this.footer = footer;
     }
 
     /**
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
      */
-    @Nested
+    @Nullable
     @Optional
+    @Nested
     public TextResource getOverviewText() {
         return overview;
     }
@@ -320,7 +327,7 @@ public class Groovydoc extends SourceTask {
      * <p>
      * <b>Example:</b> {@code overviewText = resources.text.fromFile("/overview.html")}
      */
-    public void setOverviewText(TextResource overviewText) {
+    public void setOverviewText(@Nullable TextResource overviewText) {
         this.overview = overviewText;
     }
 

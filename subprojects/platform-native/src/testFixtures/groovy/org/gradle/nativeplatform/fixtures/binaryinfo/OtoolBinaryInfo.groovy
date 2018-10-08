@@ -53,7 +53,7 @@ class OtoolBinaryInfo implements BinaryInfo {
     }
 
     List<BinaryInfo.Symbol> listSymbols() {
-        def process = ['nm', '-f', 'posix', binaryFile.absolutePath].execute()
+        def process = ['nm', '-a', '-f', 'posix', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
         return lines.collect { line ->
             // Looks like:
@@ -63,6 +63,26 @@ class OtoolBinaryInfo implements BinaryInfo {
             char type = splits[1].getChars()[0]
             new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
         }
+    }
+
+    @Override
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        return listSymbols() + listDwarfSymbols()
+    }
+
+    List<BinaryInfo.Symbol> listDwarfSymbols() {
+        def process = ['dwarfdump', '--diff', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        def symbols = []
+
+        lines.each { line ->
+            def findSymbol = (line =~ /.*AT_name\(\s+"(.*)"\s+\)/)
+            if (findSymbol.matches()) {
+                def name = new File(findSymbol[0][1] as String).name.trim()
+                symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
+            }
+        }
+        return symbols
     }
 
     String getSoName() {

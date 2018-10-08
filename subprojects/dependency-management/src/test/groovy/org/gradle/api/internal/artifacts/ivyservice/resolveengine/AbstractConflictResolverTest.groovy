@@ -18,15 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.resolve.RejectedBySelectorVersion
+import org.gradle.internal.resolve.RejectedVersion
 import spock.lang.Specification
 
 abstract class AbstractConflictResolverTest extends Specification {
@@ -35,19 +36,21 @@ abstract class AbstractConflictResolverTest extends Specification {
     ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails(participants)
 
     ModuleConflictResolver resolver
+    TestComponent root = new TestComponent(DefaultModuleVersionIdentifier.newId('', 'root', ''))
 
     protected void resolveConflicts() {
         resolver.select(details)
     }
 
     protected TestComponent module(String org, String name, String version) {
-        ComponentResolutionState state = new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
-        participants << state
-        state
+        new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
     }
 
     protected TestComponent prefer(String version) {
-        module('org', 'foo', version)
+        module('org', 'foo', version).with {
+            participants << it
+            it
+        }
     }
 
     protected TestComponent strictly(String version) {
@@ -77,12 +80,15 @@ abstract class AbstractConflictResolverTest extends Specification {
 
     private static class TestComponent implements ComponentResolutionState {
 
-        private final ModuleVersionIdentifier id
+        final ModuleVersionIdentifier id
+        final ComponentIdentifier componentId
+        ComponentResolveMetadata metadata
+        boolean rejected = false
         private MutableVersionConstraint constraint
-        private ComponentResolveMetadata metaData
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id
+            this.componentId = DefaultModuleComponentIdentifier.newId(id)
             this.constraint = new DefaultMutableVersionConstraint(id.version)
         }
 
@@ -91,38 +97,33 @@ abstract class AbstractConflictResolverTest extends Specification {
             this
         }
 
+        TestComponent rejectAll() {
+            constraint.rejectAll()
+            this
+        }
+
         TestComponent release() {
-            metaData = ['getStatus': {'release'}] as ComponentResolveMetadata
+            metadata = ['getStatus': {'release'}] as ComponentResolveMetadata
             this
         }
 
         @Override
-        ModuleVersionIdentifier getId() {
-            id
+        void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription) {
+
         }
 
         @Override
-        ComponentResolveMetadata getMetaData() {
-            metaData
+        void reject() {
+
         }
 
         @Override
-        ResolvedVersionConstraint getVersionConstraint() {
-            new DefaultResolvedVersionConstraint(constraint, new DefaultVersionSelectorScheme(new DefaultVersionComparator()))
+        void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
+
         }
 
         @Override
-        boolean isResolved() {
-            metaData != null
-        }
-
-        @Override
-        ComponentSelectionReason getSelectionReason() {
-            null
-        }
-
-        @Override
-        void setSelectionReason(ComponentSelectionReason componentSelectionReason) {
+        void rejected(Collection<RejectedVersion> rejectedVersions) {
 
         }
 
@@ -132,5 +133,10 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         String toString() { id }
+
+        @Override
+        void selectedBy(ResolvableSelectorState selectorState) {
+
+        }
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @CleanupTestDirectory
 class UserHomeInitScriptFinderTest extends Specification {
@@ -30,9 +31,10 @@ class UserHomeInitScriptFinderTest extends Specification {
         finder = new UserHomeInitScriptFinder(temporaryFolder.getTestDirectory())
     }
 
-    def "adds user init script when it exits"() {
+    @Unroll
+    def "adds user #initScriptName init script when it exits"() {
         given:
-        def initScript = temporaryFolder.createFile("init.gradle")
+        def initScript = temporaryFolder.createFile(initScriptName)
         def sourceList = []
 
         when:
@@ -41,6 +43,9 @@ class UserHomeInitScriptFinderTest extends Specification {
         then:
         sourceList.size == 1
         sourceList[0] == initScript
+
+        where:
+        initScriptName << ['init.gradle', 'init.gradle.kts']
     }
 
     def "does not add user init script when none exists"() {
@@ -57,7 +62,7 @@ class UserHomeInitScriptFinderTest extends Specification {
     def "adds init scripts from init directory when it exists."() {
         given:
         def initScript = temporaryFolder.createFile("init.d/script.gradle")
-        def secondScript = temporaryFolder.createFile("init.d/another.gradle")
+        def secondScript = temporaryFolder.createFile("init.d/another.gradle.kts")
         def sourceList = []
 
         when:

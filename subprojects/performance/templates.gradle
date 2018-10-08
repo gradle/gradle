@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-import org.gradle.testing.performance.generator.tasks.CppMultiProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
-import org.gradle.testing.performance.generator.tasks.RemoteProject
+import org.gradle.testing.performance.generator.tasks.*
+
+// === Gradle Build ===
+tasks.register("gradleBuildCurrent", RemoteProject) {
+    dependsOn rootProject.determineCommitId
+    remoteUri = rootDir.absolutePath
+    ref = provider { rootProject.determineCommitId.commitId }
+}
+
+tasks.register("gradleBuildBaseline", RemoteProject) {
+    remoteUri = rootDir.absolutePath
+    // Remember to update accordingly when rebasing/squashing
+    // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
+    ref = 'b1f9b6ff5ce6b00f96f49faf486345409de97ae4'
+}
+
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject'].each { template ->
-    tasks.create(template, JavaExecProjectGeneratorTask) {
+    tasks.register(template, JavaExecProjectGeneratorTask) {
         outputs.dir new File(buildDir, template)
         outputs.cacheIf { true }
         inputs.property('template', template)
@@ -40,25 +48,19 @@ import org.gradle.testing.performance.generator.tasks.RemoteProject
 }
 
 // TODO implement VerboseTestOutputPerformanceTest with static project
-task withVerboseTestNG(type: JvmProjectGeneratorTask) {
+tasks.register("withVerboseTestNG", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-testng'
 }
-task withVerboseJUnit(type: JvmProjectGeneratorTask) {
+tasks.register("withVerboseJUnit", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-junit'
 }
 
-//TODO replace with static project or direct project objects creation
-task bigEmpty(type: JvmProjectGeneratorTask) {
-    projects = 10000
-    subProjectTemplates = ['empty']
-}
-
 //TODO replace with direct task objects creation in test
-task createLotsOfTasks(type: JvmProjectGeneratorTask) {
+tasks.register("createLotsOfTasks", JvmProjectGeneratorTask) {
     projects = 1
     sourceFiles = 0
     subProjectTemplates = ['task-creation']
@@ -72,17 +74,23 @@ task createLotsOfTasks(type: JvmProjectGeneratorTask) {
     numberOfExternalDependencies = 0
 }
 
+tasks.register("generateLotsOfDeprecationWarnings", Copy) {
+    into "build/$name"
+    from "src/templates/$name"
+}
+
+
 // === Gradle Kotlin DSL ===
-task ktsManyProjects(type: KtsProjectGeneratorTask) {
+tasks.register("ktsManyProjects", KtsProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
 }
 
-task ktsSmall(type: KtsProjectGeneratorTask) {
+tasks.register("ktsSmall", KtsProjectGeneratorTask) {
 }
 
 // === Native Software Model ===
-task smallNative(type: NativeProjectGeneratorTask) {
+tasks.register("smallNative", NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
     templateArgs = [
@@ -92,7 +100,7 @@ task smallNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
-task mediumNative(type: NativeProjectGeneratorTask) {
+tasks.register("mediumNative", NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 100
     templateArgs = [
@@ -102,7 +110,7 @@ task mediumNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
-task bigNative(type: NativeProjectGeneratorTask) {
+tasks.register("bigNative", NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 500
     templateArgs = [
@@ -112,7 +120,7 @@ task bigNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
-task multiNative(type: NativeProjectGeneratorTask) {
+tasks.register("multiNative", NativeProjectGeneratorTask) {
     projects = 10
     sourceFiles = 20
     templateArgs = [
@@ -122,7 +130,7 @@ task multiNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
-task manyProjectsNative(type: NativeProjectGeneratorTask) {
+tasks.register("manyProjectsNative", NativeProjectGeneratorTask) {
     projects = 100
     sourceFiles = 1
     templateArgs = [
@@ -132,7 +140,7 @@ task manyProjectsNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
-task smallPCHNative(type: NativeProjectGeneratorTask) {
+tasks.register("smallPCHNative", NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
     templateArgs = [
@@ -142,7 +150,7 @@ task smallPCHNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-pch-source', 'native-pch-component']
 }
 
-task mediumPCHNative(type: NativeProjectGeneratorTask) {
+tasks.register("mediumPCHNative", NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 200
     templateArgs = [
@@ -152,7 +160,7 @@ task mediumPCHNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-pch-source', 'native-pch-component']
 }
 
-task bigPCHNative(type: NativeProjectGeneratorTask) {
+tasks.register("bigPCHNative", NativeProjectGeneratorTask) {
     projects = 1
     sourceFiles = 1000
     templateArgs = [
@@ -162,7 +170,7 @@ task bigPCHNative(type: NativeProjectGeneratorTask) {
     subProjectTemplates = ['native-pch-source', 'native-pch-component']
 }
 
-task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
+tasks.register("nativeMonolithicOverlapping", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: true]
     projects = 100
     // number of source files to generate in each project of each type
@@ -170,25 +178,25 @@ task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
     sourceFiles = 200
 }
 
-task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+tasks.register("nativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 100
     sourceFiles = 200
 }
 
-task smallNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+tasks.register("smallNativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 2
     sourceFiles = 100
 }
 
-task mediumNativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+tasks.register("mediumNativeMonolithic", MonolithicNativeProjectGeneratorTask) {
     templateArgs = [overlapWithOutput: false]
     projects = 10
     sourceFiles = 200
 }
 
-configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic, mediumNativeMonolithic]) {
+["nativeMonolithicOverlapping", "nativeMonolithic", "smallNativeMonolithic", "mediumNativeMonolithic"].collect { tasks.withType(MonolithicNativeProjectGeneratorTask).named(it) }*.configure {
     templateArgs += [
         // number of functions created in each source file
         functionCount: 50,
@@ -206,19 +214,19 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
-task nativeDependents(type: NativeProjectWithDepsGeneratorTask) {
+tasks.register("nativeDependents", NativeProjectWithDepsGeneratorTask) {
     resources.from(fileTree(resolveTemplate("native-dependents-resources")))
     resources.from(resolveTemplate("init.gradle"))
 }
 
-task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
+tasks.register("nativeDependentsDeep", NativeProjectWithDepsGeneratorTask) {
     resources.from(fileTree(resolveTemplate("native-dependents-resources")))
     resources.from(resolveTemplate("init.gradle"))
     generateDeepHierarchy = true
 }
 
 // === Native Current Model Plugins ===
-task smallCppApp(type: CppMultiProjectGeneratorTask) {
+tasks.register("smallCppApp", CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 20
     templateArgs = [
@@ -227,7 +235,7 @@ task smallCppApp(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task mediumCppApp(type: CppMultiProjectGeneratorTask) {
+tasks.register("mediumCppApp", CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 100
     templateArgs = [
@@ -236,7 +244,7 @@ task mediumCppApp(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task mediumCppAppWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+tasks.register("mediumCppAppWithMacroIncludes", CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 100
     templateArgs = [
@@ -247,7 +255,7 @@ task mediumCppAppWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task bigCppApp(type: CppMultiProjectGeneratorTask) {
+tasks.register("bigCppApp", CppMultiProjectGeneratorTask) {
     projects = 1
     sourceFiles = 500
     templateArgs = [
@@ -256,7 +264,7 @@ task bigCppApp(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task smallCppMulti(type: CppMultiProjectGeneratorTask) {
+tasks.register("smallCppMulti", CppMultiProjectGeneratorTask) {
     projects = 11
     sourceFiles = 2
     templateArgs = [
@@ -265,7 +273,7 @@ task smallCppMulti(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
+tasks.register("mediumCppMulti", CppMultiProjectGeneratorTask) {
     projects = 101
     sourceFiles = 4
     templateArgs = [
@@ -274,7 +282,7 @@ task mediumCppMulti(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task mediumCppMultiWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
+tasks.register("mediumCppMultiWithMacroIncludes", CppMultiProjectGeneratorTask) {
     projects = 101
     sourceFiles = 4
     templateArgs = [
@@ -284,7 +292,7 @@ task mediumCppMultiWithMacroIncludes(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
-task bigCppMulti(type: CppMultiProjectGeneratorTask) {
+tasks.register("bigCppMulti", CppMultiProjectGeneratorTask) {
     projects = 201
     sourceFiles = 8
     templateArgs = [
@@ -293,47 +301,89 @@ task bigCppMulti(type: CppMultiProjectGeneratorTask) {
     subProjectTemplates = ['cpp-source', 'cpp-project']
 }
 
+// Build-builder projects
+tasks.register("buildBuilder", RemoteProject) {
+    remoteUri = 'https://github.com/adammurdoch/build-builder.git'
+    ref = 'ef909790b6d4311609af0cb53373b1c8a9180718'
+}
+
+tasks.register("installBuildBuilder", GradleBuild) {
+    dir = buildBuilder.outputDirectory
+    tasks = ['install']
+    dependsOn buildBuilder
+}
+
+tasks.withType(BuildBuilderGenerator).configureEach {
+    buildBuilderInstall = new File(tasks.buildBuilder.outputDirectory, "build/install/build-builder")
+    dependsOn installBuildBuilder
+}
+
+tasks.register("mediumSwiftMulti", BuildBuilderGenerator) {
+    projectType = "swift"
+    projects = 100
+    sourceFiles = 4
+    description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
+}
+
+tasks.register("bigSwiftApp", BuildBuilderGenerator) {
+    projectType = "swift"
+    projects = 1
+    sourceFiles = 500
+    description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
+
+    doLast {
+        def buildFile = generatedDir.file("build.gradle").get().asFile
+        buildFile << """
+            tasks.withType(SwiftCompile) {
+                compilerArgs.addAll provider {
+                    [ "-num-threads", "6", "-j", "6" ]
+                }
+            }
+        """
+    }
+}
+
 // === Android ===
-task k9AndroidBuild(type: RemoteProject) {
+tasks.register("k9AndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    branch = 'gradle'
+    branch = 'android-31'
 }
 
-task largeAndroidBuild(type: RemoteProject) {
+tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'gradle'
+    branch = 'android-31'
 }
 
-task excludeRuleMergingBuild(type: RemoteProject) {
+tasks.register("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     branch = 'master'
     subdirectory = 'exclude-merging'
 }
 
-task springBootApp(type: RemoteProject) {
+tasks.register("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     branch = 'master'
     subdirectory = 'parallel-downloads'
 }
 
-task largeNativeBuild(type: RemoteProject) {
+tasks.register("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
     branch = 'master'
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 
-task largeNativeBuildPrebuilt(type: GradleBuild) {
+tasks.register("largeNativeBuildPrebuilt", GradleBuild) {
     buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
     dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
     tasks = ['build']
 }
 
-task archivePerformanceProject(type: Copy) {
+tasks.register("archivePerformanceProject", Copy) {
     into "build/$name"
     from "src/templates/$name"
 }
 
-tasks.withType(JvmProjectGeneratorTask) {
+tasks.withType(JvmProjectGeneratorTask).configureEach {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
@@ -343,7 +393,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 // The Android Studio performance tests use custom model classes which need to be found in
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
-androidRemoteProjects.all {
+androidRemoteProjects.configureEach {
     dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
     doLast {
         file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text

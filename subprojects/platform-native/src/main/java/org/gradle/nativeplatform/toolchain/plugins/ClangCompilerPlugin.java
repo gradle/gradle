@@ -34,6 +34,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.clang.ClangToolChain;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -58,11 +59,12 @@ public class ClangCompilerPlugin implements Plugin<Project> {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
             final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
+            final SystemLibraryDiscovery standardLibraryDiscovery = serviceRegistry.get(SystemLibraryDiscovery.class);
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
 
             toolChainRegistry.registerFactory(Clang.class, new NamedDomainObjectFactory<Clang>() {
                 public Clang create(String name) {
-                    return instantiator.newInstance(ClangToolChain.class, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, instantiator, workerLeaseService);
+                    return instantiator.newInstance(ClangToolChain.class, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, standardLibraryDiscovery, instantiator, workerLeaseService);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang.class);

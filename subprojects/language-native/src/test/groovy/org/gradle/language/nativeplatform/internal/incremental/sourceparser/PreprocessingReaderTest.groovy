@@ -25,7 +25,74 @@ class PreprocessingReaderTest extends Specification {
 
     def getOutput() {
         def reader = new PreprocessingReader(new StringReader(input))
-        return reader.text
+        def result = new StringBuilder()
+        def line = new StringBuilder()
+        boolean first = true
+        while (reader.readNextLine(line)) {
+            if (first) {
+                first = false
+            } else {
+                result.append('\n')
+            }
+            result.append(line.toString())
+            line.setLength(0)
+        }
+        return result.toString()
+    }
+
+    def "reads from empty text"() {
+        expect:
+        def reader = new PreprocessingReader(new StringReader(""))
+        !reader.readNextLine(new StringBuilder())
+    }
+
+    def "reads single line"() {
+        expect:
+        def reader = new PreprocessingReader(new StringReader("abc(123)"))
+        def result = new StringBuilder()
+        reader.readNextLine(result)
+        result.toString() == "abc(123)"
+        !reader.readNextLine(result)
+    }
+
+    def "reads multiple lines"() {
+        expect:
+        def reader = new PreprocessingReader(new StringReader("""
+line 1
+
+line 2""".replace('\n', eol)))
+        def result = new StringBuilder()
+        reader.readNextLine(result)
+        result.toString() == ""
+
+        result.setLength(0)
+        reader.readNextLine(result)
+        result.toString() == "line 1"
+
+        result.setLength(0)
+        reader.readNextLine(result)
+        result.toString() == ""
+
+
+        result.setLength(0)
+        reader.readNextLine(result)
+        result.toString() == "line 2"
+
+        !reader.readNextLine(result)
+
+        where:
+        eol << ['\n', '\r', '\r\n']
+    }
+
+    def "consumes quoted strings"() {
+        when:
+        input = '''
+"abc\\""
+"\\""
+'''
+
+        then:
+        output == '\n"abc\\""\n"\\""'
     }
 
     def "removes line continuation characters"() {
@@ -47,7 +114,7 @@ here */that contains/**
 """
 
         then:
-        output == "\nHere is a string that contains several inline comments.\n"
+        output == "\nHere is a string that contains several inline comments."
     }
 
     def "replaces line comments with space"() {
@@ -61,14 +128,14 @@ line comments.
 """
 
         then:
-        output == "\nHere is a \nstring\n\nwith interspersed \nline comments.\n"
+        output == "\nHere is a \nstring\n\nwith interspersed \nline comments."
     }
 
     def "can cope with multiple unescaped and escaped \\r characters"() {
         when:
         input = "Here \r\r\\\r\\\r${BN}\\\r\\\r\\\r\\\r."
         then:
-        output == "Here \r\r\\\r\\\r\\\r\\\r\\\r\\\r."
+        output == "Here \n\n\\\n\\\n\\\n\\\n\\\n\\\n."
     }
 
     @Unroll

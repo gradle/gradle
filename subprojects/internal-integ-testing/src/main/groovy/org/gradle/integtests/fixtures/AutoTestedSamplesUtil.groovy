@@ -18,7 +18,13 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.internal.SystemProperties
 
+import java.util.regex.Pattern
+
 class AutoTestedSamplesUtil {
+
+    private static final Pattern SAMPLE_START = Pattern.compile(/<pre class=['|"]autoTested(.*?)['|"].*?>/)
+    private static final Pattern LEADING_ASTERISK_PATTERN = Pattern.compile(/(?m)^\s*?\*/)
+    private static final Pattern LITERAL_PATTERN = Pattern.compile(/\{@literal ([^}]+)}/)
 
     String includes = '**/*.groovy **/*.java'
 
@@ -50,14 +56,18 @@ I tried looking for a root folder here: $candidates
     }
 
     void runSamplesFromFile(File file, Closure runner) {
-        file.text.eachMatch(/(?ms).*?<pre class=['|"]autoTested(.*?)['|"].*?>(.*?)<\/pre>(.*?)/) {
-            def tagSuffix = it[1]
-            def sample = it[2]
-            sample = sample.replaceAll(/(?m)^\s*?\*/, '')
+        String text = file.text
+        def samples = SAMPLE_START.matcher(text)
+        while (samples.find()) {
+            def tagSuffix = samples.group(1)
+            def start = samples.end()
+            def end = text.indexOf("</pre>", start)
+            def sample = text.substring(start, end)
+            sample = LEADING_ASTERISK_PATTERN.matcher(sample).replaceAll('')
             sample = sample.replace('&lt;', '<')
             sample = sample.replace('&gt;', '>')
             sample = sample.replace('&amp;', '&')
-            sample = sample.replaceAll(/\{@literal ([^}]+)}/, '$1')
+            sample = LITERAL_PATTERN.matcher(sample).replaceAll('$1')
             try {
                 runner.call(file, sample, tagSuffix)
             } catch (Exception e) {

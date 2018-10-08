@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath('com.uwyn:jhighlight:1.0') {
-            exclude module: "servlet-api"
-        }
-    }
-}
-
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.jsoup.select.Elements
@@ -29,12 +18,13 @@ transformDocument {
     head().
             append("<meta charset='utf-8'>").
             append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
-            append("<title>Gradle @version@ Release Notes</title>")
+            append("<title>Gradle @version@ Release Notes</title>").
+            append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>")
 
-    head().append("<style>p{}</style>").children().last().childNode(0).attr("data", baseStyleFile.text + releaseNotesStyleFile.text)
+    head().append("<style>${baseStyleFile.text}${releaseNotesStyleFile.text}</style>")
 
     [project.configurations.jquery.singleFile, project.configurations.jqueryTipTip.singleFile, scriptFile].each {
-        head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", it.text)
+        head().append("<script type='text/javascript'>${it.text}</script>")
     }
 }
 

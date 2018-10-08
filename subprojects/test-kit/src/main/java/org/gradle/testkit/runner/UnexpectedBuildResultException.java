@@ -16,15 +16,12 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
-
 /**
  * Base class for {@link UnexpectedBuildFailure} and {@link UnexpectedBuildSuccess}.
  *
  * @since 2.9
  * @see BuildResult
  */
-@Incubating
 public abstract class UnexpectedBuildResultException extends RuntimeException {
 
     private final BuildResult buildResult;

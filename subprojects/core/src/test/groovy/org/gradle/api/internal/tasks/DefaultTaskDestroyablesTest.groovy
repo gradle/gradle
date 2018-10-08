@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -28,12 +24,7 @@ import java.util.concurrent.Callable
 
 @UsesNativeServices
 class DefaultTaskDestroyablesTest extends Specification {
-    File treeFile = new File('tree')
-    def tree = [getFiles: { [treeFile] as Set}] as FileTreeInternal
-    FileResolver resolver = [
-        resolve: { new File(it) },
-        resolveFilesAsTree: {tree}
-    ] as FileResolver
+
     TaskMutator taskMutator = Stub(TaskMutator) {
         mutate(_, _) >> { String method, Object action ->
             if (action instanceof Runnable) {
@@ -43,12 +34,13 @@ class DefaultTaskDestroyablesTest extends Specification {
             }
         }
     }
-    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator)
+
+    TaskDestroyablesInternal taskDestroys = new DefaultTaskDestroyables(taskMutator)
 
     def "empty destroys by default"() {
         expect:
-        taskDestroys.files != null
-        taskDestroys.files.files.isEmpty()
+        taskDestroys.registeredPaths != null
+        taskDestroys.registeredPaths.isEmpty()
     }
 
     def "can declare a file that a task destroys"() {
@@ -56,7 +48,7 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register("a")
 
         then:
-        taskDestroys.files.files == [new File("a")] as Set
+        taskDestroys.registeredPaths == ["a"]
     }
 
     def "can declare multiple files that a task destroys"() {
@@ -64,7 +56,7 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register("a", "b")
 
         then:
-        taskDestroys.files.files == [new File("a"), new File("b")] as Set
+        taskDestroys.registeredPaths == ["a", "b"]
     }
 
     def "can declare a file collection that a task destroys"() {
@@ -75,14 +67,15 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register(fileCollection)
 
         then:
-        taskDestroys.files.files == [new File("a"), new File("b")] as Set
+        taskDestroys.registeredPaths == [fileCollection]
     }
 
     def "can declare a file that a task destroys using a closure"() {
+        def closure = { 'a' }
         when:
-        taskDestroys.register({ 'a' })
+        taskDestroys.register(closure)
 
         then:
-        taskDestroys.files.files == [new File("a")] as Set
+        taskDestroys.registeredPaths == [closure]
     }
 }

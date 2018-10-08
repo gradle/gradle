@@ -18,6 +18,7 @@ package org.gradle.internal.logging.compatbridge;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
 import java.io.OutputStream;
@@ -112,7 +113,7 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
 
     @Override
     public void attachAnsiConsole(OutputStream outputStream) {
-        delegate.attachAnsiConsole(outputStream);
+        delegate.attachConsole(outputStream, outputStream, ConsoleOutput.Rich);
     }
 
     @Override

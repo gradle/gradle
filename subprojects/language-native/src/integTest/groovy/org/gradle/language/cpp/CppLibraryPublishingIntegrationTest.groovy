@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
@@ -24,7 +26,11 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
 
-class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
+
+    def setup() {
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
+    }
 
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
@@ -54,16 +60,17 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         result.assertTasksExecuted(
             compileAndLinkTasks(debug),
             compileAndLinkTasks(release),
-            ":generatePomFileForDebugPublication",
-            ":generateMetadataFileForDebugPublication",
-            ":publishDebugPublicationToMavenRepository",
+            stripSymbolsTasksRelease(),
+            ":generatePomFileForMainDebugPublication",
+            ":generateMetadataFileForMainDebugPublication",
+            ":publishMainDebugPublicationToMavenRepository",
             ":cppHeaders",
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleasePublication",
-            ":generateMetadataFileForReleasePublication",
-            ":publishReleasePublicationToMavenRepository",
+            ":generatePomFileForMainReleasePublication",
+            ":generateMetadataFileForMainReleasePublication",
+            ":publishMainReleasePublicationToMavenRepository",
             ":publish"
         )
 
@@ -86,10 +93,10 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         api.files.size() == 1
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
-        mainMetadata.variant("debug-link").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("debug-runtime").availableAt.coords == "some.group:test_debug:1.2"
-        mainMetadata.variant("release-link").availableAt.coords == "some.group:test_release:1.2"
-        mainMetadata.variant("release-runtime").availableAt.coords == "some.group:test_release:1.2"
+        mainMetadata.variant("debugLink").availableAt.coords == "some.group:test_debug:1.2"
+        mainMetadata.variant("debugRuntime").availableAt.coords == "some.group:test_debug:1.2"
+        mainMetadata.variant("releaseLink").availableAt.coords == "some.group:test_release:1.2"
+        mainMetadata.variant("releaseRuntime").availableAt.coords == "some.group:test_release:1.2"
 
         def debug = repo.module('some.group', 'test_debug', '1.2')
         debug.assertPublished()
@@ -101,12 +108,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
 
         def debugMetadata = debug.parsedModuleMetadata
         debugMetadata.variants.size() == 2
-        def debugLink = debugMetadata.variant('debug-link')
+        def debugLink = debugMetadata.variant('debugLink')
         debugLink.dependencies.empty
         debugLink.files.size() == 1
         debugLink.files[0].name == linkLibraryName('test')
         debugLink.files[0].url == withLinkLibrarySuffix("test_debug-1.2")
-        def debugRuntime = debugMetadata.variant('debug-runtime')
+        def debugRuntime = debugMetadata.variant('debugRuntime')
         debugRuntime.dependencies.empty
         debugRuntime.files.size() == 1
         debugRuntime.files[0].name == sharedLibraryName('test')
@@ -115,19 +122,19 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def release = repo.module('some.group', 'test_release', '1.2')
         release.assertPublished()
         release.assertArtifactsPublished(withSharedLibrarySuffix("test_release-1.2"), withLinkLibrarySuffix("test_release-1.2"), "test_release-1.2.pom", "test_release-1.2.module")
-        release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").file)
-        release.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").linkFile)
+        release.artifactFile(type: sharedLibraryExtension).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").strippedRuntimeFile)
+        release.artifactFile(type: linkLibrarySuffix).assertIsCopyOf(sharedLibrary("build/lib/main/release/test").strippedLinkFile)
 
         release.parsedPom.scopes.isEmpty()
 
         def releaseMetadata = release.parsedModuleMetadata
         releaseMetadata.variants.size() == 2
-        def releaseLink = releaseMetadata.variant('release-link')
+        def releaseLink = releaseMetadata.variant('releaseLink')
         releaseLink.dependencies.empty
         releaseLink.files.size() == 1
         releaseLink.files[0].name == linkLibraryName('test')
         releaseLink.files[0].url == withLinkLibrarySuffix("test_release-1.2")
-        def releaseRuntime = releaseMetadata.variant('release-runtime')
+        def releaseRuntime = releaseMetadata.variant('releaseRuntime')
         releaseRuntime.dependencies.empty
         releaseRuntime.files.size() == 1
         releaseRuntime.files[0].name == sharedLibraryName('test')
@@ -187,11 +194,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("debug-link")
+        def deckDebugLink = deckDebugMetadata.variant("debugLink")
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debugRuntime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -202,11 +209,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("release-link")
+        def deckReleaseLink = deckReleaseMetadata.variant("releaseLink")
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("releaseRuntime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -236,7 +243,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
@@ -259,7 +266,8 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         given:
         def repoDir = file("repo")
         def producer = file("producer")
-        producer.file("settings.gradle") << "include 'card', 'shuffle'"
+        def producerSettings = producer.file("settings.gradle") << "include 'card', 'shuffle'"
+        FeaturePreviewsFixture.enableStablePublishing(producerSettings)
         producer.file("build.gradle") << """
             subprojects {
                 apply plugin: 'cpp-library'
@@ -321,11 +329,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("debug-link")
+        def deckDebugLink = deckDebugMetadata.variant("debugLink")
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debugRuntime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -336,11 +344,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2", "some.group:shuffle:1.2")
 
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("release-link")
+        def deckReleaseLink = deckReleaseMetadata.variant("releaseLink")
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("releaseRuntime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].coords == "some.group:shuffle:1.2"
         deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -349,7 +357,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
@@ -417,11 +425,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckDebugModule.assertPublished()
 
         def deckDebugMetadata = deckDebugModule.parsedModuleMetadata
-        def deckDebugLink = deckDebugMetadata.variant("debug-link")
+        def deckDebugLink = deckDebugMetadata.variant("debugLink")
         deckDebugLink.dependencies.size() == 2
         deckDebugLink.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckDebugLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckDebugRuntime = deckDebugMetadata.variant("debug-runtime")
+        def deckDebugRuntime = deckDebugMetadata.variant("debugRuntime")
         deckDebugRuntime.dependencies.size() == 2
         deckDebugRuntime.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckDebugRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -430,11 +438,11 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         deckReleaseModule.assertPublished()
 
         def deckReleaseMetadata = deckReleaseModule.parsedModuleMetadata
-        def deckReleaseLink = deckReleaseMetadata.variant("release-link")
+        def deckReleaseLink = deckReleaseMetadata.variant("releaseLink")
         deckReleaseLink.dependencies.size() == 2
         deckReleaseLink.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckReleaseLink.dependencies[1].coords == "some.group:card:1.2"
-        def deckReleaseRuntime = deckReleaseMetadata.variant("release-runtime")
+        def deckReleaseRuntime = deckReleaseMetadata.variant("releaseRuntime")
         deckReleaseRuntime.dependencies.size() == 2
         deckReleaseRuntime.dependencies[0].coords == "some.group:card_shuffle:1.2"
         deckReleaseRuntime.dependencies[1].coords == "some.group:card:1.2"
@@ -461,7 +469,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:card_deck:1.2' }
 """
@@ -476,6 +484,38 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainI
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/card_shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+    }
+
+    def "can adjust main publication coordinates"() {
+        def lib = new CppLib()
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            library {
+                baseName = 'test'
+            }
+            publishing {
+                repositories { maven { url 'repo' } }
+                publications.main {
+                    artifactId = "\${artifactId}-adjusted"
+                }
+            }
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        run('publish')
+
+        then:
+        def repo = new MavenFileRepository(file("repo"))
+        def main = repo.module('some.group', 'test-adjusted', '1.2')
+        main.assertPublished()
+        main.assertArtifactsPublished("test-adjusted-1.2-cpp-api-headers.zip", "test-adjusted-1.2.pom", "test-adjusted-1.2.module")
     }
 
     def "private headers are not visible to consumer"() {
@@ -586,6 +626,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         def repoDir = file("repo")
         def producer = file("greeting")
+        def producerSettings = producer.file("settings.gradle")
+        FeaturePreviewsFixture.enableStablePublishing(producerSettings)
         producer.file("build.gradle") << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
@@ -595,7 +637,10 @@ dependencies { implementation 'some.group:greeter:1.2' }
             publishing {
                 repositories { maven { url '${repoDir.toURI()}' } }
             }
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            
+            library.binaries.get { it.optimized }.configure {
+                compileTask.get().macros(WITH_FEATURE: "true")
+            }
             
         """
         app.greeterLib.writeToProject(file(producer))
@@ -604,12 +649,15 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run('publish')
 
         def consumer = file("consumer").createDir()
+        consumer.file("settings.gradle") << ""
         consumer.file("build.gradle") << """
-            apply plugin: 'cpp-executable'
+            apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
-"""
+            application.binaries.get { it.optimized }.configure {
+                compileTask.get().macros(WITH_FEATURE: "true")
+            }
+        """
         app.main.writeToProject(consumer)
 
         when:
@@ -617,7 +665,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run("installDebug")
 
         then:
-        installation(consumer.file("build/install/main/debug")).exec().out == app.withFeatureDisabled().expectedOutput
+        def debugInstall = installation(consumer.file("build/install/main/debug"))
+        debugInstall.exec().out == app.withFeatureDisabled().expectedOutput
+        debugInstall.assertIncludesLibraries("greeting")
+        def debugLib = sharedLibrary(producer.file("build/lib/main/debug/greeting"))
+        sharedLibrary(consumer.file("build/install/main/debug/lib/greeting")).file.assertIsCopyOf(debugLib.file)
 
         when:
         executer.inDirectory(consumer)
@@ -625,6 +677,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         then:
         installation(consumer.file("build/install/main/release")).exec().out == app.withFeatureEnabled().expectedOutput
+        def releaseInstall = installation(consumer.file("build/install/main/release"))
+        releaseInstall.exec().out == app.withFeatureEnabled().expectedOutput
+        releaseInstall.assertIncludesLibraries("greeting")
+        def releaseLib = sharedLibrary(producer.file("build/lib/main/release/greeting"))
+        sharedLibrary(consumer.file("build/install/main/release/lib/greeting")).file.assertIsCopyOf(releaseLib.strippedRuntimeFile)
     }
 
 }

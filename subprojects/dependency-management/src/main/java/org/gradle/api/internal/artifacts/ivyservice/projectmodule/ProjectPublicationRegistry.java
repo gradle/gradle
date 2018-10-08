@@ -19,11 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import java.util.Set;
 
 /**
- * Collects information on the "logical" publications of each project.
+ * Collects information on the publications of each project.
  * The information is gathered from multiple sources ({@code publishing.publications}
  * container, {@code uploadArchives} task, etc.).
  */
 public interface ProjectPublicationRegistry {
     void registerPublication(String projectPath, ProjectPublication publication);
+
+    /**
+     * Returns the known publications for the given project.
+     */
     Set<ProjectPublication> getPublications(String projectPath);
 }

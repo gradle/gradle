@@ -16,5 +16,17 @@
 
 package org.gradle.language.swift.plugins
 
-class SwiftLibraryPluginIntegrationTest extends AbstractSwiftPluginIntegrationTest {
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+
+class SwiftLibraryPluginIntegrationTest extends WellBehavedPluginTest {
+    def "plugin can build with empty project with static lib"() {
+        given:
+        applyPlugin()
+        buildFile << """
+            library.linkage = [Linkage.STATIC]
+        """
+
+        expect:
+        succeeds mainTask
+    }
 }

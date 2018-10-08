@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.HasFileOperations;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -38,7 +39,6 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -53,6 +53,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -77,17 +78,19 @@ public abstract class DefaultScript extends BasicScript {
         loggingManager = services.get(LoggingManager.class);
         Instantiator instantiator = services.get(Instantiator.class);
         FileLookup fileLookup = services.get(FileLookup.class);
+        ExecFactory execFactory = services.get(ExecFactory.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         StreamHasher streamHasher = services.get(StreamHasher.class);
         FileHasher fileHasher = services.get(FileHasher.class);
-        if (target instanceof FileOperations) {
-            fileOperations = (FileOperations) target;
+        TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
+        if (target instanceof HasFileOperations) {
+            fileOperations = ((HasFileOperations) target).getFileOperations();
         } else {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader);
             } else {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader);
             }
         }
 
@@ -95,9 +98,13 @@ public abstract class DefaultScript extends BasicScript {
         providerFactory = services.get(ProviderFactory.class);
     }
 
-    @Override
     public FileResolver getFileResolver() {
         return fileOperations.getFileResolver();
+    }
+
+    @Override
+    public FileOperations getFileOperations() {
+        return fileOperations;
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
@@ -153,12 +160,12 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return fileOperations.files(paths);
+        return fileOperations.configurableFiles(paths);
     }
 
     @Override
     public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, fileOperations.files(paths));
+        return ConfigureUtil.configure(configureClosure, fileOperations.configurableFiles(paths));
     }
 
     @Override
@@ -201,12 +208,10 @@ public abstract class DefaultScript extends BasicScript {
         return copy(ConfigureUtil.configureUsing(closure));
     }
 
-    @Override
     public WorkResult copy(Action<? super CopySpec> action) {
         return fileOperations.copy(action);
     }
 
-    @Override
     public WorkResult sync(Action<? super CopySpec> action) {
         return fileOperations.sync(action);
     }
@@ -216,7 +221,6 @@ public abstract class DefaultScript extends BasicScript {
         return Actions.with(copySpec(), ConfigureUtil.configureUsing(closure));
     }
 
-    @Override
     public CopySpec copySpec() {
         return fileOperations.copySpec();
     }
@@ -231,7 +235,6 @@ public abstract class DefaultScript extends BasicScript {
         return fileOperations.delete(paths);
     }
 
-    @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
         return fileOperations.delete(action);
     }
@@ -259,11 +262,6 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return providerFactory.provider(value);
-    }
-
-    @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return providerFactory.property(clazz);
     }
 
     @Override

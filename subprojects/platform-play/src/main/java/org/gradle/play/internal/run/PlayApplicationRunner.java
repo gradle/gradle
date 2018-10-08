@@ -16,7 +16,13 @@
 
 package org.gradle.play.internal.run;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
+import org.gradle.internal.fingerprint.ClasspathFingerprinter;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -27,10 +33,12 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter fingerprinter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
+        this.fingerprinter = fingerprinter;
     }
 
     public PlayApplication start(PlayRunSpec spec, Deployment deployment) {
@@ -38,11 +46,61 @@ public class PlayApplicationRunner {
         process.start();
 
         PlayRunWorkerServerProtocol workerServer = process.getConnection().addOutgoing(PlayRunWorkerServerProtocol.class);
-        PlayApplication playApplication = new PlayApplication(deployment, workerServer, process);
+        PlayApplication playApplication = new PlayApplication(new PlayClassloaderMonitorDeploymentDecorator(deployment, spec), workerServer, process);
         process.getConnection().addIncoming(PlayRunWorkerClientProtocol.class, playApplication);
         process.getConnection().connect();
         playApplication.waitForRunning();
         return playApplication;
+    }
+
+    private class PlayClassloaderMonitorDeploymentDecorator implements Deployment {
+        private final Deployment delegate;
+        private final FileCollection applicationClasspath;
+        private HashCode classpathHash;
+
+        private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec) {
+            this.delegate = delegate;
+            this.applicationClasspath = collectApplicationClasspath(runSpec);
+        }
+
+        private FileCollection collectApplicationClasspath(PlayRunSpec runSpec) {
+            ImmutableSet<File> applicationClasspath = ImmutableSet.<File>builder()
+                .addAll(runSpec.getChangingClasspath())
+                .add(runSpec.getApplicationJar())
+                .build();
+            return ImmutableFileCollection.of(applicationClasspath);
+        }
+
+        @Override
+        public Status status() {
+            final Status delegateStatus = delegate.status();
+
+            if (!delegateStatus.hasChanged()) {
+                return delegateStatus;
+            }
+
+            if (applicationClasspathChanged()) {
+                return delegateStatus;
+            } else {
+                return new Status() {
+                    @Override
+                    public Throwable getFailure() {
+                        return delegateStatus.getFailure();
+                    }
+
+                    @Override
+                    public boolean hasChanged() {
+                        return false;
+                    }
+                };
+            }
+        }
+
+        private boolean applicationClasspathChanged() {
+            HashCode oldClasspathHash = classpathHash;
+            classpathHash = fingerprinter.fingerprint(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
+            return !classpathHash.equals(oldClasspathHash);
+        }
     }
 
     private static WorkerProcess createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {

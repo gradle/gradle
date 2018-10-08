@@ -17,7 +17,9 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 public interface DependencyResolutionServices {
     RepositoryHandler getResolveRepositoryHandler();
@@ -26,4 +28,7 @@ public interface DependencyResolutionServices {
 
     DependencyHandler getDependencyHandler();
 
+    DependencyLockingHandler getDependencyLockingHandler();
+
+    ImmutableAttributesFactory getAttributesFactory();
 }

@@ -177,6 +177,25 @@ class FullExceptionFormatterTest extends Specification {
 """
     }
 
+    def "treat anonymous class and its enclosing class equally"() {
+        testLogging.getShowCauses() >> true
+        testLogging.getShowStackTraces() >> true
+        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
+
+        def exception = new PlaceholderException(Exception.name, "ouch", null, "java.lang.Exception: ouch", null, null)
+        def stacktrace = createGroovyTrace()
+        stacktrace[3] = new StackTraceElement('ClassName$1$1', "whatever", "MyTest.java", 22)
+        exception.stackTrace = stacktrace
+
+        expect:
+        formatter.format(testDescriptor, [exception]) == '''\
+    java.lang.Exception: ouch
+        at org.ClassName1.methodName1(FileName1.java:11)
+        at org.ClassName2.methodName2(FileName2.java:22)
+        at ClassName$1$1.whatever(MyTest.java:22)
+'''
+    }
+
     def "also filters stack traces of causes"() {
         testLogging.getShowCauses() >> true
         testLogging.getShowStackTraces() >> true

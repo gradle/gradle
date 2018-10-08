@@ -1,4 +1,9 @@
-sourceCompatibility = 1.6
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     compile project(":core")
@@ -7,12 +12,15 @@ dependencies {
 
     testRuntime project(":languageJava")
 
-    testFixturesCompile project(":internalIntegTesting")
+    testFixturesApi project(":internalIntegTesting")
 }
 
-useClassycle()
-strictCompile()
-useTestFixtures()
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':launcher', sourceSet: 'testFixtures')
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
 
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':launcher', 'testFixtures')
+}

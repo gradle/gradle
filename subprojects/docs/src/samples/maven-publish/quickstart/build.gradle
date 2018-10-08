@@ -1,12 +1,16 @@
-apply plugin: 'java'
-// START SNIPPET use-plugin
-apply plugin: 'maven-publish'
-// END SNIPPET use-plugin
+// tag::use-plugin[]
+plugins {
+    id 'maven-publish'
+}
+// end::use-plugin[]
+plugins {
+    id 'java'
+}
 
 group = 'org.gradle.sample'
 version = '1.0'
 
-// START SNIPPET publish-component
+// tag::publish-component[]
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -14,15 +18,15 @@ publishing {
         }
     }
 }
-// END SNIPPET publish-component
-// START SNIPPET repositories
+// end::publish-component[]
+// tag::repositories[]
 publishing {
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
-            url "$buildDir/repo"
+            url = "$buildDir/repo"
         }
     }
 }
-// END SNIPPET repositories
+// end::repositories[]
 

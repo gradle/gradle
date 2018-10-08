@@ -20,20 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
-import java.util.Collection;
-
 public interface ConflictResolutionResult {
 
     /**
      * Performs an action on all conflicting modules.
      * @param action the action to execute on each participating module
      */
-    void withParticipatingModules(Action<ModuleIdentifier> action);
+    void withParticipatingModules(Action<? super ModuleIdentifier> action);
 
     /**
      * The actual selected version.
      */
     <T extends ComponentResolutionState> T getSelected();
 
-    Collection<? extends ComponentResolutionState> getCandidates();
 }

@@ -17,28 +17,29 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MainLibraryVariant implements ComponentWithVariants, SoftwareComponentInternal {
-    private final Set<SoftwareComponent> variants = new HashSet<SoftwareComponent>();
+    private final DomainObjectSet<SoftwareComponent> variants = new DefaultDomainObjectSet<SoftwareComponent>(SoftwareComponent.class);
     private final String name;
     private final Usage usage;
-    private final Set<? extends PublishArtifact> artifacts;
+    private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final Configuration dependencies;
 
-    public MainLibraryVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
+    public MainLibraryVariant(String name, Usage usage, Configuration dependencies) {
         this.name = name;
         this.usage = usage;
-        this.artifacts = artifacts;
         this.dependencies = dependencies;
     }
 
@@ -55,6 +56,10 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     @Override
     public Set<? extends SoftwareComponent> getVariants() {
         return variants;
+    }
+
+    public void addArtifact(PublishArtifact artifact) {
+        artifacts.add(artifact);
     }
 
     /**

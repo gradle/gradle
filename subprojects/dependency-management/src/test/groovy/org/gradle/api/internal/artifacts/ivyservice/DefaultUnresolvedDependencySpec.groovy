@@ -16,22 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import spock.lang.Specification
 
 class DefaultUnresolvedDependencySpec extends Specification {
 
     def "provides module details"() {
         when:
-        def dep = new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector('org.foo', "foo", new DefaultMutableVersionConstraint('1.0', ['2.0'])), new RuntimeException("boo!"))
+        def module = DefaultModuleIdentifier.newId("org.foo", "foo")
+        def dep = new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(module, '1.0'), new RuntimeException("boo!"))
 
         then:
         dep.selector.group == 'org.foo'
         dep.selector.name == 'foo'
         dep.selector.version == '1.0'
-        dep.selector.versionConstraint.preferredVersion == '1.0'
-        dep.selector.versionConstraint.rejectedVersions == ['2.0']
         dep.toString() == 'org.foo:foo:1.0'
     }
 }

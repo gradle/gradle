@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.util.DeferredUtil;
 
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.WARNING;
+import javax.annotation.Nullable;
 
 public class StaticValue implements ValidatingValue {
     private final Object value;
@@ -27,6 +27,13 @@ public class StaticValue implements ValidatingValue {
         this.value = value;
     }
 
+    @Nullable
+    @Override
+    public Object getContainerValue() {
+        return value;
+    }
+
+    @Nullable
     @Override
     public Object call() {
         return value;
@@ -37,10 +44,10 @@ public class StaticValue implements ValidatingValue {
         Object unpacked = DeferredUtil.unpack(value);
         if (unpacked == null) {
             if (!optional) {
-                context.recordValidationMessage(WARNING, String.format("No value has been specified for property '%s'.", propertyName));
+                context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
             }
         } else {
-            valueValidator.validate(propertyName, unpacked, context, WARNING);
+            valueValidator.validate(propertyName, unpacked, context);
         }
     }
 }

@@ -18,17 +18,6 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 
 public class UserInputRequestEvent extends OutputEvent {
-
-    private final String prompt;
-
-    public UserInputRequestEvent(String prompt) {
-        this.prompt = prompt;
-    }
-
-    public String getPrompt() {
-        return prompt;
-    }
-
     @Override
     public LogLevel getLogLevel() {
         return LogLevel.QUIET;

@@ -20,6 +20,4 @@ import org.gradle.ide.visualstudio.VisualStudioExtension;
 
 public interface VisualStudioExtensionInternal extends VisualStudioExtension {
     VisualStudioProjectRegistry getProjectRegistry();
-
-    VisualStudioSolutionRegistry getSolutionRegistry();
 }

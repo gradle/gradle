@@ -17,106 +17,46 @@ package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
-import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
-import org.gradle.util.ConfigureUtil;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Ear Plugin Convention.
  */
-public class EarPluginConvention {
-
-    private FileResolver fileResolver;
-    private ObjectFactory objectFactory;
-
-    private DeploymentDescriptor deploymentDescriptor;
-    private String appDirName;
-    private String libDirName;
-
-    /**
-     * Construct an EarPluginConvention using internal {@link Instantiator}.
-     *
-     * @deprecated Use public {@link ObjectFactory} constructor instead of this one using internal {@link Instantiator}.
-     */
-    @Deprecated
-    public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
-        this(fileResolver, new InstantiatorBackedObjectFactory(instantiator));
-    }
-
-    /**
-     * Construct an EarPluginConvention using public {@link ObjectFactory}.
-     *
-     * @since 4.2
-     */
-    @Inject
-    public EarPluginConvention(FileResolver fileResolver, ObjectFactory objectFactory) {
-        this.fileResolver = fileResolver;
-        this.objectFactory = objectFactory;
-        deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
-        deploymentDescriptor.readFrom("META-INF/application.xml");
-        deploymentDescriptor.readFrom(appDirName + "/META-INF/" + deploymentDescriptor.getFileName());
-    }
-
+public abstract class EarPluginConvention {
     /**
      * The name of the application directory, relative to the project directory.
      * Default is "src/main/application".
      */
-    public String getAppDirName() {
-        return appDirName;
-    }
+    public abstract String getAppDirName();
 
-    public void setAppDirName(String appDirName) {
-        this.appDirName = appDirName;
-        if (deploymentDescriptor != null) {
-            deploymentDescriptor.readFrom(new File(appDirName, "META-INF/" + deploymentDescriptor.getFileName()));
-        }
-    }
+    public abstract void setAppDirName(String appDirName);
 
     /**
      * Allows changing the application directory.
      * Default is "src/main/application".
      */
-    public void appDirName(String appDirName) {
-        this.setAppDirName(appDirName);
-    }
+    public abstract void appDirName(String appDirName);
 
     /**
      * The name of the library directory in the EAR file.
      * Default is "lib".
      */
-    public String getLibDirName() {
-        return libDirName;
-    }
+    public abstract String getLibDirName();
 
-    public void setLibDirName(String libDirName) {
-        this.libDirName = libDirName;
-    }
+    public abstract void setLibDirName(String libDirName);
 
     /**
      * Allows changing the library directory in the EAR file. Default is "lib".
      */
-    public void libDirName(String libDirName) {
-        this.libDirName = libDirName;
-    }
+    public abstract void libDirName(String libDirName);
 
     /**
      * A custom deployment descriptor configuration.
      * Default is an "application.xml" with sensible defaults.
      */
-    public DeploymentDescriptor getDeploymentDescriptor() {
-        return deploymentDescriptor;
-    }
+    public abstract DeploymentDescriptor getDeploymentDescriptor();
 
-    public void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor) {
-        this.deploymentDescriptor = deploymentDescriptor;
-    }
+    public abstract void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor);
 
     /**
      * Configures the deployment descriptor for this EAR archive.
@@ -127,10 +67,7 @@ public class EarPluginConvention {
      * @param configureClosure The closure.
      * @return This.
      */
-    public EarPluginConvention deploymentDescriptor(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
-        return this;
-    }
+    public abstract EarPluginConvention deploymentDescriptor(Closure configureClosure);
 
     /**
      * Configures the deployment descriptor for this EAR archive.
@@ -141,16 +78,5 @@ public class EarPluginConvention {
      * @return This.
      * @since 3.5
      */
-    public EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction) {
-        configureAction.execute(forceDeploymentDescriptor());
-        return this;
-    }
-
-    private DeploymentDescriptor forceDeploymentDescriptor() {
-        if (deploymentDescriptor == null) {
-            deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
-            assert deploymentDescriptor != null;
-        }
-        return deploymentDescriptor;
-    }
+    public abstract EarPluginConvention deploymentDescriptor(Action<? super DeploymentDescriptor> configureAction);
 }

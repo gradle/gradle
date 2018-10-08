@@ -33,7 +33,7 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
 
     @Override
     void execute(String... tasks) {
-        withBuildCache().succeeds tasks
+        withBuildCache().run tasks
     }
 
     @Override
@@ -65,11 +65,11 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
             }
         """
 
-        withBuildCache().succeeds "consumer"
+        withBuildCache().run "consumer"
         run "clean"
 
         expect:
-        withBuildCache().succeeds "consumer"
+        withBuildCache().run "consumer"
         skipped ":producer", ":consumer"
 
         where:

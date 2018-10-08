@@ -16,8 +16,6 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * A {@code CancellationTokenSource} allows you to issue cancellation requests to one or more {@link org.gradle.tooling.LongRunningOperation}
  * instances. To use a token source:
@@ -34,7 +32,6 @@ import org.gradle.api.Incubating;
  *
  * @since 2.1
  */
-@Incubating
 public interface CancellationTokenSource {
     /**
      * Initiates cancel request. All operations that have been associated with this token will be cancelled.

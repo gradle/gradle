@@ -1,20 +1,33 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    id 'gradlebuild.strict-compile'
+}
+
 dependencies {
     compile project(':core')
     compile project(':toolingApi')
-    compile libraries.commons_io
+    compile libraries.commons_io.coordinates
     runtime project(':native')
     integTestRuntime project(':toolingApiBuilders')
     integTestRuntime project(':pluginDevelopment')
 }
 
-task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
+gradlebuildJava {
+    moduleType = ModuleType.CORE
+}
+
+testFixtures {
+    from(':core')
+}
+
+tasks.register("crossVersionTests", org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
-strictCompile()
-useTestFixtures()
-
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}

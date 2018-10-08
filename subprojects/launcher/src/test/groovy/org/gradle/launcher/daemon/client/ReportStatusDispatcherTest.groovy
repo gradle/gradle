@@ -27,7 +27,7 @@ class ReportStatusDispatcherTest extends Specification {
 
     def "ignores failed dispatch and does not receive"() {
         given:
-        def message = new ReportStatus("IDENTIFIER", "TOKEN".bytes)
+        def message = new ReportStatus(UUID.randomUUID(), "TOKEN".bytes)
         connection.dispatch(message) >> { throw new RuntimeException("Cannot dispatch") }
 
         when:
@@ -40,7 +40,7 @@ class ReportStatusDispatcherTest extends Specification {
 
     def "ignores failed receive"() {
         given:
-        def message = new ReportStatus("IDENTIFIER", "TOKEN".bytes)
+        def message = new ReportStatus(UUID.randomUUID(), "TOKEN".bytes)
         connection.receive() >> { throw new RuntimeException("Cannot dispatch") }
 
         when:

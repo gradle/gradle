@@ -17,6 +17,7 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.LibraryComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -110,7 +111,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
     def "does not match id for unexpected component selector type"() {
         when:
         LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(':myPath', 'myLib')
-        boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier('group', 'name', '1.0'))
+        boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'name'), '1.0'))
 
         then:
         assert !matches

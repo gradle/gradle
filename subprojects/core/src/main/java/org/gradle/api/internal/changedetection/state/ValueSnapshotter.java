@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributeDefinitionSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
@@ -114,6 +116,10 @@ public class ValueSnapshotter implements IsolatableFactory {
         if (value instanceof Enum) {
             return new EnumValueSnapshot((Enum) value);
         }
+        if (value instanceof Class<?>) {
+            Class<?> implementation = (Class<?>) value;
+            return ImplementationSnapshot.of(implementation, classLoaderHasher);
+        }
         if (value.getClass().equals(File.class)) {
             // Not subtypes as we don't know whether they are immutable or not
             return new FileValueSnapshot((File) value);
@@ -157,6 +163,9 @@ public class ValueSnapshotter implements IsolatableFactory {
             }
             return new ArrayValueSnapshot(elements);
         }
+        if (value instanceof Attribute) {
+            return new AttributeDefinitionSnapshot((Attribute<?>) value, classLoaderHasher);
+        }
         if (value instanceof Provider) {
             Provider<?> provider = (Provider) value;
             ValueSnapshot valueSnapshot = strategy.snapshot(provider.get());
@@ -164,6 +173,12 @@ public class ValueSnapshotter implements IsolatableFactory {
         }
         if (value instanceof NamedObjectInstantiator.Managed) {
             return new ManagedNamedTypeSnapshot((Named)value);
+        }
+        if (value instanceof ValueSnapshottable) {
+            return ((ValueSnapshottable) value).snapshot();
+        }
+        if (value instanceof ValueSnapshot) {
+            return (ValueSnapshot) value;
         }
 
         // Fall back to serialization

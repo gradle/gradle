@@ -23,57 +23,36 @@ class SummaryTaskStateChangesTest extends Specification {
 
     def state1 = Mock(TaskStateChanges)
     def state2 = Mock(TaskStateChanges)
-    def state = new SummaryTaskStateChanges(2, state1, state2)
+    def state = new SummaryTaskStateChanges(state1, state2)
     def change = Mock(TaskStateChange)
+    def visitor = new CollectingTaskStateChangeVisitor()
 
-    def looksForChangesInAllDelegateChangeSets() {
+    def "looks for changes in all delegate change sets"() {
         when:
-        def hasNext = state.iterator().hasNext()
+        state.accept(visitor)
 
         then:
-        1 * state1.iterator() >> [].iterator()
-        1 * state2.iterator() >> [].iterator()
+        1 * state1.accept(_) >> true
+        1 * state2.accept(_) >> true
         0 * _
 
         and:
-        !hasNext
+        visitor.getChanges().empty
     }
 
-    def onlyReturnsChangesFromASingleDelegate() {
+    def "only returns changes from a single delegate"() {
         def change1 = Mock(TaskStateChange)
 
         when:
-        def it = state.iterator()
-        it.hasNext()
+        state.accept(visitor)
 
         then:
-        1 * state1.iterator() >> [change1].iterator()
+        1 * state1.accept(_) >> { args ->
+            args[0].visitChange(change1)
+        }
         0 * _
 
         and:
-        it.hasNext()
-        it.next() == change1
-        !it.hasNext()
-    }
-
-    def willNotEmitMoreChangesThanSpecified() {
-        def change1 = Mock(TaskStateChange)
-        def change2 = Mock(TaskStateChange)
-        def change3 = Mock(TaskStateChange)
-
-        when:
-        def it = state.iterator()
-        it.hasNext()
-
-        then:
-        1 * state1.iterator() >> [].iterator()
-        1 * state2.iterator() >> [change1, change2, change3].iterator()
-
-        and:
-        it.hasNext()
-        it.next() == change1
-        it.hasNext()
-        it.next() == change2
-        !it.hasNext()
+        visitor.changes == [change1]
     }
 }

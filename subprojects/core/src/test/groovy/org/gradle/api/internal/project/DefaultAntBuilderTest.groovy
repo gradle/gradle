@@ -242,7 +242,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         project.file(dirname).mkdir()
         File fileWithDollars = project.file(dirAndFile)
         fileWithDollars << "Some Text"
-        FileCollection files = project.files(dirAndFile)
+        FileCollection files = project.getLayout().files(dirAndFile)
 
         when:
         ant.property(name: "my.property", value: "doesNotExist")

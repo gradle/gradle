@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,9 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinates
     compile project(':core')
     compile project(":ide")
     compile project(':platformPlay')
@@ -23,12 +29,16 @@ dependencies {
     integTestRuntime project(':compositeBuilds')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformPlay")
-useTestFixtures(project: ":ide")
-useClassycle()
-strictCompile()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
 
-tasks.withType(org.gradle.testing.IntegrationTest) { task ->
-    task.dependsOn(':platformPlay:integTestPrepare')
+testFixtures {
+    from(':core')
+    from(':platformPlay')
+    from(':ide')
+}
+
+tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest).configureEach {
+    dependsOn(':platformPlay:integTestPrepare')
 }

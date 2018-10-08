@@ -18,19 +18,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
@@ -40,16 +41,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final Map<Long, ArtifactsForNode> artifactsByNodeId = Maps.newHashMap();
     private final ArtifactSelector artifactSelector;
     private final DependencyArtifactsVisitor artifactResults;
-    private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector, ModuleExclusions moduleExclusions) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector) {
         this.artifactResults = artifactsBuilder;
         this.artifactSelector = artifactSelector;
-        this.moduleExclusions = moduleExclusions;
     }
 
     @Override
-    public void start(DependencyGraphNode root) {
+    public void start(RootGraphNode root) {
         artifactResults.startArtifacts(root);
     }
 
@@ -65,9 +64,11 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     @Override
     public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
-            DependencyGraphNode parent = dependency.getFrom();
-            ArtifactsForNode artifacts = getArtifacts(dependency, node);
-            artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
+            if (dependency.contributesArtifacts()) {
+                DependencyGraphNode parent = dependency.getFrom();
+                ArtifactsForNode artifacts = getArtifacts(dependency, node);
+                artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
+            }
         }
         for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
             int id = nextId++;
@@ -82,20 +83,21 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
-        ConfigurationMetadata configuration = toConfiguration.getMetadata();
+        ConfigurationMetadata targetConfiguration = toConfiguration.getMetadata();
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
+        ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
-        Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
+        List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetConfiguration);
         if (!artifacts.isEmpty()) {
             int id = nextId++;
-            ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts);
+            ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts, overriddenAttributes);
             return new ArtifactsForNode(id, artifactSet);
         }
 
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
-            ModuleExclusion exclusions = dependency.getExclusions(moduleExclusions);
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, configuration, exclusions);
+            ModuleExclusion exclusions = dependency.getExclusions();
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

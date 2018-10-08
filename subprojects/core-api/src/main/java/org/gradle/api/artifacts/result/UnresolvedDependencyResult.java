@@ -18,10 +18,12 @@ package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A dependency that could not be resolved.
  */
+@UsedByScanPlugin
 @Incubating
 public interface UnresolvedDependencyResult extends DependencyResult {
     /**

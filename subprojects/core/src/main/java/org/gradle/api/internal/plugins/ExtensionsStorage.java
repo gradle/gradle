@@ -20,9 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -57,17 +59,16 @@ public class ExtensionsStorage {
         return rawExtensions;
     }
 
-    public Map<String, TypeOf<?>> getSchema() {
-        Map<String, TypeOf<?>> schema = new LinkedHashMap<String, TypeOf<?>>(extensions.size());
-        for (Map.Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
-            schema.put(entry.getKey(), entry.getValue().getPublicType());
-        }
-        return schema;
+    public ExtensionsSchema getSchema() {
+        return DefaultExtensionsSchema.create(extensions.values());
     }
 
     public <T> T configureExtension(String name, Action<? super T> action) {
         ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
-        return extensionHolder.configure(action);
+        if (extensionHolder != null) {
+            return extensionHolder.configure(action);
+        }
+        throw unknownExtensionException(name);
     }
 
     public <T> void configureExtension(TypeOf<T> type, Action<? super T> action) {
@@ -124,8 +125,7 @@ public class ExtensionsStorage {
         if (extension != null) {
             return extension;
         }
-        throw new UnknownDomainObjectException(
-            "Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+        throw unknownExtensionException(name);
     }
 
     public Object findByName(String name) {
@@ -135,9 +135,12 @@ public class ExtensionsStorage {
 
     private <T> ExtensionHolder<T> wrap(String name, TypeOf<T> publicType, T extension) {
         if (isDeferredConfigurable(extension)) {
+            if (!extension.getClass().getName().startsWith("org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension")) {
+                DeprecationLogger.nagUserOfDeprecated("@DeferredConfigurable");
+            }
             return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
         }
-        return new ExtensionHolder<T>(publicType, extension);
+        return new ExtensionHolder<T>(name, publicType, extension);
     }
 
     private List<String> registeredExtensionTypeNames() {
@@ -152,17 +155,38 @@ public class ExtensionsStorage {
         return extension.getClass().isAnnotationPresent(DeferredConfigurable.class);
     }
 
-    private static class ExtensionHolder<T> {
-        protected final TypeOf<T> publicType;
+    /**
+     * Doesn't actually return anything. Always throws a {@link UnknownDomainObjectException}.
+     * @return Nothing.
+     */
+    private UnknownDomainObjectException unknownExtensionException(final String name) {
+        throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
+    }
+
+    private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
+        private final String name;
+        private final TypeOf<T> publicType;
         protected final T extension;
 
-        private ExtensionHolder(TypeOf<T> publicType, T extension) {
+        private ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
+            this.name = name;
             this.publicType = publicType;
             this.extension = extension;
         }
 
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
         public TypeOf<T> getPublicType() {
             return publicType;
+        }
+
+        @Override
+        public boolean isDeferredConfigurable() {
+            return false;
         }
 
         public T get() {
@@ -176,16 +200,20 @@ public class ExtensionsStorage {
     }
 
     private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
-        private final String name;
         private MutableActionSet<T> actions = new MutableActionSet<T>();
         private boolean configured;
         private Throwable configureFailure;
 
         DeferredConfigurableExtensionHolder(String name, TypeOf<T> publicType, T extension) {
-            super(publicType, extension);
-            this.name = name;
+            super(name, publicType, extension);
         }
 
+        @Override
+        public boolean isDeferredConfigurable() {
+            return true;
+        }
+
+        @Override
         public T get() {
             configureNow();
             return extension;
@@ -199,7 +227,7 @@ public class ExtensionsStorage {
 
         private void configureLater(Action<? super T> action) {
             if (configured) {
-                throw new InvalidUserDataException(format("Cannot configure the '%s' extension after it has been accessed.", name));
+                throw new InvalidUserDataException(format("Cannot configure the '%s' extension after it has been accessed.", getName()));
             }
             actions.add(action);
         }

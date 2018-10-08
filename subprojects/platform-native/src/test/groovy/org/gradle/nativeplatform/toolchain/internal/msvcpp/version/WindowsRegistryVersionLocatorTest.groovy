@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.*
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.LEGACY
 
 class WindowsRegistryVersionLocatorTest extends Specification {
     public static final String SOFTWARE_KEY = "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7"
@@ -42,7 +42,7 @@ class WindowsRegistryVersionLocatorTest extends Specification {
         def dir3 = tmpDir.createDir("Visual Studio 11.0")
 
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         switch(foundIn) {
@@ -87,7 +87,7 @@ class WindowsRegistryVersionLocatorTest extends Specification {
 
     def "returns empty list when no installation found in registry"() {
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> { throw new MissingRegistryEntryException("not found") }
@@ -104,7 +104,7 @@ class WindowsRegistryVersionLocatorTest extends Specification {
         def dir3 = tmpDir.createDir("Visual Studio 11.0")
 
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["14.0", "12.0", "11.0" ]
@@ -133,7 +133,7 @@ class WindowsRegistryVersionLocatorTest extends Specification {
         def dir3 = tmpDir.createDir("Visual Studio 11.0")
 
         when:
-        List<VisualStudioMetadata> metadata = locator.getVisualStudioInstalls()
+        List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
         1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["", "14.0", "12.0", "11.0", "ignore-me" ]

@@ -1,0 +1,40 @@
+// tag::custom-test-source-set[]
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+sourceSets {
+    functionalTest {
+        groovy {
+            srcDir file('src/functionalTest/groovy')
+        }
+        resources {
+            srcDir file('src/functionalTest/resources')
+        }
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+task functionalTest(type: Test) {
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+}
+
+check.dependsOn functionalTest
+
+gradlePlugin {
+    testSourceSets sourceSets.functionalTest
+}
+
+dependencies {
+    functionalTestCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
+// end::custom-test-source-set[]
+
+repositories {
+    mavenCentral()
+}

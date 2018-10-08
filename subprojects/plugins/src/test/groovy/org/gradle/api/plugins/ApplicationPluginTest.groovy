@@ -34,11 +34,17 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
+
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
         project.applicationDefaultJvmArgs == []
         project.applicationDistribution instanceof CopySpec
+
+        def application = project.extensions.getByName('application')
+        application instanceof JavaApplication
+        application.applicationName == project.name
+        application.applicationDistribution.is(project.applicationDistribution)
     }
 
     def "adds run task to project"() {
@@ -98,6 +104,17 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
+    }
+
+    public void "executableDir is configurable"() {
+        when:
+        plugin.apply(project)
+        project.applicationName = "myApp";
+        project.executableDir = "custom_bin";
+
+        then:
+        def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
+        startScripts.executableDir == "custom_bin"
     }
 
     public void "mainClassName in project delegates to main in run task"() {

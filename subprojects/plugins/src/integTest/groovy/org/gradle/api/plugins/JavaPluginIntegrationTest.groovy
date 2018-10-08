@@ -31,8 +31,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
                     def component = project.services.get(${ComponentRegistry.canonicalName}).mainComponent
                     
                     assert component instanceof ${BuildableJavaComponent.canonicalName}
-                    assert component.rebuildTasks == [ BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]
-                    assert component.buildTasks == [ JavaBasePlugin.BUILD_TASK_NAME ]
+                    assert component.buildTasks as List == [ JavaBasePlugin.BUILD_TASK_NAME ]
                     assert component.runtimeClasspath != null
                     assert component.compileDependencies == project.configurations.compileClasspath
                 }
@@ -61,7 +60,7 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/java/main").assertDoesNotExist()
         file("build/classes/main/Main.class").assertExists()
-        result.assertOutputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
+        outputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
     }
 
     def "emits deprecation message if something uses classesDir"() {
@@ -75,6 +74,28 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning()
         succeeds("help")
         then:
-        result.assertOutputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
+        outputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
+    }
+
+    def "jar task is created lazily"() {
+        buildFile << """
+            apply plugin: 'java'
+
+            tasks.named('jar').configure {
+                println "jar task created"
+            }
+            
+            task printArtifacts {
+                doLast {
+                    configurations.runtime.artifacts.files.each { println it }
+                }
+            }
+        """
+
+        when:
+        succeeds("printArtifacts")
+
+        then:
+        result.groupedOutput.task(':printArtifacts').output.contains("jar task created")
     }
 }

@@ -19,7 +19,7 @@ package sample.documentation
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.model.Managed
 
-// START SNIPPET text-lang-declaration
+// tag::text-lang-declaration[]
 @Managed
 interface TextSourceSet extends LanguageSourceSet {}
-// END SNIPPET text-lang-declaration
+// end::text-lang-declaration[]

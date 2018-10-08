@@ -15,11 +15,16 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.Specification
+class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
+    DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence)
+    DefaultDomainObjectSet<CharSequence> container = set
+    StringBuffer a = new StringBuffer("a")
+    StringBuffer b = new StringBuffer("b")
+    StringBuffer c = new StringBuffer("c")
+    StringBuilder d = new StringBuilder("d")
+    boolean externalProviderAllowed = true
 
-class DefaultDomainObjectSetTest extends Specification {
     def "findAll() filters elements and retains iteration order"() {
-        def set = new DefaultDomainObjectSet<String>(String)
         set.add("a")
         set.add("b")
         set.add("c")
@@ -34,7 +39,7 @@ class DefaultDomainObjectSetTest extends Specification {
         def c2 = new DefaultDomainObjectSet<String>(String)
         given:
         def composite = CompositeDomainObjectSet.<String>create(String, c1, c2)
-        def set = new DefaultDomainObjectSet<String>(String, composite.withType(String))
+        def set = new DefaultDomainObjectSet<String>(String, composite.getStore())
 
         when:
         c1.add("a")

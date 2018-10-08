@@ -1,8 +1,8 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: "cpp"
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
-// START SNIPPET args
+// tag::args[]
 model {
     components {
         main(NativeLibrarySpec) {
@@ -13,4 +13,4 @@ model {
         }
     }
 }
-// END SNIPPET args
+// end::args[]

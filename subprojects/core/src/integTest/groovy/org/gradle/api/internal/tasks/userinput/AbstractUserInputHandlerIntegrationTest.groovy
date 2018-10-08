@@ -19,18 +19,16 @@ package org.gradle.api.internal.tasks.userinput
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     protected void interactiveExecution() {
         executer.withStdinPipe().withForceInteractive(true)
     }
 
-    protected void withDaemon() {
-        executer.requireDaemon().requireIsolatedDaemons()
-    }
-
-    protected void withConsoleOutput(ConsoleOutput consoleOutput) {
-        executer.withConsole(consoleOutput)
+    protected void withRichConsole(boolean enabled) {
+        if (enabled) {
+            executer.withConsole(ConsoleOutput.Rich)
+        }
     }
 
     protected void withParallel() {

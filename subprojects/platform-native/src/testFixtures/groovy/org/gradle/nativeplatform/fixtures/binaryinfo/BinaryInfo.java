@@ -25,6 +25,7 @@ public interface BinaryInfo {
     List<String> listObjectFiles();
     List<String> listLinkedLibraries();
     List<Symbol> listSymbols();
+    List<Symbol> listDebugSymbols();
     String getSoName();
 
     class Symbol {

@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.project.taskfactory
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
@@ -36,46 +36,29 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def setup() {
         taskFactory = new TaskFactory(generator).createChild(project, instantiator)
         _ * generator.generate(_) >> { Class type -> type }
-        _ * instantiator.newInstance(_) >> { args -> args[0].newInstance() }
+        _ * instantiator.newInstance(_) >> { args -> JavaReflectionUtil.newInstance(args[0]) }
     }
 
-    public void testUsesADefaultTaskTypeWhenNoneSpecified() {
+    void injectsProjectAndNameIntoTask() {
         when:
-        Task task = taskFactory.createTask([name: "task"]);
-
-        then:
-        task instanceof DefaultTask
-    }
-
-    public void injectsProjectAndNameIntoTask() {
-        when:
-        Task task = taskFactory.createTask([name: "task"]);
+        Task task = taskFactory.create(new TaskIdentity(DefaultTask, "task", null, null, null, 12))
 
         then:
         task.project == project
         task.name == 'task'
     }
 
-    public void testCannotCreateTaskWithNoName() {
+    void testCreateTaskOfTypeWithNoArgsConstructor() {
         when:
-        taskFactory.createTask([:])
-
-        then:
-        InvalidUserDataException e = thrown()
-        e.message == "The task name must be provided."
-    }
-
-    public void testCreateTaskOfTypeWithNoArgsConstructor() {
-        when:
-        Task task = taskFactory.createTask([name: 'task', type: TestDefaultTask.class])
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12))
 
         then:
         task instanceof TestDefaultTask
     }
 
-    public void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
+    void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
         when:
-        Task task = taskFactory.createTask([name: 'task', type: type])
+        Task task = taskFactory.create(new TaskIdentity(type, 'task', null, null, null, 12))
 
         then:
         task instanceof DefaultTask
@@ -84,9 +67,9 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         type << [Task, TaskInternal, AbstractTask, DefaultTask]
     }
 
-    public void instantiatesAnInstanceOfTheDecoratedTaskType() {
+    void instantiatesAnInstanceOfTheDecoratedTaskType() {
         when:
-        Task task = taskFactory.createTask([name: 'task', type: TestDefaultTask.class])
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12))
 
         then:
         task instanceof DecoratedTask
@@ -97,66 +80,20 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         0 * _._
     }
 
-    public void testCreateTaskWithDependencies() {
+    void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
-        Task task = taskFactory.createTask([name: 'task', dependsOn: "/path1"])
-
-        then:
-        task.dependsOn == ["/path1"] as Set
-    }
-
-    public void taskCreationFailsWithUnknownArguments() {
-        when:
-        taskFactory.createTask([name: 'task', dependson: 'anotherTask'])
-
-        then:
-        InvalidUserDataException exception = thrown()
-        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [dependson]"
-
-        when:
-        taskFactory.createTask([name: 'task', Type: NotATask])
-
-        then:
-        exception = thrown()
-        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [Type]"
-    }
-
-    public void testCreateTaskWithAction() {
-        Action<Task> action = Mock()
-
-        when:
-        Task task = taskFactory.createTask([name: 'task', action: action])
-
-        then:
-        task.actions.size() == 1
-        task.actions[0].action == action
-    }
-
-    public void testCreateTaskWithActionClosure() {
-        Closure cl = Mock()
-
-        when:
-        Task task = taskFactory.createTask([name: 'task', action: cl])
-
-        then:
-        task.actions.size() == 1
-        task.actions[0].closure == cl
-    }
-
-    public void testCreateTaskForTypeWhichDoesNotImplementTask() {
-        when:
-        taskFactory.createTask([name: 'task', type: NotATask])
+        taskFactory.create(new TaskIdentity(NotATask, 'task', null, null, null, 12))
 
         then:
         InvalidUserDataException e = thrown()
         e.message == "Cannot create task of type 'NotATask' as it does not implement the Task interface."
     }
 
-    public void wrapsFailureToCreateTaskInstance() {
+    void wrapsFailureToCreateTaskInstance() {
         def failure = new RuntimeException()
 
         when:
-        taskFactory.createTask([name: 'task', type: TestDefaultTask])
+        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, null, null, 12))
 
         then:
         TaskInstantiationException e = thrown()
@@ -167,28 +104,12 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         _ * instantiator.newInstance(TestDefaultTask) >> { throw new ObjectInstantiationException(TestDefaultTask, failure) }
     }
 
-    public void createTaskWithDescription() {
-        when:
-        Task task = taskFactory.createTask([name: 'task', description: "some task"])
-
-        then:
-        task.description == "some task"
+    static class TestDefaultTask extends DefaultTask {
     }
 
-    public void createTaskWithGroup() {
-        when:
-        Task task = taskFactory.createTask([name: 'task', group: "some group"])
-
-        then:
-        task.group == "some group"
+    static class DecoratedTask extends TestDefaultTask {
     }
 
-    public static class TestDefaultTask extends DefaultTask {
-    }
-
-    public static class DecoratedTask extends TestDefaultTask {
-    }
-
-    public static class NotATask {
+    static class NotATask {
     }
 }

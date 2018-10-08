@@ -23,19 +23,21 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
-import org.gradle.vcs.internal.VcsMappingsInternal
+import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
 class DefaultConfigurationContainerTest extends Specification {
@@ -45,12 +47,14 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private ProjectAccessListener projectAccessListener = Mock(ProjectAccessListener.class)
     private ProjectFinder projectFinder = Mock(ProjectFinder)
-    private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
+    private LocalComponentMetadataBuilder metaDataBuilder = Mock(LocalComponentMetadataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
-    private VcsMappingsInternal vcsMappingsInternal = Mock(VcsMappingsInternal)
+    private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private TaskResolver taskResolver = Mock(TaskResolver)
+    private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
+    private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private ImmutableAttributesFactory immutableAttributesFactory = TestUtil.attributesFactory()
@@ -64,7 +68,7 @@ class DefaultConfigurationContainerTest extends Specification {
             resolver, instantiator, new RootScriptDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter)
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, lockingProvider, projectStateRegistry)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

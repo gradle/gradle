@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -31,7 +29,6 @@ import java.lang.annotation.Target;
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
  */
-@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

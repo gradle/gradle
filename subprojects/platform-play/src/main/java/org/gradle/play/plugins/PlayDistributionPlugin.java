@@ -174,7 +174,6 @@ public class PlayDistributionPlugin extends RuleSource {
         PlayPlatform playPlatform = distribution.getBinary().getTargetPlatform();
         String playVersion = playPlatform.getPlayVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_2_X:
             case PLAY_2_3_X:
                 return "play.core.server.NettyServer";
             case PLAY_2_4_X:

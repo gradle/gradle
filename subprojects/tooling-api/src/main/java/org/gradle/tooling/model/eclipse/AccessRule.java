@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * Access rule associated with an Eclipse classpath entry.
  *
@@ -25,7 +23,6 @@ import org.gradle.api.Incubating;
  *
  * @since 3.0
  */
-@Incubating
 public interface AccessRule {
 
     /**

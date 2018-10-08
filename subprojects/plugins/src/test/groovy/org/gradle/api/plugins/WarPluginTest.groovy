@@ -118,15 +118,15 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         project.dependencies {
-            providedCompile project.files(providedJar)
-            compile project.files(compileJar)
-            compileOnly project.files(compileOnlyJar)
-            runtime project.files(runtimeJar)
+            providedCompile project.layout.files(providedJar)
+            compile project.layout.files(compileJar)
+            compileOnly project.layout.files(compileOnlyJar)
+            runtime project.layout.files(runtimeJar)
         }
 
         then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        task.classpath.files as List == [project.sourceSets.main.java.outputDir, project.sourceSets.main.output.resourcesDir, runtimeJar, compileJar]
+        task.classpath.files as List == [project.sourceSets.main.java.outputDir, project.sourceSets.main.output.resourcesDir, compileJar, runtimeJar]
     }
 
     def "applies mappings to archive tasks"() {

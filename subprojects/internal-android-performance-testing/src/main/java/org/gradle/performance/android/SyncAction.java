@@ -34,10 +34,12 @@ public class SyncAction {
         BuildActionExecuter<Map<String, AndroidProject>> modelBuilder = connect.action(new GetModel());
         modelBuilder.setStandardOutput(System.out);
         modelBuilder.setStandardError(System.err);
+        modelBuilder.forTasks("generateDebugSources");
         modelBuilder.withArguments("-Dcom.android.build.gradle.overrideVersionCheck=true",
             "-Pandroid.injected.build.model.only=true",
-            "-Pandroid.injected.invoked.from.ide=true",
-            "-Pandroid.injected.build.model.only.versioned=2");
+            "-Pandroid.injected.build.model.only.versioned=3",
+            "-Pandroid.builder.sdkDownload=true",
+            "-s");
         modelBuilder.setJvmArguments("-Xmx2g");
         if (modelBuilderAction != null) {
             modelBuilderAction.execute(modelBuilder);

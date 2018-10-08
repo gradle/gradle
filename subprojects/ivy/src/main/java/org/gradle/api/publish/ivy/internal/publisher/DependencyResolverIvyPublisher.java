@@ -17,11 +17,11 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -31,21 +31,20 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
-        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
-        // This indicates the IvyPublishMetaData should probably not be responsible for creating a ModuleDescriptor...
-        BuildableIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
+        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule()), projectIdentity.getRevision());
 
-        for (IvyArtifact publishArtifact : publication.getArtifacts()) {
-            publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
+        // Use the legacy metadata type so that we can leverage `ModuleVersionPublisher.publish()`
+        DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
+        for (IvyArtifact artifact : publication.getAllArtifacts()) {
+            publishMetaData.addArtifact(createIvyArtifact(artifact), artifact.getFile());
         }
-
-        IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
-        publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
 
         publisher.publish(publishMetaData);
     }
 
-    private IvyArtifactName createIvyArtifact(IvyArtifact ivyArtifact) {
-        return new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
+    private IvyArtifactName createIvyArtifact(IvyArtifact artifact) {
+        return new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
     }
+
+
 }

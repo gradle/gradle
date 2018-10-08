@@ -21,15 +21,32 @@ import org.apache.commons.lang.StringUtils;
 public abstract class Names {
 
     public static Names of(String name) {
-        // Assume that names that end with 'Bundle' represent the 'main' variant of the parent thing
         if (name.equals("main")) {
             return new Main();
         }
-        if (name.endsWith("Executable")) {
-            return new Other(name.substring(0, name.length() - 10));
-        }
-        return new Other(name);
+        return new Other(name, name);
     }
+
+    public static Names of(String name, String baseName) {
+        return new Other(name, baseName);
+    }
+
+    public abstract Names append(String suffix);
+
+    /**
+     * The raw name.
+     */
+    public abstract String getName();
+
+    /**
+     * Camel case formatted base name.
+     */
+    public abstract String getBaseName();
+
+    /**
+     * Lower case formatted base name, with '_' separators
+     */
+    public abstract String getLowerBaseName();
 
     public abstract String withPrefix(String prefix);
 
@@ -39,20 +56,28 @@ public abstract class Names {
 
     public abstract String getCompileTaskName(String language);
 
-    public abstract String getDependTaskName(String language);
-
     // Includes trailing '/'
     public abstract String getDirName();
 
     private static class Main extends Names {
         @Override
-        public String getCompileTaskName(String language) {
-            return "compile" + StringUtils.capitalize(language);
+        public String getName() {
+            return "main";
         }
 
         @Override
-        public String getDependTaskName(String language) {
-            return "depend" + StringUtils.capitalize(language);
+        public String getBaseName() {
+            return "main";
+        }
+
+        @Override
+        public String getLowerBaseName() {
+            return "main";
+        }
+
+        @Override
+        public String getCompileTaskName(String language) {
+            return "compile" + StringUtils.capitalize(language);
         }
 
         @Override
@@ -74,15 +99,24 @@ public abstract class Names {
         public String withSuffix(String suffix) {
             return suffix;
         }
+
+        @Override
+        public Names append(String suffix) {
+            return Names.of("main" + StringUtils.capitalize(suffix));
+        }
     }
 
     private static class Other extends Names {
+        private final String name;
         private final String baseName;
+        private final String lowerBaseName;
         private final String capitalizedBaseName;
         private final String dirName;
 
-        Other(String name) {
+        Other(String rawName, String name) {
+            this.name = rawName;
             StringBuilder baseName = new StringBuilder();
+            StringBuilder lowerBaseName = new StringBuilder();
             StringBuilder capBaseName = new StringBuilder();
             StringBuilder dirName = new StringBuilder();
             int startLast = 0;
@@ -90,17 +124,33 @@ public abstract class Names {
             for (; i < name.length(); i++) {
                 if (Character.isUpperCase(name.charAt(i))) {
                     if (i > startLast) {
-                        append(name, startLast, i, baseName, capBaseName, dirName);
+                        append(name, startLast, i, baseName, lowerBaseName, capBaseName, dirName);
                     }
                     startLast = i;
                 }
             }
             if (i > startLast) {
-                append(name, startLast, i, baseName, capBaseName, dirName);
+                append(name, startLast, i, baseName, lowerBaseName, capBaseName, dirName);
             }
             this.baseName = baseName.toString();
+            this.lowerBaseName = lowerBaseName.toString();
             this.capitalizedBaseName = capBaseName.toString();
             this.dirName = dirName.toString();
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getBaseName() {
+            return baseName;
+        }
+
+        @Override
+        public String getLowerBaseName() {
+            return lowerBaseName;
         }
 
         @Override
@@ -123,18 +173,18 @@ public abstract class Names {
             return "compile" + capitalizedBaseName + StringUtils.capitalize(language);
         }
 
-        @Override
-        public String getDependTaskName(String language) {
-            return "depend" + capitalizedBaseName + StringUtils.capitalize(language);
-        }
-
         // Includes trailing '/'
         @Override
         public String getDirName() {
             return dirName;
         }
 
-        private void append(String name, int start, int end, StringBuilder baseName, StringBuilder capBaseName, StringBuilder dirName) {
+        @Override
+        public Names append(String suffix) {
+            return Names.of(name + StringUtils.capitalize(suffix));
+        }
+
+        private void append(String name, int start, int end, StringBuilder baseName, StringBuilder lowerBaseName, StringBuilder capBaseName, StringBuilder dirName) {
             dirName.append(Character.toLowerCase(name.charAt(start)));
             dirName.append(name.substring(start + 1, end));
             dirName.append('/');
@@ -144,7 +194,10 @@ public abstract class Names {
                     baseName.append(name.substring(start + 1, end));
                 } else {
                     baseName.append(name.substring(start, end));
+                    lowerBaseName.append('-');
                 }
+                lowerBaseName.append(Character.toLowerCase(name.charAt(start)));
+                lowerBaseName.append(name.substring(start + 1, end));
                 capBaseName.append(Character.toUpperCase(name.charAt(start)));
                 capBaseName.append(name.substring(start + 1, end));
             }

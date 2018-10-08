@@ -16,20 +16,24 @@
 
 
 
+
 import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
-import org.gradle.api.attributes.Attribute
+import org.gradle.binarycompatibility.AcceptedApiChanges
+import org.gradle.binarycompatibility.CleanAcceptedApiChanges
 import org.gradle.binarycompatibility.rules.*
 import org.gradle.binarycompatibility.transforms.*
-import org.gradle.binarycompatibility.AcceptedApiChanges
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.PublicApi
 
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
         ivy {
             name 'Gradle distributions'
             url 'https://services.gradle.org'
-            layout 'pattern', {
-                ivy '[module]-ivy.xml'
+            patternLayout {
+                // Dummy 'ivy' pattern: Ivy files do not exist on services.gradle.org
+                ivy '[module]-[revision]-ivy.xml'
                 artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"
             }
         }
@@ -37,9 +41,10 @@ repositories {
 }
 
 ext {
-    acceptedViolations = AcceptedApiChanges.parse(project.file("src/changes/accepted-public-api-changes.json").text)
-    compatibilityBaselineVersion = releasedVersions.mostRecentRelease
-    foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
+    apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
+    acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
+    compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
+    foldersWithAPISources = ProjectGroups.INSTANCE.getPublicJavaProjects(project).sourceSets.main.allJava.srcDirs.flatten()
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -52,8 +57,7 @@ configurations {
     }
 }
 
-Set publicProjects = pluginProjects + implementationPluginProjects + publicGroovyProjects - [project(':smokeTest'), project(':soak')]
-def projects = publicProjects.collect { it.archivesBaseName - 'gradle-' }
+def projects = ProjectGroups.INSTANCE.getPublicProjects(project).collect { it.archivesBaseName - 'gradle-' }
 
 dependencies {
     baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
@@ -93,8 +97,8 @@ projects.each { projectName ->
     }
 }
 
-task checkBinaryCompatibility(type: JapicmpTask) {
-    dependsOn publicProjects.jar
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
+    dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
@@ -102,17 +106,17 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
-    newClasspath = files(publicProjects.configurations.runtimeClasspath)
+    newClasspath = files(ProjectGroups.INSTANCE.getPublicProjects(project).configurations.runtimeClasspath)
     oldArchives = files(baselineConfigurations)
-    newArchives = files(publicProjects.jar)
+    newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 
     // binary breaking change checking setup
     onlyModified = true
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        includedClasses = toPatterns(publicApiIncludes)
-        excludedClasses = toPatterns(publicApiExcludes)
+        includedClasses = toPatterns(PublicApi.includes)
+        excludedClasses = toPatterns(PublicApi.excludes)
 
         title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
@@ -129,7 +133,12 @@ task checkBinaryCompatibility(type: JapicmpTask) {
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
     }
 }
-check.dependsOn(checkBinaryCompatibility)
+tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
+
+tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
+    description = 'Cleans up all existing accepted API changes.'
+    jsonFile = apiChangesJsonFile
+}
 
 static List<String> toPatterns(List<String> packages) {
     def patterns = packages.collect {

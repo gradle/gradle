@@ -16,7 +16,11 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.file.TestFiles;
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
@@ -25,9 +29,20 @@ public class TestFileContentCacheFactory implements FileContentCacheFactory {
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         return new FileContentCache<V>() {
+            LoadingCache<File, V> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, V>() {
+                @Override
+                public V load(File file) throws Exception {
+                    return calculator.calculate(file, file.isFile());
+                }
+            });
+
             @Override
             public V get(File file) {
-                return calculator.calculate(file, TestFiles.fileSystem().stat(file).getType());
+                try {
+                    return cache.getUnchecked(file);
+                } catch (UncheckedExecutionException e) {
+                    throw Throwables.propagate(e.getCause());
+                }
             }
         };
     }

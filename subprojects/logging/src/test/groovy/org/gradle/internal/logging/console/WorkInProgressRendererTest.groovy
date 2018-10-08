@@ -70,8 +70,8 @@ class WorkInProgressRendererTest extends OutputSpecification {
     def "parent progress operation without message is ignored when renderable child completes"() {
         when:
         renderer.onOutput(start(1))
-        renderer.onOutput(start(id: 2, parentId: 1, shortDescription: ":foo"))
-        renderer.onOutput(start(id: 3, parentId: null, shortDescription: ":bar"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: ":foo"))
+        renderer.onOutput(start(id: 3, parentId: null, status: ":bar"))
         renderer.onOutput(updateNow())
         console.flush()
 

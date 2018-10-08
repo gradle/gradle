@@ -16,8 +16,8 @@
 
 package org.gradle.api.file
 
+import org.apache.commons.io.FileUtils
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 /**
@@ -36,6 +36,6 @@ class MicroBenchmarkPerformanceTest extends AbstractProjectBuilderSpec {
     }
 
     def touch(String filePath) {
-        GFileUtils.touch(project.file(filePath))
+        FileUtils.touch(project.file(filePath))
     }
 }

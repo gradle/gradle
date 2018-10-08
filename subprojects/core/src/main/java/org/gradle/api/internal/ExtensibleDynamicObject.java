@@ -99,10 +99,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
         if (addedParent) {
             idx--;
+            objects = new DynamicObject[idx];
+            System.arraycopy(delegates, 0, objects, 0, idx);
+            setObjectsForUpdate(objects);
         }
-        objects = new DynamicObject[idx];
-        System.arraycopy(delegates, 0, objects, 0, idx);
-        setObjectsForUpdate(objects);
     }
 
     @Override

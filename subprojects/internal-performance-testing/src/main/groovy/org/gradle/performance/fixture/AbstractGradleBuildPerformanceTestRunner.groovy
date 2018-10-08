@@ -32,7 +32,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final IntegrationTestBuildContext buildContext
     final GradleDistribution gradleDistribution
     final BuildExperimentRunner experimentRunner
-    final TestProjectLocator testProjectLocator = new TestProjectLocator()
     final Clock clock = Time.clock()
 
     String testId
@@ -84,7 +83,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected List<String> customizeJvmOptions(List<String> jvmOptions) {
-        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptions)
+        PerformanceTestJvmOptions.normalizeJvmOptions(jvmOptions)
     }
 
     abstract R newResult()
@@ -113,19 +112,11 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     void runAllSpecifications(R results) {
         specs.each {
             def operations = operations(results, it)
-            def invocation = it.invocation
-            if (experimentRunner.honestProfiler && invocation instanceof GradleInvocationSpec) {
-                experimentRunner.honestProfiler.sessionId = "${testId}-${it.projectName}-${invocation.gradleDistribution.version.version}".replaceAll('[^a-zA-Z0-9.-]', '_').replaceAll('[_]+', '_')
-            }
             experimentRunner.run(it, operations)
         }
     }
 
     protected static String determineChannel() {
         ResultsStoreHelper.determineChannel()
-    }
-
-    HonestProfilerCollector getHonestProfiler() {
-        return experimentRunner.honestProfiler
     }
 }

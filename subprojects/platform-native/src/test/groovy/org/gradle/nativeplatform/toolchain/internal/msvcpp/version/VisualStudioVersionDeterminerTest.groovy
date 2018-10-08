@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioMetadata.Compatibility.*
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.LEGACY
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility.VS2017_OR_LATER
 
 
 class VisualStudioVersionDeterminerTest extends Specification {
@@ -31,8 +32,8 @@ class VisualStudioVersionDeterminerTest extends Specification {
     def windowsRegistryLocator = Mock(VisualStudioVersionLocator)
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)
     def determiner = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider)
-    List<VisualStudioMetadata> vswhereInstalls = []
-    List<VisualStudioMetadata> windowsRegistryInstalls = []
+    List<VisualStudioInstallCandidate> vswhereInstalls = []
+    List<VisualStudioInstallCandidate> windowsRegistryInstalls = []
 
     def "can determine a VS2017 version of an install from command line"() {
         def dir1 = tmpDir.createDir("dir1")
@@ -45,7 +46,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir1)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir1)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -70,7 +71,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -93,7 +94,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         windowsRegistryInstall(dir2, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -117,7 +118,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -142,7 +143,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -165,7 +166,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         windowsRegistryInstall(dir1, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -188,7 +189,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         windowsRegistryInstall(dir1, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromInstallDir(dir2)
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -214,7 +215,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/bin/cl.exe"))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/bin/cl.exe"))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -239,7 +240,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir1, "VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe"))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir1, "VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe"))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -263,7 +264,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         windowsRegistryInstall(dir2, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, compilerPath))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, compilerPath))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -292,7 +293,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/bin/cl.exe"))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/bin/cl.exe"))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -317,7 +318,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         vswhereInstall(dir3, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe"))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe"))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> vswhereInstalls
@@ -341,7 +342,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         windowsRegistryInstall(dir1, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, compilerPath))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, compilerPath))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -369,7 +370,7 @@ class VisualStudioVersionDeterminerTest extends Specification {
         windowsRegistryInstall(dir1, "12.0")
 
         when:
-        VisualStudioMetadata metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe"))
+        VisualStudioInstallCandidate metadata = determiner.getVisualStudioMetadataFromCompiler(new File(dir2, "VC/Tools/MSVC/1.2.3.4/bin/HostX86/x86/cl.exe"))
 
         then:
         1 * commandLineLocator.getVisualStudioInstalls() >> []
@@ -403,8 +404,8 @@ class VisualStudioVersionDeterminerTest extends Specification {
             .build()
     }
 
-    VisualCppMetadata visualCppMetadata(File dir) {
-        return new VisualCppMetadata() {
+    VisualCppInstallCandidate visualCppMetadata(File dir) {
+        return new VisualCppInstallCandidate() {
             @Override
             File getVisualCppDir() {
                 return new File(dir, "VC/Tools/MSVC/1.2.3.4")

@@ -22,7 +22,18 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.internal.reflect.DirectInstantiator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Common methods to wrap objects in generic collections.
@@ -42,7 +53,9 @@ public class WrapUtil {
      * Wraps the given items in a mutable domain object set.
      */
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
-        return new DefaultDomainObjectSet<T>(type, toSet(items));
+        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type);
+        set.addAll(Arrays.asList(items));
+        return set;
     }
 
     /**
@@ -110,38 +123,8 @@ public class WrapUtil {
         return map;
     }
 
-    /**
-     * Wraps the given key and value in a mutable sorted map.
-     */
-    public static <K, V> SortedMap<K, V> toSortedMap(K key, V value) {
-        SortedMap<K, V> map = new TreeMap<K, V>();
-        map.put(key, value);
-        return map;
-    }
-
-    /**
-     * Wraps the given key and value in a mutable ordered map.
-     */
-    public static <K, V> Map<K, V> toLinkedMap(K key, V value) {
-        Map<K, V> map = new LinkedHashMap<K, V>();
-        map.put(key, value);
-        return map;
-    }
-
-    /**
-     * Wraps the given key and value in a mutable properties instance.
-     */
-    public static Properties toProperties(String key, String value) {
-        Properties props = new Properties();
-        props.setProperty(key, value);
-        return props;
-    }
-
     public static <T> T[] toArray(T... items) {
         return items;
     }
-    
-    public static <T> Set<T> asSet(Collection<T> c) {
-        return new LinkedHashSet<T>(c);
-    }
+
 }

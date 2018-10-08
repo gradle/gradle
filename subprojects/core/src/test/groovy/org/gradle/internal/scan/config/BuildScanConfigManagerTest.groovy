@@ -72,13 +72,13 @@ class BuildScanConfigManagerTest extends Specification {
         thrown UnsupportedBuildScanPluginVersionException
 
         when:
-        config("1.9")
+        config("1.13")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
 
         when:
-        config("1.8-TIMESTAMP")
+        config("1.13-TIMESTAMP")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
@@ -111,12 +111,40 @@ class BuildScanConfigManagerTest extends Specification {
     }
 
     @RestoreSystemProperties
+    def "throws if kotlin script build caching used and version doesnt support"() {
+        given:
+        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
+
+        when:
+        config("1.9")
+
+        then:
+        thrown UnsupportedBuildScanPluginVersionException
+    }
+
+    @Unroll
+    @RestoreSystemProperties
+    def "does not throw if kotlin script build caching used and version #version"() {
+        given:
+        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
+
+        when:
+        config(version)
+
+        then:
+        notThrown UnsupportedBuildScanPluginVersionException
+
+        where:
+        version << ["1.15.2", "1.16"]
+    }
+
+    @RestoreSystemProperties
     def "can convey unsupported"() {
         when:
         System.setProperty(BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE, "true")
 
         then:
-        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+        with(config()) {
             !enabled
             !disabled
             unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE
@@ -126,7 +154,7 @@ class BuildScanConfigManagerTest extends Specification {
         scanEnabled = true
 
         then:
-        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+        with(config()) {
             enabled
             !disabled
             unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE

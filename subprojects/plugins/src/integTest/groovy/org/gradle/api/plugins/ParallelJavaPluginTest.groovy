@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
@@ -28,7 +28,7 @@ import spock.lang.IgnoreIf
  */
 @IgnoreIf({ GradleContextualExecuter.parallel })
 // no point, always runs in parallel
-class ParallelJavaPluginTest extends AbstractIntegrationSpec {
+class ParallelJavaPluginTest extends AbstractSampleIntegrationTest {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
 

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -45,9 +47,14 @@ class MutableClassDetails implements ClassDetails {
         return superTypes;
     }
 
+    /*
+     * Does a defensive copy to avoid leaking class references through the MutablePropertyDetails
+     * contained in the maps values. The keyset would keep a strong reference back to the map
+     * and all its entries.
+     */
     @Override
     public Set<String> getPropertyNames() {
-        return properties.keySet();
+        return ImmutableSet.copyOf(properties.keySet());
     }
 
     @Override

@@ -18,44 +18,83 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.internal.Describables;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+import java.util.List;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
-
+@NotThreadSafe
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
-    private static final BiMap<Byte, ComponentSelectionReason> REASONS = HashBiMap.create(7);
-
-    static {
-        REASONS.put((byte) 1, REQUESTED);
-        REASONS.put((byte) 2, ROOT);
-        REASONS.put((byte) 3, FORCED);
-        REASONS.put((byte) 4, CONFLICT_RESOLUTION);
-        REASONS.put((byte) 5, SELECTED_BY_RULE);
-        REASONS.put((byte) 6, CONFLICT_RESOLUTION_BY_RULE);
-        REASONS.put((byte) 7, COMPOSITE_BUILD);
-        // update HashBiMap's expectedSize when adding new REASONS
-    }
+    private final BiMap<String, Integer> descriptions = HashBiMap.create();
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
-        byte id = decoder.readByte();
-        ComponentSelectionReason out = REASONS.get(id);
-        if (out == null) {
-            throw new IllegalArgumentException("Unable to find selection reason with id: " + id);
+        List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder);
+        return VersionSelectionReasons.of(descriptions);
+    }
+
+    private List<ComponentSelectionDescriptor> readDescriptions(Decoder decoder) throws IOException {
+        int size = decoder.readSmallInt();
+        ImmutableList.Builder<ComponentSelectionDescriptor> builder = new ImmutableList.Builder<ComponentSelectionDescriptor>();
+        for (int i = 0; i < size; i++) {
+            ComponentSelectionCause cause = ComponentSelectionCause.values()[decoder.readByte()];
+            String desc = readDescriptionText(decoder);
+            String defaultReason = cause.getDefaultReason();
+            if (desc.equals(defaultReason)) {
+                builder.add(new DefaultComponentSelectionDescriptor(cause));
+            } else {
+                builder.add(new DefaultComponentSelectionDescriptor(cause, Describables.of(desc)));
+            }
+
         }
-        return out;
+        return builder.build();
+    }
+
+    private String readDescriptionText(Decoder decoder) throws IOException {
+        boolean alreadyKnown = decoder.readBoolean();
+        if (alreadyKnown) {
+            return descriptions.inverse().get(decoder.readSmallInt());
+        } else {
+            String description = decoder.readString();
+            descriptions.put(description, descriptions.size());
+            return description;
+        }
     }
 
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
-        Byte id = REASONS.inverse().get(value);
-        if (id == null) {
-            throw new IllegalArgumentException("Unknown selection reason: " + value);
+        List<ComponentSelectionDescriptor> descriptions = value.getDescriptions();
+        encoder.writeSmallInt(descriptions.size());
+        for (ComponentSelectionDescriptor description : descriptions) {
+            writeDescription(encoder, description);
         }
-        encoder.writeByte(id);
+    }
+
+    private void writeDescription(Encoder encoder, ComponentSelectionDescriptor description) throws IOException {
+        encoder.writeByte((byte) description.getCause().ordinal());
+        writeDescriptionText(encoder, description.getDescription());
+    }
+
+    private void writeDescriptionText(Encoder encoder, String description) throws IOException {
+        Integer index = descriptions.get(description);
+        encoder.writeBoolean(index != null); // already known custom reason
+        if (index == null) {
+            index = descriptions.size();
+            descriptions.put(description, index);
+            encoder.writeString(description);
+        } else {
+            encoder.writeSmallInt(index);
+        }
+    }
+
+    public void reset() {
+        descriptions.clear();
     }
 }

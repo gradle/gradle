@@ -16,7 +16,6 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
-import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class BroadcastingCollectionEventRegisterSpec extends Specification {
@@ -25,89 +24,65 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
     def added = []
     def removed = []
 
-    protected CollectionEventRegister register() {
-        new BroadcastingCollectionEventRegister<>()
+    protected CollectionEventRegister<CharSequence> register() {
+        new BroadcastingCollectionEventRegister<>(CharSequence)
     }
 
-    protected CollectionFilter filter(Class type, Closure spec = null) {
-        if (spec) {
-            new CollectionFilter(type, spec as Spec)
-        } else {
-            new CollectionFilter(type)
-        }
+    def "actions do nothing when none registered"() {
+        expect:
+        r.fireObjectAdded("a")
+        r.fireObjectRemoved("a")
     }
 
-    protected Action a(Closure impl) {
-        impl as Action
+    def "nothing subscribed when no actions registered"() {
+        expect:
+        !r.isSubscribed(null)
+        !r.isSubscribed(CharSequence)
+        !r.isSubscribed(String)
     }
 
-    def "register actions"() {
+    def "actions are invoked in order registered"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+
         given:
-        r.registerAddAction a({ added << it })
-        r.registerAddAction a({ added << it + 10 })
-        r.registerRemoveAction a({ removed << it })
-        r.registerRemoveAction a({ removed << it + 10 })
+        r.registerEagerAddAction(String, action1)
+        r.registerEagerAddAction(String, action2)
 
         when:
-        r.addAction.execute 1
-        r.removeAction.execute 2
+        r.fireObjectAdded("a")
 
         then:
-        added == [1, 11]
-        removed == [2, 12]
+        1 * action1.execute("a")
+
+        then:
+        1 * action2.execute("a")
+        0 * _
     }
 
-    def "listener added on filtered adds to root"() {
+    def "types subscribed when actions registered"() {
         given:
-        r.registerAddAction a({ added << "root" })
-
-        and:
-        def filter = filter(Object)
-        def f = r.filtered(filter)
-        f.registerAddAction a({ added << "filtered" })
+        r.registerEagerAddAction(String, Stub(Action))
 
         expect:
-        filter.isSatisfiedBy("an object")
+        r.isSubscribed(null)
+        r.isSubscribed(String)
+        !r.isSubscribed(CharSequence)
+        !r.isSubscribed(StringBuilder)
 
-        when:
-        f.addAction.execute "an object"
+        r.registerEagerAddAction(CharSequence, Stub(Action))
 
-        then:
-        added == ["root", "filtered"]
-    }
+        r.isSubscribed(null)
+        r.isSubscribed(String)
+        r.isSubscribed(CharSequence)
+        r.isSubscribed(StringBuilder)
 
-    def "filter by type"() {
-        given:
-        def filter = filter(Number)
-        def f = register().filtered(filter)
-        r.registerAddAction a({ added << "root" })
-        f.registerAddAction a({ added << "filtered" })
+        r.registerEagerAddAction(StringBuilder, Stub(Action))
 
-        expect:
-        !filter.isSatisfiedBy("not a number")
-
-        when:
-        r.addAction.execute "not a number"
-
-        then:
-        added == ["root"]
-    }
-
-    def "filter by type on filtered"() {
-        given:
-        r.registerAddAction a({ added << "root" })
-
-        def f1 = r.filtered(filter(Number))
-        f1.registerAddAction a({ added << "filtering for number" })
-
-        def f2 = r.filtered(filter(Integer))
-        f2.registerAddAction a({ added << "filtering for integers" })
-
-        when:
-        r.addAction.execute 1.2 // not an integer
-
-        then:
-        added == ["root", "filtering for number"]
+        r.isSubscribed(null)
+        r.isSubscribed(String)
+        r.isSubscribed(CharSequence)
+        r.isSubscribed(StringBuilder)
     }
 
 }

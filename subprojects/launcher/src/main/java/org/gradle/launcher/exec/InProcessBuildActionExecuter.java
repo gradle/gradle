@@ -16,41 +16,40 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.GradleBuildController;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
 
-    public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner, GradleLauncherFactory gradleLauncherFactory) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
+    public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner) {
         this.buildActionRunner = buildActionRunner;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-        UnsupportedJavaRuntimeException.javaDeprecationWarning();
+    public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+        BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
+        BuildOperationNotificationValve buildOperationNotificationValve = contextServices.get(BuildOperationNotificationValve.class);
+
+        buildOperationNotificationValve.start();
         try {
-            RootBuildLifecycleListener buildLifecycleListener = contextServices.get(ListenerManager.class).getBroadcaster(RootBuildLifecycleListener.class);
-            buildLifecycleListener.afterStart();
-            try {
-                buildActionRunner.run(action, buildController);
-                return buildController.getResult();
-            } finally {
-                buildLifecycleListener.beforeComplete();
-            }
+            RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null), buildRequestContext);
+            return rootBuild.run(new Transformer<Object, BuildController>() {
+                @Override
+                public Object transform(BuildController buildController) {
+                    buildActionRunner.run(action, buildController);
+                    return buildController.getResult();
+                }
+            });
         } finally {
-            buildController.stop();
+            buildOperationNotificationValve.stop();
         }
     }
 }

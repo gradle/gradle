@@ -71,15 +71,20 @@ public class IdeaScalaConfigurer {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
-                final Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newHashMap();
-                rootProject.getTasks().getByName("ideaProject").doFirst(new Action<Task>() {
+                final Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
+                rootProject.getTasks().named("ideaProject", new Action<Task>() {
                     @Override
                     public void execute(Task task) {
-                        if (scalaProjects.size() > 0) {
-                            scalaCompilerLibraries.clear();
-                            scalaCompilerLibraries.putAll(resolveScalaCompilerLibraries(scalaProjects, useScalaSdk));
-                            declareUniqueProjectLibraries(Sets.newLinkedHashSet(scalaCompilerLibraries.values()));
-                        }
+                        task.doFirst(new Action<Task>() {
+                            @Override
+                            public void execute(Task task) {
+                                if (scalaProjects.size() > 0) {
+                                    scalaCompilerLibraries.clear();
+                                    scalaCompilerLibraries.putAll(resolveScalaCompilerLibraries(scalaProjects, useScalaSdk));
+                                    declareUniqueProjectLibraries(Sets.newLinkedHashSet(scalaCompilerLibraries.values()));
+                                }
+                            }
+                        });
                     }
                 });
                 rootProject.configure(scalaProjects, new Action<Project>() {
@@ -102,7 +107,7 @@ public class IdeaScalaConfigurer {
     }
 
     private static Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects, boolean useScalaSdk) {
-        Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newHashMap();
+        Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
         for (Project scalaProject : scalaProjects) {
             IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
@@ -137,7 +142,7 @@ public class IdeaScalaConfigurer {
             return createScalaSdkFromPlatform(scalaPlatform, scalaClasspath, useScalaSdk);
         } else if (ideaModule.getScalaPlatform() != null) {
             // TODO: Wrong, using the full classpath of the application
-            return createScalaSdkFromPlatform(ideaModule.getScalaPlatform(), scalaProject.files(files), useScalaSdk);
+            return createScalaSdkFromPlatform(ideaModule.getScalaPlatform(), scalaProject.getLayout().files(files), useScalaSdk);
         } else {
             // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.
             // we can't create a Scala SDK without either one

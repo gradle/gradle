@@ -18,13 +18,11 @@ package org.gradle.internal.scan.config;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.scan.BuildScanRequest;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.vcs.VcsMappings;
-import org.gradle.vcs.internal.VcsMappingsInternal;
+import org.gradle.vcs.internal.VcsResolver;
 
 /**
  * Wiring of the objects that provide the build scan config integration.
@@ -51,16 +49,21 @@ public class BuildScanConfigServices {
         return new BuildScanRequestLegacyBridge(compatibilityEnforcer);
     }
 
-    Factory<BuildScanConfig.Attributes> createBuildScanConfigAttributes(final Gradle gradle) {
+    Factory<BuildScanConfig.Attributes> createBuildScanConfigAttributes(final GradleInternal gradle) {
         return new Factory<BuildScanConfig.Attributes>() {
             @Override
             public BuildScanConfig.Attributes create() {
-                VcsMappings vcsMappings = ((GradleInternal) gradle).getSettings().getSourceControl().getVcsMappings();
-                final boolean hasRules = ((VcsMappingsInternal) vcsMappings).hasRules();
+                VcsResolver vcsResolver = gradle.getServices().get(VcsResolver.class);
+                final boolean hasRules = vcsResolver.hasRules();
                 return new BuildScanConfig.Attributes() {
                     @Override
                     public boolean isRootProjectHasVcsMappings() {
                         return hasRules;
+                    }
+
+                    @Override
+                    public boolean isAnyDeploymentsStarted() {
+                        return false;
                     }
                 };
             }

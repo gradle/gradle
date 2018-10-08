@@ -19,18 +19,18 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.BuildIdentity
-import org.gradle.initialization.DefaultBuildIdentity
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultDependencySubstitutionSpec extends Specification {
     def componentSelector = Mock(ComponentSelector)
-    def details = new DefaultDependencySubstitution(componentSelector)
+    def details = new DefaultDependencySubstitution(componentSelector, null)
 
     def "can override target and selection reason for project"() {
         when:
@@ -43,7 +43,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target.module == "foo"
         details.target.version == "3.0"
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
     def "does not allow null target"() {
@@ -68,23 +68,38 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+    }
+
+    def "can specify custom selection reason"() {
+        when:
+        details.useTarget("org:bar:2.0", 'with custom reason')
+
+        then:
+        details.target instanceof ModuleComponentSelector
+        details.target.toString() == 'org:bar:2.0'
+        details.updated
+        details.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.selectionDescription.description == 'with custom reason'
     }
 
     def "can specify target project"() {
         def project = Mock(ProjectInternal)
+        project.identityPath >> Path.path(":id:path")
+        project.projectPath >> Path.path(":bar")
+        project.name >> "bar"
+
         def services = new DefaultServiceRegistry()
-        services.add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("TEST")))
+        services.add(BuildState, Stub(BuildState))
 
         when:
         details.useTarget(project)
 
         then:
-        _ * project.path >> ":bar"
         project.getServices() >> services
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
     }
 }

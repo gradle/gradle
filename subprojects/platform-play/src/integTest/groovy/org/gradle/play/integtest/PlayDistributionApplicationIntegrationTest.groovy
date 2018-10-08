@@ -99,7 +99,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
 
     void verifyJars() {
         jar("build/distributionJars/playBinary/${playApp.name}.jar").containsDescendants(
-                "Routes.class",
+                determineRoutesClassName(),
                 "views/html/index.class",
                 "views/html/main.class",
                 "controllers/Application.class",

@@ -42,9 +42,9 @@ class NativeBinariesTestPluginTest extends PlatformBaseSpecification {
                     testedBinary = library
                     tasks.create("run", RunTestExecutable) {}
                     tasks.create("install", InstallExecutable) {
-                        it.destinationDir = new File(".")
-                        it.executable = new File("exe")
-                        it.platform = Mock(NativePlatform) {
+                        it.installDirectory = new File(".")
+                        it.executableFile = new File("exe")
+                        it.targetPlatform = Mock(NativePlatform) {
                             getOperatingSystem() >> Mock(OperatingSystem) {
                                 getName() >> "test"
                             }

@@ -1,6 +1,6 @@
 apply plugin: 'cpp'
 
-// START SNIPPET platforms
+// tag::platforms[]
 model {
     platforms {
         x86 {
@@ -14,18 +14,18 @@ model {
         }
     }
 }
-// END SNIPPET platforms
+// end::platforms[]
 
-// START SNIPPET build-types
+// tag::build-types[]
 model {
     buildTypes {
         debug
         release
     }
 }
-// END SNIPPET build-types
+// end::build-types[]
 
-// START SNIPPET target-platforms
+// tag::target-platforms[]
 model {
     components {
         hello(NativeLibrarySpec) {
@@ -41,10 +41,10 @@ model {
         }
     }
 }
-// END SNIPPET target-platforms
+// end::target-platforms[]
 
 // Apply arguments for debug binaries (these options are not yet set automatically)
-// START SNIPPET build-type-config
+// tag::build-type-config[]
 model {
     binaries {
         all {
@@ -59,7 +59,7 @@ model {
         }
     }
 }
-// END SNIPPET build-type-config
+// end::build-type-config[]
 
 model {
     // Apply custom arguments for different target platforms

@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.serialize.SerializerSpec
-
-import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
+import org.gradle.util.Path
 
 class ComponentIdentifierSerializerTest extends SerializerSpec {
     ComponentIdentifierSerializer serializer = new ComponentIdentifierSerializer()
@@ -39,7 +40,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentIdentifier"() {
         given:
-        ModuleComponentIdentifier identifier = new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        ModuleComponentIdentifier identifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group-one', 'name-one'), 'version-one')
 
         when:
         ModuleComponentIdentifier result = serialize(identifier, serializer)
@@ -62,14 +63,59 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         result.libraryName == 'lib'
     }
 
-    def "serializes ProjectComponentIdentifier"() {
+    def "serializes root ProjectComponentIdentifier"() {
         given:
-        ProjectComponentIdentifier identifier = newProjectId(':myPath')
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.ROOT, Path.ROOT, "someProject")
 
         when:
-        ProjectComponentIdentifier result = serialize(identifier, serializer)
+        def result = serialize(identifier, serializer)
 
         then:
-        result.projectPath == ':myPath'
+        result.identityPath == identifier.identityPath
+        result.projectPath == identifier.projectPath
+        result.projectPath() == identifier.projectPath()
+        result.projectName == identifier.projectName
+    }
+
+    def "serializes root build ProjectComponentIdentifier"() {
+        given:
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.path(":a:b"), Path.path(":a:b"), "b")
+
+        when:
+        def result = serialize(identifier, serializer)
+
+        then:
+        result.identityPath == identifier.identityPath
+        result.projectPath == identifier.projectPath
+        result.projectPath() == identifier.projectPath()
+        result.projectName == identifier.projectName
+    }
+
+    def "serializes other build root ProjectComponentIdentifier"() {
+        given:
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.path(":prefix:someProject"), Path.ROOT, "someProject")
+
+        when:
+        def result = serialize(identifier, serializer)
+
+        then:
+        result.identityPath == identifier.identityPath
+        result.projectPath == identifier.projectPath
+        result.projectPath() == identifier.projectPath()
+        result.projectName == identifier.projectName
+    }
+
+    def "serializes other build ProjectComponentIdentifier"() {
+        given:
+        def identifier = new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("build"), Path.path(":prefix:a:b"), Path.path(":a:b"), "b")
+
+        when:
+        def result = serialize(identifier, serializer)
+
+        then:
+        result.identityPath == identifier.identityPath
+        result.projectPath == identifier.projectPath
+        result.projectPath() == identifier.projectPath()
+        result.projectName == identifier.projectName
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.tooling.r22
 
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
@@ -36,7 +36,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         def workDir = temporaryFolder.file("work")
         def implJar = workDir.file("action-impl.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder), workDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarningMode(null), workDir)
 
         given:
         builder.sourceFile('ActionImpl.java') << """
@@ -53,7 +53,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         builder.buildJar(implJar)
 
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action1 = cl1.loadClass("ActionImpl").newInstance()
+        def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
 
         when:
         File actualJar1 = withConnection { ProjectConnection connection ->
@@ -76,7 +76,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
 """
         builder.buildJar(implJar)
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action2 = cl2.loadClass("ActionImpl").newInstance()
+        def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
 
         String result2 = withConnection { ProjectConnection connection ->
             connection.action(action2).run()

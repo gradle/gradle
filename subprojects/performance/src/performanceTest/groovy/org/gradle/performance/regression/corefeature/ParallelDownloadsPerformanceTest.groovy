@@ -46,6 +46,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setup() {
+        runner.targetVersions = ["5.0-20180909235858+0000"]
         runner.warmUpRuns = 5
         runner.runs = 15
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
@@ -69,7 +70,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.4-20171109003814+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/"]
 
         when:
@@ -89,7 +89,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.4-20171109003814+0000"]
         runner.args = ['-I', 'init.gradle', "-PmirrorPath=${repoDir.absolutePath}", "-PmavenRepoURL=http://localhost:${serverPort}/", '--parallel']
 
         when:

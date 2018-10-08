@@ -122,17 +122,16 @@ task work {
         result.assertTasksSkipped(":work")
     }
 
-    def "symlink may reference missing input file"() {
+    def "symlink may not reference missing input file"() {
         file("in-dir").createDir()
         def link = file("in.txt")
         link.createLink("other")
         assert !link.exists()
 
         expect:
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-        succeeds("work")
-        output.contains """A problem was found with the configuration of task ':work'. Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods has been deprecated and is scheduled to be removed in Gradle 5.0.
- - File '$link' specified for property '\$1' does not exist."""
+        fails("work")
+        failure.assertHasDescription("A problem was found with the configuration of task ':work'.")
+        failure.assertHasCause("File '$link' specified for property '\$1' does not exist.")
     }
 
     def "can replace input file with symlink to file with same content"() {
@@ -151,15 +150,15 @@ task work {
         inFile.createLink(copy)
         run("work")
 
+        /*
+         * This documents the current behavior, which is optimizing
+         * for performance at the expense of not detecting some corner
+         * cases. If there actually is a task that needs to distinguish
+         * between links and real files, we should probably provide an
+         * opt-in to canonical snapshotting, as it's quite expensive.
+         */
         then:
-        // TODO - should not be skipped
-        result.assertTasksSkipped(":work")
-
-        when:
-        run("work")
-
-        then:
-        result.assertTasksSkipped(":work")
+        result.assertTaskSkipped(":work")
 
         when:
         copy.text = "new content"
@@ -187,14 +186,15 @@ task work {
 
         run("work")
 
+        /*
+         * This documents the current behavior, which is optimizing
+         * for performance at the expense of not detecting some corner
+         * cases. If there actually is a task that needs to distinguish
+         * between links and real files, we should probably provide an
+         * opt-in to canonical snapshotting, as it's quite expensive.
+         */
         then:
-        result.assertTasksNotSkipped(":work")
-
-        when:
-        run("work")
-
-        then:
-        result.assertTasksSkipped(":work")
+        result.assertTaskSkipped(":work")
 
         when:
         copy.file("file").text = "new content"
@@ -221,15 +221,16 @@ task work {
         outFile.createLink(copy)
         run("work")
 
-        then:
-        // TODO - should not be skipped
-        result.assertTasksSkipped(":work")
 
-        when:
-        run("work")
-
+        /*
+         * This documents the current behavior, which is optimizing
+         * for performance at the expense of not detecting some corner
+         * cases. If there actually is a task that needs to distinguish
+         * between links and real files, we should probably provide an
+         * opt-in to canonical snapshotting, as it's quite expensive.
+         */
         then:
-        result.assertTasksSkipped(":work")
+        result.assertTaskSkipped(":work")
 
         when:
         copy.text = "new content"
@@ -257,14 +258,15 @@ task work {
 
         run("work")
 
+        /*
+         * This documents the current behavior, which is optimizing
+         * for performance at the expense of not detecting some corner
+         * cases. If there actually is a task that needs to distinguish
+         * between links and real files, we should probably provide an
+         * opt-in to canonical snapshotting, as it's quite expensive.
+         */
         then:
-        result.assertTasksNotSkipped(":work")
-
-        when:
-        run("work")
-
-        then:
-        result.assertTasksSkipped(":work")
+        result.assertTaskSkipped(":work")
 
         when:
         copy.listFiles().each { it.text = 'new content' }

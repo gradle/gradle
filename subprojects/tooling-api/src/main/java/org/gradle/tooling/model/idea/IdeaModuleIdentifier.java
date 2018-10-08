@@ -15,13 +15,10 @@
  */
 package org.gradle.tooling.model.idea;
 
-import org.gradle.api.Incubating;
-
 /**
  * Identifies an Idea module.
  *
  * @since 2.14
  */
-@Incubating
 public interface IdeaModuleIdentifier {
 }

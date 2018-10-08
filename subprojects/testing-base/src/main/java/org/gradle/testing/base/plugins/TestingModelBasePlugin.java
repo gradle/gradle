@@ -23,7 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -34,6 +34,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
@@ -78,11 +79,11 @@ public class TestingModelBasePlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void defineBinariesCheckTasks(@Each BinarySpecInternal binary, ITaskFactory taskFactory) {
+        public void defineBinariesCheckTasks(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
             if (binary.isLegacyBinary()) {
                 return;
             }
-            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
+            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getNamingScheme().getTaskName("check"), DefaultTask.class);
             binaryLifecycleTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             binaryLifecycleTask.setDescription("Check " + binary);
             binary.setCheckTask(binaryLifecycleTask);
@@ -93,7 +94,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
             for (BinarySpec binary : binaries) {
                 Task checkTask = binary.getCheckTask();
                 if (checkTask != null) {
-                    tasks.add(checkTask);
+                    ((TaskContainerInternal)tasks).addInternal(checkTask);
                 }
             }
         }

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.progress.BuildOperationDescriptor;
-
 /**
  * Represents some chunk of work.
  */

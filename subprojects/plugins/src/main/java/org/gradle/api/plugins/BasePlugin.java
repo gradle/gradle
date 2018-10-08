@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -35,9 +36,11 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.UploadRule;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.internal.Describables;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
@@ -67,10 +70,10 @@ public class BasePlugin implements Plugin<Project> {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginConvention convention = new BasePluginConvention(project);
+        BasePluginConvention convention = new DefaultBasePluginConvention(project);
         project.getConvention().getPlugins().put("base", convention);
 
         configureBuildConfigurationRule(project);
@@ -82,7 +85,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
-        project.getTasks().withType(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
+        project.getTasks().withType(AbstractArchiveTask.class).configureEach(new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
                 ConventionMapping taskConventionMapping = task.getConventionMapping();
 
@@ -141,7 +144,7 @@ public class BasePlugin implements Plugin<Project> {
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 Module module = configuration.getModule();
                 ModuleVersionIdentifier publicationId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-                publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(publicationId));
+                publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(Describables.of("Ivy publication"), publicationId, true));
             }
         });
     }
@@ -150,7 +153,7 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setStatus("integration");
 
-        Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+        final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
 
         configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
@@ -162,16 +165,23 @@ public class BasePlugin implements Plugin<Project> {
 
         configurations.all(new Action<Configuration>() {
             public void execute(Configuration configuration) {
-                configuration.getArtifacts().all(new Action<PublishArtifact>() {
-                    public void execute(PublishArtifact artifact) {
-                        defaultArtifacts.addCandidate(artifact);
-                    }
-                });
+                if (!configuration.equals(archivesConfiguration)) {
+                    configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
+                        public void execute(PublishArtifact artifact) {
+                            defaultArtifacts.addCandidate(artifact);
+                        }
+                    });
+                }
             }
         });
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().getByName(ASSEMBLE_TASK_NAME).dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+        project.getTasks().named(ASSEMBLE_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+            }
+        });
     }
 }

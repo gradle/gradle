@@ -16,12 +16,13 @@
 
 package controllers
 
-
+import javax.inject._
 import play.api._
 import play.api.mvc._
 import models._
 
-object Application extends Controller {
+@Singleton
+class Application @Inject() extends InjectedController {
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
   }
@@ -29,7 +30,7 @@ object Application extends Controller {
     Ok(views.html.awesome.index(List(new DataType("bar", 2))))
   }
   def shutdown = Action {
-    System.exit(0)
+    Runtime.getRuntime().halt(0)
     Ok("shutdown")
   }
 }

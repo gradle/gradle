@@ -22,11 +22,9 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -144,14 +142,7 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
         }
-        String bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
-            @Nullable
-            @Override
-            @SuppressWarnings("deprecation")
-            public String create() {
-                return compileOptions.getBootClasspath();
-            }
-        });
+        String bootClasspath = compileOptions.getBootClasspath();
         if (bootClasspath != null) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
             args.add(bootClasspath);
@@ -163,6 +154,10 @@ public class JavaCompilerArgumentsBuilder {
         if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
             args.add("-s");
             args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
+        }
+        if (compileOptions.getHeaderOutputDirectory() != null) {
+            args.add("-h");
+            args.add(compileOptions.getHeaderOutputDirectory().getPath());
         }
 
         if (compileOptions.isDebug()) {
@@ -224,7 +219,7 @@ public class JavaCompilerArgumentsBuilder {
             String current = argIterator.next();
             if (current.equals("-sourcepath") || current.equals("--source-path")) {
                 if (!silently) {
-                    DeprecationLogger.nagUserOfDeprecated(
+                    DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
                         "Specifying the source path in the CompilerOptions compilerArgs property",
                         "Instead, use the CompilerOptions sourcepath property directly");
                 }
@@ -259,7 +254,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             args.add(file.getPath());
         }
     }

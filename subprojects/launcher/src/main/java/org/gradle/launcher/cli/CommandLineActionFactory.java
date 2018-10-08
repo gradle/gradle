@@ -15,7 +15,11 @@
  */
 package org.gradle.launcher.cli;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import groovy.lang.GroovySystem;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -44,20 +48,21 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.scripts.DefaultScriptFileResolver;
-import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToLogLevelConfigurationConverter;
 import org.gradle.launcher.cli.converter.PropertiesToParallelismConfigurationConverter;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,10 +73,11 @@ import java.util.Map;
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
 public class CommandLineActionFactory {
+    public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
     private static final String HELP = "h";
     private static final String VERSION = "v";
 
-    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory(new LazyLenientScriptFileResolver());
+    private final BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -89,10 +95,8 @@ public class CommandLineActionFactory {
             buildLayoutFactory,
             args,
             loggingConfiguration,
-            new ExceptionReportingAction(
-                new JavaRuntimeValidationAction(
-                    new ParseAndBuildAction(loggingServices, args)),
-                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
+            new ParseAndBuildAction(loggingServices, args),
+            new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
@@ -115,6 +119,104 @@ public class CommandLineActionFactory {
         out.println();
         parser.printUsage(out);
         out.println();
+    }
+
+    static class WelcomeMessageAction implements Action<PrintStream> {
+        private final BuildLayoutParameters buildLayoutParameters;
+        private final GradleVersion gradleVersion;
+        private final Function<String, InputStream> inputStreamProvider;
+
+        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
+            this(buildLayoutParameters, GradleVersion.current(), new Function<String, InputStream>() {
+                @Nullable
+                @Override
+                public InputStream apply(@Nullable String input) {
+                    return getClass().getClassLoader().getResourceAsStream(input);
+                }
+            });
+        }
+
+        @VisibleForTesting
+        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider) {
+            this.buildLayoutParameters = buildLayoutParameters;
+            this.gradleVersion = gradleVersion;
+            this.inputStreamProvider = inputStreamProvider;
+        }
+
+        @Override
+        public void execute(PrintStream out) {
+            if (isWelcomeMessageEnabled()) {
+                File markerFile = getMarkerFile();
+
+                if (!markerFile.exists()) {
+                    out.println();
+                    out.print("Welcome to Gradle " + gradleVersion.getVersion() + "!");
+
+                    String featureList = readReleaseFeatures();
+
+                    if (StringUtils.isNotBlank(featureList)) {
+                        out.println();
+                        out.println();
+                        out.println("Here are the highlights of this release:");
+                        out.print(featureList);
+                    }
+
+                    if (!gradleVersion.isSnapshot()) {
+                        out.println();
+                        out.println("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
+                    }
+
+                    out.println();
+
+                    writeMarkerFile(markerFile);
+                }
+            }
+        }
+
+        /**
+         * The system property is set for the purpose of internal testing.
+         * In user environments the system property will never be available.
+         */
+        private boolean isWelcomeMessageEnabled() {
+            String messageEnabled = System.getProperty(WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY);
+
+            if (messageEnabled == null) {
+                return true;
+            }
+
+            return Boolean.parseBoolean(messageEnabled);
+        }
+
+        private File getMarkerFile() {
+            File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
+            File notificationsDir = new File(gradleUserHomeDir, "notifications");
+            File versionedNotificationsDir = new File(notificationsDir, gradleVersion.getVersion());
+            return new File(versionedNotificationsDir, "release-features.rendered");
+        }
+
+        private String readReleaseFeatures() {
+            InputStream inputStream = inputStreamProvider.apply("release-features.txt");
+
+            if (inputStream != null) {
+                StringWriter writer = new StringWriter();
+
+                try {
+                    IOUtils.copy(inputStream, writer, "UTF-8");
+                    return writer.toString();
+                } catch (IOException e) {
+                    // do not fail the build as feature is non-critical
+                } finally {
+                    IOUtils.closeQuietly(inputStream);
+                }
+            }
+
+            return null;
+        }
+
+        private void writeMarkerFile(File markerFile) {
+            GFileUtils.mkdirs(markerFile.getParentFile());
+            GFileUtils.touch(markerFile);
+        }
     }
 
     private static class BuiltInActions implements CommandLineAction {
@@ -166,6 +268,7 @@ public class CommandLineActionFactory {
     private static class ShowVersionAction implements Runnable {
         public void run() {
             GradleVersion currentVersion = GradleVersion.current();
+            KotlinDslVersion currentKotlinDslVersion = KotlinDslVersion.current();
 
             final StringBuilder sb = new StringBuilder();
             sb.append("%n------------------------------------------------------------%nGradle ");
@@ -174,7 +277,11 @@ public class CommandLineActionFactory {
             sb.append(currentVersion.getBuildTime());
             sb.append("%nRevision:     ");
             sb.append(currentVersion.getRevision());
-            sb.append("%n%nGroovy:       ");
+            sb.append("%n%nKotlin DSL:   ");
+            sb.append(currentKotlinDslVersion.getProviderVersion());
+            sb.append("%nKotlin:       ");
+            sb.append(currentKotlinDslVersion.getKotlinVersion());
+            sb.append("%nGroovy:       ");
             sb.append(GroovySystem.getVersion());
             sb.append("%nAnt:          ");
             sb.append(Main.getAntVersion());
@@ -194,13 +301,15 @@ public class CommandLineActionFactory {
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
+        private final Action<Throwable> reporter;
 
-        WithLogging(ServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
+        WithLogging(ServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, Action<Throwable> reporter) {
             this.loggingServices = loggingServices;
             this.buildLayoutFactory = buildLayoutFactory;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
             this.action = action;
+            this.reporter = reporter;
         }
 
         public void execute(ExecutionListener executionListener) {
@@ -251,10 +360,12 @@ public class CommandLineActionFactory {
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
+            Action<ExecutionListener> exceptionReportingAction = new ExceptionReportingAction(action, reporter, loggingManager);
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-                action.execute(executionListener);
+                new WelcomeMessageAction(buildLayout).execute(System.out);
+                exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
             }
@@ -299,27 +410,6 @@ public class CommandLineActionFactory {
                 }
             }
             throw new UnsupportedOperationException("No action factory for specified command-line arguments.");
-        }
-    }
-
-    private static class LazyLenientScriptFileResolver implements ScriptFileResolver {
-        private ScriptFileResolver delegate;
-
-        @Nullable
-        public File resolveScriptFile(File dir, String basename) {
-            return loadedDelegate().resolveScriptFile(dir, basename);
-        }
-
-        private ScriptFileResolver loadedDelegate() {
-            if (delegate == null) {
-                try {
-                    delegate = DefaultScriptFileResolver.forDefaultScriptingLanguages();
-                } catch (ServiceLookupException e) {
-                    // Kotlin ScriptingLanguage provider will fail to load on JVMs < 6
-                    delegate = DefaultScriptFileResolver.empty();
-                }
-            }
-            return delegate;
         }
     }
 }

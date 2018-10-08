@@ -16,7 +16,7 @@
 
 /**
  * Workers allow running pieces of work in the background, either
- * in-process in isolated classloaders or out-of-process in reausable
+ * in-process in isolated classloaders or out-of-process in reusable
  * daemons.
  *
  * @since 3.5

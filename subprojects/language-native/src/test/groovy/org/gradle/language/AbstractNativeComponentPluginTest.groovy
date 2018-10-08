@@ -16,6 +16,7 @@
 
 package org.gradle.language
 
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Task
@@ -27,7 +28,6 @@ import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.util.GFileUtils
 
 abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecification {
     abstract Class<? extends Plugin> getPluginClass()
@@ -166,6 +166,6 @@ abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecificati
 
 
     def touch(String filePath) {
-        GFileUtils.touch(project.file(filePath))
+        FileUtils.touch(project.file(filePath))
     }
 }

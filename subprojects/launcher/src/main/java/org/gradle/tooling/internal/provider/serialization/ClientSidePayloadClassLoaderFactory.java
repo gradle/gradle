@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -97,14 +98,14 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private boolean found;
 
             private AnnotationDetector() {
-                super(Opcodes.ASM6);
+                super(AsmConstants.ASM_LEVEL);
             }
 
             public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 if (desc.equals(ANNOTATION_DESCRIPTOR)) {
                     found = true;
                 }
-                return new AnnotationVisitor(Opcodes.ASM6) {
+                return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
 
                     @Override
                     public void visit(String name, Object value) {
@@ -120,7 +121,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             private final String mixInInterface;
 
             public TransformingAdapter(ClassWriter classWriter, String mixInInterface) {
-                super(Opcodes.ASM6, classWriter);
+                super(AsmConstants.ASM_LEVEL, classWriter);
                 this.mixInInterface = mixInInterface;
             }
 

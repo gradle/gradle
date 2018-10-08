@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
@@ -63,10 +64,12 @@ project(":project3") {
         project3.assertNoDependencies()
 
         and:
-        resolveArtifacts(project1) == ['changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+        resolveArtifacts(project1) {
+            expectFiles 'changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar'
+        }
     }
 
-    def "reports failure when project dependency references a project with multiple publications"() {
+    def "reports failure when project dependency references a project with multiple conflicting publications"() {
         createBuildScripts("""
 project(":project3") {
     publishing {
@@ -91,12 +94,30 @@ project(":project3") {
         fails "publish"
 
         then:
-        failure.assertHasCause "Exception thrown while executing model rule: PublishingPlugin.Rules#publishing"
-        failure.assertHasCause """Publishing is not yet able to resolve a dependency on a project with multiple publications that have different coordinates.
+        failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in project ':project3':
-  - Publication 'extra' with coordinates extra.group:extra:extra
-  - Publication 'extraComp' with coordinates extra.group:extra-comp:extra
-  - Publication 'maven' with coordinates org.gradle.test:project3:3.0"""
+  - Maven publication 'maven' with coordinates org.gradle.test:project3:3.0
+  - Maven publication 'extraComp' with coordinates extra.group:extra-comp:extra
+  - Maven publication 'extra' with coordinates extra.group:extra:extra"""
+    }
+
+    def "referenced project can have additional non-component publications"() {
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications {
+            extra(MavenPublication) {
+                groupId "extra.group"
+                artifactId "extra"
+                version "extra"
+            }
+        }
+    }
+}
+""")
+
+        expect:
+        succeeds "publish"
     }
 
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
@@ -183,7 +204,7 @@ project(":project2") {
         project3.assertPublished()
         project3.assertNoDependencies()
 
-        resolveArtifacts(project1) == ["project1-1.0.jar", "project2-2.0.jar", "project3-3.0.jar"]
+        resolveArtifacts(project1) { expectFiles "project1-1.0.jar", "project2-2.0.jar", "project3-3.0.jar" }
 
         return true
     }
@@ -290,13 +311,105 @@ project(":project2") {
         project2.assertPublished()
         project2.assertApiDependencies("org.gradle.test:project1:1.0")
 
-        def dependency = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
-        dependency.exclusions.size() == 2
-        def sorted = dependency.exclusions.sort { it.groupId }
+        def dep = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
+        dep.exclusions.size() == 2
+        def sorted = dep.exclusions.sort { it.groupId }
         sorted[0].groupId == "*"
         sorted[0].artifactId == "commons-collections"
         sorted[1].groupId == "commons-io"
         sorted[1].artifactId == "*"
+
+        project2.parsedModuleMetadata.variant('api') {
+            dependency('org.gradle.test:project1:1.0') {
+                exists()
+                hasExclude('*', 'commons-collections')
+                hasExclude('commons-io', '*')
+                noMoreExcludes()
+            }
+        }
+    }
+
+    @Ignore("TODO: CC, there's currently no support for platform() on a local project. We must think about the concept of Gradle platform first")
+    def "publish and resolve java-library with dependency on java-library-platform"() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        settingsFile << """
+include "platform", "library"
+"""
+
+        buildFile << """
+allprojects {
+    apply plugin: 'maven-publish'
+    apply plugin: 'java-library'
+
+    group = "org.test"
+    version = "1.0"
+}
+
+project(":platform") {
+    dependencies {
+        api "org.test:foo:1.0"
+        constraints {
+            api "org.test:bar:1.1"
+        }
+    }
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            maven(MavenPublication) { from components.javaLibraryPlatform }
+        }
+    }
+}
+
+project(":library") {
+    dependencies {
+        api project(":platform")
+        api "org.test:bar"
+    }
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            maven(MavenPublication) { from components.java }
+        }
+    }
+}
+"""
+        when:
+        run "publish"
+
+        def platformModule = mavenRepo.module("org.test", "platform", "1.0")
+        def libraryModule = mavenRepo.module("org.test", "library", "1.0")
+
+        then:
+        platformModule.parsedPom.packaging == 'pom'
+        platformModule.parsedPom.scopes.compile.assertDependsOn("org.test:foo:1.0")
+        platformModule.parsedPom.scopes.compile.assertDependencyManagement("org.test:bar:1.1")
+        platformModule.parsedModuleMetadata.variant('api') {
+            dependency("org.test:foo:1.0").exists()
+            constraint("org.test:bar:1.1").exists()
+            noMoreDependencies()
+        }
+
+        libraryModule.parsedPom.packaging == null
+        libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:", "org.test:platform:1.0")
+        libraryModule.parsedPom.scopes.compile.assertDependencyManagement()
+        libraryModule.parsedModuleMetadata.variant('api') {
+            dependency("org.test:bar:").exists()
+            dependency("org.test:platform:1.0").exists()
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(platformModule) { expectFiles 'foo-1.0.jar' }
+        resolveArtifacts(libraryModule) {
+            expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
+        }
     }
 
     private void createBuildScripts(String append = "") {

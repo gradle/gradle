@@ -16,28 +16,56 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 class DependencyState {
-    private final DependencyMetadata dependencyMetadata;
+    private final ComponentSelector requested;
+    private final DependencyMetadata dependency;
+    private final ComponentSelectionDescriptorInternal ruleDescriptor;
     private final ComponentSelectorConverter componentSelectorConverter;
 
     private ModuleIdentifier moduleIdentifier;
+    public ModuleVersionResolveException failure;
 
-    DependencyState(DependencyMetadata dependencyMetadata, ComponentSelectorConverter componentSelectorConverter) {
-        this.dependencyMetadata = dependencyMetadata;
+    DependencyState(DependencyMetadata dependency, ComponentSelectorConverter componentSelectorConverter) {
+        this(dependency, dependency.getSelector(), null, componentSelectorConverter);
+    }
+
+    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, ComponentSelectionDescriptorInternal ruleDescriptor, ComponentSelectorConverter componentSelectorConverter) {
+        this.dependency = dependency;
+        this.requested = requested;
+        this.ruleDescriptor = ruleDescriptor;
         this.componentSelectorConverter = componentSelectorConverter;
     }
 
-    public DependencyMetadata getDependencyMetadata() {
-        return dependencyMetadata;
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
+    public DependencyMetadata getDependency() {
+        return dependency;
     }
 
     public ModuleIdentifier getModuleIdentifier() {
         if (moduleIdentifier == null) {
-            moduleIdentifier = componentSelectorConverter.getModule(dependencyMetadata.getSelector());
+            moduleIdentifier = componentSelectorConverter.getModule(dependency.getSelector());
         }
         return moduleIdentifier;
+    }
+
+    public DependencyState withTarget(ComponentSelector target, ComponentSelectionDescriptorInternal ruleDescriptor) {
+        DependencyMetadata targeted = dependency.withTarget(target);
+        return new DependencyState(targeted, requested, ruleDescriptor, componentSelectorConverter);
+    }
+
+    /**
+     * Descriptor for any rules that modify this DependencyState from the original.
+     */
+    public ComponentSelectionDescriptorInternal getRuleDescriptor() {
+        return ruleDescriptor;
     }
 }

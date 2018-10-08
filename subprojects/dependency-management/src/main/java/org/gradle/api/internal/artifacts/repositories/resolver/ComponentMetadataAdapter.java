@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ComponentMetadataAdapter implements ComponentMetadata {
     }
 
     public ModuleVersionIdentifier getId() {
-        return metadata.getId();
+        return metadata.getModuleVersionId();
     }
 
     public boolean isChanging() {
@@ -42,5 +43,10 @@ public class ComponentMetadataAdapter implements ComponentMetadata {
 
     public List<String> getStatusScheme() {
         return metadata.getStatusScheme();
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return metadata.getAttributes();
     }
 }

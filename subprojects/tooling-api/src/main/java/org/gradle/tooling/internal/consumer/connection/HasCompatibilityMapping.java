@@ -48,7 +48,7 @@ public class HasCompatibilityMapping {
         viewBuilder.mixInTo(GradleTask.class, TaskDisplayNameMixin.class);
         viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);
         viewBuilder.mixInTo(IdeaDependency.class, IdeaModuleDependencyTargetNameMixin.class);
-        viewBuilder.mixInTo(GradleBuild.class, new IncludedBuildsMixin());
+        viewBuilder.mixInTo(GradleBuild.class, IncludedBuildsMixin.class);
         return viewBuilder;
     }
 }

@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -13,30 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+plugins {
+    id 'java-library'
+    // id 'gradlebuild.strict-compile'
+}
 
 dependencies {
     api project(":baseServices")
     api project(":baseServicesGroovy")
     api project(":buildCache")
     api project(":logging")
-    api project(":modelCore")
     api project(":persistentCache")
     api project(":processServices")
     api project(":resources")
 
-    implementation libraries.ant
-    implementation libraries.commons_io
-    implementation libraries.commons_lang
-    implementation libraries.jcip
+    implementation libraries.ant.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
 
     testFixturesImplementation project(":internalTesting")
 }
 
-useTestFixtures(project: ":logging")
-//useClassycle()
-//strictCompile()
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFixtures {
+    from(':logging')
+}
+
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}

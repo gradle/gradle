@@ -36,7 +36,7 @@ public class CompareGradleBuildsPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         final ReportingExtension reportingExtension = project.getExtensions().findByType(ReportingExtension.class);
 
-        project.getTasks().withType(CompareGradleBuilds.class, new Action<CompareGradleBuilds>() {
+        project.getTasks().withType(CompareGradleBuilds.class).configureEach(new Action<CompareGradleBuilds>() {
             @Override
             public void execute(final CompareGradleBuilds task) {
                 ((IConventionAware) task).getConventionMapping().map("reportDir", new Callable<File>() {
@@ -48,6 +48,6 @@ public class CompareGradleBuildsPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().create("compareGradleBuilds", CompareGradleBuilds.class);
+        project.getTasks().register("compareGradleBuilds", CompareGradleBuilds.class);
     }
 }

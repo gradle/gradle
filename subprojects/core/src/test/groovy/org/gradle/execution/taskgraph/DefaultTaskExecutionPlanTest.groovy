@@ -16,11 +16,10 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
-import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -30,10 +29,8 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
-import org.gradle.execution.TaskFailureHandler
-import org.gradle.initialization.BuildCancellationToken
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.resources.ResourceLock
-import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
@@ -50,33 +47,28 @@ import static org.gradle.util.WrapUtil.toList
 class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     DefaultTaskExecutionPlan executionPlan
-    ProjectInternal root;
-    def cancellationHandler = Mock(BuildCancellationToken)
+    ProjectInternal root
     def workerLeaseService = Mock(WorkerLeaseService)
-    def coordinationService = Mock(ResourceLockCoordinationService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
-    def gradle = Mock(GradleInternal)
 
     def setup() {
-        root = createRootProject(temporaryFolder.testDirectory);
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
+        root = createRootProject(temporaryFolder.testDirectory)
+        def taskInfoFactory = new TaskInfoFactory(root.gradle, Stub(IncludedBuildTaskGraph))
+        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
+        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, root.gradle, taskInfoFactory, dependencyResolver)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
         }
         _ * workerLease.tryLock() >> true
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
     }
 
     def "schedules tasks in dependency order"() {
         given:
-        Task a = task("a");
-        Task b = task("b", dependsOn: [a]);
-        Task c = task("c", dependsOn: [b, a]);
-        Task d = task("d", dependsOn: [c]);
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", dependsOn: [b, a])
+        Task d = task("d", dependsOn: [c])
 
         when:
         addToGraphAndPopulate([d])
@@ -87,10 +79,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules task dependencies in name order when there are no dependencies between them"() {
         given:
-        Task a = task("a");
-        Task b = task("b");
-        Task c = task("c");
-        Task d = task("d", dependsOn: [b, a, c]);
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c")
+        Task d = task("d", dependsOn: [b, a, c])
 
         when:
         addToGraphAndPopulate([d])
@@ -101,12 +93,12 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules a single batch of tasks in name order"() {
         given:
-        Task a = task("a");
-        Task b = task("b");
-        Task c = task("c");
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c")
 
         when:
-        addToGraphAndPopulate(toList(b, c, a));
+        addToGraphAndPopulate(toList(b, c, a))
 
         then:
         executes(a, b, c)
@@ -114,13 +106,13 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules separately added tasks in order added"() {
         given:
-        Task a = task("a");
-        Task b = task("b");
-        Task c = task("c");
-        Task d = task("d");
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c")
+        Task d = task("d")
 
         when:
-        executionPlan.addToTaskGraph(toList(c, b));
+        executionPlan.addToTaskGraph(toList(c, b))
         executionPlan.addToTaskGraph(toList(d, a))
         executionPlan.determineExecutionPlan()
 
@@ -131,13 +123,13 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "schedules #orderingRule task dependencies in name order"() {
         given:
-        Task a = task("a");
-        Task b = task("b");
-        Task c = task("c", (orderingRule): [b, a]);
-        Task d = task("d", dependsOn: [b, a]);
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c", (orderingRule): [b, a])
+        Task d = task("d", dependsOn: [b, a])
 
         when:
-        addToGraphAndPopulate([c, d]);
+        addToGraphAndPopulate([c, d])
 
         then:
         executes(a, b, c, d)
@@ -147,29 +139,29 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "common tasks in separate batches are schedules only once"() {
-        Task a = task("a");
-        Task b = task("b");
-        Task c = task("c", dependsOn: [a, b]);
-        Task d = task("d");
-        Task e = task("e", dependsOn: [b, d]);
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c", dependsOn: [a, b])
+        Task d = task("d")
+        Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addToTaskGraph(toList(c));
-        executionPlan.addToTaskGraph(toList(e));
-        executionPlan.determineExecutionPlan();
+        executionPlan.addToTaskGraph(toList(c))
+        executionPlan.addToTaskGraph(toList(e))
+        executionPlan.determineExecutionPlan()
 
         then:
         executes(a, b, c, d, e)
     }
 
     def "all dependencies scheduled when adding tasks"() {
-        Task a = task("a");
-        Task b = task("b", dependsOn: [a]);
-        Task c = task("c", dependsOn: [b, a]);
-        Task d = task("d", dependsOn: [c]);
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", dependsOn: [b, a])
+        Task d = task("d", dependsOn: [c])
 
         when:
-        addToGraphAndPopulate(toList(d));
+        addToGraphAndPopulate(toList(d))
 
         then:
         executes(a, b, c, d)
@@ -304,7 +296,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        executionPlan.useFilter(filter);
+        executionPlan.useFilter(filter)
         addToGraphAndPopulate([finalized])
 
         then:
@@ -321,7 +313,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([finalized])
 
         then:
-        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
+        executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency]
     }
 
@@ -330,13 +322,13 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
         Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
         Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(finalizedDependency));
+        executionPlan.setContinueOnFailure(true)
 
         when:
         addToGraphAndPopulate([finalizer, finalized])
 
         then:
-        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
+        executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency, finalizerDependency, finalizer]
     }
 
@@ -605,7 +597,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "stops returning tasks on task execution failure"() {
-        RuntimeException exception = new RuntimeException("failure");
+        def failures = []
+        RuntimeException exception = new RuntimeException("failure")
 
         when:
         Task a = task([failure: exception],"a")
@@ -616,36 +609,37 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == exception
+        failures == [exception]
     }
 
     def "stops returning tasks when build is cancelled"() {
-        2 * cancellationHandler.cancellationRequested >>> [false, true]
-        Task a = task("a");
-        Task b = task("b");
+        def failures = []
+        Task a = task("a")
+        Task b = task("b")
 
         when:
         addToGraphAndPopulate([a, b])
+        executionPlan.cancelExecution()
 
         then:
-        executedTasks == [a]
+        executedTasks == []
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        BuildCancelledException e = thrown()
-        e.message == 'Build cancelled.'
+        failures.size() == 1
+        failures[0] instanceof BuildCancelledException
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
-        RuntimeException failure = new RuntimeException("failure");
-        Task a = task("a", failure: failure);
-        Task b = task("b");
+        def failures = []
+        RuntimeException failure = new RuntimeException("failure")
+        Task a = task("a", failure: failure)
+        Task b = task("b")
 
         when:
         addToGraphAndPopulate([a, b])
@@ -654,85 +648,77 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "stops execution on task failure when failure handler indicates that execution should stop"() {
-        RuntimeException failure = new RuntimeException("failure");
-        Task a = task("a", failure: failure);
-        Task b = task("b");
-
-        addToGraphAndPopulate([a, b])
-
-        TaskFailureHandler handler = Mock()
-        RuntimeException wrappedFailure = new RuntimeException("wrapped");
-        handler.onTaskFailure(a) >> {
-            throw wrappedFailure
-        }
+        def failures = []
+        RuntimeException failure = new RuntimeException("failure")
+        Task a = task("a", failure: failure)
+        Task b = task("b")
 
         when:
-        executionPlan.useFailureHandler(handler);
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == wrappedFailure
+        failures == [failure]
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
-        RuntimeException failure = new RuntimeException();
-        Task a = task("a", failure: failure);
-        Task b = task("b");
+        def failures = []
+        RuntimeException failure = new RuntimeException()
+        Task a = task("a", failure: failure)
+        Task b = task("b")
         addToGraphAndPopulate([a, b])
 
         when:
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a));
+        executionPlan.setContinueOnFailure(true)
 
         then:
         executedTasks == [a, b]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     @Unroll
     def "continues to return tasks when failure handler does not abort execution and tasks are #orderingRule dependent"() {
-        RuntimeException failure = new RuntimeException();
-        Task a = task("a", failure: failure);
-        Task b = task("b", (orderingRule): [a]);
+        def failures = []
+        RuntimeException failure = new RuntimeException()
+        Task a = task("a", failure: failure)
+        Task b = task("b", (orderingRule): [a])
         addToGraphAndPopulate([a, b])
 
         when:
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a));
+        executionPlan.setContinueOnFailure(true)
 
         then:
         executedTasks == [a, b]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
 
         where:
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
+        def failures = []
         RuntimeException failure = new RuntimeException()
         final Task a = task("a", failure: failure)
         final Task b = task("b", dependsOn: [a])
@@ -740,25 +726,20 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([b, c])
 
         when:
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a))
+        executionPlan.setContinueOnFailure(true)
 
         then:
         executedTasks == [a, c]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "clear removes all tasks"() {
         given:
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
         Task a = task("a")
 
         when:
@@ -766,16 +747,12 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executionPlan.clear()
 
         then:
-        executionPlan.tasks == []
+        executionPlan.tasks == [] as Set
         executedTasks == []
     }
 
     def "can add additional tasks after execution and clear"() {
         given:
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
         Task a = task("a")
         Task b = task("b")
 
@@ -803,7 +780,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter);
+        executionPlan.useFilter(filter)
         addToGraphAndPopulate([a, b])
 
         then:
@@ -864,7 +841,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         when:
         executionPlan.useFilter(filter)
-        addToGraphAndPopulate([c]);
+        addToGraphAndPopulate([c])
 
         then:
         executes(c)
@@ -876,15 +853,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executionPlan.determineExecutionPlan()
     }
 
-    private TaskFailureHandler createIgnoreTaskFailureHandler(Task task) {
-        Mock(TaskFailureHandler) {
-            onTaskFailure(task) >> {}
-        }
-    }
-
     void executes(Task... expectedTasks) {
-        assert executionPlan.tasks == expectedTasks as List
-        assert expectedTasks == expectedTasks as List
+        assert executionPlan.tasks as List == expectedTasks as List
+        assert executedTasks == expectedTasks as List
     }
 
     void filtered(Task... expectedTasks) {
@@ -893,15 +864,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def getExecutedTasks() {
         def tasks = []
-        def moreTasks = true
-        while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(workerLease, new Action<TaskInfo>() {
-                @Override
-                void execute(TaskInfo taskInfo) {
-                    tasks << taskInfo.task
-                    executionPlan.taskComplete(taskInfo)
+        while (executionPlan.hasWorkRemaining()) {
+            def nextNode = executionPlan.selectNext(workerLease, Mock(ResourceLockState))
+            if (nextNode != null) {
+                if (!nextNode.isComplete()) {
+                    tasks << nextNode.task
+                    executionPlan.workComplete(nextNode)
                 }
-            })
+            }
         }
         return tasks
     }
@@ -944,21 +914,19 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskOutputsInternal emptyTaskOutputs() {
-        Mock(TaskOutputsInternal) {
-            getFiles() >> root.files()
-        }
+        Stub(TaskOutputsInternal)
     }
 
     private TaskDestroyables emptyTaskDestroys() {
-        Mock(TaskDestroyablesInternal) {
-            getFiles() >> root.files()
-        }
+        Stub(TaskDestroyablesInternal)
     }
 
     private TaskLocalStateInternal emptyTaskLocalState() {
-        Mock(TaskLocalStateInternal) {
-            getFiles() >> root.files()
-        }
+        Stub(TaskLocalStateInternal)
+    }
+
+    private TaskInputsInternal emptyTaskInputs() {
+        Stub(TaskInputsInternal)
     }
 
     private TaskInternal task(Map options, final String name) {
@@ -971,6 +939,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getOutputs() >> emptyTaskOutputs()
         task.getDestroyables() >> emptyTaskDestroys()
         task.getLocalState() >> emptyTaskLocalState()
+        task.getInputs() >> emptyTaskInputs()
         return task
     }
 
@@ -982,7 +951,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskInternal filteredTask(final String name) {
-        def task = createTask(name);
+        def task = createTask(name)
         task.getTaskDependencies() >> brokenDependencies()
         task.getMustRunAfter() >> brokenDependencies()
         task.getShouldRunAfter() >> brokenDependencies()
@@ -1000,12 +969,13 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.state >> state
         task.toString() >> "task $name"
         task.compareTo(_ as TaskInternal) >> { TaskInternal taskInternal ->
-            return name.compareTo(taskInternal.getName());
+            return name.compareTo(taskInternal.getName())
         }
         task.getOutputs() >> emptyTaskOutputs()
         task.getDestroyables() >> emptyTaskDestroys()
         task.getLocalState() >> emptyTaskLocalState()
-        return task;
+        task.getInputs() >> emptyTaskInputs()
+        return task
     }
 }
 

@@ -28,8 +28,6 @@ abstract class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
     }
 
     protected void withKotlinBuildSrc() {
-        file("buildSrc/build.gradle.kts") << """
-            plugins { `kotlin-dsl` }
-        """
+        file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
     }
 }

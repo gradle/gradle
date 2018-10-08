@@ -434,10 +434,10 @@ model {
 """
 
         when:
-        succeeds "mainVisualStudio"
+        succeeds "visualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("mainExe.sln"))
+        final mainSolution = new SolutionFile(file("test.sln"))
         mainSolution.assertHasProjects("mainExe")
 
         and:

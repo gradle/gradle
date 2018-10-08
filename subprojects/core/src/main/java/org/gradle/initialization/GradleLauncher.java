@@ -20,7 +20,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
- * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController}.
+ * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController} and {@link org.gradle.internal.build.BuildState}.
  */
 public interface GradleLauncher extends Stoppable {
 
@@ -29,18 +29,18 @@ public interface GradleLauncher extends Stoppable {
     /**
      * Evaluates the settings for this build.
      *
-     * @throws ReportedException On build failure. The failure will have been logged.
      * @return The loaded settings instance.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    SettingsInternal getLoadedSettings();
+    SettingsInternal getLoadedSettings() throws ReportedException;
 
     /**
      * Configures the build.
      *
-     * @throws ReportedException On build failure. The failure will have been logged.
      * @return The configured Gradle build instance.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    GradleInternal getConfiguredBuild();
+    GradleInternal getConfiguredBuild() throws ReportedException;
 
     /**
      * Schedules the specified tasks for this build.
@@ -50,10 +50,10 @@ public interface GradleLauncher extends Stoppable {
     /**
      * Executes the tasks scheduled for this build.
      *
-     * @throws ReportedException On build failure. The failure will have been logged.
      * @return The configured Gradle build instance.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    GradleInternal executeTasks();
+    GradleInternal executeTasks() throws ReportedException;
 
     /**
      * Stops task execution threads and calls the `buildFinished` listener event.

@@ -18,6 +18,7 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.util.VersionNumber
 
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
@@ -38,7 +39,8 @@ class WithFailingTestsApp extends PlayApp {
         return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)
     }
 
-    public WithFailingTestsApp(){
+    WithFailingTestsApp(VersionNumber version){
+        super(version)
         appSources = sourceFiles("app", "basicplayapp");
         viewSources = sourceFiles("app/views", "basicplayapp");
         confSources = sourceFiles("conf", "shared") + sourceFiles("conf", "basicplayapp")

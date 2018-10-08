@@ -47,7 +47,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         when:
         executer.usingProjectDirectory(originalLocation)
         executer.withGradleUserHomeDir(originalHome)
-        withBuildCache().succeeds "jar", "customTask"
+        withBuildCache().run "jar", "customTask"
 
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar", ":customTask"
@@ -55,7 +55,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         when:
         executer.usingProjectDirectory(originalLocation)
         originalLocation.file("external.gradle").text = externalTaskDef("modified")
-        withBuildCache().succeeds "jar", "customTask"
+        withBuildCache().run "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava"
@@ -68,7 +68,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         def movedHome = temporaryFolder.file("moved-home")
         executer.withGradleUserHomeDir(movedHome)
         executer.usingProjectDirectory(originalLocation)
-        withBuildCache().succeeds "jar", "customTask"
+        withBuildCache().run "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":customTask"
@@ -78,7 +78,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         run "clean"
 
         executer.usingProjectDirectory(originalLocation)
-        withBuildCache().succeeds "jar", "customTask"
+        withBuildCache().run "jar", "customTask"
 
         then:
         skippedTasks.containsAll ":compileJava", ":customTask"
@@ -90,7 +90,7 @@ class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements
         movedLocation.file(".gradle").deleteDir()
 
         executer.usingProjectDirectory(movedLocation)
-        withBuildCache().succeeds "jar", "customTask"
+        withBuildCache().run "jar", "customTask"
 
         then:
         // Built-in tasks are loaded from cache

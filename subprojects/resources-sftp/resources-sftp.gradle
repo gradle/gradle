@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -13,25 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
+}
 
 dependencies {
     api project(':resources')
     api project(':core')
 
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.jsch
-    implementation libraries.jcip
-    implementation libraries.commons_io
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.jsch.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.commons_io.coordinates
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useTestFixtures()
-useClassycle()
-strictCompile()
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+    from(':core')
+}
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}

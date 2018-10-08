@@ -1,0 +1,8 @@
+task printProps {
+    doLast {
+        println commandLineProjectProp
+        println gradlePropertiesProp
+        println systemProjectProp
+        println System.properties['system']
+    }
+}

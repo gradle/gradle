@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.internal.component.model.Exclude
 import spock.lang.Issue
 import spock.lang.Specification
@@ -43,15 +42,13 @@ class DefaultExcludeRuleConverterTest extends Specification {
         def module = 'someModule'
 
         when:
-        Exclude exclude = new DefaultExcludeRuleConverter(moduleIdentifierFactory).convertExcludeRule(configurationName, new DefaultExcludeRule(group, module))
+        Exclude exclude = new DefaultExcludeRuleConverter(moduleIdentifierFactory).convertExcludeRule(new DefaultExcludeRule(group, module))
 
         then:
         exclude.getModuleId().getGroup() == group
         exclude.getModuleId().getName() == module
-        exclude.getArtifact().getExtension() == PatternMatchers.ANY_EXPRESSION
-        exclude.getArtifact().getType() == PatternMatchers.ANY_EXPRESSION
-        exclude.getMatcher() == PatternMatchers.EXACT
-        exclude.getConfigurations() == configurations
+        exclude.getArtifact() == null
+        exclude.getMatcher() == null
 
         where:
         configurationName | configurations
