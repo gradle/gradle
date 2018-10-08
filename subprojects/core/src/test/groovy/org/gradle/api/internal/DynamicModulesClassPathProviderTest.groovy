@@ -15,28 +15,36 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.internal.classpath.DefaultClassPath
-import spock.lang.Specification
+import org.gradle.testing.internal.util.Specification
+import spock.lang.Unroll
 
 class DynamicModulesClassPathProviderTest extends Specification {
 
-    def moduleRegistry = Mock(ModuleRegistry)
-    def pluginModuleRegistry = Mock(PluginModuleRegistry)
-    def provider = new DynamicModulesClassPathProvider(moduleRegistry, pluginModuleRegistry)
+    def moduleRegistry = Mock(ModuleRegistry) {
+        getModule(_) >> { args -> module(args[0]) }
+    }
+    def pluginModuleRegistry = Mock(PluginModuleRegistry) {
+        getImplementationModules() >> []
+    }
 
     def "uses plugins and extension plugins to determine gradle extensions classpath"() {
+        given:
+        def provider = new DynamicModulesClassPathProvider(moduleRegistry, pluginModuleRegistry)
+
         when:
         def classpath = provider.findClassPath("GRADLE_EXTENSIONS")
 
         then:
-        classpath.asFiles.collect { it.name } == ["gradle-workers-runtime",
-                                                  "gradle-dependency-management-runtime",
-                                                  "gradle-plugin-use-runtime",
-                                                  "plugin1-runtime", "plugin2-runtime",
-                                                  "extension1-runtime", "extension2-runtime"]
+        classpath.asFiles.collect { it.name } == ["gradle-workers.jar",
+                                                  "gradle-dependency-management.jar",
+                                                  "gradle-plugin-use.jar",
+                                                  "plugin1.jar", "plugin2.jar",
+                                                  "extension1.jar", "extension2.jar"]
 
         and:
         1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
@@ -47,10 +55,45 @@ class DynamicModulesClassPathProviderTest extends Specification {
         1 * pluginModuleRegistry.getImplementationModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
     }
 
-    def module(String name, Module... requiredModules) {
-        def module = Mock(Module)
-        _ * module.classpath >> DefaultClassPath.of(new File("$name-runtime"))
-        _ * module.implementationClasspath >> DefaultClassPath.of(new File("$name-runtime"))
+    @Unroll
+    def "removes JAXB from classpath on Java #javaVersion"() {
+        given:
+        pluginModuleRegistry.getApiModules() >> ([module("gradle-resources-s3", ["jaxb-impl-2.3.1.jar"])] as Set)
+
+        when:
+        List<String> classpath = findClassPath(javaVersion)
+
+        then:
+        !classpath.contains("jaxb-impl-2.3.1.jar")
+
+        where:
+        javaVersion << JavaVersion.values().findAll { it < JavaVersion.VERSION_1_9 }
+    }
+
+    @Unroll
+    def "keeps JAXB on classpath on Java #javaVersion"() {
+        given:
+        pluginModuleRegistry.getApiModules() >> ([module("gradle-resources-s3", ["jaxb-impl-2.3.1.jar"])] as Set)
+
+        when:
+        List<String> classpath = findClassPath(javaVersion)
+
+        then:
+        classpath.contains("jaxb-impl-2.3.1.jar")
+
+        where:
+        javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_9 }
+    }
+
+    private List<String> findClassPath(JavaVersion javaVersion) {
+        def provider = new DynamicModulesClassPathProvider(moduleRegistry, pluginModuleRegistry, javaVersion)
+        provider.findClassPath("GRADLE_EXTENSIONS").asFiles.collect { it.name }
+    }
+
+    def module(String name, List<String> additionalClasspathEntries = [], Module... requiredModules) {
+        def module = Stub(Module)
+        _ * module.classpath >> DefaultClassPath.of([new File("${name}.jar")] + additionalClasspathEntries.collect { new File(it) })
+        _ * module.implementationClasspath >> DefaultClassPath.of(new File("${name}.jar"))
         _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)
         return module
     }

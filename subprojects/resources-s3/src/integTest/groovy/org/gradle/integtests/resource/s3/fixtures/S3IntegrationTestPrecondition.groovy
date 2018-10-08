@@ -16,18 +16,14 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
-import groovy.transform.CompileStatic
-import groovy.transform.SelfType
-import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-@CompileStatic
-@SelfType(AbstractIntegrationSpec)
-trait AddJavaXmBindModulesTrait {
-    def addJavaXmlBindModuleIfNecessary() {
-        if (!GradleContextualExecuter.embedded && JavaVersion.current().isJava9Compatible()) {
-            executer.withBuildJvmOpts('--add-modules', 'java.xml.bind')
-        }
+import static org.gradle.util.TestPrecondition.JDK9_OR_LATER
+
+class S3IntegrationTestPrecondition {
+
+    static boolean isFulfilled() {
+        JDK9_OR_LATER.fulfilled || !GradleContextualExecuter.embedded
     }
+
 }
