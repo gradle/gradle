@@ -23,7 +23,7 @@ tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
     }
 
     buildSrcTemplate = "buildsrc-plugins"
-    setProjects(100)
+    setProjects(250)
     sourceFiles = 200
     testSourceFiles = 50 // verbose tests are time consuming
     filesPerPackage = 5
