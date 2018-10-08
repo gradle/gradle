@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state.isolation;
 
 import org.gradle.api.internal.changedetection.state.EnumValueSnapshot;
 import org.gradle.internal.Cast;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 

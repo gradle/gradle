@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.isolation;
 
-package org.gradle.api.internal.changedetection.state.isolation;
-
-public interface IsolatableFactory {
-    /**
-     * Creates an {@link Isolatable} that reflects the <em>current</em> state of the given value. Any changes made to the value will not be visible to the {@link Isolatable} and vice versa.
-     */
-    <T> Isolatable<T> isolate(T value);
-}
+import org.gradle.api.NonNullApi;

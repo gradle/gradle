@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.internal.isolation
 
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Specification

@@ -23,10 +23,10 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot
 import org.gradle.api.internal.changedetection.state.StringValueSnapshot
 import org.gradle.api.internal.changedetection.state.ValueSnapshot
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolationException;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;

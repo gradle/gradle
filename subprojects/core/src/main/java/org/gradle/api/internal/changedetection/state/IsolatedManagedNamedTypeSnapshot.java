@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.Named;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 

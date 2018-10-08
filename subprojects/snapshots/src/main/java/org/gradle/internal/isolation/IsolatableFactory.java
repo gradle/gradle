@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.isolation;
+package org.gradle.internal.isolation;
 
-import org.gradle.internal.exceptions.Contextual;
-
-/**
- * Represents a problem while attempting to isolate an instance.
- */
-@Contextual
-public class IsolationException extends RuntimeException {
-    private static final String MSG_FORMAT="Could not isolate value: [%s] of type: [%s]";
-
-    public IsolationException(Object value) {
-        super(String.format(MSG_FORMAT, value, value.getClass()));
-    }
-
-    public IsolationException(Object value, Throwable cause) {
-        super(String.format(MSG_FORMAT, value, value.getClass()), cause);
-    }
+public interface IsolatableFactory {
+    /**
+     * Creates an {@link Isolatable} that reflects the <em>current</em> state of the given value. Any changes made to the value will not be visible to the {@link Isolatable} and vice versa.
+     */
+    <T> Isolatable<T> isolate(T value);
 }

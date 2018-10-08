@@ -24,8 +24,8 @@ import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.isolation.Isolatable;
 
 import java.util.Map;
 

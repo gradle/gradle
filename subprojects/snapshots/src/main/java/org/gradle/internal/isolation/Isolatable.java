@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.isolation;
+package org.gradle.internal.isolation;
 
 import org.gradle.internal.hash.Hashable;
 

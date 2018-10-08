@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state.isolation;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotStrategy;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
+import org.gradle.internal.isolation.Isolatable;
 
 /**
  * A strategy for creating {@link ValueSnapshot}s which ensures that they are {@link Isolatable}.

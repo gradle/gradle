@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state.isolation;
 import org.gradle.api.internal.changedetection.state.SerializedValueSnapshot;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 
