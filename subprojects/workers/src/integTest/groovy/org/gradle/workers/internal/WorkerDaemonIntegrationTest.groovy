@@ -30,6 +30,8 @@ import static org.hamcrest.CoreMatchers.notNullValue
 
 @IntegrationTestTimeout(90)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
+
+    @Requires(TestPrecondition.WORKING_DIR)
     def "sets the working directory to the project directory by default during worker execution"() {
         withRunnableClassInBuildScript()
         buildFile << """
