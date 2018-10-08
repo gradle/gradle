@@ -178,11 +178,11 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private void setState(ExecHandleState state) {
         lock.lock();
         try {
-            LOGGER.debug("Changing state to: {}", state);
             this.state = state;
             this.stateChanged.signalAll();
         } finally {
             lock.unlock();
+            LOGGER.debug("Changed state to: {}", state);
         }
     }
 
