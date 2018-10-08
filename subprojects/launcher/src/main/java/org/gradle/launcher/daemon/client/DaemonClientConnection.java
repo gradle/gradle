@@ -63,9 +63,9 @@ public class DaemonClientConnection implements Connection<Message> {
         } catch (MessageIOException e) {
             LOG.debug("Problem dispatching message to the daemon. Performing 'on failure' operation...");
             if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
-                throw new StaleDaemonAddressException("Could not dispatch a message to the daemon.", e);
+                throw new StaleDaemonAddressException("Could not dispatch a message (" + message.getClass() + ") to the daemon.", e);
             }
-            throw new DaemonConnectionException("Could not dispatch a message to the daemon.", e);
+            throw new DaemonConnectionException("Could not dispatch a message (" + message.getClass() + ") to the daemon.", e);
         }
     }
 
@@ -76,9 +76,9 @@ public class DaemonClientConnection implements Connection<Message> {
         } catch (MessageIOException e) {
             LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");
             if (!hasReceived && staleAddressDetector.maybeStaleAddress(e)) {
-                throw new StaleDaemonAddressException("Could not receive a message from the daemon.", e);
+                throw new StaleDaemonAddressException("Could not receive a message from the daemon (" + daemon + ").", e);
             }
-            throw new DaemonConnectionException("Could not receive a message from the daemon.", e);
+            throw new DaemonConnectionException("Could not receive a message from the daemon (" + daemon + ").", e);
         } finally {
             hasReceived = true;
         }
