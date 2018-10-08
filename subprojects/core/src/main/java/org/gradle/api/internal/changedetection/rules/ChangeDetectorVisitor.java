@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+
 public class ChangeDetectorVisitor implements TaskStateChangeVisitor {
     private boolean anyChanges;
 

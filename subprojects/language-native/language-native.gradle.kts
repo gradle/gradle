@@ -44,6 +44,7 @@ testFixtures {
     from(":platformBase")
     from(":messaging")
     from(":platformNative", "testFixtures")
+    from(":snapshots")
 }
 
 classycle {

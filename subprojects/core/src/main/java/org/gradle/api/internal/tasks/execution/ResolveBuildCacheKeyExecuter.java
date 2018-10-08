@@ -37,7 +37,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -163,7 +162,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             Map<String, FileSystemLocationFingerprint> fingerprints;
             String propertyName;
             HashCode propertyHash;
-            FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
+            String propertyNormalizationStrategyIdentifier;
             String name;
             String path;
             HashCode hash;
@@ -185,7 +184,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
             @Override
             public String getPropertyNormalizationStrategyName() {
-                return propertyNormalizationStrategyIdentifier.name();
+                return propertyNormalizationStrategyIdentifier;
             }
 
             @Override

@@ -19,5 +19,6 @@ package org.gradle.normalization.internal;
 import org.gradle.normalization.InputNormalizationHandler;
 
 public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {
-    InputNormalizationStrategy buildFinalStrategy();
+    @Override
+    RuntimeClasspathNormalizationInternal getRuntimeClasspath();
 }

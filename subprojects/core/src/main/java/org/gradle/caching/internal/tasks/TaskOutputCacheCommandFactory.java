@@ -35,6 +35,7 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
@@ -136,12 +137,12 @@ public class TaskOutputCacheCommandFactory {
 
         private void updateSnapshots(Map<String, ? extends FileSystemLocationSnapshot> propertySnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> propertyFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-            AbsolutePathFingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
+            FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
                 if (outputFile == null) {
-                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getEmptyFingerprint());
                     continue;
                 }
                 FileSystemLocationSnapshot snapshot = propertySnapshots.get(propertyName);
@@ -151,7 +152,7 @@ public class TaskOutputCacheCommandFactory {
                 if (snapshot == null) {
                     fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.missing());
                     fileSystemMirror.putSnapshot(new MissingFileSnapshot(absolutePath, property.getOutputFile().getName()));
-                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getEmptyFingerprint());
                     continue;
                 }
 

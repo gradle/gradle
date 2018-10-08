@@ -14,6 +14,7 @@ dependencies {
     compile(project(":core"))
     compile(project(":platformJvm"))
     compile(project(":languageJvm"))
+    implementation(project(":snapshots"))
 
     // TODO - get rid of this cycle
     integTestRuntime(project(":plugins"))

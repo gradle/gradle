@@ -36,6 +36,7 @@ dependencies {
     implementation(library("commons_lang"))
 
     testImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalTesting"))
 }
 
 java {

@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.rules;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 
 @NonNullApi
 public class DefaultTaskUpToDateState implements TaskUpToDateState {
