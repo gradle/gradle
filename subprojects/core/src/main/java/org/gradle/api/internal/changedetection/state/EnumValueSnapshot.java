@@ -17,6 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 public class EnumValueSnapshot implements ValueSnapshot {
     private final String className;

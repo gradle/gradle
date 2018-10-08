@@ -48,6 +48,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

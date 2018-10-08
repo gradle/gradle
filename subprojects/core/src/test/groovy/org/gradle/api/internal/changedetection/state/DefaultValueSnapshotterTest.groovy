@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 

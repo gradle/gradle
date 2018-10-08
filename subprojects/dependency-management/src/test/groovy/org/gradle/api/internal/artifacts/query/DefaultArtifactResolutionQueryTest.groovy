@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.cache.CacheRepository
@@ -41,6 +40,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Shared

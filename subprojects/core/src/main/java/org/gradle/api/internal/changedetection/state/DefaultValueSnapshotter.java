@@ -31,6 +31,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolationException;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotStrategy;
+import org.gradle.internal.snapshot.ValueSnapshottable;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

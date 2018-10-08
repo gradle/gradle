@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.DefaultValueSnapshotter
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -44,6 +43,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder

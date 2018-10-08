@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.io.File;

@@ -22,6 +22,7 @@ import org.gradle.api.Named
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.snapshot.ValueSnapshot
 import spock.lang.Specification
 import spock.lang.Subject
 

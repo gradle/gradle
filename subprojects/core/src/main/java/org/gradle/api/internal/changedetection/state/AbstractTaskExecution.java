@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 public abstract class AbstractTaskExecution implements TaskExecution {
 

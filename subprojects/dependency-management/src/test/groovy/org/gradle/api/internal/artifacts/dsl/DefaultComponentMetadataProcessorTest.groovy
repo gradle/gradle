@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter
@@ -45,6 +44,7 @@ import org.gradle.internal.rules.DefaultRuleActionAdapter
 import org.gradle.internal.rules.DefaultRuleActionValidator
 import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil

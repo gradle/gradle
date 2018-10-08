@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
 
-public interface ValueSnapshottable extends Snapshottable<ValueSnapshot> {
+package org.gradle.internal.snapshot;
+
+import org.gradle.internal.hash.Hashable;
+
+/**
+ * An immutable snapshot of the state of some Java object or object graph.
+ */
+public interface ValueSnapshot extends Hashable {
+    /**
+     * Takes a snapshot of the given value, using this as a candidate snapshot. If the value is the same as the value represented by this snapshot, this snapshot _must_ be returned.
+     */
+    ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter);
 }

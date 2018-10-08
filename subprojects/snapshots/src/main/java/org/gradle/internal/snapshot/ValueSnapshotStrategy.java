@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.hash.Hashable;
+package org.gradle.internal.snapshot;
 
-public interface Snapshottable<T extends Hashable> {
-    T snapshot();
+/**
+ * Encapsulates a strategy for making {@link ValueSnapshot}s
+ */
+public class ValueSnapshotStrategy {
+    protected final ValueSnapshotter snapshotter;
+
+    public ValueSnapshotStrategy(ValueSnapshotter snapshotter) {
+        this.snapshotter = snapshotter;
+    }
+
+    public ValueSnapshot snapshot(Object value) {
+        return snapshotter.snapshot(value);
+    }
 }

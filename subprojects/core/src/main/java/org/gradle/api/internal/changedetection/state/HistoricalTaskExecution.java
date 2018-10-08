@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nonnull;
 

@@ -21,6 +21,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;

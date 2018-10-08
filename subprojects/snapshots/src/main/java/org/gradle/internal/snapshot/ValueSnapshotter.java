@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.isolation.Isolatable;

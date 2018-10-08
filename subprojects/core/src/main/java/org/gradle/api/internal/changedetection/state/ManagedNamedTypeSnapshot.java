@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 public class ManagedNamedTypeSnapshot implements ValueSnapshot {
     private final String className;

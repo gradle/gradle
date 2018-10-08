@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
+
 /**
  * A snapshot of an immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
  *

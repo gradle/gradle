@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.specs.Specs
 import org.gradle.cache.CacheRepository
 import org.gradle.internal.action.ConfigurableRule
@@ -44,6 +43,7 @@ import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
 import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner

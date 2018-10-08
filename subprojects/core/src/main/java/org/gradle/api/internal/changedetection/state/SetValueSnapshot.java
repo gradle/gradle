@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolationException;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
