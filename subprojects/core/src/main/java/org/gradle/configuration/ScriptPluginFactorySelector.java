@@ -79,6 +79,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         };
     }
 
+    private CachedScriptPluginFactory cachedScriptPluginFactory = CachedScriptPluginFactory.NONE;
     private final ScriptPluginFactory defaultScriptPluginFactory;
     private final ProviderInstantiator providerInstantiator;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -119,6 +120,26 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private ScriptPluginFactory instantiate(String provider) {
-        return providerInstantiator.instantiate(provider);
+        final CachedScriptPluginFactory cached = cachedScriptPluginFactory;
+        if (provider.equals(cached.provider)) {
+            return cached.scriptPluginFactory;
+        }
+        ScriptPluginFactory scriptPluginFactory = providerInstantiator.instantiate(provider);
+        cachedScriptPluginFactory = new CachedScriptPluginFactory(provider, scriptPluginFactory);
+        return scriptPluginFactory;
+    }
+
+    private static class CachedScriptPluginFactory {
+
+        public static final CachedScriptPluginFactory NONE = new CachedScriptPluginFactory(null, null);
+
+        public final String provider;
+
+        public final ScriptPluginFactory scriptPluginFactory;
+
+        public CachedScriptPluginFactory(String provider, ScriptPluginFactory scriptPluginFactory) {
+            this.provider = provider;
+            this.scriptPluginFactory = scriptPluginFactory;
+        }
     }
 }
