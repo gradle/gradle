@@ -27,7 +27,7 @@ class ReleasedVersionsFromVersionControl implements ReleasedVersions {
     private lowestTestedVersion = GradleVersion.version("1.0")
 
     ReleasedVersion mostRecentRelease
-    List<ReleasedVersion> allVersions
+    List<ReleasedVersion> allPreviousVersions
     List<ReleasedVersion> testedVersions
     ReleasedVersion mostRecentSnapshot
 
@@ -43,14 +43,14 @@ class ReleasedVersionsFromVersionControl implements ReleasedVersions {
         }.reverse()
         def latestFinalRelease = finalReleases.head()
         def latestNonFinalRelease = [mostRecentSnapshot, mostRecentRc].findAll { it.version > latestFinalRelease.version }.sort { it.buildTimeStamp }.reverse().find()
-        allVersions = ([latestNonFinalRelease] + finalReleases).findAll().findAll { it.version >= lowestInterestingVersion && it.version.baseVersion < currentBaseVersion}
-        testedVersions = allVersions.findAll { it.version >= lowestTestedVersion }
-        mostRecentRelease = allVersions.head()
+        allPreviousVersions = ([latestNonFinalRelease] + finalReleases).findAll().findAll { it.version >= lowestInterestingVersion && it.version.baseVersion < currentBaseVersion}
+        testedVersions = allPreviousVersions.findAll { it.version >= lowestTestedVersion }
+        mostRecentRelease = allPreviousVersions.head()
     }
 
     @Override
-    List<String> getAllVersions() {
-        return allVersions*.version*.version
+    List<String> getAllPreviousVersions() {
+        return allPreviousVersions*.version*.version
     }
 
     @Override

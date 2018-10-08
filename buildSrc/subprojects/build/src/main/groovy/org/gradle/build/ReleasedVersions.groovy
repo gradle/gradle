@@ -17,7 +17,7 @@
 package org.gradle.build
 
 interface ReleasedVersions {
-    List<String> getAllVersions()
+    List<String> getAllPreviousVersions()
     List<String> getTestedVersions()
     String getMostRecentRelease()
     String getMostRecentSnapshot()
