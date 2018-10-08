@@ -166,7 +166,7 @@ private
 fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
-private
+internal
 fun buildAccessorsFor(
     projectSchema: ProjectSchema<String>,
     classPath: ClassPath,
@@ -576,7 +576,7 @@ fun enabledJitAccessors(project: Project) =
     } ?: true
 
 
-private
+internal
 fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>, imports: List<String> = emptyList()): Unit =
     outputFile.bufferedWriter().use { writer ->
         writeAccessorsTo(writer, accessors, imports)

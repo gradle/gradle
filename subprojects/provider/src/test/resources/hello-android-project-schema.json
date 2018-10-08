@@ -1,0 +1,2283 @@
+{
+    ":": {
+        "conventions": [
+            
+        ],
+        "configurations": [
+            
+        ],
+        "tasks": [
+            {
+                "type": "org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "kotlinDslAccessorsSnapshot"
+            },
+            {
+                "type": "org.gradle.buildinit.tasks.InitBuild",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "init"
+            },
+            {
+                "type": "org.gradle.api.tasks.wrapper.Wrapper",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "wrapper"
+            },
+            {
+                "type": "org.gradle.configuration.Help",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "help"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "projects"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "tasks"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "properties"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "dependencyInsight"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.DependencyReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "dependencies"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "buildEnvironment"
+            },
+            {
+                "type": "org.gradle.api.reporting.components.ComponentReport",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "components"
+            },
+            {
+                "type": "org.gradle.api.reporting.model.ModelReport",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "model"
+            },
+            {
+                "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "dependentComponents"
+            },
+            {
+                "type": "org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "kotlinDslAccessorsReport"
+            },
+            {
+                "type": "org.gradle.api.tasks.Delete",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "clean"
+            }
+        ],
+        "extensions": [
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.Project",
+                "name": "ext"
+            }
+        ],
+        "notEmpty": true,
+        "containerElements": [
+            
+        ]
+    },
+    ":app": {
+        "conventions": [
+            {
+                "type": "org.gradle.api.plugins.BasePluginConvention",
+                "target": "org.gradle.api.Project",
+                "name": "base"
+            },
+            {
+                "type": "org.gradle.api.plugins.JavaPluginConvention",
+                "target": "org.gradle.api.Project",
+                "name": "java"
+            }
+        ],
+        "configurations": [
+            "androidTestAnnotationProcessor",
+            "androidTestApi",
+            "androidTestApiDependenciesMetadata",
+            "androidTestApk",
+            "androidTestCompile",
+            "androidTestCompileOnly",
+            "androidTestCompileOnlyDependenciesMetadata",
+            "androidTestDebugAnnotationProcessor",
+            "androidTestDebugApi",
+            "androidTestDebugApiDependenciesMetadata",
+            "androidTestDebugApk",
+            "androidTestDebugCompile",
+            "androidTestDebugCompileOnly",
+            "androidTestDebugCompileOnlyDependenciesMetadata",
+            "androidTestDebugImplementation",
+            "androidTestDebugImplementationDependenciesMetadata",
+            "androidTestDebugProvided",
+            "androidTestDebugRuntimeOnly",
+            "androidTestDebugRuntimeOnlyDependenciesMetadata",
+            "androidTestDebugWearApp",
+            "androidTestImplementation",
+            "androidTestImplementationDependenciesMetadata",
+            "androidTestProvided",
+            "androidTestRuntimeOnly",
+            "androidTestRuntimeOnlyDependenciesMetadata",
+            "androidTestUtil",
+            "androidTestWearApp",
+            "annotationProcessor",
+            "api",
+            "apiDependenciesMetadata",
+            "apk",
+            "archives",
+            "compile",
+            "compileOnly",
+            "compileOnlyDependenciesMetadata",
+            "debugAndroidTestAnnotationProcessorClasspath",
+            "debugAndroidTestApi",
+            "debugAndroidTestApiDependenciesMetadata",
+            "debugAndroidTestCompile",
+            "debugAndroidTestCompileClasspath",
+            "debugAndroidTestCompileOnly",
+            "debugAndroidTestCompileOnlyDependenciesMetadata",
+            "debugAndroidTestImplementation",
+            "debugAndroidTestImplementationDependenciesMetadata",
+            "debugAndroidTestRuntime",
+            "debugAndroidTestRuntimeClasspath",
+            "debugAndroidTestRuntimeOnly",
+            "debugAndroidTestRuntimeOnlyDependenciesMetadata",
+            "debugAnnotationProcessor",
+            "debugAnnotationProcessorClasspath",
+            "debugApi",
+            "debugApiDependenciesMetadata",
+            "debugApiElements",
+            "debugApk",
+            "debugBundleElements",
+            "debugCompile",
+            "debugCompileClasspath",
+            "debugCompileOnly",
+            "debugCompileOnlyDependenciesMetadata",
+            "debugImplementation",
+            "debugImplementationDependenciesMetadata",
+            "debugMetadataElements",
+            "debugProvided",
+            "debugRuntime",
+            "debugRuntimeClasspath",
+            "debugRuntimeElements",
+            "debugRuntimeOnly",
+            "debugRuntimeOnlyDependenciesMetadata",
+            "debugUnitTestAnnotationProcessorClasspath",
+            "debugUnitTestApi",
+            "debugUnitTestApiDependenciesMetadata",
+            "debugUnitTestCompile",
+            "debugUnitTestCompileClasspath",
+            "debugUnitTestCompileOnly",
+            "debugUnitTestCompileOnlyDependenciesMetadata",
+            "debugUnitTestImplementation",
+            "debugUnitTestImplementationDependenciesMetadata",
+            "debugUnitTestRuntime",
+            "debugUnitTestRuntimeClasspath",
+            "debugUnitTestRuntimeOnly",
+            "debugUnitTestRuntimeOnlyDependenciesMetadata",
+            "debugWearApp",
+            "debugWearBundling",
+            "default",
+            "implementation",
+            "implementationDependenciesMetadata",
+            "kapt",
+            "kaptAndroidTest",
+            "kaptAndroidTestDebug",
+            "kaptDebug",
+            "kaptRelease",
+            "kaptTest",
+            "kaptTestDebug",
+            "kaptTestRelease",
+            "kotlinCompilerClasspath",
+            "kotlinCompilerPluginClasspath",
+            "kotlinNativeCompilerPluginClasspath",
+            "lintChecks",
+            "lintClassPath",
+            "provided",
+            "releaseAnnotationProcessor",
+            "releaseAnnotationProcessorClasspath",
+            "releaseApi",
+            "releaseApiDependenciesMetadata",
+            "releaseApiElements",
+            "releaseApk",
+            "releaseBundleElements",
+            "releaseCompile",
+            "releaseCompileClasspath",
+            "releaseCompileOnly",
+            "releaseCompileOnlyDependenciesMetadata",
+            "releaseImplementation",
+            "releaseImplementationDependenciesMetadata",
+            "releaseMetadataElements",
+            "releaseProvided",
+            "releaseRuntime",
+            "releaseRuntimeClasspath",
+            "releaseRuntimeElements",
+            "releaseRuntimeOnly",
+            "releaseRuntimeOnlyDependenciesMetadata",
+            "releaseUnitTestAnnotationProcessorClasspath",
+            "releaseUnitTestApi",
+            "releaseUnitTestApiDependenciesMetadata",
+            "releaseUnitTestCompile",
+            "releaseUnitTestCompileClasspath",
+            "releaseUnitTestCompileOnly",
+            "releaseUnitTestCompileOnlyDependenciesMetadata",
+            "releaseUnitTestImplementation",
+            "releaseUnitTestImplementationDependenciesMetadata",
+            "releaseUnitTestRuntime",
+            "releaseUnitTestRuntimeClasspath",
+            "releaseUnitTestRuntimeOnly",
+            "releaseUnitTestRuntimeOnlyDependenciesMetadata",
+            "releaseWearApp",
+            "releaseWearBundling",
+            "runtimeOnly",
+            "runtimeOnlyDependenciesMetadata",
+            "testAnnotationProcessor",
+            "testApi",
+            "testApiDependenciesMetadata",
+            "testApk",
+            "testCompile",
+            "testCompileOnly",
+            "testCompileOnlyDependenciesMetadata",
+            "testDebugAnnotationProcessor",
+            "testDebugApi",
+            "testDebugApiDependenciesMetadata",
+            "testDebugApk",
+            "testDebugCompile",
+            "testDebugCompileOnly",
+            "testDebugCompileOnlyDependenciesMetadata",
+            "testDebugImplementation",
+            "testDebugImplementationDependenciesMetadata",
+            "testDebugProvided",
+            "testDebugRuntimeOnly",
+            "testDebugRuntimeOnlyDependenciesMetadata",
+            "testDebugWearApp",
+            "testImplementation",
+            "testImplementationDependenciesMetadata",
+            "testProvided",
+            "testReleaseAnnotationProcessor",
+            "testReleaseApi",
+            "testReleaseApiDependenciesMetadata",
+            "testReleaseApk",
+            "testReleaseCompile",
+            "testReleaseCompileOnly",
+            "testReleaseCompileOnlyDependenciesMetadata",
+            "testReleaseImplementation",
+            "testReleaseImplementationDependenciesMetadata",
+            "testReleaseProvided",
+            "testReleaseRuntimeOnly",
+            "testReleaseRuntimeOnlyDependenciesMetadata",
+            "testReleaseWearApp",
+            "testRuntimeOnly",
+            "testRuntimeOnlyDependenciesMetadata",
+            "testWearApp",
+            "wearApp"
+        ],
+        "tasks": [
+            {
+                "type": "com.android.build.gradle.internal.tasks.DependencyReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "androidDependencies"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assemble"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assembleAndroidTest"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assembleDebug"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assembleDebugAndroidTest"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assembleDebugUnitTest"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assembleRelease"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "assembleReleaseUnitTest"
+            },
+            {
+                "type": "org.gradle.api.tasks.bundling.Jar",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleAppClassesDebug"
+            },
+            {
+                "type": "org.gradle.api.tasks.bundling.Jar",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleAppClassesDebugAndroidTest"
+            },
+            {
+                "type": "org.gradle.api.tasks.bundling.Jar",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleAppClassesDebugUnitTest"
+            },
+            {
+                "type": "org.gradle.api.tasks.bundling.Jar",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleAppClassesRelease"
+            },
+            {
+                "type": "org.gradle.api.tasks.bundling.Jar",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleAppClassesReleaseUnitTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.res.LinkAndroidResForBundleTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleDebugAndroidTestResources"
+            },
+            {
+                "type": "com.android.build.gradle.internal.res.LinkAndroidResForBundleTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleDebugResources"
+            },
+            {
+                "type": "com.android.build.gradle.internal.res.LinkAndroidResForBundleTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "bundleReleaseResources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "check"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.CheckManifest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "checkDebugManifest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.CheckManifest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "checkReleaseManifest"
+            },
+            {
+                "type": "org.gradle.api.tasks.Delete",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "clean"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.CleanBuildCache",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "cleanBuildCache"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.AidlCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAidl"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.AidlCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestAidl"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidJavaCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestJavaWithJavac"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestKotlin"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.NdkCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestNdk"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.RenderscriptCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestRenderscript"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.ShaderCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestShaders"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugAndroidTestSources"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidJavaCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugJavaWithJavac"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugKotlin"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.NdkCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugNdk"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.RenderscriptCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugRenderscript"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.ShaderCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugShaders"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugSources"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidJavaCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugUnitTestJavaWithJavac"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugUnitTestKotlin"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileDebugUnitTestSources"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.LintCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileLint"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.AidlCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseAidl"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidJavaCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseJavaWithJavac"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseKotlin"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.NdkCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseNdk"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.RenderscriptCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseRenderscript"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.ShaderCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseShaders"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseSources"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidJavaCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseUnitTestJavaWithJavac"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseUnitTestKotlin"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "compileReleaseUnitTestSources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "connectedAndroidTest"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "connectedCheck"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.DeviceProviderInstrumentTestTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "connectedDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.TaskManager.ConfigAttrTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "consumeConfigAttr"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.CompatibleScreensManifest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "createDebugCompatibleScreenManifests"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.CompatibleScreensManifest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "createReleaseCompatibleScreenManifests"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "deviceAndroidTest"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "deviceCheck"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.ExtractProguardFiles",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "extractProguardFiles"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugAndroidTestAssets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.GenerateBuildConfig",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugAndroidTestBuildConfig"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.GenerateResValues",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugAndroidTestResValues"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugAndroidTestResources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugAndroidTestSources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugAssets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.GenerateBuildConfig",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugBuildConfig"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.GenerateResValues",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugResValues"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugResources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateDebugSources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateReleaseAssets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.GenerateBuildConfig",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateReleaseBuildConfig"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.GenerateResValues",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateReleaseResValues"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateReleaseResources"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "generateReleaseSources"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.InstallVariantTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "installDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.InstallVariantTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "installDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.JavaPreCompileTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "javaPreCompileDebug"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.JavaPreCompileTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "javaPreCompileDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.JavaPreCompileTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "javaPreCompileDebugUnitTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.JavaPreCompileTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "javaPreCompileRelease"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.JavaPreCompileTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "javaPreCompileReleaseUnitTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.LintGlobalTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "lint"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.LintPerVariantTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "lintDebug"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.LintPerVariantTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "lintRelease"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.LintPerVariantTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "lintVitalRelease"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MainApkListPersistence",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mainApkListPersistenceDebug"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MainApkListPersistence",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mainApkListPersistenceDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MainApkListPersistence",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mainApkListPersistenceRelease"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugAndroidTestAssets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugAndroidTestJniLibFolders"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeResources",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugAndroidTestResources"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugAndroidTestShaders"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugAssets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugJniLibFolders"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeResources",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugResources"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeDebugShaders"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeReleaseAssets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeReleaseJniLibFolders"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeResources",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeReleaseResources"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeSourceSetFolders",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mergeReleaseShaders"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.MockableAndroidJarTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "mockableAndroidJar"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.PackageApplication",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "packageDebug"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.PackageApplication",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "packageDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.PackageApplication",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "packageRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PlatformAttrExtractorTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "platformAttrExtractor"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preBuild"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.TestPreBuildTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preDebugAndroidTestBuild"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.AppPreBuildTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preDebugBuild"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preDebugUnitTestBuild"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.AppPreBuildTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preReleaseBuild"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preReleaseUnitTestBuild"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PrepareLintJar",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "prepareLintJar"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_DEXDebugAndroidTestForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_DEXDebugForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_DEXReleaseForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_JAVA_RESDebugAndroidTestForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_JAVA_RESDebugForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_JAVA_RESReleaseForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_NATIVE_LIBSDebugAndroidTestForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_NATIVE_LIBSDebugForPublishing"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.PipelineToPublicationTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "preparePUBLISHED_NATIVE_LIBSReleaseForPublishing"
+            },
+            {
+                "type": "org.gradle.api.tasks.Sync",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugAndroidTestJavaRes"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.ProcessTestManifest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugAndroidTestManifest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugAndroidTestResources"
+            },
+            {
+                "type": "org.gradle.api.tasks.Sync",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugJavaRes"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeManifests",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugManifest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugResources"
+            },
+            {
+                "type": "org.gradle.api.tasks.Sync",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processDebugUnitTestJavaRes"
+            },
+            {
+                "type": "org.gradle.api.tasks.Sync",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processReleaseJavaRes"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.MergeManifests",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processReleaseManifest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processReleaseResources"
+            },
+            {
+                "type": "org.gradle.api.tasks.Sync",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "processReleaseUnitTestJavaRes"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.BuildArtifactReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "reportBuildArtifactsDebug"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.BuildArtifactReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "reportBuildArtifactsRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.TaskManager.ConfigAttrTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "resolveConfigAttr"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.SigningReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "signingReport"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.SourceSetsTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "sourceSets"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.SplitsDiscovery",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "splitsDiscoveryTaskDebug"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.SplitsDiscovery",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "splitsDiscoveryTaskRelease"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "test"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidUnitTest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "testDebugUnitTest"
+            },
+            {
+                "type": "com.android.build.gradle.tasks.factory.AndroidUnitTest",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "testReleaseUnitTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformClassesWithDexBuilderForDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformClassesWithDexBuilderForDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformClassesWithDexBuilderForRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformDexArchiveWithDexMergerForDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformDexArchiveWithDexMergerForDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformDexArchiveWithDexMergerForRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformDexArchiveWithExternalLibsDexMergerForDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformDexArchiveWithExternalLibsDexMergerForDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformDexArchiveWithExternalLibsDexMergerForRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformNativeLibsWithMergeJniLibsForDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformNativeLibsWithMergeJniLibsForDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformNativeLibsWithMergeJniLibsForRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformNativeLibsWithStripDebugSymbolForDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformNativeLibsWithStripDebugSymbolForRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformResourcesWithMergeJavaResForDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformResourcesWithMergeJavaResForDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformResourcesWithMergeJavaResForDebugUnitTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformResourcesWithMergeJavaResForRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.pipeline.TransformTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "transformResourcesWithMergeJavaResForReleaseUnitTest"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "uninstallAll"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.UninstallTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "uninstallDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.UninstallTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "uninstallDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.UninstallTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "uninstallRelease"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.ValidateSigningTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "validateSigningDebug"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.ValidateSigningTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "validateSigningDebugAndroidTest"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.ApplicationIdWriterTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "writeDebugApplicationId"
+            },
+            {
+                "type": "com.android.build.gradle.internal.tasks.ApplicationIdWriterTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "writeReleaseApplicationId"
+            },
+            {
+                "type": "org.gradle.configuration.Help",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "help"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "projects"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "tasks"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "properties"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "dependencyInsight"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.DependencyReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "dependencies"
+            },
+            {
+                "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "buildEnvironment"
+            },
+            {
+                "type": "org.gradle.api.reporting.components.ComponentReport",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "components"
+            },
+            {
+                "type": "org.gradle.api.reporting.model.ModelReport",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "model"
+            },
+            {
+                "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "dependentComponents"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "build"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "buildNeeded"
+            },
+            {
+                "type": "org.gradle.api.DefaultTask",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "buildDependents"
+            },
+            {
+                "type": "org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors",
+                "target": "org.gradle.api.tasks.TaskContainer",
+                "name": "kotlinDslAccessorsReport"
+            }
+        ],
+        "extensions": [
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.Project",
+                "name": "ext"
+            },
+            {
+                "type": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
+                "target": "org.gradle.api.Project",
+                "name": "defaultArtifacts"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
+                "name": "ext"
+            },
+            {
+                "type": "org.gradle.api.reporting.ReportingExtension",
+                "target": "org.gradle.api.Project",
+                "name": "reporting"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.reporting.ReportingExtension",
+                "name": "ext"
+            },
+            {
+                "type": "org.gradle.api.tasks.SourceSetContainer",
+                "target": "org.gradle.api.Project",
+                "name": "sourceSets"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.tasks.SourceSetContainer",
+                "name": "ext"
+            },
+            {
+                "type": "org.gradle.api.plugins.JavaPluginExtension",
+                "target": "org.gradle.api.Project",
+                "name": "java"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.plugins.JavaPluginExtension",
+                "name": "ext"
+            },
+            {
+                "type": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "target": "org.gradle.api.Project",
+                "name": "buildOutputs"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "name": "ext"
+            },
+            {
+                "type": "com.android.build.gradle.AppExtension",
+                "target": "org.gradle.api.Project",
+                "name": "android"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "com.android.build.gradle.AppExtension",
+                "name": "ext"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptionsImpl",
+                "target": "com.android.build.gradle.AppExtension",
+                "name": "kotlinOptions"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension",
+                "target": "org.gradle.api.Project",
+                "name": "kotlin"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension",
+                "name": "ext"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.dsl.ExperimentalExtension",
+                "target": "org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension",
+                "name": "experimental"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.jetbrains.kotlin.gradle.dsl.ExperimentalExtension",
+                "name": "ext"
+            },
+            {
+                "type": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "target": "org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension",
+                "name": "sourceSets"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "ext"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.internal.AndroidExtensionsExtension",
+                "target": "org.gradle.api.Project",
+                "name": "androidExtensions"
+            },
+            {
+                "type": "org.gradle.api.plugins.ExtraPropertiesExtension",
+                "target": "org.jetbrains.kotlin.gradle.internal.AndroidExtensionsExtension",
+                "name": "ext"
+            }
+        ],
+        "notEmpty": true,
+        "containerElements": [
+            {
+                "type": "com.android.build.gradle.api.BaseVariantOutput",
+                "target": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "name": "debug"
+            },
+            {
+                "type": "com.android.build.gradle.api.BaseVariantOutput",
+                "target": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "name": "debug-androidTest"
+            },
+            {
+                "type": "com.android.build.gradle.api.BaseVariantOutput",
+                "target": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "name": "debug-test"
+            },
+            {
+                "type": "com.android.build.gradle.api.BaseVariantOutput",
+                "target": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "name": "release"
+            },
+            {
+                "type": "com.android.build.gradle.api.BaseVariantOutput",
+                "target": "org.gradle.api.NamedDomainObjectContainer<com.android.build.gradle.api.BaseVariantOutput>",
+                "name": "release-test"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "androidTest"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "androidTestDebug"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "debug"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "debugAndroidTest"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "debugUnitTest"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "main"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "release"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "releaseUnitTest"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "test"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "testDebug"
+            },
+            {
+                "type": "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                "name": "testRelease"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestDebugWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestUtil"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "androidTestWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "annotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "api"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "apiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "apk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "archives"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "compile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "compileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "compileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestAnnotationProcessorClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestCompileClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestRuntime"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestRuntimeClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAndroidTestRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugAnnotationProcessorClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugApiElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugBundleElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugCompileClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugMetadataElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugRuntime"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugRuntimeClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugRuntimeElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestAnnotationProcessorClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestCompileClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestRuntime"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestRuntimeClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugUnitTestRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "debugWearBundling"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "default"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "implementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "implementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kapt"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptAndroidTest"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptAndroidTestDebug"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptDebug"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptRelease"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptTest"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptTestDebug"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kaptTestRelease"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kotlinCompilerClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kotlinCompilerPluginClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "kotlinNativeCompilerPluginClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "lintChecks"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "lintClassPath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "provided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseAnnotationProcessorClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseApiElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseBundleElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseCompileClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseMetadataElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseRuntime"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseRuntimeClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseRuntimeElements"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestAnnotationProcessorClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestCompileClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestRuntime"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestRuntimeClasspath"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseUnitTestRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "releaseWearBundling"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "runtimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "runtimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testDebugWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseAnnotationProcessor"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseApi"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseApiDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseApk"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseCompile"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseCompileOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseCompileOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseImplementation"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseImplementationDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseProvided"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testReleaseWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testRuntimeOnly"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testRuntimeOnlyDependenciesMetadata"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "testWearApp"
+            },
+            {
+                "type": "org.gradle.api.artifacts.Configuration",
+                "target": "org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>",
+                "name": "wearApp"
+            }
+        ]
+    }
+}

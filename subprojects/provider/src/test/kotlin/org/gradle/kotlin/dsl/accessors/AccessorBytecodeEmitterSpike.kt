@@ -77,6 +77,80 @@ val ConfigurationContainer.api: NamedDomainObjectProvider<Configuration>
 
 class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
 
+    private
+    val benchmarkConfig = BenchmarkConfig(0, 3)
+
+    @Test
+    fun `benchmark compiled accessors strategy`() {
+
+        val configOnlySchema = loadConfigurationSchema()
+
+        val outputDirForCurrentStrategy = newFolder("current")
+        val currentResult = benchmark(benchmarkConfig) {
+            configOnlySchema.forEach { (_, projectSchema) ->
+                val srcDir = outputDirForCurrentStrategy.resolve("src")
+                val binDir = outputDirForCurrentStrategy.resolve("bin")
+                buildAccessorsFor(projectSchema, testCompilationClassPath, srcDir, binDir)
+            }
+        }
+        prettyPrint(currentResult)
+    }
+
+    @Test
+    fun `benchmark bytecode accessors strategy`() {
+
+        val configOnlySchema = loadConfigurationSchema()
+
+        val outputDirForCandidateStrategy = newFolder("candidate")
+        val candidateResult = benchmark(benchmarkConfig) {
+            configOnlySchema.forEach { (_, projectSchema) ->
+
+                // account for source code generation time
+                val srcDir = outputDirForCandidateStrategy.resolve("src").apply { mkdir() }
+                writeAccessorsTo(
+                    srcDir.resolve("ConfigurationAccessors.kt"),
+                    projectSchema.configurationAccessors()
+                )
+
+                val binDir = outputDirForCandidateStrategy.resolve("bin")
+                AccessorBytecodeEmitter.emitKotlinExtensionsFor(
+                    projectSchema.configurations.asSequence().map { Accessor.ForConfiguration(it) },
+                    binDir
+                )
+            }
+        }
+        prettyPrint(candidateResult)
+    }
+
+    // Compare only the time required to generate the configuration accessors
+    // it's still not completely fair because of all the overloads
+    // in the source code based version but it's enough for a ballpark figure
+    private
+    fun loadConfigurationSchema(): Map<String, ProjectSchema<String>> {
+        val helloAndroidProjectSchema = loadMultiProjectSchemaFromResource("/hello-android-project-schema.json")
+        return configOnlySchemaFrom(helloAndroidProjectSchema)
+    }
+
+    private
+    fun prettyPrint(currentResult: BenchmarkResult) {
+        println("${currentResult.median.ms}ms (${currentResult.points.map { it.ms }})")
+    }
+
+    private
+    fun configOnlySchemaFrom(schema: Map<String, ProjectSchema<String>>): Map<String, ProjectSchema<String>> = schema.mapValues { (_, v) ->
+        ProjectSchema<String>(
+            configurations = v.configurations,
+            extensions = emptyList(),
+            conventions = emptyList(),
+            tasks = emptyList(),
+            containerElements = emptyList()
+        )
+    }
+
+    private
+    fun loadMultiProjectSchemaFromResource(resourceName: String): Map<String, ProjectSchema<String>> =
+        loadMultiProjectSchemaFrom(File(javaClass.getResource(resourceName).toURI()))
+
     @Test
     fun `spike inlined Configuration accessors`() {
 
@@ -174,37 +248,14 @@ object AccessorBytecodeEmitter {
 
     fun emitKotlinExtensionsFor(accessors: Sequence<Accessor>, outputDir: File) {
 
+        val accessorGetterSignaturePairs = accessors.filterIsInstance<Accessor.ForConfiguration>().map { accessor ->
+            accessor to jvmMethodSignatureFor(accessor)
+        }.toList()
+
         val metadataWriter = KotlinClassMetadata.FileFacade.Writer()
-
-        val accessor = accessors.single() as Accessor.ForConfiguration
-        val getterSignature = JvmMethodSignature(
-            "get${accessor.configurationName.capitalize()}",
-            "(L${ConfigurationContainer::class.internalName};)L${NamedDomainObjectProvider::class.internalName};"
-        )
-
-        metadataWriter.run {
-            visitProperty(readOnlyPropertyFlags, accessor.configurationName, getterFlags, 6)!!.run {
-                visitReceiverParameterType(0)!!.run {
-                    visitClass(ConfigurationContainer::class.internalName)
-                    visitEnd()
-                }
-                visitReturnType(0)!!.run {
-                    visitClass(NamedDomainObjectProvider::class.internalName)
-                    visitArgument(0, KmVariance.INVARIANT)!!.run {
-                        visitClass(Configuration::class.internalName)
-                        visitEnd()
-                    }
-                    visitEnd()
-                }
-                (visitExtensions(JvmPropertyExtensionVisitor.TYPE) as JvmPropertyExtensionVisitor).run {
-                    visit(null, getterSignature, null)
-                    visitSyntheticMethodForAnnotations(null)
-                    visitEnd()
-                }
-                visitEnd()
-            }
+        for ((accessor, getterSignature) in accessorGetterSignaturePairs) {
+            metadataWriter.writeMetadataFor(accessor, getterSignature)
         }
-
         val header = metadataWriter.run {
             (visitExtensions(JvmPackageExtensionVisitor.TYPE) as KmPackageExtensionVisitor).run {
                 visitEnd()
@@ -217,11 +268,13 @@ object AccessorBytecodeEmitter {
         val classBytes =
             publicClass(className) {
                 visitKotlinMetadataAnnotation(header)
-                method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, getterSignature.name, getterSignature.desc) {
-                    ALOAD(0)
-                    LDC(accessor.configurationName)
-                    INVOKEINTERFACE(ConfigurationContainer::class.internalName, "named", "(Ljava/lang/String;)L${NamedDomainObjectProvider::class.internalName};")
-                    ARETURN()
+                for ((accessor, getterSignature) in accessorGetterSignaturePairs) {
+                    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, getterSignature.name, getterSignature.desc) {
+                        ALOAD(0)
+                        LDC(accessor.configurationName)
+                        INVOKEINTERFACE(configurationContainerInternalName, "named", namedMethodDescriptor)
+                        ARETURN()
+                    }
                 }
             }
 
@@ -241,6 +294,49 @@ object AccessorBytecodeEmitter {
             .resolve("${outputDir.name}.kotlin_module")
             .writeBytes(moduleBytes)
     }
+
+    private
+    fun KotlinClassMetadata.FileFacade.Writer.writeMetadataFor(accessor: Accessor.ForConfiguration, getterSignature: JvmMethodSignature) {
+        visitProperty(readOnlyPropertyFlags, accessor.configurationName, getterFlags, 6)!!.run {
+            visitReceiverParameterType(0)!!.run {
+                visitClass(configurationContainerInternalName)
+                visitEnd()
+            }
+            visitReturnType(0)!!.run {
+                visitClass(namedDomainObjectProviderInternalName)
+                visitArgument(0, KmVariance.INVARIANT)!!.run {
+                    visitClass(Configuration::class.internalName)
+                    visitEnd()
+                }
+                visitEnd()
+            }
+            (visitExtensions(JvmPropertyExtensionVisitor.TYPE) as JvmPropertyExtensionVisitor).run {
+                visit(null, getterSignature, null)
+                visitSyntheticMethodForAnnotations(null)
+                visitEnd()
+            }
+            visitEnd()
+        }
+    }
+
+    private
+    fun jvmMethodSignatureFor(accessor: Accessor.ForConfiguration): JvmMethodSignature =
+        JvmMethodSignature(
+            "get${accessor.configurationName.capitalize()}",
+            configurationAccessorMethodSignature
+        )
+
+    private
+    val configurationContainerInternalName = ConfigurationContainer::class.internalName
+
+    private
+    val namedDomainObjectProviderInternalName = NamedDomainObjectProvider::class.internalName
+
+    private
+    val namedMethodDescriptor = "(Ljava/lang/String;)L$namedDomainObjectProviderInternalName;"
+
+    private
+    val configurationAccessorMethodSignature = "(L$configurationContainerInternalName;)L$namedDomainObjectProviderInternalName;"
 
     private
     val readOnlyPropertyFlags = flagsOf(
