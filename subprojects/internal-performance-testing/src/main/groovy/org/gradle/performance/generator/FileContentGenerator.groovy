@@ -45,7 +45,33 @@ abstract class FileContentGenerator {
                 ${createTaskThatDependsOnAllIncludedBuildsTaskWithSameName('assemble')}
                 """
             }
-            return ""
+            return """
+                plugins {
+                    id 'org.jetbrains.kotlin.jvm' version '1.2.60' apply false
+                    id 'org.jetbrains.kotlin.kapt' version '1.2.60' apply false
+                }
+                
+                subprojects {
+                    if (project.hasProperty('kotlin')) {
+                        apply plugin: 'org.jetbrains.kotlin.jvm'
+                        if (project.hasProperty('apt')) {
+                            apply plugin: 'org.jetbrains.kotlin.kapt'
+                            dependencies {
+                                kapt "com.google.auto.value:auto-value:1.6.2"
+                                implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+                            }
+                        }
+                    } else {
+                        apply plugin: 'java'
+                        if (project.hasProperty('apt')) {
+                            dependencies {
+                                annotationProcessor "com.google.auto.value:auto-value:1.6.2"
+                                implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+                            }
+                        }
+                    }
+                }
+            """
         }
         return """
         import org.gradle.util.GradleVersion
@@ -295,6 +321,7 @@ abstract class FileContentGenerator {
             }
             """
         }
+
 
         """
         package ${ownPackageName};
