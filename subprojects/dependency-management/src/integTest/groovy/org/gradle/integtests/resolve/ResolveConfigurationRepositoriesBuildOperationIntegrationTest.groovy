@@ -54,14 +54,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         repos.size() == 1
         repos.first() == augmentMapWithProperties(expectedRepo, [
             URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
-            ARTIFACT_URLS: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 
         where:
         repo                   | repoBlock                     | expectedRepo
         'maven'                | mavenRepoBlock()              | expectedMavenRepo()
-        'maven-no-url'         | mavenRepoNoUrlBlock()         | expectedMavenRepoNoUrl()
         'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()
         'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()
         'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()
@@ -237,7 +235,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
-    def "default maven repository properties are captured when not specified"() {
+    def "maven repository must define a URL property"() {
         setup:
         buildFile << """
             apply plugin: 'java'
@@ -250,21 +248,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         """
 
         when:
-        succeeds 'resolve'
+        def result = fails 'resolve'
 
         then:
-        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        ops.details.repositories.size() == 1
-        def repo = ops.details.repositories[0]
-        with(repo) {
-            name == 'custom repo'
-            type == 'MAVEN'
-            properties.size() == 4
-            properties.ARTIFACT_URLS == []
-            properties.METADATA_SOURCES == ['mavenPom', 'artifact']
-            properties.AUTHENTICATED == false
-            properties.'AUTHENTICATION_SCHEMES' == []
-        }
+        result.assertHasCause 'You must specify a URL for a Maven repository.'
+        operations.none(ResolveConfigurationDependenciesBuildOperationType)
     }
 
     def "ivy repository attributes are stored"() {
@@ -325,37 +313,66 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
-    def "default ivy repository properties are captured when not specified"() {
+    def "ivy repository must define a URL property, or at least one artifact pattern"() {
         setup:
         buildFile << """
             apply plugin: 'java'
             repositories {
                 ivy {
                     name = 'custom repo'
+                    ${definition}
                 }
             }
             task resolve { doLast { configurations.compile.resolve() } }
         """
 
         when:
-        succeeds 'resolve'
+        if (success) {
+            succeeds 'resolve'
+        } else {
+            def result = fails 'resolve'
+        }
+
 
         then:
-        def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
-        ops.details.repositories.size() == 1
-        def repo = ops.details.repositories[0]
-        with(repo) {
-            name == 'custom repo'
-            type == 'IVY'
-            properties.size() == 7
-            properties.LAYOUT_TYPE == 'Gradle'
-            properties.M2_COMPATIBLE == false
-            properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
-            properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
-            properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
-            properties.AUTHENTICATED == false
-            properties.AUTHENTICATION_SCHEMES == []
+        if (success) {
+            def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+            ops.details.repositories.size() == 1
+            def repo = ops.details.repositories[0]
+            with(repo) {
+                name == 'custom repo'
+                type == 'IVY'
+                if (artifactPattern) {
+                    properties.size() == 7
+                    properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'foo']
+                    properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
+                    properties.LAYOUT_TYPE == 'Gradle'
+                    properties.M2_COMPATIBLE == false
+                    properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+                    properties.AUTHENTICATED == false
+                    properties.'AUTHENTICATION_SCHEMES' == []
+                } else {
+                    properties.size() == 8
+                    properties.URL == 'http://foo.com'
+                    properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
+                    properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
+                    properties.LAYOUT_TYPE == 'Gradle'
+                    properties.M2_COMPATIBLE == false
+                    properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+                    properties.AUTHENTICATED == false
+                    properties.'AUTHENTICATION_SCHEMES' == []
+                }
+            }
+        } else {
+            result.assertHasCause 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
+            operations.none(ResolveConfigurationDependenciesBuildOperationType)
         }
+
+        where:
+        definition               | success | artifactPattern
+        "url = 'http://foo.com'" | true    | false
+        "artifactPattern 'foo'"  | true    | true
+        ''                       | false   | false
     }
 
     def "flat-dir repository attributes are stored"() {

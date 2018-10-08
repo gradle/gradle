@@ -196,6 +196,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     protected RepositoryDescriptor createDescriptor() {
+        validate();
         return new MavenRepositoryDescriptor.Builder(getName(), getUrl())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
@@ -204,13 +205,16 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             .create();
     }
 
-    protected MavenResolver createRealResolver() {
+    private void validate() {
         URI rootUri = getUrl();
         if (rootUri == null) {
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
+    }
 
-        MavenResolver resolver = createResolver(rootUri);
+    protected MavenResolver createRealResolver() {
+        validate();
+        MavenResolver resolver = createResolver(getUrl());
 
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
