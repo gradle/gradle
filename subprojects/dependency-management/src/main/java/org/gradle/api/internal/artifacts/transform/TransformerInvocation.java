@@ -16,51 +16,50 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.internal.hash.HashCode;
-
 import java.io.File;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public class TransformerInvocation {
-    private final Class<? extends ArtifactTransform> implementationClass;
-    private final Isolatable<Object[]> parameters;
+    private final TransformerRegistration transformer;
+    private final File primaryInput;
+    private final TransformationSubject subjectBeingTransformed;
+    
+    private List<File> result;
+    private Throwable failure;
 
-    public Class<? extends ArtifactTransform> getImplementationClass() {
-        return implementationClass;
-    }
-
-    public Isolatable<Object[]> getParameters() {
-        return parameters;
+    public TransformerInvocation(TransformerRegistration transformer, File primaryInput, TransformationSubject subjectBeingTransformed) {
+        this.transformer = transformer;
+        this.primaryInput = primaryInput;
+        this.subjectBeingTransformed = subjectBeingTransformed;
     }
 
     public File getPrimaryInput() {
         return primaryInput;
     }
 
-    private final File primaryInput;
-    private List<File> result;
+    public TransformerRegistration getTransformer() {
+        return transformer;
+    }
 
-    public TransformerInvocation(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, File primaryInput) {
-        this.implementationClass = implementationClass;
-        this.parameters = parameters;
-        this.primaryInput = primaryInput;
+    public TransformationSubject getSubjectBeingTransformed() {
+        return subjectBeingTransformed;
+    }
+
+    public void success(List<File> result) {
+        this.result = result;
+    }
+
+    public void failure(Throwable failure) {
+        this.failure = failure;
     }
 
     public List<File> getResult() {
         return result;
     }
 
-    public void setResult(List<File> result) {
-        this.result = result;
-    }
-
-    public HashCode getSecondaryInputsHash() {
-        return null;
-    }
-
-    public ArtifactTransform getTransformer() {
-        return null;
+    @Nullable
+    public Throwable getFailure() {
+        return failure;
     }
 }

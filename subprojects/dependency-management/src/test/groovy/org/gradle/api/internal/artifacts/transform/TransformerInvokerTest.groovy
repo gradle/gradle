@@ -19,58 +19,54 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-class ArtifactTransformationStepTest extends Specification {
+class TransformerInvokerTest extends Specification {
 
     def transformer = Mock(TransformerRegistration)
     def transformedFileCache = Mock(TransformedFileCache)
     def transformationListener = Mock(ArtifactTransformListener)
     def sourceSubject = Mock(TransformationSubject)
-    def transformationStep = new ArtifactTransformationStep(transformer, transformedFileCache, transformationListener)
+    def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache, transformationListener)
 
     def "calls the transformation listener on each transformed file"() {
         def fileOne = new File("one")
         def resultOne = new File("one")
-        def fileTwo = new File("two")
         def resultTwo = new File("two")
-        def resultThree = new File("two")
         def transformerInputsHash = HashCode.fromInt(1234)
+        def invocation = createInvocation(fileOne)
 
         when:
-        def transformedSubject = transformationStep.transform(sourceSubject)
+        transformerInvoker.invoke(invocation)
         then:
-        transformedSubject.files == [resultOne, resultTwo, resultThree]
+        invocation.result == [resultOne, resultTwo]
 
-        1 * sourceSubject.getFailure() >> null
         1 * transformer.getInputsHash() >> transformerInputsHash
-        1 * sourceSubject.getFiles() >> [fileOne, fileTwo]
         1 * transformedFileCache.contains(fileOne.getAbsoluteFile(), transformerInputsHash) >> false
         1 * transformationListener.beforeTransform(transformer, sourceSubject)
 
         then:
-        1 * transformedFileCache.runTransformer(fileOne, transformer) >> [resultOne]
+        1 * transformedFileCache.runTransformer(fileOne, transformer) >> [resultOne, resultTwo]
 
         then:
-        2 * transformationListener.afterTransform(transformer, sourceSubject)
-        1 * transformationListener.beforeTransform(transformer, sourceSubject)
-        1 * transformer.getInputsHash() >> transformerInputsHash
-        1 * transformedFileCache.contains(fileTwo.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformedFileCache.runTransformer(fileTwo, transformer) >> [resultTwo, resultThree]
+        1 * transformationListener.afterTransform(transformer, sourceSubject)
         0 * _
     }
-    
+
+    private TransformerInvocation createInvocation(File fileOne) {
+        new TransformerInvocation(transformer, fileOne, sourceSubject)
+    }
+
     def "calls the transformation listener if a transformer fails"() {
         def transformerInputsHash = HashCode.fromInt(1234)
         def sourceFile = new File("source")
         def failure = new RuntimeException()
 
+        def invocation = createInvocation(sourceFile)
         when:
-        def transformedSubject = transformationStep.transform(sourceSubject)
+        transformerInvoker.invoke(invocation)
         then:
-        transformedSubject.failure == failure
+        invocation.failure == failure
 
-        1 * sourceSubject.getFailure() >> null
         1 * transformer.getInputsHash() >> transformerInputsHash
-        1 * sourceSubject.getFiles() >> [sourceFile]
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
         1 * transformationListener.beforeTransform(transformer, sourceSubject)
 

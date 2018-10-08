@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
