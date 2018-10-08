@@ -369,6 +369,12 @@ Several libraries that are used by Gradle have been upgraded:
 - The Maven Wagon libraries used to access Maven repositories have been upgraded from 2.4 to 3.0.0.
 - SLF4J has been upgraded from 1.7.16 to 1.7.25.
 
+### Gradle now bundles JAXB for Java 9 and above
+
+In order to use S3 backed artifact repositories, it was previously required to add `--add-modules java.xml.bind` to `org.gradle.jvmargs` when running on Java 9 and above.
+Since Java 11 no longer contains the `java.xml.bind` module, Gradle now bundles JAXB 2.3.1 (`com.sun.xml.bind:jaxb-impl`) and uses it on Java 9 and above.
+Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
 For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way

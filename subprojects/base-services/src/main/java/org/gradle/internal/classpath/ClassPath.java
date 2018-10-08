@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.specs.Spec;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
@@ -42,4 +44,6 @@ public interface ClassPath {
     ClassPath plus(Collection<File> classPath);
 
     ClassPath plus(ClassPath classPath);
+
+    ClassPath removeIf(Spec<? super File> filter);
 }

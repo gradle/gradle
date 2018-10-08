@@ -17,12 +17,14 @@
 package org.gradle.integtests.resource.s3.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyRemoteLegacyPublishIntegrationTest
-import org.gradle.integtests.resource.s3.fixtures.AddJavaXmBindModulesTrait
+import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.junit.Rule
+import spock.lang.Requires
 
-class IvyS3UploadArchivesIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest implements AddJavaXmBindModulesTrait{
+@Requires({ S3IntegrationTestPrecondition.fulfilled })
+class IvyS3UploadArchivesIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
 
@@ -32,7 +34,6 @@ class IvyS3UploadArchivesIntegrationTest extends AbstractIvyRemoteLegacyPublishI
     }
 
     def setup() {
-        addJavaXmlBindModuleIfNecessary()
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 }
