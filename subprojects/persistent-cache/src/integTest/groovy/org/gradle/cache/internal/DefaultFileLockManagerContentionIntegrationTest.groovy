@@ -229,6 +229,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     // This test simulates a long running Zic compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
     def "if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before"() {
         given:
+        def gradleUserHome = file("home")
         buildFile << """
             import org.gradle.cache.CacheRepository
             import org.gradle.cache.PersistentCache
@@ -258,7 +259,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
             class ToolSetupRunnable implements Runnable {
                 void run() {
-                    CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File("home")).get(CacheRepository.class);
+                    CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File(URI.create("${gradleUserHome.absoluteFile.toURI()}"))).get(CacheRepository.class);
                     println "Waiting for lock..."
                     final PersistentCache zincCache = cacheRepository.cache("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
