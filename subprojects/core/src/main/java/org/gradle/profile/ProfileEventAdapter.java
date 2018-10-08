@@ -27,7 +27,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.TransformationSubject;
-import org.gradle.api.internal.artifacts.transform.TransformerRegistration;
+import org.gradle.api.internal.artifacts.transform.Transformer;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
@@ -138,7 +138,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void beforeTransform(TransformerRegistration transformer, TransformationSubject subject) {
+    public void beforeTransform(Transformer transformer, TransformationSubject subject) {
         long now = clock.getCurrentTime();
         String transformDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
         FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
@@ -146,7 +146,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void afterTransform(TransformerRegistration transformer, TransformationSubject subject) {
+    public void afterTransform(Transformer transformer, TransformationSubject subject) {
         long now = clock.getCurrentTime();
         currentTransform.get().setFinish(now);
         currentTransform.remove();

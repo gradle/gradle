@@ -32,7 +32,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     @Override
     public void invoke(TransformerInvocation invocation) {
         File primaryInput = invocation.getPrimaryInput();
-        TransformerRegistration transformer = invocation.getTransformer();
+        Transformer transformer = invocation.getTransformer();
         boolean hasCachedResult = hasCachedResult(primaryInput, transformer);
         TransformationSubject subjectBeingTransformed = invocation.getSubjectBeingTransformed();
         if (!hasCachedResult) {
@@ -51,7 +51,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public boolean hasCachedResult(File input, TransformerRegistration transformer) {
+    public boolean hasCachedResult(File input, Transformer transformer) {
         return transformedFileCache.contains(input.getAbsoluteFile(), transformer.getInputsHash());
     }
 }

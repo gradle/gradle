@@ -26,14 +26,14 @@ import java.io.File;
 import java.util.List;
 import javax.annotation.Nullable;
 
-public class DefaultTransformerRegistration implements TransformerRegistration {
+public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
     private final Isolatable<Object[]> parameters;
     private final Instantiator instantiator;
     private final HashCode inputsHash;
 
-    public DefaultTransformerRegistration(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, Instantiator instantiator) {
         this.implementationClass = implementationClass;
         this.parameters = parameters;
         this.instantiator = instantiator;
@@ -100,7 +100,7 @@ public class DefaultTransformerRegistration implements TransformerRegistration {
             return false;
         }
 
-        DefaultTransformerRegistration that = (DefaultTransformerRegistration) o;
+        DefaultTransformer that = (DefaultTransformer) o;
 
         return inputsHash.equals(that.inputsHash);
     }

@@ -27,11 +27,11 @@ import java.util.List;
 class ArtifactTransformationStep implements ArtifactTransformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactTransformationStep.class);
 
-    private final TransformerRegistration transformerRegistration;
+    private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
 
-    public ArtifactTransformationStep(TransformerRegistration transformerRegistration, TransformerInvoker transformerInvoker) {
-        this.transformerRegistration = transformerRegistration;
+    public ArtifactTransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
+        this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
     }
 
@@ -41,11 +41,11 @@ class ArtifactTransformationStep implements ArtifactTransformation {
             return subjectToTransform;
         }
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Executing transform {} on {}", transformerRegistration.getDisplayName(), subjectToTransform.getDisplayName());
+                LOGGER.info("Executing transform {} on {}", transformer.getDisplayName(), subjectToTransform.getDisplayName());
             }
         List<File> result = new ArrayList<File>();
         for (File file : subjectToTransform.getFiles()) {
-            TransformerInvocation invocation = new TransformerInvocation(transformerRegistration, file, subjectToTransform);
+            TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);
             transformerInvoker.invoke(invocation);
             if (invocation.getFailure() != null) {
                 return new DefaultTransformationSubject(subjectToTransform, invocation.getFailure());
@@ -61,7 +61,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
             return true;
         }
         for (File file : subject.getFiles()) {
-            if (!transformerInvoker.hasCachedResult(file, transformerRegistration)) {
+            if (!transformerInvoker.hasCachedResult(file, transformer)) {
                 return false;
             }
         }
@@ -70,7 +70,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
 
     @Override
     public String getDisplayName() {
-        return transformerRegistration.getDisplayName();
+        return transformer.getDisplayName();
     }
 
     @Override
@@ -80,7 +80,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
 
     @Override
     public String toString() {
-        return String.format("%s@%s", transformerRegistration.getDisplayName(), transformerRegistration.getInputsHash());
+        return String.format("%s@%s", transformer.getDisplayName(), transformer.getInputsHash());
     }
 
     @Override
@@ -93,11 +93,11 @@ class ArtifactTransformationStep implements ArtifactTransformation {
         }
 
         ArtifactTransformationStep that = (ArtifactTransformationStep) o;
-        return transformerRegistration.equals(that.transformerRegistration);
+        return transformer.equals(that.transformer);
     }
 
     @Override
     public int hashCode() {
-        return transformerRegistration.hashCode();
+        return transformer.hashCode();
     }
 }

@@ -154,7 +154,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         failure.message == "Could not create an instance of type $AbstractArtifactTransform.name."
 
         and:
-        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { File file, TransformerRegistration transformer ->
+        1 * transformedFileCache.runTransformer(TEST_INPUT, _) >> { File file, Transformer transformer ->
             return transformer.apply(file, outputDirectory)
         }
     }

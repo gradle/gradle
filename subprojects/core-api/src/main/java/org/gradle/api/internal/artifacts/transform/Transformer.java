@@ -24,7 +24,7 @@ import org.gradle.internal.util.BiFunction;
 import java.io.File;
 import java.util.List;
 
-public interface TransformerRegistration extends BiFunction<List<File>, File, File>, Describable {
+public interface Transformer extends BiFunction<List<File>, File, File>, Describable {
     Class<? extends ArtifactTransform> getImplementationClass();
     HashCode getInputsHash();
 }

@@ -27,5 +27,5 @@ public interface TransformedFileCache {
 
     boolean contains(File absoluteFile, HashCode inputsHash);
 
-    List<File> runTransformer(File primaryInput, TransformerRegistration transformerRegistration);
+    List<File> runTransformer(File primaryInput, Transformer transformer);
 }

@@ -20,5 +20,5 @@ import java.io.File;
 
 public interface TransformerInvoker {
     void invoke(TransformerInvocation invocation);
-    boolean hasCachedResult(File primaryInput, TransformerRegistration transformer);
+    boolean hasCachedResult(File primaryInput, Transformer transformer);
 }

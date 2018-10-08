@@ -120,17 +120,17 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> runTransformer(File primaryInput, TransformerRegistration transformerRegistration) {
+    public List<File> runTransformer(File primaryInput, Transformer transformer) {
         File absolutePrimaryInput = primaryInput.getAbsoluteFile();
         try {
-            CacheKey cacheKey = getCacheKey(absolutePrimaryInput, transformerRegistration);
+            CacheKey cacheKey = getCacheKey(absolutePrimaryInput, transformer);
             List<File> transformedFiles = resultHashToResult.get(cacheKey);
             if (transformedFiles != null) {
                 return transformedFiles;
             }
-            return loadIntoCache(absolutePrimaryInput, cacheKey, transformerRegistration);
+            return loadIntoCache(absolutePrimaryInput, cacheKey, transformer);
         } catch (Throwable t) {
-            throw new TransformInvocationException(absolutePrimaryInput, transformerRegistration.getImplementationClass(), t);
+            throw new TransformInvocationException(absolutePrimaryInput, transformer.getImplementationClass(), t);
         }
     }
 
@@ -185,8 +185,8 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         });
     }
     
-    private CacheKey getCacheKey(File primaryInput, TransformerRegistration transformerRegistration) {
-        return getCacheKey(primaryInput, transformerRegistration.getInputsHash());
+    private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
+        return getCacheKey(primaryInput, transformer.getInputsHash());
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {

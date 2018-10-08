@@ -21,14 +21,14 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 public class TransformerInvocation {
-    private final TransformerRegistration transformer;
+    private final Transformer transformer;
     private final File primaryInput;
     private final TransformationSubject subjectBeingTransformed;
     
     private List<File> result;
     private Throwable failure;
 
-    public TransformerInvocation(TransformerRegistration transformer, File primaryInput, TransformationSubject subjectBeingTransformed) {
+    public TransformerInvocation(Transformer transformer, File primaryInput, TransformationSubject subjectBeingTransformed) {
         this.transformer = transformer;
         this.primaryInput = primaryInput;
         this.subjectBeingTransformed = subjectBeingTransformed;
@@ -38,7 +38,7 @@ public class TransformerInvocation {
         return primaryInput;
     }
 
-    public TransformerRegistration getTransformer() {
+    public Transformer getTransformer() {
         return transformer;
     }
 

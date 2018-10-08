@@ -21,10 +21,10 @@ public interface ArtifactTransformListener {
     /**
      * This method is called immediately before a transformer is invoked.
      */
-    void beforeTransform(TransformerRegistration transformer, TransformationSubject subject);
+    void beforeTransform(Transformer transformer, TransformationSubject subject);
 
     /**
      * This method is call immediately after a transformer has been invoked.
      */
-    void afterTransform(TransformerRegistration transformer, TransformationSubject subject);
+    void afterTransform(Transformer transformer, TransformationSubject subject);
 }
