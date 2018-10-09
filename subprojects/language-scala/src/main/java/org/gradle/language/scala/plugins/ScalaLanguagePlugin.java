@@ -17,7 +17,6 @@
 package org.gradle.language.scala.plugins;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -57,7 +56,6 @@ import static org.gradle.util.CollectionUtils.single;
  * Plugin for compiling Scala code. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin} and {@link org.gradle.language.jvm.plugins.JvmResourcesPlugin}.
  * Registers "scala" language support with the {@link org.gradle.language.scala.ScalaLanguageSourceSet}.
  */
-@Incubating
 public class ScalaLanguagePlugin implements Plugin<Project> {
 
     @Override
