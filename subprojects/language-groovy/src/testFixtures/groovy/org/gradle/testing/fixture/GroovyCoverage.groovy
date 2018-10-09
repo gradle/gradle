@@ -50,7 +50,7 @@ class GroovyCoverage {
         }
         return """
             repositories {
-                ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", "groovy-snapshots", "https://oss.jfrog.org/artifactory/oss-snapshot-local")}
+                ${RepoScriptBlockUtil.groovySnapshotsRepositoryDefinition(dsl)}
             }
         """
     }

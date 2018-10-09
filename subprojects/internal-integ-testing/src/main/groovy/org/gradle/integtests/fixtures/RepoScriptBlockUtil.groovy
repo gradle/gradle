@@ -64,7 +64,8 @@ class RepoScriptBlockUtil {
         GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
         KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven'),
-        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven')
+        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven'),
+        GROOVY_SNAPSHOTS('https://oss.jfrog.org/artifactory/oss-snapshot-local', System.getProperty('org.gradle.integtest.mirrors.groovy-snapshots'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -168,6 +169,10 @@ class RepoScriptBlockUtil {
 
     static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
+    }
+
+    static String groovySnapshotsRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GROOVY_SNAPSHOTS.getRepositoryDefinition(dsl)
     }
 
     static File createMirrorInitScript() {
