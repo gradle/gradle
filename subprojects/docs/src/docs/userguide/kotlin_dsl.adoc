@@ -68,12 +68,12 @@ Kotlin DSL is fully supported in Intellij IDEA and Android Studio. Other IDEs do
 |[.green]#*✓*#
 |[.green]#*✓*#
 
-|CLion
+|Eclipse IDE
 |[.green]#*✓*#
 |[.green]#*✓*#
 |[.red]#✖#
 
-|Eclipse IDE
+|CLion
 |[.green]#*✓*#
 |[.green]#*✓*#
 |[.red]#✖#
@@ -101,8 +101,25 @@ Kotlin DSL is fully supported in Intellij IDEA and Android Studio. Other IDEs do
 
 In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts.
 
-In addition, IntelliJ IDEA, Android Studio or CLion might spawn up to 3 Gradle daemons when editing scripts; one per each type of script: project scripts, settings scripts and initialization scripts.
+In addition, IntelliJ IDEA or Android Studio might spawns up to 3 Gradle daemons when editing scripts; one per each type of script: project scripts, settings scripts and initialization scripts.
 Builds with slow configuration time might affect the IDE responsiveness, please check out the link:https://guides.gradle.org/performance/#configuration[performance guide].
+
+=== Automatic build import vs. automatic reload of script dependencies
+
+Both IntelliJ IDEA and Android Studio will detect when you make changes to your build logic and offer suggestions as to what to do.
+
+Both will suggest to re-import the whole build into the IDE:
+
+image::intellij-build-import-popup.png[IntelliJ IDEA, width=300]
+
+image::android-studio-build-sync-popup.png[IntelliJ IDEA]
+
+Both will also suggest reloading script dependencies when editing a build script:
+
+image::intellij-script-dependencies-reload.png[Reload script dependencies]
+
+It is recommended to *disable automatic build import* but *enable automatic reload of script dependencies.*
+That way you get early feedback while editing Gradle scripts while controlling when the whole build setup gets synchronized with your IDE.
 
 
 [[sec:scripts]]
