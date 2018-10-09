@@ -708,6 +708,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                     withModule('org.test:moduleA', ModifyRule)
                 }
             }
+
+            configurations.all {
+                incoming.beforeResolve { println "Resolving \$name" }
+            }
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
