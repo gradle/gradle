@@ -51,6 +51,8 @@ public interface DeploymentRegistry {
 
     /**
      * Behavior when a deployment is out-of-date.
+     * 
+     * @since 4.2
      */
     @Incubating
     enum ChangeBehavior {
