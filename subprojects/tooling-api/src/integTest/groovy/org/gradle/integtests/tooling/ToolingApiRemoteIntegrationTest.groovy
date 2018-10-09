@@ -83,6 +83,8 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def "receives distribution download progress events"() {
         given:
         settingsFile << ""

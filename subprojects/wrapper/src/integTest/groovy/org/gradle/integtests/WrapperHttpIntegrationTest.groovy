@@ -22,7 +22,10 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
@@ -55,6 +58,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(new URI("${baseUrl}/gradlew/dist"))
     }
 
+    @Issue('https://github.com/gradle/gradle-private/issues/1537')
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     public void "downloads wrapper from http server and caches"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
