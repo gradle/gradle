@@ -16,36 +16,42 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestContainerDescriptor;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.junit.GenericJUnitTestEventAdapter;
-import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestResult.ResultType;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.UniqueId;
-import org.junit.platform.engine.support.descriptor.ClassSource;
-import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
-import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
+import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
+import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
+import static org.junit.platform.launcher.listeners.LegacyReportingUtils.getClassName;
 
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
-    private final GenericJUnitTestEventAdapter<String> adapter;
+    private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
-    private final TestClassExecutionListener executionListener;
-    private final CurrentRunningTestClass currentRunningTestClass;
+    private final Clock clock;
+    private final Map<String, TestDescriptorInternal> descriptors = new ConcurrentHashMap<>();
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, TestClassExecutionListener executionListener) {
-        this.adapter = new GenericJUnitTestEventAdapter<>(resultProcessor, clock);
+    JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
+        this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
-        this.executionListener = executionListener;
-        this.currentRunningTestClass = new CurrentRunningTestClass();
+        this.clock = clock;
     }
 
     @Override
@@ -60,179 +66,85 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        if (isLeafTest(testIdentifier)) {
-            adapter.testIgnored(getDescriptor(testIdentifier));
-        } else if (isClass(testIdentifier)) {
-            reportTestClassStarted(testIdentifier);
-            currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
-            reportTestClassFinished(testIdentifier);
-        }
+        resultProcessor.started(getDescriptor(testIdentifier), startEvent(testIdentifier));
+        reportSkipped(testIdentifier, reason);
     }
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        if (isClass(testIdentifier)) {
-            reportTestClassStarted(testIdentifier);
-        }
-        if (isLeafTest(testIdentifier)) {
-            adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
-        }
-    }
-
-    private boolean isLeafTest(TestIdentifier identifier) {
-        return identifier.isTest() && !isVintageDynamicTestClass(identifier);
+        resultProcessor.started(getDescriptor(testIdentifier), startEvent(testIdentifier));
     }
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        if (testFailedBeforeTestClassStart(testIdentifier, testExecutionResult)) {
-            executionFailedBeforeTestClassStart(testIdentifier, testExecutionResult);
+        if (testExecutionResult.getStatus() == ABORTED) {
+            reportSkipped(testIdentifier, testExecutionResult.getThrowable().map(Throwable::getMessage).orElse(""));
+            return;
+        }
+        if (testExecutionResult.getStatus() == FAILED) {
+            resultProcessor.failure(getId(testIdentifier), testExecutionResult.getThrowable().orElse(null));
+        }
+        resultProcessor.completed(getId(testIdentifier), completeEvent(null));
+        descriptors.remove(testIdentifier.getUniqueId());
+    }
+
+    private void reportSkipped(TestIdentifier testIdentifier, String reason) {
+        ResultType resultType = null;
+        if (isLeafTest(testIdentifier)) {
+            resultType = SKIPPED;
         } else {
-            executionFinishedAfterTestClassStart(testIdentifier, testExecutionResult);
+            currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
         }
+        resultProcessor.completed(getId(testIdentifier), completeEvent(resultType));
     }
 
-    private void executionFailedBeforeTestClassStart(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        reportTestClassStarted(testIdentifier);
-        reportTestClassFinished(testIdentifier, testExecutionResult.getThrowable().get());
+    private TestCompleteEvent completeEvent(ResultType resultType) {
+        return new TestCompleteEvent(clock.getCurrentTime(), resultType);
     }
 
-    private void executionFinishedAfterTestClassStart(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        // Generally, there're 2 kinds of identifier:
-        // 1. A container (test engine/class/repeated tests). It is not tracked unless it fails/aborts.
-        // 2. A test "leaf" method. It's always tracked.
-        if (isFailedContainer(testIdentifier, testExecutionResult)) {
-            // only leaf methods triggered start events previously
-            // so here we need to add the missing start events
-            adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
-            testFinished(testIdentifier, testExecutionResult);
-        } else if (isLeafTest(testIdentifier)) {
-            testFinished(testIdentifier, testExecutionResult);
-        }
-
-        if (isClass(testIdentifier)) {
-            reportTestClassFinished(testIdentifier);
-        }
+    private TestStartEvent startEvent(TestIdentifier testIdentifier) {
+        Object parentId = testIdentifier.getParentId().map(descriptors::get).map(TestDescriptorInternal::getId).orElse(null);
+        return new TestStartEvent(clock.getCurrentTime(), parentId);
     }
 
-    private boolean testFailedBeforeTestClassStart(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        return isFailedContainer(testIdentifier, testExecutionResult) && currentRunningTestClass.count == 0;
+    private boolean isLeafTest(TestIdentifier identifier) {
+        return currentTestPlan.getChildren(identifier).isEmpty();
     }
 
-    private void testFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        switch (testExecutionResult.getStatus()) {
-            case SUCCESSFUL:
-                break;
-            case FAILED:
-                adapter.testFailure(testIdentifier.getUniqueId(), getDescriptor(testIdentifier), testExecutionResult.getThrowable().get());
-                break;
-            case ABORTED:
-                adapter.testAssumptionFailure(testIdentifier.getUniqueId());
-                break;
-            default:
-                throw new AssertionError("Invalid Status: " + testExecutionResult.getStatus());
-        }
-        adapter.testFinished(testIdentifier.getUniqueId());
-    }
-
-    private void reportTestClassStarted(TestIdentifier testIdentifier) {
-        currentRunningTestClass.start(className(testIdentifier), classDisplayName(testIdentifier));
-    }
-
-    private void reportTestClassFinished(TestIdentifier testIdentifier, Throwable failure) {
-        currentRunningTestClass.end(className(testIdentifier), failure);
-    }
-
-    private void reportTestClassFinished(TestIdentifier testIdentifier) {
-        currentRunningTestClass.end(className(testIdentifier), null);
-    }
-
-    private boolean isFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
-        return result.getStatus() != SUCCESSFUL && testIdentifier.isContainer();
-    }
-
-    private TestDescriptorInternal getDescriptor(final TestIdentifier test) {
-        if (isMethod(test)) {
-            return createDescriptor(test, test.getLegacyReportingName(), test.getDisplayName());
-        } else if (isVintageDynamicLeafTest(test)) {
-            UniqueId uniqueId = UniqueId.parse(test.getUniqueId());
-            return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(uniqueId), vintageDynamicMethodName(uniqueId));
-        } else if (isClass(test) || isVintageDynamicTestClass(test)) {
-            return createDescriptor(test, "classMethod", "classMethod");
-        } else {
-            return createDescriptor(test, test.getDisplayName(), test.getDisplayName());
-        }
-    }
-
-    private TestDescriptorInternal createDescriptor(TestIdentifier test, String name, String displayName) {
-        TestIdentifier classIdentifier = findClassSource(test);
-        String className = className(classIdentifier);
-        String classDisplayName = classDisplayName(classIdentifier);
-        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
-    }
-
-    private boolean isMethod(TestIdentifier test) {
-        return test.getSource().isPresent() && test.getSource().get() instanceof MethodSource;
-    }
-
-    private boolean isClass(TestIdentifier test) {
-        return test.getSource().isPresent() && test.getSource().get() instanceof ClassSource;
-    }
-
-    private TestIdentifier findClassSource(TestIdentifier testIdentifier) {
-        // For tests in default method of interface,
-        // we might not be able to get the implementation class directly.
-        // In this case, we need to retrieve test plan to get the real implementation class.
-        if (isClass(testIdentifier)) {
-            return testIdentifier;
-        }
-        while (testIdentifier.getParentId().isPresent()) {
-            testIdentifier = currentTestPlan.getTestIdentifier(testIdentifier.getParentId().get());
-            if (isClass(testIdentifier)) {
-                return testIdentifier;
+    private TestDescriptorInternal getDescriptor(TestIdentifier node) {
+        return descriptors.computeIfAbsent(node.getUniqueId(), uniqueId -> {
+            Optional<TestIdentifier> parent = currentTestPlan.getParent(node);
+            Object id = idGenerator.generateId();
+            String name = node.getLegacyReportingName();
+            String displayName = node.getDisplayName();
+            if (!parent.isPresent()) {
+                return new DefaultTestSuiteDescriptor(id, name, displayName);
             }
-        }
-        return null;
-    }
-
-    private String className(TestIdentifier testClassIdentifier) {
-        if (testClassIdentifier != null && testClassIdentifier.getSource().isPresent()) {
-            return ClassSource.class.cast(testClassIdentifier.getSource().get()).getClassName();
-        } else {
-            return "UnknownClass";
-        }
-    }
-
-    private String classDisplayName(TestIdentifier testClassIdentifier) {
-        if (testClassIdentifier != null) {
-            return testClassIdentifier.getDisplayName();
-        } else {
-            return "UnknownClass";
-        }
-    }
-
-    private class CurrentRunningTestClass {
-        private String name;
-        private int count;
-
-        private void start(String className, String displayName) {
-            if (name == null) {
-                name = className;
-                executionListener.testClassStarted(className, displayName);
-                count = 1;
-            } else if (className.equals(name)) {
-                count++;
-            }
-        }
-
-        private void end(String className, Throwable failure) {
-            if (className.equals(name)) {
-                count--;
-                if (count == 0) {
-                    executionListener.testClassFinished(failure);
-                    name = null;
+            Optional<DefaultTestClassDescriptor> testClassDescriptor = findTestClassDescriptor(parent.get());
+            if (testClassDescriptor.isPresent()) {
+                String className = testClassDescriptor.get().getClassName();
+                String classDisplayName = testClassDescriptor.get().getClassDisplayName();
+                if (node.isContainer()) {
+                    return new DefaultTestContainerDescriptor(id, className, name, classDisplayName, displayName);
                 }
+                return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
             }
+            if (node.isContainer()) {
+                return new DefaultTestClassDescriptor(id, name, displayName);
+            }
+            return new DefaultTestDescriptor(id, getClassName(currentTestPlan, node), name, parent.get().getDisplayName(), displayName);
+        });
+    }
+
+    private Optional<DefaultTestClassDescriptor> findTestClassDescriptor(TestIdentifier testIdentifier) {
+        TestDescriptorInternal descriptor = getDescriptor(testIdentifier);
+        if (descriptor instanceof DefaultTestClassDescriptor) {
+            return Optional.of((DefaultTestClassDescriptor) descriptor);
         }
+        return currentTestPlan.getParent(testIdentifier).flatMap(this::findTestClassDescriptor);
+    }
+
+    private Object getId(TestIdentifier testIdentifier) {
+        return getDescriptor(testIdentifier).getId();
     }
 }

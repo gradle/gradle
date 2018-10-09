@@ -21,6 +21,7 @@ import org.hamcrest.Matchers
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.hamcrest.Matchers.containsString
 
 /**
  * These test cases are all from http://junit.org/junit5/docs/current/user-guide
@@ -191,13 +192,11 @@ class TestingAStackDemo {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.TestingAStackDemo').assertTestCount(4, 0, 0)
             .assertTestPassed('isInstantiatedWithNew', 'is instantiated with new Stack')
-        result.testClass('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
-            .assertTestPassed('isEmpty', 'is empty')
-            .assertTestPassed('throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
-        result.testClass('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
-            .assertTestPassed('isNotEmpty', 'it is no longer empty')
+            .assertTestPassed('WhenNew', 'isEmpty', 'is empty')
+            .assertTestPassed('WhenNew', 'throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
+            .assertTestPassed('WhenNew$AfterPushing', 'isNotEmpty', 'it is no longer empty')
 
         where:
         maxParallelForks << [1, 3]
@@ -319,7 +318,7 @@ public class Test implements TestInterfaceDynamicTestsDemo {
             .testClass('org.gradle.Test').assertTestCount(2, 0, 0)
             .assertTestPassed('dynamicTestsFromCollection()[1]', '1st dynamic test in test interface')
             .assertTestPassed('dynamicTestsFromCollection()[2]', '2nd dynamic test in test interface')
-            .assertStdout(Matchers.stringContainsInOrder(['Invoked!', 'Invoked!']))
+            .assertStdout(containsString('Invoked!'))
     }
 
     def 'can support parameterized tests'() {

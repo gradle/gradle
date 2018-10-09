@@ -115,6 +115,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
+        @Override
+        TestClassExecutionResult assertTestPassed(String className, String name, String displayName) {
+            testClassResults*.assertTestPassed(className, removeParentheses(name), removeParentheses(displayName))
+            this
+        }
+
         int getTestSkippedCount() {
             List<Integer> counts = testClassResults*.testSkippedCount
             List<Integer> uniques = counts.unique()

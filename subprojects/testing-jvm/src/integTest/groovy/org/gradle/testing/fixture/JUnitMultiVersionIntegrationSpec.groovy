@@ -24,6 +24,7 @@ import org.junit.Assume
 import java.util.regex.Pattern
 
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
+import static org.gradle.testing.fixture.JUnitCoverage.getVINTAGE
 
 /**
  * To avoid rework when testing JUnit Platform (a.k.a JUnit 5), we'd like to reuse previous test cases in following aspects:
@@ -143,5 +144,9 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
                 it
             }
         }.join('\n')
+    }
+
+    def getReportingLevel(String... classes) {
+        version == VINTAGE ? classes[0] : classes.join('$')
     }
 }

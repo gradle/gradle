@@ -38,6 +38,8 @@ public interface TestClassExecutionResult {
     /**
      * Asserts that the given test passed.
      */
+    TestClassExecutionResult assertTestPassed(String className, String name, String displayName);
+
     TestClassExecutionResult assertTestPassed(String name, String displayName);
 
     TestClassExecutionResult assertTestPassed(String name);

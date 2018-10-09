@@ -56,7 +56,7 @@ public class EnclosedTest {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('EnclosedTest$InnerClass').assertTestCount(1, 0, 0)
+            .testClass(getReportingLevel('EnclosedTest', 'InnerClass')).assertTestCount(1, 0, 0)
     }
 
     @Issue('https://github.com/gradle/gradle/issues/2320')
@@ -88,7 +88,7 @@ public class EnclosedTest {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('EnclosedTest$InnerClass').assertTestCount(1, 0, 0)
+            .testClass(getReportingLevel('EnclosedTest', 'InnerClass')).assertTestCount(1, 0, 0)
     }
 
     @Issue('https://github.com/junit-team/junit4/issues/1354')
@@ -139,6 +139,7 @@ test {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('EnclosedTest$InnerClass').assertTestCount(1, 0, 0)
+            .testClass(getReportingLevel('EnclosedTest', 'InnerClass'))
+            .assertTestCount(1, 0, 0)
     }
 }

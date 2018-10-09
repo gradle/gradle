@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -45,15 +45,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.isVintageDynamicLeafTest;
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicClassName;
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicMethodName;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
-    private TestResultProcessor resultProcessor;
-    private TestClassExecutionListener executionListener;
     private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -61,10 +61,14 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(TestResultProcessor threadSafeResultProcessor, TestClassExecutionListener threadSafeTestClassListener) {
-        resultProcessor = threadSafeResultProcessor;
-        executionListener = threadSafeTestClassListener;
-        testClassExecutor = new CollectAllTestClassesExecutor();
+    protected Actor createActor(ActorFactory actorFactory, TestResultProcessor resultProcessorChain) {
+        return actorFactory.createBlockingActor(resultProcessorChain);
+    }
+
+    @Override
+    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+        TestResultProcessor resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
+        testClassExecutor = new CollectAllTestClassesExecutor(resultProcessor);
         return testClassExecutor;
     }
 
@@ -76,33 +80,38 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private class CollectAllTestClassesExecutor implements Action<String> {
         private final List<Class<?>> testClasses = new ArrayList<>();
+        private final TestResultProcessor resultProcessor;
+
+        CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
+            this.resultProcessor = resultProcessor;
+        }
 
         @Override
         public void execute(String testClassName) {
-            Class<?> klass = loadClass(testClassName);
-            if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
+            Class<?> testClass = loadClass(testClassName);
+            if (isInnerClass(testClass) || isNestedClassInsideEnclosedRunner(testClass)) {
                 return;
             }
-            testClasses.add(klass);
+            testClasses.add(testClass);
+        }
+
+        private boolean isInnerClass(Class<?> klass) {
+            return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
+        }
+
+        private Class<?> loadClass(String className) {
+            try {
+                ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
+                return Class.forName(className, false, applicationClassloader);
+            } catch (ClassNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
 
         private void processAllTestClasses() {
             Launcher launcher = LauncherFactory.create();
-            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, executionListener));
+            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
-        }
-    }
-
-    private boolean isInnerClass(Class<?> klass) {
-        return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
-    }
-
-    private Class<?> loadClass(String className) {
-        try {
-            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
-            return Class.forName(className, false, applicationClassloader);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
@@ -36,7 +37,7 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     private final ProgressLoggerFactory factory;
     private final ProgressLogger parentProgressLogger;
-    private final Map<String, ProgressLogger> testWorkerProgressLoggers = new HashMap<String, ProgressLogger>();
+    private final Map<Object, ProgressLogger> testWorkerProgressLoggers = new HashMap<Object, ProgressLogger>();
 
     public TestWorkerProgressListener(ProgressLoggerFactory factory, ProgressLogger parentProgressLogger) {
         this.factory = factory;
@@ -50,25 +51,23 @@ public class TestWorkerProgressListener implements TestListenerInternal {
         if (testClassDescriptor) {
             String description = createProgressLoggerDescription(testDescriptor);
 
-            if (!testWorkerProgressLoggers.containsKey(description)) {
-                ProgressLogger progressLogger = factory.newOperation(TestWorkerProgressListener.class, parentProgressLogger);
+            if (!testWorkerProgressLoggers.containsKey(testDescriptor.getId())) {
+                ProgressLogger parent = this.parentProgressLogger;
+                if (testDescriptor.getParent() != null && testWorkerProgressLoggers.containsKey(testDescriptor.getParent().getId())) {
+                    parent = testWorkerProgressLoggers.get(testDescriptor.getParent().getId());
+                }
+                ProgressLogger progressLogger = factory.newOperation(TestWorkerProgressListener.class, parent);
                 progressLogger.start(description, description);
-                testWorkerProgressLoggers.put(description, progressLogger);
+                testWorkerProgressLoggers.put(testDescriptor.getId(), progressLogger);
             }
         }
     }
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        boolean testClassDescriptor = isDefaultTestClassDescriptor(testDescriptor);
-
-        if (testClassDescriptor) {
-            String description = createProgressLoggerDescription(testDescriptor);
-
-            if (testWorkerProgressLoggers.containsKey(description)) {
-                ProgressLogger progressLogger = testWorkerProgressLoggers.remove(description);
-                progressLogger.completed();
-            }
+        if (testWorkerProgressLoggers.containsKey(testDescriptor.getId())) {
+            ProgressLogger progressLogger = testWorkerProgressLoggers.remove(testDescriptor.getId());
+            progressLogger.completed();
         }
     }
 
@@ -103,7 +102,8 @@ public class TestWorkerProgressListener implements TestListenerInternal {
         return "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(defaultTestClassDescriptor.getClassName(), MAX_TEST_NAME_LENGTH);
     }
 
-    Map<String, ProgressLogger> getTestWorkerProgressLoggers() {
+    @VisibleForTesting
+    Map<Object, ProgressLogger> getTestWorkerProgressLoggers() {
         return testWorkerProgressLoggers;
     }
 }

@@ -158,6 +158,11 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         throw new UnsupportedOperationException()
     }
 
+    @Override
+    TestClassExecutionResult assertTestPassed(String className, String name, String displayName) {
+        throw new UnsupportedOperationException()
+    }
+
     TestClassExecutionResult assertTestSkipped(String name) {
         def testMethodNode = findTestMethod(name)
         assert testMethodNode.@status as String == 'SKIP'
