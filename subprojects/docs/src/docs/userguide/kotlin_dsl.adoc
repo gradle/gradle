@@ -216,7 +216,7 @@ Let's look at a project build script that makes use of accessors:
 include::sample[dir="kotlinDsl/accessors",files="build.gradle.kts[tags=accessors]"]
 ====
 <1> `api`, `implementation` and `testImplementation` artifact configurations contributed by the `java-library` plugin
-<2> the `sourceSets` project extensions contributed by the `java-library` plugin
+<2> the `sourceSets` project extension contributed by the `java-library` plugin
 <3> the `main` source set created by default by the `java-library` plugin
 <4> the `java` project convention contributed by the `java-library` plugin
 <5> the `test` task contributed by the `java-library` plugin
@@ -415,9 +415,9 @@ Simply map the plugin ID to the corresponding artifact coordinates as shown in t
 
 === In multi-project builds
 
-On multi-project builds, and most Android builds are, one needs to take special care if applying the same plugin to multiple sub projects.
+In multi-project builds, and most Android builds are, one needs to take special care if applying the same plugin to multiple sub projects.
 In that case, always request the plugin without applying it on your root project first.
-This ensure that all sub projects using that plugin will be load it from the same class loader, allowing for example to cross-configure projects.
+This ensure that all sub projects using that plugin will load it from the same class loader, allowing for example to cross-configure projects.
 
 .settings.gradle.kts
 [source,kotlin]
@@ -480,7 +480,7 @@ Note that alternatively you could also move the version declarations in the root
 [[sec:properties]]
 == Working with properties
 
-The Gradle Kotlin DSL provides some sugar for working with properties.
+The Gradle Kotlin DSL also provides some sugar on top of the Gradle API for working with properties.
 
 === Gradle, Settings & Project properties
 
