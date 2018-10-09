@@ -28,7 +28,7 @@ import spock.lang.Issue
 class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
-        return "startScripts"
+        return "installDist"
     }
 
     def setup() {
