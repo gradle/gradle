@@ -16,13 +16,11 @@
 
 package org.gradle.nativeplatform.test.cunit;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
 /**
  * An executable which run a CUnit test suite.
  */
-@Incubating
 public interface CUnitTestSuiteBinarySpec extends NativeTestSuiteBinarySpec {
 
     /**

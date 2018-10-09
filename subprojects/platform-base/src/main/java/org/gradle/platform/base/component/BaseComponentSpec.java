@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
@@ -31,7 +30,6 @@ import org.gradle.platform.base.component.internal.DefaultComponentSpec;
  * Base class that may be used for custom {@link GeneralComponentSpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
-@Incubating
 public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
     private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
     private static final ModelType<Binary> BINARY_MODEL_TYPE = ModelType.of(Binary.class);

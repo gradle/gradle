@@ -16,13 +16,11 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
  * A physical representation of a {@link NativeLibrary} component.
  */
-@Incubating
 public interface NativeLibraryBinary extends NativeBinary {
 
     FileCollection getHeaderDirs();

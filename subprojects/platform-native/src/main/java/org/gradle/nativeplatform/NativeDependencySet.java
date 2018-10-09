@@ -15,13 +15,11 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
  * Models a collection of native type dependencies.
  */
-@Incubating
 public interface NativeDependencySet {
     /**
      * Returns the header file directories to use at compile time.

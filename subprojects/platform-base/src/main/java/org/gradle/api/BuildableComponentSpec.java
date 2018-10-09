@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 /**
  * A {@link ComponentSpec} that is directly {@link Buildable} via a specified task.
  */
-@Incubating
 public interface BuildableComponentSpec extends Buildable, ComponentSpec {
     /**
      * Returns the task responsible for building this component.

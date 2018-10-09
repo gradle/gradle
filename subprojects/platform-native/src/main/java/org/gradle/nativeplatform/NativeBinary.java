@@ -16,14 +16,12 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.Binary;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.platform.base.Binary;
 
 /**
  * Represents a particular binary artifact.
  */
-@Incubating
 public interface NativeBinary extends Binary {
     /**
      * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.

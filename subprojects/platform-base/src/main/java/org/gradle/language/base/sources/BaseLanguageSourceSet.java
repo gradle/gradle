@@ -29,13 +29,13 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
  * Base class that may be used for custom {@link LanguageSourceSet} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
-@Incubating
 public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
     /**
      * This is here as a convenience for subclasses to create additional SourceDirectorySets
      *
      * @since 5.0
      */
+    @Incubating
     protected final ObjectFactory objectFactory;
 
     private static final ThreadLocal<SourceSetInfo> NEXT_SOURCE_SET_INFO = new ThreadLocal<SourceSetInfo>();
@@ -45,6 +45,7 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
      *
      * @since 5.0
      */
+    @Incubating
     public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, ObjectFactory objectFactory) {
         NEXT_SOURCE_SET_INFO.set(new SourceSetInfo(componentId, publicType, objectFactory));
         try {

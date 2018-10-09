@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.googletest.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
@@ -40,7 +39,6 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 /**
  * A plugin that sets up the infrastructure for testing native binaries with GoogleTest.
  */
-@Incubating
 public class GoogleTestPlugin implements Plugin<Project> {
 
     @Override

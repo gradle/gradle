@@ -15,12 +15,10 @@
  */
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A source set that provides resources.
  */
-@Incubating
 public interface NativeResourceSet extends LanguageSourceSet {
 }

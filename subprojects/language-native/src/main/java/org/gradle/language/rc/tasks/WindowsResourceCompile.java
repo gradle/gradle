@@ -58,7 +58,6 @@ import java.util.concurrent.Callable;
 /**
  * Compiles Windows Resource scripts into .res files.
  */
-@Incubating
 public class WindowsResourceCompile extends DefaultTask {
 
     private final Property<NativePlatform> targetPlatform;
@@ -131,6 +130,7 @@ public class WindowsResourceCompile extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public Property<NativeToolChain> getToolChain() {
         return toolChain;
@@ -141,6 +141,7 @@ public class WindowsResourceCompile extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
@@ -217,6 +218,7 @@ public class WindowsResourceCompile extends DefaultTask {
      *
      * @since 4.5
      */
+    @Incubating
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {

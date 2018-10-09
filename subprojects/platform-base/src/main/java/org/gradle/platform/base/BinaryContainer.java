@@ -15,11 +15,9 @@
  */
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 
 /**
  * A container for project binaries, which represent physical artifacts that can run on a particular platform or runtime.
  */
-@Incubating
 public interface BinaryContainer extends ModelMap<BinarySpec> {}

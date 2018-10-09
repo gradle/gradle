@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.test.cunit.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
@@ -47,7 +46,6 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
-@Incubating
 public class CUnitPlugin implements Plugin<Project> {
 
     @Override

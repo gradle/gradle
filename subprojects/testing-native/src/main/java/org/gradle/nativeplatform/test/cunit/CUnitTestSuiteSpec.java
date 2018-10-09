@@ -15,12 +15,10 @@
  */
 package org.gradle.nativeplatform.test.cunit;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 
 /**
  * Test suite of CUnit tests.
  */
-@Incubating
 public interface CUnitTestSuiteSpec extends NativeTestSuiteSpec {
 }

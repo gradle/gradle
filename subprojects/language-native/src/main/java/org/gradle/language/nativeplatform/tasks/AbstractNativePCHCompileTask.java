@@ -16,11 +16,8 @@
 
 package org.gradle.language.nativeplatform.tasks;
 
-import org.gradle.api.Incubating;
-
 /**
  * Compiles native header source files into object files.
  */
-@Incubating
 public abstract class AbstractNativePCHCompileTask extends AbstractNativeCompileTask {
 }

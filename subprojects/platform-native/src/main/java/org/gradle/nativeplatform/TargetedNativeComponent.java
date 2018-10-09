@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
@@ -23,7 +22,7 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  * A native component that can be configured to target certain variant dimensions.
  * This functionality is a temporary workaround to eliminate configuration of unnecessary domain objects and tasks.
  */
-@Incubating @HasInternalProtocol
+@HasInternalProtocol
 public interface TargetedNativeComponent extends PlatformAwareComponentSpec, NativeComponentSpec {
 
     /**

@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
@@ -36,7 +35,6 @@ import org.gradle.platform.base.plugins.ComponentBasePlugin;
  * - Adds a {@link ProjectSourceSet} named {@code sources} to the project.
  * - Registers the base {@link LanguageSourceSet} type.
  */
-@Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

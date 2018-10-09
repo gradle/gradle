@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
@@ -41,7 +40,6 @@ import org.gradle.process.internal.ExecActionFactory;
 /**
  * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU GCC/G++ compiler</a> available for compiling C/C++ code.
  */
-@Incubating
 @NonNullApi
 public class GccCompilerPlugin implements Plugin<Project> {
 

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.cunit.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.model.Defaults;
@@ -30,7 +29,6 @@ import org.gradle.testing.base.TestSuiteContainer;
 /**
  * A plugin that applies the {@link CUnitPlugin} and adds conventions on top of it.
  */
-@Incubating
 public class CUnitConventionPlugin implements Plugin<Project> {
 
     @Override

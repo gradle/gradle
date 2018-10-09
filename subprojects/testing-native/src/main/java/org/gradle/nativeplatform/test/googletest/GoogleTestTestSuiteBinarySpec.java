@@ -16,13 +16,11 @@
 
 package org.gradle.nativeplatform.test.googletest;
 
-import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
 /**
  * An executable which run a Google Test test suite.
  */
-@Incubating
 public interface GoogleTestTestSuiteBinarySpec extends NativeTestSuiteBinarySpec {
     /**
      * {@inheritDoc}

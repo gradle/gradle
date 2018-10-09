@@ -16,14 +16,12 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.model.ModelElement;
 
 /**
  * A software component that is built by Gradle.
  */
-@Incubating
 @HasInternalProtocol
 public interface ComponentSpec extends ModelElement {
     /**

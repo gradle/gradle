@@ -49,7 +49,6 @@ import javax.inject.Inject;
 /**
  * Assembles a static library from object files.
  */
-@Incubating
 public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
@@ -119,6 +118,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public Property<NativeToolChain> getToolChain() {
         return toolChain;
@@ -129,6 +129,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
@@ -147,6 +148,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
      *
      * @since 4.5
      */
+    @Incubating
     @Internal
     public RegularFileProperty getBinaryFile() {
         return this.outputFile;
@@ -157,6 +159,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
      *
      * @since 4.7
      */
+    @Incubating
     @Input
     public ListProperty<String> getStaticLibArgs() {
         return staticLibArgs;

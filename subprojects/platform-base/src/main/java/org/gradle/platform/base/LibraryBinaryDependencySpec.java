@@ -16,12 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
  * A dependency onto a specific binary of a library published by a project.
  */
-@Incubating
 public interface LibraryBinaryDependencySpec extends DependencySpec {
 
     /**

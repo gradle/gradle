@@ -17,14 +17,12 @@
 package org.gradle.nativeplatform.toolchain;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.List;
 
 /**
  * An executable tool that forms part of a tool chain.
  */
-@Incubating
 public interface CommandLineToolConfiguration {
     /**
      * Adds an action that will be applied to the command-line arguments prior to execution.

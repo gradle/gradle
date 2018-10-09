@@ -35,7 +35,6 @@ import java.util.concurrent.Callable;
 /**
  * Links a binary shared library from object files and imported libraries.
  */
-@Incubating
 public class LinkSharedLibrary extends AbstractLinkTask {
     private String installName;
     private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();
@@ -67,6 +66,7 @@ public class LinkSharedLibrary extends AbstractLinkTask {
      *
      * @since 4.4
      */
+    @Incubating
     @Optional @OutputFile
     public RegularFileProperty getImportLibrary() {
         return importLibrary;

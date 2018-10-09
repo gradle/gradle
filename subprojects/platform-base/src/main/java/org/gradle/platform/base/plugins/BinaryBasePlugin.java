@@ -16,7 +16,6 @@
 package org.gradle.platform.base.plugins;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -46,7 +45,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
  * - For each {@link BinarySpec}, adds the binary's source sets as its default inputs.
  * - Links the tasks for each {@link BinarySpec} across to the tasks container.
  */
-@Incubating
 public class BinaryBasePlugin implements Plugin<Project> {
 
     @Override

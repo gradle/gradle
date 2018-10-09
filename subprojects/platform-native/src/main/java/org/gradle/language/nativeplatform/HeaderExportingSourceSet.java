@@ -15,14 +15,12 @@
  */
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A source set that exposes headers
  */
-@Incubating
 public interface HeaderExportingSourceSet extends LanguageSourceSet {
     /**
      * The headers as a directory set.

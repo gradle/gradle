@@ -16,11 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain;
 
-import org.gradle.api.Incubating;
-
 /**
  * The <a href="http://clang.llvm.org">Clang</a> tool chain.
  */
-@Incubating
 public interface Clang extends GccCompatibleToolChain {
 }

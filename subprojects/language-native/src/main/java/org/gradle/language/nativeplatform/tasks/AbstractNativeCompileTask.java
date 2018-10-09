@@ -58,7 +58,6 @@ import java.util.Map;
 /**
  * Compiles native source files into object files.
  */
-@Incubating
 public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -157,6 +156,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public Property<NativeToolChain> getToolChain() {
         return toolChain;
@@ -167,6 +167,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
@@ -189,6 +190,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     @Input
     public boolean isDebuggable() {
         return debug;
@@ -199,6 +201,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     public void setDebuggable(boolean debug) {
         this.debug = debug;
     }
@@ -208,6 +211,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     @Input
     public boolean isOptimized() {
         return optimize;
@@ -218,6 +222,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     public void setOptimized(boolean optimize) {
         this.optimize = optimize;
     }
@@ -227,6 +232,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     @OutputDirectory
     public DirectoryProperty getObjectFileDir() {
         return objectFileDir;
@@ -252,6 +258,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.8
      */
+    @Incubating
     @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
     public ConfigurableFileCollection getSystemIncludes() {
         return systemIncludes;
@@ -291,6 +298,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     @Input
     public ListProperty<String> getCompilerArgs() {
         return compilerArgs;
@@ -301,6 +309,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      *
      * @since 4.3
      */
+    @Incubating
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {

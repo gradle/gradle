@@ -19,7 +19,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -89,7 +88,6 @@ import static com.google.common.base.Strings.emptyToNull;
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
-@Incubating
 public class ComponentModelBasePlugin implements Plugin<Project> {
 
     @Override

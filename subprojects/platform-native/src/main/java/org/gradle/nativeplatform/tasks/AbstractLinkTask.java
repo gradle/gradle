@@ -56,7 +56,6 @@ import javax.inject.Inject;
 /**
  * Base task for linking a native binary from object files and libraries.
  */
-@Incubating
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     private final RegularFileProperty linkedFile;
     private final DirectoryProperty destinationDirectory;
@@ -94,6 +93,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public Property<NativeToolChain> getToolChain() {
         return toolChain;
@@ -104,6 +104,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
@@ -114,6 +115,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
@@ -124,6 +126,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @OutputFile
     public RegularFileProperty getLinkedFile() {
         return linkedFile;
@@ -134,6 +137,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.3
      */
+    @Incubating
     @Input
     public ListProperty<String> getLinkerArgs() {
         return linkerArgs;
@@ -144,6 +148,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public boolean isDebuggable() {
         return debuggable.get();
@@ -154,6 +159,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @Input
     public Property<Boolean> getDebuggable() {
         return debuggable;
@@ -203,6 +209,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     protected CompilerVersion getCompilerVersion() {
         return ((VersionAwareCompiler)createCompiler()).getVersion();

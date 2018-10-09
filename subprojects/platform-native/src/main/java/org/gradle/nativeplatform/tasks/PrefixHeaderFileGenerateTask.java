@@ -34,7 +34,6 @@ import java.io.File;
 /**
  * Generates a prefix header file from a list of headers to be precompiled.
  */
-@Incubating
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
     private String header;
     private File prefixHeaderFile;
@@ -45,6 +44,7 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
      *
      * @since 4.2
      */
+    @Incubating
     @Inject
     public PrefixHeaderFileGenerateTask(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;

@@ -16,12 +16,10 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.platform.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking object file output type.
  * */
-@Incubating
 public class ObjectFile implements TransformationFileType {
 }

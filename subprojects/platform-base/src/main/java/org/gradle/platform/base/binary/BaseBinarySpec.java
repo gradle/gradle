@@ -57,7 +57,6 @@ import java.util.Set;
  * Base class that may be used for custom {@link BinarySpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
  */
-@Incubating
 public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
@@ -76,6 +75,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
      *
      * @since 5.0
      */
+    @Incubating
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator) {

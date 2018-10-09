@@ -16,12 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
  * A specification of a {@link org.gradle.platform.base.Library}.
  */
-@Incubating
 public interface LibrarySpec extends GeneralComponentSpec {
 
 }

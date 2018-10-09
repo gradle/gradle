@@ -16,7 +16,6 @@
 
 package org.gradle.language.assembler.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -30,7 +29,6 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * <li>Creates a {@link org.gradle.language.assembler.tasks.Assemble} task for each {@link org.gradle.language.assembler.AssemblerSourceSet} to assemble the sources.</li>
  * </ul>
  */
-@Incubating
 public class AssemblerPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

@@ -16,7 +16,6 @@
 
 package org.gradle.language.objectivecpp.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -30,7 +29,6 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * <li>Creates a {@link org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile} task for each {@link org.gradle.language.objectivecpp.ObjectiveCppSourceSet} to compile the Objective-C++ sources.</li>
  * </ul>
  */
-@Incubating
 public class ObjectiveCppPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

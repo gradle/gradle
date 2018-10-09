@@ -16,12 +16,10 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.Component;
 
 /**
  * A software application.
  */
-@Incubating
 public interface Application extends Component {
 }

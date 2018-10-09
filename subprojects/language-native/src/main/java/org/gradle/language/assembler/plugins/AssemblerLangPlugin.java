@@ -16,7 +16,6 @@
 package org.gradle.language.assembler.plugins;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.language.assembler.AssemblerSourceSet;
@@ -37,7 +36,6 @@ import java.util.Map;
 /**
  * Adds core Assembler language support.
  */
-@Incubating
 public class AssemblerLangPlugin implements Plugin<Project> {
 
     @Override

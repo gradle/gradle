@@ -16,12 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain;
 
-import org.gradle.api.Incubating;
-
 /**
  * GCC specific settings for the tools used to build for a particular platform.
  */
-@Incubating
 public interface GccPlatformToolChain extends NativePlatformToolChain {
     /**
      * Returns the settings to use for the C compiler.

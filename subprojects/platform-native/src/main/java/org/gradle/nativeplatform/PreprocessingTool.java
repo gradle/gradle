@@ -16,15 +16,12 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.util.Map;
 
 /**
  * A tool that permits configuration of the C preprocessor.
  */
 // TODO:HH This should be moved back into languageNative project
-@Incubating
 public interface PreprocessingTool extends Tool {
     /**
      * The set of preprocessor macros to define when compiling this binary.

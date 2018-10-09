@@ -16,14 +16,11 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
  * A shared library that exists at a known location on the filesystem.
  */
-@Incubating
 public interface PrebuiltSharedLibraryBinary extends SharedLibraryBinary {
     /**
      * The shared library file.

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.platform.base.ApplicationBinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
@@ -24,7 +23,6 @@ import org.gradle.platform.base.BinaryTasksCollection;
 /**
  * An binary built by Gradle for a native application.
  */
-@Incubating
 public interface NativeExecutableBinarySpec extends NativeBinarySpec, ApplicationBinarySpec {
 
     /**

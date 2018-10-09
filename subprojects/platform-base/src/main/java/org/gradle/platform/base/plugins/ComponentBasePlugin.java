@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -46,7 +45,6 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
  *
  * - Registers the infrastructure to support the base {@link ComponentSpec} type and extensions to this type.
  */
-@Incubating
 public class ComponentBasePlugin implements Plugin<Project> {
 
     @Override

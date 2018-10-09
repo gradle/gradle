@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -28,7 +27,7 @@ import java.util.Collection;
 /**
  * Represents a binary artifact that is the result of building a native component.
  */
-@Incubating @HasInternalProtocol
+@HasInternalProtocol
 public interface NativeBinarySpec extends BinarySpec {
     /**
      * The component that this binary was built from.

@@ -16,7 +16,6 @@
 
 package org.gradle.language.c.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -30,7 +29,6 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * <li>Creates a {@link org.gradle.language.c.tasks.CCompile} task for each {@link org.gradle.language.c.CSourceSet} to compile the C sources.</li>
  * </ul>
  */
-@Incubating
 public class CPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

@@ -15,14 +15,11 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
  * A {@link NativeLibrary} that has been compiled and linked as a shared library.
  */
-@Incubating
 public interface SharedLibraryBinary extends NativeLibraryBinary {
 
     /**

@@ -15,13 +15,11 @@
  */
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * Specifies a build-type for a native binary. Common build types are 'debug' and 'release', but others may be defined.
  */
-@Incubating
 public interface BuildType extends Named {
     /**
      * Returns a human-consumable name for this build type.

@@ -16,12 +16,10 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 
 /**
  * A container of software components.
  */
-@Incubating
 public interface ComponentSpecContainer extends ModelMap<ComponentSpec> {
 }

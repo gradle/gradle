@@ -48,7 +48,6 @@ import java.util.concurrent.Callable;
 /**
  * Translates Assembly language source files into object files.
  */
-@Incubating
 public class Assemble extends DefaultTask {
     private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;
@@ -132,6 +131,7 @@ public class Assemble extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public Property<NativeToolChain> getToolChain() {
         return toolChain;
@@ -142,6 +142,7 @@ public class Assemble extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
@@ -164,6 +165,7 @@ public class Assemble extends DefaultTask {
      *
      * @since 4.4
      */
+    @Incubating
     @InputFiles
     public ConfigurableFileCollection getIncludes() {
         return includes;
@@ -174,6 +176,7 @@ public class Assemble extends DefaultTask {
      *
      * @since 4.4
      */
+    @Incubating
     public void includes(Object includeRoots) {
         includes.from(includeRoots);
     }

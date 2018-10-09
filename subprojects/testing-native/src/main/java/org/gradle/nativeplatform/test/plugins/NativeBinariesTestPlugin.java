@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.plugins;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -58,7 +57,6 @@ import java.util.concurrent.Callable;
 /**
  * A plugin that sets up the infrastructure for testing native binaries.
  */
-@Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
 
     @Override

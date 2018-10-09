@@ -24,7 +24,6 @@ import java.util.List;
 /**
  * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
  */
-@Incubating
 public interface GccCompatibleToolChain extends NativeToolChain {
     /**
      * The paths setting required for executing the tool chain.
@@ -54,6 +53,7 @@ public interface GccCompatibleToolChain extends NativeToolChain {
      *
      * @since 4.4
      */
+    @Incubating
     void setTargets(String... platformNames);
 
     /**

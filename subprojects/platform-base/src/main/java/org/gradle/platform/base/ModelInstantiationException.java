@@ -17,12 +17,10 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 
 /**
  * Thrown when a model element cannot be instantiated for some reason.
  */
-@Incubating
 public class ModelInstantiationException extends GradleException {
     public ModelInstantiationException(String message) {
         this(message, null);

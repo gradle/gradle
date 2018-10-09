@@ -16,12 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
  * A physical binary artifact, which can run on a particular platform or runtime.
  */
-@Incubating
 public interface Binary {
     /**
      * Returns a human-consumable display name for this binary.

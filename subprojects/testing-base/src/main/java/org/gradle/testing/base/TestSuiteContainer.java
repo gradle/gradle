@@ -16,12 +16,10 @@
 
 package org.gradle.testing.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.model.ModelMap;
 
 /**
  * A container of {@link TestSuiteSpec} instances.
  */
-@Incubating
 public interface TestSuiteContainer extends ModelMap<TestSuiteSpec> {
 }

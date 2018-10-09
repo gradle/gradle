@@ -16,7 +16,6 @@
 
 package org.gradle.language.objectivec.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -30,7 +29,6 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * <li>Creates a {@link org.gradle.language.objectivec.tasks.ObjectiveCCompile} task for each {@link org.gradle.language.objectivec.ObjectiveCSourceSet} to compile the Objective-C sources.</li>
  * </ul>
  */
-@Incubating
 public class ObjectiveCPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

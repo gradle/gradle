@@ -15,7 +15,6 @@
  */
 package org.gradle.language.c;
 
-import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
@@ -47,6 +46,5 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  * }
  * </pre>
  */
-@Incubating
 public interface CSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 }

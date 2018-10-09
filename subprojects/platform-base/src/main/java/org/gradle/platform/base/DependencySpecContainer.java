@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.UnmanagedStruct;
 
 import java.util.Collection;
@@ -24,7 +23,7 @@ import java.util.Collection;
 /**
  * A container for dependency specifications.
  */
-@Incubating @UnmanagedStruct
+@UnmanagedStruct
 public interface DependencySpecContainer {
 
     /**

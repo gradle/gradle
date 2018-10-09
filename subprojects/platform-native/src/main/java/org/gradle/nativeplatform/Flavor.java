@@ -16,13 +16,11 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * Defines a custom variant that differentiate a {@link NativeBinary}.
  */
-@Incubating
 public interface Flavor extends Named {
     /**
      * Returns a human-consumable display name for this flavor.

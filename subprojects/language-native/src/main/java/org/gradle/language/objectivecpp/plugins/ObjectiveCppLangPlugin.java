@@ -16,7 +16,6 @@
 package org.gradle.language.objectivecpp.plugins;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.ServiceRegistry;
@@ -44,7 +43,6 @@ import java.util.Map;
 /**
  * Adds core Objective-Cpp language support.
  */
-@Incubating
 public class ObjectiveCppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {

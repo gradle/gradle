@@ -16,14 +16,12 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A TypeBuilder to configure the registration of a type.
  * @param <T> The registered type.
  */
-@Incubating
 @HasInternalProtocol
 public interface TypeBuilder<T> {
 

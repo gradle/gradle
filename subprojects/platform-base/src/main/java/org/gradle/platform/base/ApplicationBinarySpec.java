@@ -16,12 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
  * A binary produced from a `{@link org.gradle.platform.base.ApplicationSpec}`.
  * */
-@Incubating
 public interface ApplicationBinarySpec extends BinarySpec {
     /**
      * The application that this binary belongs to.

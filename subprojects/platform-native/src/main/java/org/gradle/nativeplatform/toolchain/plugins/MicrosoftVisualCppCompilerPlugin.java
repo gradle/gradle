@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -41,7 +40,6 @@ import org.gradle.process.internal.ExecActionFactory;
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
-@Incubating
 public class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {
 
     @Override

@@ -38,7 +38,6 @@ import java.io.File;
 /**
  * Compiles native source files into object files.
  */
-@Incubating
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 
@@ -88,6 +87,7 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
      *
      * @since 4.4
      */
+    @Incubating
     @Nullable
     @Optional
     @Nested

@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.platform.base.BinaryTasksCollection;
@@ -26,7 +25,6 @@ import java.io.File;
 /**
  * A static library binary built by Gradle for a native library.
  */
-@Incubating
 public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * Provides access to key tasks used for building the binary.

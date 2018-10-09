@@ -16,11 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain;
 
-import org.gradle.api.Incubating;
-
 /**
  * The <a href="http://gcc.gnu.org/">GNU GCC</a> tool chain.
  */
-@Incubating
 public interface Gcc extends GccCompatibleToolChain {
 }

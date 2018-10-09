@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.platform;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.Platform;
@@ -37,7 +36,6 @@ import org.gradle.platform.base.Platform;
  *     }
  * </pre>
  */
-@Incubating
 @HasInternalProtocol
 public interface NativePlatform extends Platform, Describable {
     /**

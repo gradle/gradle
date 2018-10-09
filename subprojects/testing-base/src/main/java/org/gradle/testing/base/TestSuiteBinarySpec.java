@@ -16,13 +16,11 @@
 
 package org.gradle.testing.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.platform.base.BinarySpec;
 
 /**
  * A binary which runs a suite of tests.
  */
-@Incubating
 public interface TestSuiteBinarySpec extends BinarySpec {
 
     /**

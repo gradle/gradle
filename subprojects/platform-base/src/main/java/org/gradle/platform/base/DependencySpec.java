@@ -16,12 +16,9 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
  * A dependency onto a Gradle component.
  */
-@Incubating
 public interface DependencySpec {
 
     /**

@@ -54,7 +54,6 @@ import java.io.File;
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
-@Incubating
 public class InstallExecutable extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -69,6 +68,7 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.2
      */
+    @Incubating
     @Inject
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -94,6 +94,7 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Internal
     public Property<NativeToolChain> getToolChain() {
         return toolChain;
@@ -104,6 +105,7 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @Nested
     public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
@@ -114,6 +116,7 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.1
      */
+    @Incubating
     @OutputDirectory
     public DirectoryProperty getInstallDirectory() {
         return installDirectory;
@@ -125,6 +128,7 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.7
      *
      */
+    @Incubating
     @Internal("Covered by inputFileIfExists")
     public RegularFileProperty getExecutableFile() {
         return executable;
@@ -135,17 +139,19 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.7
      */
+    @Incubating
     @OutputFile
     public RegularFileProperty getInstalledExecutable() {
         return installedExecutable;
     }
 
+    // TODO - allow @InputFile and @SkipWhenEmpty to be attached to getExecutableFile()
     /**
      * Workaround for when the task is given an input file that doesn't exist
      *
      * @since 4.3
      */
-    // TODO - allow @InputFile and @SkipWhenEmpty to be attached to getExecutableFile()
+    @Incubating
     @SkipWhenEmpty
     @Nullable
     @Optional
@@ -183,6 +189,7 @@ public class InstallExecutable extends DefaultTask {
      *
      * @since 4.4
      */
+    @Incubating
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
         return installDirectory.file(executable.map(new Transformer<CharSequence, RegularFile>() {

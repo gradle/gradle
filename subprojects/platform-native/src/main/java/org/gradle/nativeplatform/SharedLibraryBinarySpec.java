@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.platform.base.BinaryTasksCollection;
 
@@ -25,7 +24,6 @@ import java.io.File;
 /**
  * A shared library binary built by Gradle for a native library.
  */
-@Incubating
 public interface SharedLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * Provides access to key tasks used for building the binary.

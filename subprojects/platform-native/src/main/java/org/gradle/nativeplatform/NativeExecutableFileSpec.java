@@ -27,7 +27,7 @@ import java.io.File;
  *
  * <p>TODO:HH resolve naming conflict with existing NativeExecutableSpec</p>
  */
-@Incubating @UnmanagedStruct
+@UnmanagedStruct
 public class NativeExecutableFileSpec {
 
     private File file;
@@ -45,6 +45,7 @@ public class NativeExecutableFileSpec {
      * The Tool Chain that produces the native executable.
      * @since 4.7
      */
+    @Incubating
     public NativeToolChain getToolChain() {
         return toolChain;
     }
@@ -53,6 +54,7 @@ public class NativeExecutableFileSpec {
      * Sets the Tool Chain that produces the native executable.
      * @since 4.7
      */
+    @Incubating
     public void setToolChain(NativeToolChain toolChain) {
         this.toolChain = toolChain;
     }

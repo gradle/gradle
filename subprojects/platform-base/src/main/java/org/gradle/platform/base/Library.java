@@ -16,12 +16,10 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.Component;
 
 /**
  * A library that can be linked into or depended on by another software element.
  */
-@Incubating
 public interface Library extends Component {
 }

@@ -15,12 +15,9 @@
  */
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 /**
  * A builder of a {@link ProjectDependencySpec}.
  */
-@Incubating
 public interface ProjectDependencySpecBuilder extends DependencySpecBuilder {
 
     /**

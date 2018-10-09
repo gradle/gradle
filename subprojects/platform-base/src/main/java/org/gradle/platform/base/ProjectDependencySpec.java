@@ -16,14 +16,11 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
  * A dependency onto a library published by a project.
  */
-@Incubating
 public interface ProjectDependencySpec extends DependencySpec {
 
     /**

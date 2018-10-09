@@ -18,7 +18,6 @@ package org.gradle.testing.base.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -52,7 +51,6 @@ import org.gradle.testing.base.internal.BaseTestSuiteSpec;
  * - Adds a {@link org.gradle.testing.base.TestSuiteContainer} named {@code testSuites} to the model.
  * - Copies test binaries from {@code testSuites} into {@code binaries}.
  */
-@Incubating
 public class TestingModelBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

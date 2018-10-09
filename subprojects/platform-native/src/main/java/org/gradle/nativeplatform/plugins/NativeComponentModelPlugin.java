@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.api.Plugin;
@@ -114,7 +113,6 @@ import java.io.File;
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
  */
-@Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
 
