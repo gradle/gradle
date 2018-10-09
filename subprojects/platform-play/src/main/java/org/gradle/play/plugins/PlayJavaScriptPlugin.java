@@ -16,7 +16,11 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -45,7 +49,6 @@ import java.util.Map;
  * Plugin for adding javascript processing to a Play application.  Registers "javascript" language support with the {@link org.gradle.language.javascript.JavaScriptSourceSet}.
  */
 @SuppressWarnings("UnusedDeclaration")
-@Incubating
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

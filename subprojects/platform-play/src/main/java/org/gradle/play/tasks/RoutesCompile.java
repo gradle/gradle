@@ -16,7 +16,6 @@
 
 package org.gradle.play.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -46,7 +45,6 @@ import java.util.List;
  * Explicit configuration of this task is not expected and should be performed on the equivalent settings at the {@link org.gradle.play.PlayApplicationSpec} level.
  * </p>
  */
-@Incubating
 public class RoutesCompile extends SourceTask {
 
     /**

@@ -16,7 +16,6 @@
 
 package org.gradle.play;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.model.Managed;
 import org.gradle.platform.base.ApplicationSpec;
@@ -25,7 +24,6 @@ import org.gradle.platform.base.ApplicationSpec;
  * Definition of a Play Framework software component that is built by Gradle.
  */
 @Managed
-@Incubating
 @HasInternalProtocol
 public interface PlayApplicationSpec extends ApplicationSpec, PlayPlatformAwareComponentSpec {
 

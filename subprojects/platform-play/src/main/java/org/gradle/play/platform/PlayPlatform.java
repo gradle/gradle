@@ -16,7 +16,6 @@
 
 package org.gradle.play.platform;
 
-import org.gradle.api.Incubating;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.platform.base.Platform;
@@ -24,7 +23,6 @@ import org.gradle.platform.base.Platform;
 /**
  * Defines and configures a Play Framework environment including versions of Play, Scala and Java.
  */
-@Incubating
 public interface PlayPlatform extends Platform {
 
     /**

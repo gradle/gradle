@@ -59,7 +59,6 @@ import java.util.Map;
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
-@Incubating
 public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
@@ -225,6 +224,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      *
      * @since 4.10.1
      */
+    @Incubating
     @Internal
     public ConfigurableFileCollection getAnalysisFiles() {
         return analysisFiles;
@@ -237,6 +237,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      *
      * @since 4.10.1
      */
+    @Incubating
     @LocalState
     public RegularFileProperty getAnalysisMappingFile() {
         return analysisMappingFile;

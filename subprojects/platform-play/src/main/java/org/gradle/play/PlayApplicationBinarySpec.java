@@ -16,7 +16,6 @@
 
 package org.gradle.play;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
@@ -32,7 +31,6 @@ import java.util.Map;
 /**
  * Represents a binary artifact that is the result of building a Play application software component.
  */
-@Incubating
 @HasInternalProtocol
 public interface PlayApplicationBinarySpec extends ApplicationBinarySpec {
     /**

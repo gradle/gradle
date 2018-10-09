@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
@@ -29,7 +28,6 @@ import javax.inject.Inject;
  *
  * This is not sent to the compiler daemon as options.
  */
-@Incubating
 public class IncrementalCompileOptions {
     private final RegularFileProperty analysisFile;
     private final RegularFileProperty publishedCode;

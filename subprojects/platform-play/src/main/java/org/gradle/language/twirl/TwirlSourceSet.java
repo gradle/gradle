@@ -44,7 +44,6 @@ import java.util.List;
  *     }
  * </pre>
  */
-@Incubating
 public interface TwirlSourceSet extends LanguageSourceSet {
     /**
      * The default imports that should be added to generated source files
@@ -61,6 +60,7 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @since 4.2
      */
+    @Incubating
     List<TwirlTemplateFormat> getUserTemplateFormats();
 
     /**
@@ -68,6 +68,7 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @since 4.2
      */
+    @Incubating
     void setUserTemplateFormats(List<TwirlTemplateFormat> userTemplateFormats);
 
     /**
@@ -79,6 +80,7 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @since 4.2
      */
+    @Incubating
     void addUserTemplateFormat(final String extension, String templateType, String... imports);
 
 
@@ -87,6 +89,7 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @since 4.2
      */
+    @Incubating
     List<String> getAdditionalImports();
 
     /**
@@ -96,5 +99,6 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @since 4.2
      */
+    @Incubating
     void setAdditionalImports(List<String> additionalImports);
 }

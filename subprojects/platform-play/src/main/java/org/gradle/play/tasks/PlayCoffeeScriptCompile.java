@@ -16,7 +16,6 @@
 
 package org.gradle.play.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
@@ -26,7 +25,6 @@ import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
 /**
  * Task for compiling CoffeeScript sources into JavaScript.
  */
-@Incubating
 public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
     public void setCoffeeScriptJsNotation(String notation) {
         super.setCoffeeScriptJs(getDetachedConfiguration(notation));

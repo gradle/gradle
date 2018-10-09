@@ -18,7 +18,6 @@ package org.gradle.play.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -56,7 +55,6 @@ import java.util.Map;
  * "coffeeScript" source set is created by default.
  */
 @SuppressWarnings("UnusedDeclaration")
-@Incubating
 public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.8.0";
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";

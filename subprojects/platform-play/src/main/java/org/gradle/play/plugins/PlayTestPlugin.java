@@ -18,7 +18,6 @@ package org.gradle.play.plugins;
 
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
@@ -42,7 +41,6 @@ import java.io.File;
  * Plugin for executing tests from a Play Framework application.
  */
 @SuppressWarnings("UnusedDeclaration")
-@Incubating
 public class PlayTestPlugin extends RuleSource {
     @Mutate
     void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,

@@ -16,14 +16,12 @@
 
 package org.gradle.play.toolchain;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.ToolChain;
 
 /**
  * A set of tools for building applications using the Play Framework.
  */
-@Incubating
 @HasInternalProtocol
 public interface PlayToolChain extends ToolChain {
 }

@@ -16,14 +16,12 @@
 
 package org.gradle.play;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
 /**
  * Platform aware aspect of a Play Framework software component.
  */
-@Incubating
 @HasInternalProtocol
 public interface PlayPlatformAwareComponentSpec extends PlatformAwareComponentSpec {
 

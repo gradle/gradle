@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
@@ -70,7 +69,6 @@ import static org.gradle.internal.FileUtils.hasExtension;
  * A plugin that adds a distribution zip to a Play application build.
  */
 @SuppressWarnings("UnusedDeclaration")
-@Incubating
 public class PlayDistributionPlugin extends RuleSource {
     public static final String DISTRIBUTION_GROUP = "distribution";
     public static final String DIST_LIFECYCLE_TASK_NAME = "dist";

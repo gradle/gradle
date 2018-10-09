@@ -17,7 +17,6 @@
 package org.gradle.play;
 
 import org.gradle.api.BuildableComponentSpec;
-import org.gradle.api.Incubating;
 
 import java.io.File;
 import java.util.Set;
@@ -25,7 +24,6 @@ import java.util.Set;
 /**
  * A set of public assets added to a binary.
  */
-@Incubating
 public interface PublicAssets extends BuildableComponentSpec {
     /**
      * A set of asset directories for this binary.

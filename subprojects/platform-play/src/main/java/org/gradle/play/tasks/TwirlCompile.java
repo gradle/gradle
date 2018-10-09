@@ -18,7 +18,6 @@ package org.gradle.play.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
@@ -55,7 +54,6 @@ import java.util.Set;
 /**
  * Task for compiling Twirl templates into Scala code.
  */
-@Incubating
 public class TwirlCompile extends SourceTask {
 
     /**

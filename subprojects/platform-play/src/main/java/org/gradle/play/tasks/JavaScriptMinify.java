@@ -18,7 +18,6 @@ package org.gradle.play.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -48,7 +47,6 @@ import java.util.List;
 /**
  * Task to minify JavaScript assets.
  */
-@Incubating
 public class JavaScriptMinify extends SourceTask {
     private File destinationDir;
     private PlayPlatform playPlatform;
