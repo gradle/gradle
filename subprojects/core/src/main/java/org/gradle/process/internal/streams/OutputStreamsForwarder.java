@@ -19,7 +19,10 @@ package org.gradle.process.internal.streams;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 import org.gradle.process.internal.StreamsHandler;
+import org.gradle.util.DisconnectableInputStream;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -46,9 +49,9 @@ public class OutputStreamsForwarder implements StreamsHandler {
     @Override
     public void connectStreams(Process process, String processName, Executor executor) {
         this.executor = executor;
-        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, process.getInputStream(), standardOutput, completed);
+        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, new DisconnectableInputStream(process.getInputStream()), standardOutput, completed);
         if (readErrorStream) {
-            standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, process.getErrorStream(), errorOutput, completed);
+            standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, new DisconnectableInputStream(process.getErrorStream()), errorOutput, completed);
         }
     }
 
@@ -65,7 +68,13 @@ public class OutputStreamsForwarder implements StreamsHandler {
 
     public void stop() {
         try {
+            standardOutputReader.closeInput();
+            if (standardErrorReader != null) {
+                standardErrorReader.closeInput();
+            }
             completed.await();
+        } catch (IOException e) {
+            throw new UncheckedException(e);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
