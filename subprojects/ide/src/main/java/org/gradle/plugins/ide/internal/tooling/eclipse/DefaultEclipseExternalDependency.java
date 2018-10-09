@@ -17,15 +17,13 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class DefaultEclipseExternalDependency extends DefaultEclipseDependency implements ExternalDependencyVersion1,
-    Serializable {
+public class DefaultEclipseExternalDependency extends DefaultEclipseDependency implements Serializable {
     private final File file;
     private final File javadoc;
     private final File source;
@@ -42,17 +40,14 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
     }
 
-    @Override
     public File getFile() {
         return file;
     }
 
-    @Override
     public File getJavadoc() {
         return javadoc;
     }
 
-    @Override
     public File getSource() {
         return source;
     }

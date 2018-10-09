@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
@@ -47,13 +48,10 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class IdeaModelBuilder implements ToolingModelBuilder {
@@ -104,14 +102,10 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setTargetBytecodeVersion(projectTargetBytecodeLevel)
                 .setJdk(DefaultInstalledJdk.current()));
 
-        Map<String, DefaultIdeaModule> modules = new LinkedHashMap<String, DefaultIdeaModule>();
+        List<DefaultIdeaModule> ideaModules = Lists.newArrayList();
         for (IdeaModule module : projectModel.getModules()) {
-            appendModule(modules, module, out, rootGradleProject);
+            ideaModules.add(createModule(module, out, rootGradleProject));
         }
-        for (IdeaModule module : projectModel.getModules()) {
-            buildDependencies(modules, module);
-        }
-        final Collection<DefaultIdeaModule> ideaModules = modules.values();
         out.setChildren(new LinkedList<DefaultIdeaModule>(ideaModules));
         return out;
     }
@@ -120,7 +114,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         return project.getPlugins().getPlugin(IdeaPlugin.class);
     }
 
-    private void buildDependencies(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule) {
+    private void buildDependencies(DefaultIdeaModule tapiModule, IdeaModule ideaModule) {
         ideaModule.setOffline(offlineDependencyResolution);
         Set<Dependency> resolved = ideaModule.resolveDependencies();
         List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
@@ -145,17 +139,13 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                     .setExported(moduleDependency.isExported())
                     .setScope(new DefaultIdeaDependencyScope(moduleDependency.getScope()));
 
-                // Find IdeaModule model for dependency within same build: may be null
-                DefaultIdeaModule targetModule = modules.get(moduleDependency.getName());
-                ideaModuleDependency.setDependencyModule(targetModule);
-
                 dependencies.add(ideaModuleDependency);
             }
         }
-        modules.get(ideaModule.getName()).setDependencies(dependencies);
+        tapiModule.setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
+    private DefaultIdeaModule createModule(IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs(), ideaModule.getGeneratedSourceDirs()))
@@ -185,8 +175,9 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 .setSourceLanguageLevel(moduleSourceLanguageLevel)
                 .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
         }
+        buildDependencies(defaultIdeaModule, ideaModule);
 
-        modules.put(ideaModule.getName(), defaultIdeaModule);
+        return defaultIdeaModule;
     }
 
     private Set<DefaultIdeaSourceDirectory> srcDirs(Set<File> sourceDirs, Set<File> generatedSourceDirs) {

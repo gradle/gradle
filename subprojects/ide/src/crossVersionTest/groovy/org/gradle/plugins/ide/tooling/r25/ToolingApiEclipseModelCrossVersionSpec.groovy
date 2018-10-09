@@ -60,7 +60,7 @@ configure(project(':a')){
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.projectDependencies.find {it.targetProject.name == "a"}.exported ==false
+        rootProject.projectDependencies.find {it.path == "a"}.exported ==false
         rootProject.classpath.find { it.file.name.contains("guava") }.exported == false
         rootProject.classpath.find { it.file.name.contains("slf4j-log4j") }.exported == false
     }

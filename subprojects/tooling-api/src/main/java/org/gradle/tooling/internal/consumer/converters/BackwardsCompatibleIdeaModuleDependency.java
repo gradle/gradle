@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.internal.consumer.converters;
+
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * This is used for compatibility with clients <2.14
  */
-public interface EclipseLinkedResourceVersion1 {
-
-    String getName();
-
-    String getType();
-
-    String getLocation();
-
-    String getLocationUri();
+public interface BackwardsCompatibleIdeaModuleDependency extends IdeaModuleDependency {
+    IdeaModule getDependencyModule();
 }

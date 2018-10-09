@@ -180,8 +180,6 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 // By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
                 DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                // Find the EclipseProject model, if it's in the same build. May be null for a composite.
-                dependency.setTargetProject(findEclipseProjectByName(path));
                 projectDependencies.add(dependency);
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
@@ -271,15 +269,6 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             @Override
             public boolean isSatisfiedBy(DefaultEclipseProject element) {
                 return element.getGradleProject().getPath().equals(project.getPath());
-            }
-        });
-    }
-
-    private DefaultEclipseProject findEclipseProjectByName(final String eclipseProjectName) {
-        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
-            @Override
-            public boolean isSatisfiedBy(DefaultEclipseProject element) {
-                return element.getName().equals(eclipseProjectName);
             }
         });
     }
