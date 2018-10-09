@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -117,7 +116,6 @@ public class Sync extends AbstractCopyTask {
      * @see #getDestinationDir()
      */
     @Internal
-    @Incubating
     public PatternFilterable getPreserve() {
         return preserveInDestination;
     }
@@ -130,7 +128,6 @@ public class Sync extends AbstractCopyTask {
      *
      * @see #getDestinationDir()
      */
-    @Incubating
     public Sync preserve(Action<? super PatternFilterable> action) {
         action.execute(preserveInDestination);
         return this;

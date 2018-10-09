@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -117,7 +116,6 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @return true if symlinks will be followed.
      */
-    @Incubating
     @Input
     public boolean isFollowSymlinks() {
         return followSymlinks;
@@ -128,7 +126,6 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @param followSymlinks if symlinks should be followed.
      */
-    @Incubating
     public void setFollowSymlinks(boolean followSymlinks) {
         this.followSymlinks = followSymlinks;
     }
