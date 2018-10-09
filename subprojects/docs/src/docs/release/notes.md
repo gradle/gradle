@@ -169,6 +169,7 @@ The following are the features that have been promoted in this Gradle release.
 - `ForkOptions.javaHome` property
 - `Project.normalization`
 - `GroovyCompile.groovyCompilerJvmVersion` and `javaToolChain` properties
+- `JavaVersion.VERSION_11` constant along with `isJava11()` and `isJava11Compatible()` methods
 
 ## Fixed issues
 
