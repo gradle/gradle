@@ -58,9 +58,6 @@ object ProjectGroups {
             rootProject.project(":processServices"),
             rootProject.project(":resources"))
 
-    val Project.projectsRequiringLanguageLevel8
-        get() = setOf(":testingJunitPlatform", ":internalPerformanceTesting", ":buildScanPerformance", ":architectureTest").map { rootProject.project(it) }
-
     val Project.publicProjects
         get() = pluginProjects +
             implementationPluginProjects +

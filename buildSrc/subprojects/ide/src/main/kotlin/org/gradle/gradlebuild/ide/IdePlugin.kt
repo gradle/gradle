@@ -29,7 +29,6 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringLanguageLevel8
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.kotlin.dsl.*
@@ -378,10 +377,8 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
-        val ideaLanguageLevel =
-            if (ideaModule.project in projectsRequiringLanguageLevel8) "1.8"
-            else "1.7"
-        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
+        val ideaLanguageLevel = "1.8"
+        // Force everything to Java 8, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
