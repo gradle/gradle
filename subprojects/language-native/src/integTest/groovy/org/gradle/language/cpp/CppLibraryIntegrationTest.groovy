@@ -569,4 +569,51 @@ project(':greeter') {
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
+
+    def "can propagate public header generation task through dependencies"() {
+        given:
+        settingsFile << 'include "producer", "consumer"'
+
+        and:
+        file('consumer/src/main/cpp/lib.cpp').text = '#include "common.h"'
+        file('producer/src/main/cpp/lib.cpp').text = '#include "common.h"'
+
+        and:
+        buildFile << '''
+            project(':producer') {
+                apply plugin: 'cpp-library'
+
+                def generatedHeadersDir = file("$buildDir/generated-headers")
+                task generateHeaders {
+                    outputs.dir generatedHeadersDir
+                    doLast {
+                        file("$generatedHeadersDir/common.h").text = '#define FOO'
+                    }
+                }
+
+                library {
+                    publicHeaders.from files(generatedHeadersDir).builtBy(generateHeaders)
+                }
+            }
+
+            project(':consumer') {
+                apply plugin: 'cpp-library'
+
+                tasks.withType(CppCompile) {
+                    doFirst {
+                        assert it.taskDependencies.getDependencies(it)*.path == [":producer:generateHeaders"]
+                    }
+                }
+
+                library {
+                    dependencies {
+                        api project(':producer')
+                    }
+                }
+            }
+        '''
+
+        expect:
+        succeeds ':consumer:compileDebugCpp'
+    }
 }
