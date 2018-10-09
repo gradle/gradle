@@ -32,7 +32,10 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.startsWith
 import static org.junit.Assert.assertThat
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
@@ -461,5 +464,33 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#teardown"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
+    }
+
+    def "tries to execute unparseable test classes"() {
+        given:
+        testDirectory.file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                testCompile '$dependencyNotation'
+            }
+        """
+
+        when:
+        fails('test', '-x', 'compileTestJava')
+
+        then:
+        failureCauseContains("There were failing tests")
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        if (isVintage() || isJupiter()) {
+            result.testClassStartsWith('Gradle Test Executor')
+                .assertTestCount(1, 1, 0)
+                .assertTestFailed("failed to execute tests", containsString("Could not execute test class 'com.example.Foo'"))
+        } else {
+            result.testClass('com.example.Foo')
+                .assertTestCount(1, 1, 0)
+                .assertTestFailed("initializationError", containsString('ClassFormatError'))
+        }
     }
 }
