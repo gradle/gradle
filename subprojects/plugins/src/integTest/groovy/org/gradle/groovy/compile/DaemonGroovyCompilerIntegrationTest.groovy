@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.junit.Assume
 
-import static org.gradle.testing.fixture.GroovyCoverage.groovySnapshotRepository
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
@@ -38,7 +37,6 @@ class DaemonGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSp
 
             apply plugin: "groovy"
             ${mavenCentralRepository()}
-            ${groovySnapshotRepository(version)}
             tasks.withType(GroovyCompile) {
                 options.forkOptions.executable = "${differentJavacExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
