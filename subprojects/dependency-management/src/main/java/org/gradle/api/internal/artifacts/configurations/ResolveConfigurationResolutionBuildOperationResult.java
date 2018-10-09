@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
-import org.gradle.internal.Actions;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
 import java.util.Collections;
@@ -28,27 +28,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
+    private final ResolvedComponentResult root;
+    private final ResolutionResult resolutionResult;
 
-    private static final Action<? super Throwable> FAIL_SAFE = Actions.doNothing();
-
-    private final ResolvableDependenciesInternal incoming;
-    private final boolean failSafe;
-
-    ResolveConfigurationResolutionBuildOperationResult(ResolvableDependenciesInternal incoming, boolean failSafe) {
-        this.incoming = incoming;
-        this.failSafe = failSafe;
+    ResolveConfigurationResolutionBuildOperationResult(ResolutionResult resolutionResult) {
+        this.root = resolutionResult.getRoot();
+        this.resolutionResult = resolutionResult;
     }
 
     @Override
     public ResolvedComponentResult getRootComponent() {
-        if (failSafe) {
-            // When fail safe, we don't want the build operation listeners to fail whenever resolution throws an error
-            // because:
-            // 1. the `failed` method will have been called with the user facing error
-            // 2. such an error still leads to a valid dependency graph
-            return incoming.getResolutionResult(FAIL_SAFE).getRoot();
-        }
-        return incoming.getResolutionResult().getRoot();
+        return root;
     }
 
     @Override
@@ -61,7 +51,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
         final Map<String, Map<String, String>> components = Maps.newHashMap();
-        incoming.getResolutionResult(FAIL_SAFE).allComponents(new Action<ResolvedComponentResult>() {
+        resolutionResult.allComponents(new Action<ResolvedComponentResult>() {
             @Override
             public void execute(ResolvedComponentResult component) {
                 components.put(
@@ -73,5 +63,4 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         model.put("components", components);
         return model;
     }
-
 }
