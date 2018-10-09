@@ -16,14 +16,11 @@
 
 package org.gradle.jvm.application.scripts;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
  * Details for generating Java-based application start scripts.
  */
-@Incubating
 public interface JavaAppStartScriptGenerationDetails {
 
     /**
