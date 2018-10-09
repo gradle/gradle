@@ -9,7 +9,7 @@ group = "com.example"
 version = "1.0"
 
 task<Jar>("sourcesJar") {
-    from(sourceSets["main"].allJava)
+    from(sourceSets.main.get().allJava)
     classifier = "sources"
 }
 

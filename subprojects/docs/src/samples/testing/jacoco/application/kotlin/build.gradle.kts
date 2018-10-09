@@ -14,7 +14,7 @@ jacoco {
 
 task<JacocoReport>("applicationCodeCoverageReport") {
     executionData(tasks["run"])
-    sourceSets(sourceSets["main"])
+    sourceSets(sourceSets.main.get())
 }
 // end::application-configuration[]
 

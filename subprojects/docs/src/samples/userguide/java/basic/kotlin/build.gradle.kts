@@ -36,8 +36,8 @@ tasks.getByName<Test>("test") {
 // tag::practical-integ-test-source-set[]
 sourceSets {
     create("intTest") {
-        compileClasspath += sourceSets["main"].output
-        runtimeClasspath += sourceSets["main"].output
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
     }
 }
 
@@ -101,13 +101,13 @@ tasks["check"].dependsOn(integrationTest)
 // tag::defining-sources-jar-task[]
 task<Jar>("sourcesJar") {
     classifier = "sources"
-    from(sourceSets["main"].allJava)
+    from(sourceSets.main.get().allJava)
 }
 // end::defining-sources-jar-task[]
 
 
 // tag::defining-custom-javadoc-task[]
 task<Javadoc>("testJavadoc") {
-    source = sourceSets["test"].allJava
+    source = sourceSets.test.get().allJava
 }
 // end::defining-custom-javadoc-task[]

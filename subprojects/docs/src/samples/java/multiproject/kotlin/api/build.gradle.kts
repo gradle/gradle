@@ -30,7 +30,7 @@ tasks.getByName<JavaCompile>("compileJava").options.compilerArgs = listOf("-Xlin
 
 task<Jar>("spiJar") {
     appendix = "spi"
-    from(sourceSets["main"].output)
+    from(sourceSets.main.get().output)
     include("org/gradle/api/")
 }
 

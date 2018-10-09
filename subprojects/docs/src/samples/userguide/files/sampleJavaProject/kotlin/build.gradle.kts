@@ -30,7 +30,7 @@ task<Copy>("nestedSpecs") {
     from("src/dist") {
         include("**/*.html", "**/*.png", "**/*.jpg")
     }
-    from(sourceSets["main"].output) {
+    from(sourceSets.main.get().output) {
         into("WEB-INF/classes")
     }
     into("WEB-INF/lib") {
