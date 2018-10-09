@@ -20,3 +20,6 @@
 <!--- Include as many relevant details about the environment you experienced the bug in -->
 <!--- A build scan `https://gradle.com/scans/get-started` is ideal -->
  * Build scan URL: 
+ * `gradle --version`
+ * Version of IntelliJ or Android Studio (in `About` menu you can copy version information)
+ * Version of the Kotlin Plugin used in IntelliJ or Android Studio (in the `Configure Kotlin Plugin Updates` preference panel)
