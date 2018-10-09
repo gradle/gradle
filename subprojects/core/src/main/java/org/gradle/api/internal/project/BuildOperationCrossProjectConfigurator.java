@@ -46,30 +46,25 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
     @Override
     public void subprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction, true);
+        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction);
     }
 
     @Override
     public void allprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction, true);
+        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction);
     }
 
     @Override
     public Project rootProject(Project project, Action<Project> buildOperationExecutor) {
-        // TODO We don't fire rootProject blocks with the project mutation lock because they fire in projectsLoaded which is too early for the project to be registerd in ProjectRegistry
-        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor, false);
+        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
         return project;
     }
 
-    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction, final boolean withMutationLock) {
+    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction) {
         buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
             @Override
             protected void doRunProjectConfigure(Project project) {
-                if (withMutationLock) {
-                    runProjectConfigureActionWithMutationLock(project, configureAction);
-                } else {
-                    runProjectConfigureAction(project, configureAction);
-                }
+                runProjectConfigureActionWithMutationLock(project, configureAction);
             }
         });
     }
