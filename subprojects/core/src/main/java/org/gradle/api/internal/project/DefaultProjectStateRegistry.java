@@ -40,6 +40,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
+    private ThreadLocal<Boolean> isLenientMutationAllowed = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.FALSE;
+        }
+    };
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -110,6 +116,22 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Override
+    public void withLenientState(Runnable runnable) {
+        withLenientState(Factories.toFactory(runnable));
+    }
+
+    @Override
+    public <T> T withLenientState(Factory<T> factory) {
+        Boolean originalState = isLenientMutationAllowed.get();
+        isLenientMutationAllowed.set(true);
+        try {
+            return factory.create();
+        } finally {
+            isLenientMutationAllowed.set(originalState);
+        }
+    }
+
     private class ProjectStateImpl implements ProjectState {
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
@@ -158,6 +180,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
+            if (isLenientMutationAllowed.get()) {
+                return factory.create();
+            }
+
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
@@ -195,7 +221,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public boolean hasMutableState() {
-            return workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            return isLenientMutationAllowed.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
 
         @Override
