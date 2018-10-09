@@ -17,7 +17,6 @@
 package org.gradle.jvm;
 
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.UnmanagedStruct;
 import org.gradle.platform.base.DependencySpecContainer;
 
@@ -30,7 +29,7 @@ import java.util.Set;
  *
  * @since 2.10
  */
-@Incubating @UnmanagedStruct
+@UnmanagedStruct
 public interface JvmApiSpec {
 
     /**

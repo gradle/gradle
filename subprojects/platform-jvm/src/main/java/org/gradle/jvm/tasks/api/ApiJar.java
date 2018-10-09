@@ -17,7 +17,6 @@
 package org.gradle.jvm.tasks.api;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -71,7 +70,6 @@ import static org.gradle.internal.IoActions.withResource;
  * @since 2.10
  * @see org.gradle.jvm.plugins.JvmComponentPlugin
  */
-@Incubating
 public class ApiJar extends SourceTask {
 
     private Set<String> exportedPackages;

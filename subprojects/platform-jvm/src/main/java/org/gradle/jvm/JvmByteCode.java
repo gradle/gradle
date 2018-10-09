@@ -16,12 +16,10 @@
 
 package org.gradle.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.platform.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking Jvm byte code.
  * */
-@Incubating
  public class JvmByteCode implements TransformationFileType {
 }

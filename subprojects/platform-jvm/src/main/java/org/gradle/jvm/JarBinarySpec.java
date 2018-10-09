@@ -16,7 +16,6 @@
 
 package org.gradle.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.HasInternalProtocol;
@@ -29,7 +28,7 @@ import java.util.Set;
 /**
  * Definition of a Jar file binary that is to be built by Gradle.
  */
-@Incubating @HasInternalProtocol
+@HasInternalProtocol
 public interface JarBinarySpec extends LibraryBinarySpec, JvmBinarySpec {
     /**
      * {@inheritDoc}

@@ -16,12 +16,10 @@
 
 package org.gradle.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.platform.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking Jvm Resource Output
  */
-@Incubating
 public class JvmResources implements TransformationFileType {
 }

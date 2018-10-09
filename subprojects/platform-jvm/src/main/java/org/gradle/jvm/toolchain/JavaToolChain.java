@@ -35,7 +35,6 @@ import org.gradle.platform.base.ToolChain;
  *
  * </ul>
  */
-@Incubating
 @HasInternalProtocol
 public interface JavaToolChain extends ToolChain {
     /**
@@ -43,6 +42,7 @@ public interface JavaToolChain extends ToolChain {
      *
      * @since 3.5
      */
+    @Incubating
     @Input
     String getVersion();
 

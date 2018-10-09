@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.model.Managed;
 
@@ -25,7 +24,6 @@ import java.io.File;
 /**
  * A local JDK, JRE or Java 9+ installation.
  */
-@Incubating
 @Managed
 public interface LocalJava extends Named {
     /**

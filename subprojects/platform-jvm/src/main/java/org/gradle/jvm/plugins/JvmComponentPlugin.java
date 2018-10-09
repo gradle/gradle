@@ -23,7 +23,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -90,7 +89,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
  * container.
  */
-@Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
