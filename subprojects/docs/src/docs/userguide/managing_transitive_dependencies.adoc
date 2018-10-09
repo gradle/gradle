@@ -238,3 +238,84 @@ For example the Spring BOM declares dependencies on Spring as well as Apache Gro
 ====
 Gradle doesn't yet support publishing platforms. It can <<bom_import, consume BOMs>>, or declare participation to a virtual platform, but it's not yet possible to declare and publish an adhoc platform module.
 ====
+
+[[sec:capabilities]]
+== Component capabilities
+
+=== Introduction to capabilities
+
+Often a dependency graph would accidentally contain multiple implementations of the same API.
+This is particularly common with logging frameworks, where multiple bindings are available, and that one library chooses a binding when another transitive dependency chooses another.
+Because those implementations live at different GAV coordinates, the build tool has usually no way to find out that there's a conflict between those libraries.
+To solve this, Gradle provides the concept of _capability_.
+
+It's illegal to find two components providing the same _capability_ in a single dependency graph.
+Intuitively, it means that if Gradle finds two components that provide the same thing on classpath, it's going to fail with an error indicating what modules are in conflict.
+In our example, it means that different bindings of a logging framework provide the same capability.
+
+=== Capability coordinates
+
+A _capability_ is defined by a `(group, module, version)` triplet.
+Each component defines an implicit capability corresponding to its GAV coordinates (group, artifact, version).
+For example, the `org.apache.commons:commons-lang3:3.8` module has an implicit capability with group `org.apache.commons`, name `commons-lang3` and version `3.8`.
+It is important to realize that capabilities are _versioned_.
+
+=== Declaring component capabilities
+
+[NOTE]
+====
+Capabilities are a core feature of the experimental Gradle metadata file format.
+This means that components published with the experimental Gradle metadata file format can declare capabilities, but also that this feature is only natively understood by Gradle.
+However, it's possible to declare capabilities on components which were _not_ built by Gradle, as explained in this section.
+====
+
+If your build file contains the following dependencies:
+
+.A build file with an implicit conflict of logging frameworks
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+As is, it's pretty hard to figure out that you will end up with two logging frameworks on the classpath.
+In fact, `zookeeper` will bring in `log4j`, where what we want to use is `log4j-over-slf4j`.
+We can pre-emptively detect the conflict by adding a rule which will declare that both logging frameworks provide the same capability:
+
+.A build file with an implicit conflict of logging frameworks
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+====
+
+By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
+
+```
+Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 because they provide the same capability: org.slf4j:slf4j-capability:1.0
+```
+
+It does not, however, choose what component to use for you: detecting a conflict is the first step, then you have to fix it.
+
+=== Solving capability conflicts
+
+By default, Gradle will automatically choose the component with the highest version of a capability.
+This can be useful whenever a component is relocated at different coordinates in a new release.
+For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1`, then changed to `org.ow2.asm:asm` since `4.0`.
+It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
+Because each component has an implicit capability corresponding to its GAV coordinates, we can fix this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
+
+.Automatic conflict resolution by capability versioning
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
+====
+
+However, fixing by automatic capability version conflict resolution is not always suitable.
+In our logging example, it doesn't matter what version of the logging frameworks we use, we should always select the slf4j bridge.
+
+In this case, we can fix it by using dependency substitution:
+
+.Substitute log4j with slf4j
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=replacement_rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=replacement_rule]"]
+====
