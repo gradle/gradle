@@ -227,6 +227,28 @@ Because your IDE knows about the accessors, it will include them when you ask yo
 This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block.
 --
 
+Note that accessors for elements of collections such as `configurations`, `tasks` or `sourceSets` leverage Gradle's configuration avoidance APIs.
+For example on `tasks` they are of type `TaskProvider<T>` and provide a lazy reference and lazy configuration of the underlying task.
+
+[source,kotlin]
+----
+tasks.test {
+    // lazy configuration
+}
+
+// Lazy reference
+val testProvider: TaskProvider<SourceSet> = tasks.test
+
+testProvider {
+    // lazy configuration
+}
+
+// Eagerly realized Test task, defeat configuration avoidance if done out of a lazy context
+val test: Test = tasks.test.get()
+----
+
+For all other containers, accessors for elements are of type `NamedDomainObjectProvider<T>` providing the same.
+
 *What to do when type-safe model accessors are not available?*
 
 Following up on the sample build script shown above using the `plugins {}` block, here is the exact same build logic but using the imperative `apply(plugin = "some.id")`.
