@@ -9,7 +9,7 @@ dependencies {
 
 // tag::configure-groovy[]
 configurations {
-    "apiElements" {
+    apiElements {
         val compileGroovy = tasks.getByName<GroovyCompile>("compileGroovy")
         outgoing.variants["classes"].artifact(mapOf(
             "file" to compileGroovy.destinationDir,

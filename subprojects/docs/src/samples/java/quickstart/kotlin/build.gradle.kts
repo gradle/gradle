@@ -42,8 +42,8 @@ repositories {
 
 // tag::dependencies[]
 dependencies {
-    "implementation"(group = "commons-collections", name = "commons-collections", version = "3.2.2")
-    "testImplementation"(group = "junit", name = "junit", version = "4.+")
+    implementation(group = "commons-collections", name = "commons-collections", version = "3.2.2")
+    testImplementation(group = "junit", name = "junit", version = "4.+")
 }
 // end::dependencies[]
 

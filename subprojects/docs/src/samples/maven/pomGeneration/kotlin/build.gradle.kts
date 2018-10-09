@@ -19,7 +19,7 @@ repositories {
 }
 
 configurations {
-    "runtime" {
+    runtime {
         exclude(group = "excludeGroup2", module = "excludeArtifact2")
     }
 }
