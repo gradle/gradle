@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
+import static org.gradle.util.TextUtil.escapeString
 
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
@@ -226,10 +227,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         assertConfirmationCount(build, prevReceivingSocket, prevReceivingLock)
     }
 
-    // This test simulates a long running Zic compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
+    // This test simulates a long running Zinc compiler setup by running code similar to ZincScalaCompilerFactory through the worker API.
     def "if many workers wait for the same exclusive lock, a worker does not time out because several others get the lock before"() {
         given:
-        def gradleUserHome = file("home")
+        def gradleUserHome = file("home").absoluteFile
         buildFile << """
             import org.gradle.cache.CacheRepository
             import org.gradle.cache.PersistentCache
@@ -259,7 +260,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
             class ToolSetupRunnable implements Runnable {
                 void run() {
-                    CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File(URI.create("${gradleUserHome.absoluteFile.toURI()}"))).get(CacheRepository.class);
+                    CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(CacheRepository.class);
                     println "Waiting for lock..."
                     final PersistentCache zincCache = cacheRepository.cache("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
