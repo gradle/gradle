@@ -227,7 +227,7 @@ Because your IDE knows about the accessors, it will include them when you ask yo
 This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within an extension's configuration block.
 --
 
-Note that accessors for elements of collections such as `configurations`, `tasks` or `sourceSets` leverage Gradle's configuration avoidance APIs.
+Note that accessors for elements of containers such as `configurations`, `tasks` or `sourceSets` leverage Gradle's configuration avoidance APIs.
 For example on `tasks` they are of type `TaskProvider<T>` and provide a lazy reference and lazy configuration of the underlying task.
 
 [source,kotlin]
@@ -492,11 +492,78 @@ The example above centrally defines plugin versions in the settings script's plu
 Note that alternatively you could also move the version declarations in the root project `plugins {}` block.
 
 
-// [[sec:collections]]
-// == TODO Working with collections
-// overview & api
-// === Via Kotlin delegated properties
-// === Container scope string invoke extension
+[[sec:containers]]
+== Working with containers
+
+The Gradle build model makes heavy use of containers.
+For example, Gradle core contributes `configurations` which is a container of `Configuration` objects and `tasks` which is a container of `Task` objects ; core plugins such as `java` or `distribution` contribute containers such as `sourceSets` or `distributions`.
+Community plugins also contribute containers, such as `android.buildTypes` by the `android` plugin.
+Gradle plugins create containers using `Project.container<Type>()`.
+
+[TIP]
+--
+Note that if you are configuring existing elements on supported containers you can leverage the type-safe accessors as described in the <<sec:configuring_plugins>> section above.
+--
+
+The Gradle Kotlin DSL provides with uniform ways of interacting with containers.
+We already saw some examples configuring source sets or tasks in the <<sec:configuring_plugins>> section above.
+Let's now look in detail at how to interact with containers using the Gradle Kotlin DSL by using the `tasks` container as an example.
+
+=== Using the containers API
+
+All the containers implement `NamedDomainObjectContainer<DomainObjectType>`, some of them can contain objects of different types and implement `PolymorphicDomainObjectContainer<BaseType>`. The simplest way to interact with containers is through their API.
+
+.Using the containers API
+====
+include::sample[dir="kotlinDsl/containers/api",files="build.gradle.kts[tags=api]"]
+====
+<1> gets a reference to the existing task named `check`
+<2> registers a new task named `myTask1`
+<3> gets a reference to the existing task named `compileJava` of type `JavaCompile`
+<4> registers a new task named `myCopy1` of type `Copy`
+<5> gets a reference to the existing task named `assemble` and configures it
+<6> registers a new task named `myTask2` and configures it
+<7> gets a reference to the existing task named `test` of type `Test` and configures it
+<8> registers a new task named `myCopy2` of type `Copy` and configures it
+
+[NOTE]
+--
+The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace `named` with `getByName` and `register` with `create`.
+--
+
+=== Via Kotlin delegated properties
+
+Another way to interact with containers is via Kotlin delegated properties that are particularly useful if you need a reference to a container element for further usage.
+The sample below does the exact same things as the one in the section above, reusing references to tasks instead of using task paths in string literals:
+
+.Via Kotlin delegated properties
+====
+include::sample[dir="kotlinDsl/containers/delegated-properties",files="build.gradle.kts[tags=delegated-properties]"]
+====
+
+
+[NOTE]
+--
+The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace `existing` with `getting` and `registering` with `creating`.
+--
+
+=== In a container scope
+
+When configuring several elements of a container one can group interactions in a block in order not to repeat the container's name on each interaction.
+The following example mixes the usage of type-safe accessors, the container API and Kotlin delegated properties:
+
+.Container scope
+====
+include::sample[dir="kotlinDsl/containers/scope",files="build.gradle.kts[tags=scope]"]
+====
+
+// TODO decide if we should document this given the current limitation
+// === The container scope string invoke extension
+//
+// .The container scope string invoke extension
+// ====
+// include::sample[dir="kotlinDsl/containers/string-invoke",files="build.gradle.kts[tags=string-invoke]"]
+// ====
 
 
 [[sec:properties]]
