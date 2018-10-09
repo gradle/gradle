@@ -261,6 +261,21 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         result.assertTestsFailed()
     }
 
+    def "tries to execute unparseable test classes"() {
+        given:
+        testDirectory.file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+
+        when:
+        fails('test', '-x', 'compileTestJava')
+
+        then:
+        failureCauseContains("There were failing tests")
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.testClassStartsWith('Gradle Test Executor')
+            .assertTestCount(1, 1, 0)
+            .assertTestFailed("failed to execute tests", containsString("Could not execute test class 'com.example.Foo'"))
+    }
+
     private static String testListener() {
         return '''
             def listener = new TestListenerImpl()
