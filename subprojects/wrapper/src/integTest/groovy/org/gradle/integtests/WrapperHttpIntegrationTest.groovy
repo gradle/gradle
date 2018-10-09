@@ -59,7 +59,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.JDK9_OR_EARLIER)
+    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     public void "downloads wrapper from http server and caches"() {
         given:
         prepareWrapper("http://localhost:${server.port}")

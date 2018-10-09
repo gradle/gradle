@@ -54,7 +54,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.JDK9_OR_EARLIER)
+    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     def "downloads distribution with valid user-agent information"() {
         given:
         settingsFile << "";
@@ -84,7 +84,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    @Requires(TestPrecondition.JDK9_OR_EARLIER)
+    @Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
     def "receives distribution download progress events"() {
         given:
         settingsFile << ""
