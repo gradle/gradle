@@ -590,6 +590,9 @@ First, you need a `buildSrc/build.gradle.kts` file applying the `kotlin-dsl` plu
 include::sample[dir="kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
+`buildSrc` being a separate build, don't forget to add a `buildSrc/settings.gradle.kts` file.
+It can be empty.
+
 Then create the new `java-library-convention.gradle.kts` file in `buildSrc/src/main/kotlin`:
 
 .A `java-library` convention plugin
