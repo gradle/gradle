@@ -41,7 +41,7 @@ sourceSets {
     }
 }
 
-val intTestImplementation = configurations.getByName("intTestImplementation") {
+val intTestImplementation by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
@@ -53,7 +53,7 @@ dependencies {
 // end::practical-integ-test-source-set[]
 
 // tag::using-custom-doclet[]
-val asciidoclet = configurations.create("asciidoclet")
+val asciidoclet by configurations.creating
 
 dependencies {
     asciidoclet("org.asciidoctor:asciidoclet:1.+")
