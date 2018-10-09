@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
+public interface UnitOfWork {
+    WorkIdentifier getIdentifier();
+    void visitInputs(InputVisitor inputVisitor);
+    void visitOutputs(OutputVisitor outputVisitor);
+    boolean execute();
 
-/**
- * A file collection fingerprint taken during this build.
- */
-public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint, FileSystemSnapshot {
-    /**
-     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
-     */
-    HashCode getHash();
+    interface InputVisitor {
+        void visitType(Class<?> type);
 
-    String getStrategyIdentifier();
+        void visitInput(InputProperty input);
 
-    boolean isEmpty();
+        void visitFileInput(InputFileProperty input);
+    }
+
+    interface OutputVisitor {
+        void visitOutput(OutputFileProperty output);
+    }
 }

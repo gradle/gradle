@@ -51,6 +51,11 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
+    public boolean isEmpty() {
+        return true;
+    }
+
+    @Override
     public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return Collections.emptyMap();
     }

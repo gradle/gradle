@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.impl;
 
-package org.gradle.internal.fingerprint;
-
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-/**
- * A file collection fingerprint taken during this build.
- */
-public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint, FileSystemSnapshot {
-    /**
-     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
-     */
-    HashCode getHash();
-
-    String getStrategyIdentifier();
-
-    boolean isEmpty();
-}
+import org.gradle.api.NonNullApi;

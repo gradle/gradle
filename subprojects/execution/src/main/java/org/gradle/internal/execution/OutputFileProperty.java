@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-/**
- * A file collection fingerprint taken during this build.
- */
-public interface CurrentFileCollectionFingerprint extends FileCollectionFingerprint, FileSystemSnapshot {
+public interface OutputFileProperty extends FileProperty {
     /**
-     * Returns the combined hash of the contents of this {@link CurrentFileCollectionFingerprint}.
+     * Cleans the output and returns whether anything had to be actually removed.
      */
-    HashCode getHash();
-
-    String getStrategyIdentifier();
-
-    boolean isEmpty();
+    boolean clean();
 }
