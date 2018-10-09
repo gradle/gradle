@@ -149,8 +149,10 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     }
 
     private boolean shouldUseOptionsFile(JavaExecHandleBuilder execSpec) {
-        JavaVersion executableVersion = jvmVersionDetector.getJavaVersion(execSpec.getExecutable());
-        return executableVersion != null && executableVersion.isJava9Compatible();
+        // https://github.com/gradle/gradle-private/issues/1486
+        return false;
+        //JavaVersion executableVersion = jvmVersionDetector.getJavaVersion(execSpec.getExecutable());
+        //return executableVersion != null && executableVersion.isJava9Compatible();
     }
 
     private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
