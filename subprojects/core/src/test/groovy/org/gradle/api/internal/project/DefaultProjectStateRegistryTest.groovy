@@ -134,6 +134,21 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         }
     }
 
+    def "can access projects with lenient state"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+
+        expect:
+        !registry.stateFor(project("p1")).hasMutableState()
+
+        and:
+        registry.withLenientState({ assert registry.stateFor(project("p1")).hasMutableState() })
+
+        and:
+        !registry.stateFor(project("p1")).hasMutableState()
+    }
+
     ProjectInternal project(String name) {
         def project = Stub(ProjectInternal)
         project.identityPath >> (name == ':' ? Path.ROOT : Path.ROOT.child(name))
