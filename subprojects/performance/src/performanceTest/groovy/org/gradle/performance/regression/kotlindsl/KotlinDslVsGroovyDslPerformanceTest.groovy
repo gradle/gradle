@@ -102,7 +102,7 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
 
     // TODO rebaseline overtime, remove when reaching 0
 
-    private static int medianPercentageShift = 15
+    private static int medianPercentageShift = 5
 
     private static BaselineVersion buildShiftedResults(CrossBuildPerformanceResults results, String name) {
         def baselineResults = new BaselineVersion(name)
