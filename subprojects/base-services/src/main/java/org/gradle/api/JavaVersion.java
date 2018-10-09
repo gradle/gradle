@@ -34,7 +34,6 @@ public enum JavaVersion {
      *
      * @since 4.7
      */
-    @Incubating
     VERSION_11,
 
     /**
@@ -148,7 +147,6 @@ public enum JavaVersion {
      *
      * @since 4.7
      */
-    @Incubating
     public boolean isJava11() {
         return this == VERSION_11;
     }
@@ -192,7 +190,6 @@ public enum JavaVersion {
      *
      * @since 4.7
      */
-    @Incubating
     public boolean isJava11Compatible() {
         return this.compareTo(VERSION_11) >= 0;
     }
