@@ -17,7 +17,7 @@ import org.gradle.testing.PerformanceTest
  * limitations under the License.
  */
 plugins {
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 apply(from = "templates.gradle.kts")

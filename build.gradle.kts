@@ -29,12 +29,12 @@ import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
 plugins {
     `java-base`
-    id("gradlebuild.build-types")
-    id("gradlebuild.ci-reporting")
+    gradlebuild.`build-types`
+    gradlebuild.`ci-reporting`
     // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
-    id("com.gradle.build-scan")
+    com.gradle.`build-scan`
 }
 
 defaultTasks("assemble")

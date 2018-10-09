@@ -18,7 +18,7 @@ import java.util.*
  * limitations under the License.
  */
 plugins {
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {

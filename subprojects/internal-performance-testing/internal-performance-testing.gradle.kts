@@ -18,7 +18,7 @@ import accessors.*
 
 plugins {
     `javascript-base`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 val reports by configurations.creating

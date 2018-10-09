@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-     id("gradlebuild.classycle")
+     gradlebuild.classycle
 }
 
 description = "Tools to take immutable, comparable snapshots of files and other things"

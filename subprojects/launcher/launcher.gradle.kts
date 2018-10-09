@@ -4,7 +4,7 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 configurations {
