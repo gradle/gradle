@@ -366,7 +366,6 @@ public interface DependencyHandler {
      * @return the component metadata handler for this project
      * @since 1.8
      */
-    @Incubating
     ComponentMetadataHandler getComponents();
 
     /**
@@ -377,7 +376,6 @@ public interface DependencyHandler {
      * @param configureAction the action to use to configure module metadata
      * @since 1.8
      */
-    @Incubating
     void components(Action<? super ComponentMetadataHandler> configureAction);
 
     /**

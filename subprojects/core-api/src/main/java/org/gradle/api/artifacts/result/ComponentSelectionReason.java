@@ -28,7 +28,6 @@ import java.util.List;
  * @since 1.3
  */
 @UsedByScanPlugin
-@Incubating
 @HasInternalProtocol
 public interface ComponentSelectionReason {
 
@@ -64,6 +63,7 @@ public interface ComponentSelectionReason {
      *
      * @since 4.5
      */
+    @Incubating
     boolean isCompositeSubstitution();
 
     /**
@@ -81,6 +81,7 @@ public interface ComponentSelectionReason {
      *
      * @since 4.6
      */
+    @Incubating
     List<ComponentSelectionDescriptor> getDescriptions();
 
     /**

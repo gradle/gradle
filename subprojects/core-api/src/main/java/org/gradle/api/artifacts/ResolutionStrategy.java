@@ -195,7 +195,6 @@ public interface ResolutionStrategy {
      * @return this
      * @since 1.4
      */
-    @Incubating
     ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule);
 
     /**
