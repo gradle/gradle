@@ -64,7 +64,6 @@ import java.util.Set;
  * }
  * </pre>
  */
-@Incubating
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
     private final DependencyReportContainer reports;
@@ -101,6 +100,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      *
      * @since 4.2
      */
+    @Incubating
     @Inject
     public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
