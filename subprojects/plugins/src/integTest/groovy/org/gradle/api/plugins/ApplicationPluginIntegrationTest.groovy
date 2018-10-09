@@ -15,7 +15,8 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
@@ -24,7 +25,12 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
+class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "installDist"
+    }
+
     def setup() {
         createSampleProjectSetup()
     }
