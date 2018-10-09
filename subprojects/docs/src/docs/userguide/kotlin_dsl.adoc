@@ -101,7 +101,7 @@ Kotlin DSL is fully supported in Intellij IDEA and Android Studio. Other IDEs do
 
 In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts.
 
-In addition, IntelliJ IDEA or Android Studio might spawns up to 3 Gradle daemons when editing scripts; one per each type of script: project scripts, settings scripts and initialization scripts.
+In addition, IntelliJ IDEA and Android Studio might spawn up to 3 Gradle daemons when editing scripts; one per each type of script: project scripts, settings scripts and initialization scripts.
 Builds with slow configuration time might affect the IDE responsiveness, please check out the link:https://guides.gradle.org/performance/#configuration[performance guide].
 
 === Automatic build import vs. automatic reload of script dependencies
@@ -173,7 +173,7 @@ All `gradle.kts` script has implicit imports comprised of:
 Gradle Plugins contribute reusable and configurable models to a build.
 For example, the `java` plugin contributes artifact configurations such as `implementation` and `testImplementation`, it also adds a Gradle extension named `sourceSets` that can be used to configure and create source sets, it also registers Gradle tasks such as `compileJava` etc...
 
-Gradle scripts configure what applied plugins contribute to the build model. For example adding dependencies or configuring dependency resolution on the `implementation` artifact configuration, changing the source directories for the `main` and `test` Java source sets, or, making `compileJava` fail on compiler warnings.
+Gradle scripts configure what applied plugins contribute to the build model. For example, adding dependencies or configuring dependency resolution on the `implementation` artifact configuration, changing the source directories for the `main` and `test` Java source sets, or, making `compileJava` fail on compiler warnings.
 
 The Gradle Kotlin DSL provides a static Kotlin view over the dynamic model contributed by plugins in the form of type-safe model accessors.
 
@@ -228,7 +228,7 @@ This will happen both at the top level of your build scripts — most plugin ext
 --
 
 Note that accessors for elements of containers such as `configurations`, `tasks` or `sourceSets` leverage Gradle's configuration avoidance APIs.
-For example on `tasks` they are of type `TaskProvider<T>` and provide a lazy reference and lazy configuration of the underlying task.
+For example, on `tasks` they are of type `TaskProvider<T>` and provide a lazy reference and lazy configuration of the underlying task.
 
 [source,kotlin]
 ----
@@ -247,7 +247,7 @@ testProvider {
 val test: Test = tasks.test.get()
 ----
 
-For all other containers, accessors for elements are of type `NamedDomainObjectProvider<T>` providing the same.
+For all other containers, accessors for elements are of type `NamedDomainObjectProvider<T>` providing the same functionality.
 
 *What to do when type-safe model accessors are not available?*
 
@@ -439,7 +439,7 @@ Simply map the plugin ID to the corresponding artifact coordinates as shown in t
 
 In multi-project builds, and most Android builds are, one needs to take special care if applying the same plugin to multiple sub projects.
 In that case, always request the plugin without applying it on your root project first.
-This ensure that all sub projects using that plugin will load it from the same class loader, allowing for example to cross-configure projects.
+This ensures all sub projects using that plugin will load it from the same class loader, allowing for example to cross-configure projects.
 
 .settings.gradle.kts
 [source,kotlin]
@@ -496,8 +496,8 @@ Note that alternatively you could also move the version declarations in the root
 == Working with containers
 
 The Gradle build model makes heavy use of containers.
-For example, Gradle core contributes `configurations` which is a container of `Configuration` objects and `tasks` which is a container of `Task` objects ; core plugins such as `java` or `distribution` contribute containers such as `sourceSets` or `distributions`.
-Community plugins also contribute containers, such as `android.buildTypes` by the `android` plugin.
+For example, Gradle core contributes `configurations` which is a container of `Configuration` objects and `tasks` which is a container of `Task` objects; core plugins such as `java` and `distribution` contribute containers such as `sourceSets` and `distributions`.
+Community plugins also contribute containers, such as `android.buildTypes` contributed by the `android` plugin.
 Gradle plugins create containers using `Project.container<Type>()`.
 
 [TIP]
@@ -505,13 +505,13 @@ Gradle plugins create containers using `Project.container<Type>()`.
 Note that if you are configuring existing elements on supported containers you can leverage the type-safe accessors as described in the <<sec:configuring_plugins>> section above.
 --
 
-The Gradle Kotlin DSL provides with uniform ways of interacting with containers.
+The Gradle Kotlin DSL provides build authors with uniform ways of interacting with containers.
 We already saw some examples configuring source sets or tasks in the <<sec:configuring_plugins>> section above.
 Let's now look in detail at how to interact with containers using the Gradle Kotlin DSL by using the `tasks` container as an example.
 
 === Using the containers API
 
-All the containers implement `NamedDomainObjectContainer<DomainObjectType>`, some of them can contain objects of different types and implement `PolymorphicDomainObjectContainer<BaseType>`. The simplest way to interact with containers is through their API.
+All the containers implement `NamedDomainObjectContainer<DomainObjectType>`, some of them can contain objects of different types and implement `PolymorphicDomainObjectContainer<BaseType>`. The first and simplest way to interact with containers is through their API.
 
 .Using the containers API
 ====
@@ -534,6 +534,7 @@ The above rely on configuration avoidance APIs. If you need to eagerly configure
 === Via Kotlin delegated properties
 
 Another way to interact with containers is via Kotlin delegated properties that are particularly useful if you need a reference to a container element for further usage.
+By not using string literals for the element names, Kotlin delegated properties allow for easy renaming via IDE refactorings.
 The sample below does the exact same things as the one in the section above, reusing references to tasks instead of using task paths in string literals:
 
 .Via Kotlin delegated properties
