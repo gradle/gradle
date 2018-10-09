@@ -16,50 +16,26 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.only
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.*
 
-import kotlinx.metadata.ClassName
-import kotlinx.metadata.Flag
-import kotlinx.metadata.Flags
-import kotlinx.metadata.KmAnnotation
-import kotlinx.metadata.KmExtensionType
-import kotlinx.metadata.KmPackageExtensionVisitor
-import kotlinx.metadata.KmPackageVisitor
-import kotlinx.metadata.KmPropertyExtensionVisitor
-import kotlinx.metadata.KmPropertyVisitor
-import kotlinx.metadata.KmTypeVisitor
-import kotlinx.metadata.KmVariance
-import kotlinx.metadata.KmVersionRequirementVisitor
-import kotlinx.metadata.flagsOf
-import kotlinx.metadata.jvm.JvmFieldSignature
-import kotlinx.metadata.jvm.JvmMethodSignature
-import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
-import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
-import kotlinx.metadata.jvm.KmModuleVisitor
-import kotlinx.metadata.jvm.KotlinClassHeader
-import kotlinx.metadata.jvm.KotlinClassMetadata
-import kotlinx.metadata.jvm.KotlinModuleMetadata
+import kotlinx.metadata.*
+import kotlinx.metadata.jvm.*
 
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 
-import org.gradle.kotlin.dsl.execution.ALOAD
-import org.gradle.kotlin.dsl.execution.ARETURN
-import org.gradle.kotlin.dsl.execution.INVOKEINTERFACE
-import org.gradle.kotlin.dsl.execution.LDC
-import org.gradle.kotlin.dsl.execution.internalName
-import org.gradle.kotlin.dsl.execution.method
-import org.gradle.kotlin.dsl.execution.publicClass
+import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsMultiThreaded
+import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsSingleThreaded
+
+import org.gradle.kotlin.dsl.execution.*
+
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
 
@@ -69,6 +45,10 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.junit.Test
 
 import java.io.File
+
+import java.util.concurrent.*
+
+import kotlin.concurrent.thread
 
 
 val ConfigurationContainer.api: NamedDomainObjectProvider<Configuration>
@@ -82,44 +62,67 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
 
     @Test
     fun `benchmark compiled accessors strategy`() {
-
-        val configOnlySchema = loadConfigurationSchema()
-
-        val outputDirForCurrentStrategy = newFolder("current")
-        val currentResult = benchmark(benchmarkConfig) {
-            configOnlySchema.forEach { (_, projectSchema) ->
-                val srcDir = outputDirForCurrentStrategy.resolve("src")
-                val binDir = outputDirForCurrentStrategy.resolve("bin")
-                buildAccessorsFor(projectSchema, testCompilationClassPath, srcDir, binDir)
-            }
-        }
-        prettyPrint(currentResult)
+        benchmarkWithConfigOnlySchema(::compiledAccessors)
     }
 
     @Test
-    fun `benchmark bytecode accessors strategy`() {
+    fun `benchmark bytecode accessors (single-threaded)`() {
+        benchmarkWithConfigOnlySchema(::bytecodeAccessorsSingledThreaded)
+    }
 
+    @Test
+    fun `benchmark bytecode accessors (multi-threaded)`() {
+        benchmarkWithConfigOnlySchema(::bytecodeAccessorsMultiThreaded)
+    }
+
+    private
+    fun compiledAccessors(projectSchema: ProjectSchema<String>, srcDir: File, binDir: File) {
+        buildAccessorsFor(projectSchema, testCompilationClassPath, srcDir, binDir)
+    }
+
+    private
+    fun bytecodeAccessorsSingledThreaded(projectSchema: ProjectSchema<String>, srcDir: File, binDir: File) {
+        emitSourcesFor(projectSchema, srcDir)
+        emitExtensionsSingleThreaded(accessorsForConfigurationsOf(projectSchema), binDir)
+    }
+
+    private
+    fun bytecodeAccessorsMultiThreaded(projectSchema: ProjectSchema<String>, srcDir: File, binDir: File) {
+        val sources = thread { emitSourcesFor(projectSchema, srcDir) }
+        emitExtensionsMultiThreaded(accessorsForConfigurationsOf(projectSchema), binDir)
+        sources.join()
+    }
+
+    private
+    fun accessorsForConfigurationsOf(projectSchema: ProjectSchema<String>) =
+        projectSchema.configurations.asSequence().map { Accessor.ForConfiguration(it) }
+
+    private
+    fun benchmarkWithConfigOnlySchema(f: (ProjectSchema<String>, File, File) -> Unit) {
+        var run = 0
         val configOnlySchema = loadConfigurationSchema()
-
-        val outputDirForCandidateStrategy = newFolder("candidate")
-        val candidateResult = benchmark(benchmarkConfig) {
-            configOnlySchema.forEach { (_, projectSchema) ->
-
-                // account for source code generation time
-                val srcDir = outputDirForCandidateStrategy.resolve("src").apply { mkdir() }
-                writeAccessorsTo(
-                    srcDir.resolve("ConfigurationAccessors.kt"),
-                    projectSchema.configurationAccessors()
-                )
-
-                val binDir = outputDirForCandidateStrategy.resolve("bin")
-                AccessorBytecodeEmitter.emitKotlinExtensionsFor(
-                    projectSchema.configurations.asSequence().map { Accessor.ForConfiguration(it) },
-                    binDir
-                )
+        val benchmarkResult = benchmark(benchmarkConfig) {
+            configOnlySchema.forEach { (projectPath, projectSchema) ->
+                val outputDir = newFolder("accessors", run.toString(), projectPath.replace(':', '_'))
+                val srcDir = outputDir.resolve("src").apply { mkdir() }
+                val binDir = outputDir.resolve("bin").apply { mkdir() }
+                f(projectSchema, srcDir, binDir)
+                run += 1
             }
         }
-        prettyPrint(candidateResult)
+        prettyPrint(benchmarkResult)
+    }
+
+    /**
+     * Account for source code generation time.
+     */
+    private
+    fun emitSourcesFor(projectSchema: ProjectSchema<String>, file: File) {
+        val srcDir = file
+        writeAccessorsTo(
+            srcDir.resolve("ConfigurationAccessors.kt"),
+            projectSchema.configurationAccessors()
+        )
     }
 
     // Compare only the time required to generate the configuration accessors
@@ -161,8 +164,7 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
         val accessorsBinDir = newFolder("accessors")
 
         // when:
-        AccessorBytecodeEmitter.emitKotlinExtensionsFor(
-            sequenceOf(Accessor.ForConfiguration("api")),
+        emitExtensionsSingleThreaded(sequenceOf(Accessor.ForConfiguration("api")),
             outputDir = accessorsBinDir
         )
 
@@ -249,7 +251,7 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
 internal
 object AccessorBytecodeEmitter {
 
-    fun emitKotlinExtensionsFor(accessors: Sequence<Accessor>, outputDir: File) {
+    fun emitExtensionsSingleThreaded(accessors: Sequence<Accessor>, outputDir: File) {
 
         val accessorGetterSignaturePairs = accessors.filterIsInstance<Accessor.ForConfiguration>().map { accessor ->
             accessor to jvmMethodSignatureFor(accessor)
@@ -286,7 +288,72 @@ object AccessorBytecodeEmitter {
             writeBytes(classBytes)
         }
 
+        writeModuleMetadataFor(className, outputDir)
+    }
+
+    fun emitExtensionsMultiThreaded(accessors: Sequence<Accessor>, outputDir: File) {
+
+        val executor = Executors.newFixedThreadPool(2)
+
+        val headerQ = ArrayBlockingQueue<Request>(32)
+        val header = executor.submit(Callable {
+            emitKotlinClassHeader(headerQ)
+        })
+
+        val moduleQ = ArrayBlockingQueue<Request>(32)
+        executor.submit {
+            emitKotlinModule(moduleQ, header, outputDir)
+        }
+
+        accessors.filterIsInstance<Accessor.ForConfiguration>().forEach { accessor ->
+            val r = Request.AccessorOf(accessor, jvmMethodSignatureFor(accessor))
+            headerQ.put(r)
+            moduleQ.put(r)
+        }
+
+        headerQ.put(Request.Done)
+        moduleQ.put(Request.Done)
+
+        executor.shutdown()
+        executor.awaitTermination(1, TimeUnit.DAYS)
+    }
+
+    sealed class Request {
+
+        data class AccessorOf(val accessor: Accessor.ForConfiguration, val signature: JvmMethodSignature) : Request()
+
+        object Done : Request()
+    }
+
+    private
+    fun emitKotlinModule(moduleQ: ArrayBlockingQueue<Request>, header: Future<KotlinClassHeader>, outputDir: File) {
+
+        val className = "org/gradle/kotlin/dsl/ConfigurationAccessorsKt"
+
         // Write the module metadata
+        writeModuleMetadataFor(className, outputDir)
+
+        val classBytes =
+            publicClass(className) {
+                moduleQ.forEachRequest {
+                    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, signature.name, signature.desc) {
+                        ALOAD(0)
+                        LDC(accessor.configurationName)
+                        INVOKEINTERFACE(configurationContainerInternalName, "named", namedMethodDescriptor)
+                        ARETURN()
+                    }
+                }
+                visitKotlinMetadataAnnotation(header.get())
+            }
+
+        outputDir.resolve("$className.class").run {
+            parentFile.mkdirs()
+            writeBytes(classBytes)
+        }
+    }
+
+    private
+    fun writeModuleMetadataFor(className: String, outputDir: File) {
         val moduleBytes = KotlinModuleMetadata.Writer().run {
             visitPackageParts("org.gradle.kotlin.dsl", listOf(className), emptyMap())
             visitEnd()
@@ -299,6 +366,22 @@ object AccessorBytecodeEmitter {
     }
 
     private
+    fun emitKotlinClassHeader(requests: ArrayBlockingQueue<Request>): KotlinClassHeader {
+
+        val metadataWriter = KotlinClassMetadata.FileFacade.Writer()
+        requests.forEachRequest {
+            metadataWriter.writeMetadataFor(accessor, signature)
+        }
+        return metadataWriter.run {
+            (visitExtensions(JvmPackageExtensionVisitor.TYPE) as KmPackageExtensionVisitor).run {
+                visitEnd()
+            }
+            visitEnd()
+            write().header
+        }
+    }
+
+    private
     fun KotlinClassMetadata.FileFacade.Writer.writeMetadataFor(accessor: Accessor.ForConfiguration, getterSignature: JvmMethodSignature) {
         visitProperty(readOnlyPropertyFlags, accessor.configurationName, getterFlags, 6)!!.run {
             visitReceiverParameterType(0)!!.run {
@@ -308,7 +391,7 @@ object AccessorBytecodeEmitter {
             visitReturnType(0)!!.run {
                 visitClass(namedDomainObjectProviderInternalName)
                 visitArgument(0, KmVariance.INVARIANT)!!.run {
-                    visitClass(Configuration::class.internalName)
+                    visitClass(configurationInternalName)
                     visitEnd()
                 }
                 visitEnd()
@@ -333,6 +416,9 @@ object AccessorBytecodeEmitter {
     val configurationContainerInternalName = ConfigurationContainer::class.internalName
 
     private
+    val configurationInternalName = Configuration::class.internalName
+
+    private
     val namedDomainObjectProviderInternalName = NamedDomainObjectProvider::class.internalName
 
     private
@@ -354,6 +440,16 @@ object AccessorBytecodeEmitter {
         Flag.PropertyAccessor.IS_NOT_DEFAULT,
         Flag.PropertyAccessor.IS_INLINE
     )
+
+    private
+    fun <E> ArrayBlockingQueue<E>.forEachRequest(f: Request.AccessorOf.() -> Unit) {
+        loop@ while (true) {
+            when (val request = take()) {
+                is Request.AccessorOf -> f(request)
+                else -> break@loop
+            }
+        }
+    }
 }
 
 
