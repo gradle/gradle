@@ -44,10 +44,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         def err = new ByteArrayOutputStream()
 
         def execHandle = handle()
-                .args(args(TestApp.class, "arg1", "arg2"))
-                .setStandardOutput(out)
-                .setErrorOutput(err)
-                .build()
+            .args(args(TestApp.class, "arg1", "arg2"))
+            .setStandardOutput(out)
+            .setErrorOutput(err)
+            .build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -71,8 +71,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "waiting for process returns quickly if process already completed"() {
         given:
         def execHandle = handle()
-                .args(args(TestApp.class))
-                .build()
+            .args(args(TestApp.class))
+            .build()
 
         def handle = execHandle.start()
 
@@ -445,9 +445,9 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     private DefaultExecHandleBuilder handle() {
         new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
-                .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
-                .setTimeout(20000) //sanity timeout
-                .workingDir(tmpDir.getTestDirectory())
+            .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+            .setTimeout(20000) //sanity timeout
+            .workingDir(tmpDir.getTestDirectory())
     }
 
     private List args(Class mainClass, String ... args) {
