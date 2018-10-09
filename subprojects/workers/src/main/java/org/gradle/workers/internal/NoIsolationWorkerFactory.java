@@ -63,7 +63,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                 return buildOperationExecutor.call(new CallableBuildOperation<DefaultWorkResult>() {
                     @Override
                     public DefaultWorkResult call(BuildOperationContext context) {
-                        DefaultWorkResult result;
+                        final DefaultWorkResult result;
                         try {
                             WorkerProtocol<ActionExecutionSpec> workerServer = new DefaultWorkerServer(actionInstantiator);
                             result = workerServer.execute(spec);
@@ -72,12 +72,28 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                             //It should not be necessary to call it here.
                             workerExecutor.await();
                         }
+                        context.setResult(new WorkerApiInvocationBuildOperationType.Result() {
+                            @Override
+                            public boolean getDidWork() {
+                                return result.getDidWork();
+                            }
+                        });
                         return result;
                     }
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation);
+                        return BuildOperationDescriptor.displayName(spec.getDisplayName()).parent(parentBuildOperation).details(new WorkerApiInvocationBuildOperationType.Details() {
+                            @Override
+                            public String getDisplayName() {
+                                return spec.getDisplayName();
+                            }
+
+                            @Override
+                            public IsolationMode getIsolationMode() {
+                                return IsolationMode.NONE;
+                            }
+                        });
                     }
                 });
             }

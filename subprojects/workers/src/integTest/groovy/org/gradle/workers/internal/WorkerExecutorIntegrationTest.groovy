@@ -261,6 +261,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         then:
         buildOperations.hasOperation("Test Work")
 
+        and:
+        buildOperations.all(WorkerApiInvocationBuildOperationType) {
+            it.details.displayName == "Test Work" && it.details.isolationMode.toString() == isolationMode.toString() - "IsolationMode."
+        }
+
         where:
         isolationMode << ISOLATION_MODES
     }
