@@ -178,13 +178,11 @@ public class TestNGOptions extends TestFrameworkOptions {
      *
      * @since 1.11
      */
-    @Incubating
     @OutputDirectory
     public File getOutputDirectory() {
         return outputDirectory;
     }
 
-    @Incubating
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
     }
