@@ -27,7 +27,7 @@ class Consumer extends DefaultTask {
 task producer(type: Producer)
 task consumer(type: Consumer)
 
-// Wire the property from producer to consumer task
+// Connect the producer task output to the consumer task input
 // Don't need to add a task dependency to the consumer task. This is automatically added
 consumer.inputFile = producer.outputFile
 

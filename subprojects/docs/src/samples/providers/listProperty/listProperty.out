@@ -1,9 +1,0 @@
-
-> Task :print
-The list contains: []
-The list contains: [element-1, element-2]
-The list contains: [element-3, element-4]
-The list contains: [element-3, element-4, element-5, element-6]
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed

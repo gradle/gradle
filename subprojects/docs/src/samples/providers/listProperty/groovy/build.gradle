@@ -1,28 +1,45 @@
-task print {
-    doLast {
-        ListProperty<String> list = project.objects.listProperty(String)
-        list.empty()
 
-        // Resolve the list
-        logger.quiet('The list contains: ' + list.get())
+class Producer extends DefaultTask {
+    @OutputFile
+    final RegularFileProperty outputFile = project.objects.fileProperty()
 
-        // Add elements to the empty list
-        list.add(project.provider { 'element-1' })  // Add a provider element
-        list.add('element-2')                       // Add a concrete element
-
-        // Resolve the list
-        logger.quiet('The list contains: ' + list.get())
-
-        // Overwrite the entire list with a new list
-        list.set(['element-3', 'element-4'])
-
-        // Resolve the list
-        logger.quiet('The list contains: ' + list.get())
-
-        // Add more elements through a list provider
-        list.addAll(project.provider { ['element-5', 'element-6'] })
-
-        // Resolve the list
-        logger.quiet('The list contains: ' + list.get())
+    @TaskAction
+    void produce() {
+        String message = 'Hello, World!'
+        def output = outputFile.get().asFile
+        output.text = message
+        logger.quiet("Wrote '${message}' to ${output}")
     }
 }
+
+class Consumer extends DefaultTask {
+    @InputFiles
+    final ListProperty<RegularFile> inputFiles = project.objects.listProperty(RegularFile).empty()
+
+    @TaskAction
+    void consume() {
+        inputFiles.get().each { inputFile ->
+            def input = inputFile.asFile
+            def message = input.text
+            logger.quiet("Read '${message}' from ${input}")
+        }
+    }
+}
+
+task producerOne(type: Producer)
+task producerTwo(type: Producer)
+task consumer(type: Consumer)
+
+// Connect the producer task outputs to the consumer task input
+// Don't need to add task dependencies to the consumer task. These are automatically added
+consumer.inputFiles.add(producerOne.outputFile)
+consumer.inputFiles.add(producerTwo.outputFile)
+
+// Set values for the producer tasks lazily
+// Don't need to update the consumer.inputFiles property. This is automatically updated as producer.outputFile changes
+producerOne.outputFile = layout.buildDirectory.file('one.txt')
+producerTwo.outputFile = layout.buildDirectory.file('two.txt')
+
+// Change the build directory.
+// Don't need to update the task properties. These are automatically updated as the build directory changes
+buildDir = 'output'
