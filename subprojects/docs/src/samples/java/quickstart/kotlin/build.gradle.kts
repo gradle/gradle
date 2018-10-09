@@ -25,7 +25,7 @@ apply(plugin = "java")
 // tag::complete-example[]
 // tag::customization[]
 version = "1.0"
-tasks.getByName<Jar>("jar") {
+tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "Gradle Quickstart",
@@ -48,7 +48,7 @@ dependencies {
 // end::dependencies[]
 
 // tag::task-customization[]
-tasks.getByName<Test>("test") {
+tasks.test {
     systemProperties("property" to "value")
 }
 // end::task-customization[]

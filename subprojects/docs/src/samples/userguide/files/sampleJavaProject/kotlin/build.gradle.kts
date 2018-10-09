@@ -19,7 +19,7 @@ task<Zip>("packageClasses") {
     appendix = "classes"
     destinationDir = file(archivesDirPath)
 
-    from(tasks["compileJava"])
+    from(tasks.compileJava)
 }
 // end::link-task-properties[]
 

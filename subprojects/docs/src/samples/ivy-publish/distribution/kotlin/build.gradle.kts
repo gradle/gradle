@@ -28,7 +28,7 @@ distributions {
 publishing {
     publications {
         create<IvyPublication>("myDistribution") {
-            artifact(tasks["distZip"])
+            artifact(tasks.distZip.get())
             artifact(tasks["customDistTar"])
         }
     }

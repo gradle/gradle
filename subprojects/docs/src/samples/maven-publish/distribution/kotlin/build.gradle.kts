@@ -28,7 +28,7 @@ distributions {
 publishing {
     publications {
         create<MavenPublication>("myDistribution") {
-            artifact(tasks["distZip"])
+            artifact(tasks.distZip.get())
             artifact(tasks["customDistTar"])
         }
     }

@@ -14,7 +14,7 @@ task<Jar>("sourcesJar") {
 }
 
 task<Jar>("javadocJar") {
-    from(tasks["javadoc"])
+    from(tasks.javadoc)
     classifier = "javadoc"
 }
 
@@ -72,7 +72,7 @@ signing {
 }
 // end::sign-publication[]
 
-tasks.getByName<Javadoc>("javadoc") {
+tasks.javadoc {
     if (JavaVersion.current().isJava9Compatible) {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }

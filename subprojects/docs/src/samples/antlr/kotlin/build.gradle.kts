@@ -19,7 +19,7 @@ dependencies {
 // end::declare-dependency[]
 
 // tag::generate-grammar-settings[]
-tasks.getByName<AntlrTask>("generateGrammarSource") {
+tasks.generateGrammarSource {
     maxHeapSize = "64m"
     arguments = arguments + listOf("-visitor", "-long-messages")
 }

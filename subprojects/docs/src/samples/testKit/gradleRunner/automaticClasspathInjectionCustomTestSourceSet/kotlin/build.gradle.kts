@@ -24,7 +24,7 @@ task<Test>("functionalTest") {
     classpath = sourceSets["functionalTest"].runtimeClasspath
 }
 
-tasks["check"].dependsOn(tasks["functionalTest"])
+tasks.check { dependsOn(tasks["functionalTest"]) }
 
 gradlePlugin {
     testSourceSets(sourceSets["functionalTest"])
