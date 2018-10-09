@@ -1156,7 +1156,13 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public Object configure(Object object, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, object);
+        return configure(object, ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public <T> T configure(T object, Action<? super T> configureAction) {
+        configureAction.execute(object);
+        return object;
     }
 
     @Override
@@ -1174,12 +1180,22 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void repositories(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getRepositories());
+        repositories(ClosureBackedAction.of(configureClosure));
+    }
+
+    @Override
+    public void repositories(Action<? super RepositoryHandler> configureAction) {
+        configureAction.execute(getRepositories());
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getDependencies());
+    }
+
+    @Override
+    public void dependencies(Action<? super DependencyHandler> configureAction) {
+        configureAction.execute(getDependencies());
     }
 
     @Override
@@ -1195,6 +1211,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void buildscript(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getBuildscript());
+    }
+
+    @Override
+    public void buildscript(Action<? super ScriptHandler> configureAction) {
+        configureAction.execute(getBuildscript());
     }
 
     @Override
