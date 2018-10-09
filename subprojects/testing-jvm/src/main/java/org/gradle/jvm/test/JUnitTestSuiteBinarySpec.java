@@ -15,14 +15,11 @@
  */
 package org.gradle.jvm.test;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a JUnit test suite binary.
  *
  * @since 2.11
  */
-@Incubating
 public interface JUnitTestSuiteBinarySpec extends JvmTestSuiteBinarySpec {
     @Override
     JUnitTestSuiteSpec getTestSuite();
