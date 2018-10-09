@@ -15,11 +15,9 @@
  */
 package org.gradle.language.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * A set of resource files.
  */
-@Incubating
 public interface JvmResourceSet extends LanguageSourceSet {}
