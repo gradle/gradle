@@ -116,11 +116,11 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         }
     }
 
-    private static boolean isVintage() {
+    static boolean isVintage() {
         return version.toString().startsWith("Vintage")
     }
 
-    private static boolean isJupiter() {
+    static boolean isJupiter() {
         return version.toString().startsWith("Jupiter")
     }
 
