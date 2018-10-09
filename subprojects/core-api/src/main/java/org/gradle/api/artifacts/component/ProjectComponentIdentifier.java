@@ -23,7 +23,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 1.10
  */
-@Incubating
 @UsedByScanPlugin
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
     /**
@@ -45,5 +44,6 @@ public interface ProjectComponentIdentifier extends ComponentIdentifier {
      *
      * @since 4.5
      */
+    @Incubating
     String getProjectName();
 }
