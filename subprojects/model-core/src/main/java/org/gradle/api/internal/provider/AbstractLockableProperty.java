@@ -76,7 +76,7 @@ public abstract class AbstractLockableProperty<T> extends AbstractMinimalProvide
         delegate.visitDependencies(context);
     }
 
-    public void lockNow() {
+    public void finalizeValue() {
         locked = true;
         T currentValue = delegate.getOrNull();
         value = currentValue == null ? null : immutableCopy(currentValue);

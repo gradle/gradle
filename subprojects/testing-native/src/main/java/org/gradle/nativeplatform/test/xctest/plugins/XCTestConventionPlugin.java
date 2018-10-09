@@ -118,7 +118,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                testComponent.getOperatingSystems().lockNow();
+                testComponent.getOperatingSystems().finalizeValue();
                 Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the application.");

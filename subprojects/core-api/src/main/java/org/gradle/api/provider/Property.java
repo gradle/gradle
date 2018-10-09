@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
  * A container object that represents a configurable value of a specific type. A {@link Property} is also a {@link Provider} and can be used in the same way as a {@link Provider}. A property's value can be accessed using the methods of {@link Provider} such as {@link Provider#get()}. The value can be modified by using the method {@link #set(Object)} or {@link #set(Provider)}.
  *
  * <p>
- *  A property may be used to represent a task output. Such a property carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
+ * A property may be used to represent a task output. Such a property carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
  * </p>
  *
  * <p>You can create a {@link Property} instance using {@link org.gradle.api.model.ObjectFactory#property(Class)}. There are also several specialized subtypes of this interface that can be created using various other factory methods.</p>
@@ -66,4 +66,15 @@ public interface Property<T> extends Provider<T> {
      * @since 5.0
      */
     Property<T> value(T value);
+
+    /**
+     * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Object)} or {@link #set(Provider)} will fail.
+     *
+     * <p>When this property has a value provided by a {@link Provider}, then the value of the provider is queried when this method is called and the value of this property set to the result.
+     *
+     * <p>Note that although the value of the property does not change, the value may refer to a mutable object.</p>
+     *
+     * @since 5.0
+     */
+    void finalizeValue();
 }

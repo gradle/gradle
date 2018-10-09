@@ -40,4 +40,6 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
 
     @Override
     <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
+
+    ProviderInternal<T> withFinalValue();
 }

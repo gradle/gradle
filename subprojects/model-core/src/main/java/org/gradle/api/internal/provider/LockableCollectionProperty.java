@@ -85,8 +85,8 @@ public abstract class LockableCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void lockNow() {
-        super.lockNow();
+    public void finalizeValue() {
+        super.finalizeValue();
         delegate = null;
     }
 }
