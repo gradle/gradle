@@ -13,7 +13,7 @@ plugins {
 
 // tag::configure-distribution[]
 distributions {
-    getByName("main") {
+    main {
         baseName = "someName"
         contents {
             from("src/readme")

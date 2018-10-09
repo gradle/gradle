@@ -11,7 +11,7 @@ group = "org.gradle.sample"
 version = "1.0"
 
 distributions {
-    getByName("main") {
+    main {
         contents {
             from("src")
         }
