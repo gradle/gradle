@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -28,7 +26,6 @@ import javax.annotation.Nullable;
  * @see org.gradle.api.plugins.PluginAware
  * @since 2.3
  */
-@Incubating
 public interface AppliedPlugin {
 
     /**
