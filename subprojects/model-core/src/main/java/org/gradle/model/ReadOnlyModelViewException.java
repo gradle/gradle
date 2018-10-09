@@ -17,7 +17,6 @@
 package org.gradle.model;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -25,7 +24,6 @@ import org.gradle.model.internal.type.ModelType;
 /**
  * Thrown when an attempt is made to change the value of a model element that is not writable at the time.
  */
-@Incubating
 public class ReadOnlyModelViewException extends GradleException {
     public ReadOnlyModelViewException(String message) {
         super(message);

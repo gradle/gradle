@@ -17,7 +17,6 @@
 package org.gradle.model;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -25,7 +24,6 @@ import org.gradle.model.internal.type.ModelType;
 /**
  * Thrown when an attempt is made to read the value of a model element that is not readable at the time.
  */
-@Incubating
 public class WriteOnlyModelViewException extends GradleException {
 
     public WriteOnlyModelViewException(String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {

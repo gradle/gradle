@@ -16,13 +16,11 @@
 
 package org.gradle.model;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * Represents an element in a model. Elements are arranged in a hierarchy.
  */
-@Incubating
 public interface ModelElement extends Named {
     /**
      * Returns the name of this element. Each element has a name associated with it, that uniquely identifies the element amongst its siblings.

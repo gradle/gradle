@@ -17,7 +17,6 @@
 package org.gradle.model;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -31,7 +30,6 @@ import java.util.Set;
  *
  * @param <T> the contract type for all items
  */
-@Incubating
 public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.

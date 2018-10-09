@@ -17,7 +17,6 @@
 package org.gradle.model;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -32,7 +31,6 @@ import java.util.Set;
  *
  * @param <T> the type of model object
  */
-@Incubating
 public interface ModelSet<T> extends Set<T>, ModelElement {
 
     /**

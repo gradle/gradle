@@ -17,7 +17,6 @@
 package org.gradle.model;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -30,7 +29,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
  * <p>
  * This exception should always have cause, that provides information about the actual problem.
  */
-@Incubating
 @Contextual
 public class InvalidModelRuleException extends GradleException {
 

@@ -16,8 +16,6 @@
 
 package org.gradle.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * A marker type for a class that is a collection of rules.
  * <p>
@@ -77,6 +75,5 @@ import org.gradle.api.Incubating;
  * <li>Implementations cannot be generic (i.e. cannot use type parameters).</li>
  * </ul>
  */
-@Incubating
 public class RuleSource {
 }
