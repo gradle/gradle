@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit
 @UsesNativeServices
 class DefaultMemoryManagerTest extends ConcurrentSpec {
 
-    def osMemoryInfo = Spy(DefaultOsMemoryInfo)
+    def osMemoryInfo = new TestOsMemoryInfo()
     def jvmMemoryInfo = new DefaultJvmMemoryInfo()
     def conditions = new PollingConditions(timeout: DefaultMemoryManager.STATUS_INTERVAL_SECONDS * 2)
     OsMemoryStatusListener osMemoryStatusListener
 
     def setup() {
-        osMemoryInfo.getTotalPhysicalMemory() >> MemoryAmount.of('8g').bytes
+        osMemoryInfo.totalMemory = MemoryAmount.of('8g').bytes
     }
 
     /**
@@ -54,7 +54,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "does not attempt to release memory when claiming 0 memory and free system memory is below threshold"() {
         given:
-        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('4g').bytes
+        osMemoryInfo.freeMemory = MemoryAmount.of('4g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -73,7 +73,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "attempt to release memory when claiming 0 memory and free system memory is above threshold"() {
         given:
-        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('1g').bytes
+        osMemoryInfo.freeMemory =  MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -92,7 +92,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "loop over all memory holders when claiming more memory than releasable"() {
         given:
-        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        osMemoryInfo.freeMemory =  MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -114,7 +114,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "stop looping over memory holders once claimed memory has been released"() {
         given:
-        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of('1g').bytes
+        osMemoryInfo.freeMemory =  MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -136,7 +136,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "only one request for memory is performed for a given snapshot"() {
         given:
-        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        osMemoryInfo.freeMemory =  MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -182,7 +182,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "can add and remove holders concurrently"() {
         given:
-        osMemoryInfo.getFreePhysicalMemory() >> MemoryAmount.of(1).bytes
+        osMemoryInfo.freeMemory =  MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
         def holders = new LinkedBlockingQueue<MemoryHolder>()
         when:
@@ -211,5 +211,15 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
         cleanup:
         memoryManager.stop()
+    }
+
+    private static class TestOsMemoryInfo implements OsMemoryInfo {
+        long totalMemory = -1
+        long freeMemory = -1
+
+        @Override
+        OsMemoryStatus getOsSnapshot() {
+            new OsMemoryStatusSnapshot(totalMemory, freeMemory)
+        }
     }
 }

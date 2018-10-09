@@ -26,47 +26,46 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MeminfoAvailableMemory implements AvailableMemory {
+public class MemInfoOsMemoryInfo implements OsMemoryInfo {
     // /proc/meminfo is in kB since Linux 4.0, see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/fs/proc/task_mmu.c?id=39a8804455fb23f09157341d3ba7db6d7ae6ee76#n22
     private static final Pattern MEMINFO_LINE_PATTERN = Pattern.compile("^\\D+(\\d+) kB$");
     private static final String MEMINFO_FILE_PATH = "/proc/meminfo";
 
     private final Matcher meminfoMatcher;
 
-    public MeminfoAvailableMemory() {
+    public MemInfoOsMemoryInfo() {
         // Initialize Matchers once and then reset them for performance
         meminfoMatcher = MEMINFO_LINE_PATTERN.matcher("");
     }
 
     @Override
-    public long get() throws UnsupportedOperationException {
+    public OsMemoryStatus getOsSnapshot() {
         List<String> meminfoOutputLines;
         try {
             meminfoOutputLines = Files.readLines(new File(MEMINFO_FILE_PATH), Charset.defaultCharset());
         } catch (IOException e) {
-            throw new UnsupportedOperationException("Unable to read free memory from " + MEMINFO_FILE_PATH, e);
+            throw new UnsupportedOperationException("Unable to read system memory from " + MEMINFO_FILE_PATH, e);
         }
-        long freeMemoryFromProcMeminfo = parseFreeMemoryFromMeminfo(meminfoOutputLines);
-        if (freeMemoryFromProcMeminfo == -1) {
-            throw new UnsupportedOperationException("Unable to get free memory from " + MEMINFO_FILE_PATH);
+        OsMemoryStatusSnapshot memInfo = getOsSnapshotFromMemInfo(meminfoOutputLines);
+        if (memInfo.getFreePhysicalMemory() < 0 || memInfo.getTotalPhysicalMemory() < 0) {
+            throw new UnsupportedOperationException("Unable to read system memory from " + MEMINFO_FILE_PATH);
         }
-        return freeMemoryFromProcMeminfo;
+        return memInfo;
     }
 
+
     /**
-     * Given output from /proc/meminfo, return available memory in bytes.
+     * Given output from /proc/meminfo, return a system memory snapshot.
      */
     @VisibleForTesting
-    long parseFreeMemoryFromMeminfo(final List<String> meminfoLines) {
+    OsMemoryStatusSnapshot getOsSnapshotFromMemInfo(final List<String> meminfoLines) {
         final Meminfo meminfo = new Meminfo();
 
-        // Linux 4.x: MemAvailable
-        // Linux 3.x: MemFree + Buffers + Cached + SReclaimable - Mapped
         for (String line : meminfoLines) {
             if (line.startsWith("MemAvailable")) {
-                return parseMeminfoBytes(line);
+                meminfo.setAvailable(parseMeminfoBytes(line));
             } else if (line.startsWith("MemFree")) {
-                meminfo.setMemFree(parseMeminfoBytes(line));
+                meminfo.setFree(parseMeminfoBytes(line));
             } else if (line.startsWith("Buffers")) {
                 meminfo.setBuffers(parseMeminfoBytes(line));
             } else if (line.startsWith("Cached")) {
@@ -75,10 +74,12 @@ public class MeminfoAvailableMemory implements AvailableMemory {
                 meminfo.setReclaimable(parseMeminfoBytes(line));
             } else if (line.startsWith("Mapped")) {
                 meminfo.setMapped(parseMeminfoBytes(line));
+            } else if (line.startsWith("MemTotal")) {
+                meminfo.setTotal(parseMeminfoBytes(line));
             }
         }
 
-        return meminfo.getAvailableBytes();
+        return new OsMemoryStatusSnapshot(meminfo.getTotal(), meminfo.getAvailable());
     }
 
     /**
@@ -92,25 +93,38 @@ public class MeminfoAvailableMemory implements AvailableMemory {
         if (matcher.matches()) {
             return Long.parseLong(matcher.group(1)) * 1024;
         }
-        throw new UnsupportedOperationException("Unable to parse /proc/meminfo output to get available memory");
+        throw new UnsupportedOperationException("Unable to parse /proc/meminfo output to get system memory");
     }
 
     private class Meminfo {
-        private long memFree = -1;
+        private long total = -1;
+        private long available = -1;
+        private long free = -1;
         private long buffers = -1;
         private long cached = -1;
         private long reclaimable = -1;
         private long mapped = -1;
 
-        void setMemFree(long memFree) {
-            this.memFree = memFree;
+        public long getTotal() {
+            return total;
         }
 
-        long getAvailableBytes() {
-            if (memFree != -1 && buffers != -1 && cached != -1 && reclaimable != -1 && mapped != -1) {
-                return memFree + buffers + cached + reclaimable - mapped;
+        /*
+         * Linux 4.x: MemAvailable
+         * Linux 3.x: MemFree + Buffers + Cached + SReclaimable - Mapped
+         */
+        long getAvailable() {
+            if (available != -1) {
+                return available;
+            }
+            if (free != -1 && buffers != -1 && cached != -1 && reclaimable != -1 && mapped != -1) {
+                return free + buffers + cached + reclaimable - mapped;
             }
             return -1;
+        }
+
+        void setFree(long memFree) {
+            this.free = memFree;
         }
 
         public void setBuffers(long buffers) {
@@ -127,6 +141,14 @@ public class MeminfoAvailableMemory implements AvailableMemory {
 
         public void setMapped(long mapped) {
             this.mapped = mapped;
+        }
+
+        public void setTotal(long total) {
+            this.total = total;
+        }
+
+        public void setAvailable(long available) {
+            this.available = available;
         }
     }
 }
