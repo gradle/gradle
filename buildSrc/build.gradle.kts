@@ -186,6 +186,14 @@ fun Project.applyGroovyProjectConventions() {
         inputs.property("javaInstallation", "$vendor ${JavaVersion.current()}")
     }
 
+    tasks.withType<Test>().configureEach {
+        //allow embedded executer to modify environment variables
+        jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+        //allow embedded executer to inject legacy types into the system classloader
+        jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        jvmArgs("--illegal-access=deny")
+    }
+
     val compileGroovy: TaskProvider<GroovyCompile> = tasks.withType(GroovyCompile::class.java).named("compileGroovy")
 
     configurations {
