@@ -31,7 +31,7 @@ Gradle provides lazy properties, which delay the calculation of a property’s v
 
 1. Build authors can wire together Gradle models without worrying when a particular property’s value will be known. For example, you may want to set the input source files of a task based on the source directories property of an extension but the extension property value isn't known until the build script or some other plugin configures them.
 2. Build authors can wire an output property of a task into an input property of some other task and Gradle automatically determines the task dependencies based on this connection. Property instances carry information about which task, if any, produces their value.
-3. Build authors can avoid resource intensive work during the configuration phase, which can have a large impact on build performance. For example, when a property value comes from parsing a file but is only used when functional tests are run, using a property to capture this means that the file is parsed only when the functional tests are run, but not when `clean` is run.
+3. Build authors can avoid resource intensive work during the configuration phase, which can have a large impact on build performance. For example, when a configuration value comes from parsing a file but is only used when functional tests are run, using a property instance to capture this means that the file is parsed only when the functional tests are run, but not when, for example, `clean` is run.
 
 Gradle represents lazy properties with two interfaces:
 
@@ -48,7 +48,7 @@ Gradle represents lazy properties with two interfaces:
 ** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present. This allows you to wire together `Provider` and `Property` instances before the values are configured.
 ** A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
 
-Lazy properties are intended to be passed around and only queried when required (usually, during the execution phase). For more information about the Gradle build phases, please see <<build_lifecycle.adoc#sec:build_phases,Build Lifecycle>>.
+Lazy properties are intended to be passed around and only queried when required. Usually, this will happen during the execution phase. For more information about the Gradle build phases, please see <<build_lifecycle.adoc#sec:build_phases,Build Lifecycle>>.
 
 The following demonstrates a task with a configurable `greeting` property and a read-only `message` property that is derived from this:
 
@@ -83,7 +83,7 @@ Neither `Provider` nor its subtypes such as `Property` are intended to be implem
 - link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)] create a new `Property` instance. An instance of the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] can be referenced from link:{javadocPath}/org/gradle/api/Project.html#getObjects--[Project.getObjects()] or by injecting `ObjectFactory` through a constructor or method.
 - link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)] creates a new `Provider` from an existing `Provider` or `Property` instance.
 
-A `Provider` can also be created by the factory method link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(Callable)]. You should prefer using `map()` instead, as this has some useful benefits, as we will see later.
+A `Provider` can also be created by the factory method link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(Callable)]. You should prefer using `map()` instead, as this has some useful benefits, which we will see later.
 
 [NOTE]
 ====
@@ -114,7 +114,7 @@ include::{samplesPath}/providers/connectProperties/connectProperties.out[]
 This example calls the link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] method to attach a `Provider` to a `Property` to supply the value of the property. In this case, the `Provider` happens to be a `Property` as well, but you can connect any `Provider` implementation, for example one created using `Provider.map()`
 
 [[sec:working_with_files_in_lazy_properties]]
-== Working with files and Providers
+== Working with files
 
 In <<working_with_files.adoc#working_with_files,Working with Files>>, we introduced four collection types for `File`-like objects:
 
@@ -132,7 +132,7 @@ In <<working_with_files.adoc#working_with_files,Working with Files>>, we introdu
 
 All of these types are also considered lazy types.
 
-In this section, we are going to introduce more strongly typed models types to represent elements of the file system: link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle, and other people, that you expect more specific values (a directory or a non-directory, regular file).
+In this section, we are going to introduce more strongly typed models types to represent elements of the file system: link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle, and other people, that you expect more specific values such as a directory or a non-directory, regular file.
 
 Gradle provides two specialized `Property` subtypes for dealing with values of these types: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]. link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] has methods to create these: link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()] and link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()].
 
@@ -160,11 +160,11 @@ include::{samplesPath}/providers/fileAndDirectoryProperty/workingWithFilesKotlin
 This example creates providers that represent locations in the project and build directories through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
 
 [[sec:working_with_task_dependencies_in_lazy_properties]]
-== Working with task input and outputs and Providers
+== Working with task inputs and outputs
 
-Many builds have several tasks connected together, where one task consumes the outputs of another task as an input. To make this work, we need to configure each task to know where to look for its inputs and place its outputs, make sure that the producing and consuming tasks are configured with the same location, and attach task dependencies between the tasks. This can be cumbersome and brittle if any of these values are configurable by a user or configured by multiple plugins, as task properties need to be configured in the correct order and locations and task dependencies kept in sync as values change.
+Many builds have several tasks connected together, where one task consumes the outputs of another task as an input. To make this work, we would need to configure each task to know where to look for its inputs and place its outputs, make sure that the producing and consuming tasks are configured with the same location, and attach task dependencies between the tasks. This can be cumbersome and brittle if any of these values are configurable by a user or configured by multiple plugins, as task properties need to be configured in the correct order and locations and task dependencies kept in sync as values change.
 
-The `Property` API makes this easier by keeping track of not just the value for a property, which we have seen already, but also the task that produces the value, so that you don't have to specify it as well. As an example consider, the following plugin with a producer and consumer task, which are wired together via inputs and outputs:
+The `Property` API makes this easier by keeping track of not just the value for a property, which we have seen already, but also the task that produces the value, so that you don't have to specify it as well. As an example consider the following plugin with a producer and consumer task which are wired together:
 
 .Implicit task dependency
 ====
@@ -190,20 +190,20 @@ In the example above, the task outputs and inputs are connected before any locat
 Another important thing to note in this example is the absence of any explicit task dependency. Task outputs represented using `Providers` keep track of which task produces their value, and using them as task inputs will implicitly add the correct task dependencies.
 
 [[sec:working_with_collection]]
-== Working with collection Providers
+== Working with collections
 
 In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like file providers, they have additional modeling around them. There are two provider interfaces available, one for `List` values and another for `Set` values:
 
-* For `List` values the interface is called link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty]. You can create a new `ListProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)] and specifying the element's type.
-* For `Set` values the interface is called link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty]. You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)] and specifying the element's type.
+* For `List` values the interface is called link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty]. You can create a new `ListProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)] and specifying the element type.
+* For `Set` values the interface is called link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty]. You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)] and specifying the element type.
 
 This type of property allows you to overwrite the entire collection value with link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-java.lang.Iterable-[HasMultipleValues.set(Iterable)] and link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-org.gradle.api.provider.Provider-[HasMultipleValues.set(Provider)] or add new elements through the various `add` methods:
 
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)]: Add a single concrete element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)]: Add a lazily evaluated element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]: Add a lazily evaluated collection of elements to the list
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)]: Add a single element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)]: Add a lazily calculated element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]: Add a lazily calculated collection of elements to the list
 
-Just like every `Provider`, the collection is calculated when link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] is called. The following example show the link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] in action:
+Just like every `Provider`, the collection is calculated when link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] is called. The following example shows the link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] in action:
 
 .List property
 ====
@@ -211,10 +211,17 @@ include::sample[dir="providers/listProperty/groovy",files="build.gradle[]"]
 include::sample[dir="providers/listProperty/kotlin",files="build.gradle.kts[]"]
 ====
 
-.Output of **`gradle print`**
+.Output of **`gradle consumer`**
+[.multi-language-text.lang-groovy]
 ----
-> gradle print
-include::{samplesPath}/providers/listProperty/listProperty.out[]
+> gradle consumer
+include::{samplesPath}/providers/listProperty/listPropertyGroovy.out[]
+----
+.Output of **`gradle consumer`**
+[.multi-language-text.lang-kotlin]
+----
+> gradle consumer
+include::{samplesPath}/providers/listProperty/listPropertyKotlin.out[]
 ----
 
 [[sec:lazy_configuration_faqs]]
