@@ -16,7 +16,6 @@
 
 package org.gradle.internal.artifacts.repositories;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
@@ -29,13 +28,10 @@ public interface AuthenticationSupportedInternal extends AuthenticationSupported
      * Returns the configured authentication schemes or an instance of {@link org.gradle.internal.authentication.AllSchemesAuthentication}
      * if none have been configured yet credentials have been configured.
      */
-    @Incubating
     Collection<Authentication> getConfiguredAuthentication();
 
-    @Incubating
     void setConfiguredCredentials(Credentials credentials);
 
-    @Incubating
     @Nullable
     Credentials getConfiguredCredentials();
 }
