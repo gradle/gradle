@@ -127,7 +127,10 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
     // in the source code based version but it's enough for a ballpark figure
     private
     fun loadConfigurationSchema(): Map<String, ProjectSchema<String>> {
-        val helloAndroidProjectSchema = loadMultiProjectSchemaFromResource("/hello-android-project-schema.json")
+        val helloAndroidProjectSchema = loadMultiProjectSchemaFromResource(
+            "/gradle-project-schema.json"
+//            "/hello-android-project-schema.json"
+        )
         return configOnlySchemaFrom(helloAndroidProjectSchema)
     }
 
