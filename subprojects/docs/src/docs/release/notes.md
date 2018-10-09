@@ -442,7 +442,8 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 ### Annotation processors on the compile classpath are now ignored
 
 Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
-Please add them to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+This might cause compilation errors when upgrading to Gradle 5.0.
+Please add annotation processors to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
 
 ### Changes to previously deprecated APIs
 
@@ -532,7 +533,7 @@ The source path for a `JavaCompile` task should be set via the `CompileOptions.s
 ### Cannot specify `--processor-path` directly as a Java compiler arg
 
 Adding `-processorpath` or `--processor-path` to the `CompileOptions.compilerArgs` list is now prohibited.
-The annotation processor path for a `JavaCompile` task should be set via the `CompileOptions.annotationProcessorPath` property.
+Annotation processors should instead be added to the `annotationProcessor` configuration.
 
 ## External contributions
 
