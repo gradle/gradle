@@ -17,14 +17,12 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 
 /**
  * <p>A <code>TestExecutionException</code> is thrown when no tests can be found that match the specified test filters.
  *
  * @since 2.6
  */
-@Incubating
 public class TestExecutionException extends GradleException {
     public TestExecutionException(String message) {
         super(message);
