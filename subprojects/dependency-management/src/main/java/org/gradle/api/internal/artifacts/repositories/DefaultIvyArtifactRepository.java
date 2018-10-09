@@ -83,6 +83,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private Object baseUrl;
+    private Set<String> schemes = null;
     private AbstractRepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
@@ -154,6 +155,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     protected RepositoryDescriptor createDescriptor() {
+        Set<String> schemes = getSchemes();
+        validate(schemes);
+
         String layoutType;
         boolean m2Compatible;
         if (layout instanceof GradleRepositoryLayout) {
@@ -185,14 +189,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createRealResolver() {
-        URI uri = getUrl();
-
-        Set<String> schemes = new LinkedHashSet<String>();
-        layout.addSchemes(uri, schemes);
-        additionalPatternsLayout.addSchemes(uri, schemes);
+        Set<String> schemes = getSchemes();
+        validate(schemes);
 
         IvyResolver resolver = createResolver(schemes);
-
+        URI uri = getUrl();
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 
@@ -200,10 +201,23 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication()));
+    }
+
+    private void validate(Set<String> schemes) {
         if (schemes.isEmpty()) {
             throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
         }
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication()));
+    }
+
+    private Set<String> getSchemes() {
+        if (schemes == null) {
+            URI uri = getUrl();
+            schemes = new LinkedHashSet<>();
+            layout.addSchemes(uri, schemes);
+            additionalPatternsLayout.addSchemes(uri, schemes);
+        }
+        return schemes;
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {
