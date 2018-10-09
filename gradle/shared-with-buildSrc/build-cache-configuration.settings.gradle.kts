@@ -28,8 +28,7 @@ val remoteCachePassword = System.getProperty("gradle.cache.remote.password", "")
 
 buildCache {
     local {
-        //isEnabled = !isCiServer
-        isEnabled = true
+        isEnabled = !isCiServer
     }
 }
 
