@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import java.io.File;
 
+/**
+ * Invokes a transformer on a single primary input.
+ */
 public interface TransformerInvoker {
     void invoke(TransformerInvocation invocation);
     boolean hasCachedResult(File primaryInput, Transformer transformer);

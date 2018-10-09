@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 
+/**
+ * A series of {@link ArtifactTransformationStep}s.
+ */
 class ArtifactTransformationChain implements ArtifactTransformation {
 
     private final ArtifactTransformation first;

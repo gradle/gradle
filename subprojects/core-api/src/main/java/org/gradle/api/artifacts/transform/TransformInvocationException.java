@@ -33,20 +33,20 @@ import java.io.File;
 public class TransformInvocationException extends GradleException {
 
     private final File input;
-    private final Class<? extends ArtifactTransform> transform;
+    private final Class<? extends ArtifactTransform> transformerImplementation;
 
-    public TransformInvocationException(File input, Class<? extends ArtifactTransform> transform, Throwable cause) {
-        super(format(input, transform), cause);
+    public TransformInvocationException(File input, Class<? extends ArtifactTransform> transformerImplementation, Throwable cause) {
+        super(format(input, transformerImplementation), cause);
         this.input = input;
-        this.transform = transform;
+        this.transformerImplementation = transformerImplementation;
     }
 
     public File getInput() {
         return input;
     }
 
-    public Class<? extends ArtifactTransform> getTransformImplementation() {
-        return transform;
+    public Class<? extends ArtifactTransform> getTransformerImplementation() {
+        return transformerImplementation;
     }
 
     private static String format(File input, Class<? extends ArtifactTransform> transform) {

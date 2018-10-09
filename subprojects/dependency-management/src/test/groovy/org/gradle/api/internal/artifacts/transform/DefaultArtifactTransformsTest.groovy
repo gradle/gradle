@@ -125,7 +125,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile4 = new File("out4.classes")
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
-        def transformer = Mock(ArtifactTransformation)
+        def transformation = Mock(ArtifactTransformation)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
         def visitor = Mock(ArtifactVisitor)
         def targetAttributes = typeAttributes("classes")
@@ -143,7 +143,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(_, _) >> []
 
         matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes, _) >> { AttributeContainerInternal from, AttributeContainerInternal to, ConsumerVariantMatchResult result ->
-            result.matched(to, transformer, 1)
+            result.matched(to, transformation, 1)
         }
         matchingCache.collectConsumerVariants(typeAttributes("dll"), targetAttributes, _) >> { }
         def result = transforms.variantSelector(targetAttributes, true).select(set)
@@ -164,19 +164,19 @@ class DefaultArtifactTransformsTest extends Specification {
                 }
             }
         }
-        _ * transformer.hasCachedResult(_ as TransformationSubject) >> false
-        _ * transformer.getDisplayName() >> "transform"
+        _ * transformation.hasCachedResult(_ as TransformationSubject) >> false
+        _ * transformation.getDisplayName() >> "transform"
 
-        1 * transformer.transform({ it instanceof InitialArtifactTransformationSubject && it.files == [sourceArtifactFile]}) >> new DefaultTransformationSubject(new InitialArtifactTransformationSubject(sourceArtifactId, sourceArtifactFile), [outFile1, outFile2])
+        1 * transformation.transform({ it instanceof InitialArtifactTransformationSubject && it.files == [sourceArtifactFile]}) >> new DefaultTransformationSubject(new InitialArtifactTransformationSubject(sourceArtifactId, sourceArtifactFile), [outFile1, outFile2])
 
-        1 * transformer.transform({ it instanceof InitialFileTransformationSubject && it.files == [sourceFile] }) >> new DefaultTransformationSubject(new InitialFileTransformationSubject(sourceFile), [outFile3, outFile4])
+        1 * transformation.transform({ it instanceof InitialFileTransformationSubject && it.files == [sourceFile] }) >> new DefaultTransformationSubject(new InitialFileTransformationSubject(sourceFile), [outFile3, outFile4])
 
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), variant1DisplayName, targetAttributes, outFile3)
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), variant1DisplayName, targetAttributes, outFile4)
         0 * visitor._
-        0 * transformer._
+        0 * transformation._
     }
 
     def "fails when multiple transforms match"() {
@@ -276,7 +276,7 @@ Found the following transforms:
         set.startVisit(new TestBuildOperationExecutor.TestBuildOperationQueue<RunnableBuildOperation>(), Stub(ResolvedArtifactSet.AsyncArtifactListener)).visit(visitor)
     }
 
-    private AttributeContainerInternal typeAttributes(String artifactType) {
+    private static AttributeContainerInternal typeAttributes(String artifactType) {
         def attributeContainer = new DefaultMutableAttributeContainer(AttributeTestUtil.attributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()

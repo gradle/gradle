@@ -30,12 +30,12 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final Map<File, TransformationOperation> fileResults;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
-    private final ArtifactTransformation transform;
+    private final ArtifactTransformation transformation;
 
-    TransformingAsyncArtifactListener(ArtifactTransformation transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
+    TransformingAsyncArtifactListener(ArtifactTransformation transformation, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
         this.artifactResults = artifactResults;
         this.actions = actions;
-        this.transform = transform;
+        this.transformation = transformation;
         this.delegate = delegate;
         this.fileResults = fileResults;
     }
@@ -66,9 +66,9 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     }
 
     private <T> void initialSubjectAvailable(T key, TransformationSubject initialSubject, Map<T, TransformationOperation> results) {
-        TransformationOperation operation = new TransformationOperation(transform, initialSubject);
+        TransformationOperation operation = new TransformationOperation(transformation, initialSubject);
         results.put(key, operation);
-        if (transform.hasCachedResult(initialSubject)) {
+        if (transformation.hasCachedResult(initialSubject)) {
             operation.run(null);
         } else {
             actions.add(operation);

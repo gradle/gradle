@@ -20,6 +20,9 @@ import java.io.File;
 import java.util.List;
 import javax.annotation.Nullable;
 
+/**
+ * The invocation of a transformer on a primary input file.
+ */
 public class TransformerInvocation {
     private final Transformer transformer;
     private final File primaryInput;

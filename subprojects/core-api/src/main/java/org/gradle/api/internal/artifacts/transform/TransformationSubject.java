@@ -22,8 +22,18 @@ import java.io.File;
 import java.util.List;
 import javax.annotation.Nullable;
 
+/**
+ * Subject which is transformed or the result of a transformation.
+ */
 public interface TransformationSubject extends Describable {
+    /**
+     * The files which should be transformed.
+     */
     List<File> getFiles();
+
+    /**
+     * Records the failure to transform a previous subject.
+     */
     @Nullable
     Throwable getFailure();
 }

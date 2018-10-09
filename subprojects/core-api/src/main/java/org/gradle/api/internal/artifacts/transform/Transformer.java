@@ -24,7 +24,18 @@ import org.gradle.internal.util.BiFunction;
 import java.io.File;
 import java.util.List;
 
+/**
+ * The actual code which needs to be executed to transform a file.
+ *
+ * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
+ */
 public interface Transformer extends BiFunction<List<File>, File, File>, Describable {
     Class<? extends ArtifactTransform> getImplementationClass();
+
+    /**
+     * The hash of the non-primary inputs of the transformer.
+     *
+     * This includes the parameters and the implementation.
+     */
     HashCode getInputsHash();
 }

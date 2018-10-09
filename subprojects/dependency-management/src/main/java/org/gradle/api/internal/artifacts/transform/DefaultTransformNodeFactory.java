@@ -32,8 +32,8 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
     private final Map<ArtifactTransformKey, TransformNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformation transformer) {
-        final List<ArtifactTransformationStep> transformerChain = unpackTransformation(transformer);
+    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformation transformation) {
+        final List<ArtifactTransformationStep> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
             @Override
@@ -46,7 +46,7 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
                         BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
                 }
                 BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                TransformNode transformNode = getOrCreate(singleArtifactSet, transformerChain);
+                TransformNode transformNode = getOrCreate(singleArtifactSet, transformationChain);
                 builder.add(transformNode);
                 return true;
             }
@@ -54,15 +54,15 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
         return builder.build();
     }
 
-    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<ArtifactTransformationStep> transformerChain) {
-        ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
+    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<ArtifactTransformationStep> transformationChain) {
+        ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformationChain);
         TransformNode transformNode = transformations.get(key);
         if (transformNode == null) {
-            if (transformerChain.size() == 1) {
-                transformNode = TransformNode.initial(transformerChain.iterator().next(), singleArtifactSet);
+            if (transformationChain.size() == 1) {
+                transformNode = TransformNode.initial(transformationChain.iterator().next(), singleArtifactSet);
             } else {
-                TransformNode previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
-                transformNode = TransformNode.chained(transformerChain.get(transformerChain.size() - 1), previous);
+                TransformNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1));
+                transformNode = TransformNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
             transformations.put(key, transformNode);
         }
@@ -82,11 +82,11 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
 
     private static class ArtifactTransformKey {
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final List<ArtifactTransformationStep> transformers;
+        private final List<ArtifactTransformationStep> transformations;
 
-        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<ArtifactTransformationStep> transformers) {
+        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<ArtifactTransformationStep> transformations) {
             this.artifactIdentifier = artifactIdentifier;
-            this.transformers = transformers;
+            this.transformations = transformations;
         }
 
         @Override
@@ -103,13 +103,13 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
             if (!artifactIdentifier.equals(that.artifactIdentifier)) {
                 return false;
             }
-            return transformers.equals(that.transformers);
+            return transformations.equals(that.transformations);
         }
 
         @Override
         public int hashCode() {
             int result = artifactIdentifier.hashCode();
-            result = 31 * result + transformers.hashCode();
+            result = 31 * result + transformations.hashCode();
             return result;
         }
     }

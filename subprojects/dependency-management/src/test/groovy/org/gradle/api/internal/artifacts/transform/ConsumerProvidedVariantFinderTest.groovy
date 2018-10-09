@@ -66,7 +66,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         result.matches.size() == 1
         result.matches.first().attributes == c2
-        result.matches.first().transformer.is(reg2.transformation)
+        result.matches.first().transformation.is(reg2.transformation)
 
         and:
         _ * schema.matcher() >> matcher
@@ -95,7 +95,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         result.matches.size() == 2
         result.matches*.attributes == [c3, c2]
-        result.matches*.transformer == [reg1.transformation, reg2.transformation]
+        result.matches*.transformation == [reg1.transformation, reg2.transformation]
 
         and:
         _ * schema.matcher() >> matcher
@@ -123,7 +123,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         then:
         def match = result.matches.first()
-        match.transformer.is(reg2.transformation)
+        match.transformation.is(reg2.transformation)
 
         and:
         _ * schema.matcher() >> matcher
@@ -141,7 +141,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         def match2 = result2.matches.first()
         match2.attributes.is(match.attributes)
-        match2.transformer.is(match.transformer)
+        match2.transformation.is(match.transformation)
 
         and:
         0 * matcher._
@@ -182,14 +182,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformer.transform(initialSubject("in.txt"))
+        def result = transformer.transformation.transform(initialSubject("in.txt"))
 
         then:
         result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
-    }
-
-    private static TransformationSubject initialSubject(String path) {
-        new InitialFileTransformationSubject(new File(path))
     }
 
     def "prefers direct transformation over indirect"() {
@@ -209,7 +205,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result.matches.first().transformer.is(reg3.transformation)
+        result.matches.first().transformation.is(reg3.transformation)
 
         and:
         _ * schema.matcher() >> matcher
@@ -261,7 +257,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformer.transform(initialSubject("a")).files
+        def files = result.matches.first().transformation.transform(initialSubject("a")).files
 
         then:
         files == [new File("d"), new File("e")]
@@ -326,6 +322,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         and:
         0 * matcher._
+    }
+
+    private static TransformationSubject initialSubject(String path) {
+        new InitialFileTransformationSubject(new File(path))
     }
 
     private AttributeContainerInternal attributes() {

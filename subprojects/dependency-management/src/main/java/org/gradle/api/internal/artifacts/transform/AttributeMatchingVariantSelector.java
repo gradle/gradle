@@ -94,7 +94,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
-            ArtifactTransformation transformer = result.getRight().transformer;
+            ArtifactTransformation transformer = result.getRight().transformation;
             return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformer);
         }
 

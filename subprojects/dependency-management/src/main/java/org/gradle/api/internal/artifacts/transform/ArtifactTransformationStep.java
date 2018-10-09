@@ -24,6 +24,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A single transformation step.
+ *
+ * Transforms a subject by invoking a transformer on each of the subjects files.
+ */
 class ArtifactTransformationStep implements ArtifactTransformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactTransformationStep.class);
 

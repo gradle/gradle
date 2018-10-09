@@ -43,13 +43,13 @@ class TransformerInvokerTest extends Specification {
 
         1 * transformer.getInputsHash() >> transformerInputsHash
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformationListener.beforeTransform(transformer, sourceSubject)
+        1 * transformationListener.beforeTransformation(transformer, sourceSubject)
 
         then:
         1 * transformedFileCache.getResult(sourceFile, transformer) >> [resultOne, resultTwo]
 
         then:
-        1 * transformationListener.afterTransform(transformer, sourceSubject)
+        1 * transformationListener.afterTransformation(transformer, sourceSubject)
         0 * _
     }
 
@@ -64,13 +64,13 @@ class TransformerInvokerTest extends Specification {
 
         1 * transformer.getInputsHash() >> transformerInputsHash
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformationListener.beforeTransform(transformer, sourceSubject)
+        1 * transformationListener.beforeTransformation(transformer, sourceSubject)
 
         then:
         1 * transformedFileCache.getResult(sourceFile, transformer) >> { throw failure }
 
         then:
-        1 * transformationListener.afterTransform(transformer, sourceSubject)
+        1 * transformationListener.afterTransformation(transformer, sourceSubject)
         1 * transformer.implementationClass >> ArtifactTransform
         0 * _
     }
@@ -89,9 +89,9 @@ class TransformerInvokerTest extends Specification {
         and:
         1 * transformer.getInputsHash() >> transformerInputsHash
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformationListener.beforeTransform(transformer, sourceSubject)
+        1 * transformationListener.beforeTransformation(transformer, sourceSubject)
         1 * transformedFileCache.getResult(sourceFile, transformer) >> { throw failure }
-        1 * transformationListener.afterTransform(transformer, sourceSubject)
+        1 * transformationListener.afterTransformation(transformer, sourceSubject)
         1 * transformer.implementationClass >> ArtifactTransform
         0 * _
     }

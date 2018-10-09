@@ -138,7 +138,7 @@ public class BuildProfile {
         return new CompositeOperation<ContinuousOperation>(profiles);
     }
 
-    public FragmentedOperation getTransformProfile(String transformDescription) {
+    public FragmentedOperation getTransformationProfile(String transformDescription) {
         FragmentedOperation profile = transforms.get(transformDescription);
         if (profile == null) {
             profile = new FragmentedOperation(transformDescription);

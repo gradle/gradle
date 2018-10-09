@@ -44,7 +44,7 @@ public abstract class TransformNode extends Node {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
-    protected final ArtifactTransformationStep artifactTransformer;
+    protected final ArtifactTransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
 
     public static TransformNode chained(ArtifactTransformationStep current, TransformNode previous) {
@@ -55,15 +55,15 @@ public abstract class TransformNode extends Node {
         return new InitialTransformNode(initial, artifact);
     }
 
-    protected TransformNode(ArtifactTransformationStep artifactTransformer) {
-        this.artifactTransformer = artifactTransformer;
+    protected TransformNode(ArtifactTransformationStep transformationStep) {
+        this.transformationStep = transformationStep;
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
 
     @Override
     public String toString() {
-        return artifactTransformer.getDisplayName();
+        return transformationStep.getDisplayName();
     }
 
     private TransformationSubject getTransformedSubject() {
@@ -102,10 +102,10 @@ public abstract class TransformNode extends Node {
         private final BuildableSingleResolvedArtifactSet artifactSet;
 
         public InitialTransformNode(
-            ArtifactTransformationStep artifactTransformer,
+            ArtifactTransformationStep transformationStep,
             BuildableSingleResolvedArtifactSet artifactSet
         ) {
-            super(artifactTransformer);
+            super(transformationStep);
             this.artifactSet = artifactSet;
         }
 
@@ -130,16 +130,17 @@ public abstract class TransformNode extends Node {
         }
 
         private class InitialArtifactTransformationStepOperation implements RunnableBuildOperation {
+            private final BuildOperationExecutor buildOperationExecutor;
+
             private TransformationSubject transformedSubject;
 
-            private final BuildOperationExecutor buildOperationExecutor;
             public InitialArtifactTransformationStepOperation(BuildOperationExecutor buildOperationExecutor) {
                 this.buildOperationExecutor = buildOperationExecutor;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform artifact " + artifactSet.getArtifactId().getDisplayName() + " with " + artifactTransformer.getDisplayName();
+                String displayName = "Transform artifact " + artifactSet.getArtifactId().getDisplayName() + " with " + transformationStep.getDisplayName();
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .operationType(BuildOperationCategory.TRANSFORM);
@@ -157,7 +158,7 @@ public abstract class TransformNode extends Node {
                     if (failures.size() == 1 && Iterables.getOnlyElement(failures) instanceof ResolveException) {
                         failure = Iterables.getOnlyElement(failures);
                     } else {
-                        failure = new DefaultLenientConfiguration.ArtifactResolveException("artifacts", artifactTransformer.getDisplayName(), "artifact transform", failures);
+                        failure = new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", failures);
                     }
                     this.transformedSubject = new ResolveFailedTransformationSubject(artifactSet.getArtifactId(), failure);
                     return;
@@ -165,7 +166,7 @@ public abstract class TransformNode extends Node {
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
                 InitialArtifactTransformationSubject initialArtifactTransformationSubject = new InitialArtifactTransformationSubject(artifact.getId(), artifact.getFile());
 
-                this.transformedSubject = artifactTransformer.transform(initialArtifactTransformationSubject);
+                this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
             }
 
             public TransformationSubject getTransformedSubject() {
@@ -175,11 +176,11 @@ public abstract class TransformNode extends Node {
     }
 
     private static class ChainedTransformNode extends TransformNode {
-        private final TransformNode previousTransform;
+        private final TransformNode previousTransformNode;
 
-        public ChainedTransformNode(ArtifactTransformationStep artifactTransformer, TransformNode previousTransform) {
-            super(artifactTransformer);
-            this.previousTransform = previousTransform;
+        public ChainedTransformNode(ArtifactTransformationStep transformationStep, TransformNode previousTransformNode) {
+            super(transformationStep);
+            this.previousTransformNode = previousTransformNode;
         }
 
         @Override
@@ -191,8 +192,8 @@ public abstract class TransformNode extends Node {
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-            addDependencySuccessor(previousTransform);
-            processHardSuccessor.execute(previousTransform);
+            addDependencySuccessor(previousTransformNode);
+            processHardSuccessor.execute(previousTransformNode);
         }
 
         private class ChainedArtifactTransformStepOperation implements RunnableBuildOperation {
@@ -201,12 +202,12 @@ public abstract class TransformNode extends Node {
 
             @Override
             public void run(BuildOperationContext context) {
-                this.transformedSubject = artifactTransformer.transform(previousTransform.getTransformedSubject());
+                this.transformedSubject = transformationStep.transform(previousTransformNode.getTransformedSubject());
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform " + previousTransform.getTransformedSubject().getDisplayName() + " with " + artifactTransformer.getDisplayName();
+                String displayName = "Transform " + previousTransformNode.getTransformedSubject().getDisplayName() + " with " + transformationStep.getDisplayName();
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .operationType(BuildOperationCategory.TRANSFORM);

@@ -103,7 +103,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
     private void visitFailureWithContext(Throwable failure) {
         if (failure instanceof TransformInvocationException) {
             TransformInvocationException invocationException = (TransformInvocationException) failure;
-            visitor.visitFailure(new ArtifactTransformException(invocationException.getInput(), target, invocationException.getTransformImplementation(), failure.getCause()));
+            visitor.visitFailure(new ArtifactTransformException(invocationException.getInput(), target, invocationException.getTransformerImplementation(), failure.getCause()));
         } else {
             visitor.visitFailure(failure);
         }

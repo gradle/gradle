@@ -41,7 +41,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final ProfileListener listener;
-    private final ThreadLocal<ContinuousOperation> currentTransform = new ThreadLocal<ContinuousOperation>();
+    private final ThreadLocal<ContinuousOperation> currentTransformation = new ThreadLocal<ContinuousOperation>();
     private BuildProfile buildProfile;
 
     public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener) {
@@ -138,17 +138,17 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void beforeTransform(Transformer transformer, TransformationSubject subject) {
+    public void beforeTransformation(Transformer transformer, TransformationSubject subject) {
         long now = clock.getCurrentTime();
-        String transformDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
-        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
-        currentTransform.set(transformProfile.start(now));
+        String transformationDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
+        FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
+        currentTransformation.set(transformationProfile.start(now));
     }
 
     @Override
-    public void afterTransform(Transformer transformer, TransformationSubject subject) {
+    public void afterTransformation(Transformer transformer, TransformationSubject subject) {
         long now = clock.getCurrentTime();
-        currentTransform.get().setFinish(now);
-        currentTransform.remove();
+        currentTransformation.get().setFinish(now);
+        currentTransformation.remove();
     }
 }

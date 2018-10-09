@@ -37,7 +37,7 @@ public class TransformNodeDependencyResolver implements DependencyResolver {
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultArtifactTransformDependency) {
             DefaultArtifactTransformDependency transformation = (DefaultArtifactTransformDependency) node;
-            Collection<TransformNode> transforms = transformNodeFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransform());
+            Collection<TransformNode> transforms = transformNodeFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransformation());
             for (TransformNode transformNode : transforms) {
                 resolveAction.execute(transformNode);
             }
