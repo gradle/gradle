@@ -534,7 +534,6 @@ The source path for a `JavaCompile` task should be set via the `CompileOptions.s
 
 Adding `-processorpath` or `--processor-path` to the `CompileOptions.compilerArgs` list is now prohibited.
 Annotation processor should instead be added to the `annotationProcessor` configuration.
-If you need to override the annotation processor path for a `JavaCompile` task, you can set it via the `CompileOptions.annotationProcessorPath` property.
 
 ## External contributions
 
