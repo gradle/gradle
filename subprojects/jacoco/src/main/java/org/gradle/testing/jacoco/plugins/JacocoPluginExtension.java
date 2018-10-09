@@ -41,7 +41,6 @@ import java.util.concurrent.Callable;
 /**
  * Extension including common properties and methods for Jacoco.
  */
-@Incubating
 public class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
@@ -89,6 +88,7 @@ public class JacocoPluginExtension {
      * @param reportsDir Reports directory provider
      * @since 4.0
      */
+    @Incubating
     public void setReportsDir(Provider<File> reportsDir) {
         this.reportsDir.set(reportsDir);
     }

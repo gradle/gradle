@@ -16,7 +16,6 @@
 
 package org.gradle.testing.jacoco.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportContainer;
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.Internal;
 /**
  * The reporting configuration for the {@link JacocoReport} task.
  */
-@Incubating
 public interface JacocoReportsContainer extends ReportContainer<ConfigurableReport> {
     /**
      * The JaCoCo HTML report
