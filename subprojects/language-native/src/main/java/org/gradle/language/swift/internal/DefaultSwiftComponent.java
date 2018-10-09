@@ -18,7 +18,6 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.LockableProperty;
 import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -41,7 +40,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Property<String> module;
     private final String name;
     private final Names names;
-    private final LockableProperty<SwiftVersion> sourceCompatibility;
+    private final Property<SwiftVersion> sourceCompatibility;
     private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
 
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
@@ -49,7 +48,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);
-        sourceCompatibility = new LockableProperty<SwiftVersion>(objectFactory.property(SwiftVersion.class));
+        sourceCompatibility = objectFactory.property(SwiftVersion.class);
 
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
@@ -83,7 +82,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public LockableProperty<SwiftVersion> getSourceCompatibility() {
+    public Property<SwiftVersion> getSourceCompatibility() {
         return sourceCompatibility;
     }
 

@@ -87,7 +87,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                application.getOperatingSystems().lockNow();
+                application.getOperatingSystems().finalizeValue();
                 Set<OperatingSystemFamily> operatingSystemFamilies = application.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the application.");

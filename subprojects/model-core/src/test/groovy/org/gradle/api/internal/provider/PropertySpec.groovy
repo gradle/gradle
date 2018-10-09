@@ -29,9 +29,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     abstract Class<T> type()
 
-    def "can set to null value to remove value"() {
+    def "can set to null value to discard value"() {
         given:
         def property = property()
+        property.set(someValue())
         property.set(null)
 
         expect:
@@ -44,7 +45,6 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     def "cannot get value when it has none"() {
         given:
         def property = property()
-        property.set(null)
 
         when:
         property.get()
@@ -284,7 +284,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         0 * _
     }
 
-    def "mapped provider has no value when property has no value and transformer is not invoked"() {
+    def "mapped provider has no value and transformer is not invoked when property has no value"() {
         def transformer = Mock(Transformer)
         def property = property()
         property.set(null)
@@ -304,6 +304,119 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'No value has been specified for this provider.'
+    }
+
+    def "can finalize value when no value defined"() {
+        def property = property()
+
+        when:
+        property.finalizeValue()
+
+        then:
+        !property.present
+        property.getOrNull() == null
+    }
+
+    def "can finalize value when value set"() {
+        def property = property()
+
+        when:
+        property.set(someValue())
+        property.finalizeValue()
+
+        then:
+        property.present
+        property.getOrNull() == someValue()
+    }
+
+    def "replaces provider with a final copy when value finalized"() {
+        def property = property()
+        def provider = Mock(ProviderInternal)
+        def finalProvider = Mock(ProviderInternal)
+
+        when:
+        property.set(provider)
+        property.finalizeValue()
+
+        then:
+        _ * provider.type >> type()
+        1 * provider.withFinalValue() >> finalProvider
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        present
+        result == someValue()
+        1 * finalProvider.isPresent() >> true
+        1 * finalProvider.getOrNull() >> someValue()
+        0 * _
+    }
+
+    def "can finalize value when already finalized"() {
+        def property = property()
+        def provider = Mock(ProviderInternal)
+        def finalProvider = Mock(ProviderInternal)
+
+        when:
+        property.set(provider)
+        property.finalizeValue()
+
+
+        then:
+        _ * provider.type >> type()
+        1 * provider.withFinalValue() >> finalProvider
+        0 * _
+
+        when:
+        property.finalizeValue()
+
+        then:
+        0 * _
+    }
+
+    def "cannot set value after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.set(someValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot set value using provider after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.set(Mock(ProviderInternal))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot set value using any type after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.setFromAnyValue(12)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     static class Thing { }

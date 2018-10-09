@@ -43,7 +43,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
     def "cannot get value when locked and backing property had no value"() {
         when:
-        property.lockNow()
+        property.finalizeValue()
         property.get()
 
         then:
@@ -95,7 +95,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
     def "cannot set elements after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.set(brokenValue())
@@ -110,7 +110,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
     def "cannot set element provider after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.set(Stub(Provider))
@@ -125,7 +125,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
     def "cannot set from any value after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.setFromAnyValue(123)
@@ -142,7 +142,7 @@ abstract class LockablePropertySpec<T> extends Specification {
         def value = toMutable(someValue())
 
         when:
-        property.lockNow()
+        property.finalizeValue()
 
         then:
         1 * target.getOrNull() >> { value }
@@ -166,7 +166,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
     def "changes from original property are not visible after property is locked and property had no value"() {
         when:
-        property.lockNow()
+        property.finalizeValue()
 
         then:
         1 * target.getOrNull() >> null
@@ -191,7 +191,7 @@ abstract class LockablePropertySpec<T> extends Specification {
         when:
         def transformer = Mock(Transformer)
         def mapped = property.map(transformer)
-        property.lockNow()
+        property.finalizeValue()
 
         then:
         1 * target.getOrNull() >> { value }
@@ -219,7 +219,7 @@ abstract class LockablePropertySpec<T> extends Specification {
     def "can query type from original property locked"() {
         given:
         target.getType() >> String
-        property.lockNow()
+        property.finalizeValue()
 
         expect:
         property.getType() == String

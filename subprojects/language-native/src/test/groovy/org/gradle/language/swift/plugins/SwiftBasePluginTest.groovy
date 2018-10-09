@@ -18,12 +18,13 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
-import org.gradle.api.internal.provider.LockableProperty
+import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.language.swift.SwiftVersion
 import org.gradle.language.swift.internal.DefaultSwiftApplication
 import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
@@ -61,7 +62,7 @@ class SwiftBasePluginTest extends Specification {
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
         binary.targetPlatform >> Stub(SwiftPlatformInternal)
-        binary.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
+        binary.sourceCompatibility >> project.objects.property(SwiftVersion)
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -89,7 +90,7 @@ class SwiftBasePluginTest extends Specification {
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
         executable.targetPlatform >> Stub(SwiftPlatformInternal)
-        executable.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
+        executable.sourceCompatibility >> project.objects.property(SwiftVersion)
         executable.platformToolProvider >> new TestPlatformToolProvider()
         executable.implementationDependencies >> Stub(ConfigurationInternal)
 
@@ -121,7 +122,7 @@ class SwiftBasePluginTest extends Specification {
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
         library.targetPlatform >> Stub(SwiftPlatformInternal)
-        library.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
+        library.sourceCompatibility >> Stub(PropertyInternal) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.linkFile >> project.objects.fileProperty()
         library.implementationDependencies >> Stub(ConfigurationInternal)

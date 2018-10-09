@@ -51,7 +51,7 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
 
     def "cannot make empty after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.empty()
@@ -66,7 +66,7 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
 
     def "cannot add element after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.add("broken")
@@ -81,7 +81,7 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
 
     def "cannot add element provider after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.add(Stub(Provider))
@@ -97,7 +97,7 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
     @Unroll
     def "cannot add elements using #display after property is locked"() {
         given:
-        property.lockNow()
+        property.finalizeValue()
 
         when:
         property.addAll(value)

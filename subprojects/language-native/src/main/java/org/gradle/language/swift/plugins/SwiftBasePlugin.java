@@ -137,18 +137,13 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         project.getComponents().withType(DefaultSwiftComponent.class, new Action<DefaultSwiftComponent>() {
             @Override
             public void execute(final DefaultSwiftComponent component) {
-                project.afterEvaluate(new Action<Project>() {
-                    @Override
-                    public void execute(Project project) {
-                        component.getSourceCompatibility().lockNow();
-                    }
-                });
                 component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
                     @Override
                     public void execute(final DefaultSwiftBinary binary) {
                         Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(new Callable<SwiftVersion>() {
                             @Override
                             public SwiftVersion call() throws Exception {
+                                component.getSourceCompatibility().finalizeValue();
                                 SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
                                 if (swiftSourceCompatibility == null) {
                                     return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
