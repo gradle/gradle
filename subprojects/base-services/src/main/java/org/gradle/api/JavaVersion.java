@@ -38,6 +38,14 @@ public enum JavaVersion {
     VERSION_11,
 
     /**
+     * Java 12 major version.
+     *
+     * @since 5.0
+     */
+    @Incubating
+    VERSION_12,
+
+    /**
      * Higher version of Java.
      * @since 4.7
      */
@@ -145,6 +153,16 @@ public enum JavaVersion {
         return this == VERSION_11;
     }
 
+    /**
+     * Returns if the version is Java 12.
+     *
+     * @since 5.0
+     */
+    @Incubating
+    public boolean isJava12() {
+        return this == VERSION_12;
+    }
+
     public boolean isJava5Compatible() {
         return this.compareTo(VERSION_1_5) >= 0;
     }
@@ -177,6 +195,16 @@ public enum JavaVersion {
     @Incubating
     public boolean isJava11Compatible() {
         return this.compareTo(VERSION_11) >= 0;
+    }
+
+    /**
+     * Returns if the version is Java 12 compatible.
+     *
+     * @since 5.0
+     */
+    @Incubating
+    public boolean isJava12Compatible() {
+        return this.compareTo(VERSION_12) >= 0;
     }
 
     @Override
