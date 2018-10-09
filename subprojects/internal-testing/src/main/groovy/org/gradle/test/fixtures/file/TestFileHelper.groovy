@@ -63,7 +63,7 @@ class TestFileHelper {
         }
 
         if (nativeTools && isUnix()) {
-            def process = ['unzip', '-o', file.absolutePath, '-d', target.absolutePath].execute()
+            def process = ['unzip', '-q', '-o', file.absolutePath, '-d', target.absolutePath].execute()
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
             return
