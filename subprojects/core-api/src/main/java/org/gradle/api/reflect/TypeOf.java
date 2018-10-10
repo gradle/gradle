@@ -17,7 +17,6 @@
 package org.gradle.api.reflect;
 
 import com.google.common.base.Function;
-import org.gradle.api.Incubating;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
@@ -40,7 +39,6 @@ import static java.util.Arrays.asList;
  * @param <T> Parameterized type
  * @since 3.5
  */
-@Incubating
 public abstract class TypeOf<T> {
 
     /**
