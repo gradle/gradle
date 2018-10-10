@@ -24,7 +24,4 @@ import org.gradle.util.TestPrecondition
 @TargetCoverage({ PlayCoverage.DEFAULT })
 @Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
-    def setup() {
-        executer.noDeprecationChecks()
-    }
 }
