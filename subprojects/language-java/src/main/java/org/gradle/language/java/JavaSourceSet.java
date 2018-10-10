@@ -15,14 +15,12 @@
  */
 package org.gradle.language.java;
 
-import org.gradle.api.Incubating;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.DependentSourceSet;
 
 /**
  * A set of sources passed to the Java compiler.
  */
-@Incubating
 public interface JavaSourceSet extends DependentSourceSet {
     Classpath getCompileClasspath();
 }

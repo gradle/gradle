@@ -16,14 +16,12 @@
 
 package org.gradle.language.java.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.platform.JavaPlatform;
 
 /**
  * A platform-aware Java compile task.
  */
-@Incubating
 public class PlatformJavaCompile extends JavaCompile {
     private JavaPlatform platform;
 
