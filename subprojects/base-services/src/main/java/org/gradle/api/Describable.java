@@ -23,7 +23,6 @@ package org.gradle.api;
  *
  * @since 3.4
  */
-@Incubating
 public interface Describable {
     /**
      * Returns the display name of this object. It is strongly encouraged to compute it
