@@ -39,7 +39,6 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
 
     public DefaultWorkerConfiguration(PathToFileResolver fileResolver) {
         this.forkOptions = new DefaultJavaForkOptions(fileResolver);
-        forkOptions.workingDir(new File("").getAbsoluteFile());
         forkOptions.setEnvironment(Maps.<String, Object>newHashMap());
     }
 

@@ -573,6 +573,12 @@ The source path for a `JavaCompile` task should be set via the `CompileOptions.s
 Adding `-processorpath` or `--processor-path` to the `CompileOptions.compilerArgs` list is now prohibited.
 Annotation processors should instead be added to the `annotationProcessor` configuration.
 
+### Worker API: working directory of a worker can no longer be set 
+
+Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
+All workers now use the same working directory to enable reuse.
+Please pass files and directories as arguments instead.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
