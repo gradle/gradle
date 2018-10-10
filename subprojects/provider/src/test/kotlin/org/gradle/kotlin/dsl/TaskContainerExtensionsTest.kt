@@ -39,6 +39,19 @@ class TaskContainerExtensionsTest {
     }
 
     @Test
+    fun `can register tasks with injected constructor arguments`() {
+
+        val taskProvider = mock<TaskProvider<Task>>()
+        val tasks = mock<TaskContainer> {
+            on { register("my", Task::class.java, "foo", "bar") } doReturn taskProvider
+        }
+
+        tasks.register<Task>("my", "foo", "bar")
+
+        verify(tasks).register("my", Task::class.java, "foo", "bar")
+    }
+
+    @Test
     fun `val task by registering`() {
 
         val taskProvider = mock<TaskProvider<Task>>()

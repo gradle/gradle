@@ -242,6 +242,15 @@ inline fun <reified T : Task> TaskContainer.register(name: String, noinline conf
 
 
 /**
+ * Defines a new task, which will be created when it is required passing the given arguments to the [javax.inject.Inject]-annotated constructor.
+ *
+ * @see [TaskContainer.register]
+ */
+inline fun <reified T : Task> TaskContainer.register(name: String, vararg arguments: Any) =
+    register(name, T::class.java, *arguments)
+
+
+/**
  * Creates a [Task] with the given [name] and type, passing the given arguments to the [javax.inject.Inject]-annotated constructor,
  * and adds it to this project tasks container.
  */
