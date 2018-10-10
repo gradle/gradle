@@ -92,7 +92,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["5.0-20181003195513+0000"]
+            targetVersions = ["5.0-20181010000025+0000"]
             invocationCount = iterations
             warmUpCount = iterations
             action {
