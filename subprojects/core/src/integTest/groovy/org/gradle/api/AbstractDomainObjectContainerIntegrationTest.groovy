@@ -166,6 +166,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
             "${containerType}#configureEach(Action)": "testContainer.configureEach {}",
             "${containerType}#NamedDomainObjectProvider.configure(Action)": "toBeRealized.configure {}",
             "${containerType}#named(String, Action)": "testContainer.named('realized') {}",
+            "${containerType}#whenObjectAdded(Action)": "testContainer.whenObjectAdded {}",
             "Project#afterEvaluate(Closure)": "afterEvaluate {}",
             "Project#beforeEvaluate(Closure)": "beforeEvaluate {}",
             "Gradle#beforeProject(Closure)": "gradle.beforeProject {}",

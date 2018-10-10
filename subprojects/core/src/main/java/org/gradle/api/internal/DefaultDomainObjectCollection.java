@@ -139,7 +139,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void all(Action<? super T> action) {
 
-        action = whenObjectAdded(action);
+        action = addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
             return;
@@ -208,6 +208,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
+        assertMutable("whenObjectAdded(Action)");
+        return addEagerAction(action);
+    }
+
+    public void whenObjectAdded(Closure action) {
+        whenObjectAdded(toAction(action));
+    }
+
+    private Action<? super T> addEagerAction(Action<? super T> action) {
         store.realizePending(type);
         eventRegister.registerEagerAddAction(type, action);
         return action;
@@ -218,12 +227,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return action;
     }
 
-    public void whenObjectAdded(Closure action) {
-        whenObjectAdded(toAction(action));
-    }
-
     public void whenObjectRemoved(Closure action) {
-        eventRegister.registerRemoveAction(type, toAction(action));
+        whenObjectRemoved(toAction(action));
     }
 
     /**
