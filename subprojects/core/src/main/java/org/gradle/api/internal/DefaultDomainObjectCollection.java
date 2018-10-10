@@ -47,7 +47,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final ElementSource<T> store;
-    private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
         this(type, store, new BroadcastingCollectionEventRegister<T>(type));
@@ -230,23 +229,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         whenObjectRemoved(toAction(action));
     }
 
-    /**
-     * Adds an action which is executed before this collection is mutated. Any exception thrown by the action will veto the mutation.
-     */
-    public void beforeChange(Action<Void> action) {
-        mutateAction = mutateAction.add(action);
-    }
-
     private Action<? super T> toAction(Closure action) {
         return ConfigureUtil.configureUsing(action);
     }
 
     public boolean add(T toAdd) {
         assertMutable("add(T)");
+        assertMutableCollectionContents();
         return doAdd(toAdd, eventRegister.getAddActions());
     }
 
     protected <I extends T> boolean add(I toAdd, Action<? super I> notification) {
+        assertMutableCollectionContents();
         return doAdd(toAdd, notification);
     }
 
@@ -273,6 +267,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void addLater(Provider<? extends T> provider) {
         assertMutable("addLater(Provider)");
+        assertMutableCollectionContents();
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
         store.addPending(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
@@ -283,6 +278,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void addAllLater(Provider<? extends Iterable<T>> provider) {
         assertMutable("addAllLater(Provider)");
+        assertMutableCollectionContents();
         CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
         store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
@@ -297,6 +293,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean addAll(Collection<? extends T> c) {
         assertMutable("addAll(Collection<T>)");
+        assertMutableCollectionContents();
         boolean changed = false;
         for (T o : c) {
             if (doAdd(o, eventRegister.getAddActions())) {
@@ -308,6 +305,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void clear() {
         assertMutable("clear()");
+        assertMutableCollectionContents();
         if (store.constantTimeIsEmpty()) {
             return;
         }
@@ -332,6 +330,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean remove(Object o) {
         assertMutable("remove(Object)");
+        assertMutableCollectionContents();
         return doRemove(o);
     }
 
@@ -367,6 +366,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean removeAll(Collection<?> c) {
         assertMutable("removeAll(Collection)");
+        assertMutableCollectionContents();
         if (store.constantTimeIsEmpty()) {
             return false;
         }
@@ -381,6 +381,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean retainAll(Collection<?> target) {
         assertMutable("retainAll(Collection)");
+        assertMutableCollectionContents();
         Object[] existingItems = toArray();
         boolean changed = false;
         for (Object existingItem : existingItems) {
@@ -420,17 +421,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return matches;
     }
 
+    /**
+     * Asserts that the container can be modified in any way by the given method.
+     */
     protected final void assertMutable(String methodName) {
-        assertMutableCollection(methodName);
-        assertMutateElements(methodName);
-    }
-
-    protected final void assertMutateElements(String methodName) {
         getMutationGuard().assertMutationAllowed(methodName, this);
     }
 
-    protected final void assertMutableCollection(String methodName) {
-        mutateAction.execute(null);
+    protected void assertMutableCollectionContents() {
+        // no special validation
     }
 
     protected class IteratorImpl implements Iterator<T>, WithEstimatedSize {
@@ -452,6 +451,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
         public void remove() {
             assertMutable("iterator().remove()");
+            assertMutableCollectionContents();
             iterator.remove();
             didRemove(currentElement);
             getEventRegister().fireObjectRemoved(currentElement);

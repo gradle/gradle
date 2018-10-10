@@ -252,15 +252,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
         this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        this.ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
+        this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
         this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class);
-        this.ownDependencyConstraints.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
+        this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
 
         this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        this.ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
+        this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
 
