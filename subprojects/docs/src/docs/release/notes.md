@@ -116,7 +116,7 @@ TBD - More provider implementations track the task that produces the value of th
 
 ### Changes to file and directory property construction
 
-`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
+`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaultTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
 
 These other methods have been deprecated and will be removed in Gradle 6.0.
 
