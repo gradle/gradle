@@ -17,7 +17,6 @@
 package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 
@@ -26,7 +25,6 @@ import javax.annotation.Nullable;
  *
  * @since 4.2
  */
-@Incubating
 @ThreadSafe
 public interface DeploymentRegistry {
     /**
@@ -54,7 +52,6 @@ public interface DeploymentRegistry {
      * 
      * @since 4.2
      */
-    @Incubating
     enum ChangeBehavior {
         /**
          * When changes are detected, wait for a deployment request before rebuilding.
