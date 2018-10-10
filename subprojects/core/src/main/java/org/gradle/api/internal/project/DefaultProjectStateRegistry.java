@@ -31,6 +31,7 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -187,15 +188,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
-                currentLocks = Lists.newArrayList(currentLocks);
-                currentLocks.remove(projectLock);
-
-                if (!currentLocks.isEmpty()) {
-                    // release any other project locks we might happen to hold
-                    return workerLeaseService.withoutLocks(currentLocks, factory);
-                } else {
+                if (currentLocks.size() ==1) {
                     // the lock for this project is the only lock we hold
                     return factory.create();
+                } else {
+                    currentLocks = Lists.newArrayList(currentLocks);
+                    currentLocks.remove(projectLock);
+                    // release any other project locks we might happen to hold
+                    return workerLeaseService.withoutLocks(currentLocks, factory);
                 }
             } else {
                 // we don't currently hold the project lock
@@ -216,7 +216,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
-            return workerLeaseService.withLocks(Lists.newArrayList(projectLock), factory);
+            return workerLeaseService.withLocks(Collections.singleton(projectLock), factory);
         }
 
         @Override
@@ -256,7 +256,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     };
                     Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
                     if (currentLocks.contains(projectLock)) {
-                        workerLeaseService.withoutLocks(Lists.newArrayList(projectLock), lockedRunnable);
+                        workerLeaseService.withoutLocks(Collections.singleton(projectLock), lockedRunnable);
                     } else {
                         lockedRunnable.run();
                     }
