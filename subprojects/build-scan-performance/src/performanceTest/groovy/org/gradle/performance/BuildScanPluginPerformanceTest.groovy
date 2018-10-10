@@ -52,6 +52,10 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             new SaveScanSpoolFile(scenario)
         ]
 
+        if (manageCacheState) {
+            buildExperimentListeners << new ManageLocalCacheState()
+        }
+
         def buildExperimentListener = BuildExperimentListener.compose(*buildExperimentListeners)
 
         runner.testId = "large java project with and without plugin application ($scenario)"
