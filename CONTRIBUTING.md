@@ -17,6 +17,11 @@ For any non-trivial change, we'll ask you to create a short design document expl
 
 This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with us.
 
+### Reporting Security Issues
+
+Please do not report security issues to the public issue tracker.
+Please send security issues to [security@gradle.com](mailto:security@gradle.com).
+
 ## Accept Developer Certificate of Origin
 
 In order for your contributions to be accepted, you must [sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your Git commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
