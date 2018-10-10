@@ -20,4 +20,4 @@ import java.io.File
 
 
 val Project.releasedVersions
-    get() = ReleasedVersionsFromVersionControl(File(rootDir, "released-versions.json"))
+    get() = ReleasedVersionsFromVersionControl(File(rootDir, "released-versions.json"), File(rootDir, "version.txt"))

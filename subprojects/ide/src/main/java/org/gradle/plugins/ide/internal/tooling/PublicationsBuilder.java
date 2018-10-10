@@ -21,10 +21,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradlePublication;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultProjectPublications;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
-import org.gradle.tooling.internal.gradle.DefaultGradlePublication;
-import org.gradle.tooling.internal.gradle.DefaultProjectPublications;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.List;

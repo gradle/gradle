@@ -19,8 +19,12 @@ package org.gradle.testing.performance.generator.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.testing.performance.generator.*
 
+@CacheableTask
 class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     @Internal
@@ -40,6 +44,7 @@ class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
     private final Closure<List<Map<String, String>>> createExtraFields = { testProject, prefix, fileNumber -> [] }
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     FileCollection testDependencies
 
     Map getTaskArgs() {

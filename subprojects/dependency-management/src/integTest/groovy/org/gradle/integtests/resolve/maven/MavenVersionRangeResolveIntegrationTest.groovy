@@ -22,6 +22,10 @@ import spock.lang.Issue
 
 class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def setup() {
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+    }
+
     @Issue("GRADLE-3334")
     def "can resolve version range with single value specified"() {
         given:

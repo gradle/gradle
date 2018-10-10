@@ -313,7 +313,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
-        task.options.annotationProcessorPath.processorPath.is(project.sourceSets.main.annotationProcessorPath)
+        task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
         task.destinationDir == project.sourceSets.main.java.outputDir
         task.source.files == project.sourceSets.main.java.files
 
@@ -340,7 +340,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
-        task.options.annotationProcessorPath.processorPath.is(project.sourceSets.test.annotationProcessorPath)
+        task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
         task.destinationDir == project.sourceSets.test.java.outputDir
         task.source.files == project.sourceSets.test.java.files
 

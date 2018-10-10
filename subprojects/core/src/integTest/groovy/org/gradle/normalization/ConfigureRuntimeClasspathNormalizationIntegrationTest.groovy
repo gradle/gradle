@@ -114,7 +114,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         fails 'configureNormalization'
 
         then:
-        failureHasCause 'Cannot configure input normalization after execution started.'
+        failureHasCause 'Cannot configure runtime classpath normalization after execution started.'
 
         where:
         useRuntimeApi << [true, false]

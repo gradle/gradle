@@ -20,7 +20,6 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
@@ -87,7 +86,6 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    @ToolingApiVersion(">=2.6")
     def "cannot run tests when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)

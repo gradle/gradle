@@ -17,10 +17,9 @@ package org.gradle.api.tasks.scala
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -33,8 +32,6 @@ class ScalaCompileTest extends AbstractCompileTest {
 
     private scalaCompiler = Mock(Compiler)
     private scalaClasspath = Mock(FileTreeInternal)
-    private processorClasspath = Mock(FileCollection)
-    private processorDetector = Mock(AnnotationProcessorPathFactory)
 
     @Override
     AbstractCompile getCompile() {
@@ -82,17 +79,18 @@ class ScalaCompileTest extends AbstractCompileTest {
 
     def "sets annotation processor path"() {
         ScalaJavaJointCompileSpec compileSpec
+        def file = new File('foo.jar')
 
         given:
         setUpMocksAndAttributes(scalaCompile)
-        processorDetector.getEffectiveAnnotationProcessorClasspath(scalaCompile.getOptions(), scalaCompile.getClasspath()) >> processorClasspath
+        scalaCompile.getOptions().setAnnotationProcessorPath(ImmutableFileCollection.of(file))
 
         when:
         execute(scalaCompile)
 
         then:
         1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> { args -> compileSpec = args[0]; null }
-        compileSpec.getAnnotationProcessorPath() != null
+        compileSpec.getAnnotationProcessorPath() == [file]
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {

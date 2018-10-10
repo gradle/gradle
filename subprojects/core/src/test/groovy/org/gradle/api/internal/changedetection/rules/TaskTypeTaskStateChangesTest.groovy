@@ -21,13 +21,13 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot
 import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.internal.Cast
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.util.Path
 import spock.lang.Specification
 

@@ -39,6 +39,7 @@ import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -52,7 +53,7 @@ class DefaultIvyPublicationTest extends Specification {
     def projectIdentity = new DefaultIvyPublicationIdentity("organisation", "module", "revision")
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def featurePreviews = TestUtil.featurePreviews()
 
     File ivyDescriptorFile

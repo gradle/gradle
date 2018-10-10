@@ -18,12 +18,12 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasAttributes
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class DefaultAttributeContainerTest extends Specification {
 
-    def cache = TestUtil.attributesFactory()
+    def cache = AttributeTestUtil.attributesFactory()
 
     private DefaultMutableAttributeContainer newContainer() {
         return new DefaultMutableAttributeContainer(cache)

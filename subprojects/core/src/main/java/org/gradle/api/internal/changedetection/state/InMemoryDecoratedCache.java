@@ -26,6 +26,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
 import java.util.concurrent.Callable;

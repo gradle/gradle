@@ -19,8 +19,8 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.isolation.IsolatableFactory;
 
 import java.util.Comparator;
 

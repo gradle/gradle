@@ -28,6 +28,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << "rootProject.name = 'testproject'"
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }

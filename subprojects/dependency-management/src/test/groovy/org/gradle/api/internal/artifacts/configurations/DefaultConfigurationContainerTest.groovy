@@ -36,6 +36,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
@@ -57,7 +58,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
 
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
-    private ImmutableAttributesFactory immutableAttributesFactory = TestUtil.attributesFactory()
+    private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)

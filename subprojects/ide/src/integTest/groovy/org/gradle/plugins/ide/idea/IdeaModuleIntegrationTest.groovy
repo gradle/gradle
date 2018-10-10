@@ -118,6 +118,50 @@ idea {
     }
 
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/6547")
+    void "omit resource declaration if directory is also a source directory"() {
+        //given
+        testResources.dir.create {
+            src {
+                main {
+                    java {}
+                }
+
+                test {
+                    java {}
+                }
+            }
+        }
+
+        //when
+        runIdeaTask '''
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceSets {
+   main {
+      resources {
+         srcDir 'src/main/java'
+      }
+   }
+   test {
+      resources {
+         srcDir 'src/test/java'
+      }
+   }
+}
+'''
+
+        //then
+        def iml = parseImlFile('root')
+        def source = iml.component.content.sourceFolder.find { it.@url.text().contains('src/main/java') }
+        def testSource = iml.component.content.sourceFolder.find { it.@url.text().contains('src/test/java') }
+
+        assert source.@type.text() != 'java-resource'
+        assert testSource.@type.text() != 'java-test-resource'
+    }
+
+    @Test
     void plusMinusConfigurationsWorkFineForSelfResolvingFileDependencies() {
         //when
         runTask 'idea', '''

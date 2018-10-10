@@ -213,8 +213,8 @@ project(':a') {
 
         minimalProject.projectDependencies.size() == 2
 
-        minimalProject.projectDependencies.any { it.path == 'root' && it.targetProject == minimalModel }
-        minimalProject.projectDependencies.any { it.path == 'b' && it.targetProject == minimalProject.children[0] }
+        minimalProject.projectDependencies.any { it.path == 'root' }
+        minimalProject.projectDependencies.any { it.path == 'b' }
 
         when:
         EclipseProject fullModel = loadToolingModel(EclipseProject)
@@ -224,8 +224,8 @@ project(':a') {
 
         fullProject.projectDependencies.size() == 2
 
-        fullProject.projectDependencies.any { it.path == 'root' && it.targetProject == fullModel }
-        fullProject.projectDependencies.any { it.path == 'b' && it.targetProject == fullProject.children[0] }
+        fullProject.projectDependencies.any { it.path == 'root' }
+        fullProject.projectDependencies.any { it.path == 'b' }
     }
 
     def "can build project dependencies with targetProject references for complex scenarios"() {
@@ -258,13 +258,12 @@ project(':c') {
         then:
         def projectC = rootProject.children.find { it.name == 'c'}
         def projectA = rootProject.children.find { it.name == 'a'}
-        def projectAB = projectA.children.find { it.name == 'b' }
 
-        projectC.projectDependencies.any {it.targetProject == projectAB}
+        projectC.projectDependencies.any {it.path == 'b'}
 
-        projectA.projectDependencies.any {it.targetProject == projectAB}
-        projectA.projectDependencies.any {it.targetProject == projectC}
-        projectA.projectDependencies.any {it.targetProject == rootProject}
+        projectA.projectDependencies.any {it.path == 'b'}
+        projectA.projectDependencies.any {it.path == 'c'}
+        projectA.projectDependencies.any {it.path == 'root'}
     }
 
     def "can build the eclipse project hierarchy for a multi-project build"() {

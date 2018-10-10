@@ -31,5 +31,4 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputPropertyAn
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
         return specFactory.createInputFilesSpec(propertyValue);
     }
-
 }

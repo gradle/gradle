@@ -30,6 +30,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
@@ -63,6 +64,7 @@ class DefaultGradleSpec extends Specification {
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
+    ProjectState projectState = Mock(ProjectState)
 
     GradleInternal gradle
 
@@ -439,6 +441,8 @@ class DefaultGradleSpec extends Specification {
         project.getProjectConfigurator() >> crossProjectConfigurator
         projectRegistry.addProject(project)
         _ * project.getProjectRegistry() >> projectRegistry
+        _ * project.getMutationState() >> projectState
+        _ * projectState.withMutableState(_) >> { Runnable runnable -> runnable.run() }
         return project
     }
 }

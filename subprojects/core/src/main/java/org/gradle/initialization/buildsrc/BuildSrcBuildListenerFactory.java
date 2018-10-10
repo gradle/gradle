@@ -22,11 +22,14 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.InternalBuildAdapter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -52,6 +55,7 @@ public class BuildSrcBuildListenerFactory {
      */
     public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
         private FileCollection classpath;
+        private ProjectState rootProjectState;
         private final Action<ProjectInternal> rootProjectConfiguration;
 
         private Listener(Action<ProjectInternal> rootProjectConfiguration) {
@@ -65,13 +69,20 @@ public class BuildSrcBuildListenerFactory {
 
         @Override
         public void onConfigure(GradleInternal gradle) {
-            BuildableJavaComponent mainComponent = mainComponentOf(gradle);
+            final BuildableJavaComponent mainComponent = mainComponentOf(gradle);
             gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
             classpath = mainComponent.getRuntimeClasspath();
+            rootProjectState = gradle.getRootProject().getMutationState();
         }
 
         public Collection<File> getRuntimeClasspath() {
-            return classpath.getFiles();
+            return rootProjectState.withMutableState(new Factory<Collection<File>>() {
+                @Nullable
+                @Override
+                public Collection<File> create() {
+                    return classpath.getFiles();
+                }
+            });
         }
 
         private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {

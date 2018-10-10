@@ -16,12 +16,11 @@
 
 package org.gradle.integtests.tooling.r33
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @ToolingApiVersion('>=3.3')
-@TargetGradleVersion('>=1.8')
 class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecification {
 
     def "Applies idea module name compatibility mapping"() {

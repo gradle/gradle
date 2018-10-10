@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
-import static org.gradle.util.TestUtil.attributes
+import static org.gradle.util.AttributeTestUtil.attributes
 
 class DefaultModuleComponentSelectorTest extends Specification {
     private static ImmutableVersionConstraint v(String version) {

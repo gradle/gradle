@@ -25,8 +25,8 @@ import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
-import static org.gradle.util.TestUtil.attributes
-import static org.gradle.util.TestUtil.attributesFactory
+import static org.gradle.util.AttributeTestUtil.attributes
+import static org.gradle.util.AttributeTestUtil.attributesFactory
 
 class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     private final static ModuleIdentifier UTIL = DefaultModuleIdentifier.newId("org", "util")

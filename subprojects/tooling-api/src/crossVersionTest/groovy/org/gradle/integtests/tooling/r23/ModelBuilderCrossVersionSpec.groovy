@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r23
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
@@ -27,7 +26,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 
 class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=2.3")
     def "empty list of tasks to execute when asking for BuildEnvironment is treated like null tasks and does not fail"() {
         projectDir.file('build.gradle') << """
             defaultTasks 'alpha'
@@ -51,7 +49,6 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
         OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString()).assertTasksExecutedInOrder()
     }
 
-    @ToolingApiVersion(">=2.3")
     def "empty list of tasks to execute when asking for model from target Gradle is treated like null tasks and executes no tasks"() {
         projectDir.file('build.gradle') << """
             defaultTasks 'alpha'

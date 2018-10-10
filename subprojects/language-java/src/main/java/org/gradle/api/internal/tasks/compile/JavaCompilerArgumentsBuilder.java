@@ -90,10 +90,14 @@ public class JavaCompilerArgumentsBuilder {
         return args;
     }
 
-    private void validateCompilerArgs(List<String> compArgs) {
-        if (compArgs.contains("-sourcepath") || compArgs.contains("--source-path")) {
+    private void validateCompilerArgs(List<String> compilerArgs) {
+        if (compilerArgs.contains("-sourcepath") || compilerArgs.contains("--source-path")) {
             throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
-                "Use the `CompilerOptions.sourcepath` property instead.");
+                "Use the `CompileOptions.sourcepath` property instead.");
+        }
+        if (compilerArgs.contains("-processorpath") || compilerArgs.contains("--processor-path")) {
+            throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
+                "Use the `CompileOptions.annotationProcessorPath` property instead.");
         }
     }
 

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 
 /**
  * Represents the complete changes in a tasks state

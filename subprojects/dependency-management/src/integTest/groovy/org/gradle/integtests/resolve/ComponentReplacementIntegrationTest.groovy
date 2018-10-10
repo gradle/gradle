@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -42,6 +43,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     //publishes and declares the dependencies

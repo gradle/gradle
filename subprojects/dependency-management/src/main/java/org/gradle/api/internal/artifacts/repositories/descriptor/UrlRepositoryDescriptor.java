@@ -54,7 +54,9 @@ abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
 
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
-        builder.put(Property.URL.name(), url);
+        if (url != null) {
+            builder.put(Property.URL.name(), url);
+        }
         builder.put(Property.METADATA_SOURCES.name(), metadataSources);
         builder.put(Property.AUTHENTICATED.name(), authenticated);
         builder.put(Property.AUTHENTICATION_SCHEMES.name(), authenticationSchemes);

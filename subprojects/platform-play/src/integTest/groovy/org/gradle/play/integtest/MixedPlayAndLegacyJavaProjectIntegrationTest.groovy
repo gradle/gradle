@@ -20,6 +20,10 @@ import spock.lang.Issue
 
 class MixedPlayAndLegacyJavaProjectIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.noDeprecationChecks()
+    }
+
     @Issue("GRADLE-3356")
     def "can apply both java and play plugins"() {
         settingsFile.text = "rootProject.name = 'mixedJavaAndPlay'"

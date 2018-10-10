@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Describables
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class DefaultConfigurationPublicationsTest extends Specification {
@@ -35,7 +35,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def artifactNotationParser = Stub(NotationParser)
     def capabilityNotationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def displayName = Describables.of("<config>")
     def publications = new DefaultConfigurationPublications(displayName, artifacts, {
         allArtifacts

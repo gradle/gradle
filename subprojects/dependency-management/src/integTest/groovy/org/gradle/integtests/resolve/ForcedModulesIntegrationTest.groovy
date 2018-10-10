@@ -22,6 +22,10 @@ import spock.lang.Unroll
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+    }
+
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()

@@ -27,12 +27,13 @@ class ReleasedVersionsFromVersionControl implements ReleasedVersions {
     private lowestTestedVersion = GradleVersion.version("1.0")
 
     ReleasedVersion mostRecentRelease
-    List<ReleasedVersion> allVersions
+    List<ReleasedVersion> allPreviousVersions
     List<ReleasedVersion> testedVersions
     ReleasedVersion mostRecentSnapshot
 
-    ReleasedVersionsFromVersionControl(File versionsFile) {
-        def json = new JsonSlurper().parse(versionsFile, Charsets.UTF_8.name())
+    ReleasedVersionsFromVersionControl(File releasedVersionsFile, File currentBaseVersionFile) {
+        def currentBaseVersion = GradleVersion.version(currentBaseVersionFile.text.trim())
+        def json = new JsonSlurper().parse(releasedVersionsFile, Charsets.UTF_8.name())
         mostRecentSnapshot = ReleasedVersion.fromMap(json.latestReleaseSnapshot)
         def mostRecentRc = ReleasedVersion.fromMap(json.latestRc)
         List<ReleasedVersion> finalReleases = json.finalReleases.collect {
@@ -42,14 +43,14 @@ class ReleasedVersionsFromVersionControl implements ReleasedVersions {
         }.reverse()
         def latestFinalRelease = finalReleases.head()
         def latestNonFinalRelease = [mostRecentSnapshot, mostRecentRc].findAll { it.version > latestFinalRelease.version }.sort { it.buildTimeStamp }.reverse().find()
-        allVersions = ([latestNonFinalRelease] + finalReleases).findAll().findAll { it.version >= lowestInterestingVersion }
-        testedVersions = allVersions.findAll { it.version >= lowestTestedVersion }
-        mostRecentRelease = allVersions.head()
+        allPreviousVersions = ([latestNonFinalRelease] + finalReleases).findAll().findAll { it.version >= lowestInterestingVersion && it.version.baseVersion < currentBaseVersion}
+        testedVersions = allPreviousVersions.findAll { it.version >= lowestTestedVersion }
+        mostRecentRelease = allPreviousVersions.head()
     }
 
     @Override
-    List<String> getAllVersions() {
-        return allVersions*.version*.version
+    List<String> getAllPreviousVersions() {
+        return allPreviousVersions*.version*.version
     }
 
     @Override

@@ -569,7 +569,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 4.0
      */
-    @Incubating
     @Internal
     TaskDestroyables getDestroyables();
 
@@ -578,7 +577,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 4.3
      */
-    @Incubating
     TaskLocalState getLocalState();
 
     /**

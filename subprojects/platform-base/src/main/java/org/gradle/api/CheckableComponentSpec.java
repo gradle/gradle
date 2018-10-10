@@ -35,7 +35,7 @@ public interface CheckableComponentSpec extends ComponentSpec {
     /**
      * Specifies the task responsible for checking this component.
      */
-    void setCheckTask(Task checkTask);
+    void setCheckTask(@Nullable Task checkTask);
 
     /**
      * Adds tasks required to check this component. Tasks added this way are subsequently

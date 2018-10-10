@@ -19,11 +19,9 @@ package org.gradle.plugins.ide.tooling.r210
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=2.10')
 @TargetGradleVersion(">=2.10")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -31,7 +29,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=1.2 <2.10")
+    @TargetGradleVersion(">=2.6 <2.10")
     def "older Gradle versions throw exception when querying Java source settings"() {
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

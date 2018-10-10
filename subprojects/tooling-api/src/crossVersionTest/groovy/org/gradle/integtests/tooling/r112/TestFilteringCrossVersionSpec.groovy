@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Issue
 
-@TargetGradleVersion(">=1.10")
 class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
     @Issue("GRADLE-2972")
     def "tooling api support test filtering when tasks configured via command line"() {

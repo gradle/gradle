@@ -308,6 +308,15 @@ class ModuleResolveState implements CandidateModule {
 
     void decreaseHardEdgeCount() {
         pendingDependencies.decreaseHardEdgeCount();
+        if (pendingDependencies.isPending()) {
+            // Back to being a pending dependency
+            // Clear remaining incoming edges, as they must be all from constraints
+            if (selected != null) {
+                for (NodeState node : selected.getNodes()) {
+                    node.clearConstraintEdges(pendingDependencies);
+                }
+            }
+        }
     }
 
     boolean isPending() {

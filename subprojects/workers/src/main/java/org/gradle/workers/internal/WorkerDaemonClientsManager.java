@@ -53,7 +53,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final OutputEventListener logLevelChangeEventListener;
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final MemoryManager memoryManager;
-    private LogLevel currentLogLevel;
+    private volatile LogLevel currentLogLevel;
 
     public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager) {
         this.workerDaemonStarter = workerDaemonStarter;
@@ -183,9 +183,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         public void onOutput(OutputEvent event) {
             if (event instanceof LogLevelChangeEvent) {
                 LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
-                synchronized (lock) {
-                    currentLogLevel = logLevelChangeEvent.getNewLogLevel();
-                }
+                currentLogLevel = logLevelChangeEvent.getNewLogLevel();
             }
         }
     }

@@ -100,6 +100,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                 $conf
             }
         """
+        resolve.addDefaultVariantDerivationStrategy()
 
         repoTypes.each { repoType ->
             repository(repoType) {

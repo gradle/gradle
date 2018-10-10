@@ -34,19 +34,6 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
 
     def iteration = 0
 
-    @TargetGradleVersion("<1.8")
-    def "retries if NPE is thrown in daemon registry in <1.8"() {
-        given:
-        iteration++
-
-        when:
-        throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
-
-        then:
-        true
-    }
-
-    @TargetGradleVersion(">=1.8")
     def "does not retry if NPE is thrown in daemon registry in >=1.8"() {
         given:
         iteration++
@@ -141,41 +128,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
-    @TargetGradleVersion("=1.7")
-    def "project directory is cleaned before retry"() {
-        given:
-        iteration++
-        projectDir.assertIsEmptyDir()
-
-        when:
-        settingsFile << "root.name = 'root'"
-        def folder = new File(projectDir, "subproject")
-        folder.mkdirs()
-        new File(folder, "abc.txt") << "content"
-
-        throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
-
-        then:
-        true
-    }
-
-    @TargetGradleVersion("<1.8")
-    def "considers GradleConnectionException caught inside the test"() {
-        given:
-        iteration++
-
-        when:
-        settingsFile << "root.name = 'root'"
-        new File(projectDir, "subproject").mkdirs()
-        if (iteration == 1) {
-            caughtGradleConnectionException = new GradleConnectionException("Test Exception", new NullPointerException())
-        }
-
-        then:
-        iteration != 1
-    }
-
-    @TargetGradleVersion("<2.10")
+    @TargetGradleVersion(">=2.6 <2.10")
     def "retries on clock shift issue for <2.10 if exception is provided through build error output"() {
         given:
         iteration++
