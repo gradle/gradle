@@ -17,6 +17,7 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.tasks.AbstractCopyTask;
@@ -27,6 +28,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -88,7 +90,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @OutputFile
     public File getArchivePath() {
-        return new File(getDestinationDir(), getArchiveName());
+        File destinationDir = getDestinationDir();
+        if (destinationDir == null) {
+            throw new InvalidUserDataException("The destinationDir property must be set. Please apply the base plugin or set it explicitly.");
+        }
+        return new File(destinationDir, getArchiveName());
     }
 
     /**
@@ -97,6 +103,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @return the directory
      */
     @Internal("Represented as part of archivePath")
+    @Nullable
     public File getDestinationDir() {
         return destinationDir;
     }

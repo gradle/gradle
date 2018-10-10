@@ -662,6 +662,21 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":jar"
     }
 
+    def "cannot create a JAR without destination dir"() {
+        given:
+        buildFile << """
+            task jar(type: Jar) {
+                archiveName = 'some.jar'
+            }
+        """
+
+        when:
+        fails('jar')
+
+        then:
+        failureCauseContains('The destinationDir property must be set')
+    }
+
     private static String customJarManifestTask() {
         return '''
             class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
