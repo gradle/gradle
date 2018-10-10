@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+package org.gradle.internal.resolve.result;
 
 import javax.annotation.Nullable;
 
-/**
- * <p>A {@code Transformer} transforms objects of type.</p>
- *
- * <p>Implementations are free to return new objects or mutate the incoming value.</p>
- *
- * @param <OUT> The type the value is transformed to.
- * @param <IN> The type of the value to be transformed.
- */
-public interface Transformer<OUT, IN> {
+public interface ErroringResolveResult<E extends Throwable> extends ResolveResult {
     /**
-     * Transforms the given object, and returns the transformed value.
-     *
-     * @param in The object to transform.
-     * @return The transformed object.
+     * Marks the resolution as failed with the given failure.
      */
-    OUT transform(@Nullable IN in);
+    void failed(E error);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    E getFailure();
 }

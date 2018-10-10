@@ -17,12 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.util.Set;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
 public class ConnectionFailureRepositoryBlacklister implements RepositoryBlacklister {
+    private static final Logger LOGGER = Logging.getLogger(ConnectionFailureRepositoryBlacklister.class);
 
     private final Set<String> blacklistedRepositories = Sets.newConcurrentHashSet();
 
@@ -40,6 +43,7 @@ public class ConnectionFailureRepositoryBlacklister implements RepositoryBlackli
         }
 
         if (isCriticalFailure(throwable)) {
+            LOGGER.debug("Repository {} has been blacklisted for this build due to connectivity issues", repositoryId);
             blacklistedRepositories.add(repositoryId);
             return true;
         }
