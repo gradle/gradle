@@ -40,8 +40,19 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
-        def jobArgs = ['--continue', '--parallel', '--max-workers=4', '-Dcom.gradle.scan.input-file-hashes=true'] + scenarioArgs
+        def jobArgs = ['--continue', '--parallel', '--max-workers=4'] + scenarioArgs
         def opts = ['-Xms4096m', '-Xmx4096m']
+
+        if (fileHashes) {
+            jobArgs << '-Dcom.gradle.scan.input-file-hashes=true'
+        }
+
+        def buildExperimentListeners = [
+            new InjectBuildScanPlugin(pluginVersionNumber),
+            new SaveScanSpoolFile(scenario)
+        ]
+
+        def buildExperimentListener = BuildExperimentListener.compose(*buildExperimentListeners)
 
         runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
@@ -94,9 +105,11 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | BuildExperimentListener.compose(new InjectBuildScanPlugin(pluginVersionNumber), new SaveScanSpoolFile(scenario))
-        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | BuildExperimentListener.compose(new InjectBuildScanPlugin(pluginVersionNumber), new SaveScanSpoolFile(scenario), new ManageLocalCacheState())
+        scenario                                      | expectedMedianPercentageShift | tasks                        | withFailure | scenarioArgs      | manageCacheState | fileHashes
+        "help"                                        | MEDIAN_PERCENTAGES_SHIFT      | ['help']                     | false       | []                | false            | true
+        "clean build (all projects)"                  | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | true
+        "clean build (all projects - no file hashes)" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | false
+        "clean build (50 projects)"                   | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:build'] | true        | ['--build-cache'] | true             | true
     }
 
 
