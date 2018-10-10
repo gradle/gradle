@@ -24,8 +24,6 @@ import org.gradle.process.internal.JavaForkOptionsInternal;
 import java.io.File;
 import java.util.Set;
 
-import static com.google.common.base.Strings.nullToEmpty;
-
 public class DaemonForkOptions {
     private final JavaForkOptionsInternal forkOptions;
     private final Iterable<File> classpath;
@@ -83,10 +81,6 @@ public class DaemonForkOptions {
 
     private Set<String> getNormalizedSharedPackages(Iterable<String> allowedPackages) {
         return Sets.newLinkedHashSet(allowedPackages);
-    }
-
-    private String getNormalized(String string) {
-        return nullToEmpty(string).trim();
     }
 
     public String toString() {

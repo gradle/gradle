@@ -52,7 +52,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     }
 
     @Override
-    protected InvocationContext toInvocationContext(GroovyJavaJointCompileSpec spec) {
+    protected DaemonForkOptions toDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
         ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
         GroovyForkOptions groovyOptions = spec.getGroovyCompileOptions().getForkOptions();
         // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
@@ -61,19 +61,16 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(mergeForkOptions(javaOptions, groovyOptions));
-        File invocationWorkingDir = javaForkOptions.getWorkingDir();
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         if (jvmVersionDetector.getJavaVersion(javaForkOptions.getExecutable()).isJava9Compatible()) {
             javaForkOptions.jvmArgs(GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS);
         }
 
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
+        return new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .classpath(groovyFiles)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
-
-        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }

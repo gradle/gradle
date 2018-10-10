@@ -24,17 +24,19 @@ import org.gradle.internal.work.ConditionalExecution
 import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
+import org.gradle.testing.internal.util.Specification
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.junit.Rule
-import spock.lang.Specification
+import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
     @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
+    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)
@@ -43,7 +45,9 @@ class DefaultWorkerExecutorTest extends Specification {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(PathToFileResolver)
-    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
+        getWorkingDirectory() >> { temporaryFolder.root }
+    }
     def runnable = Mock(Runnable)
     def instantiatorFactory = Mock(InstantiatorFactory)
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)

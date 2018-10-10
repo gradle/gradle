@@ -20,7 +20,7 @@ import java.io.File;
 
 public interface WorkerDirectoryProvider {
     /**
-     * Returns a File object representing the idle working directory for workers.
+     * Returns a File object representing the working directory for workers.
      */
-    File getIdleWorkingDirectory();
+    File getWorkingDirectory();
 }
