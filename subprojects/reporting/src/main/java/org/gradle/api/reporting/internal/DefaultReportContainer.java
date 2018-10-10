@@ -32,14 +32,11 @@ import java.util.Map;
 import java.util.SortedMap;
 
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
-
-    private static final Action<Void> IMMUTABLE_VIOLATION_EXCEPTION = new Action<Void>() {
-        public void execute(Void arg) {
+    private static final Action<Object> IMMUTABLE_VIOLATION_EXCEPTION = new Action<Object>() {
+        public void execute(Object arg) {
             throw new ImmutableViolationException();
         }
     };
-
-
     private NamedDomainObjectSet<T> enabled;
 
     public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator) {
@@ -51,7 +48,17 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
             }
         });
 
-        beforeChange(IMMUTABLE_VIOLATION_EXCEPTION);
+        whenObjectRemoved(IMMUTABLE_VIOLATION_EXCEPTION);
+    }
+
+    @Override
+    protected void assertCanAdd(String name) {
+        IMMUTABLE_VIOLATION_EXCEPTION.execute(null);
+    }
+
+    @Override
+    protected void assertCanAdd(T t) {
+        IMMUTABLE_VIOLATION_EXCEPTION.execute(null);
     }
 
     public NamedDomainObjectSet<T> getEnabled() {
@@ -75,13 +82,11 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
 
     protected <N extends T> N add(Class<N> clazz, Object... constructionArgs) {
         N report = getInstantiator().newInstance(clazz, constructionArgs);
-
-        if (report.getName().equals("enabled")) {
+        String name = report.getName();
+        if (name.equals("enabled")) {
             throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
         }
-
-        getStore().add(report);
-        index();
+        add(report, getEventRegister().getAddActions());
         return report;
     }
 

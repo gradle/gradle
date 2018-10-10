@@ -1546,6 +1546,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
             "configureEach(Action)": { container.configureEach(Actions.doNothing()) },
             "whenObjectAdded(Action)": { container.whenObjectAdded(Actions.doNothing()) },
             "withType(Class, Action)": { container.withType(type, Actions.doNothing()) },
+            "all(Action)": { container.all(Actions.doNothing()) },
         ]
     }
 

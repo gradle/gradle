@@ -138,7 +138,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public void all(Action<? super T> action) {
-
+        assertMutable("all(Action)");
         action = addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
@@ -420,8 +420,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return matches;
     }
 
-    protected void assertMutable(String methodName) {
+    protected final void assertMutable(String methodName) {
+        assertMutableCollection(methodName);
+        assertMutateElements(methodName);
+    }
+
+    protected final void assertMutateElements(String methodName) {
         getMutationGuard().assertMutationAllowed(methodName, this);
+    }
+
+    protected final void assertMutableCollection(String methodName) {
         mutateAction.execute(null);
     }
 
