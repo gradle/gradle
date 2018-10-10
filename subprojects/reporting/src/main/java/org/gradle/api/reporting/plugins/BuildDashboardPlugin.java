@@ -52,18 +52,6 @@ public class BuildDashboardPlugin implements Plugin<Project> {
                         return project.getExtensions().getByType(ReportingExtension.class).file("buildDashboard");
                     }
                 });
-                for (Project aProject : project.getAllprojects()) {
-                    aProject.getTasks().all(new Action<Task>() {
-                        @Override
-                        public void execute(Task task) {
-                            if (!(task instanceof Reporting)) {
-                                return;
-                            }
-                            Reporting reporting = (Reporting) task;
-                            buildDashboardTask.aggregate(reporting);
-                        }
-                    });
-                }
             }
         });
 
