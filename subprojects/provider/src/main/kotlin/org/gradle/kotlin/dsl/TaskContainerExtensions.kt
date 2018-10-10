@@ -223,7 +223,7 @@ inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinl
 
 
 /**
- * Defines a new object, which will be created when it is required.
+ * Defines a new task, which will be created when it is required.
  *
  * @see [TaskContainer.register]
  */
@@ -233,7 +233,7 @@ inline fun <reified T : Task> TaskContainer.register(name: String): TaskProvider
 
 
 /**
- * Defines and configure a new object, which will be created when it is required.
+ * Defines and configure a new task, which will be created when it is required.
  *
  * @see [TaskContainer.register]
  */
