@@ -222,7 +222,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.1
      */
-    @Incubating
     void includeBuild(Object rootProject);
 
     /**
@@ -232,7 +231,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.1
      */
-    @Incubating
     void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration);
 
     /**
@@ -254,7 +252,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
-    @Incubating
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
     /**
@@ -262,7 +259,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
-    @Incubating
     PluginManagementSpec getPluginManagement();
 
     /**
