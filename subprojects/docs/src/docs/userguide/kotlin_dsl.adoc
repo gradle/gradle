@@ -457,7 +457,7 @@ It works the exact same way in settings scripts for `Settings` properties and in
 
 Extra properties are documented in the <<writing_build_scripts#sec:extra_properties, Writing Build Scripts>> chapter.
 
-On every `ExtensionAware` type they can be used via the `extra` property Kotlin delegated properties, see the sample below.
+On every `ExtensionAware` type they can be used via the `extra` property as a Kotlin delegated property, see the sample below.
 
 .build.gradle.kts
 [source,kotlin]
@@ -755,7 +755,7 @@ There is no way to provide values by argument name.
 
 To call a Kotlin function that has default arguments from Groovy, always pass values for all the function parameters.
 
-==== Calling Kotlin from Groovy
+==== Calling Groovy from Kotlin
 
 To call a Groovy function with named arguments from Kotlin, you need to pass a `Map<String, ?>`, as shown in this example:
 
