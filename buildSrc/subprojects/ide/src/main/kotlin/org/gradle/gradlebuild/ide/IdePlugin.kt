@@ -69,10 +69,14 @@ private
 const val javaCompilerHeapSpace = 3072
 
 
-// Disable Java 7 inspections because some parts of the codebase still need
-// to run on Java 6
+// Disable Java 7 and Java 8 inspections because some parts of the codebase still need to run on Java 6
 private
-val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
+val disabledInspections = listOf(
+    // Java 7 inspections
+    "Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches",
+    // Java 8 inspections
+    "Anonymous2MethodRef", "AnonymousHasLambdaAlternative", "CodeBlock2Expr", "ComparatorCombinators", "Convert2Lambda", "Convert2MethodRef", "Convert2streamapi", "FoldExpressionIntoStream", "Guava", "Java8ArraySetAll", "Java8CollectionRemoveIf", "Java8ListSort", "Java8MapApi", "Java8MapForEach", "LambdaCanBeMethodCall", "SimplifyForEach", "StaticPseudoFunctionalStyleMethod"
+)
 
 
 object GradleCopyright {
