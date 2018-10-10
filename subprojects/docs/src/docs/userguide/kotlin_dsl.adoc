@@ -42,7 +42,7 @@ The same applies to the scenario in which something in the _buildSrc_ directory 
 * You must run Gradle with Java 8 or higher. Java 7 is not supported.
 * The embedded Kotlin compiler is known to work on Linux, macOS, Windows, Cygwin, FreeBSD and Solaris on x86-64 architectures.
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
-* Use of the link:{user-manual}plugins.html#sec:plugins_block[plugins {}] block to declare Gradle plugins significantly improves the editing experience, and is highly recommended.
+* Use of the <<plugins#sec:plugins_block, plugins {}>> block to declare Gradle plugins significantly improves the editing experience, and is highly recommended.
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 
 If you run to trouble or a suspected bug, please take advantage of the `gradle/kotlin-dsl` link:{kotlin-dsl-issues}[issue tracker].
@@ -119,14 +119,14 @@ Kotlin DSL script files use the `.gradle.kts` file name extension.
 
 To use the Kotlin DSL, simply name your files `build.gradle.kts` instead of `build.gradle`.
 
-The link:{user-manual}build_lifecycle.html#sec:settings_file[settings file], `settings.gradle`, can also be renamed `settings.gradle.kts`.
+The <<build_lifecycle#sec:settings_file, settings file>>, `settings.gradle`, can also be renamed `settings.gradle.kts`.
 
 In a multi-project build, you can have some modules using the Groovy DSL (with `build.gradle`) and others using the Kotlin DSL (with `build.gradle.kts`).
 
 On top of that, apply the following conventions for better IDE support:
 
 * Name scripts that are applied to `Settings` according to the pattern `*.settings.gradle.kts`,
-* Name link:{user-manual}init_scripts.html[init scripts] according to the pattern `*.init.gradle.kts`.
+* Name <<init_scripts#, init scripts>> according to the pattern `*.init.gradle.kts`.
 
 [TIP]
 .Precompiled script plugins
@@ -143,7 +143,7 @@ See the <<kotlin_dsl#kotlin-dsl_plugin, kotlin-dsl plugin>> section below for mo
 
 All `gradle.kts` script has implicit imports comprised of:
 
-* the link:{user-manual}writing_build_scripts.html#script-default-imports[default Gradle API imports],
+* the <<writing_build_scripts#script-default-imports, default Gradle API imports>>,
 * the Gradle Kotlin DSL API: `org.gradle.kotlin.dsl.*`.
 
 
@@ -335,7 +335,7 @@ However, you can use the `plugins {}` block if you configure your build appropri
 We will show you in this section how to do that for the Android Plugin for Gradle.
 
 [NOTE]
-When publishing plugins, please use Gradle's built-in link:{user-manual}java_gradle_plugin.html[Java Gradle Plugin] Plugin. It automates the publication of the metadata necessary to make your plugins usable with the `plugins {}` block.
+When publishing plugins, please use Gradle's built-in <<java_gradle_plugin#, Java Gradle Plugin>> Plugin. It automates the publication of the metadata necessary to make your plugins usable with the `plugins {}` block.
 
 The goal is to instruct your build on how to map the `com.android.application` plugin identifier to a resolvable artifact.
 This is done in two steps:
@@ -391,7 +391,7 @@ android {                                           // <2>
 <1> Declaratively request the `com.android.application` plugin
 <2> Configure the `android` extension using Kotlin DSL type safe accessor
 
-See the link:{user-manual}plugins.html#sec:plugin_management[Plugin Management] section of the Gradle user manual for more information.
+See the <<plugins#sec:plugin_management, Plugin Management>> section of the Gradle user manual for more information.
 
 The same approach can be used to resolve plugins from composite builds, which link:https://github.com/gradle/gradle/issues/2528[do not expose plugin markers] yet.
 Simply map the plugin ID to the corresponding artifact coordinates as shown in the Android samples above.
@@ -779,8 +779,8 @@ include::sample[dir="kotlinDsl/interoperability/groovy-builder",files="build.gra
 <4> Configure the `blockName` property, maps to a `Closure` taking method invocation
 <5> Invoke `another` method taking named arguments, maps to a Groovy named arguments `Map<String, ?>` taking method invocation
 
-The link:{kotlin-dsl-samples}maven-plugin[maven-plugin] sample demonstrates the use of the `withGroovyBuilder()` utility extensions for configuring the `uploadArchives` task to link:{user-manual}maven_plugin.html#sec:deploying_to_a_maven_repository[deploy to a Maven repository] with a custom POM using Gradle's core {user-manual}maven_plugin.html[Maven Plugin].
-Note that the recommended {user-manual}publishing_maven.html[Maven Publish Plugin] provides a type-safe and Kotlin-friendly DSL that allows you to easily do link:{user-manual}publishing_maven.html#sec:modifying_the_generated_pom[the same and more] without resorting to `withGroovyBuilder()`.
+The link:{kotlin-dsl-samples}maven-plugin[maven-plugin] sample demonstrates the use of the `withGroovyBuilder()` utility extensions for configuring the `uploadArchives` task to <<maven_plugin#sec:deploying_to_a_maven_repository, deploy to a Maven repository>> with a custom POM using Gradle's core <<maven_plugin#, Maven Plugin>>.
+Note that the recommended <<publishing_maven#, Maven Publish Plugin>> provides a type-safe and Kotlin-friendly DSL that allows you to easily do <<publishing_maven#sec:modifying_the_generated_pom, the same and more>> without resorting to `withGroovyBuilder()`.
 
 === Using a Groovy script
 
