@@ -52,12 +52,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     }
 
     @Override
-    protected void assertCanAdd(String name) {
-        IMMUTABLE_VIOLATION_EXCEPTION.execute(null);
-    }
-
-    @Override
-    protected void assertCanAdd(T t) {
+    protected void assertMutableCollectionContents() {
         IMMUTABLE_VIOLATION_EXCEPTION.execute(null);
     }
 
@@ -86,7 +81,8 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         if (name.equals("enabled")) {
             throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
         }
-        add(report, getEventRegister().getAddActions());
+        getStore().add(report);
+        index();
         return report;
     }
 
