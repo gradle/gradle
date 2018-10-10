@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.cache.CacheRepository
 import org.gradle.composite.internal.IncludedBuildTaskGraph
@@ -55,7 +56,7 @@ import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
 
-public class GradleScopeServicesTest extends Specification {
+class GradleScopeServicesTest extends Specification {
     private GradleInternal gradle = Stub()
     private ServiceRegistry parent = Stub()
     private CacheRepository cacheRepository = Stub()
@@ -64,7 +65,7 @@ public class GradleScopeServicesTest extends Specification {
     private PluginRegistry pluginRegistryParent = Stub()
     private PluginRegistry pluginRegistryChild = Stub()
 
-    public void setup() {
+    void setup() {
         parent.get(StartParameter) >> Stub(StartParameter) { _ * getMaxWorkerCount() >> 1 }
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         parent.get(InMemoryCacheDecoratorFactory) >> Stub(InMemoryCacheDecoratorFactory)
@@ -87,6 +88,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(BuildState) >> Stub(BuildState)
         parent.get(ParallelismConfigurationManager) >> new ParallelismConfigurationManagerFixture(DefaultParallelismConfiguration.DEFAULT)
         parent.get(StyledTextOutputFactory) >> new TestStyledTextOutputFactory()
+        parent.get(ProjectStateRegistry) >> Stub(ProjectStateRegistry)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
         gradle.services >> registry

@@ -51,4 +51,10 @@ public interface ProjectLeaseRegistry {
      * Returns any projects locks currently held by this thread.
      */
     Collection<? extends ResourceLock> getCurrentProjectLocks();
+
+    /**
+     *
+     * @return
+     */
+    ResourceLock getLenientLock();
 }

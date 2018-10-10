@@ -35,6 +35,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    ResourceLock getLenientLock() {
+        return null
+    }
+
+    @Override
     void stop() {
     }
 

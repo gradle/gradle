@@ -138,6 +138,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
+    public ResourceLock getLenientLock() {
+        return projectLockRegistry.getResourceLock(Path.ROOT, Path.ROOT);
+    }
+
+    @Override
     public Collection<? extends ResourceLock> getCurrentProjectLocks() {
         return projectLockRegistry.getResourceLocksByCurrentThread();
     }

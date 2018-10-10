@@ -31,6 +31,7 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -75,6 +76,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         synchronized (lock) {
             return projectsByPath.values();
         }
+    }
+
+    @Override
+    public void assumeAllLocks(Runnable runnable) {
+        workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getLenientLock()), runnable);
     }
 
     @Override
@@ -159,23 +165,28 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+            // Current thread holds the "lenient" lock, which allows access to any lock for this build, without actually holding every lock.
+            if (currentLocks.contains(workerLeaseService.getLenientLock())) {
+                return factory.create();
+            }
+
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
-                currentLocks = Lists.newArrayList(currentLocks);
-                currentLocks.remove(projectLock);
-
-                if (!currentLocks.isEmpty()) {
-                    // release any other project locks we might happen to hold
-                    return workerLeaseService.withoutLocks(currentLocks, factory);
-                } else {
+                if (currentLocks.size() == 1) {
                     // the lock for this project is the only lock we hold
                     return factory.create();
+                } else {
+                    // slower path
+                    currentLocks = Lists.newArrayList(currentLocks);
+                    currentLocks.remove(projectLock);
+                    // release any other project locks we might happen to hold
+                    return workerLeaseService.withoutLocks(currentLocks, factory);
                 }
             } else {
                 // we don't currently hold the project lock
                 if (!currentLocks.isEmpty()) {
                     // we hold other project locks that we should release first
-                    return workerLeaseService.withoutLocks(currentLocks, new Factory<T>() {
+                    return workerLeaseService.withoutProjectLock(new Factory<T>() {
                         @Nullable
                         @Override
                         public T create() {
@@ -190,12 +201,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
-            return workerLeaseService.withLocks(Lists.newArrayList(projectLock), factory);
+            return workerLeaseService.withLocks(Collections.singleton(projectLock), factory);
         }
 
         @Override
         public boolean hasMutableState() {
-            return workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            Collection<? extends ResourceLock> currentProjectLocks = workerLeaseService.getCurrentProjectLocks();
+            return currentProjectLocks.contains(projectLock) || currentProjectLocks.contains(workerLeaseService.getLenientLock());
         }
 
         @Override
@@ -230,7 +242,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     };
                     Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
                     if (currentLocks.contains(projectLock)) {
-                        workerLeaseService.withoutLocks(Lists.newArrayList(projectLock), lockedRunnable);
+                        workerLeaseService.withoutLocks(Collections.singleton(projectLock), lockedRunnable);
                     } else {
                         lockedRunnable.run();
                     }
