@@ -227,7 +227,7 @@ class Analyzer @Inject constructor(
                 writer.println("<h2>Incubating since ${it.key} (${versions.get(it.key)?.run { "released on $this" }
                     ?: "unreleased"})</h2>")
                 writer.println("<ul>")
-                it.value.forEach {
+                it.value.sorted().forEach {
                     writer.println("   <li>${it.escape()}</li>")
                 }
                 writer.println("</ul>")
@@ -244,7 +244,7 @@ class Analyzer @Inject constructor(
             versionToIncubating.toSortedMap().forEach {
                 val version = it.key
                 val releaseDate = versions.get(it.key) ?: "unreleased"
-                it.value.forEach {
+                it.value.sorted().forEach {
                     writer.println("$version;$releaseDate;$it")
                 }
             }
