@@ -381,7 +381,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test (branch: release)", "project :test", "test:test:2.0") {
                 }
             }
         }
@@ -397,7 +397,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:3.0") {
+                edge("test:test (branch: release)", "project :test", "test:test:3.0") {
                 }
             }
         }
@@ -410,7 +410,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:3.0") {
+                edge("test:test (branch: release)", "project :test", "test:test:3.0") {
                 }
             }
         }
@@ -451,7 +451,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test (branch: release)", "project :test", "test:test:2.0") {
                 }
             }
         }
@@ -464,7 +464,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test (branch: release)", "project :test", "test:test:2.0") {
                 }
             }
         }
