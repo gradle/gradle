@@ -27,7 +27,7 @@ public enum PathSensitivity {
     /**
      * Consider the full path of files and directories.
      *
-     * <p><b>This will prevent the task's outputs from being shared across different users via a shared cache.</b></p>
+     * <p><b>This will prevent the task's outputs from being shared across different workspaces via the build cache.</b></p>
      */
     ABSOLUTE,
 

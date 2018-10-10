@@ -39,10 +39,8 @@ public abstract class AbstractInputPropertyAnnotationHandler implements Property
         PathSensitive pathSensitive = propertyValue.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
-            /*
-             * If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
-             * https://guides.gradle.org/using-build-cache/#relocatability
-             */
+            // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
+            // https://guides.gradle.org/using-build-cache/#relocatability
             pathSensitivity = PathSensitivity.ABSOLUTE;
         } else {
             pathSensitivity = pathSensitive.value();
