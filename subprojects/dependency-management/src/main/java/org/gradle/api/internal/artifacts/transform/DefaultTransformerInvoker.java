@@ -37,7 +37,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         boolean hasCachedResult = hasCachedResult(primaryInput, transformer);
         TransformationSubject subjectBeingTransformed = invocation.getSubjectBeingTransformed();
         if (!hasCachedResult) {
-            artifactTransformListener.beforeTransformation(transformer, subjectBeingTransformed);
+            artifactTransformListener.beforeTransformerInvocation(transformer, subjectBeingTransformed);
         }
         try {
             ImmutableList<File> result = ImmutableList.copyOf(cachingTransformerExecutor.getResult(primaryInput, transformer));
@@ -46,13 +46,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             invocation.failure(new TransformInvocationException(primaryInput.getAbsoluteFile(), transformer.getImplementationClass(), t));
         } finally {
             if (!hasCachedResult) {
-                artifactTransformListener.afterTransformation(transformer, subjectBeingTransformed);
+                artifactTransformListener.afterTransformerInvocation(transformer, subjectBeingTransformed);
             }
         }
     }
 
     @Override
     public boolean hasCachedResult(File input, Transformer transformer) {
-        return cachingTransformerExecutor.contains(input.getAbsoluteFile(), transformer.getInputsHash());
+        return cachingTransformerExecutor.contains(input.getAbsoluteFile(), transformer.getSecondaryInputHash());
     }
 }

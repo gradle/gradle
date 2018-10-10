@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 /**
  * A series of {@link TransformationStep}s.
  */
-class TransformationChain implements Transformation {
+public class TransformationChain implements Transformation {
 
     private final Transformation first;
     private final Transformation second;

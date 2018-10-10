@@ -33,9 +33,9 @@ public interface Transformer extends BiFunction<List<File>, File, File>, Describ
     Class<? extends ArtifactTransform> getImplementationClass();
 
     /**
-     * The hash of the non-primary inputs of the transformer.
+     * The hash of the secondary inputs of the transformer.
      *
      * This includes the parameters and the implementation.
      */
-    HashCode getInputsHash();
+    HashCode getSecondaryInputHash();
 }

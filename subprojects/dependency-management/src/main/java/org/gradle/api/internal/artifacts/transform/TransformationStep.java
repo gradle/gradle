@@ -28,7 +28,7 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-class TransformationStep implements Transformation {
+public class TransformationStep implements Transformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
 
     private final Transformer transformer;
@@ -45,7 +45,7 @@ class TransformationStep implements Transformation {
             return subjectToTransform;
         }
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Executing transform {} on {}", transformer.getDisplayName(), subjectToTransform.getDisplayName());
+            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
@@ -84,7 +84,7 @@ class TransformationStep implements Transformation {
 
     @Override
     public String toString() {
-        return String.format("%s@%s", transformer.getDisplayName(), transformer.getInputsHash());
+        return String.format("%s@%s", transformer.getDisplayName(), transformer.getSecondaryInputHash());
     }
 
     @Override

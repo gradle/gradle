@@ -77,7 +77,7 @@ public class DefaultTransformer implements Transformer {
     }
 
     @Override
-    public HashCode getInputsHash() {
+    public HashCode getSecondaryInputHash() {
         return inputsHash;
     }
 

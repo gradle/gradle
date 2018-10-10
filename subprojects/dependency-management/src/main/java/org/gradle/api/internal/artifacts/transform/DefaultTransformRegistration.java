@@ -35,7 +35,7 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
 
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
-    private final TransformationStep transformation;
+    private final TransformationStep transformationStep;
 
     public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator, TransformerInvoker transformerInvoker) {
         Hasher hasher = Hashing.newHasher();
@@ -56,10 +56,10 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
         return new DefaultTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
-    public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformation) {
+    public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
         this.from = from;
         this.to = to;
-        this.transformation = transformation;
+        this.transformationStep = transformationStep;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
     }
 
     @Override
-    public Transformation getTransformation() {
-        return transformation;
+    public TransformationStep getTransformationStep() {
+        return transformationStep;
     }
 }

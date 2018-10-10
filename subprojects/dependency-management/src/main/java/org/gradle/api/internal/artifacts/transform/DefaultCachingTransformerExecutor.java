@@ -180,7 +180,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     }
     
     private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
-        return getCacheKey(primaryInput, transformer.getInputsHash());
+        return getCacheKey(primaryInput, transformer.getSecondaryInputHash());
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {

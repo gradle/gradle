@@ -137,7 +137,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void beforeTransformation(Describable transformer, Describable subject) {
+    public void beforeTransformerInvocation(Describable transformer, Describable subject) {
         long now = clock.getCurrentTime();
         String transformationDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
         FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
@@ -145,7 +145,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void afterTransformation(Describable transformer, Describable subject) {
+    public void afterTransformerInvocation(Describable transformer, Describable subject) {
         long now = clock.getCurrentTime();
         currentTransformation.get().setFinish(now);
         currentTransformation.remove();

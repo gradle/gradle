@@ -67,7 +67,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         result.matches.size() == 1
         result.matches.first().attributes == c2
-        result.matches.first().transformation.is(reg2.transformation)
+        result.matches.first().transformation.is(reg2.transformationStep)
 
         and:
         _ * schema.matcher() >> matcher
@@ -96,7 +96,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         result.matches.size() == 2
         result.matches*.attributes == [c3, c2]
-        result.matches*.transformation == [reg1.transformation, reg2.transformation]
+        result.matches*.transformation == [reg1.transformationStep, reg2.transformationStep]
 
         and:
         _ * schema.matcher() >> matcher
@@ -124,7 +124,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         then:
         def match = result.matches.first()
-        match.transformation.is(reg2.transformation)
+        match.transformation.is(reg2.transformationStep)
 
         and:
         _ * schema.matcher() >> matcher
@@ -206,7 +206,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result.matches.first().transformation.is(reg3.transformation)
+        result.matches.first().transformation.is(reg3.transformationStep)
 
         and:
         _ * schema.matcher() >> matcher
@@ -337,7 +337,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.transformation >> Stub(Transformation) {
+        reg.transformationStep >> Stub(Transformation) {
             transform(_ as TransformationSubject) >> { TransformationSubject subject ->
                 return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
             }

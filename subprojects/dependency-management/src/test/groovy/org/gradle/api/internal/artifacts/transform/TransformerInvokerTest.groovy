@@ -41,15 +41,15 @@ class TransformerInvokerTest extends Specification {
         then:
         invocation.result == [resultOne, resultTwo]
 
-        1 * transformer.getInputsHash() >> transformerInputsHash
+        1 * transformer.getSecondaryInputHash() >> transformerInputsHash
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformationListener.beforeTransformation(transformer, sourceSubject)
+        1 * transformationListener.beforeTransformerInvocation(transformer, sourceSubject)
 
         then:
         1 * transformedFileCache.getResult(sourceFile, transformer) >> [resultOne, resultTwo]
 
         then:
-        1 * transformationListener.afterTransformation(transformer, sourceSubject)
+        1 * transformationListener.afterTransformerInvocation(transformer, sourceSubject)
         0 * _
     }
 
@@ -62,15 +62,15 @@ class TransformerInvokerTest extends Specification {
         then:
         invocation.failure.cause.is(failure)
 
-        1 * transformer.getInputsHash() >> transformerInputsHash
+        1 * transformer.getSecondaryInputHash() >> transformerInputsHash
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformationListener.beforeTransformation(transformer, sourceSubject)
+        1 * transformationListener.beforeTransformerInvocation(transformer, sourceSubject)
 
         then:
         1 * transformedFileCache.getResult(sourceFile, transformer) >> { throw failure }
 
         then:
-        1 * transformationListener.afterTransformation(transformer, sourceSubject)
+        1 * transformationListener.afterTransformerInvocation(transformer, sourceSubject)
         1 * transformer.implementationClass >> ArtifactTransform
         0 * _
     }
@@ -87,11 +87,11 @@ class TransformerInvokerTest extends Specification {
         invocation.failure.cause.is(failure)
 
         and:
-        1 * transformer.getInputsHash() >> transformerInputsHash
+        1 * transformer.getSecondaryInputHash() >> transformerInputsHash
         1 * transformedFileCache.contains(sourceFile.getAbsoluteFile(), transformerInputsHash) >> false
-        1 * transformationListener.beforeTransformation(transformer, sourceSubject)
+        1 * transformationListener.beforeTransformerInvocation(transformer, sourceSubject)
         1 * transformedFileCache.getResult(sourceFile, transformer) >> { throw failure }
-        1 * transformationListener.afterTransformation(transformer, sourceSubject)
+        1 * transformationListener.afterTransformerInvocation(transformer, sourceSubject)
         1 * transformer.implementationClass >> ArtifactTransform
         0 * _
     }
