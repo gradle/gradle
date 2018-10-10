@@ -357,140 +357,6 @@ The Gradle Kotlin DSL provides the `withConvention(T::class) {}` extension funct
 include::sample[dir="kotlinDsl/sourceSetConvention",files="build.gradle.kts[tags=source-set-convention]"]
 ====
 
-[[sec::declarative_scripts]]
-== Keeping build scripts declarative
-
-To get the most benefits of the Gradle Kotlin DSL you should strive to keep your build scripts declarative.
-The main thing to remember here is that in order to get type-safe accessors, plugins must be applied before the body of build scripts.
-
-This can be achieved by always using the `plugins {}` block.
-But, plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the plugins {} block.
-It depends on how they have been published.
-
-For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and at least up to version 3.2.0 of the plugin, the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
-
-Because of this, projects typically apply the plugin via a `buildscript {}` block and the imperative `apply()` function.
-However, you can use the `plugins {}` block if you configure your build appropriately.
-We will show you in this section how to do that for the Android Plugin for Gradle.
-
-[NOTE]
-When publishing plugins, please use Gradle's built-in <<java_gradle_plugin#, Java Gradle Plugin>> Plugin. It automates the publication of the metadata necessary to make your plugins usable with the `plugins {}` block.
-
-The goal is to instruct your build on how to map the `com.android.application` plugin identifier to a resolvable artifact.
-This is done in two steps:
-
-* Add a plugin repository to the build's settings file
-* Map the plugin ID to the corresponding artifact coordinates
-
-The following example shows you how to add a plugin repository to the build via a `pluginManagement {}` block in the settings file:
-
-.settings.gradle.kts
-[source,kotlin]
-----
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-}
-----
-
-Providing the ID-to-artifact mapping is also done in the settings file, again within the `pluginManagement {}` block.
-The following sample maps the `com.android.application` ID to the `com.android.tools.build:gradle:<version>` artifact coordinate:
-
-.settings.gradle.kts
-[source,kotlin]
-----
-pluginManagement {
-    // ...
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.android.application") {
-                useModule("com.android.tools.build:gradle:${requested.version}")
-            }
-        }
-    }
-}
-----
-
-Once you have completed both steps, you can apply the plugin using the `plugins {}` block and benefit from the type-safe plugin extension accessors in your build files:
-
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("com.android.application") version "3.1.0"   // <1>
-}
-
-android {                                           // <2>
-    buildToolsVersion("27.0.3")
-    compileSdkVersion(27)
-}
-----
-<1> Declaratively request the `com.android.application` plugin
-<2> Configure the `android` extension using Kotlin DSL type safe accessor
-
-See the <<plugins#sec:plugin_management, Plugin Management>> section of the Gradle user manual for more information.
-
-The same approach can be used to resolve plugins from composite builds, which link:https://github.com/gradle/gradle/issues/2528[do not expose plugin markers] yet.
-Simply map the plugin ID to the corresponding artifact coordinates as shown in the Android samples above.
-
-=== In multi-project builds
-
-In multi-project builds, and most Android builds are, one needs to take special care if applying the same plugin to multiple sub projects.
-In that case, always request the plugin without applying it on your root project first.
-This ensures all sub projects using that plugin will load it from the same class loader, allowing for example to cross-configure projects.
-
-.settings.gradle.kts
-[source,kotlin]
-----
-include("app")
-include("core")
-
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.android.application" || requested.id.id == "com.android.library") {
-                useModule("com.android.tools.build:gradle:3.1.0")
-            }
-        }
-    }
-}
-
-----
-
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-  id("com.android.application") apply false
-  id("com.android.library") apply false
-}
-----
-
-.app/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-  id("com.android.application")
-}
-----
-
-.core/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-  id("com.android.library")
-}
-----
-
-The example above centrally defines plugin versions in the settings script's plugin resolution rules.
-Note that alternatively you could also move the version declarations in the root project `plugins {}` block.
-
 
 [[sec:containers]]
 == Working with containers
@@ -620,6 +486,77 @@ tasks {
 ----
 
 // === `Property`, `Provider` and `NamedDomainObjectProvider`
+
+
+[[sec::multi_project_builds]]
+== Multi-project builds
+
+To get the most benefits of the Gradle Kotlin DSL you should strive to keep your build scripts declarative.
+The main thing to remember here is that in order to get type-safe accessors, plugins must be applied before the body of build scripts.
+
+As seen above, this can be achieved by using the `plugins {}` block.
+In multi-project builds you should centrally declare plugin dependencies in the root project build file, specifying the version, without applying those used in sub-projects.
+Then apply them simply by ID in sub projects build scripts.
+
+.Declare plugin dependencies in the root build script
+====
+include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
+====
+
+If your build requires additional plugin repositories, they should be declared in the `pluginManagement {}` block in your `settings.gradle.kts` file:
+
+.Declare additional plugin repositories
+====
+include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=repositories]"]
+====
+
+=== Cross-configuring projects
+
+You might want to cross-configure projects, for example configuring sub projects from the root project build script.
+In that case you won't have the help of the type-safe accessors for model elements contributed by the plugins and have to rely on string literals and the API.
+
+For the sake of the example, let's look at the same build as above but fully configured from the root build script:
+
+.Cross-configuring projects
+====
+include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
+====
+
+It's more verbose and requires more gymnastic to write but it works and can be useful.
+See the <<sec:configuring_plugins>> section above for a detailed explanation.
+
+=== Plugins not available using the `plugins {}` block
+
+Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the plugins {} block.
+It depends on how they have been published.
+
+For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and at least up to version 3.2.0 of the plugin, the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
+
+Because of this, projects typically apply the plugin via a `buildscript {}` block and the imperative `apply()` function.
+However, you can use the `plugins {}` block if you configure your build appropriately.
+We will show you in this section how to do that for the Android Plugin for Gradle.
+
+[NOTE]
+When publishing plugins, please use Gradle's built-in <<java_gradle_plugin#, Java Gradle Plugin>> Plugin. It automates the publication of the metadata necessary to make your plugins usable with the `plugins {}` block.
+
+The goal is to instruct your build on how to map the `com.android.application` plugin identifier to a resolvable artifact.
+This is done in two steps:
+
+* Add a plugin repository to the build's settings file
+* Map the plugin ID to the corresponding artifact coordinates
+
+This is done in the settings file within the `pluginManagement {}` block.
+The following sample maps the `com.android.application` ID to the `com.android.tools.build:gradle:<version>` artifact available in the `google()` repository:
+
+.Mapping plugin IDs to dependency coordinates
+====
+include::sample[dir="kotlinDsl/androidBuild",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android];lib/build.gradle.kts[tags=android];app/build.gradle.kts[tags=android]"]
+====
+
+See the <<plugins#sec:plugin_management, Plugin Management>> section of the Gradle user manual for more information.
+
+The same approach can be used to resolve plugins from composite builds, which link:https://github.com/gradle/gradle/issues/2528[do not expose plugin markers] yet.
+Simply map the plugin ID to the corresponding artifact coordinates as shown in the Android samples above.
 
 
 [[sec:kotlin-dsl_plugin]]
