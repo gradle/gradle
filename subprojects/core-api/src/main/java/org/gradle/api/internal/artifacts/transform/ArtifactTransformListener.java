@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.Describable;
+
 public interface ArtifactTransformListener {
 
     /**
      * This method is called immediately before a transformer is invoked.
      */
-    void beforeTransformation(Transformer transformer, TransformationSubject subject);
+    void beforeTransformation(Describable transformer, Describable subject);
 
     /**
      * This method is call immediately after a transformer has been invoked.
      */
-    void afterTransformation(Transformer transformer, TransformationSubject subject);
+    void afterTransformation(Describable transformer, Describable subject);
 }

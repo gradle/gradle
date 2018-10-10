@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A single transformation step.
@@ -48,16 +47,16 @@ class ArtifactTransformationStep implements ArtifactTransformation {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Executing transform {} on {}", transformer.getDisplayName(), subjectToTransform.getDisplayName());
         }
-        List<File> result = new ArrayList<File>();
+        ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : subjectToTransform.getFiles()) {
             TransformerInvocation invocation = new TransformerInvocation(transformer, file, subjectToTransform);
             transformerInvoker.invoke(invocation);
             if (invocation.getFailure() != null) {
-                return new DefaultTransformationSubject(subjectToTransform, invocation.getFailure());
+                return subjectToTransform.transformationFailed(invocation.getFailure());
             }
-            result.addAll(invocation.getResult());
+            builder.addAll(invocation.getResult());
         }
-        return new DefaultTransformationSubject(subjectToTransform, result);
+        return subjectToTransform.transformationSuccessful(builder.build());
     }
 
     @Override

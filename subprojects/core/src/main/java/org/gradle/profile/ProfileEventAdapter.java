@@ -17,6 +17,7 @@ package org.gradle.profile;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Describable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
@@ -26,8 +27,6 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.TransformationSubject;
-import org.gradle.api.internal.artifacts.transform.Transformer;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
@@ -138,7 +137,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void beforeTransformation(Transformer transformer, TransformationSubject subject) {
+    public void beforeTransformation(Describable transformer, Describable subject) {
         long now = clock.getCurrentTime();
         String transformationDescription = subject.getDisplayName() + " with " + transformer.getDisplayName();
         FragmentedOperation transformationProfile = buildProfile.getTransformationProfile(transformationDescription);
@@ -146,7 +145,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     }
 
     @Override
-    public void afterTransformation(Transformer transformer, TransformationSubject subject) {
+    public void afterTransformation(Describable transformer, Describable subject) {
         long now = clock.getCurrentTime();
         currentTransformation.get().setFinish(now);
         currentTransformation.remove();

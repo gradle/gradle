@@ -77,7 +77,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).files
+        def transformed = registration.transformation.transform(TransformationSubject.initial(TEST_INPUT)).files
 
         then:
         transformed.size() == 1
@@ -116,7 +116,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !outputFile.exists()
 
         when:
-        def transformed = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).files
+        def transformed = registration.transformation.transform(TransformationSubject.initial(TEST_INPUT)).files
 
         then:
         transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
@@ -151,7 +151,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def result = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT))
+        def result = registration.transformation.transform(TransformationSubject.initial(TEST_INPUT))
 
         then:
         def failure = result.failure
@@ -190,7 +190,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).failure
+        def failure = registration.transformation.transform(TransformationSubject.initial(TEST_INPUT)).failure
 
         then:
         failure instanceof TransformInvocationException
@@ -226,7 +226,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         when:
         def registration = registry.transforms.first()
-        def failure = registration.transformation.transform(new InitialFileTransformationSubject(TEST_INPUT)).failure
+        def failure = registration.transformation.transform(TransformationSubject.initial(TEST_INPUT)).failure
 
         then:
         failure instanceof TransformInvocationException

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -167,9 +168,9 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.hasCachedResult(_ as TransformationSubject) >> false
         _ * transformation.getDisplayName() >> "transform"
 
-        1 * transformation.transform({ it instanceof InitialArtifactTransformationSubject && it.files == [sourceArtifactFile]}) >> new DefaultTransformationSubject(new InitialArtifactTransformationSubject(sourceArtifactId, sourceArtifactFile), [outFile1, outFile2])
+        1 * transformation.transform({ it.files == [sourceArtifactFile]}) >> TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).transformationSuccessful(ImmutableList.of(outFile1, outFile2))
 
-        1 * transformation.transform({ it instanceof InitialFileTransformationSubject && it.files == [sourceFile] }) >> new DefaultTransformationSubject(new InitialFileTransformationSubject(sourceFile), [outFile3, outFile4])
+        1 * transformation.transform({ it.files == [sourceFile] }) >> TransformationSubject.initial(sourceFile).transformationSuccessful(ImmutableList.of(outFile3, outFile4))
 
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})

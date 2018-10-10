@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import spock.lang.Specification
 
 class ChainedTransformerTest extends Specification {
-    private InitialFileTransformationSubject initialSubject = new InitialFileTransformationSubject(new File("foo"))
+    private TransformationSubject initialSubject = TransformationSubject.initial(new File("foo"))
 
     def "is cached if all parts are cached"() {
         given:
@@ -60,9 +60,8 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         TransformationSubject transform(TransformationSubject subject) {
-            return new DefaultTransformationSubject(subject, [new File(subject.files.first(), "cached")])
+            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "cached")))
         }
-
 
         @Override
         boolean hasCachedResult(TransformationSubject subject) {
@@ -81,12 +80,10 @@ class ChainedTransformerTest extends Specification {
 
     class NonCachingTransformation implements ArtifactTransformation {
 
-
         @Override
         TransformationSubject transform(TransformationSubject subject) {
-            return new DefaultTransformationSubject(subject, [new File(subject.files.first(), "non-cached")])
+            return subject.transformationSuccessful(ImmutableList.of(new File(subject.files.first(), "non-cached")))
         }
-
 
         @Override
         boolean hasCachedResult(TransformationSubject subject) {

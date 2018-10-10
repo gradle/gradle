@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import junit.framework.AssertionFailedError
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.transform.ArtifactTransform
@@ -325,7 +326,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     private static TransformationSubject initialSubject(String path) {
-        new InitialFileTransformationSubject(new File(path))
+        TransformationSubject.initial(new File(path))
     }
 
     private AttributeContainerInternal attributes() {
@@ -338,7 +339,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         reg.to >> to
         reg.transformation >> Stub(ArtifactTransformation) {
             transform(_ as TransformationSubject) >> { TransformationSubject subject ->
-                return new DefaultTransformationSubject(subject, subject.files.collectMany { transformer.transform(it) })
+                return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
             }
         }
         reg

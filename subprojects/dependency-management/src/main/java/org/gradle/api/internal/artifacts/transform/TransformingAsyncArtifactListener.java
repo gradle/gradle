@@ -44,7 +44,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        InitialArtifactTransformationSubject initialSubject = new InitialArtifactTransformationSubject(artifactId, file);
+        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
         initialSubjectAvailable(artifactId, initialSubject, artifactResults);
     }
 
@@ -61,7 +61,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void fileAvailable(File file) {
-        InitialFileTransformationSubject initialSubject = new InitialFileTransformationSubject(file);
+        TransformationSubject initialSubject = TransformationSubject.initial(file);
         initialSubjectAvailable(file, initialSubject, fileResults);
     }
 

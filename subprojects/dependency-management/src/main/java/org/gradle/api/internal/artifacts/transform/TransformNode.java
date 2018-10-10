@@ -160,11 +160,11 @@ public abstract class TransformNode extends Node {
                     } else {
                         failure = new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", failures);
                     }
-                    this.transformedSubject = new ResolveFailedTransformationSubject(artifactSet.getArtifactId(), failure);
+                    this.transformedSubject =TransformationSubject.failure("artifact " + artifactSet.getArtifactId().getDisplayName(), failure);
                     return;
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
-                InitialArtifactTransformationSubject initialArtifactTransformationSubject = new InitialArtifactTransformationSubject(artifact.getId(), artifact.getFile());
+                TransformationSubject initialArtifactTransformationSubject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
 
                 this.transformedSubject = transformationStep.transform(initialArtifactTransformationSubject);
             }
