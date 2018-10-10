@@ -548,11 +548,6 @@ If Gradle is attached to an interactive input source, such as a terminal, the co
 [[continuous_build_limitations]]
 === Limitations and quirks
 
-[NOTE]
-====
-Continuous build is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature.
-====
-
 There are several issues to be aware with the current implementation of continuous build. These are likely to be addressed in future Gradle releases.
 
 [[sec:build_cycles]]
