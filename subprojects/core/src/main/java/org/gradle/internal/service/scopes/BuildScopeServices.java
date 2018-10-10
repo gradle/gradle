@@ -447,8 +447,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {
-        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
+    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
+                                                                                final BuildOperationExecutor buildOperationExecutor) {
+        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor);
         for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
             registryAction.execute(registry);
         }
