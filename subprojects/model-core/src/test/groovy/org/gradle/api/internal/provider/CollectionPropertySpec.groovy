@@ -21,7 +21,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import spock.lang.Unroll
 
-abstract class CollectionPropertySpec<C extends Collection<String>> extends ProviderSpec<C> {
+abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     @Override
     Provider<C> providerWithNoValue() {
         return property()
@@ -43,8 +43,10 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         return toMutable(["s1"])
     }
 
-    abstract CollectionPropertyInternal<String, C> property()
+    @Override
+    abstract AbstractCollectionProperty<String, C> property()
 
+    @Override
     abstract Class<C> type()
 
     def property = property()
@@ -66,20 +68,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     protected abstract C toMutable(Collection<String> values)
 
     protected abstract Class<? extends ImmutableCollection<?>> getImmutableCollectionType()
-
-    def "has no value by default"() {
-        expect:
-        !property.present
-        property.getOrNull() == null
-        property.getOrElse(someValue()) == someValue()
-
-        when:
-        property.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
-    }
 
     def "can change value to empty collection"() {
         property.empty()
@@ -389,9 +377,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
 
     def "property has no value when set to null and other values appended"() {
         given:
-        property.set((C) null)
-
-        and:
         property.add("1")
         property.add(Providers.of("2"))
         property.addAll(["3"])
@@ -471,6 +456,19 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         e.message == Providers.NULL_VALUE
     }
 
+    def "can set to null value to discard value"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.set((Iterable) null)
+
+        expect:
+        !property.present
+        property.getOrNull() == null
+        property.getOrElse(someValue()) == someValue()
+        property.getOrElse(null) == null
+    }
+
     def "can set null value to remove any added values"() {
         property.add("abc")
         property.add(Providers.of("def"))
@@ -529,4 +527,68 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         def ex = thrown(NullPointerException)
         ex.message == "Cannot add a null element to a property of type ${type().simpleName}."
     }
+
+    def "cannot set to empty list after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.empty()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot add element after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.add(Stub(PropertyInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot add elements after value finalized"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
 }

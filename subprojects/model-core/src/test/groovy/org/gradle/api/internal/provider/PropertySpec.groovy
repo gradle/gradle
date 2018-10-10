@@ -17,11 +17,15 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
+import java.util.concurrent.Callable
+
 abstract class PropertySpec<T> extends ProviderSpec<T> {
-    abstract Property<T> property()
+    /**
+     * Returns a property with _no_ value.
+     */
+    abstract PropertyInternal<T> property()
 
     abstract T someValue()
 
@@ -29,17 +33,19 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     abstract Class<T> type()
 
-    def "can set to null value to discard value"() {
-        given:
-        def property = property()
-        property.set(someValue())
-        property.set(null)
-
+    def "has no value by default"() {
         expect:
+        def property = property()
         !property.present
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
-        property.getOrElse(null) == null
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
     }
 
     def "cannot get value when it has none"() {
@@ -287,7 +293,6 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     def "mapped provider has no value and transformer is not invoked when property has no value"() {
         def transformer = Mock(Transformer)
         def property = property()
-        property.set(null)
 
         when:
         def provider = property.map(transformer)
@@ -329,18 +334,17 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.getOrNull() == someValue()
     }
 
-    def "replaces provider with a final copy when value finalized"() {
+    def "replaces provider with fixed value when value finalized"() {
         def property = property()
-        def provider = Mock(ProviderInternal)
-        def finalProvider = Mock(ProviderInternal)
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
 
         when:
         property.set(provider)
         property.finalizeValue()
 
         then:
-        _ * provider.type >> type()
-        1 * provider.withFinalValue() >> finalProvider
+        1 * function.call() >> someValue()
         0 * _
 
         when:
@@ -350,15 +354,36 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         present
         result == someValue()
-        1 * finalProvider.isPresent() >> true
-        1 * finalProvider.getOrNull() >> someValue()
+        0 * _
+    }
+
+    def "replaces provider with fixed missing value when value finalized"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        when:
+        property.set(provider)
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> null
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        !present
+        result == null
         0 * _
     }
 
     def "can finalize value when already finalized"() {
         def property = property()
-        def provider = Mock(ProviderInternal)
-        def finalProvider = Mock(ProviderInternal)
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
 
         when:
         property.set(provider)
@@ -366,8 +391,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
 
         then:
-        _ * provider.type >> type()
-        1 * provider.withFinalValue() >> finalProvider
+        1 * function.call() >> someValue()
         0 * _
 
         when:
@@ -412,7 +436,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.finalizeValue()
 
         when:
-        property.setFromAnyValue(12)
+        property.setFromAnyValue(someOtherValue())
 
         then:
         def e = thrown(IllegalStateException)

@@ -18,9 +18,9 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
@@ -41,7 +41,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final String name;
     private final Names names;
     private final Property<SwiftVersion> sourceCompatibility;
-    private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
+    private final SetProperty<OperatingSystemFamily> operatingSystems;
 
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
@@ -52,7 +52,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
 
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
-        operatingSystems = new LockableSetProperty<OperatingSystemFamily>(objectFactory.setProperty(OperatingSystemFamily.class)).empty();
+        operatingSystems = objectFactory.setProperty(OperatingSystemFamily.class);
         operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
     }
 
@@ -87,7 +87,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public LockableSetProperty<OperatingSystemFamily> getOperatingSystems() {
+    public SetProperty<OperatingSystemFamily> getOperatingSystems() {
         return operatingSystems;
     }
 }
