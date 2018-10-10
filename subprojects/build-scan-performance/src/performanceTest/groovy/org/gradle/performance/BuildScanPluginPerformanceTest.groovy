@@ -33,8 +33,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
     private static final int MEDIAN_PERCENTAGES_SHIFT = 10
 
-    private static final String WITHOUT_PLUGIN_LABEL = "1 without plugin"
-    private static final String WITH_PLUGIN_LABEL = "2 with plugin"
+    private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
+    private static final String WITH_PLUGIN_LABEL = "with plugin"
 
     @Unroll
     def "large java project with and without plugin application (#scenario)"() {
@@ -109,11 +109,11 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                                      | expectedMedianPercentageShift | tasks                        | withFailure | scenarioArgs      | manageCacheState | fileHashes
-        "help"                                        | MEDIAN_PERCENTAGES_SHIFT      | ['help']                     | false       | []                | false            | true
-        "clean build (all projects)"                  | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | true
-        "clean build (all projects - no file hashes)" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | false
-        "clean build (50 projects)"                   | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:build'] | true        | ['--build-cache'] | true             | true
+        scenario                                       | expectedMedianPercentageShift | tasks                        | withFailure | scenarioArgs      | manageCacheState | fileHashes
+        "help"                                         | MEDIAN_PERCENTAGES_SHIFT      | ['help']                     | false       | []                | false            | true
+        "clean build - all projects"                   | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | true
+        "clean build - all projects - no file hashes" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | false
+        "clean build - 50 projects"                    | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:build'] | true        | ['--build-cache'] | true             | true
     }
 
 
