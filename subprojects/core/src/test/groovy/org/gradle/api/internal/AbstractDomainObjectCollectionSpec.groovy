@@ -1545,6 +1545,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
             "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
             "configureEach(Action)": { container.configureEach(Actions.doNothing()) },
             "whenObjectAdded(Action)": { container.whenObjectAdded(Actions.doNothing()) },
+            "withType(Class, Action)": { container.withType(type, Actions.doNothing()) },
         ]
     }
 
