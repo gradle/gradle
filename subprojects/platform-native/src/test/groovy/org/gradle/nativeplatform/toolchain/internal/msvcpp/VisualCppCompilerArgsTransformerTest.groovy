@@ -31,16 +31,21 @@ class VisualCppCompilerArgsTransformerTest extends Specification {
         def spec = Stub(NativeCompileSpec)
         spec.debuggable >> debug
         spec.optimized >> optimize
+        spec.debugInfoFormat >> debugInfoFormat
+        spec.optimizationLevel >> optimizationLevel
 
         expect:
         def args = transformer.transform(spec)
         args.containsAll(expected)
 
         where:
-        debug | optimize | expected
-        true  | false    | ["/Zi"]
-        false | true     | ["/O2"]
-        true  | true     | ["/Zi", "/O2"]
+        debug | optimize | debugInfoFormat | optimizationLevel | expected
+        true  | false    | null            | null              | ["/Zi"]
+        true  | false    | "/Z7"           | null              | ["/Z7"]
+        false | true     | null            | null              | ["/O2"]
+        false | true     | null            | "/Od"             | ["/Od"]
+        true  | true     | null            | null              | ["/Zi", "/O2"]
+        true  | true     | "/Z7"           | "/Od"             | ["/Z7", "/Od"]
     }
 
     def "transforms system header and include args correctly"() {
