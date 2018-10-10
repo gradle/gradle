@@ -77,8 +77,13 @@ class AbstractIntegrationSpec extends Specification {
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
 
+    protected int maxHttpRetries = 1
+
     def setup() {
         m2.isolateMavenLocalRepo(executer)
+        executer.beforeExecute {
+            executer.withArgument("-Dorg.gradle.internal.repository.max.retries=$maxHttpRetries")
+        }
     }
 
     def cleanup() {
@@ -295,6 +300,11 @@ class AbstractIntegrationSpec extends Specification {
                 return new GradleBackedArtifactBuilder(executer, dir)
             }
         }
+    }
+
+    AbstractIntegrationSpec withMaxHttpRetryCount(int count) {
+        maxHttpRetries = count
+        this
     }
 
     def jarWithClasses(Map<String, String> javaSourceFiles, TestFile jarFile) {
