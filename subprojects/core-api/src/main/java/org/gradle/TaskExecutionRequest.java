@@ -27,7 +27,6 @@ import java.util.List;
  *
  * @since 2.0
  */
-@Incubating
 public interface TaskExecutionRequest {
     /**
      * The arguments to use to select and optionally configure the tasks, as if provided on the command-line.
@@ -49,6 +48,7 @@ public interface TaskExecutionRequest {
      * @return the root project folder or {@code null} if the information is not available.
      * @since 3.3
      */
+    @Incubating
     @Nullable
     File getRootDir();
 }

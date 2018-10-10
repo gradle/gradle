@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.testing.junit;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
@@ -32,13 +31,11 @@ public class JUnitOptions extends TestFrameworkOptions {
 
     private Set<String> excludeCategories = new LinkedHashSet<String>();
 
-    @Incubating
     public JUnitOptions includeCategories(String... includeCategories) {
         this.includeCategories.addAll(Arrays.asList(includeCategories));
         return this;
     }
 
-    @Incubating
     public JUnitOptions excludeCategories(String... excludeCategories) {
         this.excludeCategories.addAll(Arrays.asList(excludeCategories));
         return this;
@@ -47,7 +44,6 @@ public class JUnitOptions extends TestFrameworkOptions {
     /**
      * The set of categories to run.
      */
-    @Incubating
     @Input
     public Set<String> getIncludeCategories() {
         return includeCategories;
@@ -56,7 +52,6 @@ public class JUnitOptions extends TestFrameworkOptions {
     /**
      * The set of categories to run.
      */
-    @Incubating
     public void setIncludeCategories(Set<String> includeCategories) {
         this.includeCategories = includeCategories;
     }
@@ -64,7 +59,6 @@ public class JUnitOptions extends TestFrameworkOptions {
     /**
      * The set of categories to exclude.
      */
-    @Incubating
     @Input
     public Set<String> getExcludeCategories() {
         return excludeCategories;

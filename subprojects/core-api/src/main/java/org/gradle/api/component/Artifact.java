@@ -15,13 +15,10 @@
  */
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * An artifact of a software component that may be requested in the result of an artifact query.
  *
  * @since 2.0
  */
-@Incubating
 public interface Artifact {
 }

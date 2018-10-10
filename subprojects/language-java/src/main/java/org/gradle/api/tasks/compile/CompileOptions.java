@@ -434,7 +434,6 @@ public class CompileOptions extends AbstractOptions {
      * @return the source path
      * @see #setSourcepath(FileCollection)
      */
-    @Incubating
     @Optional
     @Nullable
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -448,7 +447,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @param sourcepath the source path
      */
-    @Incubating
     public void setSourcepath(@Nullable FileCollection sourcepath) {
         this.sourcepath = sourcepath;
     }

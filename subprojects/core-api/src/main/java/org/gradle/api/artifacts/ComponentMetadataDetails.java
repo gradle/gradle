@@ -29,7 +29,6 @@ import java.util.List;
  *
  * @since 1.8
  */
-@Incubating
 @NonExtensible
 public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigurableAttributes<ComponentMetadataDetails> {
     /**
@@ -63,6 +62,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      *
      * @since 4.4
      */
+    @Incubating
     void withVariant(String name, Action<? super VariantMetadata> action);
 
     /**
@@ -72,6 +72,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      *
      * @since 4.5
      */
+    @Incubating
     void allVariants(Action<? super VariantMetadata> action);
 
     /**
@@ -81,6 +82,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      *
      * @since 4.10
      */
+    @Incubating
     void belongsTo(Object notation);
 
     /**
@@ -91,5 +93,6 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      *
      * @since 5.0
      */
+    @Incubating
     void belongsTo(Object notation, boolean virtual);
 }

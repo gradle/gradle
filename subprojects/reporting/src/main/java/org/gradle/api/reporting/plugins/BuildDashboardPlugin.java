@@ -16,7 +16,10 @@
 
 package org.gradle.api.reporting.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.ReportingBasePlugin;
@@ -31,7 +34,6 @@ import java.util.concurrent.Callable;
 /**
  * Adds a task, "buildDashboard", that aggregates the output of all tasks that produce reports.
  */
-@Incubating
 public class BuildDashboardPlugin implements Plugin<Project> {
 
     public static final String BUILD_DASHBOARD_TASK_NAME = "buildDashboard";

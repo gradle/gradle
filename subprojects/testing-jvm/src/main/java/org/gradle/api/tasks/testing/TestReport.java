@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
@@ -43,7 +42,6 @@ import static org.gradle.util.CollectionUtils.collect;
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
  */
-@Incubating
 public class TestReport extends DefaultTask {
     private File destinationDir;
     private List<Object> results = new ArrayList<Object>();

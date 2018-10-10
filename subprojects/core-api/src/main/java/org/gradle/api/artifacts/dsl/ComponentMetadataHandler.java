@@ -55,7 +55,6 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
  *
  * @since 1.8
  */
-@Incubating
 public interface ComponentMetadataHandler {
     /**
      * Adds a rule action that may modify the metadata of any resolved software component.
@@ -110,6 +109,7 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule);
 
     /**
@@ -122,6 +122,7 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
@@ -164,6 +165,7 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule);
 
     /**
@@ -175,5 +177,6 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 }

@@ -16,13 +16,11 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link GenerateBuildDashboard} task.
  */
-@Incubating
 public interface BuildDashboardReports extends ReportContainer<Report> {
     /**
      * The build dashboard HTML report

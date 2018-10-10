@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
-
 import java.util.Set;
 
 /**
@@ -24,7 +22,6 @@ import java.util.Set;
  *
  * @since 2.0
  */
-@Incubating
 public interface ArtifactResolutionResult {
     /**
      * <p>Return a set of {@link ComponentResult} instances representing all requested components.

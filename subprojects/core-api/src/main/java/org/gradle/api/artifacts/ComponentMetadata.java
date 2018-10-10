@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasAttributes;
 
 import java.util.List;
@@ -25,7 +24,6 @@ import java.util.List;
  * Provides a read-only view of a resolved component's metadata, which typically originates from
  * a component descriptor (Ivy file, Maven POM).
  */
-@Incubating
 public interface ComponentMetadata extends HasAttributes {
     /**
      * Returns the identifier of the component.

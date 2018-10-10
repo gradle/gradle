@@ -16,12 +16,10 @@
 
 package org.gradle.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.Component;
 
 /**
  * A Maven Module component.
  */
-@Incubating
 public interface MavenModule extends Component {
 }

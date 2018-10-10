@@ -1020,7 +1020,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param action configuration of the test filter
      * @since 1.10
      */
-    @Incubating
     public void filter(Action<TestFilter> action) {
         action.execute(getFilter());
     }

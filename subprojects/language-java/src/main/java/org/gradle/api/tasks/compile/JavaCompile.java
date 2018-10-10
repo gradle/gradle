@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -88,7 +87,6 @@ public class JavaCompile extends AbstractCompile {
      * @return The tool chain.
      */
     @Nested
-    @Incubating
     public JavaToolChain getToolChain() {
         if (toolChain != null) {
             return toolChain;
@@ -101,7 +99,6 @@ public class JavaCompile extends AbstractCompile {
      *
      * @param toolChain The tool chain.
      */
-    @Incubating
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
     }

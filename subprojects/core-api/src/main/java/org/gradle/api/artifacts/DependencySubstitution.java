@@ -25,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 2.5
  */
-@Incubating
 @HasInternalProtocol
 public interface DependencySubstitution {
     /**
@@ -69,5 +68,6 @@ public interface DependencySubstitution {
      *
      * @since 4.5
      */
+    @Incubating
     void useTarget(Object notation, String reason);
 }

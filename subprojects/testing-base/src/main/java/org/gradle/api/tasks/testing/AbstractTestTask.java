@@ -619,7 +619,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @return filter object
      * @since 1.10
      */
-    @Incubating
     @Nested
     public TestFilter getFilter() {
         return filter;

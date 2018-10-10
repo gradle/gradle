@@ -195,7 +195,6 @@ public interface ResolutionStrategy {
      * @return this
      * @since 1.4
      */
-    @Incubating
     ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule);
 
     /**
@@ -250,7 +249,6 @@ public interface ResolutionStrategy {
      * @return the version selection rules
      * @since 2.2
      */
-    @Incubating
     ComponentSelectionRules getComponentSelection();
 
     /**
@@ -260,7 +258,6 @@ public interface ResolutionStrategy {
      * @return this ResolutionStrategy instance
      * @since 2.2
      */
-    @Incubating
     ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action);
 
     /**
@@ -268,7 +265,6 @@ public interface ResolutionStrategy {
      *
      * @since 2.5
      */
-    @Incubating
     DependencySubstitutions getDependencySubstitution();
 
     /**
@@ -293,7 +289,6 @@ public interface ResolutionStrategy {
      * @see DependencySubstitutions
      * @since 2.5
      */
-    @Incubating
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
 
     /**

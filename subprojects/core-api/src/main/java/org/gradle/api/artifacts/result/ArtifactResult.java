@@ -24,13 +24,13 @@ import org.gradle.api.component.Artifact;
  *
  * @since 2.0
  */
-@Incubating
 public interface ArtifactResult {
     /**
      * Returns an identifier for this artifact.
      *
      * @since 3.3
      */
+    @Incubating
     ComponentArtifactIdentifier getId();
 
     /**
