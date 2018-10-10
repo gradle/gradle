@@ -39,6 +39,6 @@ public class TransformCompletion implements ResolvedArtifactSet.Completion {
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        delegate.visit(new ArtifactTransformingVisitor(visitor, attributes, artifactResults, fileResults));
+        delegate.visit(new TransformingArtifactVisitor(visitor, attributes, artifactResults, fileResults));
     }
 }

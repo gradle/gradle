@@ -337,7 +337,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.transformation >> Stub(ArtifactTransformation) {
+        reg.transformation >> Stub(Transformation) {
             transform(_ as TransformationSubject) >> { TransformationSubject subject ->
                 return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
             }

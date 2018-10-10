@@ -28,13 +28,13 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-class ArtifactTransformationStep implements ArtifactTransformation {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactTransformationStep.class);
+class TransformationStep implements Transformation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
 
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
 
-    public ArtifactTransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
     }
@@ -78,7 +78,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
     }
 
     @Override
-    public void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
+    public void visitTransformationSteps(Action<? super TransformationStep> action) {
         action.execute(this);
     }
 
@@ -96,7 +96,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
             return false;
         }
 
-        ArtifactTransformationStep that = (ArtifactTransformationStep) o;
+        TransformationStep that = (TransformationStep) o;
         return transformer.equals(that.transformer);
     }
 

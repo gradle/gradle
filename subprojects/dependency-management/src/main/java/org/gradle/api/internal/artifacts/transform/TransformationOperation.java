@@ -26,11 +26,11 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 class TransformationOperation implements RunnableBuildOperation {
-    private final ArtifactTransformation transformation;
+    private final Transformation transformation;
     private final TransformationSubject subject;
     private TransformationSubject result;
 
-    TransformationOperation(ArtifactTransformation transformation, TransformationSubject subject) {
+    TransformationOperation(Transformation transformation, TransformationSubject subject) {
         this.transformation = transformation;
         this.subject = subject;
     }

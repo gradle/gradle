@@ -20,16 +20,16 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 @NonNullApi
-public class DefaultArtifactTransformDependency implements ArtifactTransformDependency {
-    private final ArtifactTransformation transformation;
+public class DefaultTransformationDependency implements TransformationDependency {
+    private final Transformation transformation;
     private final ResolvedArtifactSet artifacts;
 
-    public DefaultArtifactTransformDependency(ArtifactTransformation transformation, ResolvedArtifactSet artifacts) {
+    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts) {
         this.transformation = transformation;
         this.artifacts = artifacts;
     }
 
-    public ArtifactTransformation getTransformation() {
+    public Transformation getTransformation() {
         return transformation;
     }
 
@@ -46,7 +46,7 @@ public class DefaultArtifactTransformDependency implements ArtifactTransformDepe
             return false;
         }
 
-        DefaultArtifactTransformDependency that = (DefaultArtifactTransformDependency) o;
+        DefaultTransformationDependency that = (DefaultTransformationDependency) o;
 
         if (!transformation.equals(that.transformation)) {
             return false;

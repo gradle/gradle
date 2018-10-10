@@ -33,9 +33,9 @@ import java.util.Map;
 public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
-    private final ArtifactTransformation transformation;
+    private final Transformation transformation;
 
-    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformation transformation) {
+    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, Transformation transformation) {
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
@@ -51,6 +51,6 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        visitor.visitDependency(new DefaultArtifactTransformDependency(transformation, delegate));
+        visitor.visitDependency(new DefaultTransformationDependency(transformation, delegate));
     }
 }

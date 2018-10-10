@@ -24,22 +24,22 @@ import org.gradle.execution.plan.Node;
 import java.util.Collection;
 
 /**
- * Resolves dependencies to {@link TransformNode} objects.
+ * Resolves dependencies to {@link TransformationNode} objects.
  */
-public class TransformNodeDependencyResolver implements DependencyResolver {
-    private final TransformNodeFactory transformNodeFactory;
+public class TransformationNodeDependencyResolver implements DependencyResolver {
+    private final TransformationNodeFactory transformationNodeFactory;
 
-    public TransformNodeDependencyResolver(TransformNodeFactory transformNodeFactory) {
-        this.transformNodeFactory = transformNodeFactory;
+    public TransformationNodeDependencyResolver(TransformationNodeFactory transformationNodeFactory) {
+        this.transformationNodeFactory = transformationNodeFactory;
     }
 
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
-        if (node instanceof DefaultArtifactTransformDependency) {
-            DefaultArtifactTransformDependency transformation = (DefaultArtifactTransformDependency) node;
-            Collection<TransformNode> transforms = transformNodeFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransformation());
-            for (TransformNode transformNode : transforms) {
-                resolveAction.execute(transformNode);
+        if (node instanceof DefaultTransformationDependency) {
+            DefaultTransformationDependency transformation = (DefaultTransformationDependency) node;
+            Collection<TransformationNode> transformations = transformationNodeFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransformation());
+            for (TransformationNode transformationNode : transformations) {
+                resolveAction.execute(transformationNode);
             }
             return true;
         }

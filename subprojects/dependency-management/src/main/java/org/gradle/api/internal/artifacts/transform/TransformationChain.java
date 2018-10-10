@@ -19,14 +19,14 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Action;
 
 /**
- * A series of {@link ArtifactTransformationStep}s.
+ * A series of {@link TransformationStep}s.
  */
-class ArtifactTransformationChain implements ArtifactTransformation {
+class TransformationChain implements Transformation {
 
-    private final ArtifactTransformation first;
-    private final ArtifactTransformation second;
+    private final Transformation first;
+    private final Transformation second;
 
-    public ArtifactTransformationChain(ArtifactTransformation first, ArtifactTransformation second) {
+    public TransformationChain(Transformation first, Transformation second) {
         this.first = first;
         this.second = second;
     }
@@ -52,7 +52,7 @@ class ArtifactTransformationChain implements ArtifactTransformation {
     }
 
     @Override
-    public void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
+    public void visitTransformationSteps(Action<? super TransformationStep> action) {
         first.visitTransformationSteps(action);
         second.visitTransformationSteps(action);
     }

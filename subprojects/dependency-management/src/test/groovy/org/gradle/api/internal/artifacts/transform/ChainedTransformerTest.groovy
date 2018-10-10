@@ -25,7 +25,7 @@ class ChainedTransformerTest extends Specification {
 
     def "is cached if all parts are cached"() {
         given:
-        def chain = new ArtifactTransformationChain(new CachingTransformation(), new CachingTransformation())
+        def chain = new TransformationChain(new CachingTransformation(), new CachingTransformation())
 
         expect:
         chain.hasCachedResult(initialSubject)
@@ -33,7 +33,7 @@ class ChainedTransformerTest extends Specification {
 
     def "is not cached if first part is not cached"() {
         given:
-        def chain = new ArtifactTransformationChain(new NonCachingTransformation(), new CachingTransformation())
+        def chain = new TransformationChain(new NonCachingTransformation(), new CachingTransformation())
 
         expect:
         !chain.hasCachedResult(initialSubject)
@@ -41,7 +41,7 @@ class ChainedTransformerTest extends Specification {
 
     def "is not cached if second part is not cached"() {
         given:
-        def chain = new ArtifactTransformationChain(new CachingTransformation(), new NonCachingTransformation())
+        def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
         !chain.hasCachedResult(initialSubject)
@@ -49,13 +49,13 @@ class ChainedTransformerTest extends Specification {
 
     def "applies second transform on the result of the first"() {
         given:
-        def chain = new ArtifactTransformationChain(new CachingTransformation(), new NonCachingTransformation())
+        def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
         chain.transform(initialSubject).files == [new File("foo/cached/non-cached")]
     }
 
-    class CachingTransformation implements ArtifactTransformation {
+    class CachingTransformation implements Transformation {
 
 
         @Override
@@ -74,11 +74,11 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
+        void visitTransformationSteps(Action<? super TransformationStep> action) {
         }
     }
 
-    class NonCachingTransformation implements ArtifactTransformation {
+    class NonCachingTransformation implements Transformation {
 
         @Override
         TransformationSubject transform(TransformationSubject subject) {
@@ -96,7 +96,7 @@ class ChainedTransformerTest extends Specification {
         }
 
         @Override
-        void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
+        void visitTransformationSteps(Action<? super TransformationStep> action) {
         }
     }
 }

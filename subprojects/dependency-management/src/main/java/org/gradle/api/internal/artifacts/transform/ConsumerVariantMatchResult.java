@@ -31,7 +31,7 @@ public class ConsumerVariantMatchResult {
         result.matches.addAll(this.matches);
     }
 
-    public void matched(ImmutableAttributes output, ArtifactTransformation transformation, int depth) {
+    public void matched(ImmutableAttributes output, Transformation transformation, int depth) {
         // Collect only the shortest paths
         if (minDepth == 0) {
             minDepth = depth;
@@ -54,10 +54,10 @@ public class ConsumerVariantMatchResult {
 
     public static class ConsumerVariant {
         final AttributeContainerInternal attributes;
-        final ArtifactTransformation transformation;
+        final Transformation transformation;
         final int depth;
 
-        public ConsumerVariant(AttributeContainerInternal attributes, ArtifactTransformation transformation, int depth) {
+        public ConsumerVariant(AttributeContainerInternal attributes, Transformation transformation, int depth) {
             this.attributes = attributes;
             this.transformation = transformation;
             this.depth = depth;

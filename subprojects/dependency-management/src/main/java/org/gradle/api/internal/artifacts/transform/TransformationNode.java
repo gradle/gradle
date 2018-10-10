@@ -40,22 +40,22 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformNode extends Node {
+public abstract class TransformationNode extends Node {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
-    protected final ArtifactTransformationStep transformationStep;
+    protected final TransformationStep transformationStep;
     protected TransformationSubject transformedSubject;
 
-    public static TransformNode chained(ArtifactTransformationStep current, TransformNode previous) {
-        return new ChainedTransformNode(current, previous);
+    public static TransformationNode chained(TransformationStep current, TransformationNode previous) {
+        return new ChainedTransformationNode(current, previous);
     }
 
-    public static TransformNode initial(ArtifactTransformationStep initial, BuildableSingleResolvedArtifactSet artifact) {
-        return new InitialTransformNode(initial, artifact);
+    public static TransformationNode initial(TransformationStep initial, BuildableSingleResolvedArtifactSet artifact) {
+        return new InitialTransformationNode(initial, artifact);
     }
 
-    protected TransformNode(ArtifactTransformationStep transformationStep) {
+    protected TransformationNode(TransformationStep transformationStep) {
         this.transformationStep = transformationStep;
     }
 
@@ -94,15 +94,15 @@ public abstract class TransformNode extends Node {
         if (getClass() != other.getClass()) {
             return getClass().getName().compareTo(other.getClass().getName());
         }
-        TransformNode otherTransform = (TransformNode) other;
-        return order - otherTransform.order;
+        TransformationNode otherTransformation = (TransformationNode) other;
+        return order - otherTransformation.order;
     }
 
-    private static class InitialTransformNode extends TransformNode {
+    private static class InitialTransformationNode extends TransformationNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
 
-        public InitialTransformNode(
-            ArtifactTransformationStep transformationStep,
+        public InitialTransformationNode(
+            TransformationStep transformationStep,
             BuildableSingleResolvedArtifactSet artifactSet
         ) {
             super(transformationStep);
@@ -175,12 +175,12 @@ public abstract class TransformNode extends Node {
         }
     }
 
-    private static class ChainedTransformNode extends TransformNode {
-        private final TransformNode previousTransformNode;
+    private static class ChainedTransformationNode extends TransformationNode {
+        private final TransformationNode previousTransformationNode;
 
-        public ChainedTransformNode(ArtifactTransformationStep transformationStep, TransformNode previousTransformNode) {
+        public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode) {
             super(transformationStep);
-            this.previousTransformNode = previousTransformNode;
+            this.previousTransformationNode = previousTransformationNode;
         }
 
         @Override
@@ -192,8 +192,8 @@ public abstract class TransformNode extends Node {
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-            addDependencySuccessor(previousTransformNode);
-            processHardSuccessor.execute(previousTransformNode);
+            addDependencySuccessor(previousTransformationNode);
+            processHardSuccessor.execute(previousTransformationNode);
         }
 
         private class ChainedArtifactTransformStepOperation implements RunnableBuildOperation {
@@ -202,12 +202,12 @@ public abstract class TransformNode extends Node {
 
             @Override
             public void run(BuildOperationContext context) {
-                this.transformedSubject = transformationStep.transform(previousTransformNode.getTransformedSubject());
+                this.transformedSubject = transformationStep.transform(previousTransformationNode.getTransformedSubject());
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform " + previousTransformNode.getTransformedSubject().getDisplayName() + " with " + transformationStep.getDisplayName();
+                String displayName = "Transform " + previousTransformationNode.getTransformedSubject().getDisplayName() + " with " + transformationStep.getDisplayName();
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .operationType(BuildOperationCategory.TRANSFORM);

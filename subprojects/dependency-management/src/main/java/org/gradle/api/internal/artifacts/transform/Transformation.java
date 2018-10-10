@@ -24,7 +24,7 @@ import org.gradle.api.Describable;
  *
  * This can encapsulate a single transformation step using a single transformer or a chain of transformation steps.
  */
-public interface ArtifactTransformation extends Describable {
+public interface Transformation extends Describable {
 
     /**
      * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
@@ -39,5 +39,5 @@ public interface ArtifactTransformation extends Describable {
     /**
      * Extract the transformation steps from this transformation.
      */
-    void visitTransformationSteps(Action<? super ArtifactTransformationStep> action);
+    void visitTransformationSteps(Action<? super TransformationStep> action);
 }

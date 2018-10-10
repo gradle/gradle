@@ -21,20 +21,20 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
-public class TransformNodeExecutor implements NodeExecutor {
+public class TransformationNodeExecutor implements NodeExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ArtifactTransformListener transformListener;
 
-    public TransformNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+    public TransformationNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.transformListener = transformListener;
     }
 
     @Override
     public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
-        if (node instanceof TransformNode) {
-            TransformNode transformNode = (TransformNode) node;
-            transformNode.execute(buildOperationExecutor, transformListener);
+        if (node instanceof TransformationNode) {
+            TransformationNode transformationNode = (TransformationNode) node;
+            transformationNode.execute(buildOperationExecutor, transformListener);
             return true;
         } else {
             return false;

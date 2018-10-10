@@ -28,13 +28,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultTransformNodeFactory implements TransformNodeFactory {
-    private final Map<ArtifactTransformKey, TransformNode> transformations = Maps.newConcurrentMap();
+public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
+    private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformation transformation) {
-        final List<ArtifactTransformationStep> transformationChain = unpackTransformation(transformation);
-        final ImmutableList.Builder<TransformNode> builder = ImmutableList.builder();
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation) {
+        final List<TransformationStep> transformationChain = unpackTransformation(transformation);
+        final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
             @Override
             public boolean visitArtifactSet(ResolvedArtifactSet set) {
@@ -46,35 +46,35 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
                         BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
                 }
                 BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                TransformNode transformNode = getOrCreate(singleArtifactSet, transformationChain);
-                builder.add(transformNode);
+                TransformationNode transformationNode = getOrCreate(singleArtifactSet, transformationChain);
+                builder.add(transformationNode);
                 return true;
             }
         });
         return builder.build();
     }
 
-    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<ArtifactTransformationStep> transformationChain) {
+    private TransformationNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain) {
         ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformationChain);
-        TransformNode transformNode = transformations.get(key);
-        if (transformNode == null) {
+        TransformationNode transformationNode = transformations.get(key);
+        if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformNode = TransformNode.initial(transformationChain.iterator().next(), singleArtifactSet);
+                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet);
             } else {
-                TransformNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1));
-                transformNode = TransformNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
+                TransformationNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1));
+                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
-            transformations.put(key, transformNode);
+            transformations.put(key, transformationNode);
         }
-        return transformNode;
+        return transformationNode;
     }
 
-    private static List<ArtifactTransformationStep> unpackTransformation(ArtifactTransformation transformation) {
-        final ImmutableList.Builder<ArtifactTransformationStep> builder = ImmutableList.builder();
-        transformation.visitTransformationSteps(new Action<ArtifactTransformation>() {
+    private static List<TransformationStep> unpackTransformation(Transformation transformation) {
+        final ImmutableList.Builder<TransformationStep> builder = ImmutableList.builder();
+        transformation.visitTransformationSteps(new Action<Transformation>() {
             @Override
-            public void execute(ArtifactTransformation transformer) {
-                builder.add((ArtifactTransformationStep) transformer);
+            public void execute(Transformation transformation) {
+                builder.add((TransformationStep) transformation);
             }
         });
         return builder.build();
@@ -82,9 +82,9 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
 
     private static class ArtifactTransformKey {
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final List<ArtifactTransformationStep> transformations;
+        private final List<TransformationStep> transformations;
 
-        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<ArtifactTransformationStep> transformations) {
+        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<TransformationStep> transformations) {
             this.artifactIdentifier = artifactIdentifier;
             this.transformations = transformations;
         }

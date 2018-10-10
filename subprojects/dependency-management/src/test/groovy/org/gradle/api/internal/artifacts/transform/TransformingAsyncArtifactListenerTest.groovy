@@ -24,7 +24,7 @@ import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.testing.internal.util.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
-    def transformation = Mock(ArtifactTransformation)
+    def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
     def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap())
     def file = new File("foo")
