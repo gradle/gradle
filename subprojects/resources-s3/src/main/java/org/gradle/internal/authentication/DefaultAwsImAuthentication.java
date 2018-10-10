@@ -16,7 +16,6 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.api.Incubating;
 import org.gradle.authentication.aws.AwsImAuthentication;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.authentication.aws.AwsImAuthentication;
  *
  * @since 3.1
  */
-@Incubating
 public class DefaultAwsImAuthentication extends AbstractAuthentication implements AwsImAuthentication {
     public DefaultAwsImAuthentication(String name) {
         super(name, AwsImAuthentication.class);
