@@ -42,6 +42,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final ValueCollector<T> valueCollector;
     private Collector<T> value = (Collector<T>) NO_VALUE_COLLECTOR;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
+    private boolean finalized;
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         this.collectionType = collectionType;
@@ -57,26 +58,31 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
+        assertMutable();
         collectors.add(new SingleElement<T>(element));
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
+        assertMutable();
         collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
     @Override
     public void addAll(T... elements) {
+        assertMutable();
         collectors.add(new ElementsFromArray<T>(elements));
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
+        assertMutable();
         collectors.add(new ElementsFromCollection<T>(elements));
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
+        assertMutable();
         collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
     }
 
@@ -157,6 +163,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
+        assertMutable();
         collectors.clear();
         if (elements == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
@@ -167,6 +174,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
+        assertMutable();
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
@@ -186,9 +194,30 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public HasMultipleValues<T> empty() {
+        assertMutable();
         value = (Collector<T>) EMPTY_COLLECTION;
         collectors.clear();
         return this;
+    }
+
+    @Override
+    public void finalizeValue() {
+        if (!finalized) {
+            C collection = getOrNull();
+            if (collection != null) {
+                value = new ElementsFromCollection<T>(collection);
+            } else {
+                value = (Collector<T>) NO_VALUE_COLLECTOR;
+            }
+            collectors.clear();
+            finalized = true;
+        }
+    }
+
+    private void assertMutable() {
+        if (finalized) {
+            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
+        }
     }
 
     @Override
