@@ -468,7 +468,7 @@ Learn more about this in <<dependency_locking.adoc#dependency_locking,dependency
 
 `---no-rebuild`::
 Do not rebuild project dependencies.
-Useful when making <<organizing_gradle_projects.adoc#sec:build_sources, incremental changes to `buildSrc`>>.
+Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
 
 == Environment options
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment.adoc#build_environment, build environment>>.
