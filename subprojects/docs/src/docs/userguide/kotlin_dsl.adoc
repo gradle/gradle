@@ -496,12 +496,25 @@ The main thing to remember here is that in order to get type-safe accessors, plu
 
 As seen above, this can be achieved by using the `plugins {}` block.
 In multi-project builds you should centrally declare plugin dependencies in the root project build file, specifying the version, without applying those used in sub-projects.
-Then apply them simply by ID in sub projects build scripts.
+Then simply apply them by ID in sub projects build scripts.
 
 .Declare plugin dependencies in the root build script
 ====
 include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
 ====
+
+[CAUTION]
+.Configuration on demand
+--
+Enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
+The strictness of the Gradle Kotlin DSL makes it even more likely that problems will arise.
+In order to save you trouble, you should disable it if it's already enabled.
+
+The same is true for `evaluationDependsOn(projectPath)` and `evaluationDependsOnChildren()`.
+Favor <<multi_project_builds#sec:decoupled_projects,decoupling your projects>> instead.
+
+// TODO note that these will be deprecated soon, for Gradle 5?, need an issue link
+--
 
 If your build requires additional plugin repositories, they should be declared in the `pluginManagement {}` block in your `settings.gradle.kts` file:
 
