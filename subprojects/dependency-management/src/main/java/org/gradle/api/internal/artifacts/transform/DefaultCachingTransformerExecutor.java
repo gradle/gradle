@@ -61,7 +61,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORM
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
+public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, Stoppable, RootBuildLifecycleListener {
 
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
     private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
@@ -74,8 +74,8 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final FileAccessTracker fileAccessTracker;
 
-    public DefaultTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                       FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
+    public DefaultCachingTransformerExecutor(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+                                             FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());

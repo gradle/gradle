@@ -52,7 +52,7 @@ class ArtifactTransformationChain implements ArtifactTransformation {
     }
 
     @Override
-    public void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
+    public void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
         first.visitTransformationSteps(action);
         second.visitTransformationSteps(action);
     }

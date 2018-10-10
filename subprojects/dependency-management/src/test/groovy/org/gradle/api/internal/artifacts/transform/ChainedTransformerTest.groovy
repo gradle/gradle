@@ -70,11 +70,11 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         String getDisplayName() {
-            return null;
+            return "cached"
         }
 
         @Override
-        void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
+        void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
         }
     }
 
@@ -92,11 +92,11 @@ class ChainedTransformerTest extends Specification {
 
         @Override
         String getDisplayName() {
-            return null;
+            return "non-cached"
         }
 
         @Override
-        void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
+        void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
         }
     }
 }

@@ -78,7 +78,7 @@ class ArtifactTransformationStep implements ArtifactTransformation {
     }
 
     @Override
-    public void visitTransformationSteps(Action<? super ArtifactTransformation> action) {
+    public void visitTransformationSteps(Action<? super ArtifactTransformationStep> action) {
         action.execute(this);
     }
 

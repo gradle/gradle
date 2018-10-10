@@ -24,7 +24,7 @@ import spock.lang.Specification
 class TransformerInvokerTest extends Specification {
 
     def transformer = Mock(Transformer)
-    def transformedFileCache = Mock(TransformedFileCache)
+    def transformedFileCache = Mock(CachingTransformerExecutor)
     def transformationListener = Mock(ArtifactTransformListener)
     def sourceSubject = Mock(TransformationSubject)
     def transformerInvoker = new DefaultTransformerInvoker(transformedFileCache, transformationListener)

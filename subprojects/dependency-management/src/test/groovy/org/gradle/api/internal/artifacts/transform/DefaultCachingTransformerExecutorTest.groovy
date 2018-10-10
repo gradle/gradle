@@ -38,7 +38,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
 @UsesNativeServices
-class DefaultTransformedFileCacheTest extends ConcurrentSpec {
+class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def transformsStoreDirectory = tmpDir.file("output")
@@ -55,7 +55,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
     def snapshotter = Mock(FileSystemSnapshotter)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    DefaultTransformedFileCache cache
+    DefaultCachingTransformerExecutor cache
 
     def setup() {
         scopeMapping.getBaseDirectory(_, _, _) >> tmpDir.testDirectory
@@ -64,8 +64,8 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         cache = createCache()
     }
 
-    private DefaultTransformedFileCache createCache() {
-        new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
+    private DefaultCachingTransformerExecutor createCache() {
+        new DefaultCachingTransformerExecutor(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
     }
 
     def "reuses result for given inputs and transform"() {

@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 @ThreadSafe
-public interface TransformedFileCache {
+public interface CachingTransformerExecutor {
     /**
      * Returns the result of applying the given transformer to the given file.
      */

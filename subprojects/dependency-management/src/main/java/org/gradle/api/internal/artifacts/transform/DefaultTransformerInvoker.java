@@ -22,11 +22,11 @@ import org.gradle.api.artifacts.transform.TransformInvocationException;
 import java.io.File;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
-    private final TransformedFileCache transformedFileCache;
+    private final CachingTransformerExecutor cachingTransformerExecutor;
     private final ArtifactTransformListener artifactTransformListener;
 
-    public DefaultTransformerInvoker(TransformedFileCache transformedFileCache, ArtifactTransformListener artifactTransformListener) {
-        this.transformedFileCache = transformedFileCache;
+    public DefaultTransformerInvoker(CachingTransformerExecutor cachingTransformerExecutor, ArtifactTransformListener artifactTransformListener) {
+        this.cachingTransformerExecutor = cachingTransformerExecutor;
         this.artifactTransformListener = artifactTransformListener;
     }
 
@@ -40,7 +40,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             artifactTransformListener.beforeTransformation(transformer, subjectBeingTransformed);
         }
         try {
-            ImmutableList<File> result = ImmutableList.copyOf(transformedFileCache.getResult(primaryInput, transformer));
+            ImmutableList<File> result = ImmutableList.copyOf(cachingTransformerExecutor.getResult(primaryInput, transformer));
             invocation.success(result);
         } catch (Throwable t) {
             invocation.failure(new TransformInvocationException(primaryInput.getAbsoluteFile(), transformer.getImplementationClass(), t));
@@ -53,6 +53,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     @Override
     public boolean hasCachedResult(File input, Transformer transformer) {
-        return transformedFileCache.contains(input.getAbsoluteFile(), transformer.getInputsHash());
+        return cachingTransformerExecutor.contains(input.getAbsoluteFile(), transformer.getInputsHash());
     }
 }

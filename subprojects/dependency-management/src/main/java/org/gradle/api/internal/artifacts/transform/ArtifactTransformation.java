@@ -39,5 +39,5 @@ public interface ArtifactTransformation extends Describable {
     /**
      * Extract the transformation steps from this transformation.
      */
-    void visitTransformationSteps(Action<? super ArtifactTransformation> action);
+    void visitTransformationSteps(Action<? super ArtifactTransformationStep> action);
 }
