@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
@@ -45,6 +46,7 @@ import org.gradle.testing.base.plugins.TestingModelBasePlugin;
  *
  * @since 2.11
  */
+@Incubating
 public class JUnitTestSuitePlugin implements Plugin<Project> {
 
     @Override
