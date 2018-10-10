@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.artifact;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.Artifact;
 
 /**
@@ -23,6 +22,5 @@ import org.gradle.api.component.Artifact;
  *
  * @since 2.0
  */
-@Incubating
 public interface SourcesArtifact extends Artifact {
 }
