@@ -84,10 +84,10 @@ tasks {
 fun findLatest(name: String, notation: String, dest: Properties) {
     val libDependencies = arrayOf(project.dependencies.create(notation))
     val templateVersionConfiguration = project.configurations.detachedConfiguration(*libDependencies)
-    templateVersionConfiguration.resolutionStrategy.componentSelection.all { selection: ComponentSelection ->
+    templateVersionConfiguration.resolutionStrategy.componentSelection.all {
         devSuffixes.forEach {
-            if (selection.candidate.version.matches(".+$it\$".toRegex())) {
-                selection.reject("don't use snapshots")
+            if (candidate.version.matches(".+$it\$".toRegex())) {
+                reject("don't use snapshots")
                 return@forEach
             }
         }
