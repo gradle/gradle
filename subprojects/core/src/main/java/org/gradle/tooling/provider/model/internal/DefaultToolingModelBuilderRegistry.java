@@ -17,6 +17,8 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -26,6 +28,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,14 +37,16 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectStateRegistry projectStateRegistry;
 
-    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor) {
-        this(buildOperationExecutor, null);
+    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
+        this(buildOperationExecutor, projectStateRegistry, null);
         register(new VoidToolingModelBuilder());
     }
 
-    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ToolingModelBuilderRegistry parent) {
+    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry, ToolingModelBuilderRegistry parent) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.projectStateRegistry = projectStateRegistry;
         this.parent = parent;
     }
 
@@ -90,7 +95,13 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return delegate.buildAll(modelName, project);
+                    return projectStateRegistry.withLenientState(new Factory<Object>() {
+                        @Nullable
+                        @Override
+                        public Object create() {
+                            return delegate.buildAll(modelName, project);
+                        }
+                    });
                 }
 
                 @Override
@@ -120,7 +131,13 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return delegate.buildAll(modelName, parameter, project);
+                    return projectStateRegistry.withLenientState(new Factory<Object>() {
+                        @Nullable
+                        @Override
+                        public Object create() {
+                            return delegate.buildAll(modelName, parameter, project);
+                        }
+                    });
                 }
 
                 @Override
