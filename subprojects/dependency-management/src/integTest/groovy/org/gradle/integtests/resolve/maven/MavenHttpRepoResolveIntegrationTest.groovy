@@ -394,10 +394,11 @@ task listJars {
         """
 
         when:
-
         fails 'retrieve'
+
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }

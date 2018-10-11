@@ -124,7 +124,17 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public void attachProducer(Task producer) {
-        // Ignore for now
+        // Ignore, not implemented yet
+    }
+
+    @Override
+    public void prepareValue() {
+        // Ignore, not implemented yet
+    }
+
+    @Override
+    public void cleanupValue() {
+        // Ignore, not implemented yet
     }
 
     @Override

@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractMinimalProvider<C> implements CollectionPropertyInternal<T, C> {
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
@@ -42,7 +42,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final ValueCollector<T> valueCollector;
     private Collector<T> value = (Collector<T>) NO_VALUE_COLLECTOR;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
-    private boolean finalized;
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         this.collectionType = collectionType;
@@ -58,31 +57,41 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new SingleElement<T>(element));
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
     @Override
     public void addAll(T... elements) {
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new ElementsFromArray<T>(elements));
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new ElementsFromCollection<T>(elements));
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
     }
 
@@ -113,6 +122,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public boolean isPresent() {
+        assertReadable();
         if (!value.present()) {
             return false;
         }
@@ -126,6 +136,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public C get() {
+        assertReadable();
         List<T> values = new ArrayList<T>(1 + collectors.size());
         value.collectInto(valueCollector, values);
         for (Collector<T> collector : collectors) {
@@ -137,6 +148,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Nullable
     @Override
     public C getOrNull() {
+        assertReadable();
+        return doGetOrNull();
+    }
+
+    private C doGetOrNull() {
         List<T> values = new ArrayList<T>(1 + collectors.size());
         if (!value.maybeCollectInto(valueCollector, values)) {
             return null;
@@ -163,7 +179,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         collectors.clear();
         if (elements == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
@@ -174,7 +192,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
-        assertMutable();
+        if (!assertMutable()) {
+            return;
+        }
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
@@ -194,43 +214,33 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public HasMultipleValues<T> empty() {
-        assertMutable();
+        if (!assertMutable()) {
+            return this;
+        }
         value = (Collector<T>) EMPTY_COLLECTION;
         collectors.clear();
         return this;
     }
 
     @Override
-    public void finalizeValue() {
-        if (!finalized) {
-            C collection = getOrNull();
-            if (collection != null) {
-                value = new ElementsFromCollection<T>(collection);
-            } else {
-                value = (Collector<T>) NO_VALUE_COLLECTOR;
-            }
-            collectors.clear();
-            finalized = true;
+    protected void makeFinal() {
+        C collection = doGetOrNull();
+        if (collection != null) {
+            value = new ElementsFromCollection<T>(collection);
+        } else {
+            value = (Collector<T>) NO_VALUE_COLLECTOR;
         }
-    }
-
-    private void assertMutable() {
-        if (finalized) {
-            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
-        }
+        collectors.clear();
     }
 
     @Override
     public String toString() {
-        final String valueState;
-        if (value == EMPTY_COLLECTION) {
-            valueState = "empty";
-        } else if (value == NO_VALUE_COLLECTOR) {
-            valueState = "undefined";
-        } else {
-            valueState = "defined";
+        List<String> values = new ArrayList<String>(1 + collectors.size());
+        values.add(value.toString());
+        for (Collector<T> collector : collectors) {
+            values.add(collector.toString());
         }
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, values);
     }
 
     private static class ValidatingValueCollector<T> implements ValueCollector<T> {

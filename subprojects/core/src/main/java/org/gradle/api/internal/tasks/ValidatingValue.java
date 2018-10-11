@@ -24,6 +24,9 @@ public interface ValidatingValue extends Callable<Object>  {
     @Override
     Object call();
 
+    /**
+     * Returns the container, such as a {@link org.gradle.api.provider.Provider}, that provides the value, if any.
+     */
     @Nullable
     Object getContainerValue();
 

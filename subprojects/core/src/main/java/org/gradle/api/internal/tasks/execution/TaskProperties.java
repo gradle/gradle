@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Factory;
@@ -40,6 +41,10 @@ import java.util.Map;
  */
 @NonNullApi
 public interface TaskProperties {
+    /**
+     * Returns all properties.
+     */
+    Iterable<? extends TaskPropertySpec> getProperties();
 
     /**
      * A factory for the input properties.

@@ -241,7 +241,7 @@ model {
         fails ':mainJava6Jar'
 
         and: 'error message indicates the available platforms for the target dependency'
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java''")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java''")
         failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'"))
     }
 
@@ -529,7 +529,7 @@ model {
 
         and: "Trying to compile the Java 6 variant fails"
         fails ':mainJava6Jar'
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java''")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java''")
         failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'"))
     }
 

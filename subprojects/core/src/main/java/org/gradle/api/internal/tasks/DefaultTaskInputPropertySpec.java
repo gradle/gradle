@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 import javax.annotation.Nullable;
@@ -52,6 +53,19 @@ public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport i
     @Override
     public Object getValue() {
         return value.call();
+    }
+
+    @Override
+    public void prepareValue() {
+        // TODO - push this into ValidatingValue
+        Object container = value.getContainerValue();
+        if (container instanceof PropertyInternal) {
+            ((PropertyInternal) container).finalizeValueOnReadAndWarnAboutChanges();
+        }
+    }
+
+    @Override
+    public void cleanupValue() {
     }
 
     @Override

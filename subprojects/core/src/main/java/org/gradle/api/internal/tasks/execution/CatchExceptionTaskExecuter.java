@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.tasks.TaskExecutionException;
 
 public class CatchExceptionTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
@@ -33,7 +34,7 @@ public class CatchExceptionTaskExecuter implements TaskExecuter {
         try {
             delegate.execute(task, state, context);
         } catch (RuntimeException e) {
-            state.setOutcome(e);
+            state.setOutcome(new TaskExecutionException(task, e));
         }
     }
 }
