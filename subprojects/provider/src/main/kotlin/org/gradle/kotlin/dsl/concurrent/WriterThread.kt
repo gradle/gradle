@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.accessors
+package org.gradle.kotlin.dsl.concurrent
 
 import java.io.File
 
@@ -37,7 +37,8 @@ class WriterThread : AutoCloseable {
                     file.parentFile.mkdirs()
                     file.writeBytes(bytes)
                 }
-                Command.Done -> break@loop
+                is Command.Execute -> command.action()
+                Command.Quit -> break@loop
             }
         }
     }
@@ -46,8 +47,12 @@ class WriterThread : AutoCloseable {
         q.put(Command.WriteFile(file, bytes))
     }
 
+    fun execute(action: () -> Unit) {
+        q.put(Command.Execute(action))
+    }
+
     override fun close() {
-        q.put(Command.Done)
+        q.put(Command.Quit)
         thread.join()
     }
 
@@ -56,6 +61,8 @@ class WriterThread : AutoCloseable {
 
         class WriteFile(val file: File, val bytes: ByteArray) : Command()
 
-        object Done : Command()
+        class Execute(val action: () -> Unit) : Command()
+
+        object Quit : Command()
     }
 }

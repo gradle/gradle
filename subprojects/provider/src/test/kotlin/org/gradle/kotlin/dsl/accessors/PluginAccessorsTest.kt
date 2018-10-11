@@ -43,9 +43,32 @@ class PluginAccessorsTest {
             ).toList(),
             equalTo(
                 listOf(
-                    PluginAccessor.ForPlugin("my-plugin", "my.Plugin", "PluginDependenciesSpec", "my-plugin"),
-                    PluginAccessor.ForGroup("my", "MyPluginGroup", "PluginDependenciesSpec", "my"),
-                    PluginAccessor.ForPlugin("my.plugin-a", "my.PluginA", "MyPluginGroup", "plugin-a")
+                    PluginAccessor.ForPlugin(
+                        "my-plugin",
+                        "my.Plugin",
+                        ExtensionSpec(
+                            "my-plugin",
+                            pluginDependenciesSpecTypeSpec,
+                            pluginDependencySpecTypeSpec
+                        )
+                    ),
+                    PluginAccessor.ForGroup(
+                        "my",
+                        ExtensionSpec(
+                            "my",
+                            pluginDependenciesSpecTypeSpec,
+                            typeSpecForPluginGroupType("MyPluginGroup")
+                        )
+                    ),
+                    PluginAccessor.ForPlugin(
+                        "my.plugin-a",
+                        "my.PluginA",
+                        ExtensionSpec(
+                            "plugin-a",
+                            typeSpecForPluginGroupType("MyPluginGroup"),
+                            pluginDependencySpecTypeSpec
+                        )
+                    )
                 )
             )
         )

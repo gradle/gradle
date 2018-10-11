@@ -16,20 +16,51 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.Flag
+import kotlinx.metadata.flagsOf
+import kotlinx.metadata.jvm.JvmMethodSignature
+
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.internal.classpath.ClassPath
 
-import org.gradle.kotlin.dsl.codegen.compileKotlinApiExtensionsTo
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
 
+import org.gradle.kotlin.dsl.concurrent.WriterThread
+
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
+
+import org.gradle.kotlin.dsl.support.bytecode.ALOAD
+import org.gradle.kotlin.dsl.support.bytecode.ARETURN
+import org.gradle.kotlin.dsl.support.bytecode.DUP
+import org.gradle.kotlin.dsl.support.bytecode.GETFIELD
+import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
+import org.gradle.kotlin.dsl.support.bytecode.INVOKESPECIAL
+import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
+import org.gradle.kotlin.dsl.support.bytecode.LDC
+import org.gradle.kotlin.dsl.support.bytecode.NEW
+import org.gradle.kotlin.dsl.support.bytecode.PUTFIELD
+import org.gradle.kotlin.dsl.support.bytecode.RETURN
+import org.gradle.kotlin.dsl.support.bytecode.internalName
+import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
+import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
+import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
+import org.gradle.kotlin.dsl.support.bytecode.publicClass
+import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
+import org.gradle.kotlin.dsl.support.bytecode.publicMethod
+import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
+import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
+import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
+
+import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 import java.io.File
 
@@ -49,7 +80,6 @@ fun pluginAccessorsClassPath(project: Project): AccessorsClassPath = project.roo
             kotlinScriptClassPathProviderOf(rootProject).run {
                 buildPluginAccessorsFor(
                     pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
-                    accessorsCompilationClassPath = compilationClassPathOf(buildSrcClassLoaderScope),
                     srcDir = srcDir,
                     binDir = binDir
                 )
@@ -59,33 +89,96 @@ fun pluginAccessorsClassPath(project: Project): AccessorsClassPath = project.roo
 }
 
 
-private
-fun baseClassLoaderScopeOf(rootProject: Project) =
-    (rootProject as ProjectInternal).baseClassLoaderScope
-
-
 internal
 fun buildPluginAccessorsFor(
     pluginDescriptorsClassPath: ClassPath,
-    accessorsCompilationClassPath: ClassPath,
     srcDir: File,
     binDir: File
 ) {
     val pluginSpecs = pluginSpecsFrom(pluginDescriptorsClassPath)
     val pluginTrees = PluginTree.of(pluginSpecs)
-    val accessors = pluginAccessorsFor(pluginTrees)
-    val sourceFile = srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt")
-    writePluginAccessorsTo(sourceFile, accessors)
-    compileKotlinApiExtensionsTo(
-        binDir,
-        listOf(sourceFile),
-        accessorsCompilationClassPath.asFiles
-    )
+    val accessorList = pluginAccessorsFor(pluginTrees).toList()
+    val baseFileName = "org/gradle/kotlin/dsl/PluginAccessors"
+    val sourceFile = srcDir.resolve("$baseFileName.kt")
+
+    WriterThread().use { writer ->
+
+        writer.execute {
+            writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
+        }
+
+        val fileFacadeClassName = baseFileName + "Kt"
+        val moduleName = "kotlin-dsl-plugin-spec-accessors"
+        val moduleMetadata = moduleMetadataBytesFor(listOf(fileFacadeClassName))
+        writer.writeFile(
+            moduleFileFor(binDir, moduleName),
+            moduleMetadata
+        )
+
+        val properties = ArrayList<Pair<PluginAccessor, JvmMethodSignature>>(accessorList.size)
+        val header = writeFileFacadeClassHeader {
+            accessorList.forEach { accessor ->
+
+                if (accessor is PluginAccessor.ForGroup) {
+                    val (internalClassName, classBytes) = emitClassForGroup(accessor)
+                    writer.writeClassFileTo(binDir, internalClassName, classBytes)
+                }
+
+                val extensionSpec = accessor.extension
+                val propertyName = extensionSpec.name
+                val receiverType = extensionSpec.receiverType
+                val returnType = extensionSpec.returnType
+                val getterSignature = jvmGetterSignatureFor(propertyName, "(L${receiverType.internalName};)L${returnType.internalName};")
+                writePropertyOf(
+                    receiverType = receiverType.builder,
+                    returnType = returnType.builder,
+                    propertyName = propertyName,
+                    getterSignature = getterSignature,
+                    getterFlags = nonInlineGetterFlags
+
+                )
+                properties.add(accessor to getterSignature)
+            }
+        }
+
+        val classBytes = publicKotlinClass(fileFacadeClassName, header) {
+            properties.forEach { (accessor, signature) ->
+                emitAccessorMethodFor(accessor, signature)
+            }
+        }
+
+        writer.writeClassFileTo(binDir, fileFacadeClassName, classBytes)
+    }
 }
 
 
 private
-fun writePluginAccessorsTo(sourceFile: File, accessors: Sequence<PluginAccessor>) {
+fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMethodSignature) {
+    publicStaticMethod(signature.name, signature.desc) {
+        val extension = accessor.extension
+        val receiverType = extension.receiverType
+        when (accessor) {
+            is PluginAccessor.ForGroup -> {
+                val returnType = extension.returnType
+                NEW(returnType.internalName)
+                DUP()
+                GETPLUGINS(receiverType)
+                INVOKESPECIAL(returnType.internalName, "<init>", groupTypeConstructorSignature)
+                ARETURN()
+            }
+            is PluginAccessor.ForPlugin -> {
+                GETPLUGINS(receiverType)
+                LDC(accessor.id)
+                INVOKEINTERFACE(pluginDependenciesSpecInternalName, "id", pluginDependenciesSpecIdMethodDesc)
+                ARETURN()
+            }
+        }
+    }
+}
+
+
+private
+fun writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: Iterable<PluginAccessor>) {
     sourceFile.apply { parentFile.mkdirs() }.bufferedWriter().useToRun {
         appendln(fileHeader)
         appendln("""
@@ -95,17 +188,20 @@ fun writePluginAccessorsTo(sourceFile: File, accessors: Sequence<PluginAccessor>
         accessors.runEach {
             newLine()
             newLine()
+            val extendedType = extension.receiverType.sourceName
+            val pluginsRef = pluginDependenciesSpecOf(extendedType)
             when (this) {
                 is PluginAccessor.ForPlugin -> {
                     appendln("""
                         /**
                          * The `$id` plugin implemented by [$implementationClass].
                          */
-                        val `$extendedType`.`$extensionName`: PluginDependencySpec
-                            get() = ${pluginDependenciesSpecOf(extendedType)}.id("$id")
+                        val `$extendedType`.`${extension.name}`: PluginDependencySpec
+                            get() = $pluginsRef.id("$id")
                     """.replaceIndent())
                 }
                 is PluginAccessor.ForGroup -> {
+                    val groupType = extension.returnType.sourceName
                     appendln("""
                         /**
                          * The `$id` plugin group.
@@ -116,8 +212,8 @@ fun writePluginAccessorsTo(sourceFile: File, accessors: Sequence<PluginAccessor>
                         /**
                          * Plugin ids starting with `$id`.
                          */
-                        val `$extendedType`.`$extensionName`: `$groupType`
-                            get() = `$groupType`(${pluginDependenciesSpecOf(extendedType)})
+                        val `$extendedType`.`${extension.name}`: `$groupType`
+                            get() = `$groupType`($pluginsRef)
                     """.replaceIndent())
                 }
             }
@@ -127,36 +223,81 @@ fun writePluginAccessorsTo(sourceFile: File, accessors: Sequence<PluginAccessor>
 
 
 private
+const val pluginsFieldName = "plugins"
+
+
+private
 fun pluginDependenciesSpecOf(extendedType: String): String = when (extendedType) {
     "PluginDependenciesSpec" -> "this"
-    else -> "plugins"
+    else -> pluginsFieldName
 }
 
 
 private
-inline fun <T> Sequence<T>.runEach(f: T.() -> Unit) {
+inline fun <T> Iterable<T>.runEach(f: T.() -> Unit) {
     forEach { it.run(f) }
 }
 
 
 internal
-fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: String = "PluginDependenciesSpec"): Sequence<PluginAccessor> = sequence {
+data class TypeSpec(val sourceName: String, val internalName: String) {
+
+    val builder: KmTypeBuilder
+        get() = { visitClass(internalName) }
+}
+
+
+private
+val pluginDependencySpecInternalName = PluginDependencySpec::class.internalName
+
+
+private
+val pluginDependenciesSpecInternalName = PluginDependenciesSpec::class.internalName
+
+
+internal
+val pluginDependenciesSpecTypeSpec = TypeSpec("PluginDependenciesSpec", pluginDependenciesSpecInternalName)
+
+
+internal
+val pluginDependencySpecTypeSpec = TypeSpec("PluginDependencySpec", pluginDependencySpecInternalName)
+
+
+private
+val pluginDependenciesSpecTypeDesc = "L$pluginDependenciesSpecInternalName;"
+
+
+private
+val groupTypeConstructorSignature = "($pluginDependenciesSpecTypeDesc)V"
+
+
+private
+val pluginDependenciesSpecIdMethodDesc = "(Ljava/lang/String;)L$pluginDependencySpecInternalName;"
+
+
+internal
+fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeSpec = pluginDependenciesSpecTypeSpec): Sequence<PluginAccessor> = sequence {
 
     for ((extensionName, pluginTree) in pluginTrees) {
         when (pluginTree) {
             is PluginTree.PluginGroup -> {
                 val groupId = pluginTree.path.joinToString(".")
-                val groupType = pluginGroupTypeFor(pluginTree.path)
-                yield(PluginAccessor.ForGroup(groupId, groupType, extendedType, extensionName))
-                yieldAll(pluginAccessorsFor(pluginTree.plugins, groupType))
+                val groupType = pluginGroupTypeName(pluginTree.path)
+                val groupTypeSpec = typeSpecForPluginGroupType(groupType)
+                yield(
+                    PluginAccessor.ForGroup(
+                        groupId,
+                        ExtensionSpec(extensionName, extendedType, groupTypeSpec)
+                    )
+                )
+                yieldAll(pluginAccessorsFor(pluginTree.plugins, groupTypeSpec))
             }
             is PluginTree.PluginSpec -> {
                 yield(
                     PluginAccessor.ForPlugin(
                         pluginTree.id,
                         pluginTree.implementationClass,
-                        extendedType,
-                        extensionName
+                        ExtensionSpec(extensionName, extendedType, pluginDependencySpecTypeSpec)
                     )
                 )
             }
@@ -166,35 +307,99 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: Strin
 
 
 internal
+fun typeSpecForPluginGroupType(groupType: String) =
+    TypeSpec(groupType, "org/gradle/kotlin/dsl/$groupType")
+
+
+internal
 sealed class PluginAccessor {
+
+    abstract val extension: ExtensionSpec
 
     data class ForPlugin(
         val id: String,
         val implementationClass: String,
-        val extendedType: String,
-        val extensionName: String
+        override val extension: ExtensionSpec
     ) : PluginAccessor()
 
     data class ForGroup(
         val id: String,
-        val groupType: String,
-        val extendedType: String,
-        val extensionName: String
+        override val extension: ExtensionSpec
     ) : PluginAccessor()
 }
 
 
+internal
+data class ExtensionSpec(
+    val name: String,
+    val receiverType: TypeSpec,
+    val returnType: TypeSpec
+)
+
+
 private
-fun pluginSpecsFrom(pluginDescriptorsClassPath: ClassPath): Iterable<PluginTree.PluginSpec> =
+fun pluginSpecsFrom(pluginDescriptorsClassPath: ClassPath): Sequence<PluginTree.PluginSpec> =
     pluginDescriptorsClassPath
         .asFiles
+        .asSequence()
         .filter { it.isFile && it.extension.equals("jar", true) }
-        .flatMap { pluginEntriesFrom(it) }
+        .flatMap { pluginEntriesFrom(it).asSequence() }
         .map { PluginTree.PluginSpec(it.pluginId, it.implementationClass) }
 
 
 private
-fun pluginGroupTypeFor(path: List<String>) =
+fun pluginGroupTypeName(path: List<String>) =
     path.joinToString(separator = "") { it.capitalize() } + "PluginGroup"
 
 
+private
+fun WriterThread.writeClassFileTo(binDir: File, internalClassName: String, classBytes: ByteArray) {
+    val classFile = binDir.resolve("$internalClassName.class")
+    writeFile(classFile, classBytes)
+}
+
+
+private
+val nonInlineGetterFlags = flagsOf(Flag.IS_PUBLIC, Flag.PropertyAccessor.IS_NOT_DEFAULT)
+
+
+private
+fun MethodVisitor.GETPLUGINS(receiverType: TypeSpec) {
+    ALOAD(0)
+    if (receiverType !== pluginDependenciesSpecTypeSpec) {
+        GETFIELD(receiverType.internalName, pluginsFieldName, pluginDependenciesSpecTypeDesc)
+    }
+}
+
+
+private
+fun emitClassForGroup(group: PluginAccessor.ForGroup): Pair<String, ByteArray> = group.run {
+
+    val className = extension.returnType.internalName
+    val classBytes = publicClass(className) {
+        packagePrivateField(pluginsFieldName, pluginDependenciesSpecTypeDesc)
+        publicMethod("<init>", groupTypeConstructorSignature) {
+            ALOAD(0)
+            INVOKESPECIAL("java/lang/Object", "<init>", "()V")
+            ALOAD(0)
+            ALOAD(1)
+            PUTFIELD(className, pluginsFieldName, pluginDependenciesSpecTypeDesc)
+            RETURN()
+        }
+    }
+
+    className to classBytes
+}
+
+
+private
+fun ClassWriter.packagePrivateField(name: String, desc: String) {
+    visitField(0, name, desc, null, null).run {
+        visitEnd()
+    }
+}
+
+
+private
+fun baseClassLoaderScopeOf(rootProject: Project) =
+    (rootProject as ProjectInternal).baseClassLoaderScope

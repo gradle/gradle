@@ -43,7 +43,7 @@ class PluginTreeTest {
                     // of `PluginDependenciesSpec#id`
                     PluginTree.PluginSpec("flat-plugin.conflict", "IgnoredPlugin"),
                     PluginTree.PluginSpec("nested.plugin-a.conflict", "IgnoredPlugin")
-                ).shuffled()
+                ).shuffled().asSequence()
             ),
             equalTo<Map<String, PluginTree>>(
                 linkedMapOf(

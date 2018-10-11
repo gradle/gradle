@@ -31,7 +31,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 
-import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsMultiThreaded
 import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsSingleThreaded
 import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsWithOneClassPerConfiguration
 
@@ -50,8 +49,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import java.io.File
-
-import kotlin.concurrent.thread
 
 
 val ConfigurationContainer.api: NamedDomainObjectProvider<Configuration>
@@ -99,11 +96,6 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
     }
 
     @Test
-    fun `benchmark bytecode accessors (multi-threaded)`() {
-        benchmarkWithConfigOnlySchema(::bytecodeAccessorsMultiThreaded)
-    }
-
-    @Test
     fun `benchmark compiled accessors strategy (baseline)`() {
         benchmarkWithConfigOnlySchema(::compiledAccessors)
     }
@@ -127,13 +119,6 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
     fun bytecodeAccessorsSingledThreaded(projectSchema: ProjectSchema<String>, srcDir: File, binDir: File) {
         emitSourcesFor(projectSchema, srcDir)
         emitExtensionsSingleThreaded(accessorsForConfigurationsOf(projectSchema), binDir)
-    }
-
-    private
-    fun bytecodeAccessorsMultiThreaded(projectSchema: ProjectSchema<String>, srcDir: File, binDir: File) {
-        val sources = thread { emitSourcesFor(projectSchema, srcDir) }
-        emitExtensionsMultiThreaded(accessorsForConfigurationsOf(projectSchema), binDir)
-        sources.join()
     }
 
     private
@@ -259,7 +244,7 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
 
         val bytes = outputDir.resolve("META-INF/main.kotlin_module").readBytes()
         val metadata = KotlinModuleMetadata.read(bytes)!!
-        metadata.accept(PrintingVisitor.ForModule)
+        metadata.accept(KotlinMetadataPrintingVisitor.ForModule)
     }
 
     @Test
@@ -270,7 +255,7 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
             .readKotlinClassHeader()
 
         val metadata = KotlinClassMetadata.read(fileFacadeHeader) as KotlinClassMetadata.FileFacade
-        metadata.accept(PrintingVisitor.ForPackage)
+        metadata.accept(KotlinMetadataPrintingVisitor.ForPackage)
     }
 
     private

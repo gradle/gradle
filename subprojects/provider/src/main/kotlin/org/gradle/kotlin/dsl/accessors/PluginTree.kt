@@ -26,7 +26,7 @@ sealed class PluginTree {
 
     companion object {
 
-        fun of(plugins: Iterable<PluginSpec>): Map<String, PluginTree> {
+        fun of(plugins: Sequence<PluginSpec>): Map<String, PluginTree> {
             val root = linkedMapOf<String, PluginTree>()
             plugins.sortedBy { it.id }.forEach { plugin ->
                 val path = plugin.id.split('.')

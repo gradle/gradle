@@ -16,11 +16,23 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+
+import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
+import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
 
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependencySpec
+
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -44,7 +56,6 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
         // when:
         buildPluginAccessorsFor(
             pluginDescriptorsClassPath = classPathOf(pluginsJar),
-            accessorsCompilationClassPath = testCompilationClassPath,
             srcDir = srcDir,
             binDir = binDir
         )
@@ -87,5 +98,43 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                     get() = plugins.id("my.own.plugin")
             """)
         )
+
+        // and:
+        classLoaderFor(binDir).useToRun {
+            val className = "org.gradle.kotlin.dsl.PluginAccessorsKt"
+            val accessorsClass = loadClass(className)
+            assertThat(
+                accessorsClass.declaredMethods.map { it.name },
+                hasItems("getMy", "getOwn", "getPlugin")
+            )
+
+            val expectedPluginSpec = mock<PluginDependencySpec>()
+            val plugins = mock<PluginDependenciesSpec> {
+                on { id(any()) } doReturn expectedPluginSpec
+            }
+
+            val myPluginGroup =
+                accessorsClass
+                    .getDeclaredMethod("getMy", PluginDependenciesSpec::class.java)
+                    .invoke(null, plugins)!!
+
+            val myOwnPluginGroup =
+                accessorsClass
+                    .getDeclaredMethod("getOwn", myPluginGroup.javaClass)
+                    .invoke(null, myPluginGroup)!!
+
+            val actualPluginSpec =
+                accessorsClass
+                    .getDeclaredMethod("getPlugin", myOwnPluginGroup.javaClass)
+                    .invoke(null, myOwnPluginGroup) as PluginDependencySpec
+
+            assertThat(
+                actualPluginSpec,
+                sameInstance(expectedPluginSpec)
+            )
+
+            verify(plugins).id("my.own.plugin")
+            verifyNoMoreInteractions(plugins)
+        }
     }
 }
