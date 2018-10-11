@@ -71,10 +71,10 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
 
     private static List<TransformationStep> unpackTransformation(Transformation transformation) {
         final ImmutableList.Builder<TransformationStep> builder = ImmutableList.builder();
-        transformation.visitTransformationSteps(new Action<Transformation>() {
+        transformation.visitTransformationSteps(new Action<TransformationStep>() {
             @Override
-            public void execute(Transformation transformation) {
-                builder.add((TransformationStep) transformation);
+            public void execute(TransformationStep transformation) {
+                builder.add(transformation);
             }
         });
         return builder.build();
