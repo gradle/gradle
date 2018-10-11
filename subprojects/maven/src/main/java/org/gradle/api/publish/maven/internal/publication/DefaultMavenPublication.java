@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -76,6 +77,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -116,7 +118,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
     };
     @VisibleForTesting
-    public static final String INCOMPATIBLE_FEATURE = " uses dependency management feature(s) like dynamic versions with 'latest.<status>' or '1.+' that will most likely make the produced Maven pom incomplete and/or not consumable by Maven compatible solutions.";
+    public static final String INCOMPATIBLE_FEATURE = " uses dependency management feature(s) that will most likely make the produced Maven pom incomplete and/or not consumable by Maven compatible solutions.";
 
     private final String name;
     private final MavenPomInternal pom;
@@ -251,7 +253,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
-        boolean unsupportedDependencyFeatureUsed = false;
+        Set<String> unsupportedUsages = null;
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -273,13 +275,23 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {
-                            unsupportedDependencyFeatureUsed |= isVersionMavenIncompatible(dependency.getVersion());
+                            if (isVersionMavenIncompatible(dependency.getVersion())) {
+                                if (unsupportedUsages == null) {
+                                    unsupportedUsages = Sets.newHashSet();
+                                }
+                                unsupportedUsages.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            }
                             addImportDependencyConstraint(dependency);
                         }
                     } else if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        unsupportedDependencyFeatureUsed |= isVersionMavenIncompatible(dependency.getVersion());
+                        if (isVersionMavenIncompatible(dependency.getVersion())) {
+                            if (unsupportedUsages == null) {
+                                unsupportedUsages = Sets.newHashSet();
+                            }
+                            unsupportedUsages.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        }
                         addModuleDependency(dependency, globalExcludes, dependencies);
                     }
                 }
@@ -291,11 +303,23 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
             if (!usageContext.getCapabilities().isEmpty()) {
-                unsupportedDependencyFeatureUsed = true;
+                if (unsupportedUsages == null) {
+                    unsupportedUsages = Sets.newHashSet();
+                }
+                for (Capability capability : usageContext.getCapabilities()) {
+                    unsupportedUsages.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                }
             }
         }
-        if (unsupportedDependencyFeatureUsed) {
-            LOG.lifecycle(getDisplayName() + INCOMPATIBLE_FEATURE);
+        if (unsupportedUsages != null) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(getDisplayName() + INCOMPATIBLE_FEATURE);
+            formatter.startChildren();
+            for (String usage : unsupportedUsages) {
+                formatter.node(usage);
+            }
+            formatter.endChildren();
+            LOG.lifecycle(formatter.toString());
         }
     }
 
@@ -307,7 +331,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             return true;
         }
         if (version.contains("latest")) {
-            return MavenVersionSelectorScheme.isSubstituableLatest(version);
+            return !MavenVersionSelectorScheme.isSubstituableLatest(version);
         }
         return false;
     }

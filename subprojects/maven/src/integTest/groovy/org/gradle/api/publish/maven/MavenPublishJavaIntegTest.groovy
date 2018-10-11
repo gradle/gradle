@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenJavaModule
@@ -446,6 +447,55 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
+    def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation "commons-collections:commons-collections:$version"
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputContains(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:$version")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency("commons-collections:commons-collections:$version") {
+                rejects()
+                noMoreExcludes()
+            }
+            noMoreDependencies()
+        }
+
+        where:
+        version << ['1.+', 'latest.milestone']
+    }
+
     def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""
@@ -647,6 +697,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
+        outputContains(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        outputContains('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
 
         and:
