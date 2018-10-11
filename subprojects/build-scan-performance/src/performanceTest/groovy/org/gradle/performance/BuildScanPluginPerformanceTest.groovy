@@ -43,7 +43,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         given:
         def sourceProject = "javaProject"
         def jobArgs = ['--continue', '--parallel', '--max-workers=4'] + scenarioArgs
-        def opts = ['-Xms4096m', '4096m']
+        def opts = ['-Xms4096m', '-Xmx4096m']
 
         if (fileHashes) {
             jobArgs << '-Dcom.gradle.scan.input-file-hashes=true'
