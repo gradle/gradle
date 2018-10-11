@@ -19,7 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 
 public class DefaultMutationGuard extends AbstractMutationGuard {
-    private final ThreadLocal<Boolean> MUTATION_GUARD_STATE = new ThreadLocal<Boolean>() {
+    private final ThreadLocal<Boolean> mutationGuardState = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return Boolean.TRUE;
@@ -28,7 +28,7 @@ public class DefaultMutationGuard extends AbstractMutationGuard {
 
     @Override
     public boolean isMutationAllowed() {
-        return MUTATION_GUARD_STATE.get();
+        return mutationGuardState.get();
     }
 
     protected <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
@@ -36,11 +36,11 @@ public class DefaultMutationGuard extends AbstractMutationGuard {
             @Override
             public void execute(T t) {
                 boolean oldIsMutationAllowed = isMutationAllowed();
-                MUTATION_GUARD_STATE.set(allowMutationMethods);
+                mutationGuardState.set(allowMutationMethods);
                 try {
                     action.execute(t);
                 } finally {
-                    MUTATION_GUARD_STATE.set(oldIsMutationAllowed);
+                    mutationGuardState.set(oldIsMutationAllowed);
                 }
             }
         };
