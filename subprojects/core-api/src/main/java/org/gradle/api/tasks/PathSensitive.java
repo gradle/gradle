@@ -28,6 +28,8 @@ import java.lang.annotation.Target;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
+ * <p>If a {@link org.gradle.api.Task} declares a file property without this annotation, the default is {@link PathSensitivity#ABSOLUTE}.</p>
+ *
  * @since 3.1
  */
 @Documented

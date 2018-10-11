@@ -35,18 +35,31 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
     private static final String WITHOUT_PLUGIN_LABEL = "1 without plugin"
     private static final String WITH_PLUGIN_LABEL = "2 with plugin"
+    public static final int WARMUPS = 10
+    public static final int INVOCATIONS = 20
 
     @Unroll
     def "large java project with and without plugin application (#scenario)"() {
         given:
-        def sourceProject = "largeJavaProjectWithBuildScanPlugin"
-        def jobArgs = ['--continue', '--parallel', '--max-workers=4', '-Dcom.gradle.scan.input-file-hashes=true'] + scenarioArgs
+        def sourceProject = "javaProject"
+        def jobArgs = ['--continue', '-Dcom.gradle.scan.input-file-hashes=true'] + scenarioArgs
         def opts = ['-Xms4096m', '-Xmx4096m']
+
+        def buildExperimentListeners = [
+            new InjectBuildScanPlugin(pluginVersionNumber),
+            new SaveScanSpoolFile(scenario)
+        ]
+
+        if (manageCacheState) {
+            buildExperimentListeners << new ManageLocalCacheState()
+        }
+
+        def buildExperimentListener = BuildExperimentListener.compose(*buildExperimentListeners)
 
         runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
-            warmUpCount warmupBuilds
-            invocationCount measuredBuilds
+            warmUpCount WARMUPS
+            invocationCount INVOCATIONS
             projectName(sourceProject)
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
@@ -62,8 +75,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         runner.buildSpec {
-            warmUpCount warmupBuilds
-            invocationCount measuredBuilds
+            warmUpCount WARMUPS
+            invocationCount INVOCATIONS
             projectName(sourceProject)
             displayName(WITH_PLUGIN_LABEL)
             invocation {
@@ -94,9 +107,12 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                         | expectedMedianPercentageShift | tasks              | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                           | MEDIAN_PERCENTAGES_SHIFT      | ['help']           | false       | []                | BuildExperimentListener.compose(new InjectBuildScanPlugin(pluginVersionNumber), new SaveScanSpoolFile(scenario))
-        "clean build - partially cached" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build'] | true        | ['--build-cache'] | BuildExperimentListener.compose(new InjectBuildScanPlugin(pluginVersionNumber), new SaveScanSpoolFile(scenario), new ManageLocalCacheState())
+        scenario                                  | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                       | manageCacheState
+        "help"                                    | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                 | false
+        "clean build - 10 projects"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project10:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
+        "clean build - 50 projects"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
+        "clean build - 50 projects - no parallel" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache']                                  | true
+        "clean build - 100 projects"              | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
     }
 
 

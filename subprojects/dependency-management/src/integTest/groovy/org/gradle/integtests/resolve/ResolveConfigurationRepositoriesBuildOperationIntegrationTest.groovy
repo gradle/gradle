@@ -61,6 +61,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         repo                   | repoBlock                     | expectedRepo
         'maven'                | mavenRepoBlock()              | expectedMavenRepo()
         'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()
+        'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()
         'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()
         'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()
         'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()
@@ -234,6 +235,26 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
+    def "maven repository must define a URL property"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                maven {
+                    name = 'custom repo'
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        def result = fails 'resolve'
+
+        then:
+        result.assertHasCause 'You must specify a URL for a Maven repository.'
+        operations.none(ResolveConfigurationDependenciesBuildOperationType)
+    }
+
     def "ivy repository attributes are stored"() {
         setup:
         buildFile << """
@@ -292,6 +313,68 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
+    def "ivy repository must define a URL property, or at least one artifact pattern"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            repositories {
+                ivy {
+                    name = 'custom repo'
+                    ${definition}
+                }
+            }
+            task resolve { doLast { configurations.compile.resolve() } }
+        """
+
+        when:
+        if (success) {
+            succeeds 'resolve'
+        } else {
+            def result = fails 'resolve'
+        }
+
+
+        then:
+        if (success) {
+            def ops = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+            ops.details.repositories.size() == 1
+            def repo = ops.details.repositories[0]
+            with(repo) {
+                name == 'custom repo'
+                type == 'IVY'
+                if (artifactPattern) {
+                    properties.size() == 7
+                    properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'foo']
+                    properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
+                    properties.LAYOUT_TYPE == 'Gradle'
+                    properties.M2_COMPATIBLE == false
+                    properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+                    properties.AUTHENTICATED == false
+                    properties.'AUTHENTICATION_SCHEMES' == []
+                } else {
+                    properties.size() == 8
+                    properties.URL == 'http://foo.com'
+                    properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
+                    properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
+                    properties.LAYOUT_TYPE == 'Gradle'
+                    properties.M2_COMPATIBLE == false
+                    properties.METADATA_SOURCES == ['ivyDescriptor', 'artifact']
+                    properties.AUTHENTICATED == false
+                    properties.'AUTHENTICATION_SCHEMES' == []
+                }
+            }
+        } else {
+            result.assertHasCause 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
+            operations.none(ResolveConfigurationDependenciesBuildOperationType)
+        }
+
+        where:
+        definition               | success | artifactPattern
+        "url = 'http://foo.com'" | true    | false
+        "artifactPattern 'foo'"  | true    | true
+        ''                       | false   | false
+    }
+
     def "flat-dir repository attributes are stored"() {
         setup:
         buildFile << """
@@ -339,6 +422,24 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         ]
     }
 
+    private static String mavenRepoNoUrlBlock() {
+        "repositories { maven { artifactUrls 'http://artifactUrl' } }"
+    }
+
+    private static Map expectedMavenRepoNoUrl() {
+        [
+            id: 'maven',
+            name: 'maven',
+            type: 'MAVEN',
+            properties: [
+                ARTIFACT_URLS: ['http://artifactUrl'],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: []
+            ]
+        ]
+    }
+
     private static String ivyRepoBlock() {
         "repositories { ivy { url '<<URL>>' } }"
     }
@@ -357,6 +458,30 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 M2_COMPATIBLE: false,
                 METADATA_SOURCES: ['ivyDescriptor', 'artifact'],
                 URL: null
+            ]
+        ]
+    }
+
+    private static String ivyRepoNoUrlBlock() {
+        "repositories { ivy { artifactPattern 'artifactPattern' } }"
+    }
+
+    private static Map expectedIvyRepoNoUrl() {
+        [
+            id: 'ivy',
+            name: 'ivy',
+            type: 'IVY',
+            properties: [
+                ARTIFACT_PATTERNS: [
+                    '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])',
+                    'artifactPattern'
+                ],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
+                LAYOUT_TYPE: 'Gradle',
+                M2_COMPATIBLE: false,
+                METADATA_SOURCES: ['ivyDescriptor', 'artifact']
             ]
         ]
     }

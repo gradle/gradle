@@ -18,8 +18,12 @@ package org.gradle.gradlebuild.buildquality.incubation
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
@@ -31,8 +35,12 @@ import javax.inject.Inject
 open class IncubatingApiAggregateReportTask
     @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
 
-    @Input
+    @Internal
     var reports: Map<String, File>? = null
+
+    @get:Nested
+    val reportFiles
+        get() = reports?.mapValues { IncubatingApiReportFile(it.value) }
 
     @OutputFile
     val htmlReportFile = project.objects.fileProperty().also {
@@ -47,6 +55,13 @@ open class IncubatingApiAggregateReportTask
         }
     }
 }
+
+
+data class IncubatingApiReportFile(
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    val file: File
+)
 
 
 typealias ReportNameToProblems = MutableMap<String, MutableSet<String>>

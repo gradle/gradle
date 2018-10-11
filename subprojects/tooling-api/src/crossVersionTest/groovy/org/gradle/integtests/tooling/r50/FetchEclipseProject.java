@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.result;
 
-/**
- * An artifact that could not be resolved.
- *
- * @since 2.0
- */
-public interface UnresolvedArtifactResult extends ArtifactResult {
-    /**
-     * The failure that occurred when the artifact was resolved.
-     */
-    Throwable getFailure();
+package org.gradle.integtests.tooling.r50;
+
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.eclipse.EclipseProject;
+
+public class FetchEclipseProject implements BuildAction<EclipseProject> {
+    @Override
+    public EclipseProject execute(BuildController controller) {
+        return controller.getModel(EclipseProject.class);
+    }
 }

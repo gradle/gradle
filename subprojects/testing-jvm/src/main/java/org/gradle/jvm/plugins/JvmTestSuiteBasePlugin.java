@@ -18,7 +18,6 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
@@ -71,7 +70,6 @@ import java.util.List;
  *
  * @since 2.12
  */
-@Incubating
 @SuppressWarnings("UnusedDeclaration")
 public class JvmTestSuiteBasePlugin extends RuleSource {
     @BinaryTasks

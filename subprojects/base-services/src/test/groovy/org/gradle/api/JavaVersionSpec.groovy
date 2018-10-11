@@ -47,7 +47,8 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_9.toString() == "1.9"
         JavaVersion.VERSION_1_10.toString() == "1.10"
         JavaVersion.VERSION_11.toString() == "11"
-        JavaVersion.VERSION_HIGHER.toString() == "12"
+        JavaVersion.VERSION_12.toString() == "12"
+        JavaVersion.VERSION_HIGHER.toString() == "13"
     }
 
     def convertsStringToVersion() {
@@ -79,7 +80,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("10-internal") == JavaVersion.VERSION_1_10
 
         JavaVersion.toVersion("11-ea") == JavaVersion.VERSION_11
-        JavaVersion.toVersion("12-ea") == JavaVersion.VERSION_HIGHER
+        JavaVersion.toVersion("12-ea") == JavaVersion.VERSION_12
         JavaVersion.toVersion("999-ea") == JavaVersion.VERSION_HIGHER
     }
 
@@ -96,6 +97,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.forClassVersion(53) == JavaVersion.VERSION_1_9
         JavaVersion.forClassVersion(54) == JavaVersion.VERSION_1_10
         JavaVersion.forClassVersion(55) == JavaVersion.VERSION_11
+        JavaVersion.forClassVersion(56) == JavaVersion.VERSION_12
         JavaVersion.forClassVersion(999) == JavaVersion.VERSION_HIGHER
     }
 
@@ -167,6 +169,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.current().java9 == isJava9
         JavaVersion.current().java10 == isJava10
         JavaVersion.current().java11 == isJava11
+        JavaVersion.current().java12 == isJava12
 
         and:
         JavaVersion.current().java6Compatible == isJava6Compatible
@@ -175,21 +178,23 @@ class JavaVersionSpec extends Specification {
         JavaVersion.current().java9Compatible == isJava9Compatible
         JavaVersion.current().java10Compatible == isJava10Compatible
         JavaVersion.current().java11Compatible == isJava11Compatible
+        JavaVersion.current().java12Compatible == isJava12Compatible
 
         where:
-        versionString | current                    | isJava6 | isJava7 | isJava8 | isJava9 | isJava10 | isJava11 | isJava6Compatible | isJava7Compatible | isJava8Compatible | isJava9Compatible | isJava10Compatible | isJava11Compatible
-        '1.5'         | JavaVersion.VERSION_1_5    | false   | false   | false   | false   | false    | false    | false             | false             | false             | false             | false              | false
-        '1.6'         | JavaVersion.VERSION_1_6    | true    | false   | false   | false   | false    | false    | true              | false             | false             | false             | false              | false
-        '1.7'         | JavaVersion.VERSION_1_7    | false   | true    | false   | false   | false    | false    | true              | true              | false             | false             | false              | false
-        '1.8'         | JavaVersion.VERSION_1_8    | false   | false   | true    | false   | false    | false    | true              | true              | true              | false             | false              | false
-        '1.9'         | JavaVersion.VERSION_1_9    | false   | false   | false   | true    | false    | false    | true              | true              | true              | true              | false              | false
-        '9-ea'        | JavaVersion.VERSION_1_9    | false   | false   | false   | true    | false    | false    | true              | true              | true              | true              | false              | false
-        '1.10'        | JavaVersion.VERSION_1_10   | false   | false   | false   | false   | true     | false    | true              | true              | true              | true              | true               | false
-        '10-ea'       | JavaVersion.VERSION_1_10   | false   | false   | false   | false   | true     | false    | true              | true              | true              | true              | true               | false
-        '1.11'        | JavaVersion.VERSION_11     | false   | false   | false   | false   | false    | true     | true              | true              | true              | true              | true               | true
-        '11-ea'       | JavaVersion.VERSION_11     | false   | false   | false   | false   | false    | true     | true              | true              | true              | true              | true               | true
-        '12'          | JavaVersion.VERSION_HIGHER | false   | false   | false   | false   | false    | false    | true              | true              | true              | true              | true               | true
-        '999'         | JavaVersion.VERSION_HIGHER | false   | false   | false   | false   | false    | false    | true              | true              | true              | true              | true               | true
+        versionString | current                    | isJava6 | isJava7 | isJava8 | isJava9 | isJava10 | isJava11 | isJava12 | isJava6Compatible | isJava7Compatible | isJava8Compatible | isJava9Compatible | isJava10Compatible | isJava11Compatible | isJava12Compatible
+        '1.5'         | JavaVersion.VERSION_1_5    | false   | false   | false   | false   | false    | false    | false    | false             | false             | false             | false             | false              | false              | false
+        '1.6'         | JavaVersion.VERSION_1_6    | true    | false   | false   | false   | false    | false    | false    | true              | false             | false             | false             | false              | false              | false
+        '1.7'         | JavaVersion.VERSION_1_7    | false   | true    | false   | false   | false    | false    | false    | true              | true              | false             | false             | false              | false              | false
+        '1.8'         | JavaVersion.VERSION_1_8    | false   | false   | true    | false   | false    | false    | false    | true              | true              | true              | false             | false              | false              | false
+        '1.9'         | JavaVersion.VERSION_1_9    | false   | false   | false   | true    | false    | false    | false    | true              | true              | true              | true              | false              | false              | false
+        '9-ea'        | JavaVersion.VERSION_1_9    | false   | false   | false   | true    | false    | false    | false    | true              | true              | true              | true              | false              | false              | false
+        '1.10'        | JavaVersion.VERSION_1_10   | false   | false   | false   | false   | true     | false    | false    | true              | true              | true              | true              | true               | false              | false
+        '10-ea'       | JavaVersion.VERSION_1_10   | false   | false   | false   | false   | true     | false    | false    | true              | true              | true              | true              | true               | false              | false
+        '1.11'        | JavaVersion.VERSION_11     | false   | false   | false   | false   | false    | true     | false    | true              | true              | true              | true              | true               | true               | false
+        '11-ea'       | JavaVersion.VERSION_11     | false   | false   | false   | false   | false    | true     | false    | true              | true              | true              | true              | true               | true               | false
+        '12-ea'       | JavaVersion.VERSION_12     | false   | false   | false   | false   | false    | false    | true     | true              | true              | true              | true              | true               | true               | true
+        '12'          | JavaVersion.VERSION_12     | false   | false   | false   | false   | false    | false    | true     | true              | true              | true              | true              | true               | true               | true
+        '999'         | JavaVersion.VERSION_HIGHER | false   | false   | false   | false   | false    | false    | false    | true              | true              | true              | true              | true               | true               | true
     }
 
     /* Following test cases are from http://hg.openjdk.java.net/jdk/jdk/file/af37d9997bd6/test/jdk/java/lang/Runtime/Version/Basic.java */

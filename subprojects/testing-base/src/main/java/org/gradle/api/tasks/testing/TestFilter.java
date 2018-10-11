@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.util.Set;
@@ -60,7 +59,6 @@ import java.util.Set;
  *
  * @since 1.10
  */
-@Incubating
 public interface TestFilter {
 
     /**

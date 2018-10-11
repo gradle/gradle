@@ -23,9 +23,10 @@ import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.JDK10_OR_EARLIER
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Requires(KOTLIN_SCRIPT)
+@Requires([KOTLIN_SCRIPT, JDK10_OR_EARLIER]) // FindBugs does not work on JDK 11
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule

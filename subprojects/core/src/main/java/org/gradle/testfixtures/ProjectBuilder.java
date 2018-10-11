@@ -15,7 +15,6 @@
  */
 package org.gradle.testfixtures;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 
@@ -76,7 +75,6 @@ public class ProjectBuilder {
      * will be used.
      * @return The builder
      */
-    @Incubating
     public ProjectBuilder withGradleUserHomeDir(File dir) {
         gradleUserHomeDir = dir;
         return this;

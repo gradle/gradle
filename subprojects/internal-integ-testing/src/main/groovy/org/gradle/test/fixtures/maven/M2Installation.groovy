@@ -29,6 +29,8 @@ class M2Installation implements Action<GradleExecuter> {
     private TestFile userSettingsFile
     private TestFile globalMavenDirectory
     private TestFile globalSettingsFile
+    private TestFile isolatedMavenRepoForLeakageChecks
+    private boolean isolateMavenLocal = true
 
     public M2Installation(TestDirectoryProvider temporaryFolder) {
         this.temporaryFolder = temporaryFolder
@@ -98,8 +100,23 @@ class M2Installation implements Action<GradleExecuter> {
     void execute(GradleExecuter gradleExecuter) {
         init()
         gradleExecuter.withUserHomeDir(userHomeDir)
+        // if call `using m2`, then we disable the automatic isolation of m2
+        isolateMavenLocal = false
         if (globalMavenDirectory?.exists()) {
             gradleExecuter.withEnvironmentVars(M2_HOME: globalMavenDirectory.absolutePath)
         }
+    }
+
+    void isolateMavenLocalRepo(GradleExecuter gradleExecuter) {
+        gradleExecuter.beforeExecute {
+            if (isolateMavenLocal) {
+                isolatedMavenRepoForLeakageChecks = temporaryFolder.testDirectory.createDir("m2-home-should-not-be-filled")
+                setMavenLocalLocation(gradleExecuter, isolatedMavenRepoForLeakageChecks)
+            }
+        }
+    }
+
+    private static void setMavenLocalLocation(GradleExecuter gradleExecuter, File destination) {
+        gradleExecuter.withArgument("-Dmaven.repo.local=${destination?:''}" )
     }
 }

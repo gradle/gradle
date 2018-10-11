@@ -116,7 +116,7 @@ TBD - More provider implementations track the task that produces the value of th
 
 ### Changes to file and directory property construction
 
-`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
+`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaultTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
 
 These other methods have been deprecated and will be removed in Gradle 6.0.
 
@@ -169,6 +169,12 @@ The following are the features that have been promoted in this Gradle release.
 - `ForkOptions.javaHome` property
 - `Project.normalization`
 - `GroovyCompile.groovyCompilerJvmVersion` and `javaToolChain` properties
+- `JavaVersion.VERSION_11` constant along with `isJava11()` and `isJava11Compatible()` methods
+
+### The `--no-rebuild` option is no longer deprecated
+
+A change in `buildSrc` causes the whole project to become out-of-date.
+Thus, when making small incremental changes, the `--no-rebuild` command-line option is often helpful to get faster feedback and is therefore no longer deprecated.
 
 ## Fixed issues
 
@@ -544,6 +550,7 @@ We would like to thank the following community members for making contributions 
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Fix nullability of the CreateStartScripts task properties (gradle/gradle#6704)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Make Settings implement ExtensionAware (gradle/gradle#6685)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Remove `@Incubating` from LifecycleBasePlugin (gradle/gradle#6901)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Improve API documentation for `PathSensitivity` and `PathSensitive` (gradle/gradle#6983)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
@@ -556,7 +563,7 @@ We would like to thank the following community members for making contributions 
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
 - [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
 - [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
-- [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
+- [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443) and the application plugin (gradle/gradle#7003)
 - [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
 - [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 - [Jakub Strzyżewski](https://github.com/shindouj) - Improve exception message for missing repository credentials when publishing (gradle/gradle#6379)

@@ -218,7 +218,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "each file is transformed once per set of configuration parameters"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private String target
                 
@@ -283,19 +283,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
                 }
             }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
-                }
-            }
             
             project(':util') {
                 dependencies {
@@ -338,7 +325,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() <<withJarTasks() << """
             class CustomType implements Serializable {
                 String value
             }
@@ -403,19 +390,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
                 }
             }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
-                }
-            }
             
             project(':util') {
                 dependencies {
@@ -455,7 +429,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     @Unroll
     def "can use configuration parameter of type #type"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class TransformWithMultipleTargets extends ArtifactTransform {
                 private $type target
                 
@@ -495,19 +469,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         println "files 1: " + values.collect { it.file.name }
                         println "files 2: " + values.collect { it.file.name }
                     }
-                }
-            }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
                 }
             }
             
@@ -553,7 +514,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "each file is transformed once per transform class"() {
         given:
-        buildFile << declareAttributes() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class Sizer extends ArtifactTransform {
                 @javax.inject.Inject
                 Sizer(String target) {
@@ -619,19 +580,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         println "ids 2: " + hash.collect { it.id }
                         println "components 2: " + hash.collect { it.id.componentIdentifier }
                     }
-                }
-            }
-
-            project(':lib') {
-                task jar1(type: Jar) {            
-                    archiveName = 'lib1.jar'
-                }
-                task jar2(type: Jar) {            
-                    archiveName = 'lib2.jar'
-                }
-                artifacts {
-                    compile jar1
-                    compile jar2
                 }
             }
             
@@ -1238,6 +1186,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
                 task jar2(type: Jar) {
                     archiveName = 'lib2.jar'
+                }
+                tasks.withType(Jar) {
+                    destinationDir = buildDir
                 }
                 artifacts {
                     compile jar1

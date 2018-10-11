@@ -42,7 +42,6 @@ import java.util.concurrent.Callable;
 /**
  * Assembles a JAR archive.
  */
-@Incubating
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";

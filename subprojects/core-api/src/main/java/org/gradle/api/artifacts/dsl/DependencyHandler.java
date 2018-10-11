@@ -329,7 +329,6 @@ public interface DependencyHandler {
      * @return The dependency.
      * @since 2.6
      */
-    @Incubating
     Dependency gradleTestKit();
 
     /**
@@ -366,7 +365,6 @@ public interface DependencyHandler {
      * @return the component metadata handler for this project
      * @since 1.8
      */
-    @Incubating
     ComponentMetadataHandler getComponents();
 
     /**
@@ -377,7 +375,6 @@ public interface DependencyHandler {
      * @param configureAction the action to use to configure module metadata
      * @since 1.8
      */
-    @Incubating
     void components(Action<? super ComponentMetadataHandler> configureAction);
 
     /**
@@ -387,7 +384,6 @@ public interface DependencyHandler {
      * @return the component module metadata handler for this project
      * @since 2.2
      */
-    @Incubating
     ComponentModuleMetadataHandler getModules();
 
     /**
@@ -398,7 +394,6 @@ public interface DependencyHandler {
      * @param configureAction the action to use to configure module metadata
      * @since 2.2
      */
-    @Incubating
     void modules(Action<? super ComponentModuleMetadataHandler> configureAction);
 
     /**
@@ -406,7 +401,6 @@ public interface DependencyHandler {
      *
      * @since 2.0
      */
-    @Incubating
     ArtifactResolutionQuery createArtifactResolutionQuery();
 
     /**

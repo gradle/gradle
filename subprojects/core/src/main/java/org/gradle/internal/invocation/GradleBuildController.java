@@ -16,10 +16,12 @@
 package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class GradleBuildController implements BuildController {
@@ -82,14 +84,25 @@ public class GradleBuildController implements BuildController {
     }
 
     public GradleInternal configure() {
-        return doBuild(new Factory<GradleInternal>() {
+        return doBuild(withLenientState(new Factory<GradleInternal>() {
             @Override
             public GradleInternal create() {
                 GradleInternal gradle = getLauncher().getConfiguredBuild();
                 getLauncher().finishBuild();
                 return gradle;
             }
-        });
+        }));
+    }
+
+    private <T> Factory<T> withLenientState(final Factory<T> factory) {
+        return new Factory<T>() {
+            @Nullable
+            @Override
+            public T create() {
+                ProjectStateRegistry projectStateRegistry = getGradle().getServices().get(ProjectStateRegistry.class);
+                return projectStateRegistry.withLenientState(factory);
+            }
+        };
     }
 
     private GradleInternal doBuild(final Factory<GradleInternal> build) {

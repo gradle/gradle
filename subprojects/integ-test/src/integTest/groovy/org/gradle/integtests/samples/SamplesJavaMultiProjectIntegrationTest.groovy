@@ -216,7 +216,6 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(dslDir).withTasks(":$API_NAME:classes").run()
         TestFile sharedJar = dslDir.file("shared/build/libs/shared-1.0.jar")
         TestFile.Snapshot snapshot = sharedJar.snapshot()
-        executer.expectDeprecationWarning()
         executer.inDirectory(dslDir).withTasks(":$API_NAME:clean", ":$API_NAME:classes").withArguments("-a").run()
         sharedJar.assertHasNotChangedSince(snapshot)
 
