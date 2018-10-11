@@ -542,6 +542,20 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         e.message == 'The value for this property is final and cannot be changed any further.'
     }
 
+    def "ignores set to empty list after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.empty()
+
+        then:
+        property.get() == toImmutable(someValue())
+    }
+
     def "cannot add element after value finalized"() {
         given:
         def property = property()
@@ -561,6 +575,21 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "ignores add element after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.add("123")
+        property.add(Stub(PropertyInternal))
+
+        then:
+        property.get() == toImmutable(someValue())
     }
 
     def "cannot add elements after value finalized"() {
@@ -591,4 +620,19 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         e3.message == 'The value for this property is final and cannot be changed any further.'
     }
 
+    def "ignores add elements after value finalized leniently"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.finalizeValueOnReadAndWarnAboutChanges()
+        property.get()
+
+        when:
+        property.addAll("123", "456")
+        property.addAll(["123", "456"])
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        property.get() == toImmutable(someValue())
+    }
 }

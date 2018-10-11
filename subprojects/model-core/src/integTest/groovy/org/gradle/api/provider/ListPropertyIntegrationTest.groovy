@@ -40,6 +40,31 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "can finalize the value of a property using API"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { [++counter, ++counter] }
+
+def property = objects.listProperty(Integer)
+property.set(provider)
+
+assert property.get() == [1, 2] 
+assert property.get() == [3, 4] 
+property.finalizeValue()
+assert property.get() == [5, 6]
+assert property.get() == [5, 6]
+
+property.set([1])
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
     @Unroll
     def "can set value for list property from DSL"() {
         buildFile << """

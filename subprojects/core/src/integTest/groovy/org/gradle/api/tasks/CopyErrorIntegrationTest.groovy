@@ -30,7 +30,7 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Test
-    public void givesReasonableErrorMessageWhenPathCannotBeConverted() {
+    void givesReasonableErrorMessageWhenPathCannotBeConverted() {
         file('src/thing.txt').createFile()
 
         testFile('build.gradle') << '''
@@ -55,7 +55,7 @@ The following types/formats are supported:
 
     @Test
     @Requires(TestPrecondition.SYMLINKS)
-    public void reportsSymLinkWhichPointsToNothing() {
+    void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
         link.createLink(testFile('missing'))
 
@@ -71,12 +71,13 @@ The following types/formats are supported:
 '''
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasDescription("Could not list contents of '${link}'.")
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasCause("Could not list contents of '${link}'.")
     }
 
     @Test
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    public void reportsUnreadableSourceDir() {
+    void reportsUnreadableSourceDir() {
         TestFile dir = testFile('src').createDir()
         def oldPermissions = dir.permissions
         dir.permissions = '-w-r--r--'
@@ -95,7 +96,8 @@ The following types/formats are supported:
     '''
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-            failure.assertThatDescription(Matchers.anyOf(
+            failure.assertHasDescription("Execution failed for task ':copy'.")
+            failure.assertThatCause(Matchers.anyOf(
                 Matchers.startsWith("Could not list contents of directory '${dir}' as it is not readable."),
                 Matchers.startsWith("Could not read path '${dir}'.")
             ))

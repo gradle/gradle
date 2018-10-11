@@ -1244,7 +1244,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
         failure.assertHasCause("broken")
 
@@ -1293,7 +1294,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not download test-impl.jar (test:test:1.3)")
 
         and:
@@ -1330,7 +1332,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("broken")
 
         and:
@@ -1367,7 +1370,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform ToNullTransform")
         failure.assertHasCause("Transform returned null result.")
     }
@@ -1394,7 +1398,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform NoExistTransform")
         failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
 
@@ -1432,7 +1437,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform SomewhereElseTransform")
         failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
     }
@@ -1462,7 +1468,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size} using transform BrokenTransform")
         failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
@@ -1517,7 +1524,8 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'broken.jar' to match attributes {artifactType=size} using transform TransformWithIllegalArgumentException")
         failure.assertHasCause("broken: broken.jar")
         failure.assertHasCause("Could not download a.jar (test:a:1.3)")

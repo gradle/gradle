@@ -62,10 +62,21 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
 
     @Override
     public void attachProducer(Task producer) {
+        // TODO - push into validating value
         Object containerValue = value.getContainerValue();
         if (containerValue instanceof ProducerAwareProperty) {
             ((ProducerAwareProperty)containerValue).attachProducer(producer);
         }
+    }
+
+    @Override
+    public void prepareValue() {
+        // Ignore, not implemented yet
+    }
+
+    @Override
+    public void cleanupValue() {
+        // Ignore, not implemented yet
     }
 
     @Override

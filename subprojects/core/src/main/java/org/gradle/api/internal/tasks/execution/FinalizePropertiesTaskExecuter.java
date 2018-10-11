@@ -19,31 +19,31 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
- * Notifies the task input file properties of the start and completion of task execution, so they may finalize and cache whatever state is required to snapshot the file values.
+ * Notifies the task properties of the start and completion of task execution, so they may finalize and cache whatever state is required to efficiently fingerprint inputs and outputs, apply validation or whatever.
  *
- * Currently, this is applied prior to validation and is only applied to file input properties but should be applied to all properties.
+ * Currently, this is applied prior to validation, so that all properties are finalized before their value is validated, however we should finalize and validate any property whose value is used to finalize the value of another property.
  */
-public class FinalizeInputFilePropertiesTaskExecuter implements TaskExecuter {
+public class FinalizePropertiesTaskExecuter implements TaskExecuter {
     private final TaskExecuter taskExecuter;
 
-    public FinalizeInputFilePropertiesTaskExecuter(TaskExecuter taskExecuter) {
+    public FinalizePropertiesTaskExecuter(TaskExecuter taskExecuter) {
         this.taskExecuter = taskExecuter;
     }
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
-        for (TaskInputFilePropertySpec property : taskProperties.getInputFileProperties()) {
+        for (TaskPropertySpec property : taskProperties.getProperties()) {
             property.prepareValue();
         }
         try {
             taskExecuter.execute(task, state, context);
         } finally {
-            for (TaskInputFilePropertySpec property : taskProperties.getInputFileProperties()) {
+            for (TaskPropertySpec property : taskProperties.getProperties()) {
                 property.cleanupValue();
             }
         }

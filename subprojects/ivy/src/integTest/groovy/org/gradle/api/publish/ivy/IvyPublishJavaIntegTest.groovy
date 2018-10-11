@@ -683,7 +683,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 // Constraints cannot be published to Ivy files. Since we publish the _declared_ dependency
                 // versions and not the resolved ones, this can't be resolved
                 shouldFail {
-                    assertHasDescription 'Could not resolve all files for configuration'
+                    assertHasCause 'Could not resolve all files for configuration'
                     assertHasCause 'Could not find commons-collections:commons-collections:.'
                 }
             }

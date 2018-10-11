@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
@@ -153,6 +154,11 @@ public class DefaultTaskProperties implements TaskProperties {
         };
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
+    }
+
+    @Override
+    public Iterable<? extends TaskPropertySpec> getProperties() {
+        return validatingPropertySpecs;
     }
 
     @Override

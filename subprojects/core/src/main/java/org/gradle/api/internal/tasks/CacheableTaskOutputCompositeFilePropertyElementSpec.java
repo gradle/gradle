@@ -64,7 +64,17 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
 
     @Override
     public void attachProducer(Task producer) {
-        // Ignore
+        // Ignore, not implemented yet
+    }
+
+    @Override
+    public void prepareValue() {
+        // Ignore, not implemented yet
+    }
+
+    @Override
+    public void cleanupValue() {
+        // Ignore, not implemented yet
     }
 
     @Override

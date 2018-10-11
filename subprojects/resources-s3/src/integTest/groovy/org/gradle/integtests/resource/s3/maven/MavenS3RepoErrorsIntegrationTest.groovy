@@ -54,7 +54,8 @@ task retrieve(type: Sync) {
         then:
         fails 'retrieve'
         and:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get resource '${module.pom.uri}'.")
                 .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
@@ -78,7 +79,8 @@ repositories {
         fails 'retrieve'
         then:
         //TODO would be good to have a reference of the wrong configured repository in the error message
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
 
@@ -95,7 +97,8 @@ repositories {
         when:
         fails 'retrieve'
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.")
 
     }
@@ -110,7 +113,8 @@ repositories {
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause(
                 """Could not find org.gradle:test:1.85.
 Searched in the following locations:
@@ -139,6 +143,8 @@ Required by:
         expect:
         fails 'retrieve'
         and:
+        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
     }
 }

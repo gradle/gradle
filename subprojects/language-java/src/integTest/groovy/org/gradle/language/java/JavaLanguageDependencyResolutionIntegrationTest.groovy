@@ -152,7 +152,7 @@ model {
         fails ':mainJar'
 
         then: "displays the possible solution"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")
         failure.assertHasCause("Project ':' does not contain library 'someLib'. Did you want to use 'main'?")
 
@@ -250,7 +250,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':sub' library 'main'")
         failure.assertHasCause("Project ':sub' not found.")
     }
@@ -295,7 +295,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a suggestion about the library to use"
@@ -346,7 +346,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep' library 'doesNotExist'")
 
         and: "displays a list of suggestion for libraries to use"
@@ -455,7 +455,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays a list of suggestions for libraries in dependent project"
@@ -497,7 +497,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and: "displays that the dependent project doesn't define any dependency"
@@ -536,7 +536,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':dep'")
 
         and:
@@ -836,7 +836,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
@@ -997,7 +997,7 @@ model {
         fails ':mainJar'
 
         then:
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
     - Jar 'dep:jar' [platform:'java6']
     - Jar 'dep:jar2' [platform:'java6']"""
@@ -1063,7 +1063,7 @@ model {
         fails ':mainJava6Jar'
 
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:java6Jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
     - Jar 'dep:jar' [platform:'java6']
     - Jar 'dep:jar2' [platform:'java6']"""
@@ -1073,7 +1073,7 @@ model {
         fails ':mainJava7Jar'
 
         then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:java7Jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:java7Jar'' source set 'Java source 'main:java'")
         failure.assertHasCause(normaliseLineSeparators("""Multiple compatible variants found for library 'dep':
     - Jar 'dep:jar' [platform:'java6']
     - Jar 'dep:jar2' [platform:'java6']"""
@@ -1308,7 +1308,7 @@ model {
         fails ':mainJar'
 
         then: "displays a reasonable error message indicating the faulty source set"
-        failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
+        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'main:jar'' source set 'Java source 'main:java'")
 
         and: "first resolution error is displayed"
         failure.assertHasCause("Could not resolve project ':' library 'someLib'")
