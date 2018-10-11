@@ -51,13 +51,13 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
             } else {
                 copyTargetGradleHome()
             }
+            gradleHome.file("bin/gradle").setExecutable(true, true)
         }
         gradleHome
     }
 
     def copyTargetGradleHome() {
         GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
-        gradleHome.file("bin/gradle").setExecutable(true, true)
     }
 
     def unzipBinDistribution() {
