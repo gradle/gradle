@@ -82,7 +82,7 @@ class AbstractIntegrationSpec extends Specification {
     def setup() {
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
-            executer.withArgument("-Dorg.gradle.internal.repository.max.retries=$maxHttpRetries")
+            executer.withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
         }
     }
 
