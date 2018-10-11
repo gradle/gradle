@@ -17,6 +17,7 @@
 package org.gradle.tooling.provider.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
@@ -24,7 +25,10 @@ import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
 class DefaultToolingModelBuilderRegistryTest extends Specification {
-    final def registy = new DefaultToolingModelBuilderRegistry(new TestBuildOperationExecutor())
+    final def projectStateRegistry = Stub(ProjectStateRegistry) {
+        withLenientState(_) >> { args -> args[0].create() }
+    }
+    final def registy = new DefaultToolingModelBuilderRegistry(new TestBuildOperationExecutor(), projectStateRegistry)
 
     def "finds model builder for requested model"() {
         def builder1 = Mock(ToolingModelBuilder)

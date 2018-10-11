@@ -33,6 +33,23 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds('help')
     }
 
+    def "can dynamically access properties"() {
+
+        given:
+        file("gradle.properties") << "someProjectProperty=true"
+        settingsFile << """
+            if (properties.someProjectProperty == 'true') {
+                println('signal')
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains('signal')
+    }
+
     def "Can type-safely use ExtensionAware with the Groovy DSL"() {
         when:
         def answerFile = "answerHolder.gradle"
