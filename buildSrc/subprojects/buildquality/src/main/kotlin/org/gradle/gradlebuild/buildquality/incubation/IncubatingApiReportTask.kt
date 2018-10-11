@@ -29,9 +29,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
-import java.io.BufferedReader
 import java.io.File
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -87,14 +85,13 @@ class Analyzer @Inject constructor(
     override
     fun run() {
         val versionToIncubating = mutableMapOf<String, MutableSet<String>>()
-        val hashToVersionCache = mutableMapOf<String, String>()
         srcDirs.forEach { srcDir ->
             if (srcDir.exists()) {
                 val solver = JavaSymbolSolver(CombinedTypeSolver(JavaParserTypeSolver(srcDir), ReflectionTypeSolver()))
                 srcDir.walkTopDown().forEach {
                     if (it.name.endsWith(".java")) {
                         try {
-                            parseJavaFile(srcDir, it, versionToIncubating, solver, hashToVersionCache)
+                            parseJavaFile(it, versionToIncubating, solver)
                         } catch (e: Exception) {
                             println("Unable to parse $it: ${e.message}")
                         }
@@ -107,7 +104,7 @@ class Analyzer @Inject constructor(
     }
 
     private
-    fun parseJavaFile(srcDir: File, file: File, versionToIncubating: MutableMap<String, MutableSet<String>>, solver: JavaSymbolSolver, hashToVersionCache: MutableMap<String, String>) =
+    fun parseJavaFile(file: File, versionToIncubating: MutableMap<String, MutableSet<String>>, solver: JavaSymbolSolver) =
         JavaParser.parse(file).run {
             solver.inject(this)
             findAll(Node::class.java)
@@ -117,7 +114,7 @@ class Analyzer @Inject constructor(
                 }.map {
                     val node = it as NodeWithAnnotations<*>
                     val version = findVersionFromJavadoc(node)
-                        ?: speculateVersion(srcDir, file, hashToVersionCache)
+                        ?: "Not found"
                     Pair(version, nodeName(it, this, file))
                 }.forEach {
                     versionToIncubating.getOrPut(it.first) {
@@ -158,41 +155,6 @@ class Analyzer @Inject constructor(
         resolver()
     } catch (e: Throwable) {
         or()
-    }
-
-    private
-    inline fun <T> File.cmd(vararg cmd: String, action: BufferedReader.() -> T): T = ProcessBuilder(cmd.asList())
-        .directory(this)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start()
-        .run {
-            waitFor(5, TimeUnit.SECONDS)
-            action(inputStream.bufferedReader(Charsets.UTF_8))
-        }
-
-    private
-    fun speculateVersion(srcDir: File, f: File, hashToVersionCache: MutableMap<String, String>): String {
-        val hash = srcDir.cmd("git", "log", "--format=%H", "--diff-filter=A", "--", f.toRelativeString(srcDir)) {
-            readText().trim()
-        }
-        return speculateVersionFromHash(hash, hashToVersionCache)
-    }
-
-    private
-    fun speculateVersionFromHash(hash: String, hashToVersionCache: MutableMap<String, String>): String = if (hash.length == 40) {
-        hashToVersionCache.getOrPut(hash) {
-            val version = versionFile.parentFile.cmd("git", "show", hash + ":" + versionFile.name) {
-                readLine().trim()
-            }
-            return if (version.length == 0) {
-                "Not found"
-            } else {
-                version
-            }
-        }
-    } else {
-        "Not found"
     }
 
     private
