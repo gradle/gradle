@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
 import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer
@@ -40,7 +41,7 @@ import org.junit.runner.RunWith
     NativeComponentReportOutputNormalizer.class,
     PlayComponentReportOutputNormalizer.class
 ])
-@SampleModifiers(SetMirrorsSampleModifier.class)
+@SampleModifiers([SetMirrorsSampleModifier.class, MoreMemorySampleModifier.class])
 class UserGuideSamplesIntegrationTest {
     /*
     Important info: This test uses Exemplar (https://github.com/gradle/exemplar/) to discover and check samples.

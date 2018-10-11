@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
     def "uses current JVM and default JVM args when none specified"() {
         file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx512m')
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
 """
 
