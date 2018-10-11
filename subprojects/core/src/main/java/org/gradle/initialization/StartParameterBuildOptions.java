@@ -165,13 +165,12 @@ public class StartParameterBuildOptions {
         private static final String SHORT_OPTION = "a";
 
         public NoProjectDependenciesRebuildOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Do not rebuild project dependencies.").deprecated());
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Do not rebuild project dependencies."));
         }
 
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
-            settings.addDeprecation(String.format("--%s/-%s", LONG_OPTION, SHORT_OPTION));
         }
     }
 

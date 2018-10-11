@@ -171,6 +171,11 @@ The following are the features that have been promoted in this Gradle release.
 - `GroovyCompile.groovyCompilerJvmVersion` and `javaToolChain` properties
 - `JavaVersion.VERSION_11` constant along with `isJava11()` and `isJava11Compatible()` methods
 
+### The `--no-rebuild` option is no longer deprecated
+
+A change in `buildSrc` causes the whole project to become out-of-date.
+Thus, when making small incremental changes, the `--no-rebuild` command-line option is often helpful to get faster feedback and is therefore no longer deprecated.
+
 ## Fixed issues
 
 ### Reporting of TestNG classes/methods
