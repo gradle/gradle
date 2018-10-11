@@ -16,18 +16,17 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
 import java.io.BufferedReader
@@ -55,16 +54,7 @@ open class IncubatingApiReportTask
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
-    val sources: Property<FileCollection> = project.objects.property(FileCollection::class.java).also {
-        it.set(project.provider {
-            project.convention
-                .getPlugin(JavaPluginConvention::class.java)
-                .sourceSets
-                .getByName("main")
-                .java
-                .sourceDirectories
-        })
-    }
+    val sources: ConfigurableFileCollection = project.files()
 
     @OutputFile
     val htmlReportFile: RegularFileProperty = project.objects.fileProperty().also {
@@ -79,7 +69,7 @@ open class IncubatingApiReportTask
     @TaskAction
     fun analyze() = workerExecutor.submit(Analyzer::class.java) {
         isolationMode = IsolationMode.CLASSLOADER
-        params(versionFile.asFile.get(), sources.get().files, htmlReportFile.asFile.get(), textReportFile.asFile.get(), title.get(), releasedVersionsFile.asFile.get())
+        params(versionFile.asFile.get(), sources.files, htmlReportFile.asFile.get(), textReportFile.asFile.get(), title.get(), releasedVersionsFile.asFile.get())
     }
 }
 
