@@ -19,6 +19,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.BuildForkPointDistribution
 import org.gradle.testing.ReportGenerationPerformanceTest
 import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
@@ -80,6 +81,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         registerEmptyPerformanceReportTask()
 
+        registerForkPointDistributionTask()
+
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -101,6 +104,38 @@ class PerformanceTestPlugin : Plugin<Project> {
         // Some of CI builds have parameter `-x performanceReport` so simply removing `performanceReport` would result in an error
         // This task acts as a workaround for transition
         tasks.register("performanceReport")
+    }
+
+    private
+    fun Project.registerForkPointDistributionTask() {
+        onNonMasterReleaseBranch {
+            val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
+                dependsOn("determineForkPoint")
+            }
+            tasks.register("determineForkPoint") {
+                doLast {
+                    val forkPointCommit = Runtime.getRuntime().exec("git merge-base master HEAD").inputStream.reader().readText().trim()
+                    buildForkPointDistribution.get().forkPointCommitId = forkPointCommit
+                }
+            }
+            tasks.register("configurePerformanceTestBaseline") {
+                dependsOn("buildForkPointDistribution")
+                doLast {
+                    val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).version
+                    project.tasks.withType(PerformanceTest::class) {
+                        baselines = commitBaseline
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun Project.onNonMasterReleaseBranch(action: (branchName: String) -> Unit) {
+        action("")
+//        stringPropertyOrNull(PropertyNames.branchName)
+//            ?.takeIf { it.isNotEmpty() && it != "master" && it != "release" }
+//            ?.let(action)
     }
 
     private
@@ -423,6 +458,10 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
+            }
+
+            onNonMasterReleaseBranch {
+                this@apply.dependsOn("configurePerformanceTestBaseline")
             }
         }
 

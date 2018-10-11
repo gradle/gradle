@@ -46,10 +46,24 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
     TestFile getGradleHomeDir() {
         if (!gradleHome) {
             gradleHome = new TestFile(testDir, "gradle-home")
-            GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
-            gradleHome.file("bin/gradle").setExecutable(true, true)
+            if(!delegate.gradleHomeDir) {
+                unzipBinDistribution()
+            } else {
+                copyTargetGradleHome()
+            }
         }
         gradleHome
+    }
+
+    def copyTargetGradleHome() {
+        GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
+        gradleHome.file("bin/gradle").setExecutable(true, true)
+    }
+
+    def unzipBinDistribution() {
+        delegate.binDistribution.unzipTo(testDir)
+        // default name is `gradle-5.1-20181003160000+0000`
+        testDir.listFiles().find { it.name.startsWith("gradle-") && it.isDirectory() } .renameTo(gradleHome)
     }
 
     GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {

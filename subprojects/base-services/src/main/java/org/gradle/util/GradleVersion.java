@@ -34,7 +34,7 @@ import static org.gradle.internal.IoActions.uncheckedClose;
 
 public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?(-commit-\\w{40})?");
     private static final int STAGE_MILESTONE = 0;
 
     private final String version;
@@ -132,6 +132,8 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
         if ("snapshot".equals(matcher.group(5))) {
             snapshot = 0L;
+        } else if (isCommitSnapshot(matcher)) {
+            snapshot = 0L;
         } else if (matcher.group(8) == null) {
             snapshot = null;
         } else if ("SNAPSHOT".equals(matcher.group(8))) {
@@ -149,6 +151,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
+    }
+
+    private boolean isCommitSnapshot(Matcher matcher) {
+        return matcher.group(10) != null;
     }
 
     @Override

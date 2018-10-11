@@ -100,6 +100,10 @@ public class IntegrationTestBuildContext {
         if (version.startsWith("#")) {
             return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
         }
+
+        if (LocallyBuiltGradleDistribution.isLocallyBuiltVersion(version)) {
+            return new LocallyBuiltGradleDistribution(version);
+        }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
