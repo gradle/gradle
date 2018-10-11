@@ -548,7 +548,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     @Nullable
     @Optional
     @Nested
@@ -561,7 +560,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     public void setIncludeFilterConfig(@Nullable TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }

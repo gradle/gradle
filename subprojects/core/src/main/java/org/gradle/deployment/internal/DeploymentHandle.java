@@ -16,8 +16,6 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.api.Incubating;
-
 import javax.inject.Inject;
 
 /**
@@ -28,7 +26,6 @@ import javax.inject.Inject;
  *
  * @since 4.2
  */
-@Incubating
 public interface DeploymentHandle {
     /**
      * Returns true if the deployment is still running.

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -109,7 +108,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * Example: rulePriority = 3
      */
-    @Incubating
     public int getRulePriority() {
         return rulePriority;
     }
@@ -117,7 +115,6 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Sets the rule priority threshold.
      */
-    @Incubating
     public void setRulePriority(int intValue) {
         Pmd.validate(intValue);
         rulePriority = intValue;
@@ -132,7 +129,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     @Nullable
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
@@ -147,7 +143,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
@@ -184,7 +179,6 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @Incubating
     public boolean isConsoleOutput() {
         return consoleOutput;
     }
@@ -192,7 +186,6 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @Incubating
     public void setConsoleOutput(boolean consoleOutput) {
         this.consoleOutput = consoleOutput;
     }
