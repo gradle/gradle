@@ -15,14 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * Specifies whether an Eclipse {@link ResourceFilter} is including or excluding resources.
  *
  * @since 3.5
  */
-@Incubating
 public enum ResourceFilterType {
     INCLUDE_ONLY,
     EXCLUDE_ALL;
