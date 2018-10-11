@@ -87,14 +87,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
     }
 
-    /**
-     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
-     *
-     * @since 4.2
-     */
-    @Incubating
     @Inject
-    public ObjectFactory getObjectFactory() {
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -204,7 +198,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 2.2
      */
-    @Incubating
     @Nested
     public TextResource getConfig() {
         return config;
@@ -215,7 +208,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 2.2
      */
-    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }

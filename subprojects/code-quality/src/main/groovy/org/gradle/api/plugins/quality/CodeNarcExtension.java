@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.resources.TextResource;
@@ -50,7 +49,6 @@ public class CodeNarcExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public TextResource getConfig() {
         return config;
     }
@@ -60,7 +58,6 @@ public class CodeNarcExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
