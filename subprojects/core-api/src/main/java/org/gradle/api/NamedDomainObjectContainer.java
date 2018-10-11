@@ -28,6 +28,8 @@ import org.gradle.util.Configurable;
  * <p>Note that a container is an implementation of {@link java.util.SortedSet}, which means that the container is guaranteed
  * to only contain elements with unique names within this container. Furthermore, items are ordered by their name.</p>
  *
+ * @apiNote Implementations can be created using {@link Project#container} or it's variants.
+ *
  * @param <T> The type of domain objects in this container.
  * @see NamedDomainObjectSet
  */
