@@ -23,7 +23,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @param <T> the (base) type of domain objects in the container
  */
-@Incubating
 @HasInternalProtocol
 public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
     /**

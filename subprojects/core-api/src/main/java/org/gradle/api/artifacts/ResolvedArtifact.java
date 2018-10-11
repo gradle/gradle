@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
 import javax.annotation.Nullable;
@@ -46,6 +45,5 @@ public interface ResolvedArtifact {
     @Nullable
     String getClassifier();
 
-    @Incubating
     ComponentArtifactIdentifier getId();
 }

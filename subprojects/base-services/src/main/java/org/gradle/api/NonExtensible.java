@@ -16,14 +16,18 @@
 
 package org.gradle.api;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Indicates that the type, when DSL enhanced, does not support extensibility.
  * <p>
  * This means that it will not be enhanced with {@link org.gradle.api.plugins.ExtensionAware}.
  */
-@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

@@ -59,7 +59,6 @@ public interface ModuleVersionSelector {
      *
      * @return if this selector matches exactly the given identifier.
      */
-    @Incubating
     boolean matchesStrictly(ModuleVersionIdentifier identifier);
 
     /**
