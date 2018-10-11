@@ -171,7 +171,7 @@ pluginManagement {
         eachPlugin {
             when (requested.id.id) {
                 // FIXME: Publish plugin marker artifacts for the ci tagging plugin
-                "org.gradle.ci.tag-single-build" -> useModule("org.gradle.ci.health:gradle-build-tag-plugin:0.44")
+                "org.gradle.ci.tag-single-build" -> useModule("org.gradle.ci.health:gradle-build-tag-plugin:0.43")
             }
         }
     }
