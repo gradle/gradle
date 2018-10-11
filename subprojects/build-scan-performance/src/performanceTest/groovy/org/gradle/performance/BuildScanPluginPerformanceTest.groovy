@@ -41,7 +41,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     @Unroll
     def "large java project with and without plugin application (#scenario)"() {
         given:
-        def sourceProject = "javaProjectWithBuildScanPlugin"
+        def sourceProject = "javaProject"
         def jobArgs = ['--continue', '--parallel', '--max-workers=4'] + scenarioArgs
         def opts = ['-Xms4096m', '4096m']
 

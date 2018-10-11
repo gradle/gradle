@@ -35,7 +35,7 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-val generateTemplate = tasks.register<JvmProjectGeneratorTask>("largeJavaProjectWithBuildScanPlugin") {
+val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
     dependencyGraph.run {
         size = 200
         depth = 5
