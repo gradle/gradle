@@ -53,8 +53,8 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
     private
     fun Project.disableAllTestTasks() {
         allprojects {
-            it.tasks.withType<Test> {
-                enabled = false
+            it.tasks.withType<Test>().configureEach { test ->
+                test.enabled = false
             }
         }
     }
