@@ -553,8 +553,6 @@ It works the exact same way in settings scripts for `Settings` properties and in
 
 === Extra properties
 
-// TODO demonstrate how to cross project borders
-
 Extra properties are documented in the <<writing_build_scripts#sec:extra_properties, Writing Build Scripts>> chapter.
 
 On every `ExtensionAware` type they can be used via the `extra` property as a Kotlin delegated property, see the sample below.
@@ -562,13 +560,24 @@ On every `ExtensionAware` type they can be used via the `extra` property as a Ko
 .build.gradle.kts
 [source,kotlin]
 ----
-val myProperty: String by extra
-val myNullableProperty: String? by extra
+// Define new extra properties
 val myNewProperty by extra("initial value")
 val myOtherNewProperty by extra { "lazy initial value" }
+
+// Reference existing extra properties
+val myProperty: String by extra
+val myNullableProperty: String? by extra
 ----
 
-It works the exact same way in settings or init scripts.
+Let's say the snippet above is from your root project build script, in order to reference the `myNewProperty` from a sub project you'd do:
+
+.my-sub-project/build.gradle.kts
+[source,kotlin]
+----
+val myNewProperty: String by rootProject.extra
+----
+
+It works the same way in settings or init scripts.
 
 All `ExtensionAware` types can host extra properties, `Task` is a common example:
 
@@ -577,10 +586,13 @@ All `ExtensionAware` types can host extra properties, `Task` is a common example
 ----
 tasks {
     test {
-        val myTaskProperty: String by extra
-        val myNullableTaskProperty: String? by extra
+        // Define new extra properties
         val myNewTaskProperty by extra("initial value")
         val myOtherNewTaskProperty by extra { "lazy initial value" }
+
+        // Reference existing extra properties
+        val myTaskProperty: String by extra
+        val myNullableTaskProperty: String? by extra
     }
 }
 ----
