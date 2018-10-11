@@ -28,7 +28,6 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -91,6 +90,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @OutputFile
     public File getArchivePath() {
         File destinationDir = getDestinationDir();
+        //noinspection ConstantConditions
         if (destinationDir == null) {
             throw new InvalidUserDataException("The destinationDir property must be set. Please apply the base plugin or set it explicitly.");
         }
@@ -103,7 +103,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @return the directory
      */
     @Internal("Represented as part of archivePath")
-    @Nullable
     public File getDestinationDir() {
         return destinationDir;
     }

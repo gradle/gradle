@@ -270,13 +270,13 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
         task jar(type: Jar) {
             archiveName = 'test.jar'
+            destinationDir = projectDir
             from 'dir1'
             from 'dir2'
             eachFile {
                 it.duplicatesStrategy = it.relativePath.toString().startsWith('META-INF/services/') ? 'include' : 'exclude'
             }
         }
-
         '''
 
         when:
@@ -293,6 +293,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
         task jar(type: Jar) {
             archiveName = 'test.jar'
+            destinationDir = projectDir
             from 'dir1'
             from 'dir2'
             duplicatesStrategy = 'exclude'
@@ -300,7 +301,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 duplicatesStrategy = 'include'
             }
         }
-
         '''
 
         when:

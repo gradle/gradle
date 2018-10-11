@@ -1141,6 +1141,7 @@ Found the following transforms:
             project(':lib') {
                 task jar1(type: Jar) { archiveName = 'jar1.jar' }
                 task jar2(type: Jar) { archiveName = 'jar2.jar' }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts { compile jar1, jar2 }
             }
 
@@ -1638,7 +1639,9 @@ Found the following transforms:
                 def file1 = file('lib1.size')
                 file1.text = 'some text'
 
-                task lib1(type: Jar) {}
+                task lib1(type: Jar) {
+                    destinationDir = buildDir
+                }
     
                 dependencies {
                     compile files(lib1)

@@ -127,6 +127,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
     def producerBuildScript(String repoType) {
         return """
+            apply plugin: "base"
             apply plugin: "${repoType}-publish"
             
             configurations {
