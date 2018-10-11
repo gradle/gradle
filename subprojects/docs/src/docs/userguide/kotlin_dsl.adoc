@@ -21,7 +21,7 @@
 [[kotlin_dsl]]
 = Gradle Kotlin DSL Primer
 
-Gradle's newer Kotlin DSL provides a pleasant editing experience in supported IDEs: content-assist, refactoring, documentation, and more.
+Gradle's Kotlin DSL provides a pleasant editing experience in supported IDEs: content-assist, refactoring, documentation, and more.
 
 image::kotlin-dsl-intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 
