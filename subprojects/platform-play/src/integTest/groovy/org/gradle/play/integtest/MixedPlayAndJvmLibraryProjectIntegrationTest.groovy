@@ -52,7 +52,6 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
-        executer.noDeprecationChecks()
     }
 
     def "assemble builds jvm component and play component binaries"() {
