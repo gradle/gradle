@@ -339,6 +339,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
             project(':lib') {
                 task jar(type: Jar) {
+                    destinationDir = buildDir
                     archiveName = 'lib.jar'
                     doLast {
                         ${server.callFromBuild('jar')}

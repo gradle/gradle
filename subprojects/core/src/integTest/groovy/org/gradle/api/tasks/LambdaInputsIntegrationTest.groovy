@@ -251,7 +251,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
     }
 
     private String getSanitizedOutput() {
-        output.replaceAll('\\$\\$Lambda\\$[0-9]+/[0-9]+', '\\$\\$Lambda\\$<non-deterministic>')
+        output.replaceAll('\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+', '\\$\\$Lambda\\$<non-deterministic>')
     }
 
     private TestFile setupCustomTask() {
