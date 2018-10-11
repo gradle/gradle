@@ -92,6 +92,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
 
         expect:
         markerModule.ivy.expectGet(USERNAME, PASSWORD)
+        markerModule.jar.expectGet(USERNAME, PASSWORD)
         pluginModule.ivy.expectGet(USERNAME, PASSWORD)
         pluginModule.jar.expectGet(USERNAME, PASSWORD)
         succeeds("pluginTask")
@@ -127,6 +128,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
 
         expect:
         markerModule.pom.expectGet(USERNAME, PASSWORD)
+        markerModule.artifact.expectGet(USERNAME, PASSWORD)
         pluginModule.pom.expectGet(USERNAME, PASSWORD)
         pluginModule.artifact.expectGet(USERNAME, PASSWORD)
         succeeds("pluginTask")
