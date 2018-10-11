@@ -169,8 +169,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         // issue: https://github.com/gradle/gradle/issues/5941
         DirectoryScanner.addDefaultExclude("**/.gradle/**"); // should never include the .gradle directory in a snapshot
         FileSystemSnapshotter retval = new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
-        // since this is global, lets remove .gradle again, to ensure nothing is counting on it for other uses
-        DirectoryScanner.removeDefaultExclude("**/.gradle/**");
         return retval;
     }
 
