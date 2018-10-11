@@ -65,6 +65,27 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     }
 
     @Test
+    fun `can fetch classpath in face of buildSrc test failures`() {
+        withKotlinBuildSrc()
+        existing("buildSrc/build.gradle.kts").let { buildSrcScript ->
+            buildSrcScript.writeText(buildSrcScript.readText() + """
+                dependencies {
+                    testImplementation("junit:junit:4.12")
+                }
+            """)
+        }
+        withFile("buildSrc/src/test/kotlin/FailingTest.kt", """
+            class FailingTest {
+                @org.junit.Test fun test() {
+                    throw Exception("BOOM")
+                }
+            }
+        """)
+
+        assertContainsBuildSrc(canonicalClassPath())
+    }
+
+    @Test
     fun `can fetch buildscript classpath of top level Groovy script`() {
 
         withBuildSrc()
