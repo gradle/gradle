@@ -108,9 +108,9 @@ object HasImplicitReceiverCompilerPlugin {
         registerExtension(project, samWithReceiverComponentContributor)
     }
 
-    val samWithReceiverComponentContributor =
-        CliSamWithReceiverComponentContributor(
-            listOf("org.gradle.api.HasImplicitReceiver"))
+    val samWithReceiverComponentContributor = CliSamWithReceiverComponentContributor(
+        listOf("org.gradle.api.HasImplicitReceiver")
+    )
 }
 
 
