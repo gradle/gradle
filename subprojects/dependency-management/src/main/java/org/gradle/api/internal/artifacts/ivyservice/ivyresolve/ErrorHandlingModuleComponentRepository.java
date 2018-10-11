@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -101,7 +102,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
         private static final Logger LOGGER = Logging.getLogger(ErrorHandlingModuleComponentRepositoryAccess.class);
-        private final static String MAX_RETRIES_BEFORE_BLACKLISTING = "org.gradle.internal.repository.max.retries";
+        private final static String MAX_TENTATIVES_BEFORE_BLACKLISTING = "org.gradle.internal.repository.max.tentatives";
         private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.repository.initial.backoff";
 
         private final static String BLACKLISTED_REPOSITORY_ERROR_MESSAGE = "Skipped due to earlier error";
@@ -109,20 +110,20 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         private final ModuleComponentRepositoryAccess delegate;
         private final String repositoryId;
         private final RepositoryBlacklister repositoryBlacklister;
-        private final int maxRetriesCount;
+        private final int maxTentativesCount;
         private final int initialBackOff;
 
         private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister) {
-            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_RETRIES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 125));
+            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 125));
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxRetriesCount, int initialBackoff) {
-            assert maxRetriesCount > 0 : "Max retries must be > 0";
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxTentativesCount, int initialBackoff) {
+            assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackoff >= 0 : "Initial backoff must be >= 0";
             this.delegate = delegate;
             this.repositoryId = repositoryId;
             this.repositoryBlacklister = repositoryBlacklister;
-            this.maxRetriesCount = maxRetriesCount;
+            this.maxTentativesCount = maxTentativesCount;
             this.initialBackOff = initialBackoff;
         }
 
@@ -221,7 +222,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             int retries = 0;
             int backoff = initialBackOff;
 
-            while (retries < maxRetriesCount) {
+            while (retries < maxTentativesCount) {
                 retries++;
                 E failure;
                 Throwable unexpectedFailure = null;
@@ -237,19 +238,19 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                if (retries == maxRetriesCount) {
+                if (retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
                         repositoryBlacklister.blacklistRepository(repositoryId, unexpectedFailure);
                     }
                     result.failed(failure);
                     break;
                 } else {
-                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryId, backoff, maxRetriesCount - retries);
+                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryId, backoff, maxTentativesCount - retries);
                     try {
                         Thread.sleep(backoff);
                         backoff *= 2;
                     } catch (InterruptedException e) {
-                        break;
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
             }
