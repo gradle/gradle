@@ -40,7 +40,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
-    private final static ThreadLocal<Boolean> isLenientMutationAllowed = new ThreadLocal<Boolean>() {
+    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return Boolean.FALSE;
@@ -123,12 +123,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     @Override
     public <T> T withLenientState(Factory<T> factory) {
-        Boolean originalState = isLenientMutationAllowed.get();
-        isLenientMutationAllowed.set(true);
+        Boolean originalState = LENIENT_MUTATION_STATE.get();
+        LENIENT_MUTATION_STATE.set(true);
         try {
             return factory.create();
         } finally {
-            isLenientMutationAllowed.set(originalState);
+            LENIENT_MUTATION_STATE.set(originalState);
         }
     }
 
@@ -180,7 +180,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
-            if (isLenientMutationAllowed.get()) {
+            if (LENIENT_MUTATION_STATE.get()) {
                 return factory.create();
             }
 
@@ -221,7 +221,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public boolean hasMutableState() {
-            return isLenientMutationAllowed.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            return LENIENT_MUTATION_STATE.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
 
         @Override

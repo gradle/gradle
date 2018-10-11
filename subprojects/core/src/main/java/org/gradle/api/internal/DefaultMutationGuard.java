@@ -17,10 +17,9 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 
 public class DefaultMutationGuard extends AbstractMutationGuard {
-    private final static ThreadLocal<Boolean> isMutationAllowed = new ThreadLocal<Boolean>() {
+    private final ThreadLocal<Boolean> MUTATION_GUARD_STATE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return Boolean.TRUE;
@@ -29,41 +28,21 @@ public class DefaultMutationGuard extends AbstractMutationGuard {
 
     @Override
     public boolean isMutationAllowed() {
-        return isMutationAllowed.get();
+        return MUTATION_GUARD_STATE.get();
     }
 
     protected <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
         return new Action<T>() {
             @Override
             public void execute(T t) {
-                boolean oldIsMutationAllowed = isMutationAllowed.get();
-                isMutationAllowed.set(allowMutationMethods);
+                boolean oldIsMutationAllowed = isMutationAllowed();
+                MUTATION_GUARD_STATE.set(allowMutationMethods);
                 try {
                     action.execute(t);
                 } finally {
-                    isMutationAllowed.set(oldIsMutationAllowed);
+                    MUTATION_GUARD_STATE.set(oldIsMutationAllowed);
                 }
             }
         };
-    }
-
-    protected void runWithMutation(final Runnable runnable, boolean allowMutationMethods) {
-        boolean oldIsMutationAllowed = isMutationAllowed.get();
-        isMutationAllowed.set(allowMutationMethods);
-        try {
-            runnable.run();
-        } finally {
-            isMutationAllowed.set(oldIsMutationAllowed);
-        }
-    }
-
-    protected <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods) {
-        boolean oldIsMutationAllowed = isMutationAllowed.get();
-        isMutationAllowed.set(allowMutationMethods);
-        try {
-            return factory.create();
-        } finally {
-            isMutationAllowed.set(oldIsMutationAllowed);
-        }
     }
 }
