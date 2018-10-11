@@ -17,5 +17,4 @@
 /**
  * Classes that enable JVM application script generation.
  */
-@org.gradle.api.Incubating
 package org.gradle.jvm.application.scripts;
