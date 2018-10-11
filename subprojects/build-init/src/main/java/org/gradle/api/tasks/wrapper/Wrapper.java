@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.wrapper;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -135,6 +136,7 @@ public class Wrapper extends DefaultTask {
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
         generator.setScriptRelPath(unixScript.getName());
+        generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m"));
         generator.generateUnixScript(unixScript);
         generator.generateWindowsScript(getBatchScript());
     }
