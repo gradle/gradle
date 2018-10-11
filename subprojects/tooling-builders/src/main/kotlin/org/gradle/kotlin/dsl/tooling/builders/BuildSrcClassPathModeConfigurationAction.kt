@@ -29,6 +29,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.testing.Test
 
 import org.gradle.api.internal.project.ProjectInternal
 
@@ -38,12 +39,22 @@ import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
 
 
 internal
-class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationAction {
+class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAction {
 
     override fun execute(project: ProjectInternal) = project.run {
         if (inClassPathMode()) {
             afterEvaluate {
+                disableAllTestTasks()
                 configureBuildSrcSourceRootsTask()
+            }
+        }
+    }
+
+    private
+    fun Project.disableAllTestTasks() {
+        allprojects {
+            it.tasks.withType<Test> {
+                enabled = false
             }
         }
     }

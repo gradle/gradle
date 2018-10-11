@@ -17,7 +17,7 @@ import org.junit.Test
 class SourcePathProviderTest : FolderBasedTest() {
 
     /**
-     * This unit test can't rely on `BuildSrcSourceRootsConfigurationAction`
+     * This unit test can't rely on `BuildSrcClassPathModeConfigurationAction`
      * it is testing the fallback behavior of [SourcePathProvider]
      */
     @Test
