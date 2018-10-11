@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -134,84 +135,87 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            performOperationWithRetries(result, () -> delegate.listModuleVersions(dependency, result), throwable -> {
-                if (throwable == null) {
-                    return new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE);
-                }
-                ModuleComponentSelector selector = dependency.getSelector();
-                String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
-                return new ModuleVersionResolveException(selector, message, throwable);
-            });
+            performOperationWithRetries(result,
+                () -> delegate.listModuleVersions(dependency, result),
+                () -> new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> {
+                    ModuleComponentSelector selector = dependency.getSelector();
+                    String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
+                    return new ModuleVersionResolveException(selector, message, throwable);
+                });
         }
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-            performOperationWithRetries(result, () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result), throwable -> {
-                if (throwable == null) {
-                    return new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE);
-                }
-                return new ModuleVersionResolveException(moduleComponentIdentifier, throwable);
-            });
+            performOperationWithRetries(result,
+                () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
+                () -> new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
+            );
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            performOperationWithRetries(result, () -> delegate.resolveArtifactsWithType(component, artifactType, result), throwable -> {
-                if (throwable == null) {
-                    return new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE);
-                }
-                return new ArtifactResolveException(component.getId(), throwable);
-            });
+            performOperationWithRetries(result,
+                () -> delegate.resolveArtifactsWithType(component, artifactType, result),
+                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ArtifactResolveException(component.getId(), throwable)
+            );
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            performOperationWithRetries(result, () -> delegate.resolveArtifacts(component, result), throwable -> {
-                if (throwable == null) {
-                    return new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE);
-                }
-                return new ArtifactResolveException(component.getId(), throwable);
-            });
+            performOperationWithRetries(result,
+                () -> delegate.resolveArtifacts(component, result),
+                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ArtifactResolveException(component.getId(), throwable));
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            performOperationWithRetries(result, () -> {
-                delegate.resolveArtifact(artifact, moduleSource, result);
-                if (result.hasResult()) {
-                    ArtifactResolveException failure = result.getFailure();
-                    if (!(failure instanceof ArtifactNotFoundException)) {
-                        return failure;
+            performOperationWithRetries(result,
+                () -> {
+                    delegate.resolveArtifact(artifact, moduleSource, result);
+                    if (result.hasResult()) {
+                        ArtifactResolveException failure = result.getFailure();
+                        if (!(failure instanceof ArtifactNotFoundException)) {
+                            return failure;
+                        }
                     }
-                }
-                return null;
-            }, throwable -> {
-                if (throwable == null) {
-                    return new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE);
-                }
-                return new ArtifactResolveException(artifact.getId(), throwable);
-            });
+                    return null;
+                },
+                () -> new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ArtifactResolveException(artifact.getId(), throwable));
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result, Callable<E> operation, Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
+                                                                                                           Callable<E> operation,
+                                                                                                           Factory<E> onBlacklisted,
+                                                                                                           Transformer<E, Throwable> onError) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(onError.transform(null));
+                result.failed(onBlacklisted.create());
                 return;
             }
 
             tryResolveAndMaybeBlacklist(result, operation, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result, Runnable operation, Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
+                                                                                                           Runnable operation,
+                                                                                                           Factory<E> onBlacklisted,
+                                                                                                           Transformer<E, Throwable> onError) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(onError.transform(null));
+                result.failed(onBlacklisted.create());
                 return;
             }
 
-            tryResolveAndMaybeBlacklist(result, operation, onError);
+            tryResolveAndMaybeBlacklist(result, operation, onBlacklisted, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeBlacklist(R result, Runnable operation, Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeBlacklist(R result,
+                                                                                                           Runnable operation,
+                                                                                                           Factory<E> onBlacklisted,
+                                                                                                           Transformer<E, Throwable> onError) {
             tryResolveAndMaybeBlacklist(result, () -> {
                 operation.run();
                 return null;
