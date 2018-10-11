@@ -35,15 +35,22 @@ If you are looking into migrating an existing build to the Gradle Kotlin DSL, pl
 
 
 [[sec:prerequisites]]
-== Prerequisites and limitations
+== Prerequisites
 
-* There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{kotlin-dsl-issues}902[are known to be slower].
-The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
-* You must run Gradle with Java 8 or higher. Java 7 is not supported.
 * The embedded Kotlin compiler is known to work on Linux, macOS, Windows, Cygwin, FreeBSD and Solaris on x86-64 architectures.
 * Knowledge of Kotlin syntax and basic language features is very helpful. The link:{kotlin-reference}[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] should be useful to you.
 * Use of the <<plugins#sec:plugins_block, plugins {}>> block to declare Gradle plugins significantly improves the editing experience, and is highly recommended.
+
+
+[[sec:limitations]]
+== Limitations
+
+* There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{kotlin-dsl-issues}902[are known to be slower].
+The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
+Applying model rules from scripts is supported though, see the link:{kotlin-dsl-samples}model-rules[model-rules] sample.
+* Enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
+* Functions of the Gradle API taking `Any` that accept lazy constructs such as `CopySpec.from(Any)` don't support Kotlin lambdas, use a `Callable { .. }` or a `provider { .. }` instead, see link:{kotlin-dsl-issues}1077[gradle/kotlin-dsl#1077].
 
 If you run to trouble or a suspected bug, please take advantage of the `gradle/kotlin-dsl` link:{kotlin-dsl-issues}[issue tracker].
 
