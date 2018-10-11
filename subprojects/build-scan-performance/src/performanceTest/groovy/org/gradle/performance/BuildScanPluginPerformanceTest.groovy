@@ -42,12 +42,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "javaProject"
-        def jobArgs = ['--continue', '--parallel', '--max-workers=4'] + scenarioArgs
+        def jobArgs = ['--continue', '-Dcom.gradle.scan.input-file-hashes=true'] + scenarioArgs
         def opts = ['-Xms4096m', '-Xmx4096m']
-
-        if (fileHashes) {
-            jobArgs << '-Dcom.gradle.scan.input-file-hashes=true'
-        }
 
         def buildExperimentListeners = [
             new InjectBuildScanPlugin(pluginVersionNumber),
@@ -111,10 +107,12 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                    | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs      | manageCacheState | fileHashes
-        "help"                      | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                | false            | true
-        "clean build - 10 projects" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project10:buildNeeded'] | true        | ['--build-cache'] | true             | true
-        "clean build - 50 projects" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache'] | true             | true
+        scenario                                  | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                       | manageCacheState
+        "help"                                    | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                 | false
+        "clean build - 10 projects"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project10:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
+        "clean build - 50 projects"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
+        "clean build - 50 projects - no parallel" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache']                                  | true
+        "clean build - 100 projects"              | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
     }
 
 
