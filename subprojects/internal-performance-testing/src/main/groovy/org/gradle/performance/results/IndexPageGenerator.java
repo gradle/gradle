@@ -141,7 +141,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 long failureCount = scenarios.size() - successCount;
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col p-0");
-                        a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Perfomrance Coordinator Build")
+                        a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Performance Coordinator Build")
                             .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
                     end();
                     div().classAttr("col-8 p-0");
