@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 
 public class DefaultMutationGuard extends AbstractMutationGuard {
-    private ThreadLocal<Boolean> isMutationAllowed = new ThreadLocal<Boolean>() {
+    private final static ThreadLocal<Boolean> isMutationAllowed = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return Boolean.TRUE;
