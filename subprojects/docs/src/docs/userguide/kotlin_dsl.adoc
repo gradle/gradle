@@ -405,7 +405,7 @@ For the sake of the example, let's look at the same build as above but fully con
 include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
 ====
 
-It's more verbose and requires more gymnastic to write but it works and can be useful.
+It's more verbose and requires more gymnastics to write but it works and can be useful.
 See the <<sec:configuring_plugins>> section above for a detailed explanation.
 
 
