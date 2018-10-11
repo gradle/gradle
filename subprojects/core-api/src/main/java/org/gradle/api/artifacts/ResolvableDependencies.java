@@ -128,6 +128,5 @@ public interface ResolvableDependencies extends ArtifactView {
      *
      * @since 3.4
      */
-    @Incubating
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.query;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.component.Artifact;

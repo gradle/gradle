@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.DependencySubstitutions;
  *
  * @since 3.1
  */
-@Incubating
 public interface ConfigurableIncludedBuild extends IncludedBuild {
 
     /**

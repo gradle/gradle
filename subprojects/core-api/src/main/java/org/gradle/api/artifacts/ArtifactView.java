@@ -30,7 +30,6 @@ import org.gradle.api.specs.Spec;
  *
  * @since 3.4
  */
-@Incubating
 public interface ArtifactView extends HasAttributes {
 
     /**

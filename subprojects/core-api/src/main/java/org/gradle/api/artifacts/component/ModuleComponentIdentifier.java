@@ -61,4 +61,3 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
     @Incubating
     ModuleIdentifier getModuleIdentifier();
 }
-

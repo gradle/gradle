@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
@@ -33,7 +32,6 @@ import java.util.Collection;
  *
  * @since 3.3
  */
-@Incubating
 public interface ConfigurationPublications extends HasConfigurableAttributes<ConfigurationPublications> {
     /**
      * Returns the artifacts associated with this configuration. When an artifact is added to this set, an implicit variant is defined for the configuration. These artifacts are also inherited by all configurations that extend this configuration.
