@@ -35,13 +35,15 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
     private static final String WITHOUT_PLUGIN_LABEL = "1 without plugin"
     private static final String WITH_PLUGIN_LABEL = "2 with plugin"
+    public static final int WARMUPS = 10
+    public static final int INVOCATIONS = 20
 
     @Unroll
     def "large java project with and without plugin application (#scenario)"() {
         given:
-        def sourceProject = "largeJavaProjectWithBuildScanPlugin"
+        def sourceProject = "javaProjectWithBuildScanPlugin"
         def jobArgs = ['--continue', '--parallel', '--max-workers=4'] + scenarioArgs
-        def opts = ['-Xms4096m', '-Xmx4096m']
+        def opts = ['-Xms4096m', '4096m']
 
         if (fileHashes) {
             jobArgs << '-Dcom.gradle.scan.input-file-hashes=true'
@@ -60,8 +62,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
         runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
-            warmUpCount warmupBuilds
-            invocationCount measuredBuilds
+            warmUpCount WARMUPS
+            invocationCount INVOCATIONS
             projectName(sourceProject)
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
@@ -77,8 +79,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         runner.buildSpec {
-            warmUpCount warmupBuilds
-            invocationCount measuredBuilds
+            warmUpCount WARMUPS
+            invocationCount INVOCATIONS
             projectName(sourceProject)
             displayName(WITH_PLUGIN_LABEL)
             invocation {
@@ -109,11 +111,10 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                                       | expectedMedianPercentageShift | tasks                        | withFailure | scenarioArgs      | manageCacheState | fileHashes
-        "help"                                         | MEDIAN_PERCENTAGES_SHIFT      | ['help']                     | false       | []                | false            | true
-        "clean build - all projects"                   | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | true
-        "clean build - all projects - no file hashes" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']           | true        | ['--build-cache'] | true             | false
-        "clean build - 50 projects"                    | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:build'] | true        | ['--build-cache'] | true             | true
+        scenario                    | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs      | manageCacheState | fileHashes
+        "help"                      | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                | false            | true
+        "clean build - 10 projects" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project10:buildNeeded'] | true        | ['--build-cache'] | true             | true
+        "clean build - 50 projects" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache'] | true             | true
     }
 
 
