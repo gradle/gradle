@@ -838,6 +838,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             }
             def zipTaskRealizedCount = 0
             tasks.register("aZipTask", Zip) {
+                destinationDir = buildDir
                 zipTaskRealizedCount++
             }
 

@@ -214,6 +214,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     foo2 foo2Jar
@@ -288,6 +289,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     foo2 foo2Jar
@@ -489,6 +491,7 @@ All of them match the consumer attributes:
                 task bar2Jar(type: Jar) {
                    baseName = 'b-bar2'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     foo2 foo2Jar
@@ -571,6 +574,7 @@ All of them match the consumer attributes:
                 task foo2Jar(type: Jar) {
                    baseName = 'b-foo2'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     foo2 foo2Jar
@@ -650,6 +654,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -722,6 +727,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -779,6 +785,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -834,6 +841,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -890,6 +898,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -964,6 +973,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -980,6 +990,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1063,6 +1074,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 configurations {
                     c1 { attributes { attribute(flavor, objects.named(Flavor, 'preview')); $debug } }
                     c2 { attributes { attribute(flavor, objects.named(Flavor, 'preview')); $release } }

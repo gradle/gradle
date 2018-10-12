@@ -69,6 +69,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 def jar = tasks.create("jar", Jar) {
                     dependsOn c
                     baseName = "test"
+                    destinationDir = buildDir
                     version = project.version
                 }
                 d.outgoing.artifact(jar)
@@ -97,6 +98,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 def jar = tasks.create("jar", Jar) {
                     dependsOn c
                     baseName = "test"
+                    destinationDir = buildDir
                     version = project.version
                 }
                 d.outgoing.artifact(jar)
@@ -118,6 +120,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 version = '1.2'
                 def jar = tasks.create("jar", Jar) {
                     baseName = "test"
+                    destinationDir = buildDir
                     version = project.version
                 }
                 d.outgoing.artifact(jar)
