@@ -23,6 +23,7 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -31,6 +32,7 @@ import java.io.File
 class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
+    @Ignore("This version of Gradle requires version 2.0 of the build scan plugin or later.")
     fun `can publish build scan`() {
 
         val buildCacheDir = existing("build-cache")
