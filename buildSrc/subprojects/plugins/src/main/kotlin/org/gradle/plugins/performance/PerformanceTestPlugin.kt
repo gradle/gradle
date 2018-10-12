@@ -5,6 +5,7 @@ import accessors.java
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskCollection
@@ -442,7 +443,10 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
         }
         project.configureSampleGenerators {
-            all(registerInputs)
+            // TODO: Remove this hack https://github.com/gradle/gradle-native/issues/864
+            (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled {
+                all(registerInputs)
+            }
         }
     }
 
