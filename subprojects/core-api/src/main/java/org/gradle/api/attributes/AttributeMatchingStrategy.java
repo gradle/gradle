@@ -16,8 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
-
 import java.util.Comparator;
 
 /**
@@ -28,7 +26,6 @@ import java.util.Comparator;
  * @param <T> the type of the attribute
  * @since 3.3
  */
-@Incubating
 public interface AttributeMatchingStrategy<T> {
     CompatibilityRuleChain<T> getCompatibilityRules();
 

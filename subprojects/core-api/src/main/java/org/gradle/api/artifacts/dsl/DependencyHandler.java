@@ -410,7 +410,6 @@ public interface DependencyHandler {
      *
      * @since 3.4
      */
-    @Incubating
     AttributesSchema attributesSchema(Action<? super AttributesSchema> configureAction);
 
     /**
@@ -419,7 +418,6 @@ public interface DependencyHandler {
      *
      * @since 3.4
      */
-    @Incubating
     AttributesSchema getAttributesSchema();
 
     /**
@@ -442,7 +440,6 @@ public interface DependencyHandler {
      * @see org.gradle.api.artifacts.transform.ArtifactTransform
      * @since 3.5
      */
-    @Incubating
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**

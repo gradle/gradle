@@ -465,7 +465,7 @@ These properties are provided by convention objects of type link:{javadocPath}/o
 [[sec:javadoc]]
 == Javadoc
 
-The `javadoc` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]. It supports the core Javadoc options and the options of the standard doclet described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions].
+The `javadoc` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]. It supports the core Javadoc options and the options of the standard doclet described in the link:{javadocReferenceUrl}[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions].
 
 === Javadoc properties
 
@@ -583,7 +583,7 @@ include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/r
 
 
 If your processor can only decide at runtime whether it is incremental or not, you can declare it as "dynamic" in the META-INF descriptor
-and return its true type at runtime using the https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Processor.html#getSupportedOptions()[Processor#getSupportedOptions()] method.
+and return its true type at runtime using the link:{javaApi}/javax/annotation/processing/Processor.html#getSupportedOptions--[Processor#getSupportedOptions()] method.
 
 === Example: Registering incremental annotation processors dynamically
 
@@ -595,13 +595,13 @@ include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/j
 
 Both categories have the following limitations:
 
-* They must generate their files using the https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html[Filer API].
+* They must generate their files using the link:{javaApi}/javax/annotation/processing/Filer.html[Filer API].
     Writing files any other way will result in silent failures later on, as these files won't be cleaned up correctly.
     If your processor does this, it cannot be incremental.
-* They must not depend on compiler-specific APIs like https://docs.oracle.com/javase/8/docs/jdk/api/javac/tree/com/sun/source/util/Trees.html[com.sun.source.util.Trees].
+* They must not depend on compiler-specific APIs like `com.sun.source.util.Trees`.
     Gradle wraps the processing APIs, so attempts to cast to compiler-specific types will fail.
     If your processor does this, it cannot be incremental, unless you have some fallback mechanism.
-* If they use link:https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource], Gradle will recompile all source files.
+* If they use link:{javaApi}/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource], Gradle will recompile all source files.
     See https://github.com/gradle/gradle/issues/4702[gradle/issues/4702]
 
 ==== "Isolating" annotation processors

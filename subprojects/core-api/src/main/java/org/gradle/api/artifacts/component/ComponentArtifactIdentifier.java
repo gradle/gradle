@@ -16,12 +16,9 @@
 
 package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * An opaque immutable identifier for an artifact that belongs to some component instance.
  */
-@Incubating
 public interface ComponentArtifactIdentifier {
     /**
      * Returns the id of the component that this artifact belongs to.

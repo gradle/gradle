@@ -17,7 +17,6 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Represents something that carries attributes by utilizing an
@@ -27,13 +26,11 @@ import org.gradle.api.Incubating;
  *
  * @since 3.4
  */
-@Incubating
 public interface HasConfigurableAttributes<SELF> extends HasAttributes {
 
     /**
      * Configure the attribute container that provides the attributes
      * associated with this domain object.
      */
-    @Incubating
     SELF attributes(Action<? super AttributeContainer> action);
 }

@@ -17,14 +17,12 @@
 package org.gradle.caching;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 
 /**
  * Cache key identifying an entry in the build cache.
  *
  * @since 3.3
  */
-@Incubating
 public interface BuildCacheKey extends Describable {
     /**
      * Returns the string representation of the cache key.

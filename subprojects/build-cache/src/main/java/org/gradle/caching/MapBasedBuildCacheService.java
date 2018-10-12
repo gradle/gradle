@@ -16,7 +16,6 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import java.io.ByteArrayInputStream;
@@ -28,7 +27,6 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @since 3.5
  */
-@Incubating
 public class MapBasedBuildCacheService implements BuildCacheService {
     private final ConcurrentMap<String, byte[]> delegate;
 

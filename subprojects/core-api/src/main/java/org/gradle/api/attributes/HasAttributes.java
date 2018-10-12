@@ -16,20 +16,16 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents something that carries attributes by utilizing an
  * {@link AttributeContainer}
  *
  * @since 3.3
  */
-@Incubating
 public interface HasAttributes {
 
     /**
      * Returns the attributes
      */
-    @Incubating
     AttributeContainer getAttributes();
 }

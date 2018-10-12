@@ -24,7 +24,6 @@ import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
  *
  * @param <T> the (base) container element type
  */
-@Incubating
 public interface ExtensiblePolymorphicDomainObjectContainer<T> extends PolymorphicDomainObjectContainer<T>, NamedDomainObjectFactoryRegistry<T> {
     /**
      * Registers a factory for creating elements of the specified type. Typically, the specified type

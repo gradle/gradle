@@ -608,7 +608,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return the task object this method is applied to
      */
-    @Incubating
     Task mustRunAfter(Object... paths);
 
     /**
@@ -628,7 +627,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @param mustRunAfter The set of task paths this task must run after.
      */
-    @Incubating
     void setMustRunAfter(Iterable<?> mustRunAfter);
 
     /**
@@ -636,7 +634,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
      */
-    @Incubating
     @Internal
     TaskDependency getMustRunAfter();
 
@@ -656,7 +653,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return the task object this method is applied to
      */
-    @Incubating
     Task finalizedBy(Object... paths);
 
     /**
@@ -673,7 +669,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @param finalizedBy The tasks that finalize this task.
      */
-    @Incubating
     void setFinalizedBy(Iterable<?> finalizedBy);
 
     /**
@@ -681,7 +676,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The tasks that finalize this task. Returns an empty set if there are no finalising tasks for this task.
      */
-    @Incubating
     @Internal
     TaskDependency getFinalizedBy();
 
@@ -704,7 +698,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return the task object this method is applied to
      */
-    @Incubating
     TaskDependency shouldRunAfter(Object... paths);
 
     /**
@@ -724,7 +717,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @param shouldRunAfter The set of task paths this task should run after.
      */
-    @Incubating
     void setShouldRunAfter(Iterable<?> shouldRunAfter);
 
     /**
@@ -732,7 +724,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @return The tasks that this task should run after. Returns an empty set if this task has no tasks it must run after.
      */
-    @Incubating
     @Internal
     TaskDependency getShouldRunAfter();
 

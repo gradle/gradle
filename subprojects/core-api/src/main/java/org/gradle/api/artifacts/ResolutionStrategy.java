@@ -97,7 +97,6 @@ public interface ResolutionStrategy {
      *
      * @since 3.2
      */
-    @Incubating
     void preferProjectModules();
 
     /**
@@ -305,7 +304,6 @@ public interface ResolutionStrategy {
      *
      * @since 3.5
      */
-    @Incubating
     void sortArtifacts(SortOrder sortOrder);
 
     /**
@@ -314,7 +312,6 @@ public interface ResolutionStrategy {
      * @see #sortArtifacts(SortOrder)
      * @since 3.5
      */
-    @Incubating
     enum SortOrder {
         DEFAULT, CONSUMER_FIRST, DEPENDENCY_FIRST
     }

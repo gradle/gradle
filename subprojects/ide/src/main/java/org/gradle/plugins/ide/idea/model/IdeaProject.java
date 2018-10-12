@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -267,12 +266,10 @@ public class IdeaProject implements IdeWorkspace {
      * <p>
      * When {@code languageLevel} is not explicitly set, this is calculated as the maximum target bytecode version for the Idea modules of this Idea project.
      */
-    @Incubating
     public JavaVersion getTargetBytecodeVersion() {
         return targetBytecodeVersion;
     }
 
-    @Incubating
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -284,12 +281,10 @@ public class IdeaProject implements IdeWorkspace {
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
      */
-    @Incubating
     public String getVcs() {
         return vcs;
     }
 
-    @Incubating
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
@@ -323,12 +318,10 @@ public class IdeaProject implements IdeWorkspace {
     /**
      * The project-level libraries to be added to the IDEA project.
      */
-    @Incubating
     public Set<ProjectLibrary> getProjectLibraries() {
         return projectLibraries;
     }
 
-    @Incubating
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         this.projectLibraries = projectLibraries;
     }

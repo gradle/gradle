@@ -16,16 +16,18 @@
 
 package org.gradle.internal.resolve.result;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.gradle.internal.resource.ExternalResourceName;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultResourceAwareResolveResult implements ResourceAwareResolveResult {
-    private final List<String> attempted = new ArrayList<String>();
+    private final Set<String> attempted = Sets.newLinkedHashSet();
 
     public List<String> getAttempted() {
-        return attempted;
+        return ImmutableList.copyOf(attempted);
     }
 
     public void attempted(String locationDescription) {

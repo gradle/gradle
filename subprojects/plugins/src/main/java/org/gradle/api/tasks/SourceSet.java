@@ -291,7 +291,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 3.3
      */
-    @Incubating
     String getApiConfigurationName();
 
     /**
@@ -301,7 +300,6 @@ public interface SourceSet extends ExtensionAware {
      * @return The configuration name
      * @since 3.4
      */
-    @Incubating
     String getImplementationConfigurationName();
 
     /**
@@ -313,7 +311,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 3.3
      */
-    @Incubating
     String getApiElementsConfigurationName();
 
     /**
@@ -324,7 +321,6 @@ public interface SourceSet extends ExtensionAware {
      * @return the runtime only configuration name
      * @since 3.4
      */
-    @Incubating
     String getRuntimeOnlyConfigurationName();
 
     /**
@@ -334,7 +330,6 @@ public interface SourceSet extends ExtensionAware {
      * @return the name of the runtime classpath configuration
      * @since 3.4
      */
-    @Incubating
     String getRuntimeClasspathConfigurationName();
 
     /**
@@ -345,6 +340,5 @@ public interface SourceSet extends ExtensionAware {
      * @return the name of the runtime elements configuration.
      * @since 3.4
      */
-    @Incubating
     String getRuntimeElementsConfigurationName();
 }

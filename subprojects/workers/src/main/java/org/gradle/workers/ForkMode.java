@@ -16,14 +16,11 @@
 
 package org.gradle.workers;
 
-import org.gradle.api.Incubating;
-
 /**
  * Forking mode for workers.
  *
  * @since 3.5
  */
-@Incubating
 public enum ForkMode {
     /**
      * Let Gradle decide, this is the default.
