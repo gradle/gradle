@@ -17,18 +17,19 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.integtests.resource.s3.fixtures.AddJavaXmBindModulesTrait
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
+import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
+import spock.lang.Requires
 
-class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest implements AddJavaXmBindModulesTrait {
+@Requires({ S3IntegrationTestPrecondition.fulfilled })
+class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
-        addJavaXmlBindModuleIfNecessary()
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
         .withArgument("-Daws.accessKeyId=someKey")
         .withArgument("-Daws.secretKey=someSecret");

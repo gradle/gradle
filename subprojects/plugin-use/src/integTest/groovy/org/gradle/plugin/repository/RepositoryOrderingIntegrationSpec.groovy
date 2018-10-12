@@ -57,7 +57,6 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
               - $buildscriptRepoUri/my/plugin/1.0/plugin-1.0.pom
               - $buildscriptRepoUri/my/plugin/1.0/plugin-1.0.jar
               - $pluginPortalUri/my/plugin/1.0/plugin-1.0.pom
-              - $pluginPortalUri/my/plugin/1.0/plugin-1.0.jar
         """.stripIndent().trim()
 
         when:
