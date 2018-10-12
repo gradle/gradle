@@ -29,7 +29,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.testing.Test
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 import org.gradle.api.internal.project.ProjectInternal
 
@@ -52,9 +52,9 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
 
     private
     fun Project.disableAllTestTasks() {
-        allprojects {
-            it.tasks.withType<Test>().configureEach { test ->
-                test.enabled = false
+        allprojects { project ->
+            project.tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach { task ->
+                task.enabled = false
             }
         }
     }
