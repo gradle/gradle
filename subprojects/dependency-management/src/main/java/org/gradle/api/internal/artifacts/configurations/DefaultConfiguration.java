@@ -573,15 +573,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     // Discard listeners
                     dependencyResolutionListeners.removeAll();
                 }
-                captureBuildOperationResult(context, incoming);
+                captureBuildOperationResult(context);
             }
 
-            private void captureBuildOperationResult(BuildOperationContext context, final ResolvableDependenciesInternal incoming) {
+            private void captureBuildOperationResult(BuildOperationContext context) {
                 Throwable failure = cachedResolverResults.getFailure();
                 if (failure != null) {
                     context.failed(failure);
                 }
-                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(incoming, failure != null));
+                // When dependency resolution has failed, we don't want the build operation listeners to fail as well
+                // because:
+                // 1. the `failed` method will have been called with the user facing error
+                // 2. such an error may still lead to a valid dependency graph
+                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(cachedResolverResults.getResolutionResult()));
             }
 
             @Override
