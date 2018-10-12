@@ -369,6 +369,12 @@ Several libraries that are used by Gradle have been upgraded:
 - The Maven Wagon libraries used to access Maven repositories have been upgraded from 2.4 to 3.0.0.
 - SLF4J has been upgraded from 1.7.16 to 1.7.25.
 
+### Gradle now bundles JAXB for Java 9 and above
+
+In order to use S3 backed artifact repositories, it was previously required to add `--add-modules java.xml.bind` to `org.gradle.jvmargs` when running on Java 9 and above.
+Since Java 11 no longer contains the `java.xml.bind` module, Gradle now bundles JAXB 2.3.1 (`com.sun.xml.bind:jaxb-impl`) and uses it on Java 9 and above.
+Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
 For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
@@ -570,6 +576,7 @@ We would like to thank the following community members for making contributions 
 - [Martin Dünkelmann](https://github.com/MartinX3) - Raise default bytecode level to 1.8 in Maven2Gradle(gradle/gradle#4474)
 - [Alex Saveau](https://github.com/SUPERCILEX) - Report all files in directory as changed for incremental task for non-incremental change (gradle/gradle#6019)
 - [Thad House](https://github.com/ThadHouse) - Allow disabling of cache cleanup by the end user (gradle/gradle#6928)
+- [Dan Sanduleac](https://github.com/dansanduleac) - Conflict resolution can be bypassed, resulting in arbitrary version chosen (gradle/gradle#7049)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

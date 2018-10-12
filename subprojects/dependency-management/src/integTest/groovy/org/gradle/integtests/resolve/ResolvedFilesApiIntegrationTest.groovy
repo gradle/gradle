@@ -166,6 +166,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -185,6 +186,7 @@ project(':b') {
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -251,6 +253,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -270,6 +273,7 @@ project(':b') {
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -323,6 +327,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -340,6 +345,7 @@ project(':b') {
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -418,6 +424,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -432,6 +439,7 @@ project(':a') {
 project(':b') {
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')

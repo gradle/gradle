@@ -17,6 +17,7 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.tasks.AbstractCopyTask;
@@ -88,7 +89,12 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @OutputFile
     public File getArchivePath() {
-        return new File(getDestinationDir(), getArchiveName());
+        File destinationDir = getDestinationDir();
+        //noinspection ConstantConditions
+        if (destinationDir == null) {
+            throw new InvalidUserDataException("The destinationDir property must be set. Please apply the base plugin or set it explicitly.");
+        }
+        return new File(destinationDir, getArchiveName());
     }
 
     /**

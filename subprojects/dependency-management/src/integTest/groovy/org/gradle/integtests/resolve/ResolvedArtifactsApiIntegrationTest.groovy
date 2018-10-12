@@ -222,6 +222,7 @@ project(':a') {
     dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(OneRule)
     task oneJar(type: Jar) { baseName = 'a1' }
     task twoJar(type: Jar) { baseName = 'a2' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations {
         compile {
             attributes.attribute(buildType, 'debug')
@@ -247,6 +248,7 @@ project(':b') {
     dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(TwoRule)
     task oneJar(type: Jar) { baseName = 'b1' }
     task twoJar(type: Jar) { baseName = 'b2' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations {
         compile {
             outgoing {
@@ -322,6 +324,7 @@ project(':a') {
     dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(OneRule)
     task oneJar(type: Jar) { baseName = 'a1' }
     task twoJar(type: Jar) { baseName = 'a2' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations {
         compile {
             attributes.attribute(buildType, 'debug')
@@ -347,6 +350,7 @@ project(':b') {
     dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(TwoRule)
     task oneJar(type: Jar) { baseName = 'b1' }
     task twoJar(type: Jar) { baseName = 'b2' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations {
         compile {
             outgoing {
@@ -894,7 +898,10 @@ Searched in the following locations:
         buildFile << """
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
-    tasks.withType(Jar) { archiveName = project.name + '-' + name + ".jar" }
+    tasks.withType(Jar) {
+        archiveName = project.name + '-' + name + ".jar"
+        destinationDir = buildDir
+    }
 }
 dependencies {
     compile 'org:missing-module:1.0'
