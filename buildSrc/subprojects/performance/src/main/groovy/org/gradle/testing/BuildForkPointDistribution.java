@@ -92,7 +92,7 @@ public class BuildForkPointDistribution extends DefaultTask {
         }
     }
 
-    private void exec(File workingDir, String... command) {
+    private void exec(File workingDir, Object... command) {
         getProject().exec(spec -> {
             spec.commandLine(command);
             spec.workingDir(workingDir);
