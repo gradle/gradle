@@ -16,42 +16,33 @@
 
 package org.gradle.testing.fixture
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.test.fixtures.dsl.GradleDsl
+
 import org.gradle.util.VersionNumber
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
-
 class GroovyCoverage {
-    final static String NEWEST = GroovySystem.version
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15']
+    static final String[] ALL
 
-    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', NEWEST]
+    private static final MINIMUM_WITH_GROOVYDOC_SUPPORT = VersionNumber.parse("1.6.9")
+    static final String[] SUPPORTS_GROOVYDOC
 
-    private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
+    private static final MINIMUM_WITH_TIMESTAMP_SUPPORT = VersionNumber.parse("2.4.6")
+    static final String[] SUPPORTS_TIMESTAMP
 
-    final static String[] SUPPORTS_GROOVYDOC = ALL_VERSIONS.findAll {
-        it >= VersionNumber.parse("1.6.9")
-    }.collect {
-        it.toString()
-    }
+    static {
+        def allVersions = [*PREVIOUS]
 
-    final static String[] SUPPORTS_TIMESTAMP = ALL_VERSIONS.findAll {
-        it >= VersionNumber.parse("2.4.6")
-    }.collect {
-        it.toString()
-    }
-
-    /**
-     * Returns configuration DSL to set up the Groovy snapshot if a snapshot version is requested.
-     */
-    static String groovySnapshotRepository(GradleDsl dsl = GROOVY, def version) {
-        if (!version.toString().endsWith("-SNAPSHOT")) {
-            return ""
+        // Only test current Groovy version if it isn't a SNAPSHOT
+        if (!GroovySystem.version.endsWith("-SNAPSHOT")) {
+            allVersions += GroovySystem.version
         }
-        return """
-            repositories {
-                ${RepoScriptBlockUtil.groovySnapshotsRepositoryDefinition(dsl)}
-            }
-        """
+
+        ALL = allVersions
+        SUPPORTS_GROOVYDOC = allVersions.findAll {
+            VersionNumber.parse(it) >= MINIMUM_WITH_GROOVYDOC_SUPPORT
+        }
+        SUPPORTS_TIMESTAMP = allVersions.findAll {
+            VersionNumber.parse(it) >= MINIMUM_WITH_TIMESTAMP_SUPPORT
+        }
     }
 }

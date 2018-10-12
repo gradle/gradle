@@ -31,6 +31,7 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -40,6 +41,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
+    private ThreadLocal<Boolean> isLenientMutationAllowed = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.FALSE;
+        }
+    };
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -110,6 +117,22 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Override
+    public void withLenientState(Runnable runnable) {
+        withLenientState(Factories.toFactory(runnable));
+    }
+
+    @Override
+    public <T> T withLenientState(Factory<T> factory) {
+        Boolean originalState = isLenientMutationAllowed.get();
+        isLenientMutationAllowed.set(true);
+        try {
+            return factory.create();
+        } finally {
+            isLenientMutationAllowed.set(originalState);
+        }
+    }
+
     private class ProjectStateImpl implements ProjectState {
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
@@ -158,18 +181,21 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
+            if (isLenientMutationAllowed.get()) {
+                return factory.create();
+            }
+
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
-                currentLocks = Lists.newArrayList(currentLocks);
-                currentLocks.remove(projectLock);
-
-                if (!currentLocks.isEmpty()) {
-                    // release any other project locks we might happen to hold
-                    return workerLeaseService.withoutLocks(currentLocks, factory);
-                } else {
+                if (currentLocks.size() ==1) {
                     // the lock for this project is the only lock we hold
                     return factory.create();
+                } else {
+                    currentLocks = Lists.newArrayList(currentLocks);
+                    currentLocks.remove(projectLock);
+                    // release any other project locks we might happen to hold
+                    return workerLeaseService.withoutLocks(currentLocks, factory);
                 }
             } else {
                 // we don't currently hold the project lock
@@ -190,12 +216,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
-            return workerLeaseService.withLocks(Lists.newArrayList(projectLock), factory);
+            return workerLeaseService.withLocks(Collections.singleton(projectLock), factory);
         }
 
         @Override
         public boolean hasMutableState() {
-            return workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            return isLenientMutationAllowed.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
 
         @Override
@@ -230,7 +256,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     };
                     Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
                     if (currentLocks.contains(projectLock)) {
-                        workerLeaseService.withoutLocks(Lists.newArrayList(projectLock), lockedRunnable);
+                        workerLeaseService.withoutLocks(Collections.singleton(projectLock), lockedRunnable);
                     } else {
                         lockedRunnable.run();
                     }

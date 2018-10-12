@@ -36,9 +36,6 @@ import spock.lang.Specification
 
 class AbstractBuildScanPluginPerformanceTest extends Specification {
 
-    int warmupBuilds = 2
-    int measuredBuilds = 7
-
     static String incomingDir = "../../incoming"
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

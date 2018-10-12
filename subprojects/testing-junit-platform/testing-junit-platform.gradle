@@ -15,8 +15,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-project.sourceCompatibility = '1.8'
-project.targetCompatibility = '1.8'
 
 dependencies {
     compile project(':core')

@@ -31,7 +31,6 @@ import java.io.Serializable;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-@Incubating
 public class PluginDeclaration implements Named, Serializable {
     private final String name;
     private String id;
@@ -72,6 +71,7 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
+    @Incubating
     @Nullable
     public String getDisplayName() {
         return displayName;
@@ -85,6 +85,7 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
+    @Incubating
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
@@ -97,6 +98,7 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
+    @Incubating
     @Nullable
     public String getDescription() {
         return description;
@@ -110,6 +112,7 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
+    @Incubating
     public void setDescription(String description) {
         this.description = description;
     }

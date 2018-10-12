@@ -26,7 +26,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 2.5
  */
 @HasInternalProtocol
-@Incubating
 public interface DependencySubstitutions {
     /**
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)

@@ -16,14 +16,12 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 
 /**
  * Base class for Jacoco tasks.
  */
-@Incubating
 public abstract class JacocoBase extends DefaultTask {
 
     private FileCollection jacocoClasspath;

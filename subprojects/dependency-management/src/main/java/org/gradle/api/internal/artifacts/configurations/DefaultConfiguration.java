@@ -545,8 +545,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void resolveToStateOrLater(final InternalState requestedState) {
-        assertResolvingAllowed();
+        assertIsResolvable();
 
+        if (!hasMutableProjectState()) {
+            // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
+            // lenient locking to prevent deadlocks in user-managed threads.
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.");
+            projectStateRegistry.withLenientState(new Runnable() {
+                @Override
+                public void run() {
+                    resolveExclusively(requestedState);
+                }
+            });
+        } else {
+            resolveExclusively(requestedState);
+        }
+    }
+
+    private void resolveExclusively(InternalState requestedState) {
         resolutionLock.withLock(new Runnable() {
             @Override
             public void run() {
@@ -1104,7 +1120,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private SelectedArtifactSet getSelectedArtifacts() {
             if (selectedArtifacts == null) {
-                assertResolvingAllowed();
                 resolveToStateOrLater(ARTIFACTS_RESOLVED);
                 selectedArtifacts = cachedResolverResults.getVisitedArtifacts().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
             }
@@ -1125,18 +1140,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         throw new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures);
     }
 
-    private void assertResolvingAllowed() {
-        assertIsResolvable();
-
+    private boolean hasMutableProjectState() {
         if (domainObjectContext.getProjectPath() != null) {
             Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
             if (project != null) {
                 ProjectState projectState = projectStateRegistry.stateFor(project);
                 if (!projectState.hasMutableState()) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.");
+                    return false;
                 }
             }
         }
+
+        return true;
     }
 
     private void assertIsResolvable() {

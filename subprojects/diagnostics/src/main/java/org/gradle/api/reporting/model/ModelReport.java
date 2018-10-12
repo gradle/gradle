@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.model;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
@@ -36,7 +35,6 @@ import javax.inject.Inject;
  * Displays some details about the configuration model of the project.
  * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
-@Incubating
 public class ModelReport extends DefaultTask {
 
     /**

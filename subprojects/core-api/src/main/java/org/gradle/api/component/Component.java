@@ -15,13 +15,10 @@
  */
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * A software component that can be queried via the Artifact Query API.
  *
  * @since 2.0
  */
-@Incubating
 public interface Component {
 }

@@ -27,6 +27,7 @@ import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -54,7 +56,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultSettings extends AbstractPluginAware implements SettingsInternal, DynamicObjectAware {
+public class DefaultSettings extends AbstractPluginAware implements SettingsInternal, DynamicObjectAware, HasConvention {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
     private ScriptSource settingsScript;
 
@@ -336,6 +338,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public ExtensionContainer getExtensions() {
+        return extensibleDynamicObject.getConvention();
+    }
+
+    @Override
+    public Convention getConvention() {
         return extensibleDynamicObject.getConvention();
     }
 }

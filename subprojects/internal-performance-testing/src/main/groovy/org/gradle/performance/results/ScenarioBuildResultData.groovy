@@ -92,7 +92,7 @@ class ScenarioBuildResultData {
             Amount current = currentVersion.totalTime.median
             Amount diff = current - base
 
-            return String.format("%s(%s)", diff.format(), formattedDifferencePercentage)
+            return String.format("%s (%s)", diff.format(), formattedDifferencePercentage)
         }
 
         double getDifferencePercentage() {

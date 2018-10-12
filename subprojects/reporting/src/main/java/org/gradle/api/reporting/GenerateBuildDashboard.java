@@ -19,7 +19,6 @@ package org.gradle.api.reporting;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
@@ -41,7 +40,6 @@ import java.util.Set;
 /**
  * Generates build dashboard report.
  */
-@Incubating
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
     private Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 

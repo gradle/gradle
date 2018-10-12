@@ -54,6 +54,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
@@ -168,8 +169,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
-    protected ToolingModelBuilderRegistry decorateToolingModelRegistry(ToolingModelBuilderRegistry buildScopedToolingModelBuilders) {
-        return new DefaultToolingModelBuilderRegistry(buildScopedToolingModelBuilders);
+    protected ToolingModelBuilderRegistry decorateToolingModelRegistry(ToolingModelBuilderRegistry buildScopedToolingModelBuilders, BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
+        return new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, buildScopedToolingModelBuilders);
     }
 
     protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {

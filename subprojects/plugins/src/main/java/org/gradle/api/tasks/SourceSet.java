@@ -261,7 +261,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 2.12
      */
-    @Incubating
     String getCompileOnlyConfigurationName();
 
     /**
@@ -270,7 +269,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 2.12
      */
-    @Incubating
     String getCompileClasspathConfigurationName();
 
     /**

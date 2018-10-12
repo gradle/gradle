@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.Artifact;
 
 import java.util.Set;
@@ -25,7 +24,6 @@ import java.util.Set;
  *
  * @since 2.0
  */
-@Incubating
 public interface ComponentArtifactsResult extends ComponentResult {
     /**
      * <p>Returns the artifacts of the specified type that belong to this component. Includes resolved and unresolved artifacts (if any).

@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resource.s3.fixtures
+package org.gradle.integtests.tooling.r50;
 
-import groovy.transform.CompileStatic
-import groovy.transform.SelfType
-import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
-@CompileStatic
-@SelfType(AbstractIntegrationSpec)
-trait AddJavaXmBindModulesTrait {
-    def addJavaXmlBindModuleIfNecessary() {
-        if (!GradleContextualExecuter.embedded && JavaVersion.current().isJava9Compatible()) {
-            executer.withBuildJvmOpts('--add-modules', 'java.xml.bind')
-        }
+public class FetchEclipseProject implements BuildAction<EclipseProject> {
+    @Override
+    public EclipseProject execute(BuildController controller) {
+        return controller.getModel(EclipseProject.class);
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.play.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -41,12 +40,6 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
             ${PLAY_REPOSITORIES}
         """
-    }
-
-    @Override
-    protected ExecutionResult succeeds(String... tasks) {
-        executer.noDeprecationChecks()
-        return super.succeeds(tasks)
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {

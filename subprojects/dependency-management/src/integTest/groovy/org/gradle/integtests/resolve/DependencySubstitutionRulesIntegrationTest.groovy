@@ -1406,6 +1406,7 @@ Required by:
                 if (project.version != 'unspecified') {
                     archiveName = "\${project.name}-\${project.version}.jar"
                 }
+                destinationDir = buildDir
             }
             artifacts { conf jar }
         }

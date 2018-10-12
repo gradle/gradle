@@ -111,7 +111,6 @@ public interface ResolvableDependencies extends ArtifactView {
      * @return the resolution result
      * @since 1.3
      */
-    @Incubating
     ResolutionResult getResolutionResult();
 
     /**

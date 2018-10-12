@@ -47,7 +47,6 @@ import java.util.Collection;
  *
  * @since 2.0
  */
-@Incubating
 public interface ArtifactResolutionQuery {
     /**
      * Specifies the set of components to include in the result.
@@ -70,6 +69,7 @@ public interface ArtifactResolutionQuery {
      *
      * @since 4.5
      */
+    @Incubating
     ArtifactResolutionQuery forModule(String group, String name, String version);
 
     /**
@@ -92,6 +92,7 @@ public interface ArtifactResolutionQuery {
      * @param artifactTypes The artifacts to retrieve for the queried components.
      * @since 4.5
      */
+    @Incubating
     ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Collection<Class<? extends Artifact>> artifactTypes);
 
     /**

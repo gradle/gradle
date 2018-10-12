@@ -54,6 +54,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
@@ -447,8 +448,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {
-        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
+    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
+                                                                                final BuildOperationExecutor buildOperationExecutor,
+                                                                                ProjectStateRegistry projectStateRegistry) {
+        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry);
         for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
             registryAction.execute(registry);
         }

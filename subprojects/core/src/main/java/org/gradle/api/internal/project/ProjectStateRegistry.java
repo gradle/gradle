@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
@@ -58,4 +59,16 @@ public interface ProjectStateRegistry {
      * Registers the projects of a build.
      */
     void registerProjects(BuildState build);
+
+    /**
+     * Allows a section of code to be run with state locking disabled.  This should be used to allow
+     * deprecated practices that we eventually want to retire.
+     */
+    void withLenientState(Runnable runnable);
+
+    /**
+     * Creates the object with state locking disabled.  This should be used to allow
+     * deprecated practices that we eventually want to retire.
+     */
+    <T> T withLenientState(Factory<T> factory);
 }
