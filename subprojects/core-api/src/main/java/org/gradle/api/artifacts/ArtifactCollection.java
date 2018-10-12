@@ -29,7 +29,6 @@ import java.util.Set;
  *
  * @since 3.4
  */
-@Incubating
 public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
     /**
      * A file collection containing the files for all artifacts in this collection.
@@ -52,5 +51,6 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      *
      * @return A collection of exceptions, one for each failure in resolution.
      */
+    @Incubating
     Collection<Throwable> getFailures();
 }

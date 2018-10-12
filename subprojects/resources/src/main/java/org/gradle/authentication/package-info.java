@@ -19,5 +19,4 @@
  *
  * @since 2.7
  */
-@org.gradle.api.Incubating
 package org.gradle.authentication;

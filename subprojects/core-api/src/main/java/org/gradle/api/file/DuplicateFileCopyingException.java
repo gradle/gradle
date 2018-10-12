@@ -17,13 +17,11 @@
 package org.gradle.api.file;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 
 /**
  * Thrown when more than one file with the same relative path name is to be copied
  * and the {@link DuplicatesStrategy} is set to DuplicatesStrategy.FAIL
  */
-@Incubating
 public class DuplicateFileCopyingException extends GradleException {
     public DuplicateFileCopyingException(String desc) {
         super(desc);

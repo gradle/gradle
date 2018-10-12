@@ -17,5 +17,4 @@
 /**
  * Build comparision classes that are specific to Gradle, including comparing Gradle upgrades.
  */
-@org.gradle.api.Incubating
 package org.gradle.api.plugins.buildcomparison.gradle;

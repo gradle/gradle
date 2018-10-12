@@ -17,5 +17,4 @@
 /**
  * Implementations for Jacoco code coverage rules.
  */
-@org.gradle.api.Incubating
 package org.gradle.testing.jacoco.tasks.rules;

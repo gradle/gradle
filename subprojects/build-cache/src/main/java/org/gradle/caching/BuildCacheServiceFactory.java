@@ -16,7 +16,6 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.BuildCache;
 
 /**
@@ -45,7 +44,6 @@ import org.gradle.caching.configuration.BuildCache;
  * @param <T> the type of build cache configuration this factory can handle.
  * @since 3.5
  */
-@Incubating
 public interface BuildCacheServiceFactory<T extends BuildCache> {
 
     /**
@@ -63,7 +61,6 @@ public interface BuildCacheServiceFactory<T extends BuildCache> {
      *
      * @since 4.0
      */
-    @Incubating
     interface Describer {
 
         /**

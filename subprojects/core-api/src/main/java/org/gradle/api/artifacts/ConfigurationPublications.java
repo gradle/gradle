@@ -33,7 +33,6 @@ import java.util.Collection;
  *
  * @since 3.3
  */
-@Incubating
 public interface ConfigurationPublications extends HasConfigurableAttributes<ConfigurationPublications> {
     /**
      * Returns the artifacts associated with this configuration. When an artifact is added to this set, an implicit variant is defined for the configuration. These artifacts are also inherited by all configurations that extend this configuration.
@@ -75,6 +74,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      *
      * @since 4.7.
      */
+    @Incubating
     void capability(Object notation);
 
     /**
@@ -84,5 +84,6 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      *
      * @since 4.7
      */
+    @Incubating
     Collection<? extends Capability> getCapabilities();
 }

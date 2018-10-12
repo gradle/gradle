@@ -27,7 +27,6 @@ import java.util.Set;
  * @param <T> the concrete type of the attribute
  * @since 3.3
  */
-@Incubating
 public interface MultipleCandidatesDetails<T> {
     /**
      * Returns the value of the attribute specified by the consumer.
@@ -35,6 +34,7 @@ public interface MultipleCandidatesDetails<T> {
      * @return The value or {@code null} if the consumer did not specify a value.
      * @since 4.1
      */
+    @Incubating
     @Nullable
     T getConsumerValue();
 

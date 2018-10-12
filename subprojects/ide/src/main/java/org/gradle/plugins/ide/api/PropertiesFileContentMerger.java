@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.util.ClosureBackedAction;
 
@@ -67,7 +66,6 @@ public class PropertiesFileContentMerger extends FileContentMerger {
      *
      * @param action The action to execute when the Properties have been created.
      */
-    @Incubating
     public void withProperties(Action<Properties> action) {
         transformer.addAction(action);
     }

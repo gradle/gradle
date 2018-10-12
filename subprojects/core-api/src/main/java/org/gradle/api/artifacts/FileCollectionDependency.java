@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
@@ -28,6 +27,5 @@ public interface FileCollectionDependency extends SelfResolvingDependency {
      *
      * @since 3.3
      */
-    @Incubating
     FileCollection getFiles();
 }

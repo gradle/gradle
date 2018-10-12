@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * The gradle DSL model of an Eclipse resource filter.
@@ -48,7 +47,6 @@ import org.gradle.api.Incubating;
  *
  * @since 3.5
  */
-@Incubating
 public interface ResourceFilter {
     /**
      * Indicates whether this ResourceFilter applies to files, folders, or both.  Default is FILES_AND_FOLDERS

@@ -17,7 +17,6 @@
 package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySubstitutions;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.DependencySubstitutions;
  *
  * @since 3.1
  */
-@Incubating
 public interface ConfigurableIncludedBuild extends IncludedBuild {
 
     /**

@@ -19,7 +19,6 @@ package org.gradle.api.tasks.util;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -52,12 +51,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         this(PatternSpecFactory.INSTANCE);
     }
 
-    @Incubating
     protected PatternSet(PatternSet patternSet) {
         this(patternSet.patternSpecFactory);
     }
 
-    @Incubating
     protected PatternSet(PatternSpecFactory patternSpecFactory) {
         this.patternSpecFactory = patternSpecFactory;
     }

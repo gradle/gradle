@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.util.List;
 
@@ -26,7 +24,6 @@ import java.util.List;
  *
  * @since 3.4
  */
-@Incubating
 public abstract class ArtifactTransform {
     private File outputDirectory;
 

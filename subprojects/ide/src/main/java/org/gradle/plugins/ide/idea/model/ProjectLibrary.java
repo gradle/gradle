@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-import org.gradle.api.Incubating;
 
 import java.io.File;
 import java.util.Map;
@@ -28,7 +27,6 @@ import java.util.Set;
 /**
  * A project-level IDEA library.
  */
-@Incubating
 public class ProjectLibrary {
 
     private String name;

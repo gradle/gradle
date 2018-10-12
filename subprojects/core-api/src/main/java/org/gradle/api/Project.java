@@ -1721,7 +1721,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The components for this project.
      */
-    @Incubating
     SoftwareComponentContainer getComponents();
 
     /**

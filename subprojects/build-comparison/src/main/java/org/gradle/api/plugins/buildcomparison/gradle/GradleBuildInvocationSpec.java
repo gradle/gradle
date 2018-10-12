@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
@@ -26,7 +25,6 @@ import java.util.List;
 /**
  * A specification for launching a Gradle build with a specified Gradle version.
   */
-@Incubating
 public interface GradleBuildInvocationSpec {
 
     /**

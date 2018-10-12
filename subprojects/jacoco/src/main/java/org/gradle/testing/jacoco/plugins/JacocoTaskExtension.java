@@ -280,7 +280,6 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
-    @Incubating
     @Nullable
     @Optional
     @LocalState
@@ -293,7 +292,6 @@ public class JacocoTaskExtension {
      *
      * @since 3.4
      */
-    @Incubating
     public void setClassDumpDir(@Nullable File classDumpDir) {
         this.classDumpDir = classDumpDir;
     }
