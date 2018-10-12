@@ -44,14 +44,14 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
     override fun execute(project: ProjectInternal) = project.run {
         if (inClassPathMode()) {
             afterEvaluate {
-                disableAllTestTasks()
+                disableVerificationTasks()
                 configureBuildSrcSourceRootsTask()
             }
         }
     }
 
     private
-    fun Project.disableAllTestTasks() {
+    fun Project.disableVerificationTasks() {
         allprojects { project ->
             project.tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach { task ->
                 task.enabled = false
