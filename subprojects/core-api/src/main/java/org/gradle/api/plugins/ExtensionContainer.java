@@ -154,6 +154,7 @@ public interface ExtensionContainer {
      *
      * @since 4.5
      */
+    @Incubating
     ExtensionsSchema getExtensionsSchema();
 
     /**

@@ -17,6 +17,7 @@
 package org.gradle.api.reflect;
 
 import com.google.common.base.Function;
+import org.gradle.api.Incubating;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
@@ -248,6 +249,7 @@ public abstract class TypeOf<T> {
      * 
      * @return Underlying Java Class of this type.
      */
+    @Incubating
     public Class<T> getConcreteClass() {
         return type.getConcreteClass();
     }
