@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
@@ -31,8 +30,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
@@ -115,15 +112,6 @@ public class Groovydoc extends SourceTask {
         if (classpath.isEmpty()) {
             throw new InvalidUserDataException("You must assign a Groovy library to the groovy configuration!");
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @Override
-    public FileTree getSource() {
-        return super.getSource();
     }
 
     /**

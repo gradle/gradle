@@ -158,7 +158,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * executed.</p>
      */
     @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
     }

@@ -20,7 +20,6 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
@@ -118,15 +117,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         if (value > 5 || value < 1) {
             throw new InvalidUserDataException(String.format("Invalid rulePriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
-        return super.getSource();
     }
 
     /**
