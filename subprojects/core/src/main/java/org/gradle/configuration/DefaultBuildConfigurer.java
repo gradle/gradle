@@ -45,11 +45,7 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
     private void maybeInformAboutIncubatingMode(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
 
-        if (startParameter.isParallelProjectExecutionEnabled() && startParameter.isConfigureOnDemand()) {
-            SingleMessageLogger.incubatingFeatureUsed("Parallel execution with configuration on demand");
-        } else if (startParameter.isParallelProjectExecutionEnabled()) {
-            SingleMessageLogger.incubatingFeatureUsed("Parallel execution");
-        } else if (startParameter.isConfigureOnDemand()) {
+        if (startParameter.isConfigureOnDemand()) {
             SingleMessageLogger.incubatingFeatureUsed("Configuration on demand");
         }
     }

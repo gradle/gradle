@@ -160,6 +160,14 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Some long existing incubating features have been promoted
 
+- all pre 4.0 incubating APIs have been promoted
+- parallel task execution
+- continuous build
+- composite build
+- the [`java-gradle-plugin`](userguide/java_gradle_plugin.html) plugin
+- the [`distribution`](userguide/distribution_plugin.html) plugin
+- the [`jacoco`](userguide/jacoco_plugin.html) plugin
+- the [`build-init`](userguide/build_init_plugin.html) plugin
 - `IncrementalTaskInputs` and `InputFileDetails`
 - input normalization (`org.gradle.normalization`) including `InputNormalizationHandler`
 - `FileNormalizer` and its subclasses
