@@ -18,20 +18,31 @@ package org.gradle.process.internal.health.memory
 
 import spock.lang.Specification
 
-class MeminfoAvailableMemoryTest extends Specification {
-    def "parses free memory from /proc/meminfo on Linux 3.x"() {
+class MemInfoOsMemoryInfoTest extends Specification {
+    def "parses memory from /proc/meminfo on Linux 3.x"() {
+        given:
+        def snapshot = new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(meminfoLinux3())
+
         expect:
-        new MeminfoAvailableMemory().parseFreeMemoryFromMeminfo(meminfoLinux3()) == 32_343_658_496L
+        snapshot.freePhysicalMemory == 32_343_658_496L
+        snapshot.totalPhysicalMemory == 50_650_296_320L
     }
 
-    def "parses free memory from /proc/meminfo on Linux 4.x"() {
+    def "parses memory from /proc/meminfo on Linux 4.x"() {
+        given:
+        def snapshot = new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(meminfoLinux4())
+
         expect:
-        new MeminfoAvailableMemory().parseFreeMemoryFromMeminfo(meminfoLinux4()) == 2_163_265_536L
+        snapshot.freePhysicalMemory == 2_163_265_536L
+        snapshot.totalPhysicalMemory == 33_594_605_568L
     }
 
-    def "parseFreeMemoryFromMeminfo returns -1 given unparsable file"() {
+    def "returns -1 given unparsable file"() {
+        given:
+        def snapshot = new MemInfoOsMemoryInfo().getOsSnapshotFromMemInfo(["bogustown"])
         expect:
-        new MeminfoAvailableMemory().parseFreeMemoryFromMeminfo(["bogustown"]) == -1L
+        snapshot.freePhysicalMemory == -1L
+        snapshot.totalPhysicalMemory == -1L
     }
 
     private static List<String> meminfoLinux3() {
