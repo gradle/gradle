@@ -162,19 +162,24 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     @Override
     public <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
         Iterable<? extends ResourceLock> locksToAcquire = locksNotHeld(locks);
-        if (!Iterables.isEmpty(locksToAcquire)) {
-            coordinationService.withStateLock(lock(locksToAcquire));
+
+        if (Iterables.isEmpty(locksToAcquire)) {
+            return factory.create();
         }
+
+        coordinationService.withStateLock(lock(locksToAcquire));
         try {
             return factory.create();
         } finally {
-            if (!Iterables.isEmpty(locksToAcquire)) {
-                coordinationService.withStateLock(unlock(locksToAcquire));
-            }
+            coordinationService.withStateLock(unlock(locksToAcquire));
         }
     }
 
     private Iterable<? extends ResourceLock> locksNotHeld(final Iterable<? extends ResourceLock> locks) {
+        if (Iterables.isEmpty(locks)) {
+            return locks;
+        }
+
         final List<ResourceLock> locksNotHeld = Lists.newArrayList(locks);
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
@@ -199,6 +204,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     @Override
     public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+        if (Iterables.isEmpty(locks)) {
+            return factory.create();
+        }
+
         if (!allLockedByCurrentThread(locks)) {
             throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
         }

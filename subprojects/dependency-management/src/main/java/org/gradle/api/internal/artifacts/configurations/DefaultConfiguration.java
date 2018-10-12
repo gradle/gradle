@@ -186,7 +186,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Set<Object> excludeRules = new LinkedHashSet<Object>();
     private Set<ExcludeRule> parsedExcludeRules;
 
-    private final ProjectState.SafeExclusiveLock resolutionLock;
+    private final ProjectStateRegistry.SafeExclusiveLock resolutionLock;
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
     private volatile InternalState resolvedState = UNRESOLVED;
@@ -246,7 +246,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.projectStateRegistry = projectStateRegistry;
-        this.resolutionLock = getProjectSafeLock();
+        this.resolutionLock = projectStateRegistry.newExclusiveOperationLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -267,41 +267,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         path = domainObjectContext.projectPath(name);
-    }
-
-    private ProjectState.SafeExclusiveLock getProjectSafeLock() {
-        // We delay getting the actual lock until later because buildSrc configurations can be
-        // created before the buildSrc project is registered in the project registry
-        return new ProjectState.SafeExclusiveLock() {
-            ProjectState.SafeExclusiveLock delegate;
-
-            @Override
-            public void withLock(Runnable runnable) {
-                ProjectState.SafeExclusiveLock lock = getDelegate();
-                if (lock != null) {
-                    lock.withLock(runnable);
-                } else {
-                    // This configuration is not associated with a project
-                    runnable.run();
-                }
-            }
-
-            synchronized ProjectState.SafeExclusiveLock getDelegate() {
-                if (delegate == null) {
-                    if (domainObjectContext.getProjectPath() != null) {
-                        Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-                        // Project should only be null if we are resolving a configuration in places where we are running single
-                        // threaded anyways, like evaluating buildSrc or in an init script.
-                        if (project != null) {
-                            ProjectState projectState = projectStateRegistry.stateFor(project);
-                            delegate = projectState.newExclusiveOperationLock();
-                        }
-                    }
-                }
-
-                return delegate;
-            }
-        };
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {

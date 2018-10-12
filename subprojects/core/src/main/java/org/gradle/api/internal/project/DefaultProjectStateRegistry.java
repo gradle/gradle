@@ -133,6 +133,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Override
+    public SafeExclusiveLock newExclusiveOperationLock() {
+        return new SafeExclusiveLockImpl();
+    }
+
     private class ProjectStateImpl implements ProjectState {
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
@@ -223,20 +228,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         public boolean hasMutableState() {
             return isLenientMutationAllowed.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
-
-        @Override
-        public SafeExclusiveLock newExclusiveOperationLock() {
-            return new SafeExclusiveLockImpl(projectLock);
-        }
     }
 
-    private class SafeExclusiveLockImpl implements ProjectState.SafeExclusiveLock {
-        private final ResourceLock projectLock;
+    private class SafeExclusiveLockImpl implements SafeExclusiveLock {
         private final ReentrantLock lock = new ReentrantLock();
-
-        public SafeExclusiveLockImpl(ResourceLock projectLock) {
-            this.projectLock = projectLock;
-        }
 
         @Override
         public void withLock(final Runnable runnable) {
@@ -247,19 +242,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     runnable.run();
                 } else {
                     // Another thread holds the lock, release the project lock and wait for the other thread to finish
-                    Runnable lockedRunnable = new Runnable() {
+                    workerLeaseService.withoutProjectLock(new Runnable() {
                         @Override
                         public void run() {
                             lock.lock();
-                            runnable.run();
                         }
-                    };
-                    Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-                    if (currentLocks.contains(projectLock)) {
-                        workerLeaseService.withoutLocks(Collections.singleton(projectLock), lockedRunnable);
-                    } else {
-                        lockedRunnable.run();
-                    }
+                    });
+                    runnable.run();
                 }
             } finally {
                 if (lock.isHeldByCurrentThread()) {
