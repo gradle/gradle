@@ -386,7 +386,7 @@ include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts
 [[sec:generating_javadocs]]
 == Generating API documentation
 
-The Java Plugin provides a `javadoc` task of type link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html#options[Javadoc reference documentation]. See link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions] for a complete list of those options.
+The Java Plugin provides a `javadoc` task of type link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the link:{javadocReferenceUrl}#options[Javadoc reference documentation]. See link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions] for a complete list of those options.
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 

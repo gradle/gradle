@@ -132,7 +132,7 @@ In <<working_with_files.adoc#working_with_files,Working with Files>>, we introdu
 
 All of these types are also considered lazy types.
 
-In this section, we are going to introduce more strongly typed models types to represent elements of the file system: link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java https://docs.oracle.com/javase/7/docs/api/java/io/File.html[File] type as they are used to tell Gradle, and other people, that you expect more specific values (a directory or a non-directory, regular file).
+In this section, we are going to introduce more strongly typed models types to represent elements of the file system: link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java link:{javaApi}/java/io/File.html[File] type as they are used to tell Gradle, and other people, that you expect more specific values (a directory or a non-directory, regular file).
 
 Gradle provides two specialized `Property` subtypes for dealing with values of these types: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]. link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] has methods to create these: link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()] and link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()].
 
