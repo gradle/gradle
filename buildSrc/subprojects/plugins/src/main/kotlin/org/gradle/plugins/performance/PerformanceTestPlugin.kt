@@ -108,20 +108,26 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.registerForkPointDistributionTask() {
-        onNonMasterReleaseBranch {
+        onNonMasterOrReleaseBranch {
             val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
                 dependsOn("determineForkPoint")
             }
             tasks.register("determineForkPoint") {
                 doLast {
-                    val forkPointCommit = Runtime.getRuntime().exec("git merge-base master HEAD").inputStream.reader().readText().trim()
-                    buildForkPointDistribution.get().forkPointCommitId = forkPointCommit
+                    val masterForkPointCommit = Runtime.getRuntime().exec("git merge-base master HEAD").inputStream.reader().readText().trim()
+                    val releaseForkPointCommit = Runtime.getRuntime().exec("git merge-base release HEAD").inputStream.reader().readText().trim()
+                    val forkPointCommit =
+                        if (Runtime.getRuntime().exec("git merge-base --is-ancestor $masterForkPointCommit $releaseForkPointCommit").waitFor() == 0)
+                            releaseForkPointCommit
+                        else
+                            masterForkPointCommit
+                    buildForkPointDistribution.get().forkPointCommitId = forkPointCommit.substring(0, 7)
                 }
             }
             tasks.register("configurePerformanceTestBaseline") {
                 dependsOn("buildForkPointDistribution")
                 doLast {
-                    val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).version
+                    val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).baselineVersion
                     project.tasks.withType(PerformanceTest::class) {
                         baselines = commitBaseline
                     }
@@ -131,7 +137,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.onNonMasterReleaseBranch(action: (branchName: String) -> Unit) {
+    fun Project.onNonMasterOrReleaseBranch(action: (branchName: String) -> Unit) {
         action("")
 //        stringPropertyOrNull(PropertyNames.branchName)
 //            ?.takeIf { it.isNotEmpty() && it != "master" && it != "release" }
@@ -460,7 +466,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 this@apply.mustRunAfter(this)
             }
 
-            onNonMasterReleaseBranch {
+            onNonMasterOrReleaseBranch {
                 this@apply.dependsOn("configurePerformanceTestBaseline")
             }
         }

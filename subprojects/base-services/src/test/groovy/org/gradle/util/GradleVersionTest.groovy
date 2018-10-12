@@ -74,7 +74,7 @@ class GradleVersionTest extends Specification {
                 '1.0-milestone-5a',
                 '3.2-rc-2',
                 '3.0-snapshot-1',
-                '5.1-commit-2149a1df4eb5f13b7b136c64dd31ce38c114474a'
+                '5.1-commit-2149a1d'
         ]
     }
 

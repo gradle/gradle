@@ -9,7 +9,6 @@ dependencies {
         // don't need it at runtime
         exclude(module = "lombok")
     }
-    implementation("org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r")
     implementation("commons-io:commons-io:2.6")
     implementation("javax.activation:activation:1.1.1")
     implementation("javax.xml.bind:jaxb-api:2.2.12")

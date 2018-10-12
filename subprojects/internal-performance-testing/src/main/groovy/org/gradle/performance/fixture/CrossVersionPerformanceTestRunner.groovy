@@ -207,7 +207,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private static boolean isRcVersion(GradleVersion versionObject) {
         // there is no public API for checking for RC version, this is an internal way
-        versionObject?.stage?.stage == 3
+        versionObject.stage.stage == 3
     }
 
     private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {

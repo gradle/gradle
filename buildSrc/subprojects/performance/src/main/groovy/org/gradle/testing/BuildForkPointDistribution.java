@@ -17,10 +17,6 @@
 package org.gradle.testing;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -32,15 +28,17 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.stream.Stream;
 
 @CacheableTask
 public class BuildForkPointDistribution extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(BuildForkPointDistribution.class);
-    private static final int MAX_BACKTRACK_COMMIT_COUNT = 10;
 
     private String forkPointCommitId;
+
+    private String baselineVersion = "defaults";
 
     @Input
     @Optional
@@ -58,65 +56,47 @@ public class BuildForkPointDistribution extends DefaultTask {
     }
 
     @Internal
-    public String getVersion() {
-        return Stream.of(getForkPointDistributionDir().listFiles())
+    public String getBaselineVersion() {
+        return baselineVersion;
+    }
+
+    @TaskAction
+    void buildDistribution() {
+        LOGGER.quiet("Building fork point distribution for: " + forkPointCommitId);
+
+        prepareGradleRepository();
+
+        try {
+            tryBuildDistribution(forkPointCommitId);
+            setBaselineVersion();
+            LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + baselineVersion);
+        } catch (Exception e) {
+            LOGGER.quiet("Building commit " + forkPointCommitId + " failed, fallback to default baseline.", e);
+        }
+    }
+
+    private void setBaselineVersion() {
+        baselineVersion = Stream.of(getForkPointDistributionDir().listFiles())
             .filter(file -> file.getName().endsWith("-bin.zip"))
             // gradle-5.0-commit-2149a1df4eb5f13b7b136c64dd31ce38c114474a-bin.zip -> 5.0-commit-2149a1df4eb5f13b7b136c64dd31ce38c114474a
             .map(file -> file.getName().substring("gradle-".length(), file.getName().length() - "-bin.zip".length())).findFirst()
             .get();
     }
 
-    @TaskAction
-    void buildDistribution() throws Exception {
-        LOGGER.quiet("Building fork point distribution for: " + forkPointCommitId);
-
-        Git git = prepareGradleRepository();
-
-        try (RevWalk walk = new RevWalk(git.getRepository())) {
-            RevCommit commit = walk.parseCommit(git.getRepository().resolve(forkPointCommitId));
-
-            int retryCount = 0;
-            while (true) {
-                if (retryCount++ >= MAX_BACKTRACK_COMMIT_COUNT) {
-                    throw new IllegalStateException("Can't find a buildable commit after retries.");
-                }
-
-                LOGGER.quiet("Try to build commit: " + commit.getId().getName());
-
-                if (isBuildable(commit)) {
-                    LOGGER.quiet("Building commit " + commit.getId().getName() + " succeeded.");
-                    return;
-                }
-                // Always choose the first parent as it's on master
-                commit = walk.parseCommit(commit.getParent(0).getId());
-            }
-        }
-    }
-
-    private Git prepareGradleRepository() throws Exception {
+    private void prepareGradleRepository() {
         if (new File(getGradleCloneTmpDir(), ".git").isDirectory()) {
-            return performUpdate();
+            exec(getGradleCloneTmpDir(), "git", "reset", "--hard");
+            exec(getGradleCloneTmpDir(), "git", "fetch");
         } else {
-            return performClone();
+            exec(getGradleCloneTmpDir().getParentFile(), "git", "clone", getProject().getRootDir().getAbsolutePath(), getGradleCloneTmpDir().getAbsolutePath(), "--no-checkout");
         }
     }
 
-    private Git performClone() throws Exception {
-        return Git.cloneRepository()
-            .setURI("https://github.com/gradle/gradle.git")
-            .setDirectory(getGradleCloneTmpDir())
-            .call();
-    }
-
-    private Git performUpdate() throws Exception {
-        Git git = Git.open(new File(getGradleCloneTmpDir(), ".git"));
-        git.fetch().call();
-        git.reset().setMode(ResetCommand.ResetType.HARD).setRef("refs/remotes/origin/master").call();
-        return git;
-    }
-
-    private void performCheckout(String commitId) throws Exception {
-        Git.open(new File(getGradleCloneTmpDir(), ".git")).checkout().setForce(true).setName(commitId).call();
+    private void exec(File workingDir, String... command) {
+        getProject().exec(spec -> {
+            spec.commandLine(command);
+            spec.workingDir(workingDir);
+        });
     }
 
     private File getGradleCloneTmpDir() {
@@ -124,24 +104,18 @@ public class BuildForkPointDistribution extends DefaultTask {
     }
 
 
-    private boolean isBuildable(RevCommit commit) throws Exception {
-        performCheckout(commit.getId().getName());
+    private void tryBuildDistribution(String commit) throws Exception {
+        exec(getGradleCloneTmpDir(), "git", "checkout", commit, "--force");
+        exec(getGradleCloneTmpDir(), "./gradlew", ":distributions:binZip", ":toolingApi:toolingApiShadedJar");
 
-        Process process = new ProcessBuilder()
-            .command(new File(getGradleCloneTmpDir(), "gradlew").getAbsolutePath(), ":distributions:binZip", ":toolingApi:toolingApiShadedJar")
-            .directory(getGradleCloneTmpDir()).inheritIO().start();
+        FileUtils.cleanDirectory(getForkPointDistributionDir());
+        String baseVersion = new String(Files.readAllBytes(getGradleCloneTmpDir().toPath().resolve("version.txt"))).trim();
 
-        boolean success = process.waitFor() == 0;
+        copyToDistributionDir("build/distributions/gradle-" + baseVersion + "-bin.zip", "gradle-" + baseVersion + "-commit-" + commit + "-bin.zip");
+        copyToDistributionDir("subprojects/tooling-api/build/shaded-jar/gradle-tooling-api-shaded-" + baseVersion + ".jar", "gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar");
+    }
 
-        if (success) {
-            FileUtils.cleanDirectory(getForkPointDistributionDir());
-            String baseVersion = new String(Files.readAllBytes(getGradleCloneTmpDir().toPath().resolve("version.txt"))).trim();
-            Files.copy(getGradleCloneTmpDir().toPath().resolve("build/distributions/gradle-" + baseVersion + "-bin.zip"),
-                getForkPointDistributionDir().toPath().resolve("gradle-" + baseVersion + "-commit-" + commit.getId().getName() + "-bin.zip"));
-            Files.copy(getGradleCloneTmpDir().toPath().resolve("subprojects/tooling-api/build/shaded-jar/gradle-tooling-api-shaded-" + baseVersion + ".jar"),
-                getForkPointDistributionDir().toPath().resolve("gradle-tooling-api-" + baseVersion + "-commit-" + commit.getId().getName() + ".jar"));
-        }
-
-        return success;
+    private void copyToDistributionDir(String srcRelativePath, String destRelativePath) throws IOException {
+        Files.copy(getGradleCloneTmpDir().toPath().resolve(srcRelativePath), getForkPointDistributionDir().toPath().resolve(destRelativePath));
     }
 }
