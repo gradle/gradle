@@ -43,7 +43,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
@@ -85,8 +84,7 @@ public class GroovyCompile extends AbstractCompile {
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory = getServices().get(IsolatedClassloaderWorkerFactory.class);
             PathToFileResolver fileResolver = getServices().get(PathToFileResolver.class);
             AnnotationProcessorDetector processorDetector = getServices().get(AnnotationProcessorDetector.class);
-            JvmVersionDetector jvmVersionDetector = getServices().get(JvmVersionDetector.class);
-            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, workerDaemonFactory, inProcessWorkerFactory, fileResolver, processorDetector, jvmVersionDetector);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, workerDaemonFactory, inProcessWorkerFactory, fileResolver, processorDetector);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
             compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
         }

@@ -24,11 +24,13 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,7 +101,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
             Set<URL> currentClassPath = ImmutableSet.copyOf(urlClassLoader.getURLs());
             for (URL url : spec.getClasspath()) {
                 if (!currentClassPath.contains(url)) {
-                    urlClassLoader.addURL(url);
+                    JavaReflectionUtil.method(URLClassLoader.class, Void.class, "addURL", URL.class).invoke(urlClassLoader, url);
                 }
             }
         }

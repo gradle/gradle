@@ -54,11 +54,6 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     }
 
     @Override
-    public void addURL(URL url) {
-        super.addURL(url);
-    }
-
-    @Override
     public String toString() {
         return VisitableURLClassLoader.class.getSimpleName() + "(" + name + ")";
     }
