@@ -93,10 +93,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
             task fooJar(type: Jar) {
-               baseName = 'c-foo'
+                baseName = 'c-foo'
+                destinationDir = projectDir
             }
             task barJar(type: Jar) {
-               baseName = 'c-bar'
+                baseName = 'c-bar'
+                destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
@@ -195,10 +197,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
             task fooJar(type: Jar) {
-               baseName = 'c-foo'
+                baseName = 'c-foo'
+                destinationDir = projectDir
             }
             task barJar(type: Jar) {
-               baseName = 'c-bar'
+                baseName = 'c-bar'
+                destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
@@ -297,10 +301,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 bar.attributes { attribute(buildType, 'release'); attribute(flavor, 'free') }
             }
             task fooJar(type: Jar) {
-               baseName = 'c-foo'
+                baseName = 'c-foo'
+                destinationDir = projectDir
             }
             task barJar(type: Jar) {
-               baseName = 'c-bar'
+                baseName = 'c-bar'
+                destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
@@ -400,9 +406,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
             task fooJar(type: Jar) {
                baseName = 'c-foo'
+               destinationDir = projectDir
             }
             task barJar(type: Jar) {
                baseName = 'c-bar'
+               destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
@@ -523,9 +531,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
             task fooJar(type: Jar) {
                baseName = 'c-foo'
+               destinationDir = projectDir
             }
             task barJar(type: Jar) {
                baseName = 'c-bar'
+               destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
@@ -625,10 +635,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
             }
             task fooJar(type: Jar) {
-               baseName = 'c-foo'
+                baseName = 'c-foo'
+                destinationDir = projectDir
             }
             task barJar(type: Jar) {
-               baseName = 'c-bar'
+                baseName = 'c-bar'
+                destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
@@ -739,10 +751,12 @@ All of them match the consumer attributes:
                 bar.attributes { attribute(buildType, release); attribute(flavor, free) }
             }
             task fooJar(type: Jar) {
-               baseName = 'c-foo'
+                baseName = 'c-foo'
+                destinationDir = projectDir
             }
             task barJar(type: Jar) {
-               baseName = 'c-bar'
+                baseName = 'c-bar'
+                destinationDir = projectDir
             }
             artifacts {
                 foo fooJar
