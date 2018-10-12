@@ -28,17 +28,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
-    private final ResolvedComponentResult root;
     private final ResolutionResult resolutionResult;
 
     ResolveConfigurationResolutionBuildOperationResult(ResolutionResult resolutionResult) {
-        this.root = resolutionResult.getRoot();
         this.resolutionResult = resolutionResult;
     }
 
     @Override
     public ResolvedComponentResult getRootComponent() {
-        return root;
+        return resolutionResult.getRoot();
     }
 
     @Override
