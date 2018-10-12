@@ -3,7 +3,7 @@ import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    id("gradlebuild.api-metadata")
+    gradlebuild.`api-metadata`
 }
 
 gradlebuildJava {
