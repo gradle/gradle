@@ -63,10 +63,8 @@ public class BuildForkPointDistribution extends DefaultTask {
     @TaskAction
     void buildDistribution() {
         LOGGER.quiet("Building fork point distribution for: " + forkPointCommitId);
-
-        prepareGradleRepository();
-
         try {
+            prepareGradleRepository();
             tryBuildDistribution(forkPointCommitId);
             setBaselineVersion();
             LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + baselineVersion);
@@ -78,17 +76,19 @@ public class BuildForkPointDistribution extends DefaultTask {
     private void setBaselineVersion() {
         baselineVersion = Stream.of(getForkPointDistributionDir().listFiles())
             .filter(file -> file.getName().endsWith("-bin.zip"))
-            // gradle-5.0-commit-2149a1df4eb5f13b7b136c64dd31ce38c114474a-bin.zip -> 5.0-commit-2149a1df4eb5f13b7b136c64dd31ce38c114474a
+            // gradle-5.0-commit-2149a1d-bin.zip -> 5.0-commit-2149a1d
             .map(file -> file.getName().substring("gradle-".length(), file.getName().length() - "-bin.zip".length())).findFirst()
             .get();
     }
 
-    private void prepareGradleRepository() {
-        if (new File(getGradleCloneTmpDir(), ".git").isDirectory()) {
-            exec(getGradleCloneTmpDir(), "git", "reset", "--hard");
-            exec(getGradleCloneTmpDir(), "git", "fetch");
+    private void prepareGradleRepository() throws IOException {
+        File cloneDir = getGradleCloneTmpDir();
+        if (new File(cloneDir, ".git").isDirectory()) {
+            exec(cloneDir, "git", "reset", "--hard");
+            exec(cloneDir, "git", "fetch");
         } else {
-            exec(getGradleCloneTmpDir().getParentFile(), "git", "clone", getProject().getRootDir().getAbsolutePath(), getGradleCloneTmpDir().getAbsolutePath(), "--no-checkout");
+            FileUtils.forceMkdir(cloneDir);
+            exec(cloneDir.getParentFile(), "git", "clone", getProject().getRootDir().getAbsolutePath(), getGradleCloneTmpDir().getAbsolutePath(), "--no-checkout");
         }
     }
 
