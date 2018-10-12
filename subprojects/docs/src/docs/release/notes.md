@@ -158,6 +158,14 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Some long existing incubating features have been promoted
 
+- all pre 4.0 incubating APIs have been promoted
+- parallel task execution
+- continuous build
+- composite build
+- the [`java-gradle-plugin`](userguide/java_gradle_plugin.html) plugin
+- the [`distribution`](userguide/distribution_plugin.html) plugin
+- the [`jacoco`](userguide/jacoco_plugin.html) plugin
+- the [`build-init`](userguide/build_init_plugin.html) plugin
 - `IncrementalTaskInputs` and `InputFileDetails`
 - input normalization (`org.gradle.normalization`) including `InputNormalizationHandler`
 - `FileNormalizer` and its subclasses
@@ -170,14 +178,6 @@ The following are the features that have been promoted in this Gradle release.
 - `Project.normalization`
 - `GroovyCompile.groovyCompilerJvmVersion` and `javaToolChain` properties
 - `JavaVersion.VERSION_11` constant along with `isJava11()` and `isJava11Compatible()` methods
-- all pre 4.0 incubating APIs have been promoted
-- parallel task execution
-- continuous build
-- composite build
-- the `java-gradle-plugin` plugin
-- the `distribution` plugin
-- the `jacoco` plugin
-- the `build-init` plugin
 
 ### The `--no-rebuild` option is no longer deprecated
 
