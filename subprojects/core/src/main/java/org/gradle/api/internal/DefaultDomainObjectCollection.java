@@ -428,6 +428,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         getMutationGuard().assertMutationAllowed(methodName, this);
     }
 
+    /**
+     * Subclasses may override this method to prevent add/remove methods.
+     * @see DefaultDomainObjectSet
+     */
     protected void assertMutableCollectionContents() {
         // no special validation
     }

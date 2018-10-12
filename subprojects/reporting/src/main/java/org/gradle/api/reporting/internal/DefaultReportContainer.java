@@ -47,8 +47,6 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
                 return element.isEnabled();
             }
         });
-
-        whenObjectRemoved(IMMUTABLE_VIOLATION_EXCEPTION);
     }
 
     @Override
