@@ -13,6 +13,8 @@ Authoring your build logic using Kotlin provides significant additional editing 
 Please follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
 If you prefer the flexibility and dynamic nature of Groovy, that's totally okay — the Groovy DSL will _never_ be deprecated.
 
+Java enthusiasts will be happy to read that this release **supports running Gradle builds with JDK 11**.
+
 You can now specify a timeout duration for a task, after which it will be interrupted.
 Read more [about task timeouts](userguide/more_about_tasks.html#sec:task_timeouts) in the docs.
 
