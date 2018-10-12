@@ -46,7 +46,7 @@ dependencies {
 task<Zip>("javadocZip") {
     dependsOn("javadoc")
     classifier = "javadoc"
-    from(tasks.javadoc.get().destinationDir)
+    from(tasks.javadoc)
 }
 
 artifacts {
