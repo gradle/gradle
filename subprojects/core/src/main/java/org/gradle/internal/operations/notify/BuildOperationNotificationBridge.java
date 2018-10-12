@@ -156,8 +156,8 @@ public class BuildOperationNotificationBridge {
 
         private final BuildOperationNotificationListener notificationListener;
 
-        private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
-        private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
+        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
+        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<OperationIdentifier, Object>();
 
         private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
@@ -165,8 +165,8 @@ public class BuildOperationNotificationBridge {
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            Object id = buildOperation.getId();
-            Object parentId = buildOperation.getParentId();
+            OperationIdentifier id = buildOperation.getId();
+            OperationIdentifier parentId = buildOperation.getParentId();
 
             if (parentId != null) {
                 if (active.containsKey(parentId)) {
@@ -209,7 +209,7 @@ public class BuildOperationNotificationBridge {
             }
 
             // Find the nearest parent up that we care about and use that as the parent.
-            Object owner = findOwner(buildOperationId);
+            OperationIdentifier owner = findOwner(buildOperationId);
             if (owner == null) {
                 return;
             }
@@ -217,7 +217,7 @@ public class BuildOperationNotificationBridge {
             notificationListener.progress(new Progress(owner, progressEvent.getTime(), details));
         }
 
-        private Object findOwner(Object id) {
+        private OperationIdentifier findOwner(OperationIdentifier id) {
             if (active.containsKey(id)) {
                 return id;
             } else {
@@ -227,8 +227,8 @@ public class BuildOperationNotificationBridge {
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            Object id = buildOperation.getId();
-            Object parentId = parents.remove(id);
+            OperationIdentifier id = buildOperation.getId();
+            OperationIdentifier parentId = parents.remove(id);
             if (active.remove(id) == null) {
                 return;
             }
@@ -346,11 +346,11 @@ public class BuildOperationNotificationBridge {
 
         private final long timestamp;
 
-        private final Object id;
-        private final Object parentId;
+        private final OperationIdentifier id;
+        private final OperationIdentifier parentId;
         private final Object details;
 
-        private Started(long timestamp, Object id, Object parentId, Object details) {
+        private Started(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -392,12 +392,12 @@ public class BuildOperationNotificationBridge {
 
     private static class Progress implements BuildOperationProgressNotification {
 
-        private final Object id;
+        private final OperationIdentifier id;
 
         private final long timestamp;
         private final Object details;
 
-        Progress(Object id, long timestamp, Object details) {
+        Progress(OperationIdentifier id, long timestamp, Object details) {
             this.id = id;
             this.timestamp = timestamp;
             this.details = details;
@@ -424,13 +424,13 @@ public class BuildOperationNotificationBridge {
 
         private final long timestamp;
 
-        private final Object id;
-        private final Object parentId;
+        private final OperationIdentifier id;
+        private final OperationIdentifier parentId;
         private final Object details;
         private final Object result;
         private final Throwable failure;
 
-        private Finished(long timestamp, Object id, Object parentId, Object details, Object result, Throwable failure) {
+        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;

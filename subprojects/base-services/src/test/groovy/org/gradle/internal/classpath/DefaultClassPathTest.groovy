@@ -79,6 +79,36 @@ class DefaultClassPathTest extends Specification {
         (cp + []).is(cp)
     }
 
+    def "removes files based on predicate"() {
+        given:
+        def a1 = new File("a1.jar")
+        def b = new File("b.jar")
+        def a2 = new File("a2.jar")
+        def c = new File("c.jar")
+
+        when:
+        def originalClasspath = DefaultClassPath.of(a1, b, a2, c)
+        def newClasspath = originalClasspath.removeIf { it.name.startsWith("a") }
+
+        then:
+        originalClasspath.asFiles == [a1, b, a2, c]
+        newClasspath.asFiles == [b, c]
+    }
+
+    def "returns same classpath when predicate to remove does not match"() {
+        given:
+        def a = new File("a.jar")
+        def b = new File("b.jar")
+
+        when:
+        def originalClasspath = DefaultClassPath.of(a, b)
+        def newClasspath = originalClasspath.removeIf { it.name.startsWith("c") }
+
+        then:
+        originalClasspath.asFiles == [a, b]
+        newClasspath.is(originalClasspath)
+    }
+
     def "classpaths are equal when the contain the same sequence of files"() {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")

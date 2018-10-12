@@ -25,7 +25,7 @@ import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
-    id("gradlebuild.shaded-jar")
+    gradlebuild.`shaded-jar`
 }
 
 val testPublishRuntime by configurations.creating

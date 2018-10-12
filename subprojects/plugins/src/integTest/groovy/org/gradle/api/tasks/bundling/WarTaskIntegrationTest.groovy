@@ -299,6 +299,7 @@ task assertUnresolved {
 task war(type: War) {
     dependsOn assertUnresolved
     classpath = configurations.conf
+    destinationDir = buildDir
 }
 """
 
