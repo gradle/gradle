@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.util.GradleVersion
-
 @groovy.transform.CompileStatic
 void createTasks(Project p, int iterations) {
-    def tasks = p.tasks
-    def gradleVersion = GradleVersion.version(p.gradle.gradleVersion)
-    def gradle49 = GradleVersion.version("4.9")
-
-    if (gradleVersion < gradle49) {
-        for (int i=0; i<iterations; i++) {
-            tasks.create("foo" + i, Copy)
-        }
-    } else {
-        for (int i=0; i<iterations; i++) {
-            tasks.register("foo" + i, Copy)
-        }
+    for (int i=0; i<iterations; i++) {
+        p.task("foo\$i", type: Copy)
     }
 }
 
