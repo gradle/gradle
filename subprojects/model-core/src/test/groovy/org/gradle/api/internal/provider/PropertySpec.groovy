@@ -345,8 +345,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
-        when:
+        given:
         property.set(provider)
+
+        when:
         property.finalizeValue()
 
         then:
@@ -368,8 +370,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
-        when:
+        given:
         property.set(provider)
+
+        when:
         property.finalizeValueOnReadAndWarnAboutChanges()
 
         then:
@@ -388,13 +392,43 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         result == someValue()
     }
 
+    def "replaces provider with fixed value when value finalized after finalize on next read"() {
+        def property = property()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+
+        given:
+        property.set(provider)
+        property.finalizeValueOnReadAndWarnAboutChanges()
+
+        when:
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> someValue()
+        0 * _
+
+        when:
+        def present = property.present
+        def result = property.getOrNull()
+
+        then:
+        0 * _
+
+        and:
+        present
+        result == someValue()
+    }
+
     def "replaces provider with fixed missing value when value finalized"() {
         def property = property()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
-        when:
+        given:
         property.set(provider)
+
+        when:
         property.finalizeValue()
 
         then:
@@ -416,8 +450,10 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
 
-        when:
+        given:
         property.set(provider)
+
+        when:
         property.finalizeValueOnReadAndWarnAboutChanges()
 
         then:
@@ -444,7 +480,6 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         when:
         property.set(provider)
         property.finalizeValue()
-
 
         then:
         1 * function.call() >> someValue()

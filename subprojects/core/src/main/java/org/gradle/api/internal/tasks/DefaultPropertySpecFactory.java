@@ -99,7 +99,7 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
         @Nullable
         @Override
         public Object getContainerValue() {
-            return fileTree;
+            return delegate.getContainerValue();
         }
 
         @Override
