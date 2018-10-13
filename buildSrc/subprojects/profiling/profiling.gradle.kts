@@ -1,12 +1,3 @@
-import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
-
-plugins {
-    `java-gradle-plugin`
-}
-
-apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-apply<PrecompiledScriptPlugins>()
-
 dependencies {
     implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.7")
     implementation("org.jsoup:jsoup:1.11.3")
