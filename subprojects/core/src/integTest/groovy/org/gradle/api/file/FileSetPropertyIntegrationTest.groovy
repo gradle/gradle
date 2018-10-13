@@ -157,6 +157,73 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         "project.objects.fileProperty()" | 0
     }
 
+    def "can wire the output files of a task as input to another task"() {
+        buildFile << """
+            class FileOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileProperty inputFile = project.objects.fileProperty()
+                @OutputFiles
+                final SetProperty<RegularFile> outputFiles = project.objects.setProperty(RegularFile).empty()
+                
+                @TaskAction
+                void go() {
+                    def content = inputFile.get().asFile.text
+                    outputFiles.get().each { outputFile ->
+                        outputFile.asFile.text = content
+                    }
+                }
+            }
+
+            class MergeTask extends DefaultTask {
+                @InputFiles
+                final SetProperty<RegularFile> inputFiles = project.objects.setProperty(RegularFile).empty()
+                @OutputFile
+                final RegularFileProperty outputFile = project.objects.fileProperty()
+                
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = inputFiles.get()*.asFile.text.join(',')
+                }
+            }
+            
+            task createFiles(type: FileOutputTask)
+            task merge(type: MergeTask) {
+                outputFile = layout.buildDirectory.file("merged.txt")
+                inputFiles.set(createFiles.outputFiles)
+            }
+
+            // Set values lazily
+            createFiles.inputFile = layout.projectDirectory.file("file-source.txt")
+            createFiles.outputFiles.add(layout.buildDirectory.file("file1.txt"))
+            createFiles.outputFiles.add(layout.buildDirectory.file("file2.txt"))
+            
+            buildDir = "output"
+"""
+        file("file-source.txt").text = "file1"
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFiles", ":merge")
+        file("output/merged.txt").text == 'file1,file1'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("file-source.txt").text = "new-file1"
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped(":createFiles", ":merge")
+        file("output/merged.txt").text == 'new-file1,new-file1'
+    }
+
     @Unroll
     def "can wire the output directory of multiple tasks as input to another task using property created by #outputDirMethod"() {
         buildFile << """
@@ -235,7 +302,75 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         "project.objects.directoryProperty()" | 0
     }
 
-    def "can wire a set of output files as input to a task"() {
+    def "can wire the output directories of a task as input to another task"() {
+        buildFile << """
+            class DirOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileProperty inputFile = project.objects.fileProperty()
+
+                @OutputDirectories
+                final SetProperty<Directory> outputDirs = project.objects.setProperty(Directory).empty()
+
+                @TaskAction
+                void go() {
+                    def content = inputFile.get().asFile.text
+                    outputDirs.get().each { outputDir ->
+                         new File(outputDir.asFile, "file.txt").text = content
+                    }
+                }
+            }
+
+            class MergeTask extends DefaultTask {
+                @InputFiles
+                final SetProperty<Directory> inputDirs = project.objects.setProperty(Directory).empty()
+                @OutputFile
+                final RegularFileProperty outputFile = project.objects.fileProperty()
+
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = inputDirs.get()*.asFile*.listFiles().text.flatten().join(',')
+                }
+            }
+
+            task createDirs(type: DirOutputTask)
+            task merge(type: MergeTask) {
+                outputFile = layout.buildDirectory.file("merged.txt")
+                inputDirs.set(createDirs.outputDirs)
+            }
+
+            // Set values lazily
+            createDirs.inputFile = layout.projectDirectory.file("dir-source.txt")
+            createDirs.outputDirs.add(layout.buildDirectory.dir("dir1"))
+            createDirs.outputDirs.add(layout.buildDirectory.dir("dir2"))
+
+            buildDir = "output"
+"""
+        file("dir-source.txt").text = "dir1"
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createDirs", ":merge")
+        file("output/merged.txt").text == 'dir1,dir1'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("dir-source.txt").text = "new-dir1"
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped(":createDirs", ":merge")
+        file("output/merged.txt").text == 'new-dir1,new-dir1'
+    }
+
+    def "can wire a set of output files modelled using a project level property as input to a task"() {
         buildFile << """
             class FileOutputTask extends DefaultTask {
                 @InputFile
@@ -309,7 +444,7 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
         file("output/merged.txt").text == 'new-file1,file2'
     }
 
-    def "can wire a set of output directories as input to a task"() {
+    def "can wire a set of output directories modelled as a project level property as input to a task"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile

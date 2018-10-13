@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.internal.MutableBoolean;
@@ -125,7 +126,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public void attachProducer(Task producer) {
-        // Ignore, not implemented yet
+        // TODO - push into validating value
+        Object containerValue = value.getContainerValue();
+        if (containerValue instanceof ProducerAwareProperty) {
+            ((ProducerAwareProperty)containerValue).attachProducer(producer);
+        }
     }
 
     @Override
