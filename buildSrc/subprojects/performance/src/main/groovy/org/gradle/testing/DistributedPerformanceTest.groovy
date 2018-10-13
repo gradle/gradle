@@ -118,6 +118,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
+        println("Running against baseline ${baselines ?: "defaults"}")
         try {
             doExecuteTests()
         } finally {
