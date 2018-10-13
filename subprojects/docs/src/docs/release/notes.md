@@ -74,11 +74,11 @@ This release includes a number of improvements to The [Build Init plugin](usergu
 
 #### Interactive mode
 
-If you run the `init` task from an interactive console, it will prompt you for details of the Gradle build that you'd like to generate.
+If you run the `init` task from an interactive console, Gradle will prompt you for details of the Gradle build that you'd like to generate.
 
 #### Kotlin library and applications
 
-The `init` task can generate a Kotlin library or application, using the `kotlin-library` or `kotlin-application` setup type. This was one of our top 10 most voted issues.
+The `init` task can generate a Kotlin library or application, using the `kotlin-library` or `kotlin-application` setup type. This was one of our top 10 most voted issues. To try it out, just run `gradle init` and follow the prompts.
 
 #### Generated builds use recommended configurations
 
@@ -87,7 +87,7 @@ The `init` task generates build scripts that use the recommended `implementation
 #### Configure project and source package names
 
 The `init` task provides a `--project-name` option to allow you to adjust the name of the generated project, and a `--package` option to allow you to adjust the package for the generated source.
-The task will also allow you to specify these if you run the task interactively.
+The task will also prompt you to configure these if you run the task interactively.
 
 #### Create resource directories
 
@@ -101,20 +101,34 @@ While the `init` task does not automatically create a Git repository, the `init`
 
 #### Public method to create SourceDirectorySet instances
 
-The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
+The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal Gradle types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
 
-In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. Plugins can now use this method instead of the internal types.
+In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. Plugins can use this method instead of the internal types.
+
+### Provider implementations track their producer task
+
+An important feature of the `Provider` API is that `Provider` instances can track both a value _and_ the task or tasks that produces that value.
+When a `Provider` that represents an output of a task is connected to a `Property` instance that represents a task input, Gradle automatically adds task dependencies between the tasks. This eliminates a class of configuration problems where the location of a task input and the producing task dependencies are not kept in sync as configuration changes are made.
+
+In this release, more `Provider` implementations track the tasks that produces the value of the provider:
+- Any provider returned by `TaskContainer`
+- Any property marked with `@OutputFile`, `@OutputDirectory`, `@OutputFiles` or `@OutputDirectories`.
+- Any `List` or `Set` property whose elements match these criteria.
+- Any provider returned by `Provider.map()` or `flatMap()` that matches these criteria.
 
 ### Added Provider.flatMap() method
 
 TBD - why this is useful
 
-### Provider implementations track their producer task
+### Added Property.finalizeValue() method
 
-TBD - More provider implementations track the task that produces the value of the provider:
-- Any provider returned by `TaskContainer`
-- Any property marked with `@OutputFile` or `@OutputDirectory`
-- Any provider returned by `Provider.map()` that matches these criteria (including this one)
+The property types have a `finalizeValue()` method which prevents further changes to the value of the property.
+TBD - why this is useful
+
+### Task properties are made final before task executes
+
+All task properties that use one of the property types have their value made final when the task executes. 
+TBD - why this is useful.
 
 ### Changes to file and directory property construction
 
