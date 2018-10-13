@@ -80,6 +80,7 @@ class SomeTask extends DefaultTask {
         prop.set(["ignored"])
         prop.add("ignored")
         prop.addAll(["ignored"])
+        prop.empty()
         outputFile.get().asFile.text = prop.get()
     }
 }
@@ -118,6 +119,30 @@ task after {
 
         then:
         file("build/out.txt").text == "[final value]"
+    }
+
+    def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.listProperty(String)
+
+task thing {
+    inputs.property("prop", prop)
+    prop.set(["value 1"])
+    doLast {
+        prop.set(["ignored"])
+        println "prop = " + prop.get()
+    }
+}
+"""
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = [value 1]")
     }
 
     @Unroll

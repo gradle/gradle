@@ -138,6 +138,30 @@ task after {
         file("build/out.txt").text == "final value"
     }
 
+    def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.property(String)
+
+task thing {
+    inputs.property("prop", prop)
+    prop.set("value 1")
+    doLast {
+        prop.set("ignored")
+        println "prop = " + prop.get()
+    }
+}
+"""
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = value 1")
+    }
+
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
