@@ -20,7 +20,34 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 
-class FileSetPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
+    def "task @InputFiles file property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @InputFiles
+                final SetProperty<RegularFile> prop = project.objects.setProperty(RegularFile)
+                
+                @TaskAction
+                void go() {
+                    prop.set([project.layout.projectDir.file("other.txt")])
+                    println "value: " + prop.get() 
+                }
+            }
+
+            task show(type: SomeTask) {
+                prop = [project.layout.projectDir.file("in.txt")]
+            }
+"""
+        file("in.txt").createFile()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        outputContains("value: [" + testDirectory.file("in.txt") + "]")
+    }
+
     @Unroll
     def "can wire the output file of multiple tasks as input to another task using property created by #outputFileMethod"() {
         buildFile << """

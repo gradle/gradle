@@ -48,87 +48,6 @@ class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("task output dir: " + testDirectory.file("output/some-dir/other-child"))
     }
 
-    def "reports failure to set directory property value using incompatible type"() {
-        given:
-        buildFile << """
-class SomeExtension {
-    final Property<Directory> prop
-    
-    @javax.inject.Inject
-    SomeExtension(ObjectFactory objects) {
-        prop = objects.directoryProperty()
-    }
-}
-
-extensions.create('custom', SomeExtension, objects)
-
-task useIntTypeDsl {
-    doLast {
-        custom.prop = 123
-    }
-}
-
-task useIntTypeApi {
-    doLast {
-        custom.prop.set(123)
-    }
-}
-
-task useFileTypeDsl {
-    doLast {
-        custom.prop = layout.projectDirectory.file("build.gradle")
-    }
-}
-
-task useFileProviderDsl {
-    doLast {
-        custom.prop = layout.buildDirectory.file("build.gradle")
-    }
-}
-
-task useFileProviderApi {
-    doLast {
-        custom.prop.set(layout.buildDirectory.file("build.gradle"))
-    }
-}
-"""
-
-        when:
-        fails("useIntTypeDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
-
-        when:
-        fails("useIntTypeApi")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
-
-        when:
-        fails("useFileTypeDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
-
-        when:
-        fails("useFileProviderDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useFileProviderDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
-
-        when:
-        fails("useFileProviderApi")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useFileProviderApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
-    }
-
     def "can attach a calculated file to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -216,6 +135,87 @@ assert custom.prop.get().asFile == file("file4")
 
         expect:
         succeeds()
+    }
+
+    def "reports failure to set directory property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final Property<Directory> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.directoryProperty()
+    }
+}
+
+extensions.create('custom', SomeExtension, objects)
+
+task useIntTypeDsl {
+    doLast {
+        custom.prop = 123
+    }
+}
+
+task useIntTypeApi {
+    doLast {
+        custom.prop.set(123)
+    }
+}
+
+task useFileTypeDsl {
+    doLast {
+        custom.prop = layout.projectDirectory.file("build.gradle")
+    }
+}
+
+task useFileProviderDsl {
+    doLast {
+        custom.prop = layout.buildDirectory.file("build.gradle")
+    }
+}
+
+task useFileProviderApi {
+    doLast {
+        custom.prop.set(layout.buildDirectory.file("build.gradle"))
+    }
+}
+"""
+
+        when:
+        fails("useIntTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+
+        when:
+        fails("useIntTypeApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+
+        when:
+        fails("useFileTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
+
+        when:
+        fails("useFileProviderDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileProviderDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
+
+        when:
+        fails("useFileProviderApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileProviderApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
     }
 
     def "reports failure to set regular file property value using incompatible type"() {
@@ -370,6 +370,72 @@ task useDirProviderApi {
         "newOutputFile()"                | "newInputFile()"                 | 2
         "project.layout.fileProperty()"  | "project.layout.fileProperty()"  | 1
         "project.objects.fileProperty()" | "project.objects.fileProperty()" | 0
+    }
+
+    @Unroll
+    def "task #annotation file property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                ${annotation}
+                final RegularFileProperty prop = project.objects.fileProperty()
+                
+                @TaskAction
+                void go() {
+                    prop.set(project.file("other.txt"))
+                    println "value: " + prop.get() 
+                }
+            }
+            
+            task show(type: SomeTask) {
+                prop = file("in.txt")
+            }
+"""
+        file("in.txt").createFile()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        outputContains("value: " + testDirectory.file("in.txt"))
+
+        where:
+        annotation    | _
+        "@InputFile"  | _
+        "@OutputFile" | _
+    }
+
+    @Unroll
+    def "task #annotation directory property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                ${annotation}
+                final DirectoryProperty prop = project.objects.directoryProperty()
+                
+                @TaskAction
+                void go() {
+                    prop.set(project.file("other.dir"))
+                    println "value: " + prop.get() 
+                }
+            }
+            
+            task show(type: SomeTask) {
+                prop = file("in.dir")
+            }
+"""
+        file("in.dir").createDir()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        outputContains("value: " + testDirectory.file("in.dir"))
+
+        where:
+        annotation         | _
+        "@InputDirectory"  | _
+        "@OutputDirectory" | _
     }
 
     @Unroll

@@ -19,7 +19,7 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
+class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -63,6 +63,61 @@ property.set([1])
 
         then:
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+class SomeTask extends DefaultTask {
+    @Input
+    final ListProperty<String> prop = project.objects.listProperty(String)
+    
+    @OutputFile
+    final Property<RegularFile> outputFile = project.objects.fileProperty()
+    
+    @TaskAction
+    void go() {
+        prop.set(["ignored"])
+        prop.add("ignored")
+        prop.addAll(["ignored"])
+        outputFile.get().asFile.text = prop.get()
+    }
+}
+
+task thing(type: SomeTask) {
+    prop = ["value 1"]
+    outputFile = layout.buildDirectory.file("out.txt")
+    doLast {
+        prop.set(["ignored"])
+    }
+}
+
+afterEvaluate {
+    thing.prop = ["value 2"]
+}
+
+task before {
+    doLast {
+        thing.prop = providers.provider { ["final value"] }
+    }
+}
+thing.dependsOn before
+
+task after {
+    dependsOn thing
+    doLast {
+        thing.prop = ["ignore"]
+        assert thing.prop.get() == ["final value"]
+    }
+}
+"""
+
+        when:
+        executer.expectDeprecationWarning()
+        run("after")
+
+        then:
+        file("build/out.txt").text == "[final value]"
     }
 
     @Unroll

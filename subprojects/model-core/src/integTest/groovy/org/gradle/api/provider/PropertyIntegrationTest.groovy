@@ -85,7 +85,7 @@ property.set(12)
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
-    def "task property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
         given:
         buildFile << """
 class SomeTask extends DefaultTask {
@@ -138,7 +138,7 @@ task after {
         file("build/out.txt").text == "final value"
     }
 
-    def "reports failure due to broken task property"() {
+    def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
 
@@ -157,7 +157,7 @@ task thing(type: SomeTask) {
         failure.assertHasCause("broken")
     }
 
-    def "task property calculation is called once only when task executes"() {
+    def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
 
@@ -191,7 +191,7 @@ task thing(type: SomeTask) {
         output.count("calculating value") == 0
     }
 
-    def "does not calculate task property value when task is skipped due to @SkipWhenEmpty"() {
+    def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
         buildFile << """
 
 class SomeTask extends DefaultTask {

@@ -26,7 +26,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void finalizeValue() {
-        if (state == State.Mutable) {
+        if (state == State.Mutable || state == State.FinalNextGet) {
             makeFinal();
         }
         state = State.FinalStrict;
