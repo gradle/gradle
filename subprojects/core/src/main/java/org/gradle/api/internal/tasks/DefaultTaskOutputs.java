@@ -31,7 +31,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.ProducerAwareProperty;
+import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;

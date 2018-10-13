@@ -16,13 +16,34 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.DeprecationLogger;
 
-public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T>, ProducerAwareProperty {
     private enum State {
         Mutable, FinalNextGet, FinalLenient, FinalStrict
     }
+
     private State state = State.Mutable;
+    private Task producer;
+
+    @Override
+    public void attachProducer(Task task) {
+        if (this.producer != null && this.producer != task) {
+            throw new IllegalStateException("This property already has a producer task associated with it.");
+        }
+        this.producer = task;
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        if (producer != null) {
+            context.add(producer);
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public void finalizeValue() {

@@ -108,6 +108,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        if (super.maybeVisitBuildDependencies(context)) {
+            return true;
+        }
+
         boolean visitedAll = true;
         if (!value.maybeVisitBuildDependencies(context)) {
             visitedAll = false;
