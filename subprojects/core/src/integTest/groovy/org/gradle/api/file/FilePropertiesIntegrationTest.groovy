@@ -439,6 +439,68 @@ task useDirProviderApi {
     }
 
     @Unroll
+    def "task ad hoc file property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.fileProperty()
+
+task thing {
+    ${registrationMethod}(prop)
+    prop.set(file("file-1"))
+    doLast {
+        prop.set(file("ignored"))
+        println "prop = " + prop.get()
+    }
+}
+"""
+        file("file-1").createFile()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = " + file("file-1"))
+
+        where:
+        registrationMethod | _
+        "inputs.file"      | _
+        "outputs.file"     | _
+    }
+
+    @Unroll
+    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.directoryProperty()
+
+task thing {
+    ${registrationMethod}(prop)
+    prop.set(file("file-1"))
+    doLast {
+        prop.set(file("ignored"))
+        println "prop = " + prop.get()
+    }
+}
+"""
+        file("file-1").createDir()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = " + file("file-1"))
+
+        where:
+        registrationMethod | _
+        "inputs.dir"       | _
+        "outputs.dir"      | _
+    }
+
+    @Unroll
     def "can wire the output file of an ad hoc task as input to another task using property created by #outputFileMethod"() {
         buildFile << """
             class MergeTask extends DefaultTask {

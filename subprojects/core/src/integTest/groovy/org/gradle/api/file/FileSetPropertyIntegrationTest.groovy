@@ -21,10 +21,11 @@ import spock.lang.Unroll
 
 
 class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
-    def "task @InputFiles file property is implicitly finalized and changes ignored when task starts execution"() {
+    @Unroll
+    def "task #annotation file property is implicitly finalized and changes ignored when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
-                @InputFiles
+                ${annotation}
                 final SetProperty<RegularFile> prop = project.objects.setProperty(RegularFile)
                 
                 @TaskAction
@@ -46,6 +47,37 @@ class FileSetPropertyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("value: [" + testDirectory.file("in.txt") + "]")
+
+        where:
+        annotation     | _
+        "@InputFiles"  | _
+        "@OutputFiles" | _
+    }
+
+    def "task @OutputDirectories directory property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @OutputDirectories
+                final SetProperty<Directory> prop = project.objects.setProperty(Directory)
+                
+                @TaskAction
+                void go() {
+                    prop.set([project.layout.projectDir.dir("other.dir")])
+                    println "value: " + prop.get() 
+                }
+            }
+
+            task show(type: SomeTask) {
+                prop = [project.layout.projectDir.dir("out.dir")]
+            }
+"""
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        outputContains("value: [" + testDirectory.file("out.dir") + "]")
     }
 
     @Unroll

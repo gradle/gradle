@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.util.DeferredUtil;
 
@@ -129,12 +130,15 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public void prepareValue() {
-        // Ignore, not implemented yet
+        // TODO - push this into ValidatingValue
+        Object container = value.getContainerValue();
+        if (container instanceof PropertyInternal) {
+            ((PropertyInternal) container).finalizeValueOnReadAndWarnAboutChanges();
+        }
     }
 
     @Override
     public void cleanupValue() {
-        // Ignore, not implemented yet
     }
 
     @Override
