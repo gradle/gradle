@@ -25,9 +25,8 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
         }
     }
 
-    val baselinesParam = if(type.defaultBaselines == "defaults") "" else "--baselines ${type.defaultBaselines}"
-
     params {
+        param("performance.baselines", type.defaultBaselines)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.JAVA_HOME", buildJavaHome)
         param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
@@ -41,7 +40,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
             tasks = ""
             gradleParams = (
                     gradleParameters(daemon = false)
-                    + listOf("clean distributed${type.taskId}s -x prepareSamples ${baselinesParam} ${type.extraParameters} -PtimestampedVersion -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=${IndividualPerformanceScenarioWorkers(model).id} -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
+                    + listOf("clean distributed${type.taskId}s -x prepareSamples --baselines %performance.baselines% ${type.extraParameters} -PtimestampedVersion -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=${IndividualPerformanceScenarioWorkers(model).id} -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
                             buildScanTag("PerformanceTest"), "-PtestJavaHome=${coordinatorPerformanceTestJavaHome}")
                             + model.parentBuildCache.gradleParameters(OS.linux)
                     ).joinToString(separator = " ")
