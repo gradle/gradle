@@ -9,12 +9,12 @@ application {
 }
 
 jacoco {
-    applyTo(tasks["run"] as JavaExec)
+    applyTo(tasks.run.get())
 }
 
 task<JacocoReport>("applicationCodeCoverageReport") {
-    executionData(tasks["run"])
-    sourceSets(sourceSets["main"])
+    executionData(tasks.run.get())
+    sourceSets(sourceSets.main.get())
 }
 // end::application-configuration[]
 

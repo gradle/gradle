@@ -35,7 +35,7 @@ task("createDocs") {
 }
 
 distributions {
-    getByName("main") {
+    main {
         contents {
             from(tasks["createDocs"]) {
                 into("docs")

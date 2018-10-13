@@ -8,7 +8,7 @@ version = "1.0.0"
 
 // tag::name-conf[]
 distributions {
-    getByName("main") {
+    main {
         baseName = "my-name"
     }
 }
@@ -16,7 +16,7 @@ distributions {
 
 // tag::custom-distribution[]
 distributions {
-    getByName("main") {
+    main {
         baseName = "my-name"
         contents {
             from("src/dist")

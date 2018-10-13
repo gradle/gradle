@@ -20,12 +20,12 @@ repositories {
 task("createClasspathManifest") {
     val outputDir = file("$buildDir/$name")
 
-    inputs.files(sourceSets["main"].runtimeClasspath)
+    inputs.files(sourceSets.main.get().runtimeClasspath)
     outputs.dir(outputDir)
 
     doLast {
         outputDir.mkdirs()
-        file("$outputDir/plugin-classpath.txt").writeText(sourceSets["main"].runtimeClasspath.joinToString("\n"))
+        file("$outputDir/plugin-classpath.txt").writeText(sourceSets.main.get().runtimeClasspath.joinToString("\n"))
     }
 }
 

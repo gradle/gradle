@@ -4,7 +4,7 @@ val buildInfo = task<BuildInfo>("buildInfo") {
 }
 
 sourceSets {
-    getByName("main") {
+    main {
         output.dir(buildInfo.outputFile.parentFile, "builtBy" to buildInfo)
     }
 }

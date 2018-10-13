@@ -47,40 +47,30 @@ task<ProcessTemplates>("processTemplates2") {
 // end::task-arg-method[]
 
 // tag::failed-inferred-task-dep[]
-// tag::inferred-task-dep[]
-// tag::inferred-task-dep-with-files[]
-// tag::inferred-task-dep-with-builtby[]
-// tag::up-to-date-when[]
-val compileJava by tasks.getting(JavaCompile::class)
-
-// end::inferred-task-dep[]
-// end::inferred-task-dep-with-files[]
-// end::inferred-task-dep-with-builtby[]
-// end::up-to-date-when[]
 task<Instrument>("badInstrumentClasses") {
-    classFiles = fileTree(compileJava.destinationDir)
+    classFiles = fileTree(tasks.compileJava.get().destinationDir)
     destinationDir = file("$buildDir/instrumented")
 }
 // end::failed-inferred-task-dep[]
 
 // tag::inferred-task-dep[]
 task<Instrument>("instrumentClasses") {
-    classFiles = compileJava.outputs.files
+    classFiles = tasks.compileJava.get().outputs.files
     destinationDir = file("$buildDir/instrumented")
 }
 // end::inferred-task-dep[]
 
 // tag::inferred-task-dep-with-files[]
 task<Instrument>("instrumentClasses2") {
-    classFiles = layout.files(compileJava)
+    classFiles = layout.files(tasks.compileJava.get())
     destinationDir = file("$buildDir/instrumented")
 }
 // end::inferred-task-dep-with-files[]
 
 // tag::inferred-task-dep-with-builtby[]
 task<Instrument>("instrumentClassesBuiltBy") {
-    classFiles = fileTree(compileJava.destinationDir) {
-        builtBy(compileJava)
+    classFiles = fileTree(tasks.compileJava.get().destinationDir) {
+        builtBy(tasks.compileJava.get())
     }
     destinationDir = file("$buildDir/instrumented")
 }
@@ -88,10 +78,10 @@ task<Instrument>("instrumentClassesBuiltBy") {
 
 // tag::up-to-date-when[]
 task<Instrument>("alwaysInstrumentClasses") {
-    classFiles = layout.files(compileJava)
+    classFiles = layout.files(tasks.compileJava.get())
     destinationDir = file("$buildDir/instrumented")
     outputs.upToDateWhen { false }
 }
 // end::up-to-date-when[]
 
-tasks["build"].dependsOn("processTemplates", "processTemplates2")
+tasks.build { dependsOn("processTemplates", "processTemplates2") }

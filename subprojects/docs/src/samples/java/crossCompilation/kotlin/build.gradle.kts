@@ -51,11 +51,11 @@ tasks.withType<Test> {
 }
 
 task("checkJavadocOutput") {
-    dependsOn(tasks["javadoc"])
+    dependsOn(tasks.javadoc)
     doLast {
         require(File(the<JavaPluginConvention>().docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
     }
 }
 
-tasks["build"].dependsOn("checkJavadocOutput")
+tasks.build { dependsOn("checkJavadocOutput") }
 
