@@ -13,10 +13,8 @@ plugins {
     gradlebuild.classycle
 }
 
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.ENTRY_POINT
-    }
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 dependencies {
@@ -51,11 +49,9 @@ jmh {
 
 val buildReceiptPackage: String by rootProject.extra
 
-
-
 val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
     destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
 }
 
-sourceSets["main"].output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)
+sourceSets.main { output.dir(gradlebuildJava.generatedTestResourcesDir, "builtBy" to buildReceiptResource) }

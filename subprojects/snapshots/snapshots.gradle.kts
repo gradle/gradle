@@ -33,10 +33,8 @@ dependencies {
     testImplementation(project(":internalTesting"))
 }
 
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.CORE
-    }
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
