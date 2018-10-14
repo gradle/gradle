@@ -123,10 +123,11 @@ open class ShadedJarPlugin : Plugin<Project> {
         val configurationToShade = shadedJarExtension.shadedConfiguration
         val baseVersion: String by rootProject.extra
         val jar: TaskProvider<Jar> = tasks.withType(Jar::class).named("jar")
+        val jarInstallPath = findProperty("${project.name}ShadedJarInstallPath") ?: "shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"
 
         return tasks.register("${project.name}ShadedJar", ShadedJar::class) {
             dependsOn(jar)
-            jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
+            jarFile.set(layout.buildDirectory.file(jarInstallPath.toString()))
             classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
             entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
             relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
