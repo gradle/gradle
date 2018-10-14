@@ -177,6 +177,14 @@ All `gradle.kts` script has implicit imports comprised of:
 * the <<writing_build_scripts#script-default-imports, default Gradle API imports>>,
 * the Gradle Kotlin DSL API: `org.gradle.kotlin.dsl.*`.
 
+[CAUTION]
+.Avoiding Gradle Kotlin DSL internal APIs
+====
+Use of Gradle Kotlin DSL internal APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
+
+The link:{kotlin-dsl-api}[Gradle Kotlin DSL] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API definition>> with `org/gradle/kotlin/dsl/*` excluding any subpackages.
+====
+
 
 [[sec:configuring_plugins]]
 == Configuring plugins
