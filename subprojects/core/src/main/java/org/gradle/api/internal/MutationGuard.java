@@ -17,9 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
-
-import javax.annotation.Nullable;
 
 /**
  * A guard object for the mutability of an object. All mutable method of the object needs to be guarded by calling {@code #assertMutationAllowed(String)}. If you want to allow ad-hoc code to pass over the mutation guard of the object, the object will need to implement {@code WithMutationGuard}. You can then use {@code MutationGuards#of(Object)} to acquire the guard and enable/disable the mutation as you see fit.
@@ -44,20 +41,6 @@ public interface MutationGuard {
     <T> Action<? super T> withMutationEnabled(Action<? super T> action);
 
     /**
-     * Execute the specified runnable with mutation disabled.
-     *
-     * @param runnable an runnable to run
-     */
-    void whileMutationDisabled(Runnable runnable);
-
-    /**
-     * Execute the specified runnable with mutation enabled.
-     *
-     * @param runnable an runnable to run
-     */
-    void whileMutationEnabled(Runnable runnable);
-
-    /**
      * Returns {@code true} if the mutation is enabled, and {@code false} otherwise.
      */
     boolean isMutationAllowed();
@@ -69,25 +52,6 @@ public interface MutationGuard {
      * @param target the target object been asserted on
      */
     void assertMutationAllowed(String methodName, Object target);
+
     <T> void assertMutationAllowed(String methodName, T target, Class<T> targetType);
-
-    /**
-     * Execute the specified factory with mutation disabled.
-     *
-     * @param factory a factory to execute
-     * @param <T> the factory return type
-     * @return the returned value from the specified factory
-     */
-    @Nullable
-    <T> T whileMutationDisabled(Factory<T> factory);
-
-    /**
-     * Execute the specified factory with mutation enabled.
-     *
-     * @param factory a factory to execute
-     * @param <T> the factory return type
-     * @return the returned value from the specified factory
-     */
-    @Nullable
-    <T> T whileMutationEnabled(Factory<T> factory);
 }

@@ -12,7 +12,7 @@ dependencies {
 
 // tag::define-main[]
 sourceSets {
-    getByName("main") {
+    main {
         java {
             setSrcDirs(listOf("src/java"))
         }
@@ -21,7 +21,7 @@ sourceSets {
         }
     }
 // end::define-main[]
-    getByName("test") {
+    test {
         java {
             srcDir("test/java")
         }

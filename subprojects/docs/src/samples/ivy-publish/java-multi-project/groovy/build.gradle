@@ -21,7 +21,8 @@ project(':project1') {
     description = 'The first project'
 
     dependencies {
-       compile 'junit:junit:4.12', project(':project2')
+        implementation 'junit:junit:4.12'
+        implementation project(':project2')
     }
 }
 
@@ -29,7 +30,7 @@ project(':project2') {
     description = 'The second project'
 
     dependencies {
-       compile 'commons-collections:commons-collections:3.2.2'
+        implementation 'commons-collections:commons-collections:3.2.2'
     }
 }
 

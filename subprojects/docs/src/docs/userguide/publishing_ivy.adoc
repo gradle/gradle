@@ -24,13 +24,11 @@ A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.a
 
 To use the Ivy Publish Plugin, include the following in your build script:
 
-=== Example: Applying the Ivy Publish Plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/quickstart/build.gradle[tag=use-plugin]
-----
+.Applying the Ivy Publish Plugin
+====
+include::sample[dir="ivy-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 The Ivy Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] repositories.
 
@@ -78,13 +76,11 @@ Overriding the default identity values is easy: simply specify the `organisation
 
 The `descriptor` property can also be used to add additional custom elements as children of the `&lt;info&gt;` element, like so:
 
-=== Example: customizing the publication identity
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/multiple-publications/build.gradle[tag=customize-identity]
-----
+.customizing the publication identity
+====
+include::sample[dir="ivy-publish/customize-identity/groovy",files="build.gradle[tags=customize-identity]"]
+include::sample[dir="ivy-publish/customize-identity/kotlin",files="build.gradle.kts[tags=customize-identity]"]
+====
 
 [TIP]
 ====
@@ -100,13 +96,11 @@ At times, the module descriptor file generated from the project information will
 
 The following sample shows how to use the most common aspects of the DSL:
 
-=== Example: Customizing the module descriptor file
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/descriptor-customization/build.gradle[tag=customize-descriptor]
-----
+.Customizing the module descriptor file
+====
+include::sample[dir="ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=customize-descriptor]"]
+include::sample[dir="ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=customize-descriptor]"]
+====
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
 
@@ -121,13 +115,11 @@ This plugin provides <<dependency_management_terminology.adoc#sub:terminology_re
 
 Here's a simple example of defining a publishing repository:
 
-=== Example: Declaring repositories to publish to
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/quickstart/build.gradle[tag=repositories]
-----
+.Declaring repositories to publish to
+====
+include::sample[dir="ivy-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
 
 The two main things you will want to configure are the repository's:
 
@@ -144,13 +136,11 @@ You can also configure any authentication details that are required to connect t
 
 The following example demonstrates publishing with a multi-project build. Each project publishes a Java component and a configured additional source artifact. The descriptor file is customized to include the project description for each project.
 
-=== Example: Publishing a Java module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/java-multi-project/build.gradle[tag=all]
-----
+.Publishing a Java module
+====
+include::sample[dir="ivy-publish/java-multi-project/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="ivy-publish/java-multi-project/kotlin",files="build.gradle.kts[tags=all]"]
+====
 
 The result is that the following artifacts will be published for each project:
 

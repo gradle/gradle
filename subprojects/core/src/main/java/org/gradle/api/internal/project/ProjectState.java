@@ -64,20 +64,4 @@ public interface ProjectState {
      * Returns whether or not the current thread holds the mutable state for this project.
      */
     boolean hasMutableState();
-
-    /**
-     * Returns a {@link SafeExclusiveLock} associated with this project.
-     */
-    SafeExclusiveLock newExclusiveOperationLock();
-
-    /**
-     * Represents a lock that can be used to perform safe concurrent execution in light of the possibility that a project
-     * lock might be released during execution.  Specifically, it avoids blocking on the lock while holding the project lock.
-     */
-    interface SafeExclusiveLock {
-        /**
-         * Safely waits for the lock before executing the given action.
-         */
-        void withLock(Runnable runnable);
-    }
 }

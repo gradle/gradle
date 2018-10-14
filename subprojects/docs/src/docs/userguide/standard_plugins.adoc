@@ -94,6 +94,11 @@ These plugins provide some integration with various runtime technologies.
 | -
 | Adds tasks for running and bundling a Java project as a command-line application.
 
+| <<distribution_plugin.adoc#distribution_plugin, `distribution`>>
+| -
+| -
+| Adds support for building ZIP and TAR distributions.
+
 | <<ear_plugin.adoc#ear_plugin, `ear`>>
 | -
 | `java`
@@ -135,10 +140,6 @@ These plugins provide some integration with various runtime technologies.
 |===
 | Plugin Id | Automatically applies | Description
 
-| <<distribution_plugin.adoc#distribution_plugin, `distribution`>>
-| -
-| Adds support for building ZIP and TAR distributions.
-
 | <<java_library_distribution_plugin.adoc#java_library_distribution_plugin, `java-library-distribution`>>
 | `java`, `distribution`
 | Adds support for building ZIP and TAR distributions for a Java library.
@@ -160,9 +161,14 @@ These plugins provide help with your software development process.
 | Publish messages to your favourite platforms, such as Twitter or Growl.
 
 | <<build_announcements_plugin.adoc#build_announcements_plugin, `build-announcements`>>
-| announce
+| `announce`
 | -
 | Sends local announcements to your desktop about interesting events in the build lifecycle.
+
+| <<build_dashboard_plugin.adoc#build_dashboard_plugin, `build-dashboard`>>
+| `reporting-base`
+| -
+| Generates build dashboard report.
 
 | <<checkstyle_plugin.adoc#checkstyle_plugin, `checkstyle`>>
 | `java-base`
@@ -194,6 +200,16 @@ These plugins provide help with your software development process.
 | `java`
 | Generates files that are used by http://www.jetbrains.com/idea/index.html[Intellij IDEA IDE], thus making it possible to import the project into IDEA.
 
+| <<jacoco_plugin.adoc#jacoco_plugin, `jacoco`>>
+| `reporting-base`
+| `java`
+| Provides integration with the http://www.eclemma.org/jacoco/[JaCoCo] code coverage library for Java.
+
+| <<java_gradle_plugin.adoc#java_gradle_plugin, `java-gradle-plugin`>>
+| `java`
+|
+| Assists with development of Gradle plugins by providing standard plugin build configuration and validation.
+
 | <<jdepend_plugin.adoc#jdepend_plugin, `jdepend`>>
 | `java-base`
 | -
@@ -210,7 +226,7 @@ These plugins provide help with your software development process.
 | Generates reports containing useful information about your Gradle build.
 
 | <<signing_plugin.adoc#signing_plugin, `signing`>>
-| base
+| `base`
 | -
 | Adds the ability to digitally sign built files and artifacts.
 |===
@@ -226,30 +242,15 @@ These plugins provide help with your software development process.
 |===
 | Plugin Id | Automatically applies | Works with | Description
 
-| <<build_dashboard_plugin.adoc#build_dashboard_plugin, `build-dashboard`>>
-| reporting-base
-| -
-| Generates build dashboard report.
-
 | <<native_software.adoc#native_software, `cunit`>>
 | -
 | -
 | Adds support for running http://cunit.sourceforge.net[CUnit] tests.
 
-| <<jacoco_plugin.adoc#jacoco_plugin, `jacoco`>>
-| reporting-base
-| java
-| Provides integration with the http://www.eclemma.org/jacoco/[JaCoCo] code coverage library for Java.
-
 | <<native_software.adoc#native_software, `visual-studio`>>
 | -
 | native language plugins
 | Adds integration with Visual Studio.
-
-| <<java_gradle_plugin.adoc#java_gradle_plugin, `java-gradle-plugin`>>
-| java
-|
-| Assists with development of Gradle plugins by providing standard plugin build configuration and validation.
 |===
 
 
@@ -262,19 +263,19 @@ These plugins form the basic building blocks which the other plugins are assembl
 |===
 | Plugin Id | Description
 
-| base
+| `base`
 | Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks. See <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
-| java-base
+| `java-base`
 | Adds the source sets concept to the project. Does not add any particular source sets.
 
-| groovy-base
+| `groovy-base`
 | Adds the Groovy source sets concept to the project.
 
-| scala-base
+| `scala-base`
 | Adds the Scala source sets concept to the project.
 
-| reporting-base
+| `reporting-base`
 | Adds some shared convention properties to the project, relating to report generation.
 |===
 

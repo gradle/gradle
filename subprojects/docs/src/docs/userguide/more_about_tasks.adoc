@@ -251,12 +251,6 @@ For more information about task dependencies, see the link:{groovyDslPath}/org.g
 [[sec:ordering_tasks]]
 == Ordering tasks
 
-
-[NOTE]
-====
-Task ordering is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. Please be aware that this feature may change in later Gradle versions.
-====
-
 In some cases it is useful to control the _order_ in which 2 tasks will execute, without introducing an explicit dependency between those tasks. The primary difference between a task _ordering_ and a task _dependency_ is that an ordering rule does not influence which tasks will be executed, only the order in which they will be executed.
 
 Task ordering can be useful in a number of scenarios:
@@ -1179,12 +1173,6 @@ If you run “`gradle -q tasks`” you won't find a task named “`pingServer1`�
 
 [[sec:finalizer_tasks]]
 == Finalizer tasks
-
-
-[NOTE]
-====
-Finalizers tasks are an _incubating_ feature (see <<feature_lifecycle.adoc#sec:incubating_state,more about the Gradle feature lifecycle>>).
-====
 
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
 

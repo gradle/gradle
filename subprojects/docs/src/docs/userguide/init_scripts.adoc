@@ -17,7 +17,7 @@
 
 Gradle provides a powerful mechanism to allow customizing the build based on the current environment. This mechanism also supports tools that wish to integrate with Gradle.
 
-Note that this is completely different from the “`init`” task provided by the “`build-init`” incubating plugin (see <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>>).
+Note that this is completely different from the “`init`” task provided by the “`build-init`” plugin (see <<build_init_plugin.adoc#build_init_plugin,Build Init Plugin>>).
 
 
 [[sec:basic_usage]]

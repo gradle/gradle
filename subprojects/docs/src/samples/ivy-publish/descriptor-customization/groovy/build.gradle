@@ -1,4 +1,6 @@
-apply plugin: 'ivy-publish'
+plugins {
+    id 'ivy-publish'
+}
 
 group = 'org.gradle.sample'
 version = '1.0'
@@ -31,6 +33,7 @@ publishing {
         }
     }
 }
+
 // tag::generate[]
 generateDescriptorFileForIvyCustomPublication {
     destination = file("$buildDir/generated-ivy.xml")

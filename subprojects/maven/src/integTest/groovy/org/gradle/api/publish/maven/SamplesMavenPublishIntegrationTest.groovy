@@ -119,19 +119,21 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         verifyPomFile(project2impl, "output/project2-impl.pom.xml")
     }
 
+    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    def conditionalPublishing() {
+    def "conditional publishing with #dsl dsl"() {
         using m2
 
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
 
         and:
         def artifactId = "maven-conditional-publishing"
         def version = "1.0"
-        def externalRepo = maven(sampleProject.dir.file("build/repos/external"))
+        def externalRepo = maven(sampleDir.file("build/repos/external"))
         def binary = externalRepo.module("org.gradle.sample", artifactId, version)
-        def internalRepo = maven(sampleProject.dir.file("build/repos/internal"))
+        def internalRepo = maven(sampleDir.file("build/repos/internal"))
         def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version)
         def localRepo = maven(temporaryFolder.createDir("m2_repo"))
         def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version)
@@ -149,12 +151,16 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         binaryAndSourcesInRepo.assertPublished()
         binaryAndSourcesInRepo.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}.pom"
         binaryAndSourcesLocal.assertPublished()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    def shorthandPublishToExternalRepository() {
+    def "shorthand publish to external repository with #dsl dsl"() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file(dsl))
 
         when:
         succeeds "publishToExternalRepository"
@@ -163,12 +169,16 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         executed ":publishBinaryPublicationToExternalRepository"
         skipped ":publishBinaryAndSourcesPublicationToExternalRepository"
         notExecuted ":publishBinaryPublicationToInternalRepository", ":publishBinaryAndSourcesPublicationToInternalRepository"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    def shorthandPublishForDevelopment() {
+    def "shorthand publish for development with #dsl dsl"() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file(dsl))
         def localRepo = temporaryFolder.createDir("m2_repo")
 
         when:
@@ -179,15 +189,20 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         executed ":publishBinaryAndSourcesPublicationToInternalRepository", ":publishBinaryAndSourcesPublicationToMavenLocal"
         skipped ":publishBinaryPublicationToInternalRepository", ":publishBinaryPublicationToMavenLocal"
         notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("maven-publish/publish-artifact")
-    def publishesRpmArtifact() {
+    def "publishes rpm artifact with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
         def artifactId = "publish-artifact"
         def version = "1.0"
-        def repo = maven(sampleProject.dir.file("build/repo"))
+        def repo = maven(sampleDir.file("build/repo"))
         def module = repo.module("org.gradle.sample", artifactId, version)
 
         when:
@@ -199,6 +214,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         and:
         module.assertPublished()
         module.assertArtifactsPublished "${artifactId}-${version}.rpm", "${artifactId}-${version}.pom"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("maven-publish/pomGeneration")
