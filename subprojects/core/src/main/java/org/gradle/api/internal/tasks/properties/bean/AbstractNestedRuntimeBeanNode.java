@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.properties.bean;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProducerAwareProperty;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
@@ -116,13 +119,23 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             return isAnnotationPresent(Optional.class);
         }
 
-        @Nullable
         @Override
-        public Object getContainerValue() {
+        public void attachProducer(Task producer) {
             if (Provider.class.isAssignableFrom(method.getReturnType())) {
-                return valueSupplier.get();
-            } else {
-                return null;
+                Object value = valueSupplier.get();
+                if (value instanceof ProducerAwareProperty) {
+                    ((ProducerAwareProperty) value).attachProducer(producer);
+                }
+            }
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+                Object value = valueSupplier.get();
+                if (value instanceof PropertyInternal) {
+                    ((PropertyInternal) value).finalizeValueOnReadAndWarnAboutChanges();
+                }
             }
         }
 

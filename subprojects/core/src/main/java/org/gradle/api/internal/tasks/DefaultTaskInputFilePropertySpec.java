@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
@@ -125,11 +124,7 @@ public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFilePr
 
     @Override
     public void prepareValue() {
-        // TODO - push this into ValidatingValue
-        Object container = value.getContainerValue();
-        if (container instanceof PropertyInternal) {
-            ((PropertyInternal) container).finalizeValueOnReadAndWarnAboutChanges();
-        }
+        value.maybeFinalizeValue();
         Object obj = value.call();
         // TODO - move this to ValidatingValue instead
         if (obj instanceof LifecycleAwareTaskProperty) {
