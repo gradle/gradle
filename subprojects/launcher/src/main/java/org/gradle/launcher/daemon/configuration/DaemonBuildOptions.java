@@ -70,7 +70,7 @@ public class DaemonBuildOptions {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setIdleTimeout(new Integer(value));
+                settings.setIdleTimeout(Integer.valueOf(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
@@ -87,7 +87,7 @@ public class DaemonBuildOptions {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
-                settings.setPeriodicCheckInterval(new Integer(value));
+                settings.setPeriodicCheckInterval(Integer.valueOf(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }
@@ -171,7 +171,7 @@ public class DaemonBuildOptions {
 
     public static class ForegroundOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public ForegroundOption() {
-            super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground.").incubating());
+            super(null, CommandLineOptionConfiguration.create("foreground", "Starts the Gradle Daemon in the foreground."));
         }
 
         @Override

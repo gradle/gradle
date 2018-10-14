@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
-
 /**
  * Normalizes file input that represents a Java compile classpath.
  *
@@ -30,6 +28,5 @@ import org.gradle.api.Incubating;
  *
  * @since 4.3
  */
-@Incubating
 public interface CompileClasspathNormalizer extends FileNormalizer {
 }

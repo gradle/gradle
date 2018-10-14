@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.rules;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 
 import java.util.SortedMap;
 

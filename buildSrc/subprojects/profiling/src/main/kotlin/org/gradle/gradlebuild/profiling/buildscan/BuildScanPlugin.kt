@@ -23,11 +23,17 @@ import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
+import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.filter
+import kotlin.collections.forEach
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -217,14 +223,14 @@ open class BuildScanPlugin : Plugin<Project> {
 
 
 private
-fun Project.system(vararg args: String): String =
-    ProcessBuilder(args.toList())
-        .directory(rootDir)
-        .start()
-        .run {
-            assert(waitFor() == 0)
-            inputStream.bufferedReader().use { it.readText().trim() }
-        }
+fun Project.system(vararg args: String): String {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine(*args)
+        standardOutput = out
+    }
+    return String(out.toByteArray()).trim()
+}
 
 
 private

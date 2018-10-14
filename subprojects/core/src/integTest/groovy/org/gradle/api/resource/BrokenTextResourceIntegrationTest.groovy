@@ -69,9 +69,11 @@ task text(type: TextTask)
     def "reports read of missing archive entry"() {
         given:
         buildFile << """
-            task jar(type: Jar)
+            task jar(type: Jar) {
+                destinationDir = buildDir
+            }
             text.text = resources.text.fromArchiveEntry(jar, 'config.txt')
-"""
+        """
 
         expect:
         fails("text")

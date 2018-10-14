@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -47,7 +46,6 @@ public interface AuthenticationSupported {
      * @return The credentials
      * @throws IllegalArgumentException when the credentials assigned to this repository are not assignable to the specified type
      */
-    @Incubating
     <T extends Credentials> T getCredentials(Class<T> credentialsType);
 
     /**
@@ -96,7 +94,6 @@ public interface AuthenticationSupported {
      * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type
      * @throws IllegalArgumentException if {@code credentialsType} is of a different type to the credentials previously specified for this repository
      */
-    @Incubating
     <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
 
     /**
@@ -122,7 +119,6 @@ public interface AuthenticationSupported {
      *
      * @param action the action to use to configure the authentication schemes.
      */
-    @Incubating
     void authentication(Action<? super AuthenticationContainer> action);
 
     /**
@@ -130,6 +126,5 @@ public interface AuthenticationSupported {
      *
      * @return the authentication schemes for this repository
      */
-    @Incubating
     AuthenticationContainer getAuthentication();
 }

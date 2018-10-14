@@ -16,7 +16,6 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -34,13 +33,12 @@ import spock.lang.Unroll
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
 class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Ignore("WIP: kotlin-dsl upgrade")
     @Unroll
     def "#tasks on the gradle build comparing gradle"() {
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
-        runner.targetVersions = ["5.0-20180926235905+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
         runner.args = ["-Djava9Home=${System.getProperty('java9Home')}"]
 
         when:

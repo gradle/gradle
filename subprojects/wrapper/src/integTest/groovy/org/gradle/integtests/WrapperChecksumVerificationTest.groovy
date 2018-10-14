@@ -17,8 +17,13 @@
 package org.gradle.integtests
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Issue
 
+@Issue('https://github.com/gradle/gradle-private/issues/1537')
+@Requires(TestPrecondition.OLD_JETTY_COMPATIBLE)
 class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     @Rule
     HttpServer server = new HttpServer()

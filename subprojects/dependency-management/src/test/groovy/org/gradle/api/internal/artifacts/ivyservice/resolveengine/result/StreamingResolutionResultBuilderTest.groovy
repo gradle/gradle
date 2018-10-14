@@ -31,7 +31,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static java.util.Collections.emptySet
@@ -41,7 +41,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 class StreamingResolutionResultBuilderTest extends Specification {
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, new DesugaredAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "result can be read multiple times"() {
         def rootNode = rootNode(1, "org", "root", "1.0")

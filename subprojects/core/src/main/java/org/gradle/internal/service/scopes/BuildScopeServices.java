@@ -54,6 +54,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
@@ -75,7 +76,6 @@ import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.CacheValidator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildConfigurer;
@@ -283,14 +283,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
         ScriptSourceHasher hasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         BuildOperationExecutor buildOperationExecutor) {
-        CacheValidator scriptCacheInvalidator = new CacheValidator() {
-            public boolean isValid() {
-                return !startParameter.isRecompileScripts();
-            }
-        };
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
-            scriptCacheInvalidator,
             new BuildOperationBackedScriptCompilationHandler(
                 new DefaultScriptCompilationHandler(classLoaderCache, importsReader), buildOperationExecutor),
             progressLoggerFactory,
@@ -454,8 +448,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions) {
-        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
+    protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
+                                                                                final BuildOperationExecutor buildOperationExecutor,
+                                                                                ProjectStateRegistry projectStateRegistry) {
+        ToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry);
         for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
             registryAction.execute(registry);
         }

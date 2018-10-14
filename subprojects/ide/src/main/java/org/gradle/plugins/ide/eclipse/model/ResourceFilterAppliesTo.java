@@ -15,14 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * Specifies the type of resource that the Eclipse {@link ResourceFilter} applies to.
  *
  * @since 3.5
  */
-@Incubating
 public enum ResourceFilterAppliesTo {
     FILES,
     FOLDERS,

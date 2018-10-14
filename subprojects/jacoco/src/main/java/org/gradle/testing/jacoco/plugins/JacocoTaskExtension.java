@@ -44,7 +44,6 @@ import java.util.List;
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
  */
-@Incubating
 public class JacocoTaskExtension {
 
     /**
@@ -123,6 +122,7 @@ public class JacocoTaskExtension {
      * @param destinationFile Destination file provider
      * @since 4.0
      */
+    @Incubating
     public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile.set(destinationFile);
     }
@@ -317,6 +317,7 @@ public class JacocoTaskExtension {
      *
      * @since 4.6
      */
+    @Incubating
     @Classpath
     public FileCollection getAgentClasspath() {
         return agent.getAgentConf();

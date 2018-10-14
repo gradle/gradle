@@ -36,6 +36,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
     void mergesMetadataFilesCorrectly() {
+        file("master/settings.gradle") << ""
         def buildFile = file("master/build.gradle")
         buildFile << """
 apply plugin: 'java'

@@ -26,10 +26,10 @@ val emailNotification by extra { "build@master.org" }
 sourceSets.all { extra["purpose"] = null }
 
 sourceSets {
-    getByName("main") {
+    main {
         extra["purpose"] = "production"
     }
-    getByName("test") {
+    test {
         extra["purpose"] = "test"
     }
     create("plugin") {

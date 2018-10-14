@@ -17,7 +17,6 @@ package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Specifies how the entries of multiple manifests should be merged together.
@@ -31,7 +30,6 @@ public interface ManifestMergeSpec {
      * @return the character set used to decode the merged manifest content
      * @since 2.14
      */
-    @Incubating
     String getContentCharset();
 
     /**
@@ -41,7 +39,6 @@ public interface ManifestMergeSpec {
      * @see #getContentCharset()
      * @since 2.14
      */
-    @Incubating
     void setContentCharset(String contentCharset);
 
     /**

@@ -30,7 +30,7 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
-import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
+import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -49,16 +49,18 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final WorkerDaemonStarter workerDaemonStarter;
     private final ListenerManager listenerManager;
     private final LoggingManagerInternal loggingManager;
+    private final OsMemoryInfo memoryInfo;
     private final SessionLifecycleListener stopSessionScopeWorkers;
     private final OutputEventListener logLevelChangeEventListener;
     private final WorkerDaemonExpiration workerDaemonExpiration;
     private final MemoryManager memoryManager;
-    private LogLevel currentLogLevel;
+    private volatile LogLevel currentLogLevel;
 
-    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager) {
+    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager, OsMemoryInfo memoryInfo) {
         this.workerDaemonStarter = workerDaemonStarter;
         this.listenerManager = listenerManager;
         this.loggingManager = loggingManager;
+        this.memoryInfo = memoryInfo;
         this.stopSessionScopeWorkers = new StopSessionScopedWorkers();
         listenerManager.addListener(stopSessionScopeWorkers);
         this.logLevelChangeEventListener = new LogLevelChangeEventListener();
@@ -122,9 +124,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
         loggingManager.removeOutputEventListener(logLevelChangeEventListener);
     }
 
-    private static long getTotalPhysicalMemory() {
+    private long getTotalPhysicalMemory() {
         try {
-            return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
+            return memoryInfo.getOsSnapshot().getTotalPhysicalMemory();
         } catch (UnsupportedOperationException e) {
             return -1;
         }
@@ -140,7 +142,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
             List<WorkerDaemonClient> sortedClients = CollectionUtils.sort(idleClients, new Comparator<WorkerDaemonClient>() {
                 @Override
                 public int compare(WorkerDaemonClient o1, WorkerDaemonClient o2) {
-                    return new Integer(o1.getUses()).compareTo(o2.getUses());
+                    return Integer.compare(o1.getUses(), o2.getUses());
                 }
             });
             List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
@@ -183,9 +185,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         public void onOutput(OutputEvent event) {
             if (event instanceof LogLevelChangeEvent) {
                 LogLevelChangeEvent logLevelChangeEvent = (LogLevelChangeEvent) event;
-                synchronized (lock) {
-                    currentLogLevel = logLevelChangeEvent.getNewLogLevel();
-                }
+                currentLogLevel = logLevelChangeEvent.getNewLogLevel();
             }
         }
     }

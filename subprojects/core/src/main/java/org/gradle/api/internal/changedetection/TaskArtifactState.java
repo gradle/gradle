@@ -19,10 +19,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
@@ -39,7 +39,15 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate(Collection<String> messages);
 
-    IncrementalTaskInputs getInputChanges(TaskProperties taskProperties);
+    /**
+     * Returns the incremental task inputs for the current execution.
+     */
+    IncrementalTaskInputs getInputChanges();
+
+    /**
+     * Returns fingerprints of all the current input files.
+     */
+    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.

@@ -82,6 +82,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         throw new ClassNotFoundException(String.format("%s not found.", name));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {

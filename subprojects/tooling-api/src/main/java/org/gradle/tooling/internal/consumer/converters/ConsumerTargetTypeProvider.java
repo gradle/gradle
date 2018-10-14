@@ -43,7 +43,7 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
 
     public ConsumerTargetTypeProvider() {
         configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
-        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
+        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), BackwardsCompatibleIdeaModuleDependency.class);
         configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
     }
 
@@ -75,7 +75,6 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
                 return CppStaticLibrary.class.asSubclass(initialTargetType);
             }
         }
-
         return initialTargetType;
     }
 }

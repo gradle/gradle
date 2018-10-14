@@ -22,9 +22,9 @@ import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.internal.action.DefaultConfigurableRule;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 

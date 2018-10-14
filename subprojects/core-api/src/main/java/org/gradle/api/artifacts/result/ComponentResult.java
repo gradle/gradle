@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
@@ -23,7 +22,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  *
  * @since 2.0
  */
-@Incubating
 public interface ComponentResult {
     /**
      * Returns an identifier for the requested component.

@@ -17,11 +17,11 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

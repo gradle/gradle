@@ -46,7 +46,6 @@ import org.gradle.api.Incubating;
  *
  * @since 2.2
  */
-@Incubating
 public interface TextResourceFactory {
     /**
      * Creates a text resource backed by the given string.

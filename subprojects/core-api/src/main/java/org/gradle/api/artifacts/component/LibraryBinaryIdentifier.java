@@ -15,12 +15,9 @@
  */
 package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * An identifier for a library instance that is built as part of the current build.
  */
-@Incubating
 public interface LibraryBinaryIdentifier extends ComponentIdentifier {
 
     /**

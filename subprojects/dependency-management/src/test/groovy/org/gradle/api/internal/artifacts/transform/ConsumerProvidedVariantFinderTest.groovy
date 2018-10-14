@@ -25,13 +25,13 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class ConsumerProvidedVariantFinderTest extends Specification {
     def matcher = Mock(AttributeMatcher)
     def schema = Mock(AttributesSchemaInternal)
-    def immutableAttributesFactory = TestUtil.attributesFactory()
+    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     def transformRegistrations = Mock(VariantTransformRegistry)
     def matchingCache = new ConsumerProvidedVariantFinder(transformRegistrations, schema, immutableAttributesFactory)
 

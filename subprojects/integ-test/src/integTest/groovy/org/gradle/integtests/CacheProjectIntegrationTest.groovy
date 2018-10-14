@@ -90,11 +90,6 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         modifyLargeBuildScript()
         testBuild("newTask", "I am new")
         classFile.assertHasChangedSince(classFileSnapshot)
-        classFileSnapshot = classFile.snapshot()
-
-        executer.expectDeprecationWarning()
-        testBuild("newTask", "I am new", "--recompile-scripts")
-        classFile.assertContentsHaveNotChangedSince(classFileSnapshot)
     }
 
     @Test
@@ -112,20 +107,6 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
         testBuild("hello2", "Hello 2", "-rerun-tasks")
         artifactsCache.assertHasChangedSince(artifactsCacheSnapshot)
-    }
-
-    @Test
-    public void "does not rebuild artifact cache when run with --recompile-scripts"() {
-        createLargeBuildScript()
-        testBuild("hello1", "Hello 1")
-
-        TestFile dependenciesCache = findDependencyCacheDir()
-        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
-
-        modifyLargeBuildScript()
-        executer.expectDeprecationWarning()
-        testBuild("newTask", "I am new", "--recompile-scripts")
-        assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
     }
 
     @Test

@@ -21,7 +21,7 @@ public interface PropertySpecFactory {
 
     DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths);
 
-    DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath);
+    DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue path);
 
     DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value);
 

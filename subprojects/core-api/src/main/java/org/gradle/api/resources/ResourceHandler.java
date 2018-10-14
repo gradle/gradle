@@ -16,8 +16,6 @@
 
 package org.gradle.api.resources;
 
-import org.gradle.api.Incubating;
-
 /**
  * Provides access to resource-specific utility methods, for example factory methods that create various resources.
  */
@@ -47,6 +45,5 @@ public interface ResourceHandler {
      *
      * @return a factory for creating {@code TextResource}s
      */
-    @Incubating
     TextResourceFactory getText();
 }

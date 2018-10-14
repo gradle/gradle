@@ -213,9 +213,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 case 'all':
                     crossVersion = true
                     return [
-                            TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
-                            TestedGradleDistribution.mostRecentFinalRelease(),
-                            TestedGradleDistribution.UNDER_DEVELOPMENT
+                        TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
+                        TestedGradleDistribution.mostRecentFinalRelease(),
+                        TestedGradleDistribution.UNDER_DEVELOPMENT
                     ] as SortedSet
                 case 'current': return [
                     TestedGradleDistribution.UNDER_DEVELOPMENT

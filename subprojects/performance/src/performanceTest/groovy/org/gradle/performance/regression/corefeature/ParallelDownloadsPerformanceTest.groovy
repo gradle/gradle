@@ -46,7 +46,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setup() {
-        runner.targetVersions = ["5.0-20180919145027+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
         runner.warmUpRuns = 5
         runner.runs = 15
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {

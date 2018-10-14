@@ -19,33 +19,21 @@ package org.gradle.process.internal.health.memory;
 import org.gradle.internal.os.OperatingSystem;
 
 public class DefaultOsMemoryInfo implements OsMemoryInfo {
+    private final OsMemoryInfo delegate;
 
-    /**
-     * Retrieves the total physical memory size on the system in bytes.
-     *
-     * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
-     */
-    long getTotalPhysicalMemory() {
-        return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
-    }
-
-    /**
-     * Retrieves the free physical memory on the system in bytes.
-     *
-     * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
-     */
-    long getFreePhysicalMemory() {
+    public DefaultOsMemoryInfo() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         if (operatingSystem.isMacOsX()) {
-            return new NativeOsxAvailableMemory().get();
+            delegate = new NativeOsMemoryInfo();
         } else if (operatingSystem.isLinux()) {
-            return new MeminfoAvailableMemory().get();
+            delegate = new MemInfoOsMemoryInfo();
+        } else {
+            delegate = new MBeanOsMemoryInfo();
         }
-        return new MBeanAvailableMemory().get();
     }
 
     @Override
     public OsMemoryStatus getOsSnapshot() {
-        return new OsMemoryStatusSnapshot(getTotalPhysicalMemory(), getFreePhysicalMemory());
+        return delegate.getOsSnapshot();
     }
 }

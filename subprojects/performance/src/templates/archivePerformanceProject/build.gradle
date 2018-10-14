@@ -60,3 +60,7 @@ task visitTarGz(dependsOn: tarGz) {
         }
     }
 }
+
+tasks.withType(AbstractArchiveTask) {
+    destinationDir = projectDir
+}

@@ -308,7 +308,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
         @Override
         public MutationGuard getMutationGuard() {
-            throw new UnsupportedOperationException();
+            return MutationGuards.identity();
         }
     }
 }

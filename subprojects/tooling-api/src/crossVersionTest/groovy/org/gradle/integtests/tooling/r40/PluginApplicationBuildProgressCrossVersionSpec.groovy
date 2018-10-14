@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r40
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
@@ -28,7 +27,6 @@ import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
-@ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecification {
 

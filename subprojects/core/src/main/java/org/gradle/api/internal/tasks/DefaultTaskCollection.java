@@ -15,15 +15,21 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
@@ -31,23 +37,31 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Map;
+
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
     private static final Task.Namer NAMER = new Task.Namer();
 
     protected final ProjectInternal project;
 
-    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project) {
+    private final MutationGuard parentMutationGuard;
+
+    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
         super(type, instantiator, NAMER);
         this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
     }
 
-    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project) {
+    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
         super(collection, filter, instantiator, NAMER);
         this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project);
+        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard);
     }
 
     @Override
@@ -112,6 +126,60 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
         // TODO: This isn't quite right. We're leaking the _implementation_ type here.  But for tasks, this is usually right.
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType()));
+    }
+
+    @Override
+    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
+        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return new NamedDomainObjectCollectionSchema() {
+            @Override
+            public Iterable<? extends NamedDomainObjectSchema> getElements() {
+                return Iterables.concat(
+                    Iterables.transform(index.asMap().entrySet(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
+
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    // TODO: This returns the wrong public type for domain objects
+                                    // created with the eager APIs or added directly to the container.
+                                    // This can leak internal types.
+                                    // We do not currently keep track of the type used when creating
+                                    // a domain object (via create) or the type of the container when
+                                    // a domain object is added directly (via add).
+                                    return new DslObject(e.getValue()).getPublicType();
+                                }
+                            };
+                        }
+                    }),
+                    Iterables.transform(index.getPendingAsMap().entrySet(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
+
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    return typeOf(e.getValue().getType());
+                                }
+                            };
+                        }
+                    })
+                );
+            }
+        };
     }
 
     // Cannot be private due to reflective instantiation

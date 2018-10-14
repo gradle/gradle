@@ -16,7 +16,6 @@
 
 package org.gradle.caching.local;
 
-import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -44,7 +43,7 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * The directory is evaluated as per {@code Project.file(Object)}.
      */
-    public void setDirectory(Object directory) {
+    public void setDirectory(@Nullable Object directory) {
         this.directory = directory;
     }
 
@@ -53,7 +52,6 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * @since 4.6
      */
-    @Incubating
     public int getRemoveUnusedEntriesAfterDays() {
         return removeUnusedEntriesAfterDays;
     }
@@ -65,7 +63,6 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * @since 4.6
      */
-    @Incubating
     public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
         if (removeUnusedEntriesAfterDays < 1) {
             throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");

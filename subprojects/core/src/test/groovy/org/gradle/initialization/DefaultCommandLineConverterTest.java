@@ -159,12 +159,6 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
-    public void withSearchUpwardsFlagSet() {
-        expectedSearchUpwards = false;
-        checkConversion("-u");
-    }
-
-    @Test
     public void withShowFullStacktrace() {
         expectedShowStackTrace = ShowStacktrace.ALWAYS_FULL;
         checkConversion("-S");
@@ -205,11 +199,6 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
         checkConversion("-x", "excluded");
         expectedExcludedTasks.add("excluded2");
         checkConversion("-x", "excluded", "-x", "excluded2");
-    }
-
-    @Test(expected = CommandLineArgumentException.class)
-    public void withEmbeddedScriptAndConflictingNoSearchUpwardsOption() {
-        checkConversion("-e", "someScript", "-u", "clean");
     }
 
     @Test(expected = CommandLineArgumentException.class)
@@ -315,12 +304,6 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
         expectedRefreshDependencies = true;
         checkConversion("--refresh-dependencies");
         checkConversion("-refresh-dependencies");
-    }
-
-    @Test
-    public void withRecompileScripts() {
-        expectedRecompileScripts = true;
-        checkConversion("--recompile-scripts");
     }
 
     @Test(expected = CommandLineArgumentException.class)

@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
 import javax.annotation.Nullable;
@@ -125,7 +124,6 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param pluginId the id of the plugin
      * @param action the action
      */
-    @Incubating
     void withId(String pluginId, Action<? super Plugin> action);
 
 }

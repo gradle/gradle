@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
@@ -105,7 +104,6 @@ import java.util.Map;
  *
  * @since 3.0
  */
-@Incubating
 @CacheableTask
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {

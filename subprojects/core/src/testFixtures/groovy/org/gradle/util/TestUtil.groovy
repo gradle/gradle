@@ -17,15 +17,10 @@ package org.gradle.util
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
-import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -40,8 +35,6 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -81,18 +74,6 @@ class TestUtil {
         return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver))
     }
 
-    static ValueSnapshotter valueSnapshotter() {
-        return new ValueSnapshotter(new ClassLoaderHierarchyHasher() {
-            @Override
-            HashCode getClassLoaderHash(ClassLoader classLoader) {
-                return HashCode.fromInt(classLoader.hashCode())
-            }
-        }, NamedObjectInstantiator.INSTANCE)
-    }
-
-    static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(valueSnapshotter(), NamedObjectInstantiator.INSTANCE)
-    }
 
     static NamedObjectInstantiator objectInstantiator() {
         return NamedObjectInstantiator.INSTANCE
@@ -216,15 +197,6 @@ class TestUtil {
         return new UID().toString()
     }
 
-    static ImmutableAttributes attributes(Map<String, ?> values) {
-        def attrs = ImmutableAttributes.EMPTY
-        if (values) {
-            values.each { String key, Object value ->
-                attrs = attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
-            }
-        }
-        return attrs
-    }
 
 }
 

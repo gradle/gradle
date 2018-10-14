@@ -17,65 +17,62 @@
 
 package org.gradle.internal.id
 
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import static org.junit.Assert.*
+import spock.lang.Specification
 
-import org.gradle.util.JUnit4GroovyMockery
-
-@RunWith(JMock.class)
-class CompositeIdGeneratorTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final IdGenerator<?> target = context.mock(IdGenerator.class)
+class CompositeIdGeneratorTest extends Specification {
+    private final IdGenerator<?> target = Mock()
     private final CompositeIdGenerator generator = new CompositeIdGenerator('scope', target)
 
-    @Test
-    public void createsACompositeId() {
-        Object original = 12
-        context.checking {
-            one(target).generateId()
-            will(returnValue(original))
-        }
-        Object id = generator.generateId()
-        assertThat(id, not(sameInstance(original)))
-        assertThat(id, not(equalTo(original)))
-        assertThat(id.toString(), equalTo('scope.12'))
+    def createsACompositeId() {
+        def original = 12
+        when:
+        def id = generator.generateId()
+
+        then:
+        id != original
+        id.toString() == 'scope.12'
+
+        and:
+        1 * target.generateId() >> original
     }
 
-    @Test
-    public void compositeIdsAreNotEqualWhenOriginalIdsAreDifferent() {
-        context.checking {
-            one(target).generateId()
-            will(returnValue(12))
-            one(target).generateId()
-            will(returnValue('original'))
-        }
+    def compositeIdsAreNotEqualWhenOriginalIdsAreDifferent() {
+        when:
+        def id = generator.generateId()
+        def id2 = generator.generateId()
 
-        assertThat(generator.generateId(), not(equalTo(generator.generateId())))
+        then:
+        id != id2
+
+        and:
+        1 * target.generateId() >> 12
+        1 * target.generateId() >> 13
     }
 
-    @Test
-    public void compositeIdsAreNotEqualWhenScopesAreDifferent() {
-        context.checking {
-            exactly(2).of(target).generateId()
-            will(returnValue(12))
-        }
-
+    def compositeIdsAreNotEqualWhenScopesAreDifferent() {
         CompositeIdGenerator other = new CompositeIdGenerator('other', target)
-        assertThat(generator.generateId(), not(equalTo(other.generateId())))
+
+        when:
+        def id = generator.generateId()
+        def id2 = other.generateId()
+
+        then:
+        id != id2
+
+        and:
+        2 * target.generateId() >> 12
     }
 
-    @Test
-    public void compositeIdsAreEqualWhenOriginalIdsAreEqual() {
-        context.checking {
-            exactly(2).of(target).generateId()
-            will(returnValue(12))
-        }
+    def compositeIdsAreEqualWhenOriginalIdsAreEqual() {
+        when:
+        def id = generator.generateId()
+        def id2 = generator.generateId()
 
-        assertThat(generator.generateId(), strictlyEqual(generator.generateId()))
+        then:
+        id == id2
+
+        and:
+        2 * target.generateId() >> 12
     }
 }
 

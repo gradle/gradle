@@ -40,7 +40,6 @@ import java.io.File;
  * Task to merge multiple execution data files into one.
  */
 @CacheableTask
-@Incubating
 public class JacocoMerge extends JacocoBase {
 
     private FileCollection executionData;
@@ -77,6 +76,7 @@ public class JacocoMerge extends JacocoBase {
      * @param destinationFile Destination file provider
      * @since 4.0
      */
+    @Incubating
     public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile.set(destinationFile);
     }

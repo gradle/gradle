@@ -16,8 +16,6 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Incubating;
-
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -40,7 +38,6 @@ import java.io.IOException;
  *
  * @since 3.5
  */
-@Incubating
 public interface BuildCacheService extends Closeable {
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.

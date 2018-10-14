@@ -235,12 +235,10 @@ public class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    @Incubating
     public Set<File> getGeneratedSourceDirs() {
         return generatedSourceDirs;
     }
 
-    @Incubating
     public void setGeneratedSourceDirs(Set<File> generatedSourceDirs) {
         this.generatedSourceDirs = generatedSourceDirs;
     }
@@ -450,12 +448,10 @@ public class IdeaModule {
      * <p>
      * The Idea module language level is based on the {@code sourceCompatibility} settings for the associated Gradle project.
      */
-    @Incubating
     public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
     }
 
-    @Incubating
     public void setLanguageLevel(IdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
     }
@@ -466,12 +462,10 @@ public class IdeaModule {
      * <p>
      * The Idea module bytecode version is based on the {@code targetCompatibility} settings for the associated Gradle project.
      */
-    @Incubating
     public JavaVersion getTargetBytecodeVersion() {
         return targetBytecodeVersion;
     }
 
-    @Incubating
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -479,12 +473,10 @@ public class IdeaModule {
     /**
      * The Scala version used by this module.
      */
-    @Incubating
     public ScalaPlatform getScalaPlatform() {
         return scalaPlatform;
     }
 
-    @Incubating
     public void setScalaPlatform(ScalaPlatform scalaPlatform) {
         this.scalaPlatform = scalaPlatform;
     }

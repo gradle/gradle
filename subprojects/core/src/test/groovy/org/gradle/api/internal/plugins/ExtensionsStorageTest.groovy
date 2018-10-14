@@ -17,9 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.plugins.DeferredConfigurable
 import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
@@ -117,120 +115,8 @@ class ExtensionsStorageTest extends Specification {
         val == extension
     }
 
-    def "configures deferred configurable extension"() {
-
-        TestDeferredExtension extension = new TestDeferredExtension()
-        def delegate = Mock(TestExtension)
-        extension.delegate = delegate
-
-        when:
-        storage.add(typeOf(TestDeferredExtension), "ext", extension)
-        storage.configureExtension("ext", {
-            it.call(1)
-        })
-        storage.configureExtension(typeOf(TestDeferredExtension), new Action<TestDeferredExtension>() {
-            void execute(TestDeferredExtension t) {
-                t.call(2)
-            }
-        })
-
-        then:
-        0 * _
-
-        when:
-        storage.getByName("ext")
-
-        then:
-        1 * delegate.call(1)
-        1 * delegate.call(2)
-    }
-
-    def "propagates configure exception on each attempt to access deferred configurable exception"() {
-
-        TestDeferredExtension extension = new TestDeferredExtension()
-        def delegate = Mock(TestExtension)
-        extension.delegate = delegate
-
-        given:
-        storage.add(typeOf(TestDeferredExtension), "ext", extension)
-        storage.configureExtension("ext", {
-            throw new RuntimeException("bad")
-        })
-
-        when:
-        storage.getByName("ext")
-
-        then:
-        def first = thrown RuntimeException
-        first.message == "bad"
-
-        when:
-        storage.getByName("ext")
-
-        then:
-        def second = thrown RuntimeException
-        second == first
-    }
-
-    def "rethrows unknown domain object exception thrown by deferred configurable extension config"() {
-
-        TestDeferredExtension extension = new TestDeferredExtension()
-        def delegate = Mock(TestExtension)
-        extension.delegate = delegate
-
-        when:
-        storage.add(typeOf(TestDeferredExtension), "ext", extension)
-        storage.configureExtension("ext", {
-            throw new UnknownDomainObjectException("ORIGINAL")
-        })
-
-        then:
-        0 * _
-
-        when:
-        storage.findByType(typeOf(TestDeferredExtension))
-
-        then:
-        def t = thrown UnknownDomainObjectException
-        t.message == "ORIGINAL"
-    }
-
-    def "cannot configure deferred configurable extension after access"() {
-
-        TestDeferredExtension extension = new TestDeferredExtension()
-        def delegate = Mock(TestExtension)
-        extension.delegate = delegate
-
-        given:
-        storage.add(typeOf(TestDeferredExtension), "ext", extension)
-        storage.configureExtension("ext", {
-            it.call(1)
-        })
-
-        and:
-        storage.getByName("ext")
-
-        when:
-        storage.configureExtension("ext", {
-            it.call(2)
-        })
-
-        then:
-        def t = thrown InvalidUserDataException
-        t.message == "Cannot configure the 'ext' extension after it has been accessed."
-    }
-
     static interface TestExtension {
         void call(value);
-    }
-
-    @DeferredConfigurable
-    static class TestDeferredExtension {
-        TestExtension delegate
-
-        void call(value) {
-            delegate.call(value)
-        }
     }
 
     def "favor exact same type over assignable"() {
@@ -247,24 +133,17 @@ class ExtensionsStorageTest extends Specification {
     def "get schema"() {
         given:
         storage.add new TypeOf<List<String>>() {}, 'stringList', ['string']
-
-        and:
-        TestDeferredExtension deferredExtension = new TestDeferredExtension()
-        deferredExtension.delegate = Mock(TestExtension)
-        storage.add new TypeOf<TestDeferredExtension>() {}, 'testDeferred', deferredExtension
+        storage.add new TypeOf<TestExtension>() {}, 'testExtension', Stub(TestExtension)
 
         when:
         def schema = storage.schema
 
         then:
-        0 * deferredExtension.delegate._
-
-        and:
-        schema.collect { [name: it.name, type: it.publicType, deferred: it.deferredConfigurable] } == [
-            [name: 'list', type: typeOf(List), deferred: false],
-            [name: 'set', type: typeOf(Set), deferred: false],
-            [name: 'stringList', type: new TypeOf<List<String>>() {}, deferred: false],
-            [name: 'testDeferred', type: new TypeOf<TestDeferredExtension>() {}, deferred: true]
+        schema.collect { [name: it.name, type: it.publicType] } == [
+            [name: 'list', type: typeOf(List)],
+            [name: 'set', type: typeOf(Set)],
+            [name: 'stringList', type: new TypeOf<List<String>>() {}],
+            [name: 'testExtension', type: new TypeOf<TestExtension>() {}]
         ]
     }
 

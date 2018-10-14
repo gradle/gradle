@@ -18,14 +18,12 @@ package org.gradle.plugins.ide.tooling.r214
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 
-@ToolingApiVersion('>=2.14')
 @TargetGradleVersion('>=2.14')
 class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends ToolingApiSpecification {
 

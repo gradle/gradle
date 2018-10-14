@@ -428,6 +428,9 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : resourceFolders) {
+            if (sourceFolders.contains(path)) {
+                continue;
+            }
             Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-resource");
@@ -437,6 +440,9 @@ public class Module extends XmlPersistableConfigurationObject {
             content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testResourceFolders) {
+            if (testSourceFolders.contains(path)) {
+                continue;
+            }
             Map<String, Object> attributes = Maps.newLinkedHashMap();
             attributes.put("url", path.getUrl());
             attributes.put("type", "java-test-resource");

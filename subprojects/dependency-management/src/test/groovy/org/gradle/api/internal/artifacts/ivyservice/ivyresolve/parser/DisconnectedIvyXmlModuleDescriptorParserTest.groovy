@@ -22,13 +22,13 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
     LocallyAvailableExternalResource localResource = Mock()
     ExternalResource externalResource = Mock()
-    IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
+    IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory())
     IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, moduleIdentifierFactory, TestFiles.fileRepository(), ivyMetadataFactory)
     DescriptorParseContext parseContext = Mock()
     private DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()

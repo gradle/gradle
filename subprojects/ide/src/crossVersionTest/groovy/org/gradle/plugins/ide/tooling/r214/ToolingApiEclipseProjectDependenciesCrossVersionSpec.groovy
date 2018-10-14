@@ -18,11 +18,10 @@ package org.gradle.plugins.ide.tooling.r214
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-@ToolingApiVersion(">=2.14 <=3.0")
-@TargetGradleVersion(">=1.2 <=3.0")
+@ToolingApiVersion("<=3.0")
+@TargetGradleVersion(">=2.6 <=3.0")
 class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "can build the eclipse project dependencies for a java project"() {
@@ -53,15 +52,7 @@ project(':a') {
         eclipseProjectB.gradleProject.path == ':a:b'
 
         eclipseProjectA.projectDependencies.size() == 2
-
-        EclipseProjectDependency rootDependency = eclipseProjectA.projectDependencies.find { it.path == 'root' }
-        rootDependency != null
-        rootDependency.targetProject == eclipseProjectRoot
-        rootDependency.target == eclipseProjectRoot.identifier
-
-        EclipseProjectDependency otherDependency = eclipseProjectA.projectDependencies.find { it.path == 'b' }
-        otherDependency != null
-        otherDependency.targetProject == eclipseProjectB
-        otherDependency.target == eclipseProjectB.identifier
+        eclipseProjectA.projectDependencies.find { it.path == 'root' }
+        eclipseProjectA.projectDependencies.find { it.path == 'b' }
     }
 }

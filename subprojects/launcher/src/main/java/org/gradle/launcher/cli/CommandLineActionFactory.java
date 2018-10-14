@@ -17,10 +17,10 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import groovy.lang.GroovySystem;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
+import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -36,6 +36,7 @@ import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
@@ -206,7 +207,7 @@ public class CommandLineActionFactory {
                 } catch (IOException e) {
                     // do not fail the build as feature is non-critical
                 } finally {
-                    IOUtils.closeQuietly(inputStream);
+                    IoActions.closeQuietly(inputStream);
                 }
             }
 
@@ -282,7 +283,7 @@ public class CommandLineActionFactory {
             sb.append("%nKotlin:       ");
             sb.append(currentKotlinDslVersion.getKotlinVersion());
             sb.append("%nGroovy:       ");
-            sb.append(GroovySystem.getVersion());
+            sb.append(ReleaseInfo.getVersion());
             sb.append("%nAnt:          ");
             sb.append(Main.getAntVersion());
             sb.append("%nJVM:          ");

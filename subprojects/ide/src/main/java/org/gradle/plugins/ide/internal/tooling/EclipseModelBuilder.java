@@ -57,7 +57,7 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectNatu
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
@@ -76,7 +76,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private DefaultEclipseProject result;
     private List<DefaultEclipseProject> eclipseProjects;
     private TasksFactory tasksFactory;
-    private DefaultGradleProject<?> rootGradleProject;
+    private DefaultGradleProject rootGradleProject;
     private Project currentProject;
 
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
@@ -180,8 +180,6 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 // By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
                 DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                // Find the EclipseProject model, if it's in the same build. May be null for a composite.
-                dependency.setTargetProject(findEclipseProjectByName(path));
                 projectDependencies.add(dependency);
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
@@ -271,15 +269,6 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             @Override
             public boolean isSatisfiedBy(DefaultEclipseProject element) {
                 return element.getGradleProject().getPath().equals(project.getPath());
-            }
-        });
-    }
-
-    private DefaultEclipseProject findEclipseProjectByName(final String eclipseProjectName) {
-        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
-            @Override
-            public boolean isSatisfiedBy(DefaultEclipseProject element) {
-                return element.getName().equals(eclipseProjectName);
             }
         });
     }

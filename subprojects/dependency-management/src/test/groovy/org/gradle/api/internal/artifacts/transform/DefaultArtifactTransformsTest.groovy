@@ -36,7 +36,7 @@ import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
@@ -48,7 +48,7 @@ class DefaultArtifactTransformsTest extends Specification {
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
     def transformListener = Mock(ArtifactTransformListener)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, TestUtil.attributesFactory(), transformListener)
+    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformListener)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
@@ -283,7 +283,7 @@ Found the following transforms:
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
-        def attributeContainer = new DefaultMutableAttributeContainer(TestUtil.attributesFactory())
+        def attributeContainer = new DefaultMutableAttributeContainer(AttributeTestUtil.attributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }

@@ -23,7 +23,11 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
     }
 
     @Override
-    String disallowMutationMessage(String assertingMethod) {
-        return "DefaultTaskContainer#$assertingMethod on task set cannot be executed in the current context."
+    String getContainerStringRepresentation() {
+        return "task set"
+    }
+
+    static String getContainerType() {
+        return "DefaultTaskContainer"
     }
 }

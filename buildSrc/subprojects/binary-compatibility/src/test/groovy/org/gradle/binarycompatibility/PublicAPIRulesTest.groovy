@@ -23,6 +23,7 @@ import javax.inject.Inject
 
 class PublicAPIRulesTest extends Specification {
     private final static String TEST_INTERFACE_NAME = 'org.gradle.api.ApiTest'
+    private final static String TEST_INTERFACE_SIMPLE_NAME = 'ApiTest'
 
     @Rule
     TemporaryFolder tmp = new TemporaryFolder()
@@ -111,21 +112,21 @@ class PublicAPIRulesTest extends Specification {
 
         when:
         sourceFile.text = apiElement.startsWith('enum') ? """
-            public enum $TEST_INTERFACE_NAME {
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
                 field;
                 void method() { }
             } 
         """
         : apiElement.startsWith('annotation') ? """
-            public @interface $TEST_INTERFACE_NAME { }
+            public @interface $TEST_INTERFACE_SIMPLE_NAME { }
         """
         : apiElement in ['class', 'constructor'] ? """
-            public class $TEST_INTERFACE_NAME {
+            public class $TEST_INTERFACE_SIMPLE_NAME {
                 public ApiTest() { }
             }
         """
         : """
-            public interface $TEST_INTERFACE_NAME {
+            public interface $TEST_INTERFACE_SIMPLE_NAME {
                 String field = "value";
                 void method();
             }
@@ -139,7 +140,7 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public enum $TEST_INTERFACE_NAME {
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
                  */
@@ -155,18 +156,18 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public @interface $TEST_INTERFACE_NAME { }
+            public @interface $TEST_INTERFACE_SIMPLE_NAME { }
         """
         : apiElement.startsWith('class') ? """
             /**
              * @since 11.38
              */
-            public class $TEST_INTERFACE_NAME {
+            public class $TEST_INTERFACE_SIMPLE_NAME {
                 public ApiTest() { }
             }
         """
         : apiElement.startsWith('constructor') ? """
-            public class $TEST_INTERFACE_NAME {
+            public class $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
                  */
@@ -177,7 +178,7 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public interface $TEST_INTERFACE_NAME {
+            public interface $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
                  */
@@ -216,7 +217,7 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public enum $TEST_INTERFACE_NAME {
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
                 field;
                 void method() { }
             }
@@ -225,7 +226,7 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public class $TEST_INTERFACE_NAME {
+            public class $TEST_INTERFACE_SIMPLE_NAME {
                 public ApiTest() { }
             }
         """
@@ -233,7 +234,7 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public interface $TEST_INTERFACE_NAME {
+            public interface $TEST_INTERFACE_SIMPLE_NAME {
                 String field = "value";
                 void method();
             }
@@ -264,7 +265,7 @@ class PublicAPIRulesTest extends Specification {
         jApiType.annotations >> [deprecatedAnnotation]
         sourceFile.text =  """
             @Deprecated
-            public interface $TEST_INTERFACE_NAME {
+            public interface $TEST_INTERFACE_SIMPLE_NAME {
                 @Deprecated
                 String field = "value";
                 @Deprecated
@@ -292,7 +293,7 @@ class PublicAPIRulesTest extends Specification {
 
         when:
         sourceFile.text =  """
-            public class $TEST_INTERFACE_NAME {
+            public class $TEST_INTERFACE_SIMPLE_NAME {
                 @Override
                 void method() { }
             }
@@ -356,7 +357,7 @@ class PublicAPIRulesTest extends Specification {
             /**
              * @since 11.38
              */
-            public interface $TEST_INTERFACE_NAME {
+            public interface $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
                  */

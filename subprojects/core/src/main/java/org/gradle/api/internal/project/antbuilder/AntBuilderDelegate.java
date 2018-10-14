@@ -20,9 +20,9 @@ import groovy.util.BuilderSupport;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import groovy.util.XmlParser;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.internal.Cast;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.metaobject.DynamicObject;
 
@@ -70,7 +70,7 @@ public class AntBuilderDelegate extends BuilderSupport {
             } catch (Exception ex) {
                 throw UncheckedException.throwAsUncheckedException(ex);
             } finally {
-                IOUtils.closeQuietly(instr);
+                IoActions.closeQuietly(instr);
             }
         } else {
             throw new RuntimeException("Unsupported parameters for taskdef(): " + args);

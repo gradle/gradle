@@ -26,46 +26,71 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
             rootProject.name = "app"
         """
 
-        buildFile << """
+        buildFile << consumerBuildScript(repoType)
+
+        file("lib/settings.gradle").touch()
+
+        file("lib/build.gradle") << producerBuildScript(repoType)
+
+        app.sources.writeToProject(testDirectory)
+        app.headers.writeToProject(file('lib'))
+
+        expect:
+        projectDir('lib').withTasks('publish').run()
+
+        and:
+        succeeds("assemble")
+
+        where:
+        repoType << [
+            'maven',
+            'ivy'
+        ]
+    }
+
+    def consumerBuildScript(String repoType) {
+        return """
             import javax.inject.Inject
 
             apply plugin: 'cpp-application'
             
             repositories {
-                ivy {
+                ${repoType} {
                     url file('lib/repo')
                 }
             }
             
-            def ZIPPED = "zipped"
-            def UNZIPPED = "unzipped"
             def USAGE = Usage.USAGE_ATTRIBUTE
+            def CUSTOM = objects.named(Usage.class, "custom")
+            def C_PLUS_PLUS_API = objects.named(Usage.class, Usage.C_PLUS_PLUS_API)
+            def NATIVE_RUNTIME = objects.named(Usage.class, Usage.NATIVE_RUNTIME)
+            def NATIVE_LINK = objects.named(Usage.class, Usage.NATIVE_LINK)
             dependencies {
                 implementation "org.gradle.test:lib:1.0"
                 
                 artifactTypes {
                     zip {
-                        attributes.attribute(USAGE, objects.named(Usage.class, ZIPPED))
+                        attributes.attribute(USAGE, CUSTOM)
                     }
                 }
                 
                 registerTransform {
-                    from.attribute(USAGE, objects.named(Usage.class, ZIPPED))
-                    to.attribute(USAGE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API))
+                    from.attribute(USAGE, CUSTOM)
+                    to.attribute(USAGE, C_PLUS_PLUS_API)
                     artifactTransform(UnzipTransform) {
                         params(file('lib/src/main/headers'))
                     }
                 }
                 
                 registerTransform {
-                    from.attribute(USAGE, objects.named(Usage.class, ZIPPED))
-                    to.attribute(USAGE, objects.named(Usage.class, Usage.NATIVE_RUNTIME))
+                    from.attribute(USAGE, CUSTOM)
+                    to.attribute(USAGE, NATIVE_RUNTIME)
                     artifactTransform(EmptyTransform)
                 }
                 
                 registerTransform {
-                    from.attribute(USAGE, objects.named(Usage.class, ZIPPED))
-                    to.attribute(USAGE, objects.named(Usage.class, Usage.NATIVE_LINK))
+                    from.attribute(USAGE, CUSTOM)
+                    to.attribute(USAGE, NATIVE_LINK)
                     artifactTransform(EmptyTransform)
                 }
             }
@@ -98,13 +123,12 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                 }
             }
         """
+    }
 
-        file("lib/settings.gradle") << """
-            enableFeaturePreview('STABLE_PUBLISHING')
-        """
-
-        file("lib/build.gradle") << """
-            apply plugin: "ivy-publish"
+    def producerBuildScript(String repoType) {
+        return """
+            apply plugin: "base"
+            apply plugin: "${repoType}-publish"
             
             configurations {
                 headers
@@ -116,26 +140,38 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                     
             publishing {
                 publications {
-                    headers(IvyPublication) {
+                    headers(${repoType.capitalize()}Publication) {
                         artifact zipHeaders
-                        organisation = "org.gradle.test"
-                        revision = "1.0"
+                        ${group(repoType)} = "org.gradle.test"
+                        ${version(repoType)} = "1.0"
                     }
                 }
                 repositories {
-                    ivy {
+                    ${repoType} {
                         url file('repo')
                     }
                 }
             }
         """
-        app.sources.writeToProject(testDirectory)
-        app.headers.writeToProject(file('lib'))
+    }
 
-        expect:
-        projectDir('lib').withTasks('publish').run()
+    def group(String repoType) {
+        if (repoType == "ivy") {
+            return "organisation"
+        } else if (repoType == "maven") {
+            return "groupId"
+        } else {
+            throw new IllegalArgumentException()
+        }
+    }
 
-        and:
-        succeeds("assemble")
+    def version(String repoType) {
+        if (repoType == "ivy") {
+            return "revision"
+        } else if (repoType == "maven") {
+            return "version"
+        } else {
+            throw new IllegalArgumentException()
+        }
     }
 }

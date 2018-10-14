@@ -28,6 +28,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
     def setup() {
         settingsFile << "rootProject.name='depsub'\n"
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "forces multiple modules by rule"()
@@ -1405,6 +1406,7 @@ Required by:
                 if (project.version != 'unspecified') {
                     archiveName = "\${project.name}-\${project.version}.jar"
                 }
+                destinationDir = buildDir
             }
             artifacts { conf jar }
         }

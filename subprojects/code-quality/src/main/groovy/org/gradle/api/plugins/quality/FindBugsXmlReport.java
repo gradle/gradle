@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Input;
 
@@ -25,7 +24,6 @@ import org.gradle.api.tasks.Input;
  *
  * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
-@Incubating
 @Deprecated
 public interface FindBugsXmlReport extends SingleFileReport {
     /**

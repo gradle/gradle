@@ -41,7 +41,6 @@ public class StartParameterBuildOptions {
         List<BuildOption<StartParameterInternal>> options = new ArrayList<BuildOption<StartParameterInternal>>();
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
-        options.add(new RecompileScriptsOption());
         options.add(new ProfileOption());
         options.add(new ContinueOption());
         options.add(new OfflineOption());
@@ -90,20 +89,6 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRerunTasks(true);
-        }
-    }
-
-    public static class RecompileScriptsOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
-        private static final String LONG_OPTION = "recompile-scripts";
-
-        public RecompileScriptsOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Force build script recompiling.").deprecated());
-        }
-
-        @Override
-        public void applyTo(StartParameterInternal settings, Origin origin) {
-            settings.setRecompileScripts(true);
-            settings.addDeprecation("--" + LONG_OPTION);
         }
     }
 
@@ -166,7 +151,7 @@ public class StartParameterBuildOptions {
 
     public static class ContinuousOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
         public ContinuousOption() {
-            super(null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating());
+            super(null, CommandLineOptionConfiguration.create("continuous", "t", "Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change."));
         }
 
         @Override
@@ -180,13 +165,12 @@ public class StartParameterBuildOptions {
         private static final String SHORT_OPTION = "a";
 
         public NoProjectDependenciesRebuildOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Do not rebuild project dependencies.").deprecated());
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Do not rebuild project dependencies."));
         }
 
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
-            settings.addDeprecation(String.format("--%s/-%s", LONG_OPTION, SHORT_OPTION));
         }
     }
 
@@ -242,7 +226,7 @@ public class StartParameterBuildOptions {
 
     public static class IncludeBuildOption extends ListBuildOption<StartParameterInternal> {
         public IncludeBuildOption() {
-            super(null, CommandLineOptionConfiguration.create("include-build", "Include the specified build in the composite.").incubating());
+            super(null, CommandLineOptionConfiguration.create("include-build", "Include the specified build in the composite."));
         }
 
         @Override
@@ -298,7 +282,7 @@ public class StartParameterBuildOptions {
         public static final String LONG_OPTION = "scan";
 
         public BuildScanOption() {
-            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)", "Disables the creation of a build scan. For more information about build scans, please visit https://gradle.com/build-scans.").incubating());
+            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)", "Disables the creation of a build scan. For more information about build scans, please visit https://gradle.com/build-scans."));
         }
 
         @Override

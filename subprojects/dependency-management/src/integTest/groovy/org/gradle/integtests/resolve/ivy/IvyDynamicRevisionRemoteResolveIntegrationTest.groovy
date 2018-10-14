@@ -31,6 +31,7 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
 
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     @Issue("GRADLE-3264")
@@ -797,6 +798,7 @@ dependencies {
 }
 """
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
 
         and:
         mavenRepo.getModuleMetaData("org.test", "a").expectGet()

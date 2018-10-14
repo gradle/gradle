@@ -16,16 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.eclipse.EclipseProject;
-import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
-import org.gradle.tooling.model.gradle.BuildInvocations;
-import org.gradle.tooling.model.gradle.GradleBuild;
-import org.gradle.tooling.model.gradle.ProjectPublications;
-import org.gradle.tooling.model.idea.BasicIdeaProject;
-import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
 
 import java.io.Serializable;
@@ -45,19 +35,7 @@ public abstract class VersionDetails implements Serializable {
         if (version.getBaseVersion().compareTo(GradleVersion.version("3.5")) >= 0) {
             return new R35VersionDetails(version.getVersion());
         }
-        if (version.compareTo(GradleVersion.version("2.1")) >= 0) {
-            return new R21VersionDetails(version.getVersion());
-        }
-        if (version.compareTo(GradleVersion.version("1.12")) >= 0) {
-            return new R112VersionDetails(version.getVersion());
-        }
-        if (version.compareTo(GradleVersion.version("1.8")) >= 0) {
-            return new R18VersionDetails(version.getVersion());
-        }
-        if (version.compareTo(GradleVersion.version("1.6")) >= 0) {
-            return new R16VersionDetails(version.getVersion());
-        }
-        return new R12VersionDetails(version.getVersion());
+        return new R26VersionDetails(version.getVersion());
     }
 
     private final String providerVersion;
@@ -80,10 +58,6 @@ public abstract class VersionDetails implements Serializable {
         return false;
     }
 
-    public boolean supportsCancellation() {
-        return false;
-    }
-
     public boolean supportsEnvironmentVariablesCustomization() {
         return false;
     }
@@ -100,50 +74,8 @@ public abstract class VersionDetails implements Serializable {
         return false;
     }
 
-    private static class R12VersionDetails extends VersionDetails {
-        public R12VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return modelType.equals(ProjectOutcomes.class)
-                || modelType.equals(HierarchicalEclipseProject.class)
-                || modelType.equals(EclipseProject.class)
-                || modelType.equals(IdeaProject.class)
-                || modelType.equals(BasicIdeaProject.class)
-                || modelType.equals(BuildEnvironment.class)
-                || modelType.equals(GradleProject.class)
-                || modelType.equals(Void.class);
-        }
-    }
-
-    private static class R16VersionDetails extends VersionDetails {
-        public R16VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return modelType != BuildInvocations.class
-                && modelType != ProjectPublications.class
-                && modelType != GradleBuild.class;
-        }
-    }
-
-    private static class R18VersionDetails extends VersionDetails {
-        private R18VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return modelType != ProjectPublications.class && modelType != BuildInvocations.class;
-        }
-    }
-
-    private static class R112VersionDetails extends VersionDetails {
-        private R112VersionDetails(String version) {
+    private static class R26VersionDetails extends VersionDetails {
+        public R26VersionDetails(String version) {
             super(version);
         }
 
@@ -153,23 +85,7 @@ public abstract class VersionDetails implements Serializable {
         }
     }
 
-    private static class R21VersionDetails extends VersionDetails {
-        public R21VersionDetails(String version) {
-            super(version);
-        }
-
-        @Override
-        public boolean maySupportModel(Class<?> modelType) {
-            return true;
-        }
-
-        @Override
-        public boolean supportsCancellation() {
-            return true;
-        }
-    }
-
-    private static class R35VersionDetails extends R21VersionDetails {
+    private static class R35VersionDetails extends R26VersionDetails {
         public R35VersionDetails(String version) {
             super(version);
         }

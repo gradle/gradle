@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -29,6 +30,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         settingsFile << """
             rootProject.name = 'insight-test'
         """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     def "requires use of configuration flag if Java plugin isn't applied"() {

@@ -21,7 +21,6 @@ import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
@@ -32,6 +31,7 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.util.DeferredUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Issue

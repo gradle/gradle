@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -39,6 +40,7 @@ allprojects {
     }
 }
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     def "result includes files from local and external components and file dependencies in a fixed order"() {
@@ -164,6 +166,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -183,6 +186,7 @@ project(':b') {
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -249,6 +253,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -268,6 +273,7 @@ project(':b') {
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -321,6 +327,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -338,6 +345,7 @@ project(':b') {
     }    
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -416,6 +424,7 @@ project(':a') {
     }
     task freeJar(type: Jar) { archiveName = 'a-free.jar' }
     task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')
@@ -430,6 +439,7 @@ project(':a') {
 project(':b') {
     task freeJar(type: Jar) { archiveName = 'b-free.jar' }
     task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
+    tasks.withType(Jar) { destinationDir = buildDir }
     configurations.compile.outgoing.variants {
         free {
             attributes.attribute(flavor, 'free')

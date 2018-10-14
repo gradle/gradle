@@ -16,8 +16,6 @@
 
 package org.gradle.normalization;
 
-import org.gradle.api.Incubating;
-
 /**
  * Input normalization configuration.
  *
@@ -26,5 +24,4 @@ import org.gradle.api.Incubating;
  *
  * @since 4.0
  */
-@Incubating
 public interface InputNormalization {}

@@ -18,14 +18,12 @@ package org.gradle.plugins.ide.tooling.r29
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=2.9')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=1.2 <2.9")
+    @TargetGradleVersion(">=2.6 <2.9")
     def "older Gradle versions throw exception when querying natures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -130,7 +128,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.projectNatures.collect{ it.id } == ['org.eclipse.jdt.core.javanature', 'sample.nature.a', 'sample.nature.b']
     }
 
-    @TargetGradleVersion(">=1.2 <2.9")
+    @TargetGradleVersion(">=2.6 <2.9")
     def "older Gradle versions throw exception when querying build commands"() {
         given:
         settingsFile << "rootProject.name = 'root'"

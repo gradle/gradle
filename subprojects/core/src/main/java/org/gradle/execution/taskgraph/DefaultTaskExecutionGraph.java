@@ -32,6 +32,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.DefaultExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
@@ -144,6 +145,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void execute(Collection<? super Throwable> failures) {
+        ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry();
+        try {
+            executeWithServices(projectExecutionServices, failures);
+        } finally {
+            projectExecutionServices.close();
+        }
+    }
+
+    private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
         ensurePopulated();
         if (!hasFiredWhenReady) {
@@ -152,8 +162,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
+
         try {
-            planExecutor.process(executionPlan, failures, new BuildOperationAwareExecutionAction(nodeExecutors, buildOperationExecutor.getCurrentOperation()));
+            planExecutor.process(executionPlan, failures,
+                new BuildOperationAwareExecutionAction(
+                    buildOperationExecutor.getCurrentOperation(),
+                    new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
+                )
+            );
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
@@ -285,29 +301,44 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     /**
      * This action wraps the execution of a node into a build operation.
      */
-    private class BuildOperationAwareExecutionAction implements Action<Node> {
+    private static class BuildOperationAwareExecutionAction implements Action<Node> {
         private final BuildOperationRef parentOperation;
-        private final List<NodeExecutor> nodeExecutors;
+        private final Action<Node> delegate;
 
-        BuildOperationAwareExecutionAction(List<NodeExecutor> nodeExecutors, BuildOperationRef parentOperation) {
-            this.nodeExecutors = nodeExecutors;
+        BuildOperationAwareExecutionAction(BuildOperationRef parentOperation, Action<Node> delegate) {
             this.parentOperation = parentOperation;
+            this.delegate = delegate;
         }
 
         @Override
-        public void execute(Node work) {
+        public void execute(Node node) {
             BuildOperationRef previous = CurrentBuildOperationRef.instance().get();
             CurrentBuildOperationRef.instance().set(parentOperation);
             try {
-                for (NodeExecutor nodeExecutor : nodeExecutors) {
-                    if (nodeExecutor.execute(work)) {
-                        return;
-                    }
-                }
-                throw new IllegalStateException("Unknown type of work: " + work);
+                delegate.execute(node);
             } finally {
                 CurrentBuildOperationRef.instance().set(previous);
             }
+        }
+    }
+
+    private static class InvokeNodeExecutorsAction implements Action<Node> {
+        private final List<NodeExecutor> nodeExecutors;
+        private final ProjectExecutionServiceRegistry projectExecutionServices;
+
+        public InvokeNodeExecutorsAction(List<NodeExecutor> nodeExecutors, ProjectExecutionServiceRegistry projectExecutionServices) {
+            this.nodeExecutors = nodeExecutors;
+            this.projectExecutionServices = projectExecutionServices;
+        }
+
+        @Override
+        public void execute(Node node) {
+            for (NodeExecutor nodeExecutor : nodeExecutors) {
+                if (nodeExecutor.execute(node, projectExecutionServices)) {
+                    return;
+                }
+            }
+            throw new IllegalStateException("Unknown type of node: " + node);
         }
     }
 

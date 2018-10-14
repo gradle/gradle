@@ -21,20 +21,9 @@ import java.util.List;
 public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
     private final String path;
 
-    private DefaultEclipseProject targetProject;
-
     public DefaultEclipseProjectDependency(String path, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
         super(exported, attributes, accessRules);
-        this.targetProject = null;
         this.path = path;
-    }
-
-    public DefaultEclipseProject getTargetProject() {
-        return targetProject;
-    }
-
-    public void setTargetProject(DefaultEclipseProject targetProject) {
-        this.targetProject = targetProject;
     }
 
     public String getPath() {

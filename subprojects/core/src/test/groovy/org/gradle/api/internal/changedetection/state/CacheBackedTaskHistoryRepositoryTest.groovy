@@ -21,11 +21,9 @@ import org.gradle.api.internal.changedetection.rules.AbstractTaskStateChangesTes
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.normalization.internal.InputNormalizationStrategy
 import spock.lang.Issue
 
 class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest {
-    static final NORMALIZATION_STRATEGY = InputNormalizationStrategy.NO_NORMALIZATION
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "adds context when input snapshot throws UncheckedIOException" () {
@@ -35,11 +33,11 @@ class CacheBackedTaskHistoryRepositoryTest extends AbstractTaskStateChangesTest 
         def mockInputFileFingerprinterRegistry = Mock(FileCollectionFingerprinterRegistry)
 
         when:
-        CacheBackedTaskHistoryRepository.fingerprintTaskFiles(stubTask, "Input", NORMALIZATION_STRATEGY, fileProperties(prop: "a"), mockInputFileFingerprinterRegistry)
+        CacheBackedTaskHistoryRepository.fingerprintTaskFiles(stubTask, "Input", fileProperties(prop: "a"), mockInputFileFingerprinterRegistry)
 
         then:
         1 * mockInputFileFingerprinterRegistry.getFingerprinter(AbsolutePathInputNormalizer) >> mockInputFileFingerprinter
-        1 * mockInputFileFingerprinter.fingerprint(_, NORMALIZATION_STRATEGY) >> { throw cause }
+        1 * mockInputFileFingerprinter.fingerprint(_) >> { throw cause }
         0 * _
 
         def e = thrown(UncheckedIOException)

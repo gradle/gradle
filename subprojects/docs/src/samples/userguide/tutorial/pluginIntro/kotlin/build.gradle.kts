@@ -10,7 +10,7 @@ task("show") {
 }
 // end::apply-by-id[]
 // tag::apply-by-type[]
-apply { plugin(JavaPlugin::class) }
+apply<JavaPlugin>()
 // end::apply-by-type[]
 // tag::explicit-apply[]
 apply(plugin = "java")

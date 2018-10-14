@@ -24,8 +24,8 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion(">=2.14 <=3.0")
-@TargetGradleVersion(">=1.2 <=3.0")
+@ToolingApiVersion("<=3.0")
+@TargetGradleVersion(">=2.6 <=3.0")
 class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides module identifiers for module dependencies"() {
@@ -55,11 +55,11 @@ project(':a') {
 
         ideaModuleA.dependencies.size() == 2
 
-        IdeaModuleDependency rootDependency = ideaModuleA.dependencies.find { it.dependencyModule.name == 'root' }
+        IdeaModuleDependency rootDependency = ideaModuleA.dependencies.find { it.targetModuleName == 'root' }
         rootDependency != null
         rootDependency.target == ideaModuleRoot.identifier
 
-        IdeaModuleDependency otherDependency = ideaModuleA.dependencies.find { it.dependencyModule.name == 'b' }
+        IdeaModuleDependency otherDependency = ideaModuleA.dependencies.find { it.targetModuleName == 'b' }
         otherDependency != null
         otherDependency.target == ideaModuleB.identifier
     }

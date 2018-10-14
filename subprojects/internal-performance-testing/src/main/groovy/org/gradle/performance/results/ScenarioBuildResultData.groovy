@@ -17,6 +17,7 @@
 package org.gradle.performance.results
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,15 +26,16 @@ class ScenarioBuildResultData {
     String webUrl
     String testFailure
     boolean successful
+    boolean crossBuild
     List<ExecutionData> currentCommitExecutions = []
     List<ExecutionData> recentExecutions = []
 
     boolean isAboutToRegress() {
-        return executions.any { it.confidentToSayWorse() }
+        return !crossBuild && executions.any { it.confidentToSayWorse() }
     }
 
     boolean isImproved() {
-        return executionsToDisplayInRow.every { it.confidentToSayBetter() }
+        return !crossBuild && executionsToDisplayInRow.every { it.confidentToSayBetter() }
     }
 
     boolean isBuildFailed() {
@@ -44,20 +46,20 @@ class ScenarioBuildResultData {
         return successful && currentCommitExecutions.empty
     }
 
-    double getRegressionSortKey() {
+    double getDifferenceSortKey() {
         if (executions.empty) {
             return Double.NEGATIVE_INFINITY
         }
         def firstExecution = executions[0]
-        double signum = Math.signum(firstExecution.regressionPercentage)
+        double signum = Math.signum(firstExecution.differencePercentage)
         if (signum == 0.0d) {
             signum = -1.0
         }
         return firstExecution.confidencePercentage * signum
     }
 
-    double getRegressionPercentage() {
-        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].getRegressionPercentage()
+    double getDifferencePercentage() {
+        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].getDifferencePercentage()
     }
 
     List<ExecutionData> getExecutions() {
@@ -85,7 +87,15 @@ class ScenarioBuildResultData {
             this.currentVersion = currentVersion
         }
 
-        double getRegressionPercentage() {
+        String getDifferenceDisplay() {
+            Amount base = baseVersion.totalTime.median
+            Amount current = currentVersion.totalTime.median
+            Amount diff = current - base
+
+            return String.format("%s (%s)", diff.format(), formattedDifferencePercentage)
+        }
+
+        double getDifferencePercentage() {
             double base = baseVersion.totalTime.median.value.doubleValue()
             double current = currentVersion.totalTime.median.value.doubleValue()
             return 100.0 * (current - base) / base
@@ -95,8 +105,8 @@ class ScenarioBuildResultData {
             return 100.0 * DataSeries.confidenceInDifference(baseVersion.totalTime, currentVersion.totalTime)
         }
 
-        String getFormattedRegression() {
-            String.format("%.2f%%", regressionPercentage)
+        String getFormattedDifferencePercentage() {
+            String.format("%.2f%%", differencePercentage)
         }
 
         String getFormattedConfidence() {
@@ -104,11 +114,11 @@ class ScenarioBuildResultData {
         }
 
         boolean confidentToSayBetter() {
-            return regressionPercentage <= 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
+            return differencePercentage <= 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
         }
 
         boolean confidentToSayWorse() {
-            return regressionPercentage > 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
+            return differencePercentage > 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
         }
     }
 }

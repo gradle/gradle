@@ -21,11 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -127,6 +127,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         @Override
         public BuildCacheKeyInputs getInputs() {
             return inputs;
+        }
+
+        @Override
+        public byte[] getHashCodeBytes() {
+            return hashCode == null ? null : hashCode.toByteArray();
         }
 
         @Override

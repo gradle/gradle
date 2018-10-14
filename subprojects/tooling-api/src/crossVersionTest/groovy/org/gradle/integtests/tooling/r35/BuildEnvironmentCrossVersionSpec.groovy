@@ -76,7 +76,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=3.5")
-    @TargetGradleVersion(">=1.2 <3.5")
+    @TargetGradleVersion(">=2.6 <3.5")
     def "long running operation should fail when environment vars specified but not supported by target"() {
         when:
         withConnection {

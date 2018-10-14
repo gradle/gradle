@@ -18,11 +18,13 @@ package org.gradle.plugins.ide.tooling.r28
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
+    @ToolingApiVersion(">3.1")
     @TargetGradleVersion(">=2.8")
     def "makes sure module names are unique in gradle"() {
 
@@ -58,7 +60,7 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'root-impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'root-api' }
-        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        impl.dependencies[0].targetModuleName == 'root-api'
+        contribImpl.dependencies[0].targetModuleName == 'contrib-api'
     }
 }

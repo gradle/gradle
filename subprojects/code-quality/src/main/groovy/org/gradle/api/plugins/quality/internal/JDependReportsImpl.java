@@ -24,6 +24,7 @@ import org.gradle.api.reporting.internal.TaskReportContainer;
 
 import javax.inject.Inject;
 
+@SuppressWarnings("deprecation")
 public class JDependReportsImpl extends TaskReportContainer<SingleFileReport> implements JDependReports {
     @Inject
     public JDependReportsImpl(Task task) {

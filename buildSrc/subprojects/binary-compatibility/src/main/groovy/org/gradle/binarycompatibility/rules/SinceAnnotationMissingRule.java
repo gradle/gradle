@@ -25,6 +25,7 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
@@ -34,6 +35,7 @@ import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
@@ -55,28 +57,28 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(classDeclaration.getName().asString(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
                         return new Object();
                     }
                     return super.visit(classDeclaration, arg);
                 }
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
                         return new Object();
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
                         return new Object();
                     }
                     return super.visit(enumDeclaration, arg);
                 }
                 @Override
                 public Object visit(MethodDeclaration methodDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(methodDeclaration.getName(), method.getName(), methodDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(methodDeclaration.getName().asString(), method.getName(), methodDeclaration)) {
                         return new Object();
                     }
                     return null;
@@ -91,35 +93,35 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(classDeclaration.getName().asString(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
                         return new Object();
                     }
                     return super.visit(classDeclaration, arg);
                 }
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
                             return new Object();
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
                         return new Object();
                     }
                     return super.visit(enumDeclaration, arg);
                 }
                 @Override
                 public Object visit(FieldDeclaration fieldDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getId().getName(), field.getName(), fieldDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getNameAsString(), field.getName(), fieldDeclaration)) {
                         return new Object();
                     }
                     return null;
                 }
                 @Override
                 public Object visit(EnumConstantDeclaration enumConstantDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName(), field.getName(), enumConstantDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName().asString(), field.getName(), enumConstantDeclaration)) {
                         return new Object();
                     }
                     return null;
@@ -134,42 +136,42 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
                 public Object visit(ConstructorDeclaration constructorDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(constructorDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), constructorDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(constructorDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), constructorDeclaration)) {
                         return new Object();
                     }
                     return super.visit(constructorDeclaration, arg);
                 }
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(classDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
                         return new Object();
                     }
                     return super.visit(classDeclaration, arg);
                 }
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
                         return new Object();
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
                         return new Object();
                     }
                     return super.visit(enumDeclaration, arg);
                 }
                 @Override
                 public Object visit(FieldDeclaration fieldDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getId().getName(), constructor.getName(), fieldDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getNameAsString(), constructor.getName(), fieldDeclaration)) {
                         return new Object();
                     }
                     return null;
                 }
                 @Override
                 public Object visit(EnumConstantDeclaration enumConstantDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName(), constructor.getName(), enumConstantDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName().asString(), constructor.getName(), enumConstantDeclaration)) {
                         return new Object();
                     }
                     return null;
@@ -184,21 +186,21 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             visitor = new GenericVisitorAdapter<Object, Void>() {
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(classDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), classDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(classDeclaration.getName().asString(), toSimpleName(clazz.getFullyQualifiedName()), classDeclaration)) {
                         return new Object();
                     }
                     return super.visit(classDeclaration, arg);
                 }
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), annotationDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(clazz.getFullyQualifiedName()), annotationDeclaration)) {
                         return new Object();
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
-                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName(), toSimpleName(clazz.getFullyQualifiedName()), enumDeclaration)) {
+                    if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(clazz.getFullyQualifiedName()), enumDeclaration)) {
                         return new Object();
                     }
                     return super.visit(enumDeclaration, arg);
@@ -227,8 +229,12 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
     }
 
     private boolean matchesNameAndContainsAnnotation(String name1, String name2, BodyDeclaration declaration) {
+        Optional<Comment> comment = declaration.getComment();
+        if (!comment.isPresent()) {
+            return false;
+        }
         name2 = name2.replaceAll(".*\\$", ""); //strip outer class names
-        return name1.equals(name2) && declaration.getComment() != null && declaration.getComment().getContent().contains("@since " + getCurrentVersion());
+        return name1.equals(name2) && comment.get().getContent().contains("@since " + getCurrentVersion());
     }
 
 }

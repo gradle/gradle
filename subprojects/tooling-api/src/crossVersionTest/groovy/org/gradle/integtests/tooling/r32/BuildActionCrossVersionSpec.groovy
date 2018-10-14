@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 
-@TargetGradleVersion('>=1.8')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=3.2")
     def "can use multiple action implementations with different classpath roots and loaded from same ClassLoader"() {

@@ -40,30 +40,44 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
     @Override
     public Project project(Project project, Action<? super Project> configureAction) {
-        runProjectConfigureAction(project, configureAction);
+        runProjectConfigureActionWithMutationLock(project, configureAction);
         return project;
     }
 
     @Override
     public void subprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction);
+        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction, true);
     }
 
     @Override
     public void allprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction);
+        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction, true);
     }
 
     @Override
     public Project rootProject(Project project, Action<Project> buildOperationExecutor) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
+        // TODO We don't fire rootProject blocks with the project mutation lock because they fire in projectsLoaded which is too early for the project to be registerd in ProjectRegistry
+        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor, false);
         return project;
     }
 
-    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction) {
+    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction, final boolean withMutationLock) {
         buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
             @Override
             protected void doRunProjectConfigure(Project project) {
+                if (withMutationLock) {
+                    runProjectConfigureActionWithMutationLock(project, configureAction);
+                } else {
+                    runProjectConfigureAction(project, configureAction);
+                }
+            }
+        });
+    }
+
+    private void runProjectConfigureActionWithMutationLock(final Project project, final Action<? super Project> configureAction) {
+        ((ProjectInternal)project).getMutationState().withMutableState(new Runnable() {
+            @Override
+            public void run() {
                 runProjectConfigureAction(project, configureAction);
             }
         });

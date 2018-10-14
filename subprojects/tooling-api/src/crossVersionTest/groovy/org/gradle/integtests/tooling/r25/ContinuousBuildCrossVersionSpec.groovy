@@ -66,7 +66,6 @@ class ContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecifica
         then:
         project != null
         def logOutput = stdout.toString()
-        !logOutput.contains("Continuous build is an incubating feature.")
         !logOutput.contains(WAITING_MESSAGE)
         !logOutput.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }

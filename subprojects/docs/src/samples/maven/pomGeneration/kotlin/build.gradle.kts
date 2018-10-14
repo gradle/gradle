@@ -19,7 +19,7 @@ repositories {
 }
 
 configurations {
-    "runtime" {
+    runtime {
         exclude(group = "excludeGroup2", module = "excludeArtifact2")
     }
 }
@@ -46,7 +46,7 @@ dependencies {
 task<Zip>("javadocZip") {
     dependsOn("javadoc")
     classifier = "javadoc"
-    from(tasks.getByName<Javadoc>("javadoc").destinationDir)
+    from(tasks.javadoc)
 }
 
 artifacts {
@@ -67,9 +67,8 @@ tasks.getByName<Upload>("uploadArchives") {
 // Customize the contents of the pom
 
 // tag::when-configured[]
-val install by tasks.getting(Upload::class)
 val uploadArchives by tasks.getting(Upload::class)
-val installer = install.repositories.withGroovyBuilder { getProperty("mavenInstaller") as MavenResolver }
+val installer = tasks.install.get().repositories.withGroovyBuilder { getProperty("mavenInstaller") as MavenResolver }
 val deployer = uploadArchives.repositories.withGroovyBuilder { getProperty("mavenDeployer") as MavenResolver }
 
 listOf(installer, deployer).forEach {

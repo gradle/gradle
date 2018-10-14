@@ -30,12 +30,4 @@ public interface IdeaModuleDependency extends IdeaDependency {
      * @since 3.1
      */
     String getTargetModuleName();
-
-    /**
-     * returns dependency module, or null if the dependency module is not in the same Gradle build.
-     *
-     * @return dependency module
-     */
-    @Deprecated
-    IdeaModule getDependencyModule();
 }

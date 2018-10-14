@@ -19,7 +19,6 @@ package org.gradle.workers;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.process.JavaForkOptions;
 
 import javax.annotation.Nullable;
@@ -47,7 +46,6 @@ import java.io.File;
  *
  * @since 3.5
  */
-@Incubating
 public interface WorkerConfiguration extends Describable, ActionConfiguration {
     /**
      * Adds a set of files to the classpath associated with the worker.

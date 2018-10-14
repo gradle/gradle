@@ -13,16 +13,16 @@
 // limitations under the License.
 
 [[authoring_maintainable_build_scripts]]
-= Authoring Maintainable Build Scripts
+= Authoring Maintainable Builds
 
-Gradle build scripts combine the qualities of declarative build logic, expressiveness as well as flexibility and rigidity as needed.
-As a build script author it is easy to fall into the trap of striking the wrong balance or applying poor coding habits.
-This chapter describes best practices for writing your build script in a meaningful, yet flexible and efficient way.
+Gradle has a rich API with several approaches to creating build logic.
+The associated flexibility can easily lead to unnecessarily complex builds with custom code commonly added directly to build scripts.
+In this chapter, we present several best practices that will help you develop expressive and maintainable builds that are easy to use.
 
-NOTE: The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate linting automation.
+NOTE: The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in build scripts if that's something that would interest you.
 
 [[sec:avoid_imperative_logic_in_scripts]]
-== Avoiding imperative logic in scripts
+== Avoid using imperative logic in scripts
 
 The Gradle runtime does not enforce a specific style for build logic.
 For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code.
@@ -65,7 +65,7 @@ include::sample[dir="userguide/bestPractices/conditionalLogic/do/kotlin", files=
 ====
 
 [[sec:avoiding_gradle_internal_apis]]
-== Avoiding Gradle internal APIs
+== Avoid using internal Gradle APIs
 
 Use of Gradle internal APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
 
@@ -123,15 +123,15 @@ Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUt
 Gradle plugin authors may find the Designing Gradle Plugins subsection on link:{guidesUrl}/designing-gradle-plugins/#restricting_the_plugin_implementation_to_gradle_s_public_api[restricting the plugin implementation to Gradle's public API] helpful.
 
 [[sec:declaring_tasks]]
-== Declaring tasks in a build script
+== Follow conventions when declaring tasks
 
 The task API gives a build author a lot of flexibility to declare tasks in a build script.
 For optimal readability and maintainability follow these rules:
 
-* The task type should be the only key-value pair that belongs within the parentheses after the task name.
-* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,%20org.gradle.api.Action)[Project.task(java.lang.String, org.gradle.api.Action)] if possible.
-* <<tutorial_using_tasks.adoc#sec:hello_world,Task actions>> should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
-* link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] should be used if the task only defines a single action.
+* The task type should be the only key-value pair within the parentheses after the task name.
+* Other configuration should be done within the task's configuration block.
+* <<tutorial_using_tasks.adoc#sec:hello_world,Task actions>> added when declaring a task should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
+* When declaring an ad-hoc task — one that doesn't have an explicit type — you should use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] if you're only declaring a single action.
 * A task should <<#sec:improving_task_discoverability,define a group and description>>.
 
 .Definition of tasks following best practices
@@ -141,7 +141,7 @@ include::sample[dir="userguide/bestPractices/taskDefinition/kotlin", files="buil
 ====
 
 [[sec:improving_task_discoverability]]
-== Improving task discoverability
+== Improve task discoverability
 
 Even new users to a build should to be able to find crucial information quickly and effortlessly.
 In Gradle you can declare a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[group] and a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:description[description] for any task of the build.
@@ -197,7 +197,7 @@ include::sample[dir="userguide/bestPractices/logicDuringConfiguration/do/kotlin"
 ====
 
 [[sec:avoiding_use_of_gradlebuild]]
-== Avoiding the use of `GradleBuild`
+== Avoid using the `GradleBuild` task type
 
 The link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task type allows a build script to define a task that invokes another Gradle build.
 The use of this type is generally discouraged.
@@ -210,7 +210,7 @@ The appropriate approach depends on the problem at hand. Here're some options:
 * Use <<composite_builds.adoc#composite_builds,composite builds>> for projects that are physically separated but should occasionally be built as a single unit.
 
 [[sec:avoiding_inter_project_configuration]]
-== Avoiding inter-project configuration
+== Avoid inter-project configuration
 
 Gradle does not restrict build script authors from reaching into the domain model from one project into another one in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>.
 Strongly-coupled projects hurts <<multi_project_builds.adoc#sec:parallel_execution,build execution performance>> as well as readability and maintainability of code.
@@ -223,13 +223,13 @@ The following practices should be avoided:
 * Declaring unnecessary <<declaring_dependencies.adoc#sec:declaring_project_dependency,project dependencies>>.
 
 [[sec:avoiding_passwords_in_plain_text]]
-== Avoiding passwords in plain text
+== Avoid storing passwords in plain text
 
 Most builds need to consume one or many passwords.
 The reasons for this need may vary.
 Some builds need a password for publishing artifacts to a secured binary repository, other builds need a password for downloading binary files.
 Passwords should always kept safe to prevent fraud.
-Under no circumstance should you add the password to the build script as property in plain text or declare it in a `gradle.properties`.
+Under no circumstance should you add the password to the build script in plain text or declare it in a `gradle.properties` file.
 Those files usually live in a version control repository and can be viewed by anyone that has access to it.
 
 Passwords should be stored in encrypted fashion. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords.

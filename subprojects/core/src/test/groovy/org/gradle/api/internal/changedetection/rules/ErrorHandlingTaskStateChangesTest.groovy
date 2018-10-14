@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.GradleException
 import org.gradle.api.Task
+import org.gradle.internal.changes.TaskStateChangeVisitor
 import spock.lang.Specification
 
 class ErrorHandlingTaskStateChangesTest extends Specification {

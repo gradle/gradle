@@ -26,7 +26,7 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.minimumVersion = '4.9'
-        runner.targetVersions = ["5.0-20180909235858+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
         when:
         def result = runner.run()
 

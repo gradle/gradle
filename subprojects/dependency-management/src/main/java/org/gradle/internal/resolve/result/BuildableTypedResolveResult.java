@@ -16,9 +16,7 @@
 
 package org.gradle.internal.resolve.result;
 
-import javax.annotation.Nullable;
-
-public interface BuildableTypedResolveResult<T, E extends Throwable> extends ResolveResult {
+public interface BuildableTypedResolveResult<T, E extends Throwable> extends ErroringResolveResult<E> {
     /**
      * Returns the result.
      *
@@ -27,19 +25,8 @@ public interface BuildableTypedResolveResult<T, E extends Throwable> extends Res
     T getResult() throws E;
 
     /**
-     * {@inheritDoc}
-     */
-    @Nullable
-    @Override
-    E getFailure();
-
-    /**
      * Marks the resolution as completed with the given value.
      */
     void resolved(T result);
 
-    /**
-     * Marks the resolution as failed with the given failure.
-     */
-    void failed(E failure);
 }
