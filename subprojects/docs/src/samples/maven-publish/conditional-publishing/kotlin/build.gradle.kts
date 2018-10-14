@@ -8,7 +8,7 @@ version = "1.0"
 
 task<Jar>("sourcesJar") {
     classifier = "sources"
-    from(sourceSets["main"].allJava)
+    from(sourceSets.main.get().allJava)
 }
 
 // tag::publishing[]
