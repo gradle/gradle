@@ -872,6 +872,14 @@ There sometimes isn't a good way to tell, from looking at the source code, which
 Usually, if you get a `NullPointerException` with `closureOf<T> {}`, using `delegateClosureOf<T> {}`
 will resolve the problem.
 
+These two utility functions are useful for _configuration closures_, but some plugins might expect Groovy closures for other purposes.
+The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions to Groovy closures with more flexibility.
+
+.Use `KotlinClosureX` types
+====
+include::sample[dir="kotlinDsl/interoperability/kotlinClosure",files="build.gradle.kts[tags=kotlinClosure]"]
+====
+
 Also see the link:{kotlin-dsl-samples}groovy-interop[groovy-interop] sample.
 
 === The Kotlin DSL Groovy Builder
