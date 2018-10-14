@@ -47,6 +47,7 @@ If you are looking into migrating an existing build to the Gradle Kotlin DSL, pl
 
 * There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{kotlin-dsl-issues}902[are known to be slower].
 The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
+The main bottleneck is script compilation.
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 Applying model rules from scripts is supported though, see the link:{kotlin-dsl-samples}model-rules[model-rules] sample.
 * Enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
