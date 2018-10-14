@@ -30,7 +30,7 @@ The Provider API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubat
 Gradle provides lazy properties, which delay the calculation of a property’s value until it’s actually required. These provide three main benefits to build script and plugin authors:
 
 1. Build authors can wire together Gradle models without worrying when a particular property’s value will be known. For example, you may want to set the input source files of a task based on the source directories property of an extension but the extension property value isn't known until the build script or some other plugin configures them.
-2. Build authors can wire an output property of a task into an input property of some other task and Gradle automatically determines the task dependencies based on this connection. Property instances carry information about which task, if any, produces their value.
+2. Build authors can wire an output property of a task into an input property of some other task and Gradle automatically determines the task dependencies based on this connection. Property instances carry information about which task, if any, produces their value. Build authors do not need to worry about keeping task dependencies in sync with configuration changes.
 3. Build authors can avoid resource intensive work during the configuration phase, which can have a large impact on build performance. For example, when a configuration value comes from parsing a file but is only used when functional tests are run, using a property instance to capture this means that the file is parsed only when the functional tests are run, but not when, for example, `clean` is run.
 
 Gradle represents lazy properties with two interfaces:
@@ -76,7 +76,7 @@ Kotlin DSL conveniences will be added in a future release.
 ====
 
 [[sec:creating_property_provider]]
-== Creating a Property or Provider
+== Creating a Property or Provider instance
 
 Neither `Provider` nor its subtypes such as `Property` are intended to be implemented by a build script or plugin author.  Gradle provides factory methods to create instances of these types instead. See the <<#sec:lazy_configuration_reference,Quick Reference>> for all of the types and factories available. In the previous example, we have seen 2 factory methods:
 
@@ -223,6 +223,13 @@ include::{samplesPath}/providers/listProperty/listPropertyGroovy.out[]
 > gradle consumer
 include::{samplesPath}/providers/listProperty/listPropertyKotlin.out[]
 ----
+
+[[sec:unmodifiable_property]]
+== Making a property unmodifiable
+
+Most properties of a task or project are intended to be configured by plugins or build scripts and then the resulting value used to do something useful. For example, a property that specifies the output directory for a compilation task may start off with a value specified by a plugin, then a build script might configure the value to some custom location, then this value is used by the task when it runs. However, once the task starts to run, we want to prevent any further change to the property. This way we avoid errors that result from different consumers, such as the task action or Gradle's up-to-date checks or build caching or other tasks, using different values for the property.
+
+Lazy properties provide a link:{javadocPath}/org/gradle/api/provider/Property.html#finalizeValue--[finalizeValue()] method to make this explicit. Calling this method makes a property instance unmodifiable from that point on and any further attempts to change the value of the property will fail. Gradle automatically makes the properties of a task final when the task starts execution.
 
 [[sec:lazy_configuration_faqs]]
 == Guidelines
