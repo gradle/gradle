@@ -279,6 +279,76 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
     }
 
+    def "can add action to execute only when object added"() {
+        def action = Mock(Action)
+
+        container.add(c)
+
+        when:
+        container.whenObjectAdded(action)
+
+        then:
+        // Does not fire for existing elements
+        0 * action._
+
+        when:
+        container.add(a)
+
+        then:
+        1 * action.execute(a)
+        0 * action._
+
+        when:
+        container.add(a)
+
+        then:
+        0 * action._
+
+        when:
+        container.remove(c)
+        container.addAll(a, b, c, d)
+
+        then:
+        // TODO:DAZ This indicates a bug in the list implementation: should not be firing for duplicates
+        if (container instanceof List) {
+            1 * action.execute(a)
+        }
+        1 * action.execute(b)
+        1 * action.execute(c)
+        1 * action.execute(d)
+        0 * action._
+    }
+
+    def "can add action to execute only when object removed"() {
+        def action = Mock(Action)
+
+        container.add(c)
+
+        when:
+        container.whenObjectRemoved(action)
+
+        then:
+        // Does not fire for existing elements
+        0 * action._
+
+        when:
+        container.add(a)
+        container.remove(c)
+        container.remove(a)
+
+        then:
+        1 * action.execute(c)
+        1 * action.execute(a)
+        0 * action._
+
+        when:
+        container.remove(d)
+
+        then:
+        // Not fired when unknown object removed
+        0 * action._
+    }
+
     def "queries provider for element when registering action for all elements in a collection"() {
         containerAllowsExternalProviders()
         def action = Mock(Action)
@@ -1474,6 +1544,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
             "retainAll(Collection)": { container.retainAll([b]) },
             "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
             "configureEach(Action)": { container.configureEach(Actions.doNothing()) },
+            "whenObjectAdded(Action)": { container.whenObjectAdded(Actions.doNothing()) },
+            "withType(Class, Action)": { container.withType(type, Actions.doNothing()) },
+            "all(Action)": { container.all(Actions.doNothing()) },
         ]
     }
 

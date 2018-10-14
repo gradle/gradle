@@ -27,7 +27,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "gets OS total memory on a Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -36,7 +36,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "gets OS free memory on a Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -45,7 +45,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.LINUX)
     def "gets OS total memory on a Linux system"() {
         when:
-        new DefaultOsMemoryInfo().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -54,7 +54,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.LINUX)
     def "gets OS free memory on a Linux system"() {
         when:
-        new DefaultOsMemoryInfo().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -63,7 +63,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.MAC_OS_X)
     def "gets OS total memory on a MacOS system"() {
         when:
-        new DefaultOsMemoryInfo().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException
@@ -72,7 +72,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
     @Requires(TestPrecondition.MAC_OS_X)
     def "gets OS free memory on a MacOS system"() {
         when:
-        new DefaultOsMemoryInfo().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
 
         then:
         notThrown UnsupportedOperationException

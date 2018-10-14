@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.report;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -132,7 +133,7 @@ public abstract class CompositeTestResults extends TestResultModel {
         BigDecimal runTests = BigDecimal.valueOf(getRunTestCount());
         BigDecimal successful = BigDecimal.valueOf(getRunTestCount() - getFailureCount());
 
-        return successful.divide(runTests, 2, BigDecimal.ROUND_DOWN).multiply(BigDecimal.valueOf(100)).intValue();
+        return successful.divide(runTests, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100)).intValue();
     }
 
     protected void failed(TestResult failedTest) {

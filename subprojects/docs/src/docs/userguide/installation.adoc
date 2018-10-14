@@ -24,7 +24,7 @@ You can find all releases and their checksums on the link:{website}/releases[rel
 
 [[sec:prerequisites]]
 == Prerequisites
-Gradle runs on all major operating systems and requires only a link:http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java JDK] version 7 or higher to run. To check, run `java -version`. You should see something like this:
+Gradle runs on all major operating systems and requires only a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher to run. To check, run `java -version`. You should see something like this:
 
 ----
 ❯ java -version

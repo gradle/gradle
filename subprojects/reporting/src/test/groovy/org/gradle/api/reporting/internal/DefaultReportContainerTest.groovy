@@ -58,7 +58,7 @@ class DefaultReportContainerTest extends Specification {
         }
     }
 
-    def container
+    DefaultReportContainer container
 
     def setup() {
         container = createContainer {

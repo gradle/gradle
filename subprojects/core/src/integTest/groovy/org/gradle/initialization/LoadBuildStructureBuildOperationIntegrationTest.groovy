@@ -65,7 +65,6 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         def projectDirectory = testDirectory.createDir("a")
 
         when:
-        executer.withSearchUpwards()
         projectDir(projectDirectory)
         succeeds('help')
 

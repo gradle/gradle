@@ -40,7 +40,6 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
-import testLibraries
 import testLibrary
 import java.util.jar.Attributes
 
@@ -159,7 +158,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testCompile(library("groovy"))
             testCompile(testLibrary("spock"))
             testRuntime(testLibrary("bytebuddy"))
-            testLibraries("jmock").forEach { testCompile(it) }
+            testRuntime(library("objenesis"))
         }
     }
 
@@ -199,6 +198,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             if (javaInstallationForTest.javaVersion.isJava9Compatible) {
                 //allow embedded executer to modify environment variables
                 jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+                //allow embedded executer to inject legacy types into the system classloader
+                jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             }
             // Includes JVM vendor and major version
             inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })

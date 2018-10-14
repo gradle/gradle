@@ -27,11 +27,11 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
 import org.gradle.internal.operations.BuildOperationQueue
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class LocalFileDependencyBackedArtifactSetTest extends Specification {
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def dep = Mock(LocalFileDependencyMetadata)
     def filter = Mock(Spec)
     def selector = Mock(VariantSelector)

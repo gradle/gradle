@@ -22,7 +22,6 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -56,6 +55,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.snapshot.FileSystemMirror
 import org.gradle.internal.snapshot.FileSystemSnapshotter
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.time.Clock
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -102,7 +102,7 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
             _ * it.decorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
-            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) {
+            _ * it.open(_, _, _, _, _, _, _) >> Mock(PersistentCache) {
                 getBaseDir() >> file("caches").createDir().absoluteFile
                 useCache(_) >> { Factory<?> factory -> factory.create() }
             }

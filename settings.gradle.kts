@@ -101,6 +101,8 @@ include("buildCache")
 include("coreApi")
 include("versionControl")
 include("files")
+include("snapshots")
+include("architectureTest")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -113,12 +115,8 @@ rootProject.name = "gradle"
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = listOf(
     "distributions",
-    "logging",
     "process-services",
-    "core",
     "wrapper",
-    "cli",
-    "launcher",
     "resources",
     "resources-http",
     "resources-gcs",
@@ -126,37 +124,17 @@ val groovyBuildScriptProjects = listOf(
     "resources-sftp",
     "plugins",
     "scala",
-    "ide",
-    "ide-native",
-    "ide-play",
     "osgi",
     "docs",
-    "integ-test",
     "signing",
-    "ear",
     "native",
     "performance",
-    "build-scan-performance",
-    "javascript",
     "reporting",
-    "diagnostics",
     "publish",
-    "jacoco",
-    "build-init",
     "platform-base",
-    "platform-native",
     "platform-jvm",
-    "language-jvm",
-    "language-java",
-    "language-groovy",
-    "language-native",
-    "language-scala",
     "plugin-use",
-    "model-core",
-    "model-groovy",
-    "build-cache-http",
     "testing-base",
-    "testing-native",
     "testing-jvm",
     "testing-junit-platform",
     "platform-play",
@@ -164,7 +142,6 @@ val groovyBuildScriptProjects = listOf(
     "soak",
     "smoke-test",
     "persistent-cache",
-    "core-api",
     "version-control")
 
 fun buildFileNameFor(projectDirName: String) =
@@ -184,3 +161,19 @@ for (project in rootProject.children) {
         throw IllegalArgumentException("Build file ${project.buildFile} for project ${project.name} does not exist.")
     }
 }
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            when (requested.id.id) {
+                // FIXME: Publish plugin marker artifacts for the ci tagging plugin
+                "org.gradle.ci.tag-single-build" -> useModule("org.gradle.ci.health:gradle-build-tag-plugin:0.43")
+            }
+        }
+    }
+}
+

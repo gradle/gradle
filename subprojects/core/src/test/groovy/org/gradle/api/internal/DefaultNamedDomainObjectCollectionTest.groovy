@@ -247,15 +247,16 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         container.add(a)
         expect:
         assertSchemaIs(
-            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+            a: "DefaultNamedDomainObjectCollectionTest.Bean"
         )
         // schema isn't cached
         container.add(b)
         container.add(d)
+        // TODO maybe should be based on the type of the add?
         assertSchemaIs(
-            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
-            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
-            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+            a: "DefaultNamedDomainObjectCollectionTest.Bean",
+            b: "DefaultNamedDomainObjectCollectionTest.Bean",
+            d: "DefaultNamedDomainObjectCollectionTest.Bean"
         )
     }
 

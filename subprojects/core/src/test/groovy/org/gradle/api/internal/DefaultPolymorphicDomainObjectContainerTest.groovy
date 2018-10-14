@@ -344,6 +344,18 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
         container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
 
+        def expectedSchema = [
+            mike: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            alice: "DefaultPolymorphicDomainObjectContainerTest.Person", // TODO: Should be AgeAwarePerson
+            kate: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            bob: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            mary: "DefaultPolymorphicDomainObjectContainerTest.Person", // TODO should be AgeAwarePerson
+            john: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            janis: "DefaultPolymorphicDomainObjectContainerTest.Person", // TODO could be AgeAwarePerson
+            robert: "DefaultPolymorphicDomainObjectContainerTest.Person" // TODO could be DefaultCtorNamedPerson
+        ]
+
         when:
         container.register("mike")
         container.register("fred", Person)
@@ -356,38 +368,14 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         container.add(new DefaultCtorNamedPerson("robert"))
 
         then:
-        assertSchemaIs(
-            mike: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            alice: "DefaultPolymorphicDomainObjectContainerTest.AgeAwarePerson",
-            kate: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson", // TODO should be Person
-            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson", // TODO should be Person
-            mary: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson", // TODO should be AgeAwarePerson
-            john: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson", // TODO could be Person
-            janis: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson", // TODO could be AgeAwarePerson
-            robert: "DefaultPolymorphicDomainObjectContainerTest.DefaultCtorNamedPerson"
-        )
+        assertSchemaIs(expectedSchema)
 
         when: "realizing pending elements"
         container.getByName("mike")
         container.getByName("fred")
         container.getByName("alice")
-
-        // TODO this should be fixed
-        //      performance killer: invalidating generated accessors
-        //      surprising behavior: script suddenly don't compile anymore
         then: "schema is the same"
-        assertSchemaIs(
-            mike: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            fred: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            alice: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
-            kate: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            mary: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
-            john: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            janis: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
-            robert: "DefaultPolymorphicDomainObjectContainerTest.DefaultCtorNamedPerson"
-        )
+        assertSchemaIs(expectedSchema)
     }
 
     def "can find elements added by rules"() {

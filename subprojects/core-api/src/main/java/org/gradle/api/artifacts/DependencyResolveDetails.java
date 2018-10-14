@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
  *
  * @since 1.4
  */
-@Incubating
 public interface DependencyResolveDetails {
 
     /**
@@ -81,5 +80,6 @@ public interface DependencyResolveDetails {
      *
      * @since 4.5
      */
+    @Incubating
     DependencyResolveDetails because(String description);
 }

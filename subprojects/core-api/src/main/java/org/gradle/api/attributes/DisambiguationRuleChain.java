@@ -35,7 +35,6 @@ import java.util.Comparator;
  *
  * @param <T> the concrete type of the attribute
  */
-@Incubating
 @HasInternalProtocol
 public interface DisambiguationRuleChain<T> {
 
@@ -51,6 +50,7 @@ public interface DisambiguationRuleChain<T> {
      * @param rule the rule to add
      * @since 4.0
      */
+    @Incubating
     void add(Class<? extends AttributeDisambiguationRule<T>> rule);
 
     /**
@@ -60,6 +60,7 @@ public interface DisambiguationRuleChain<T> {
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
+    @Incubating
     void add(Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction);
 
     /**

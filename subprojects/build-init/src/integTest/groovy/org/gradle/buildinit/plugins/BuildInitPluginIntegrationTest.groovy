@@ -29,6 +29,9 @@ import static org.hamcrest.Matchers.not
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "init shows up on tasks overview "() {
+        given:
+        targetDir.file("settings.gradle").touch()
+
         when:
         run 'tasks'
 
@@ -285,7 +288,7 @@ include("child")
                      scala-library""")
     }
 
-    def "does not warn or fail when initializing a project inside another project"() {
+    def "does not warn or fail when initializing inside another build"() {
         given:
         def sub = file("sub")
         sub.mkdirs()
@@ -293,6 +296,20 @@ include("child")
 
         when:
         file("settings.gradle") << "rootProject.name = 'root'"
+
+        then:
+        succeeds "init"
+    }
+
+    def "ignores gradle properties for existing build when initializing inside another project"() {
+        given:
+        def sub = file("sub")
+        sub.mkdirs()
+        executer.inDirectory(sub)
+
+        when:
+        file("settings.gradle") << "rootProject.name = 'root'"
+        file("gradle.properties") << "org.gradle.jvmargs=-Xmx=BAD"
 
         then:
         succeeds "init"

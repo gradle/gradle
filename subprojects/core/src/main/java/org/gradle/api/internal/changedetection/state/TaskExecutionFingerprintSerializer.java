@@ -26,6 +26,8 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 
@@ -34,7 +36,7 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
     private final Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
 
-    TaskExecutionFingerprintSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
+    public TaskExecutionFingerprintSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
         this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();

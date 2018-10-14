@@ -23,7 +23,6 @@ import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
     private final String targetModuleName;
     private IdeaDependencyScope scope;
-    private DefaultIdeaModule dependencyModule;
     private boolean exported;
 
     public DefaultIdeaModuleDependency(String targetModuleName) {
@@ -43,15 +42,6 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
         return targetModuleName;
     }
 
-    public DefaultIdeaModule getDependencyModule() {
-        return dependencyModule;
-    }
-
-    public DefaultIdeaModuleDependency setDependencyModule(DefaultIdeaModule dependencyModule) {
-        this.dependencyModule = dependencyModule;
-        return this;
-    }
-
     public boolean getExported() {
         return exported;
     }
@@ -64,9 +54,9 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
     @Override
     public String toString() {
         return "DefaultIdeaModuleDependency{"
-                 + "scope='" + scope + '\''
-                 + ", targetModuleName='" + targetModuleName + '\''
-                 + ", exported=" + exported
-                 + '}';
+            + "scope='" + scope + '\''
+            + ", targetModuleName='" + targetModuleName + '\''
+            + ", exported=" + exported
+            + '}';
     }
 }

@@ -22,14 +22,14 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-public class ArchivePublishArtifactTest extends Specification {
+class ArchivePublishArtifactTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    def TestUtil testUtil = TestUtil.create(temporaryFolder)
+    def testUtil = TestUtil.create(temporaryFolder)
 
     def "provides sensible default values for quite empty archive tasks"() {
-        def quiteEmptyJar = testUtil.task(DummyJar)
+        def quiteEmptyJar = testUtil.task(DummyJar, [destinationDir: temporaryFolder.testDirectory])
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)

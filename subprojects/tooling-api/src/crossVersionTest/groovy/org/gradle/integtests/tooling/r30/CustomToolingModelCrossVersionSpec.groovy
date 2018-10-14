@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r30
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
@@ -66,7 +66,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @ToolingApiVersion(">=3.0")
-    @TargetGradleVersion(">=1.6")
     def "retains underlying object identity in model returned to client"() {
         when:
         def model = withConnection { connection ->
@@ -81,7 +80,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @ToolingApiVersion(">=3.0")
-    @TargetGradleVersion(">=1.8")
     def "retains underlying object identity in model returned to client via build action"() {
         settingsFile << "include 'a', 'b'"
 
@@ -96,7 +94,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @ToolingApiVersion(">=3.0")
-    @TargetGradleVersion(">=1.8")
     def "retains underlying object identity in complex model returned to client via build action"() {
         settingsFile << "include 'a', 'b'"
 

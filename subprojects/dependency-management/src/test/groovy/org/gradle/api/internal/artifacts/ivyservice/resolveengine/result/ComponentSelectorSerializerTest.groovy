@@ -31,14 +31,14 @@ import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
 import static org.gradle.util.Path.path
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
-    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = []) {
         return new DefaultImmutableVersionConstraint(
@@ -117,7 +117,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
     @Unroll
     def "serializes ProjectComponentSelector with attributes"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildId), identityPath, projectPath, projectName, TestUtil.attributes(foo: 'x', bar: 'y'))
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildId), identityPath, projectPath, projectName, AttributeTestUtil.attributes(foo: 'x', bar: 'y'))
 
         when:
         def result = serialize(selector, serializer)

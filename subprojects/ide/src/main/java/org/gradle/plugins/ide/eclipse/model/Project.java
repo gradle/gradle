@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-import org.gradle.api.Incubating;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
@@ -34,7 +33,9 @@ import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.*;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES_AND_FOLDERS;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FOLDERS;
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.EXCLUDE_ALL;
 import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.INCLUDE_ONLY;
 
@@ -128,22 +129,20 @@ public class Project extends XmlPersistableConfigurationObject {
         this.linkedResources = linkedResources;
     }
 
-    /*
+    /**
      * The resource filters of this Eclipse project.
      *
      * @since 3.5
      */
-    @Incubating
     public Set<ResourceFilter> getResourceFilters() {
         return resourceFilters;
     }
 
-    /*
+    /**
      * Sets the resource filters of this Eclipse project.
      *
      * @since 3.5
      */
-    @Incubating
     public void setResourceFilters(Set<ResourceFilter> resourceFilters) {
         this.resourceFilters = resourceFilters;
     }

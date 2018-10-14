@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -41,7 +40,6 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
  *
  * @since 3.4
  */
-@Incubating
 public class JavaLibraryPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
 

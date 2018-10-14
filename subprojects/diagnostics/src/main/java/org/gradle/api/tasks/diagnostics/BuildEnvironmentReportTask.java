@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -46,7 +45,6 @@ import java.util.Collections;
  *
  * @since 2.10
  */
-@Incubating
 public class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";

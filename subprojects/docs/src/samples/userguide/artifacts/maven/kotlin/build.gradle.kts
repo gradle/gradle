@@ -77,7 +77,7 @@ tasks.getByName<Upload>("uploadArchives") {
 // end::upload-with-ssh[]
 
 // tag::customize-installer[]
-tasks.getByName<Upload>("install") {
+tasks.install {
     repositories.withGroovyBuilder {
         "mavenInstaller" {
             "pom" {

@@ -18,6 +18,7 @@ package org.gradle.configuration.project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -30,6 +31,7 @@ public class BuildScriptProcessorTest extends Specification {
     def scriptPlugin = Mock(ScriptPlugin)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
+    def projectState = Mock(ProjectState)
     def BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(configurerFactory)
     private ScriptHandler scriptHandler;
 
@@ -39,6 +41,8 @@ public class BuildScriptProcessorTest extends Specification {
         project.getBuildscript() >> scriptHandler
         project.getClassLoaderScope() >> targetScope
         project.getBaseClassLoaderScope() >> baseScope
+        project.getMutationState() >> projectState
+        projectState.withMutableState(_) >> { args -> args[0].run() }
     }
 
     def configuresProjectUsingBuildScript() {

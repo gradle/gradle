@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -77,7 +76,6 @@ public interface TaskState {
      * @return true if this task has been considered up-to-date
      * @since 2.5
      */
-    @Incubating
     boolean getUpToDate();
 
     /**
@@ -86,6 +84,5 @@ public interface TaskState {
      * @return true if this task has no input files assigned
      * @since 3.4
      */
-    @Incubating
     boolean getNoSource();
 }

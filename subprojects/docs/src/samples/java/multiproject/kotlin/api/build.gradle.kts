@@ -26,11 +26,11 @@ dependencies {
 // end::project-dependencies[]
 
 // Just a smoke test that using this option does not lead to any exception
-tasks.getByName<JavaCompile>("compileJava").options.compilerArgs = listOf("-Xlint:unchecked")
+tasks.compileJava { options.compilerArgs = listOf("-Xlint:unchecked") }
 
 task<Jar>("spiJar") {
     appendix = "spi"
-    from(sourceSets["main"].output)
+    from(sourceSets.main.get().output)
     include("org/gradle/api/")
 }
 
@@ -67,7 +67,7 @@ task("checkProjectDependency") {
             from(sharedJarTask.archivePath)
             into(cachedSharedJarDir)
         }
-        val sharedJar = configurations.compileClasspath.files.first { file: File -> file.name.startsWith("shared") }
+        val sharedJar = configurations.compileClasspath.get().first { file: File -> file.name.startsWith("shared") }
         require(sharedJar.absolutePath == sharedJarTask.archivePath.absolutePath)
     }
 }

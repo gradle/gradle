@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -96,7 +95,6 @@ public interface PluginAware {
      * @return the plugin manager
      * @since 2.3
      */
-    @Incubating
     PluginManager getPluginManager();
 
 }

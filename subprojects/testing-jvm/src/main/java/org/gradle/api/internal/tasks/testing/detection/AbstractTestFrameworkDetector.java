@@ -18,9 +18,12 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
@@ -114,7 +117,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         this.testClasspath = testClasspath;
     }
 
-    protected TestClassVisitor classVisitor(final File testClassFile) {
+    private TestClass readClassFile(File testClassFile, Factory<String> fallbackClassNameProvider) {
         final TestClassVisitor classVisitor = createClassVisitor();
 
         InputStream classStream = null;
@@ -122,18 +125,23 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             classStream = new BufferedInputStream(new FileInputStream(testClassFile));
             final ClassReader classReader = new ClassReader(IOUtils.toByteArray(classStream));
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
+            return TestClass.forParseableFile(classVisitor);
         } catch (Throwable e) {
-            throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);
+            LOGGER.debug("Failed to read class file " + testClassFile.getAbsolutePath() + "; assuming it's a test class and continuing", e);
+            return TestClass.forUnparseableFile(fallbackClassNameProvider.create());
         } finally {
-            IOUtils.closeQuietly(classStream);
+            IoActions.closeQuietly(classStream);
         }
-
-        return classVisitor;
     }
 
     @Override
-    public boolean processTestClass(File testClassFile) {
-        return processTestClass(testClassFile, false);
+    public boolean processTestClass(final RelativeFile testClassFile) {
+        return processTestClass(testClassFile.getFile(), false, new Factory<String>() {
+            @Override
+            public String create() {
+                return testClassFile.getRelativePath().getPathString().replace(".class", "");
+            }
+        });
     }
 
     /**
@@ -141,21 +149,21 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      * class is a test class. First the package of the parent class is checked, if it is a java.lang or groovy.lang the class can't be a test class, otherwise the parent class is scanned. <p/> When a
      * parent class is a test class all the extending classes are marked as test classes.
      */
-    private boolean processTestClass(final File testClassFile, boolean superClass) {
-        final TestClassVisitor classVisitor = classVisitor(testClassFile);
+    private boolean processTestClass(File testClassFile, boolean superClass, Factory<String> fallbackClassNameProvider) {
+        TestClass testClass = readClassFile(testClassFile, fallbackClassNameProvider);
 
-        boolean isTest = classVisitor.isTest();
+        boolean isTest = testClass.isTest();
 
         if (!isTest) { // scan parent class
-            final String superClassName = classVisitor.getSuperClassName();
+            String superClassName = testClass.getSuperClassName();
 
             if (isKnownTestCaseClassName(superClassName)) {
                 isTest = true;
             } else {
-                final File superClassFile = getSuperTestClassFile(superClassName);
+                File superClassFile = getSuperTestClassFile(superClassName);
 
                 if (superClassFile != null) {
-                    isTest = processSuperClass(superClassFile);
+                    isTest = processSuperClass(superClassFile, superClassName);
                 } else {
                     LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file",
                         superClassName);
@@ -163,20 +171,20 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             }
         }
 
-        publishTestClass(isTest, classVisitor, superClass);
+        publishTestClass(isTest, testClass, superClass);
 
         return isTest;
     }
 
     protected abstract boolean isKnownTestCaseClassName(String testCaseClassName);
 
-    private boolean processSuperClass(File testClassFile) {
+    private boolean processSuperClass(File testClassFile, String superClassName) {
         boolean isTest;
 
         Boolean isSuperTest = superClasses.get(testClassFile);
 
         if (isSuperTest == null) {
-            isTest = processTestClass(testClassFile, true);
+            isTest = processTestClass(testClassFile, true, Factories.constant(superClassName));
 
             superClasses.put(testClassFile, isTest);
         } else {
@@ -190,9 +198,9 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      * In none super class mode a test class is published when the class is a test and it is not abstract. In super class mode it must not publish the class otherwise it will get published multiple
      * times (for each extending class).
      */
-    private void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
-        if (isTest && !classVisitor.isAbstract() && !superClass) {
-            String className = Type.getObjectType(classVisitor.getClassName()).getClassName();
+    private void publishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
+        if (isTest && !testClass.isAbstract() && !superClass) {
+            String className = Type.getObjectType(testClass.getClassName()).getClassName();
             testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
         }
     }
@@ -201,4 +209,43 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     public void startDetection(TestClassProcessor testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
     }
+
+    private static class TestClass {
+        private final boolean test;
+        private final boolean isAbstract;
+        private final String className;
+        private final String superClassName;
+
+        static TestClass forParseableFile(TestClassVisitor testClassVisitor) {
+            return new TestClass(testClassVisitor.isTest(), testClassVisitor.isAbstract(), testClassVisitor.getClassName(), testClassVisitor.getSuperClassName());
+        }
+
+        static TestClass forUnparseableFile(String className) {
+            return new TestClass(true, false, className, null);
+        }
+
+        private TestClass(boolean test, boolean isAbstract, String className, String superClassName) {
+            this.test = test;
+            this.isAbstract = isAbstract;
+            this.className = className;
+            this.superClassName = superClassName;
+        }
+
+        boolean isTest() {
+            return test;
+        }
+
+        boolean isAbstract() {
+            return isAbstract;
+        }
+
+        String getClassName() {
+            return className;
+        }
+
+        String getSuperClassName() {
+            return superClassName;
+        }
+    }
+
 }

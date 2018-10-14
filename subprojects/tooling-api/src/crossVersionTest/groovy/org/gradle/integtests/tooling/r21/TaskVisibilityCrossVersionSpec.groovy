@@ -16,15 +16,11 @@
 
 package org.gradle.integtests.tooling.r21
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.TaskSelector
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=2.1")
 class TaskVisibilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -57,7 +53,6 @@ project(':b:c') {
 }'''
     }
 
-    @TargetGradleVersion(">=2.1")
     def "task visibility is correct"() {
         def publicTasks = rootProjectImplicitTasks + ['t2']
         def publicSelectors = rootProjectImplicitSelectors + ['t1', 't2']
@@ -70,31 +65,5 @@ project(':b:c') {
         then:
         model.tasks.every { Task t -> publicTasks.contains(t.name) == t.public }
         model.taskSelectors.every { TaskSelector ts -> publicSelectors.contains(ts.name) == ts.public }
-    }
-
-    @TargetGradleVersion(">=1.2 <2.1")
-    def "no visibility for older launchables"() {
-        when:
-        BuildInvocations model = withConnection { connection ->
-            connection.getModel(BuildInvocations)
-        }
-
-        then:
-        model.tasks.every { Task t ->
-            try {
-                t.public
-                false
-            } catch (UnsupportedMethodException e) {
-                true
-            }
-        }
-        model.taskSelectors.every { TaskSelector t ->
-            try {
-                t.public
-                false
-            } catch (UnsupportedMethodException e) {
-                true
-            }
-        }
     }
 }

@@ -107,7 +107,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         ideaModule.dependencies.size() == 1
         with(ideaModule.dependencies.first()) {
             it instanceof IdeaModuleDependency
-            dependencyModule == null
             targetModuleName == "b1"
         }
     }

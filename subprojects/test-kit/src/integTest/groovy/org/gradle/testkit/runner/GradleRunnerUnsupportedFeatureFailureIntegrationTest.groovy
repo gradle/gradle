@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner
 
-
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
@@ -27,7 +26,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Retry
 
 import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @NonCrossVersion
 @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
@@ -56,40 +54,6 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         if (condition) {
             throw throwable
         }
-    }
-
-    def "fails informatively when trying to inspect executed tasks with unsupported gradle version"() {
-        def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS)
-        def minSupportedVersion = TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since.version
-
-        given:
-        buildFile << helloWorldTask()
-
-        when:
-        def result = runner('helloWorld')
-            .withGradleVersion(maxUnsupportedVersion)
-            .build()
-
-        and:
-        result.tasks
-
-        then:
-        def e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
-
-        when:
-        result.task(":foo")
-
-        then:
-        e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
-
-        when:
-        result.tasks(SUCCESS)
-
-        then:
-        e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture executed tasks with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     @Debug

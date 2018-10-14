@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.rules.SpecRuleAction;
 
 import java.util.Collection;
@@ -31,6 +33,7 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
     private final List<MetadataRuleWrapper> rules = Lists.newArrayListWithExpectedSize(10);
     private MetadataRuleWrapper lastAdded;
     private boolean classBasedRulesOnly = true;
+    private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
 
     void addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
         lastAdded = new ActionBasedMetadataRuleWrapepr(ruleAction);
@@ -65,5 +68,13 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
             throw new IllegalStateException("This method cannot be used unless there is at least one rule and they are all class based");
         }
         return rules.get(0).getClassRules();
+    }
+
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return variantDerivationStrategy;
+    }
+
+    public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
+        this.variantDerivationStrategy = variantDerivationStrategy;
     }
 }

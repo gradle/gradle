@@ -27,8 +27,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.DefaultTaskUpToDateState;
 import org.gradle.api.internal.changedetection.rules.MaximumNumberTaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.NoHistoryTaskUpToDateState;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
@@ -40,6 +38,8 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
@@ -96,16 +96,21 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
+        public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             IncrementalTaskInputs taskInputs;
             if (outputsRemoved || getStates().isRebuildRequired()) {
-                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
+                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
             } else {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
             return taskInputs;
+        }
+
+        @Override
+        public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
+            return history.getCurrentExecution().getInputFingerprints().values();
         }
 
         @Override

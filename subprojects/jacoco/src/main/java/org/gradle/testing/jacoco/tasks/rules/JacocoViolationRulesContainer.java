@@ -17,7 +17,6 @@
 package org.gradle.testing.jacoco.tasks.rules;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 import java.util.List;
@@ -27,7 +26,6 @@ import java.util.List;
  *
  * @since 3.4
  */
-@Incubating
 public interface JacocoViolationRulesContainer {
 
     /**

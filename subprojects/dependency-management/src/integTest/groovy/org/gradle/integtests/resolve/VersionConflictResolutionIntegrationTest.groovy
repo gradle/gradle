@@ -28,6 +28,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'test'
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
 
@@ -213,6 +214,59 @@ task resolve {
                 }
                 module("org:baz:1.0") {
                     module("org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                }
+            }
+        }
+    }
+
+    void "re-selects target version for previously resolved then evicted selector"() {
+        def depOld = mavenRepo.module("org", "dep", "2.0").publish()
+        def depNew = mavenRepo.module("org", "dep", "2.5").publish()
+
+        def controlOld = mavenRepo.module("org", "control", "1.0").dependsOn(depNew).publish()
+        def controlNew = mavenRepo.module("org", "control", "1.2").dependsOn(depNew).publish()
+        def controlNewBringer = mavenRepo.module("org", "control-1.2-bringer", "1.0").dependsOn(controlNew).publish()
+
+        mavenRepo.module("org", "one", "1.0").dependsOn(controlOld).publish()
+
+        def depOldBringer = mavenRepo.module("org", "dep-2.0-bringer", "1.0").dependsOn(depOld).publish()
+        // Note: changing the order of the following dependencies makes the test pass
+        mavenRepo.module("org", "two", "1.0").dependsOn(controlNewBringer).dependsOn(depOldBringer).publish()
+
+        buildFile << """
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org:one:1.0'
+    compile 'org:two:1.0'
+}
+"""
+
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
+        resolve.prepare()
+
+        when:
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:one:1.0") {
+                    edge("org:control:1.0", "org:control:1.2") {
+                        edge("org:dep:2.5", "org:dep:2.5")
+                    }
+                }
+                module("org:two:1.0") {
+                    module("org:dep-2.0-bringer:1.0") {
+                        edge("org:dep:2.0", "org:dep:2.5").byConflictResolution("between versions 2.0 and 2.5")
+                    }
+                    module("org:control-1.2-bringer:1.0") {
+                        module("org:control:1.2")
+                    }
                 }
             }
         }
@@ -1677,8 +1731,8 @@ task checkDeps(dependsOn: configurations.compile) {
 
     }
 
-    @Unroll
-    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover depends on optional #dependsOptional)'() {
+    @Unroll('optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)')
+    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
         def main = mavenRepo.module('org', 'main', '1.0').dependsOn(optional, optional: true).publish()
@@ -1693,9 +1747,7 @@ task checkDeps(dependsOn: configurations.compile) {
         bom.publish()
 
         buildFile << """
-plugins {
-    id 'java'
-}
+apply plugin: 'java'
 
 repositories {
     maven {
@@ -1709,6 +1761,9 @@ dependencies {
     implementation platform('org:bom:1.0')
     constraints {
         implementation 'org.a:root:1.0'
+        if ($constraintsOptional) {
+            implementation 'org:optional:1.0'
+        }
     }
 }
 """
@@ -1719,7 +1774,11 @@ dependencies {
         outputDoesNotContain('org:optional')
 
         where:
-        dependsOptional << [true, false]
+        dependsOptional | constraintsOptional
+        true            | true
+        true            | false
+        false           | true
+        false           | false
     }
 
 }

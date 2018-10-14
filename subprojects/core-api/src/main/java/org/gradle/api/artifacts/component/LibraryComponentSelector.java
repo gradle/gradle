@@ -16,14 +16,11 @@
 
 package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
  * Criteria for selecting a library instance that is built as part of the current build.
  */
-@Incubating
 public interface LibraryComponentSelector extends ComponentSelector {
     /**
      * Return the project path of the selected library.

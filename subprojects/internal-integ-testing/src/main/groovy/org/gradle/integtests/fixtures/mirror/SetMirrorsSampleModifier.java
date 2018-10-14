@@ -25,6 +25,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
+
 public class SetMirrorsSampleModifier implements SampleModifier {
     @Override
     public Sample modify(Sample sample) {
@@ -40,6 +43,7 @@ public class SetMirrorsSampleModifier implements SampleModifier {
                 List<String> args = new ArrayList<String>(command.getArgs());
                 args.add("--init-script");
                 args.add(initScript.getAbsolutePath());
+                args.add("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl());
                 modifiedCommands.add(command.toBuilder().setArgs(args).build());
             } else {
                 modifiedCommands.add(command);

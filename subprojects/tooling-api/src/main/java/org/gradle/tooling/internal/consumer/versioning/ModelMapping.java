@@ -16,16 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import org.gradle.tooling.internal.protocol.InternalBasicIdeaProject;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.InternalGradleProject;
-import org.gradle.tooling.internal.protocol.InternalIdeaProject;
-import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
@@ -41,13 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModelMapping {
-    private static final BiMap<Class<?>, Class<?>> MODEL_TO_PROTOCOL_MAP = HashBiMap.create();
-    private static final BiMap<Class<?>, String> MODEL_NAME_MAP = HashBiMap.create();
     private static final Map<Class<?>, String> MODEL_VERSIONS = new HashMap<Class<?>, String>();
 
     static {
-        addModelToProtocolMappings(MODEL_TO_PROTOCOL_MAP);
-        addModelNameMappings(MODEL_NAME_MAP);
         addModelVersions(MODEL_VERSIONS);
     }
 
@@ -64,59 +51,14 @@ public class ModelMapping {
         map.put(ProjectPublications.class, "1.12");
     }
 
-    static void addModelToProtocolMappings(Map<Class<?>, Class<?>> map) {
-        map.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
-        map.put(EclipseProject.class, EclipseProjectVersion3.class);
-        map.put(IdeaProject.class, InternalIdeaProject.class);
-        map.put(GradleProject.class, InternalGradleProject.class);
-        map.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
-        map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
-        map.put(ProjectOutcomes.class, InternalProjectOutcomes.class);
-        map.put(Void.class, Void.class);
-    }
-
-    static void addModelNameMappings(Map<Class<?>, String> map) {
-        map.put(HierarchicalEclipseProject.class, "org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
-        map.put(EclipseProject.class, "org.gradle.tooling.model.eclipse.EclipseProject");
-        map.put(IdeaProject.class, "org.gradle.tooling.model.idea.IdeaProject");
-        map.put(GradleProject.class, "org.gradle.tooling.model.GradleProject");
-        map.put(BasicIdeaProject.class, "org.gradle.tooling.model.idea.BasicIdeaProject");
-        map.put(BuildEnvironment.class, "org.gradle.tooling.model.build.BuildEnvironment");
-        map.put(ProjectOutcomes.class, "org.gradle.tooling.model.outcomes.ProjectOutcomes");
-        map.put(Void.class, Void.class.getName());
-    }
-
     public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {
         if (modelType.equals(Void.class)) {
             return new DefaultModelIdentifier(ModelIdentifier.NULL_MODEL);
         }
-        String modelName = getModelName(modelType);
-        if (modelName != null) {
-            return new DefaultModelIdentifier(modelName);
+        if (modelType.equals(ProjectOutcomes.class)) {
+            return new DefaultModelIdentifier("org.gradle.tooling.model.outcomes.ProjectOutcomes");
         }
         return new DefaultModelIdentifier(modelType.getName());
-    }
-
-    @Nullable
-    public Class<?> getProtocolType(Class<?> modelType) {
-        if (MODEL_TO_PROTOCOL_MAP.containsValue(modelType)) {
-            return modelType;
-        }
-        return MODEL_TO_PROTOCOL_MAP.get(modelType);
-    }
-
-    @Nullable
-    public String getModelName(Class<?> modelType) {
-        return MODEL_NAME_MAP.get(modelType);
-    }
-
-    @Nullable
-    public Class<?> getProtocolTypeFromModelName(String name) {
-        Class<?> modelType = MODEL_NAME_MAP.inverse().get(name);
-        if (modelType == null) {
-            return null;
-        }
-        return getProtocolType(modelType);
     }
 
     @Nullable

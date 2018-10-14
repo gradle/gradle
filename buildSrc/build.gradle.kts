@@ -85,6 +85,10 @@ allprojects {
             url = uri("https://repo.gradle.org/gradle/libs")
         }
         maven {
+            name = "Gradle snapshot libs"
+            url = uri("https://repo.gradle.org/gradle/libs-snapshots")
+        }
+        maven {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
@@ -162,8 +166,7 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        val spockGroovyVersion = groovy.lang.GroovySystem.getVersion().substring(0, 3)
-        testCompile("org.spockframework:spock-core:1.2-groovy-${spockGroovyVersion}") {
+        testCompile("org.spockframework:spock-core:1.2-groovy-2.5") {
             exclude(group = "org.codehaus.groovy")
         }
         testCompile("net.bytebuddy:byte-buddy:1.8.21")
@@ -181,6 +184,15 @@ fun Project.applyGroovyProjectConventions() {
         }
         val vendor = System.getProperty("java.vendor")
         inputs.property("javaInstallation", "$vendor ${JavaVersion.current()}")
+    }
+
+    tasks.withType<Test>().configureEach {
+        if (JavaVersion.current().isJava9Compatible()) {
+            //allow ProjectBuilder to inject legacy types into the system classloader
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+            jvmArgs("--illegal-access=deny")
+        }
+        
     }
 
     val compileGroovy: TaskProvider<GroovyCompile> = tasks.withType(GroovyCompile::class.java).named("compileGroovy")

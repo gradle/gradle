@@ -17,7 +17,7 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.tasks.AbstractCopyTask;
@@ -89,7 +89,12 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @OutputFile
     public File getArchivePath() {
-        return new File(getDestinationDir(), getArchiveName());
+        File destinationDir = getDestinationDir();
+        //noinspection ConstantConditions
+        if (destinationDir == null) {
+            throw new InvalidUserDataException("The destinationDir property must be set. Please apply the base plugin or set it explicitly.");
+        }
+        return new File(destinationDir, getArchiveName());
     }
 
     /**
@@ -229,7 +234,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @return <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     @Input
-    @Incubating
     public boolean isPreserveFileTimestamps() {
         return preserveFileTimestamps;
     }
@@ -243,7 +247,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
      */
-    @Incubating
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
         this.preserveFileTimestamps = preserveFileTimestamps;
     }
@@ -260,7 +263,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @return <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     @Input
-    @Incubating
     public boolean isReproducibleFileOrder() {
         return reproducibleFileOrder;
     }
@@ -275,7 +277,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
      */
-    @Incubating
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
         this.reproducibleFileOrder = reproducibleFileOrder;
     }

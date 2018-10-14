@@ -1721,7 +1721,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The components for this project.
      */
-    @Incubating
     SoftwareComponentContainer getComponents();
 
     /**
@@ -1729,7 +1728,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     InputNormalizationHandler getNormalization();
 
     /**
@@ -1737,7 +1735,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     void normalization(Action<? super InputNormalizationHandler> configuration);
 
     /**

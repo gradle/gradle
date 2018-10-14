@@ -240,7 +240,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         !stdOut.toString().contains("default")
     }
 
-    @TargetGradleVersion("<4.8")
+    @TargetGradleVersion(">=2.6 <4.8")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()

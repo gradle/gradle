@@ -67,13 +67,11 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
-    private final Index<T> index;
+    protected final Index<T> index;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
@@ -407,46 +405,23 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return new NamedDomainObjectCollectionSchema() {
             @Override
             public Iterable<? extends NamedDomainObjectSchema> getElements() {
-                return Iterables.concat(
-                    Iterables.transform(index.asMap().entrySet(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
-                        @Override
-                        public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
-                            return new NamedDomainObjectSchema() {
-                                @Override
-                                public String getName() {
-                                    return e.getKey();
-                                }
+                // Simple scheme is to just present the public type of the container
+                return Iterables.transform(getNames(), new Function<String, NamedDomainObjectSchema>() {
+                    @Override
+                    public NamedDomainObjectSchema apply(final String name) {
+                        return new NamedDomainObjectSchema() {
+                            @Override
+                            public String getName() {
+                                return name;
+                            }
 
-                                @Override
-                                public TypeOf<?> getPublicType() {
-                                    // TODO: This returns the wrong public type for domain objects
-                                    // created with the eager APIs or added directly to the container.
-                                    // This can leak internal types.
-                                    // We do not currently keep track of the type used when creating
-                                    // a domain object (via create) or the type of the container when
-                                    // a domain object is added directly (via add).
-                                    return new DslObject(e.getValue()).getPublicType();
-                                }
-                            };
-                        }
-                    }),
-                    Iterables.transform(index.getPendingAsMap().entrySet(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
-                        @Override
-                        public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
-                            return new NamedDomainObjectSchema() {
-                                @Override
-                                public String getName() {
-                                    return e.getKey();
-                                }
-
-                                @Override
-                                public TypeOf<?> getPublicType() {
-                                    return typeOf(e.getValue().getType());
-                                }
-                            };
-                        }
-                    })
-                );
+                            @Override
+                            public TypeOf<?> getPublicType() {
+                                return TypeOf.typeOf(getType());
+                            }
+                        };
+                    }
+                });
             }
         };
     }
@@ -883,10 +858,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public I getOrNull() {
             return Cast.uncheckedCast(findByNameWithoutRules(getName()));
         }
-
-        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
-            return getMutationGuard().withMutationDisabled(action);
-        }
     }
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
@@ -920,10 +891,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
             // Collect any container level add actions then add the object specific action
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
-        }
-
-        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
-            return getMutationGuard().withMutationDisabled(action);
         }
 
         @Override

@@ -48,7 +48,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.util.DisconnectableInputStream;
-import org.gradle.util.SingleMessageLogger;
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
@@ -71,7 +70,6 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     public Object execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
         if (actionParameters.isContinuous()) {
-            SingleMessageLogger.incubatingFeatureUsed("Continuous build");
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
             final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestContext, cancellationToken);
             return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, alwaysOpenExecutionGate);

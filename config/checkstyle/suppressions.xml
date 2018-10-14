@@ -86,5 +86,9 @@
               files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
     <suppress checks="RegexpHeader"
               files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
+    
+    <!-- Ignore constant name for architecture tests since we want to use snake case there -->
+    <suppress checks="ConstantName"
+              files=".*[/\\]subprojects[/\\]architecture-test[/\\]src[/\\]test[/\\]java[/\\]org[/\\]gradle[/\\].+" />
 
 </suppressions>

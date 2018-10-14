@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -37,7 +36,6 @@ import java.util.Set;
  *
  * @since 3.5
  */
-@Incubating
 public interface ResourceFilterMatcher {
     /**
      * The id of the matcher type, as defined by its Eclipse extension.

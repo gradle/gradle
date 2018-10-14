@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.rules
 
+import org.gradle.internal.changes.TaskStateChange
+import org.gradle.internal.changes.TaskStateChangeVisitor
 import spock.lang.Specification
 
 class CachingTaskStateChangesTest extends Specification {

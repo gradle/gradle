@@ -63,6 +63,7 @@ class ModuleResolveState implements CandidateModule {
     private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
     private AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
+    private boolean overriddenSelection;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -198,6 +199,9 @@ class ModuleResolveState implements CandidateModule {
         assert this.selected == null;
         assert selected != null;
 
+        if (!selected.getId().getModule().equals(getId())) {
+            this.overriddenSelection = true;
+        }
         this.selected = selected;
 
         doRestart(selected);
@@ -249,6 +253,10 @@ class ModuleResolveState implements CandidateModule {
         assert !selectors.contains(selector) : "Inconsistent call to addSelector: should only be done if the selector isn't in use";
         selectors.add(selector);
         mergedAttributes = appendAttributes(mergedAttributes, selector);
+        if (overriddenSelection) {
+            assert selected != null : "An overridden module cannot have selected == null";
+            selector.overrideSelection(selected);
+        }
     }
 
     void removeSelector(SelectorState selector) {
@@ -308,6 +316,15 @@ class ModuleResolveState implements CandidateModule {
 
     void decreaseHardEdgeCount() {
         pendingDependencies.decreaseHardEdgeCount();
+        if (pendingDependencies.isPending()) {
+            // Back to being a pending dependency
+            // Clear remaining incoming edges, as they must be all from constraints
+            if (selected != null) {
+                for (NodeState node : selected.getNodes()) {
+                    node.clearConstraintEdges(pendingDependencies);
+                }
+            }
+        }
     }
 
     boolean isPending() {

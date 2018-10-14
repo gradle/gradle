@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractIntegrationSpec {
@@ -26,6 +27,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
 
         // detector confuses attributes with stack traces
         executer.withStackTraceChecksDisabled()
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     @Unroll

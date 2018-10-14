@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -76,10 +76,10 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.disableConsistentWorkspaceIdCheck = true
 
         when:
+        file("other/settings.gradle").touch()
         buildScript """
             task t(type: GradleBuild) {
                 dir = file("other")
-                startParameter.searchUpwards = false
             }
         """
 
@@ -96,9 +96,9 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         file("other-home/init.d/id.gradle") << scopeIds.initScriptContent()
 
         when:
+        settingsFile << "rootProject.name = 'root'"
         buildScript """
             task t(type: GradleBuild) {
-                startParameter.searchUpwards = false
                 startParameter.gradleUserHomeDir = new File("${TextUtil.normaliseFileSeparators(file("other-home").absolutePath)}")
             }
         """
@@ -113,10 +113,9 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
     def "gradle-build with same root and user dir inherits all"() {
         when:
+        settingsFile << "rootProject.name = 'root'"
         buildScript """
-            task t(type: GradleBuild) {
-                startParameter.searchUpwards = false
-            }
+            task t(type: GradleBuild) {}
         """
 
         then:
@@ -127,8 +126,8 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
     def "different project roots have different workspace ids"() {
         when:
-        file("a/build.gradle") << ""
-        file("b/build.gradle") << ""
+        file("a/settings.gradle") << ""
+        file("b/settings.gradle") << ""
         succeeds("help", "-p", "a")
         succeeds("help", "-p", "b")
 

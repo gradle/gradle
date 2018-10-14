@@ -53,14 +53,6 @@ public interface CacheBuilder {
     CacheBuilder withCrossVersionCache(LockTarget lockTarget);
 
     /**
-     * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.
-     *
-     * @param validator The validator
-     * @return this
-     */
-    CacheBuilder withValidator(CacheValidator validator);
-
-    /**
      * Specifies the display name for this cache. This display name is used in logging and error messages.
      */
     CacheBuilder withDisplayName(String displayName);

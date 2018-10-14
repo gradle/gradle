@@ -29,7 +29,6 @@ class ContinuousIntegrationTestFixtureTest extends Specification {
         def sampleTest = new AbstractContinuousIntegrationTest() {}
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
-Continuous build is an incubating feature.
 :sometask
 
 BUILD SUCCESSFUL in 1s
@@ -47,7 +46,6 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
         def sampleTest = new AbstractContinuousIntegrationTest() {}
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
-Continuous build is an incubating feature.
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -69,7 +67,6 @@ BUILD FAILED in 0s
         def sampleTest = new AbstractContinuousIntegrationTest() {}
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
-Continuous build is an incubating feature.
 :sometask
 
 BUILD SUCCESSFUL in 1s
@@ -88,7 +85,6 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
         def sampleTest = new AbstractContinuousIntegrationTest() {}
         def gradleHandle = setupStubs(sampleTest)
         gradleHandle.getStandardOutput() >> '''
-Continuous build is an incubating feature.
 :sometask
 
 BUILD SUCCESSFUL in 1s

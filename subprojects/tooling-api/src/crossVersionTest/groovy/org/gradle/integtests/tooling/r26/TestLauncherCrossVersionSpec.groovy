@@ -21,9 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ListenerFailedException
@@ -38,8 +36,6 @@ import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.GradleVersion
 import spock.lang.Timeout
 
-@ToolingApiVersion(">=2.6")
-@TargetGradleVersion(">=2.6")
 @Timeout(120)
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     public static final GradleVersion GRADLE_VERSION_34 = GradleVersion.version("3.4")

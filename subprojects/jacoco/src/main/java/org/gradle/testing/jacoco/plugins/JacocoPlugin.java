@@ -17,7 +17,6 @@ package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -48,7 +47,6 @@ import java.util.concurrent.Callable;
 /**
  * Plugin that provides support for generating Jacoco coverage data.
  */
-@Incubating
 public class JacocoPlugin implements Plugin<ProjectInternal> {
 
     /**

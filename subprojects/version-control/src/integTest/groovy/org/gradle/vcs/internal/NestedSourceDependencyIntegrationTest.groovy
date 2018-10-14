@@ -148,7 +148,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         shouldResolve(first, second)
 
         when:
-        succeeds("resolve")
+        succeeds("resolve", "--info")
         then:
         result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
 

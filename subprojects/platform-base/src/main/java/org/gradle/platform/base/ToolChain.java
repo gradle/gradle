@@ -16,14 +16,12 @@
 
 package org.gradle.platform.base;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A set of compilers that are used together to construct binaries.
  */
-@Incubating
 @HasInternalProtocol
 public interface ToolChain extends Named {
     /**

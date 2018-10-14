@@ -442,7 +442,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * {@inheritDoc}
      */
     @Override
-    @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
     }
@@ -1020,7 +1020,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param action configuration of the test filter
      * @since 1.10
      */
-    @Incubating
     public void filter(Action<TestFilter> action) {
         action.execute(getFilter());
     }

@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * The result of attempting to resolve the list of versions for a particular module.
  */
-public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ResolveResult {
+public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
 
     enum State {
         /**

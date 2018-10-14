@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
 
+import java.io.File;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -27,10 +31,17 @@ import static java.util.Collections.emptySet;
 public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
+    private final JavaVersion javaVersion;
 
     public DynamicModulesClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
+        this(moduleRegistry, pluginModuleRegistry, JavaVersion.current());
+    }
+
+    @VisibleForTesting
+    protected DynamicModulesClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry, JavaVersion javaVersion) {
         this.moduleRegistry = moduleRegistry;
         this.pluginModuleRegistry = pluginModuleRegistry;
+        this.javaVersion = javaVersion;
     }
 
     public ClassPath findClassPath(String name) {
@@ -51,10 +62,22 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
             for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
                 classpath = classpath.plus(pluginModule.getClasspath());
             }
-            return classpath;
+            return removeJaxbIfIncludedInCurrentJdk(classpath);
         }
 
         return null;
+    }
+
+    private ClassPath removeJaxbIfIncludedInCurrentJdk(ClassPath classpath) {
+        if (!javaVersion.isJava9Compatible()) {
+            return classpath.removeIf(new Spec<File>() {
+                @Override
+                public boolean isSatisfiedBy(File file) {
+                    return file.getName().startsWith("jaxb-impl-");
+                }
+            });
+        }
+        return classpath;
     }
 
     private Set<Module> allRequiredModulesOf(String name) {

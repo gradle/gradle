@@ -19,7 +19,6 @@ package org.gradle.testing.jacoco.tasks;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -47,7 +46,6 @@ import java.util.concurrent.Callable;
  *
  * @since 3.4
  */
-@Incubating
 public abstract class JacocoReportBase extends JacocoBase {
 
     private final ConfigurableFileCollection executionData = getProject().files();

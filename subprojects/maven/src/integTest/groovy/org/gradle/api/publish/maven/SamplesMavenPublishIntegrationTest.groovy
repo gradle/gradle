@@ -48,6 +48,8 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @UsesSample("maven-publish/quickstart")
     def quickstartPublishLocal() {
+        using m2
+        
         given:
         executer.beforeExecute m2
         def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
@@ -120,6 +122,8 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
     def "conditional publishing with #dsl dsl"() {
+        using m2
+
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         inDirectory(sampleDir)

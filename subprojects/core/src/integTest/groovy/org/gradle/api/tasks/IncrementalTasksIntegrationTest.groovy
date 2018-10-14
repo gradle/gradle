@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -373,6 +375,51 @@ ext.added = ['file3.txt', 'file4.txt']
         then:
         executesWithIncrementalContext("ext.changed = ['file1.txt']")
     }
+
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/4166")
+    def "file in input dir appears in task inputs for #inputAnnotation"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @${inputAnnotation}
+                File input
+                @OutputFile
+                File output
+                
+                @TaskAction
+                void doStuff(IncrementalTaskInputs inputs) {
+                    def out = []
+                    inputs.outOfDate {
+                        out << file.name
+                    }
+                    assert out.contains('child')
+                    output.text = out.join('\\n')
+                }
+            }           
+            
+            task myTask(type: MyTask) {
+                input = mkdir(inputDir)
+                output = file("build/output.txt")
+            }          
+        """
+        String myTask = ':myTask'
+
+        when:
+        file("inputDir1/child") << "inputFile1"
+        run myTask, '-PinputDir=inputDir1'
+        then:
+        executedAndNotSkipped(myTask)
+
+        when:
+        file("inputDir2/child") << "inputFile2"
+        run myTask, '-PinputDir=inputDir2'
+        then:
+        executedAndNotSkipped(myTask)
+
+        where:
+        inputAnnotation << [InputFiles.name, InputDirectory.name]
+    }
+
     /*
      7. Sad-day cases
          - Incremental task has input files declared
@@ -396,9 +443,9 @@ ext.added = ['file3.txt', 'file4.txt']
         succeeds "incrementalCheck"
     }
 
-    def executesWithRebuildContext(String fileChanges="") {
+    def executesWithRebuildContext(String fileChanges = "") {
         buildFile << """
-    ext.changed = ['file0.txt', 'file1.txt', 'file2.txt']
+    ext.changed = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
     ext.incrementalExecution = false
 """
         buildFile << fileChanges

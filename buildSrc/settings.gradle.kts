@@ -54,6 +54,7 @@ include("plugins")
 include("profiling")
 include("performance")
 include("versioning")
+include("buildPlatform")
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName.gradle.kts"

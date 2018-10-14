@@ -29,7 +29,6 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringLanguageLevel8
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.kotlin.dsl.*
@@ -70,10 +69,14 @@ private
 const val javaCompilerHeapSpace = 3072
 
 
-// Disable Java 7 inspections because some parts of the codebase still need
-// to run on Java 6
+// Disable Java 7 and Java 8 inspections because some parts of the codebase still need to run on Java 6
 private
-val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
+val disabledInspections = listOf(
+    // Java 7 inspections
+    "Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches",
+    // Java 8 inspections
+    "Anonymous2MethodRef", "AnonymousHasLambdaAlternative", "CodeBlock2Expr", "ComparatorCombinators", "Convert2Lambda", "Convert2MethodRef", "Convert2streamapi", "FoldExpressionIntoStream", "Guava", "Java8ArraySetAll", "Java8CollectionRemoveIf", "Java8ListSort", "Java8MapApi", "Java8MapForEach", "LambdaCanBeMethodCall", "SimplifyForEach", "StaticPseudoFunctionalStyleMethod"
+)
 
 
 object GradleCopyright {
@@ -378,10 +381,8 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
-        val ideaLanguageLevel =
-            if (ideaModule.project in projectsRequiringLanguageLevel8) "1.8"
-            else "1.7"
-        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
+        val ideaLanguageLevel = "1.8"
+        // Force everything to Java 8, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }

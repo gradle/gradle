@@ -84,6 +84,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -149,6 +150,7 @@ include 'a', 'b'
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -236,6 +238,7 @@ include 'a', 'b'
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -307,6 +310,7 @@ include 'a', 'b'
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     freeDebug fooJar
                     freeRelease fooJar
@@ -366,6 +370,7 @@ include 'a', 'b'
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -427,6 +432,7 @@ include 'a', 'b'
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -482,6 +488,7 @@ Variant 'bar':
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -529,6 +536,7 @@ Variant 'bar':
                 }
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
+                   destinationDir = buildDir
                 }
                 artifacts {
                     'default' barJar
@@ -579,6 +587,7 @@ Variant 'bar':
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -634,6 +643,7 @@ Variant 'bar':
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -741,6 +751,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -791,6 +802,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -854,6 +866,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -912,6 +925,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -976,6 +990,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1025,6 +1040,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1084,6 +1100,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1162,6 +1179,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     debug fooJar
                     compile barJar
@@ -1236,6 +1254,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1329,6 +1348,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1412,6 +1432,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1480,6 +1501,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1504,6 +1526,7 @@ All of them match the consumer attributes:
                 task bar2Jar(type: Jar) {
                    baseName = 'c-bar2'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar, foo2Jar
                     bar barJar, bar2Jar
@@ -1612,6 +1635,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1682,6 +1706,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     _compileFreeDebug fooJar
                     _compileFreeRelease barJar
@@ -1740,6 +1765,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1792,6 +1818,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1853,6 +1880,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1873,6 +1901,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1930,6 +1959,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar

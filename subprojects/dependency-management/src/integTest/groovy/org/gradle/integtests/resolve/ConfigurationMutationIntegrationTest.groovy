@@ -23,6 +23,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
     def setup() {
         resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
+        resolve.addDefaultVariantDerivationStrategy()
 
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()

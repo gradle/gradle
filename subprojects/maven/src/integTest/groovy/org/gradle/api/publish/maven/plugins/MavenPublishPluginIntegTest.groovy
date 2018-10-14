@@ -16,14 +16,9 @@
 
 package org.gradle.api.publish.maven.plugins
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class MavenPublishPluginIntegTest extends WellBehavedPluginTest {
-
-    def setup() {
-        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
-    }
 
     @Override
     String getMainTask() {

@@ -15,14 +15,6 @@
 [[distribution_plugin]]
 = The Distribution Plugin
 
-
-[NOTE]
-====
-
-The Distribution Plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-
-====
-
 The Distribution Plugin facilitates building archives that serve as distributions of the project. Distribution archives typically contain the executable application and other supporting files, such as documentation.
 
 

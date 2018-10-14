@@ -16,7 +16,6 @@
 
 package org.gradle.testing.jacoco.tasks.rules;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
@@ -29,7 +28,6 @@ import java.math.BigDecimal;
  *
  * @since 3.4
  */
-@Incubating
 public interface JacocoLimit extends Serializable {
 
     /**

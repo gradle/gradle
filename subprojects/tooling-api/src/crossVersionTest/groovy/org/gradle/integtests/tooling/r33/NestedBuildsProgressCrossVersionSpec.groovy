@@ -19,14 +19,12 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @TargetGradleVersion('>=3.3')
-@ToolingApiVersion('>=2.5')
 class NestedBuildsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("https://github.com/gradle/gradle/issues/2622")

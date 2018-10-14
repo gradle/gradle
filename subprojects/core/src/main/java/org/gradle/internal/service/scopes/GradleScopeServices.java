@@ -29,7 +29,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -144,11 +144,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 new SelectedTaskExecutionAction()));
     }
 
-    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
+    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
         List<BuildConfigurationAction> taskSelectionActions = new LinkedList<BuildConfigurationAction>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
-        return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions);
+        return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
@@ -177,13 +177,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
-        Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
-            @Override
-            public TaskExecuter create() {
-                return get(TaskExecuter.class);
-            }
-        };
-        return new LocalTaskNodeExecutor(taskExecuterFactory);
+        return new LocalTaskNodeExecutor();
     }
 
     ListenerBroadcast<TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {

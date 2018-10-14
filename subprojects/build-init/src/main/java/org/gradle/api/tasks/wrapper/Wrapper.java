@@ -357,7 +357,7 @@ public class Wrapper extends DefaultTask {
      *
      * <p>If {@link #getGradleVersion()} is not set, will return null.
      *
-     * <p>The wrapper downloads a certain distribution only once and caches it. If your distribution base is the
+     * <p>The wrapper downloads a certain distribution and caches it. If your distribution base is the
      * project, you might submit the distribution to your version control system. That way no download is necessary at
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.

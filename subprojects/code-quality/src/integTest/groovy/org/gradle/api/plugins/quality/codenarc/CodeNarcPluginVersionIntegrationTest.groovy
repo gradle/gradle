@@ -16,10 +16,11 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
-import org.gradle.api.plugins.quality.CodeNarcPlugin
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.IgnoreIf
@@ -27,7 +28,7 @@ import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
 
-@TargetVersions(["0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", CodeNarcPlugin.DEFAULT_CODENARC_VERSION])
+@TargetCoverage({ CodeNarcCoverage.supportedVersionsByJdk })
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """

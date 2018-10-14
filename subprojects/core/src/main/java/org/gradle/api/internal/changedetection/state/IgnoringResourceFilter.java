@@ -28,8 +28,8 @@ public class IgnoringResourceFilter implements ResourceFilter {
     private final Set<String> ignores;
     private final ImmutableSet<PathMatcher> ignoreMatchers;
 
-    public IgnoringResourceFilter(Set<String> ignores) {
-        this.ignores = ImmutableSet.copyOf(ignores);
+    public IgnoringResourceFilter(ImmutableSet<String> ignores) {
+        this.ignores = ignores;
         ImmutableSet.Builder<PathMatcher> builder = ImmutableSet.builder();
         for (String ignore : ignores) {
             PathMatcher matcher = PatternMatcherFactory.compile(true, ignore);

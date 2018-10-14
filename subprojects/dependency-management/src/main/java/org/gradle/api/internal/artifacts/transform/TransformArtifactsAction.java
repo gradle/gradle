@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.util.BiFunction;
 

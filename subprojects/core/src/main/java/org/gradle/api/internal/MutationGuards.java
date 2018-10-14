@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 
 public class MutationGuards {
     private static final MutationGuard IDENTITY_MUTATION_GUARD = new MutationGuard() {
@@ -29,26 +28,6 @@ public class MutationGuards {
         @Override
         public <T> Action<? super T> withMutationEnabled(Action<? super T> action) {
             return action;
-        }
-
-        @Override
-        public <T> T whileMutationEnabled(Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public void whileMutationDisabled(Runnable runnable) {
-            runnable.run();
-        }
-
-        @Override
-        public <T> T whileMutationDisabled(Factory<T> factory) {
-            return factory.create();
-        }
-
-        @Override
-        public void whileMutationEnabled(Runnable runnable) {
-            runnable.run();
         }
 
         @Override
@@ -66,6 +45,13 @@ public class MutationGuards {
             // do nothing
         }
     };
+
+    /**
+     * Returns the identity mutation guard. It protect and do nothing.
+     */
+    public static MutationGuard identity() {
+        return IDENTITY_MUTATION_GUARD;
+    }
 
     /**
      * Retrieves the {@code MutationGuard} of the target if it implements {@code WithMutationGuard}, else returns an identity mutation guard performing no guard operations.

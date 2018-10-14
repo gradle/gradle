@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 
 class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
     String getDefaultStatus() {
-        GradleMetadataResolveRunner.useIvy()?'integration':'release'
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 
     def setup() {
@@ -46,14 +46,25 @@ task resolve {
 
     def "rule is cached across builds"() {
         repository {
-            'org.test:projectA:1.0'()
+            'org.test:projectA:1.0' {
+                dependsOn('org.test:projectB:1.0')
+            }
+            'org.test:projectB:1.0'()
         }
         buildFile << """
 
 @CacheableRule
 class CachedRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-            println 'Rule executed'
+            println "Rule executed on \${context.details.id}"
+            context.details.allVariants {
+                println("Variant \$it")
+                withDependencies { deps ->
+                    deps.each {
+                       println "See dependency: \$it"
+                    }
+                }               
+            }
     }
 }
 
@@ -69,16 +80,21 @@ dependencies {
             'org.test:projectA:1.0' {
                 allowAll()
             }
+            'org.test:projectB:1.0' {
+                allowAll()
+            }
         }
 
         then:
         succeeds 'resolve'
         outputContains('Rule executed')
+        outputContains('See dependency')
 
 
         then:
         succeeds 'resolve'
         outputDoesNotContain('Rule executed')
+        outputDoesNotContain('See dependency')
     }
 
     def 'rule cache properly differentiates inputs'() {
@@ -326,7 +342,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Bar'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime', 'thing': 'Bar'])
                 }
             }
         }
@@ -338,7 +354,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage' : 'java-runtime', 'thing' : 'Bar'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime', 'thing': 'Bar'])
                 }
             }
         }

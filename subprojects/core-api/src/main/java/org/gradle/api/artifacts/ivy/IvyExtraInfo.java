@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.ivy;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 
 import javax.annotation.Nullable;
@@ -28,7 +27,6 @@ import java.util.Map;
  * are children of the "ivy" element, but are not defined in the Ivy schema and come
  * from other namespaces.
  */
-@Incubating
 public interface IvyExtraInfo {
     /**
      * Returns the value of the element with the unique element name.  If there are multiple elements with the same element name,

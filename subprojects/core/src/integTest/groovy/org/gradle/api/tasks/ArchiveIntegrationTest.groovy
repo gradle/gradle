@@ -225,6 +225,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             task myTar(type: Tar) {
+                destinationDir = buildDir
+
                 assert compression == Compression.NONE
 
                 compression = Compression.GZIP

@@ -17,47 +17,26 @@
 package org.gradle.api.internal.file.collections
 
 import com.google.common.base.Charsets
-import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
-import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
-import org.gradle.internal.MutableBoolean
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
-import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
 @UsesNativeServices
-class DirectoryWalkerTest extends Specification {
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-
-    @Rule
-    SetSystemProperties setSystemPropertiesRule
-
-
-    def cleanup() {
-        Charset.defaultCharset = null // clear cache
+class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
+    @Override
+    protected List<DirectoryWalker> getWalkers() {
+        return [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
     }
 
     // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
@@ -79,36 +58,6 @@ class DirectoryWalkerTest extends Specification {
         "UTF-16le" | "Jdk7DirectoryWalker"
         "UTF-16"   | "Jdk7DirectoryWalker"
         "ISO-8859-1" | "DefaultDirectoryWalker"
-    }
-
-    @Unroll
-    def "basic directory walking works - walker: #walkerInstance.class.simpleName"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        def rootTextFile = rootDir.file("a.txt").createFile()
-        def nestedTextFile = rootDir.file("a/b/c.txt").createFile()
-        def notTextFile = rootDir.file("a/b/c.html").createFile()
-        def excludedFile = rootDir.file("subdir1/a/b/c.html").createFile()
-        def notUnderRoot = tmpDir.createDir("root2").file("a.txt").createFile()
-        def doesNotExist = rootDir.file("b.txt")
-
-        def patterns = new PatternSet()
-        patterns.include("**/*.txt")
-        patterns.exclude("subdir1/**")
-
-        when:
-        def visited = walkDirForPaths(walkerInstance, rootDir, patterns)
-
-        then:
-        visited.contains(rootTextFile.absolutePath)
-        visited.contains(nestedTextFile.absolutePath)
-        !visited.contains(notTextFile.absolutePath)
-        !visited.contains(excludedFile.absolutePath)
-        !visited.contains(notUnderRoot.absolutePath)
-        !visited.contains(doesNotExist.absolutePath)
-
-        where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
     }
 
     def "both DirectoryWalker implementations return same set of files and attributes"() {
@@ -162,112 +111,6 @@ class DirectoryWalkerTest extends Specification {
         visited
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
-    def "symbolic links for directories are handled properly - walker: #walkerInstance.class.simpleName"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        def dir = rootDir.createDir("a/b")
-        def file = dir.file("c.txt").createFile()
-        file << "Hello world"
-        def link = rootDir.file("a/d")
-        link.createLink(dir)
-
-        when:
-        def visited = walkDirForPaths(walkerInstance, rootDir, new PatternSet())
-
-        then:
-        visited.contains(file.absolutePath)
-        visited.contains(link.file("c.txt").absolutePath)
-        link.file("c.txt").text == "Hello world"
-
-        cleanup:
-        link.delete()
-
-        where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
-    }
-
-    @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
-    def "symbolic links for files are handled properly - walker: #walkerInstance.class.simpleName"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        def dir = rootDir.createDir("a/b")
-        def file = dir.file("c.txt").createFile()
-        file << "Hello world"
-        def link = rootDir.file("a/d").createDir().file("e.txt")
-        link.createLink(file)
-
-        when:
-        def visited = walkDirForPaths(walkerInstance, rootDir, new PatternSet())
-
-        then:
-        visited.contains(file.canonicalPath)
-        visited.contains(link.canonicalPath)
-        link.text == "Hello world"
-
-        cleanup:
-        link.delete()
-
-        where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
-    }
-
-    @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
-    def "missing symbolic link causes an exception - walker: #walkerInstance.class.simpleName"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        def dir = rootDir.createDir("a/b")
-        def link = rootDir.file("a/d")
-        link.createLink(dir)
-
-        when:
-        dir.deleteDir()
-        walkDirForPaths(walkerInstance, rootDir, new PatternSet())
-
-        then:
-        GradleException e = thrown()
-        e.message.contains("Could not list contents of '${link.absolutePath}'.")
-
-        cleanup:
-        link.delete()
-
-        where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
-    }
-
-    @Issue("GRADLE-3400")
-    @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
-    def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        def dir = rootDir.createDir("target")
-        def link = rootDir.file("source")
-        link.createLink(dir)
-        dir.deleteDir()
-        def file = rootDir.createFile("hello.txt")
-        file << "Hello world"
-
-        def patternSet = new PatternSet()
-        patternSet.include("*.txt")
-
-        when:
-        def visited = walkDirForPaths(walkerInstance, rootDir, patternSet)
-
-        then:
-        visited.size() == 1
-        visited[0] == file.absolutePath
-
-        cleanup:
-        link.delete()
-
-        where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
-    }
-
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -299,74 +142,13 @@ class DirectoryWalkerTest extends Specification {
         }
     }
 
-    def "directory snapshotter returns the same details as directory walker"() {
-        given:
-        def rootDir = tmpDir.createDir("root")
-        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
-        def patternSet = Mock(PatternSet)
-        List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker(TestFiles.fileSystem()))
-        Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
-            @Override
-            boolean isSatisfiedBy(FileTreeElement element) {
-                def elementFromFileWalker = visitedWithJdk7Walker.find { it.file == element.file }
-                assert elementFromFileWalker != null
-                assert element.directory == elementFromFileWalker.directory
-                assert element.lastModified == elementFromFileWalker.lastModified
-                assert element.size == elementFromFileWalker.size
-                assert element.name == elementFromFileWalker.name
-                assert element.path == elementFromFileWalker.path
-                assert element.relativePath == elementFromFileWalker.relativePath
-                assert element.mode == elementFromFileWalker.mode
-                visitedWithJdk7Walker.remove(elementFromFileWalker)
-                return true
-            }
-        }
-
-        when:
-        directorySnapshotter().snapshot(rootDir.absolutePath, patternSet, new MutableBoolean())
-        then:
-        1 * patternSet.getAsSpec() >> assertingSpec
-
-        visitedWithJdk7Walker.empty
-    }
-
-    private static DirectorySnapshotter directorySnapshotter() {
-        new DirectorySnapshotter(TestFiles.fileHasher(), TestFiles.fileSystem(), new StringInterner())
-    }
-
-    private List<String> walkDirForPaths(DirectoryWalker walkerInstance, File rootDir, PatternSet patternSet) {
+    @Override
+    protected List<String> walkDirForPaths(DirectoryWalker walkerInstance, File rootDir, PatternSet patternSet) {
         def visited = []
         def visitClosure = { visited << it.file.absolutePath }
         def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
         def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         fileTree.visit(fileVisitor)
-        return visited
-    }
-
-    private List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.snapshot(rootDir.absolutePath, patternSet, new MutableBoolean())
-        def visited = []
-        snapshot.accept(new FileSystemSnapshotVisitor() {
-            private boolean root = true
-
-            @Override
-            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-                if (!root) {
-                    visited << directorySnapshot.absolutePath
-                }
-                root = false
-                return true
-            }
-
-            @Override
-            void visit(FileSystemLocationSnapshot fileSnapshot) {
-                visited << fileSnapshot.absolutePath
-            }
-
-            @Override
-            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
-            }
-        })
         return visited
     }
 }

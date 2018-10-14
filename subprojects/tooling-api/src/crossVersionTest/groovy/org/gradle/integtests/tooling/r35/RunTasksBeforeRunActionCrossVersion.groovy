@@ -70,7 +70,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         assert result == "Action result"
     }
 
-    @TargetGradleVersion(">=1.2 <3.5")
+    @TargetGradleVersion(">=2.6 <3.5")
     def "BuildExecuter.forTasks() should fail when it is not supported by target"() {
         when:
         withConnection {
@@ -82,7 +82,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the forTasks() method on BuildActionExecuter. Support for this is available in Gradle 3.5 and all later versions."
     }
 
-    @TargetGradleVersion(">=1.2 <3.5")
+    @TargetGradleVersion(">=2.6 <3.5")
     def "BuildExecuter.forTasks() notifies failure to handler when it is not supported by target"() {
         def handler = Mock(ResultHandler)
         def version = targetDist.version.version

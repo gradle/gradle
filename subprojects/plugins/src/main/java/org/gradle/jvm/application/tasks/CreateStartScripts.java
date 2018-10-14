@@ -264,7 +264,6 @@ public class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
-    @Incubating
     @Internal
     public ScriptGenerator getUnixStartScriptGenerator() {
         return unixStartScriptGenerator;
@@ -279,7 +278,6 @@ public class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
-    @Incubating
     @Internal
     public ScriptGenerator getWindowsStartScriptGenerator() {
         return windowsStartScriptGenerator;
@@ -305,7 +303,7 @@ public class CreateStartScripts extends ConventionTask {
 
     @Input
     protected Iterable<String> getRelativeClasspath() {
-        //a list instance is needed here, as org.gradle.api.internal.changedetection.state.ValueSnapshotter.processValue() does not support
+        //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
         //serializing Iterators directly
         final FileCollection classpathNullable = getClasspath();
         if (classpathNullable == null) {

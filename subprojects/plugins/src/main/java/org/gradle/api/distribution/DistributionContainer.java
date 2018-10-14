@@ -15,12 +15,10 @@
  */
 package org.gradle.api.distribution;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A {@code DistributionContainer} manages a set of {@link Distribution} objects.
  */
-@Incubating
 public interface DistributionContainer extends NamedDomainObjectContainer<Distribution> {
 }

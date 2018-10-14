@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 
 /**
@@ -24,7 +22,6 @@ import java.io.File;
  *
  * @since 2.0
  */
-@Incubating
 public interface ResolvedArtifactResult extends ArtifactResult {
     /**
      * The file for the artifact.

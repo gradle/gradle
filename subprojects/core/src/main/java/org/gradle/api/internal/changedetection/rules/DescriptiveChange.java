@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.internal.changes.TaskStateChange;
+
 class DescriptiveChange implements TaskStateChange {
     private final String message;
 

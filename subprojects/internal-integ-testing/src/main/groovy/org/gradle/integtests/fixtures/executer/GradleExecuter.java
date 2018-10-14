@@ -38,11 +38,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter inDirectory(File directory);
 
     /**
-     * Enables search upwards. Defaults to false.
-     */
-    GradleExecuter withSearchUpwards();
-
-    /**
      * Sets the task names to execute. Defaults to an empty list.
      */
     GradleExecuter withTasks(String... names);
@@ -478,4 +473,6 @@ public interface GradleExecuter extends Stoppable {
      * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
      */
     GradleExecuter withPluginRepositoryMirror();
+
+    GradleExecuter ignoreMissingSettingsFile();
 }

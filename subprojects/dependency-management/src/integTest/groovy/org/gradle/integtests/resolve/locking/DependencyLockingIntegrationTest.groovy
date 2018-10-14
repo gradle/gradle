@@ -29,6 +29,7 @@ class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest 
         settingsFile << "rootProject.name = 'depLock'"
         resolve = new ResolveTestFixture(buildFile, "lockedConf")
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     def 'succeeds when lock file does not conflict from declared versions'() {

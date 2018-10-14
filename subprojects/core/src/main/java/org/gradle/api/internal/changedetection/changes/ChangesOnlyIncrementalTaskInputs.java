@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.changes.TaskStateChange;
 
 import java.util.ArrayList;
 import java.util.List;

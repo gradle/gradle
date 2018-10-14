@@ -58,6 +58,7 @@ class CancellableActionRunner implements ActionRunner {
         return result.getModel();
     }
 
+    @SuppressWarnings("deprecation")
     protected <T> BuildResult<T> execute(InternalBuildActionAdapter<T> buildActionAdapter, InternalCancellationToken cancellationTokenAdapter, BuildParameters operationParameters) {
         return executor.run(buildActionAdapter, cancellationTokenAdapter, operationParameters);
     }

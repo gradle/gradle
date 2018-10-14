@@ -17,11 +17,9 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-
 
 @UsesNativeServices
 class AbstractGradleExecuterTest extends Specification {
@@ -53,7 +51,6 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        1 * gradleDistribution.version >> GradleVersion.current()
         allArgs.contains("--daemon")
         !allArgs.contains("--no-daemon")
     }
@@ -63,7 +60,6 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        1 * gradleDistribution.version >> GradleVersion.current()
         !allArgs.contains("--daemon")
         allArgs.contains("--no-daemon")
     }
@@ -74,7 +70,6 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        1 * gradleDistribution.version >> GradleVersion.current()
         !allArgs.contains("--daemon")
         !allArgs.contains("--no-daemon")
     }
@@ -86,7 +81,6 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        1 * gradleDistribution.version >> GradleVersion.current()
         !allArgs.contains("--daemon")
         allArgs.contains(argument)
 

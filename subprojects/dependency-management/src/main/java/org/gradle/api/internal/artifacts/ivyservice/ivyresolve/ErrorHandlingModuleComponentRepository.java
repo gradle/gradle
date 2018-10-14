@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -23,12 +24,17 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -36,8 +42,10 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resolve.result.ErroringResolveResult;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * A ModuleComponentRepository that catches any exception and applies it to the result object.
@@ -94,15 +102,30 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
+        private static final Logger LOGGER = Logging.getLogger(ErrorHandlingModuleComponentRepositoryAccess.class);
+        private final static String MAX_TENTATIVES_BEFORE_BLACKLISTING = "org.gradle.internal.repository.max.tentatives";
+        private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.repository.initial.backoff";
+
         private final static String BLACKLISTED_REPOSITORY_ERROR_MESSAGE = "Skipped due to earlier error";
+
         private final ModuleComponentRepositoryAccess delegate;
         private final String repositoryId;
         private final RepositoryBlacklister repositoryBlacklister;
+        private final int maxTentativesCount;
+        private final int initialBackOff;
 
         private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister) {
+            this(delegate, repositoryId, repositoryBlacklister, Integer.getInteger(MAX_TENTATIVES_BEFORE_BLACKLISTING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000));
+        }
+
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, String repositoryId, RepositoryBlacklister repositoryBlacklister, int maxTentativesCount, int initialBackoff) {
+            assert maxTentativesCount > 0 : "Max tentatives must be > 0";
+            assert initialBackoff >= 0 : "Initial backoff must be >= 0";
             this.delegate = delegate;
             this.repositoryId = repositoryId;
             this.repositoryBlacklister = repositoryBlacklister;
+            this.maxTentativesCount = maxTentativesCount;
+            this.initialBackOff = initialBackoff;
         }
 
         @Override
@@ -112,78 +135,128 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
         @Override
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
-                return;
-            }
-
-            try {
-                delegate.listModuleVersions(dependency, result);
-            } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                ModuleComponentSelector selector = dependency.getSelector();
-                String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
-                result.failed(new ModuleVersionResolveException(selector, message, throwable));
-            }
+            performOperationWithRetries(result,
+                () -> delegate.listModuleVersions(dependency, result),
+                () -> new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> {
+                    ModuleComponentSelector selector = dependency.getSelector();
+                    String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
+                    return new ModuleVersionResolveException(selector, message, throwable);
+                });
         }
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
-                return;
-            }
-
-            try {
-                delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, throwable));
-            }
+            performOperationWithRetries(result,
+                () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
+                () -> new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
+            );
         }
 
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
-                return;
-            }
-
-            try {
-                delegate.resolveArtifactsWithType(component, artifactType, result);
-            } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getId(), throwable));
-            }
+            performOperationWithRetries(result,
+                () -> delegate.resolveArtifactsWithType(component, artifactType, result),
+                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ArtifactResolveException(component.getId(), throwable)
+            );
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
-            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
-                return;
-            }
-
-            try {
-                delegate.resolveArtifacts(component, result);
-            } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getId(), throwable));
-            }
+            performOperationWithRetries(result,
+                () -> delegate.resolveArtifacts(component, result),
+                () -> new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ArtifactResolveException(component.getId(), throwable));
         }
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+            performOperationWithRetries(result,
+                () -> {
+                    delegate.resolveArtifact(artifact, moduleSource, result);
+                    if (result.hasResult()) {
+                        ArtifactResolveException failure = result.getFailure();
+                        if (!(failure instanceof ArtifactNotFoundException)) {
+                            return failure;
+                        }
+                    }
+                    return null;
+                },
+                () -> new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                throwable -> new ArtifactResolveException(artifact.getId(), throwable));
+        }
+
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
+                                                                                                           Callable<E> operation,
+                                                                                                           Factory<E> onBlacklisted,
+                                                                                                           Transformer<E, Throwable> onError) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(artifact.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.failed(onBlacklisted.create());
                 return;
             }
 
-            try {
-                delegate.resolveArtifact(artifact, moduleSource, result);
-            } catch (Throwable throwable) {
-                repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(artifact.getId(), throwable));
+            tryResolveAndMaybeBlacklist(result, operation, onError);
+        }
+
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
+                                                                                                           Runnable operation,
+                                                                                                           Factory<E> onBlacklisted,
+                                                                                                           Transformer<E, Throwable> onError) {
+            if (repositoryBlacklister.isBlacklisted(repositoryId)) {
+                result.failed(onBlacklisted.create());
+                return;
+            }
+
+            tryResolveAndMaybeBlacklist(result, operation, onBlacklisted, onError);
+        }
+
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeBlacklist(R result,
+                                                                                                           Runnable operation,
+                                                                                                           Factory<E> onBlacklisted,
+                                                                                                           Transformer<E, Throwable> onError) {
+            tryResolveAndMaybeBlacklist(result, () -> {
+                operation.run();
+                return null;
+            }, onError);
+        }
+
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeBlacklist(R result, Callable<E> operation, Transformer<E, Throwable> onError) {
+            int retries = 0;
+            int backoff = initialBackOff;
+
+            while (retries < maxTentativesCount) {
+                retries++;
+                E failure;
+                Throwable unexpectedFailure = null;
+                try {
+                    failure = operation.call();
+                    if (failure == null) {
+                        if (retries > 1) {
+                            LOGGER.debug("Successfully fetched external resource after {} retries", retries - 1);
+                        }
+                        return;
+                    }
+                } catch (Throwable throwable) {
+                    unexpectedFailure = throwable;
+                    failure = onError.transform(throwable);
+                }
+                if (retries == maxTentativesCount) {
+                    if (unexpectedFailure != null) {
+                        repositoryBlacklister.blacklistRepository(repositoryId, unexpectedFailure);
+                    }
+                    result.failed(failure);
+                    break;
+                } else {
+                    LOGGER.debug("Error while accessing remote repository {}. Waiting {}ms before next retry. {} retries left", repositoryId, backoff, maxTentativesCount - retries);
+                    try {
+                        Thread.sleep(backoff);
+                        backoff *= 2;
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
             }
         }
 

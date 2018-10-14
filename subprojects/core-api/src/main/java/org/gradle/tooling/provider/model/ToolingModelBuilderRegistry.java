@@ -16,12 +16,9 @@
 
 package org.gradle.tooling.provider.model;
 
-import org.gradle.api.Incubating;
-
 /**
  * A registry of tooling model builders. Adding a builder to this registry makes a model (or models) available via the tooling API.
  */
-@Incubating
 public interface ToolingModelBuilderRegistry {
     void register(ToolingModelBuilder builder);
 
