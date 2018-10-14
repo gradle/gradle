@@ -16,6 +16,7 @@
 :kotlin-tutorials: https://kotlinlang.org/tutorials/
 :kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
 :kotlin-dsl-issues: https://github.com/gradle/kotlin-dsl/issues/
+:kotlin-dsl-api: https://gradle.github.io/kotlin-dsl-docs/api/
 
 
 [[kotlin_dsl]]
@@ -133,6 +134,10 @@ That way you get early feedback while editing Gradle scripts while controlling w
 
 [[sec:scripts]]
 == Gradle Kotlin DSL scripts
+
+Just like the Gradle Groovy DSL, the Gradle Kotlin DSL is implemented on top of the Java Gradle API.
+Everything you can read in a Gradle Kotlin DSL script is Kotlin code compiled and executed by Gradle.
+In Gradle Kotlin DSL scripts you write Kotlin code that uses objects, functions and properties from the Gradle API and applied Gradle plugins APIs.
 
 === Script file names
 
