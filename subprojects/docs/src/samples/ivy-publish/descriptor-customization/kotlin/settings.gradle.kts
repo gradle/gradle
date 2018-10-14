@@ -1,2 +1,1 @@
 rootProject.name = "descriptor-customization"
-enableFeaturePreview("STABLE_PUBLISHING")
