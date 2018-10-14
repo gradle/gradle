@@ -12,7 +12,11 @@ pluginManagement {
         }
     }
 }
+
+include("lib", "app")
 // end::android[]
+
+rootProject.name = "android-build"
 
 gradle.allprojects {
     repositories {
@@ -20,10 +24,3 @@ gradle.allprojects {
         jcenter()
     }
 }
-
-rootProject.name = "android-build"
-
-// tag::android[]
-
-include("lib", "app")
-// end::android[]
