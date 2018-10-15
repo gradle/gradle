@@ -126,6 +126,8 @@ include::dependency_cache.adoc[leveloffset=+2]
 
 include::working_with_dependencies.adoc[leveloffset=+2]
 
+include::dependency_management_attribute_based_matching.adoc[leveloffset=+2]
+
 
 == Publishing Artifacts
 
