@@ -85,9 +85,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.version == '1.0-SNAPSHOT'
         module.snapshotMetaData.snapshotBuildNumber == '2'
 
-        // TODO This is not yet working, it should contain initial version too. See `MavenRemotePublisher.createDeployTask`
         module.snapshotMetaData.snapshotVersions == [secondVersion]
-//        module.snapshotMetaData.snapshotVersions == [initialVersion, secondVersion]
 
         and:
         resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }

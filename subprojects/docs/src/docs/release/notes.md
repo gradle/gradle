@@ -370,6 +370,10 @@ Checkstyle configuration files in subprojects — the old by-convention location
 via [`checkstyle.configDir`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:configDir)
 or [`checkstyle.config`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config).
 
+### `maven` plugin now publishes Maven 3 metadata
+
+The `maven` plugin used to publish the highly outdated Maven 2 metadata format. This has been changed and it will now publish Maven 3 metadata, just like the `maven-publish` plugin.
+
 ### Updated default tool versions
 
 The default tool versions of the following code quality plugins have been updated:
@@ -482,6 +486,11 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
 This might cause compilation errors when upgrading to Gradle 5.0.
 Please add annotation processors to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+
+### MavenDeployer#uniqueSnapshot has been removed
+
+With the removal of Maven 2 support, the methods to configure unique snapshot behavior have been removed.
+Maven 3 only supports unique snapshots, so these methods would have had no more effect. We decided to remove them instead of leaving a deprecated no-op in place.
 
 ### Changes to previously deprecated APIs
 
