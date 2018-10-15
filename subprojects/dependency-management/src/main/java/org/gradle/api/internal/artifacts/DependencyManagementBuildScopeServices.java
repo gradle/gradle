@@ -192,7 +192,7 @@ class DependencyManagementBuildScopeServices {
                 timeProvider,
                 artifactCacheLockingManager,
                 moduleIdentifierFactory),
-            new DefaultModuleMetadataCache(
+            new InMemoryModuleMetadataCache(timeProvider, new DefaultModuleMetadataCache(
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactCacheMetadata,
@@ -200,7 +200,7 @@ class DependencyManagementBuildScopeServices {
                 attributeContainerSerializer,
                 mavenMetadataFactory,
                 ivyMetadataFactory,
-                stringInterner),
+                stringInterner)),
             new DefaultModuleArtifactsCache(
                 timeProvider,
                 artifactCacheLockingManager

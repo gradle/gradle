@@ -16,60 +16,40 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class InMemoryModuleMetadataCache implements ModuleMetadataCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetadataCache.class);
-    protected final BuildCommencedTimeProvider timeProvider;
+public class InMemoryModuleMetadataCache extends AbstractModuleMetadataCache {
     private Map<ModuleComponentAtRepositoryKey, CachedMetadata> inMemoryCache =  Maps.newConcurrentMap();
+    private final AbstractModuleMetadataCache delegate;
 
     public InMemoryModuleMetadataCache(BuildCommencedTimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
+        super(timeProvider);
+        delegate = null;
     }
 
-    public CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
-        final ModuleComponentAtRepositoryKey key = createKey(repository, componentId);
-        return get(key);
+    public InMemoryModuleMetadataCache(BuildCommencedTimeProvider timeProvider, AbstractModuleMetadataCache delegate) {
+        super(timeProvider);
+        this.delegate = delegate;
     }
 
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
-        return inMemoryCache.get(key);
-    }
-
-    public CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
-        LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
-        ModuleComponentAtRepositoryKey key = createKey(repository, id);
-        ModuleMetadataCacheEntry entry = ModuleMetadataCacheEntry.forMissingModule(timeProvider.getCurrentTime());
-        DefaultCachedMetadata cachedMetaData = new DefaultCachedMetadata(entry, null, timeProvider);
-        store(key, entry, cachedMetaData);
-        return cachedMetaData;
-    }
-
-    public CachedMetadata cacheMetaData(ModuleComponentRepository repository, final ModuleComponentIdentifier id, final ModuleComponentResolveMetadata metadata) {
-        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getId(), metadata.isChanging());
-        final ModuleComponentAtRepositoryKey key = createKey(repository, id);
-        ModuleMetadataCacheEntry entry = createEntry(metadata);
-        DefaultCachedMetadata cachedMetaData = new DefaultCachedMetadata(entry, metadata, timeProvider);
-        store(key, entry, cachedMetaData);
-        return cachedMetaData;
+        CachedMetadata metadata = inMemoryCache.get(key);
+        if (metadata == null && delegate != null) {
+            metadata = delegate.get(key);
+            if (metadata != null) {
+                inMemoryCache.put(key, metadata);
+            }
+        }
+        return metadata;
     }
 
     protected void store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
         inMemoryCache.put(key, cachedMetaData);
+        if (delegate != null) {
+            delegate.store(key, entry, cachedMetaData);
+        }
     }
 
-    private ModuleComponentAtRepositoryKey createKey(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
-        return new ModuleComponentAtRepositoryKey(repository.getId(), id);
-    }
-
-    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData) {
-        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime());
-    }
 }

@@ -35,7 +35,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
+public class DefaultModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
@@ -67,22 +67,6 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
 
     @Override
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
-        final CachedMetadata inMemory = super.get(key);
-        if (inMemory != null) {
-            return inMemory;
-        }
-
-        CachedMetadata cachedMetadata = loadCachedMetadata(key);
-        if (cachedMetadata != null) {
-            // Entry is not required for caching in-memory
-            super.store(key, null, cachedMetadata);
-            return cachedMetadata;
-        }
-
-        return null;
-    }
-
-    private CachedMetadata loadCachedMetadata(final ModuleComponentAtRepositoryKey key) {
         final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
         return artifactCacheLockingManager.useCache(new Factory<CachedMetadata>() {
             @Override
@@ -107,7 +91,6 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
 
     @Override
     protected void store(final ModuleComponentAtRepositoryKey key, final ModuleMetadataCacheEntry entry, final CachedMetadata cachedMetadata) {
-        super.store(key, entry, cachedMetadata);
         if (entry.isMissing()) {
             getCache().put(key, entry);
         } else {

@@ -405,7 +405,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @Ignore // In-memory caching of processed metadata does not respect project boundaries
+    @Ignore
     @Issue("gradle/gradle#4261")
     def "different projects can apply different metadata rules for the same component"() {
         repository {
