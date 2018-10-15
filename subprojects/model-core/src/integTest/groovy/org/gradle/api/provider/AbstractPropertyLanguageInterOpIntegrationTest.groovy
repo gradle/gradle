@@ -62,7 +62,9 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     abstract void pluginSetsValues()
 
-    abstract void pluginSetsCalculatedValues()
+    abstract void pluginSetsCalculatedValuesUsingCallable()
+
+    abstract void pluginSetsCalculatedValuesUsingMappedProvider()
 
     abstract void pluginDefinesTask()
 
@@ -80,8 +82,22 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("message = some value")
     }
 
-    def "can define property and set calculated value from language plugin"() {
-        pluginSetsCalculatedValues()
+    def "can define property and set calculated value using callable from language plugin"() {
+        pluginSetsCalculatedValuesUsingCallable()
+
+        buildFile << """
+            apply plugin: SomePlugin
+        """
+        when:
+        run("someTask")
+
+        then:
+        outputContains("flag = true")
+        outputContains("message = some value")
+    }
+
+    def "can define property and set calculated value using mapped provider from language plugin"() {
+        pluginSetsCalculatedValuesUsingMappedProvider()
 
         buildFile << """
             apply plugin: SomePlugin

@@ -42,6 +42,16 @@ public class DefaultTaskDestroyablePropertySpec implements TaskDestroyableProper
     }
 
     @Override
+    public void prepareValue() {
+        // Ignore, not implemented yet
+    }
+
+    @Override
+    public void cleanupValue() {
+        // Ignore, not implemented yet
+    }
+
+    @Override
     public int compareTo(TaskPropertySpec o) {
         return propertyName.compareTo(o.getPropertyName());
     }

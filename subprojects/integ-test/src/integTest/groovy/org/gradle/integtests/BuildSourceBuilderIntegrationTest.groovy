@@ -42,10 +42,13 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
 
+        int MAX_LOOP_COUNT = java.util.concurrent.TimeUnit.MINUTES.toMillis(5) / 10
         task blocking(type:BuildSrcTask) {
             doLast {
                 file("run1washere.lock").createNewFile()
-                while(!file("run2washere.lock").exists()){
+                
+                int count = 0
+                while(!file("run2washere.lock").exists() && count++ < MAX_LOOP_COUNT){
                     sleep 10
                 }
             }
@@ -53,7 +56,8 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
         task releasing(type:BuildSrcTask) {
             doLast {
-                while(!file("run1washere.lock").exists()){
+                int count = 0
+                while(!file("run1washere.lock").exists() && count++ < MAX_LOOP_COUNT){
                     sleep 10
                 }
                 file("run2washere.lock").createNewFile()

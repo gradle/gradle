@@ -1,6 +1,6 @@
 // tag::locking-classpath[]
 buildscript {
-    configurations.getByName("classpath") {
+    configurations.classpath {
         resolutionStrategy.activateDependencyLocking()
     }
 }

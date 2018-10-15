@@ -1,0 +1,172 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[attribute_based_matching]]
+= Attribute based matching in dependency resolution
+
+This chapter is primarily aimed towards plugin authors who want to understand better how to leverage the capabilities of the dependency resolution engine to support variant-aware dependency management.
+Users who simply want to understand what configuration attributes are will also find support here.
+
+[[sec:abm_configuration_kinds]]
+== Different kinds of configurations
+
+Historically, <<managing_dependency_configurations.adoc#sub:what_is_a_configuration,configurations>>  have been at the root of dependency resolution in Gradle.
+In the end, what we want to make a diffence is between a _consumer_ and a _producer_. For this purpose, configurations are used for at least 3 different aspects:
+
+1. to declare dependencies
+2. as a _consumer_, to resolve a set of dependencies to files
+3. as a _producer_, to expose artifacts for consumption by other projects
+
+For example, if I want to express that my application `app` _depends on_ library `lib`, we need _at least_ one configuration:
+
+.Configurations are used to declare dependencies
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=declare-configuration]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
+====
+
+Configurations can extend other configuration, in order to inherit their dependencies.
+However, the code above doesn't tell anything about the _consumer_.
+In particular, it doesn't tell what is the _use_ of the configuration.
+Let's say that `lib` is a Java library: it can expose different things, such as its API, implementation or test fixtures.
+If we want to resolve the dependencies of `app`, we need to know what kind of task we're performing (compiling against the API of `lib`, executing the application, compiling tests, ...).
+For this purpose, you'll often find companion configurations, which are meant to unambiguously declare the usage:
+
+.Configurations representing concrete dependency graphs
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=concrete-classpath]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
+====
+
+At this stage, we have 3 different configurations, which already have different goals:
+
+- `someConfiguration` declares the dependencies of my application. It's just a bucket where we declare a list of dependencies.
+- `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain respectively the compile classpath, and the runtime classpath of the application.
+
+This is actually represented on the `Configuration` type by the `canBeResolved` flag.
+A configuration that _can be resolved_ is a configuration for which we can compute a dependency graph, because it contains all the necessary information for resolution to happen.
+That is to say we're going to compute a dependency graph, resolve the components in the graph, and eventually get artifacts.
+A configuration which has `canBeResolved` set to `false` is not meant to be resolved.
+Such a configuration is there _only to declare dependencies_.
+The reason is that depending on the usage (compile classpath, runtime classpath), it _can_ resolve to different graphs.
+It is an error to try to resolve a configuration which has `canBeResolved` set to `false`.
+To some extend, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
+A resolvable configuration will extend at least one non resolvable configuration (and may extend more than one).
+
+On the other end, at the library project side (the _producer_), we also use configurations to represent what can be consumed.
+For example, the library may expose an API or a runtime, and we would attach artifacts to either one, the other, or both.
+Typically, to compile against `lib`, we need the API of `lib`, but we don't need its runtime dependencies.
+So the `lib` project will expose an `apiElements` configuration, which is aimed for consumers looking for its API.
+Such a configuration is going to be consumable, but is not meant to be resolved.
+This is expressed via the _canBeConsumed_ flag of a `Configuration`:
+
+.Setting up configurations
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=setup-configurations]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
+====
+
+In short, a configuration role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
+
+.Configuration roles
+|===
+|Configuration role|can be resolved|can be consumed
+|Bucket of dependencies|false|false
+|Resolve for certain usage|true|false
+|Exposed to consumers|false|true
+|Legacy, don't use|true|true
+|===
+
+For backwards compatibility, those flags have both `true` as the default value, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
+
+[[sec:abm_configuration_attributes]]
+== Configuration attributes
+
+We have explained that we have 3 configuration roles, and explained that we may want to resolve the compile and runtime classpath differently, but there's nothing in what we've written which allows explaining the difference.
+This is where _attributes_ come into play.
+The role of attributes is to perform the selection of the right _variant_ of a component.
+In our example, the `lib` library exposes 2 variants: its API (via `exposedApi`) and its runtime (via `exposedRuntime`).
+There's no restriction on the number of variants a component can expose.
+We may, for example, want to expose the test fixtures of a component too.
+But then, the consumer needs to explain _what_ configuration to consume, and this is done by setting _attributes_ on both the _consumer_ and _producer_ ends.
+
+Attributes consist of a _name_ and a _value_ pair.
+Gradle comes with a standard attribute named `org.gradle.usage` specifically to deal with the concept of selecting the right variant of a component based on the usage of the consumer (compile, runtime ...).
+It is however possible to define an arbitrary number of attributes.
+As a producer, I can express that a consumable configuration represents the API of a component by attaching the `(org.gradle.usage,JAVA_API)` attribute to the configuration.
+As a consumer, I can express that I need the API of the dependencies of a resolvable configuration by attaching the `(org.gradle.usage,JAVA_API)` attribute to it.
+Now Gradle has a way to _automatically select the appropriate variant_ by looking at the configuration attributes:
+- the consumer wants `org.gradle.usage=JAVA_API`
+- the dependent project exposes 2 different variants. One with `org.gradle.usage=JAVA_API`, the other with `org.gradle.usage=JAVA_RUNTIME`.
+- Gradle selects the `org.gradle.usage=JAVA_API` variant
+
+In other words: attributes are used to perform the selection based on the values of the attributes.
+It doesn't matter what the names of the configurations are: only the attributes matter.
+
+[[sec:abm_declaring_attributes]]
+== Declaring attributes
+
+Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` method:
+
+.Define attributes
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=define_attribute]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=define_attribute]"]
+====
+
+Currently, only attribute types of `String`, or anything extending `Named` is supported.
+Attributes must be declared in the _attribute schema_ found on the `dependencies` handler:
+
+.Registering attributes on the attributes schema
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=register-attributes]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=register-attributes]"]
+====
+
+Then configurations can be configured to set values for attributes:
+
+.Setting attributes on configurations
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=attributes-on-configurations]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
+====
+
+For attributes which type extends `Named`, the value of the attribute **must** be created via the _object factory_:
+
+.Named attributes
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=named-attributes]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=named-attributes]"]
+====
+
+[[sec:abm_compatibility_rules]]
+== Attribute compatibility rules
+
+Attributes let the engine select _compatible variants_.
+However, there are cases where a provider may not have _exactly_ what the consumer wants, but still something that it can use.
+For example, if the consumer is asking for the API of a library, there's a possibility that the producer doesn't have such a variant, but only a _runtime_ variant.
+This is typical of libraries published on external repositories.
+In this case, we know that even if we don't have an exact match (API), we can still compile against the runtime variant (it contains _more_ than what we need to compile but it's still ok to use).
+To deal with this, Gradle provides link:{javadocPath}/org.gradle.api.attributes.AttributeCompatibilityRule.html[attribute compatibilty rules].
+The role of a compatibility rule is to explain what variants are _compatible_ with what the consumer asked for.
+
+Attribute compatibility rules have to be registered via the link:{javadocPath}/org.gradle.api.attributes.AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org.gradle.api.attributes.AttributesSchema.html[attributes schema].
+
+[[sec:abm_disambiguation_rules]]
+== Attribute disambiguation rules
+
+Because multiple values for an attribute can be _compatible_ with the requested attribute, Gradle needs to choose between the candidates.
+This is done by implementing an link:{javadocPath}/org.gradle.api.attributes.AttributeDisambiguationRule.html[attribute disambiguation rule].
+
+Attribute disambiguation rules have to be registered via the link:{javadocPath}/org.gradle.api.attributes.AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org.gradle.api.attributes.AttributesSchema.html[attributes schema].

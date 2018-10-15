@@ -16,10 +16,7 @@
 
 package org.gradle.integtests.composite
 
-
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.util.Matchers
-import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
@@ -282,7 +279,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executer.inDirectory(pluginBuild).withTasks('publish').run()
     }
 
-    @Ignore("Cycle check is not parallel safe: test may hang or produce StackOverflowError")
     def "detects dependency cycle between included builds required for buildscript classpath"() {
         given:
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
@@ -306,11 +302,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "tasks")
 
         then:
-        failure
-            .assertHasDescription("Could not determine the dependencies of task")
-            .assertHasCause("Included build dependency cycle:")
-            .assertThatCause(Matchers.containsText("build 'pluginDependencyA' -> build 'pluginDependencyB'"))
-            .assertThatCause(Matchers.containsText("build 'pluginDependencyB' -> build 'pluginDependencyA'"))
+        failure.assertHasDescription("Included build dependency cycle: build 'pluginDependencyA' -> build 'pluginDependencyB' -> build 'pluginDependencyA'")
     }
 
     def "can co-develop unpublished plugin applied via plugins block"() {

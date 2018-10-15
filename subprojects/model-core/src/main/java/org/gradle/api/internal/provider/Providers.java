@@ -59,6 +59,11 @@ public class Providers {
         }
 
         @Override
+        public ProviderInternal<Object> withFinalValue() {
+            return this;
+        }
+
+        @Override
         public String toString() {
             return "undefined";
         }
@@ -110,6 +115,11 @@ public class Providers {
         @Override
         public boolean isPresent() {
             return true;
+        }
+
+        @Override
+        public ProviderInternal<T> withFinalValue() {
+            return this;
         }
 
         @Override

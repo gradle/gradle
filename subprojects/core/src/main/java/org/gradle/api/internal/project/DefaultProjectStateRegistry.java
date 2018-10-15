@@ -41,7 +41,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
-    private ThreadLocal<Boolean> isLenientMutationAllowed = new ThreadLocal<Boolean>() {
+    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return Boolean.FALSE;
@@ -124,13 +124,18 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     @Override
     public <T> T withLenientState(Factory<T> factory) {
-        Boolean originalState = isLenientMutationAllowed.get();
-        isLenientMutationAllowed.set(true);
+        Boolean originalState = LENIENT_MUTATION_STATE.get();
+        LENIENT_MUTATION_STATE.set(true);
         try {
             return factory.create();
         } finally {
-            isLenientMutationAllowed.set(originalState);
+            LENIENT_MUTATION_STATE.set(originalState);
         }
+    }
+
+    @Override
+    public SafeExclusiveLock newExclusiveOperationLock() {
+        return new SafeExclusiveLockImpl();
     }
 
     private class ProjectStateImpl implements ProjectState {
@@ -181,7 +186,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
-            if (isLenientMutationAllowed.get()) {
+            if (LENIENT_MUTATION_STATE.get()) {
                 return factory.create();
             }
 
@@ -221,22 +226,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public boolean hasMutableState() {
-            return isLenientMutationAllowed.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
-        }
-
-        @Override
-        public SafeExclusiveLock newExclusiveOperationLock() {
-            return new SafeExclusiveLockImpl(projectLock);
+            return LENIENT_MUTATION_STATE.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
     }
 
-    private class SafeExclusiveLockImpl implements ProjectState.SafeExclusiveLock {
-        private final ResourceLock projectLock;
+    private class SafeExclusiveLockImpl implements SafeExclusiveLock {
         private final ReentrantLock lock = new ReentrantLock();
-
-        public SafeExclusiveLockImpl(ResourceLock projectLock) {
-            this.projectLock = projectLock;
-        }
 
         @Override
         public void withLock(final Runnable runnable) {
@@ -247,19 +242,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     runnable.run();
                 } else {
                     // Another thread holds the lock, release the project lock and wait for the other thread to finish
-                    Runnable lockedRunnable = new Runnable() {
+                    workerLeaseService.withoutProjectLock(new Runnable() {
                         @Override
                         public void run() {
                             lock.lock();
-                            runnable.run();
                         }
-                    };
-                    Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-                    if (currentLocks.contains(projectLock)) {
-                        workerLeaseService.withoutLocks(Collections.singleton(projectLock), lockedRunnable);
-                    } else {
-                        lockedRunnable.run();
-                    }
+                    });
+                    runnable.run();
                 }
             } finally {
                 if (lock.isHeldByCurrentThread()) {

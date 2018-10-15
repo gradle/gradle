@@ -18,13 +18,16 @@ package org.gradle.process.internal.worker.child
 
 import org.gradle.process.internal.streams.EncodedStream
 import org.gradle.util.RedirectStdIn
+import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.security.AllPermission
 import java.security.Permission
 
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
 class BootstrapSecurityManagerTest extends Specification {
     @Rule SetSystemProperties systemProperties
     @Rule RedirectStdIn stdIn

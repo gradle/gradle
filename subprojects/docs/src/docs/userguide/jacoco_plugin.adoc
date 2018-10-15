@@ -16,13 +16,6 @@
 = The JaCoCo Plugin
 
 
-[NOTE]
-====
-
-The JaCoCo plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-
-====
-
 The JaCoCo plugin provides code coverage metrics for Java code via integration with http://www.eclemma.org/jacoco/[JaCoCo].
 
 

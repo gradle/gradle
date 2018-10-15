@@ -48,7 +48,7 @@ public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives
 
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)), ImmutableList.copyOf(macroFunctionListSerializer.read(decoder)));
+        return DefaultIncludeDirectives.of(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)), ImmutableList.copyOf(macroFunctionListSerializer.read(decoder)));
     }
 
     @Override

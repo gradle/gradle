@@ -19,13 +19,13 @@ dependencies {
 
 // tag::custom-src-dirs[]
 sourceSets {
-    getByName("main") {
+    main {
         java {
             setSrcDirs(listOf("src"))
         }
     }
 
-    getByName("test") {
+    test {
         java {
             setSrcDirs(listOf("test"))
         }
@@ -35,7 +35,7 @@ sourceSets {
 
 // tag::custom-extra-src-dir[]
 sourceSets {
-    getByName("main") {
+    main {
         java {
             srcDir("thirdParty/src/main/java")
         }

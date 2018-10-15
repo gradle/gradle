@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -40,13 +41,15 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final IsolatedClassloaderWorkerFactory inProcessWorkerFactory;
     private final PathToFileResolver fileResolver;
     private AnnotationProcessorDetector processorDetector;
+    private final JvmVersionDetector jvmVersionDetector;
 
-    public GroovyCompilerFactory(ProjectInternal project, WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, PathToFileResolver fileResolver, AnnotationProcessorDetector processorDetector) {
+    public GroovyCompilerFactory(ProjectInternal project, WorkerDaemonFactory workerDaemonFactory, IsolatedClassloaderWorkerFactory inProcessWorkerFactory, PathToFileResolver fileResolver, AnnotationProcessorDetector processorDetector, JvmVersionDetector jvmVersionDetector) {
         this.project = project;
         this.workerDaemonFactory = workerDaemonFactory;
         this.inProcessWorkerFactory = inProcessWorkerFactory;
         this.fileResolver = fileResolver;
         this.processorDetector = processorDetector;
+        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         } else {
             workerFactory = inProcessWorkerFactory;
         }
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), new DaemonSideCompiler(), project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), new DaemonSideCompiler(), project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver, jvmVersionDetector);
         return new AnnotationProcessorDiscoveringCompiler<GroovyJavaJointCompileSpec>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 

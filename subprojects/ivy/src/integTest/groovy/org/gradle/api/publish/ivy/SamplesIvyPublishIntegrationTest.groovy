@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
@@ -26,13 +25,15 @@ import spock.lang.Unroll
 class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sampleProject = new Sample(temporaryFolder)
 
+    @Unroll
     @UsesSample("ivy-publish/quickstart")
-    def "quickstart sample"() {
+    def "quickstart sample with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
 
         and:
-        def fileRepo = ivy(sampleProject.dir.file("build/repo"))
+        def fileRepo = ivy(sampleDir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
 
         when:
@@ -40,15 +41,20 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         module.assertPublishedAsJavaModule()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("ivy-publish/java-multi-project")
-    def "java-multi-project sample"() {
+    def "java-multi-project sample with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
 
         and:
-        def fileRepo = ivy(sampleProject.dir.file("build/repo"))
+        def fileRepo = ivy(sampleDir.file("build/repo"))
         def project1module = fileRepo.module("org.gradle.sample", "project1", "1.0")
         def project2module = fileRepo.module("org.gradle.sample", "project2", "1.0")
 
@@ -61,7 +67,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         project1module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
         project1module.parsedIvy.description.text() == "The first project"
-        project1module.parsedIvy.assertDependsOn("junit:junit:4.12@compile", "org.gradle.sample:project2:1.0@compile")
+        project1module.parsedIvy.assertDependsOn("junit:junit:4.12@runtime", "org.gradle.sample:project2:1.0@runtime")
 
         and:
         project2module.assertPublished()
@@ -69,19 +75,24 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         project2module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
         project2module.parsedIvy.description.text() == "The second project"
-        project2module.parsedIvy.assertDependsOn('commons-collections:commons-collections:3.2.2@compile')
+        project2module.parsedIvy.assertDependsOn('commons-collections:commons-collections:3.2.2@runtime')
 
         def actualIvyXmlText = project1module.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         actualIvyXmlText == getExpectedIvyOutput(sampleProject.dir.file("output-ivy.xml"))
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("ivy-publish/descriptor-customization")
-    def "descriptor-customization sample"() {
+    def "descriptor-customization sample with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
 
         and:
-        def fileRepo = ivy(sampleProject.dir.file("build/repo"))
+        def fileRepo = ivy(sampleDir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "descriptor-customization", "1.0")
 
         when:
@@ -97,34 +108,10 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
             description.text() == "A concise description of my library"
             description.@homepage == 'http://www.example.com/library'
         }
-        sampleProject.dir.file("build/generated-ivy.xml").assertExists()
-    }
+        sampleDir.file("build/generated-ivy.xml").assertExists()
 
-    @UsesSample("ivy-publish/multiple-publications")
-    def "multiple-publications sample"() {
-        given:
-        sample sampleProject
-
-        and:
-        def fileRepo = ivy(sampleProject.dir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2")
-        def project2impl = fileRepo.module("org.gradle.sample.impl", "project2-impl", "2.3")
-
-        when:
-        succeeds "publish"
-
-        then:
-        project1sample.assertPublishedAsJavaModule()
-        verifyIvyFile(project1sample, "output/project1.ivy.xml")
-
-        and:
-        project2api.assertPublishedAsJavaModule()
-        verifyIvyFile(project2api, "output/project2-api.ivy.xml")
-
-        and:
-        project2impl.assertPublishedAsJavaModule()
-        verifyIvyFile(project2impl, "output/project2-impl.ivy.xml")
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
@@ -226,11 +213,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         where:
         dsl << ['groovy', 'kotlin']
-    }
-
-    private void verifyIvyFile(IvyFileModule project1sample, String outputFileName) {
-        def actualIvyXmlText = project1sample.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualIvyXmlText == getExpectedIvyOutput(sampleProject.dir.file(outputFileName))
     }
 
     String getExpectedIvyOutput(File outputFile) {

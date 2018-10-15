@@ -165,7 +165,157 @@ In the example, the versions of `gson` and `dom4j` are provided by the Spring Bo
 
 Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<#sec:dependency_constraints,Gradle's dependency constraints>>. This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result. In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
 
+However often BOMs are not only providing versions as recommendations, but also a way to override any over version found in the graph. You can enable this behavior by using the `enforcedPlatform` keyword, instead of `platform`, when importing the BOM:
+
+.Importing a BOM, making sure the versions it defines override any other version found
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+====
+
+[[sec:version_alignment]]
+== Dependency version alignment
+
+Dependency version alignment allows different modules belonging to the same logical group (a _platform_) to have identical versions in a dependency graph.
+
+=== Handling inconsistent module versions
+Gradle supports aligning versions of modules which belong to the same "platform".
+It is often preferable, for example, that the API and implementation modules of a component are using the same version.
+However, because of the game of transitive dependency resolution, it is possible that different modules belonging to the same platform end up using different versions.
+For example, your project may depend on the `jackson-databind` and `vert.x` libraries, as illustrated below:
+
+.Declaring dependencies
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+Because `vert.x` depends on `jackson-core`, we would actually resolve the following dependency versions:
+
+- `jackson-core` version `2.9.5` (brought by `vertx-core`)
+- `jackson-databind` version `2.9.5` (by conflict resolution)
+- `jackson-annotation` version `2.9.0` (dependency of `jackson-databind:2.9.5`)
+
+It's easy to end up with a set of versions which do not work well together.
+To fix this, Gradle supports dependency version alignment, which is supported by the concept of platform. A platform represents a set of modules which "work well together".
+Either because they are actually published as a whole (when one of the members of the platform is published, all other modules are also published with the same version), or because someone tested modules and indicates that they work well together (typically, the Spring Platform).
+
+=== Declaring participation in a platform
+
+We can fix the example above by declaring that all Jackson modules "belong to" the same platform.
+
+.A dependency version alignment rule
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=alignment-rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=alignment-rule]"]
+====
+
+By using the `belongsTo` keyword, we declare that all modules belong to the same _virtual platform_, which is treated specially by the engine, in particular with regards to alignment. We can use the rule we just created by registering it:
+
+.Making use of a dependency version alignment rule
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=use_rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=use_rule]"]
+====
+
+Then all versions in the example above would align to `2.9.5`. However, Gradle would let you override that choice by specifying a dependency on the Jackson platform:
+
+.Forceful platform downgrade
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=enforced_platform]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=enforced_platform]"]
+====
+
+[[sec:virtual_platform]]
+=== Virtual vs published platforms
+
+A platform defined by a component metadata rule for which the `belongsTo` target module isn't published on a repository is called a virtual platform.
+A virtual platform is considered specially by the engine and participates in dependency resolution like a published module, but triggers dependency version alignment.
+On the other hand, we can find "real" platforms published on public repositories. Typical examples include BOMs, like the Spring BOM. They differ in the sense that a published platform may refer to modules which are effectively different things.
+For example the Spring BOM declares dependencies on Spring as well as Apache Groovy. Obviously those things are versioned differently, so it doesn't make sense to align in this case. In other words, if a platform is _published_, Gradle trusts its metadata, and will not try to align dependency versions of this platform.
+
 [NOTE]
 ====
-Importing dependency constraints from Maven BOMs is active by default with Gradle 5.0+. For using it in Gradle 4.6+, you need to activate it by adding `enableFeaturePreview("IMPROVED_POM_SUPPORT")` to your settings file.
+Gradle doesn't yet support publishing platforms. It can <<bom_import, consume BOMs>>, or declare participation to a virtual platform, but it's not yet possible to declare and publish an adhoc platform module.
+====
+
+[[sec:capabilities]]
+== Component capabilities
+
+=== Introduction to capabilities
+
+Often a dependency graph would accidentally contain multiple implementations of the same API.
+This is particularly common with logging frameworks, where multiple bindings are available, and that one library chooses a binding when another transitive dependency chooses another.
+Because those implementations live at different GAV coordinates, the build tool has usually no way to find out that there's a conflict between those libraries.
+To solve this, Gradle provides the concept of _capability_.
+
+It's illegal to find two components providing the same _capability_ in a single dependency graph.
+Intuitively, it means that if Gradle finds two components that provide the same thing on classpath, it's going to fail with an error indicating what modules are in conflict.
+In our example, it means that different bindings of a logging framework provide the same capability.
+
+=== Capability coordinates
+
+A _capability_ is defined by a `(group, module, version)` triplet.
+Each component defines an implicit capability corresponding to its GAV coordinates (group, artifact, version).
+For example, the `org.apache.commons:commons-lang3:3.8` module has an implicit capability with group `org.apache.commons`, name `commons-lang3` and version `3.8`.
+It is important to realize that capabilities are _versioned_.
+
+=== Declaring component capabilities
+
+[NOTE]
+====
+Capabilities are a core feature of the experimental Gradle metadata file format.
+This means that components published with the experimental Gradle metadata file format can declare capabilities, but also that this feature is only natively understood by Gradle.
+However, it's possible to declare capabilities on components which were _not_ built by Gradle, as explained in this section.
+====
+
+If your build file contains the following dependencies:
+
+.A build file with an implicit conflict of logging frameworks
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+As is, it's pretty hard to figure out that you will end up with two logging frameworks on the classpath.
+In fact, `zookeeper` will bring in `log4j`, where what we want to use is `log4j-over-slf4j`.
+We can pre-emptively detect the conflict by adding a rule which will declare that both logging frameworks provide the same capability:
+
+.A build file with an implicit conflict of logging frameworks
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+====
+
+By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
+
+```
+Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 because they provide the same capability: org.slf4j:slf4j-capability:1.0
+```
+
+It does not, however, choose what component to use for you: detecting a conflict is the first step, then you have to fix it.
+
+=== Solving capability conflicts
+
+By default, Gradle will automatically choose the component with the highest version of a capability.
+This can be useful whenever a component is relocated at different coordinates in a new release.
+For example, the ASM library lived at `asm:asm` coordinates until version `3.3.1`, then changed to `org.ow2.asm:asm` since `4.0`.
+It is illegal to have both ASM <=3.3.1 and 4.0+ on the classpath, because they provide the same feature, it's just that the component has been relocated.
+Because each component has an implicit capability corresponding to its GAV coordinates, we can fix this by having a rule that will declare that the `asm:asm` module provides the `org.ow2.asm:asm` capability:
+
+.Automatic conflict resolution by capability versioning
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
+====
+
+However, fixing by automatic capability version conflict resolution is not always suitable.
+In our logging example, it doesn't matter what version of the logging frameworks we use, we should always select the slf4j bridge.
+
+In this case, we can fix it by using dependency substitution:
+
+.Substitute log4j with slf4j
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=replacement_rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=replacement_rule]"]
 ====

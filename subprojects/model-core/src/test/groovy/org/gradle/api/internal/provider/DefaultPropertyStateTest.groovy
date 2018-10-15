@@ -65,13 +65,17 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         providerWithNoValue().toString() == "property(class java.lang.String, undefined)"
     }
 
-    def "has no initial value"() {
-        def property = new DefaultPropertyState<String>(String)
+    def "can set to null value to discard value"() {
+        given:
+        def property = property()
+        property.set(someValue())
+        property.set(null)
 
         expect:
         !property.present
         property.getOrNull() == null
-        property.getOrElse("123") == "123"
+        property.getOrElse(someValue()) == someValue()
+        property.getOrElse(null) == null
     }
 
     def "fails when get method is called when the property has no initial value"() {

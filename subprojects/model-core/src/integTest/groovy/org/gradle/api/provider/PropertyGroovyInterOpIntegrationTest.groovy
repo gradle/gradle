@@ -79,7 +79,7 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
     }
 
     @Override
-    void pluginSetsCalculatedValues() {
+    void pluginSetsCalculatedValuesUsingCallable() {
         pluginDir.file("src/main/groovy/SomePlugin.groovy") << """
             import ${Project.name}
             import ${Plugin.name}
@@ -89,6 +89,24 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyLanguageInter
                     project.tasks.register("someTask", SomeTask) { t ->
                         t.flag = project.provider { true }
                         t.message = project.provider { "some value" }
+                    }
+                }
+            }
+        """
+    }
+
+    @Override
+    void pluginSetsCalculatedValuesUsingMappedProvider() {
+        pluginDir.file("src/main/groovy/SomePlugin.groovy") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            public class SomePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("someTask", SomeTask) { t ->
+                        def provider = project.provider { "some value" }
+                        t.flag = provider.map { s -> !s.empty }
+                        t.message = provider.map { s -> s }
                     }
                 }
             }

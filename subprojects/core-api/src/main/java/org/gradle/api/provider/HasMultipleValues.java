@@ -47,7 +47,7 @@ public interface HasMultipleValues<T> {
     void set(Provider<? extends Iterable<? extends T>> provider);
 
     /**
-     * Sets the value of this property to an empty collection, and replaced any existing value.
+     * Sets the value of this property to an empty collection, and replaces any existing value.
      *
      * @return this property.
      * @since 5.0
@@ -98,4 +98,15 @@ public interface HasMultipleValues<T> {
      * @param provider Provider of elements
      */
     void addAll(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
+     * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.
+     *
+     * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called  and the value of the provider will no longer be tracked.</p>
+     *
+     * <p>Note that although the value of the property will not change, the resulting collection may contain mutable objects. Calling this method does not guarantee that the value will become immutable.</p>
+     *
+     * @since 5.0
+     */
+    void finalizeValue();
 }

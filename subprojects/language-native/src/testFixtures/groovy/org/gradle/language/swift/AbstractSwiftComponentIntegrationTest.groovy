@@ -42,7 +42,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    def "throws exception when modifying Swift component source compatibility after the binaries are known"() {
+    def "throws exception when modifying Swift component source compatibility after the binary source compatibility is queried"() {
         given:
         makeSingleProject()
         buildFile << """
@@ -51,6 +51,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             }
 
             ${componentUnderTestDsl}.binaries.whenElementKnown {
+                assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
                 ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.SWIFT4
             }
 
@@ -61,7 +62,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         expect:
         fails "verifyBinariesSwiftVersion"
         failure.assertHasDescription("A problem occurred configuring root project 'swift-project'.")
-        failure.assertHasCause("This property is locked and cannot be changed.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)

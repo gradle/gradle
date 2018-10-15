@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskPropertySpec extends Comparable<TaskPropertySpec> {
+public interface TaskPropertySpec extends Comparable<TaskPropertySpec>, LifecycleAwareTaskProperty {
     String getPropertyName();
 }

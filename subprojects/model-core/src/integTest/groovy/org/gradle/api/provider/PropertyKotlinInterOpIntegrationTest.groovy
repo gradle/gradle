@@ -55,7 +55,6 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
         pluginDir.file("src/main/kotlin/SomePlugin.kt") << """
             import ${Project.name}
             import ${Plugin.name}
-            import ${org.gradle.api.Action.name}
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
@@ -69,11 +68,10 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
     }
 
     @Override
-    void pluginSetsCalculatedValues() {
+    void pluginSetsCalculatedValuesUsingCallable() {
         pluginDir.file("src/main/kotlin/SomePlugin.kt") << """
             import ${Project.name}
             import ${Plugin.name}
-            import ${org.gradle.api.Action.name}
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {
@@ -87,11 +85,28 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
     }
 
     @Override
+    void pluginSetsCalculatedValuesUsingMappedProvider() {
+        pluginDir.file("src/main/kotlin/SomePlugin.kt") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            class SomePlugin: Plugin<Project> {
+                override fun apply(project: Project) {
+                    project.tasks.register("someTask", SomeTask::class.java) { 
+                        val provider = project.provider { "some value" }
+                        flag.set(provider.map { s -> !s.isEmpty() })
+                        message.set(provider. map { s -> s })
+                    }
+                }
+            }
+        """
+    }
+
+    @Override
     void pluginDefinesTask() {
         pluginDir.file("src/main/kotlin/SomePlugin.kt") << """
             import ${Project.name}
             import ${Plugin.name}
-            import ${org.gradle.api.Action.name}
 
             class SomePlugin: Plugin<Project> {
                 override fun apply(project: Project) {

@@ -15,15 +15,6 @@
 [[composite_builds]]
 = Composite builds
 
-
-[NOTE]
-====
-
-Composite build is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. While useful for many use cases, there are bugs to be discovered, rough edges to smooth, and enhancements we plan to make. Thanks for trying it out!
-
-====
-
-
 [[composite_build_intro]]
 == What is a composite build?
 
