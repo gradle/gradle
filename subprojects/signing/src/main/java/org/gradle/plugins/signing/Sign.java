@@ -43,6 +43,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -109,6 +111,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
         }).optional(true);
     }
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     public Iterable<File> getInputFiles() {
         return Iterables.transform(signatures, SIGNATURE_TO_SIGN_FILE_FUNCTION);

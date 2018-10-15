@@ -139,6 +139,7 @@ public class Upload extends ConventionTask {
      *
      * @return the artifacts.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getArtifacts() {
         Configuration configuration = getConfiguration();
