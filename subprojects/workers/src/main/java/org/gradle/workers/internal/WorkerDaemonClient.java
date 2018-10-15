@@ -24,12 +24,12 @@ import org.gradle.process.internal.worker.WorkerProcess;
 
 class WorkerDaemonClient implements Worker, Stoppable {
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess;
+    private final WorkerDaemonProcess workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private int uses;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
