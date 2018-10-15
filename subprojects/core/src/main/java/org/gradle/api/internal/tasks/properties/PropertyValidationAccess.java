@@ -239,7 +239,7 @@ public class PropertyValidationAccess {
         @Override
         public String validate(boolean cacheable, PropertyMetadata metadata) {
             PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
-            if (cacheable && pathSensitive == null) {
+            if (pathSensitive == null) {
                 return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";
             }
             return null;
