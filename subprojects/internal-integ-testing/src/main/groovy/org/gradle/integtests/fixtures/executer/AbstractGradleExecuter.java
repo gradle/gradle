@@ -525,8 +525,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
             buildJvmOpts.add("-XX:MaxPermSize=320m");
-        } else {
-            buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
         }
         buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
         buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir());
