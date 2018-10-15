@@ -16,6 +16,7 @@
 :kotlin-tutorials: https://kotlinlang.org/tutorials/
 :kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
 :kotlin-dsl-issues: https://github.com/gradle/kotlin-dsl/issues/
+:kotlin-dsl-api: https://gradle.github.io/kotlin-dsl-docs/api/
 
 
 [[kotlin_dsl]]
@@ -47,6 +48,8 @@ If you are looking into migrating an existing build to the Gradle Kotlin DSL, pl
 
 * There are some situations where the Kotlin DSL is slower. First use, on clean checkouts or ephemeral CI agents for example, link:{kotlin-dsl-issues}902[are known to be slower].
 The same applies to the scenario in which something in the _buildSrc_ directory changes, which invalidates build-script caching.
+The main bottleneck is script compilation.
+* In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts.
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 Applying model rules from scripts is supported though, see the link:{kotlin-dsl-samples}model-rules[model-rules] sample.
 * Enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
@@ -132,6 +135,10 @@ That way you get early feedback while editing Gradle scripts while controlling w
 [[sec:scripts]]
 == Gradle Kotlin DSL scripts
 
+Just like the Gradle Groovy DSL, the Gradle Kotlin DSL is implemented on top of the Java Gradle API.
+Everything you can read in a Gradle Kotlin DSL script is Kotlin code compiled and executed by Gradle.
+In Gradle Kotlin DSL scripts you write Kotlin code that uses objects, functions and properties from the Gradle API and applied Gradle plugins APIs.
+
 === Script file names
 
 [NOTE]
@@ -169,6 +176,14 @@ All `gradle.kts` script has implicit imports comprised of:
 
 * the <<writing_build_scripts#script-default-imports, default Gradle API imports>>,
 * the Gradle Kotlin DSL API: `org.gradle.kotlin.dsl.*`.
+
+[CAUTION]
+.Avoiding Gradle Kotlin DSL internal APIs
+====
+Use of Gradle Kotlin DSL internal APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
+
+The link:{kotlin-dsl-api}[Gradle Kotlin DSL] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API definition>> with `org/gradle/kotlin/dsl/*` excluding any subpackages.
+====
 
 
 [[sec:configuring_plugins]]
@@ -269,7 +284,9 @@ include::sample[dir="kotlinDsl/noAccessors",files="build.gradle.kts[tags=no-acce
 [TIP]
 .All models contributed by plugins are reachable via the API.
 ====
-Whenever you can't find a type-safe accessor you should fallback to using the API.
+In some circumstances, type-safe accessors are not available: imperative configuration (`apply(plugin = "id")` or configuration of model elements created in the same script), script plugins (`apply(from = "script-plugin.gradle.kts")`), cross project configuration (see below), Gradle plugins implemented in Kotlin and precompiled script plugins (see below).
+
+*Whenever you can't find a type-safe accessor you should fallback to using the API.*
 ====
 
 Using the API instead of accessors to configure plugins is not that different, a bit more verbose though.
@@ -854,6 +871,14 @@ include::sample[dir="kotlinDsl/interoperability/delegate-closure-of",files="buil
 There sometimes isn't a good way to tell, from looking at the source code, which version to use.
 Usually, if you get a `NullPointerException` with `closureOf<T> {}`, using `delegateClosureOf<T> {}`
 will resolve the problem.
+
+These two utility functions are useful for _configuration closures_, but some plugins might expect Groovy closures for other purposes.
+The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions to Groovy closures with more flexibility.
+
+.Use `KotlinClosureX` types
+====
+include::sample[dir="kotlinDsl/interoperability/kotlinClosure",files="build.gradle.kts[tags=kotlinClosure]"]
+====
 
 Also see the link:{kotlin-dsl-samples}groovy-interop[groovy-interop] sample.
 
