@@ -86,7 +86,7 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
     }
 
     @Override
-    void pluginSetsCalculatedValues() {
+    void pluginSetsCalculatedValuesUsingCallable() {
         pluginDir.file("src/main/java/SomePlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};
@@ -96,6 +96,25 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
                     project.getTasks().register("someTask", SomeTask.class, t -> {
                         t.getFlag().set(project.provider(() -> true));
                         t.getMessage().set(project.provider(() -> "some value"));
+                    });
+                }
+            }
+        """
+    }
+
+    @Override
+    void pluginSetsCalculatedValuesUsingMappedProvider() {
+        pluginDir.file("src/main/java/SomePlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Provider.name};
+
+            public class SomePlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getTasks().register("someTask", SomeTask.class, t -> {
+                        Provider<String> provider = project.provider(() -> "some value"); 
+                        t.getFlag().set(provider.map(s -> !s.isEmpty()));
+                        t.getMessage().set(provider.map(s -> s));
                     });
                 }
             }

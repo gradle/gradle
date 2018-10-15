@@ -1,5 +1,5 @@
 open class Producer : DefaultTask() {
-    @get:OutputFile
+    @OutputFile
     val outputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
@@ -12,7 +12,7 @@ open class Producer : DefaultTask() {
 }
 
 open class Consumer : DefaultTask() {
-    @get:InputFile
+    @InputFile
     val inputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
@@ -26,7 +26,7 @@ open class Consumer : DefaultTask() {
 val producer by tasks.creating(Producer::class)
 val consumer by tasks.creating(Consumer::class)
 
-// Wire the property from producer to consumer task
+// Connect the producer task output to the consumer task input
 // Don't need to add a task dependency to the consumer task. This is automatically added
 consumer.inputFile.set(producer.outputFile)
 

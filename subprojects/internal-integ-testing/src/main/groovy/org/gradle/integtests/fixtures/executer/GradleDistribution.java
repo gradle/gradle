@@ -100,11 +100,6 @@ public interface GradleDistribution {
     CacheVersion getArtifactCacheLayoutVersion();
 
     /**
-     * Returns true if the open API is supported by this distribution.
-     */
-    boolean isOpenApiSupported();
-
-    /**
      * Returns true if the wrapper from this distribution can execute a build using the specified version.
      */
     boolean wrapperCanExecute(GradleVersion version);
@@ -125,4 +120,9 @@ public interface GradleDistribution {
      * Returns true if the wrapper for this version honours the --gradle-user-home command-line option.
      */
     boolean isWrapperSupportsGradleUserHomeCommandLineOption();
+
+    /**
+     * Returns true if this version always adds a task execution exception around all failures, such as input fingerprinting or property validation failures, rather than only around task action failures.
+     */
+    boolean isAddsTaskExecutionExceptionAroundAllTaskFailures();
 }

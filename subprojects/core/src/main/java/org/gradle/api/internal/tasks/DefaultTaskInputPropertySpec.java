@@ -55,6 +55,15 @@ public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport i
     }
 
     @Override
+    public void prepareValue() {
+        value.maybeFinalizeValue();
+    }
+
+    @Override
+    public void cleanupValue() {
+    }
+
+    @Override
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), optional, ValidationActions.NO_OP, context);
     }

@@ -103,7 +103,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':buildB:buildSrc:compileClasspath'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':buildB:buildSrc:compileClasspath'.")
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
     project :buildB:buildSrc""")

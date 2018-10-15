@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
@@ -76,14 +77,18 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
-        public Object getContainerValue() {
+        public Object call() {
             return null;
         }
 
-        @Nullable
         @Override
-        public Object call() {
-            return null;
+        public void attachProducer(Task producer) {
+            // Ignore
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            // Ignore
         }
 
         @Override
@@ -99,10 +104,14 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             return null;
         }
 
-        @Nullable
         @Override
-        public Object getContainerValue() {
-            return null;
+        public void attachProducer(Task producer) {
+            // Ignore
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            // Ignore
         }
 
         @Override
