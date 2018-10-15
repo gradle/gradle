@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
@@ -405,7 +404,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @Ignore
     @Issue("gradle/gradle#4261")
     def "different projects can apply different metadata rules for the same component"() {
         repository {
