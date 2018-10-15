@@ -26,6 +26,8 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -69,6 +71,7 @@ public class TestReport extends DefaultTask {
     /**
      * Returns the set of binary test results to include in the report.
      */
+    @PathSensitive(PathSensitivity.NONE)
     @InputFiles @SkipWhenEmpty
     public FileCollection getTestResultDirs() {
         UnionFileCollection dirs = new UnionFileCollection();
