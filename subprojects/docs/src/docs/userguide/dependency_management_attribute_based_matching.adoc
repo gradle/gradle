@@ -30,17 +30,11 @@ In the end, what we want to make a diffence is between a _consumer_ and a _produ
 
 For example, if I want to express that my application `app` _depends on_ library `lib`, we need _at least_ one configuration:
 
-[source,groovy]
-----
-configurations {
-   // declare a "configuration" named "someConfiguration"
-   someConfiguration
-}
-dependencies {
-   // add a project dependency to the "someConfiguration" configuration
-   someConfiguration project(":lib")
-}
-----
+.Configurations are used to declare dependencies
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=declare-configuration]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
+====
 
 Configurations can extend other configuration, in order to inherit their dependencies.
 However, the code above doesn't tell anything about the _consumer_.
@@ -49,16 +43,11 @@ Let's say that `lib` is a Java library: it can expose different things, such as 
 If we want to resolve the dependencies of `app`, we need to know what kind of task we're performing (compiling against the API of `lib`, executing the application, compiling tests, ...).
 For this purpose, you'll often find companion configurations, which are meant to unambiguously declare the usage:
 
-[source,groovy]
-----
-configurations {
-    // declare a configuration that is going to resolve the compile classpath of the application
-    compileClasspath.extendsFrom(someConfiguration)
-
-    // declare a configuration that is going to resolve the runtime classpath of the application
-    runtimeClasspath.extendsFrom(someConfiguration)
-}
-----
+.Configurations representing concrete dependency graphs
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=concrete-classpath]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
+====
 
 At this stage, we have 3 different configurations, which already have different goals:
 
@@ -82,23 +71,11 @@ So the `lib` project will expose an `apiElements` configuration, which is aimed 
 Such a configuration is going to be consumable, but is not meant to be resolved.
 This is expressed via the _canBeConsumed_ flag of a `Configuration`:
 
-[source,groovy]
-----
-configurations {
-   // A configuration meant for consumers that need the API of this component
-   apiElements {
-      // This configuration is an "outgoing" configuration, it's not meant to be resolved
-      canBeResolved = false
-      // As an outgoing configuration, explain that consumers may want to consume it
-      canBeConsumed = true
-   }
-   // A configuration meant for consumers that need the implementation of this component
-   runtimeElements {
-      canBeResolved = false
-      canBeConsumed = true
-   }
-}
-----
+.Setting up configurations
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=setup-configurations]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
+====
 
 In short, a configuration role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
 
@@ -119,7 +96,7 @@ For backwards compatibility, those flags have both `true` as the default value, 
 We have explained that we have 3 configuration roles, and explained that we may want to resolve the compile and runtime classpath differently, but there's nothing in what we've written which allows explaining the difference.
 This is where _attributes_ come into play.
 The role of attributes is to perform the selection of the right _variant_ of a component.
-In our example, the `lib` library exposes 2 variants: its API (via `apiElements`) and its runtime (via `runtimeElements`).
+In our example, the `lib` library exposes 2 variants: its API (via `exposedApi`) and its runtime (via `exposedRuntime`).
 There's no restriction on the number of variants a component can expose.
 We may, for example, want to expose the test fixtures of a component too.
 But then, the consumer needs to explain _what_ configuration to consume, and this is done by setting _attributes_ on both the _consumer_ and _producer_ ends.
@@ -142,50 +119,36 @@ It doesn't matter what the names of the configurations are: only the attributes 
 
 Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` method:
 
-[source,java]
-----
-// An attribute of type `String`
-Attribute<String> myAttribute = Attribute.of("my.attribute.name", String.class);
-// An attribute of type `Usage`
-Attribute<Usage> myUsage = Attribute.of("my.usage.attribute", Usage.class);
-----
+.Define attributes
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=define_attribute]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=define_attribute]"]
+====
 
 Currently, only attribute types of `String`, or anything extending `Named` is supported.
 Attributes must be declared in the _attribute schema_ found on the `dependencies` handler:
 
-[source,groovy]
-----
-dependencies.attributesSchema {
-    // registers this attribute to the attributes schema
-    attribute(myAttribute)
-}
-----
+.Registering attributes on the attributes schema
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=register-attributes]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=register-attributes]"]
+====
 
 Then configurations can be configured to set values for attributes:
 
-[source,groovy]
------
-configurations {
-    myConfiguration {
-        attributes {
-            attribute(myAttribute, 'my-value')
-        }
-    }
-}
------
+.Setting attributes on configurations
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=attributes-on-configurations]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
+====
 
 For attributes which type extends `Named`, the value of the attribute **must** be created via the _object factory_:
 
-[source,groovy]
------
-configurations {
-    myConfiguration {
-        attributes {
-            attribute(myUsage, project.objects.named(Usage, 'my-value'))
-        }
-    }
-}
------
+.Named attributes
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=named-attributes]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=named-attributes]"]
+====
 
 [[sec:abm_compatibility_rules]]
 == Attribute compatibility rules
