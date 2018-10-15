@@ -92,4 +92,13 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     List<File> getSourceFilesForPch();
 
     void setSourceFilesForPch(List<File> sourceFilesForPch);
+    
+    String getDebugInfoFormat();
+    
+    void setDebugInfoFormat(String debugInfoFormat);
+    
+    String getOptimizationLevel();
+    
+    void setOptimizationLevel(String optimizationLevel);
+    
 }

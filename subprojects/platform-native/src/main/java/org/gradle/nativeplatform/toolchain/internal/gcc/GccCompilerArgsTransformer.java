@@ -48,10 +48,10 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
             }
         }
         if (spec.isDebuggable()) {
-            args.add("-g");
+            args.add((spec.getDebugInfoFormat()!=null) ? spec.getDebugInfoFormat() : "-g");
         }
         if (spec.isOptimized()) {
-            args.add("-O3");
+            args.add((spec.getOptimizationLevel() !=null) ? spec.getOptimizationLevel() :"-O3");
         }
     }
 

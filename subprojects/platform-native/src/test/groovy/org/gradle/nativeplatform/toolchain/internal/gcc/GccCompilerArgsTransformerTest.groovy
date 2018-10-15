@@ -32,16 +32,22 @@ class GccCompilerArgsTransformerTest extends Specification {
         def spec = Stub(NativeCompileSpec)
         spec.debuggable >> debug
         spec.optimized >> optimize
+        spec.debugInfoFormat >> debugInfoFormat
+        spec.optimizationLevel >> optimizationLevel
 
         expect:
         def args = transformer.transform(spec)
         args.containsAll(expected)
 
+
         where:
-        debug | optimize | expected
-        true  | false    | ["-g"]
-        false | true     | ["-O3"]
-        true  | true     | ["-g", "-O3"]
+        debug | optimize | debugInfoFormat | optimizationLevel | expected
+        true  | false    | null            | null              | ["-g"]
+        true  | false    | "-g3"           | null              | ["-g3"]
+        false | true     | null            | null              | ["-O3"]
+        false | true     | null            | "-O0"             | ["-O0"]
+        true  | true     | null            | null              | ["-g", "-O3"]
+        true  | true     | "-g3"           | "-O0"             | ["-g3", "-O0"]
     }
 
     def "transforms system header and include args correctly"() {
