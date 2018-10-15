@@ -23,13 +23,11 @@ The Maven Publish Plugin provides the ability to publish build artifacts to an h
 
 To use the Maven Publish Plugin, include the following in your build script:
 
-=== Example: Applying the Maven Publish Plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/quickstart/build.gradle[tag=use-plugin]
-----
+.Applying the Maven Publish Plugin
+====
+include::sample[dir="maven-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 The Maven Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] repositories.
 
@@ -82,13 +80,11 @@ The attributes of the generated POM file will contain identity values derived fr
 
 Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].
 
-=== Example: customizing the publication identity
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/multiple-publications/build.gradle[tag=customize-identity]
-----
+.Customizing the publication identity
+====
+include::sample[dir="maven-publish/multiple-publications/groovy",files="build.gradle[tags=customize-identity]"]
+include::sample[dir="maven-publish/multiple-publications/kotlin",files="build.gradle.kts[tags=customize-identity]"]
+====
 
 [TIP]
 ====
@@ -117,13 +113,11 @@ This plugin provides <<dependency_management_terminology.adoc#sub:terminology_re
 
 Here's a simple example of defining a publishing repository:
 
-=== Example: Declaring repositories to publish to
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/quickstart/build.gradle[tag=repositories]
-----
+.Declaring repositories to publish to
+====
+include::sample[dir="maven-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
 
 The two main things you will want to configure are the repository's:
 
@@ -139,23 +133,19 @@ You can also configure any authentication details that are required to connect t
 
 It is a common practice to publish snapshots and releases to different Maven repositories. A simple way to accomplish this is to configure the repository URL based on the project version. The following sample uses one URL for versions that end with "SNAPSHOT" and a different URL for the rest:
 
-=== Example: Configuring repository URL based on project version
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/javaProject/build.gradle[tag=repo-url-from-variable]
-----
+.Configuring repository URL based on project version
+====
+include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-variable]"]
+include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-variable]"]
+====
 
 Similarly, you can use a <<build_environment.adoc#build_environment, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
 
-=== Example: Configuring repository URL based on project property
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/javaProject/build.gradle[tag=repo-url-from-project-property]
-----
+.Configuring repository URL based on project property
+====
+include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-project-property]"]
+include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-project-property]"]
+====
 
 [[publishing_maven:install]]
 == Publishing to Maven Local
@@ -193,12 +183,16 @@ This behavior caused quite a bit of confusion and was deprecated in Gradle 4.8, 
 You may have some logic inside your publishing block or in a plugin that is depending on the deferred configuration behavior.
 For instance, the following logic assumes that the subprojects will be evaluated when the artifactId is set:
 
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source,groovy]
 ----
 subprojects {
     publishing {
         publications {
-            mavenJava {
+            mavenJava(MavenPublication) {
                 from components.java
                 artifactId = jar.baseName
             }
@@ -206,15 +200,39 @@ subprojects {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+                artifactId = tasks.jar.get().baseName
+            }
+        }
+    }
+}
+----
+=====
+====
 
 This kind of logic must now be wrapped in an `afterEvaluate {}` block.
 
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
 [source,groovy]
 ----
 subprojects {
     publishing {
         publications {
-            mavenJava {
+            mavenJava(MavenPublication) {
                 from components.java
                 afterEvaluate {
                     artifactId = jar.baseName
@@ -224,3 +242,24 @@ subprojects {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+                afterEvaluate {
+                    artifactId = tasks.jar.get().baseName
+                }
+            }
+        }
+    }
+}
+----
+=====
+====

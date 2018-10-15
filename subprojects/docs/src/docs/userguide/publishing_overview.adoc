@@ -104,13 +104,11 @@ Users often need to include additional artifacts with a publication, one of the 
 
 The following sample configures "-sources" and "-javadoc" JARs for a Java project and attaches them to the main (Maven) publication, i.e. the production JAR:
 
-=== Example: Adding an additional archive artifact to a MavenPublication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/javaProject/build.gradle[tag=publish-custom-artifact]
-----
+.Adding an additional archive artifact to a MavenPublication
+====
+include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=publish-custom-artifact]"]
+include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=publish-custom-artifact]"]
+====
 
 There are several important things to note about the sample:
 
