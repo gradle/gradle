@@ -37,6 +37,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -149,6 +151,7 @@ public class InstallExecutable extends DefaultTask {
     @SkipWhenEmpty
     @Nullable
     @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFile
     protected File getInputFileIfExists() {
         RegularFileProperty sourceFile = getExecutableFile();
@@ -162,6 +165,7 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The library files that should be installed.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getLibs() {
         return libs;
