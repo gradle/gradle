@@ -43,10 +43,10 @@ class DaemonPlayCompilerTest extends Specification {
         def packages = ["foo", "bar"]
         def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, classpath, packages, fileResolver)
         when:
-        def context = compiler.toInvocationContext(spec)
+        def daemonForkOptions = compiler.toDaemonForkOptions(spec)
         then:
-        context.daemonForkOptions.getClasspath() == classpath
-        context.daemonForkOptions.getSharedPackages() == packages
+        daemonForkOptions.getClasspath() == classpath
+        daemonForkOptions.getSharedPackages() == packages
     }
 
     def "applies fork settings to daemon options"(){
@@ -56,9 +56,9 @@ class DaemonPlayCompilerTest extends Specification {
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"
         then:
-        def context = compiler.toInvocationContext(spec)
-        context.daemonForkOptions.javaForkOptions.getMinHeapSize() == "256m"
-        context.daemonForkOptions.javaForkOptions.getMaxHeapSize() == "512m"
+        def daemonForkOptions = compiler.toDaemonForkOptions(spec)
+        daemonForkOptions.javaForkOptions.getMinHeapSize() == "256m"
+        daemonForkOptions.javaForkOptions.getMaxHeapSize() == "512m"
     }
 
     def someClasspath() {
