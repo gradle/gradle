@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Unroll
 
 class SamplesTroubleshootingDependencyResolutionIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -28,25 +29,39 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/troubleshooting/cache/changing")
     def "can declare custom TTL for dependency with dynamic version"() {
-        executer.inDirectory(sample.dir)
+
+        given:
+        def sampleDir = sample.dir.file(dsl)
+        executer.inDirectory(sampleDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
+        sampleDir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/troubleshooting/cache/changing")
     def "can declare custom TTL for dependency with changing version"() {
-        executer.inDirectory(sample.dir)
+
+        given:
+        def sampleDir = sample.dir.file(dsl)
+        executer.inDirectory(sampleDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+        sampleDir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }
