@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
@@ -86,14 +85,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleRepositoryCaches caches,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
-                                            ComponentMetadataProcessor metadataProcessor,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                            ComponentMetadataProcessor metadataProcessor) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
         this.moduleVersionsCache = caches.moduleVersionsCache;
@@ -102,7 +99,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.cachePolicy = cachePolicy;
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public String getId() {
