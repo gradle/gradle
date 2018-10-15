@@ -65,12 +65,15 @@ At this stage, we have 3 different configurations, which already have different 
 - `someConfiguration` declares the dependencies of my application. It's just a bucket where we declare a list of dependencies.
 - `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain respectively the compile classpath, and the runtime classpath of the application.
 
-This is actually represented on the `Configuration` type by the `canBeResolved` flag. A configuration that _can be resolved_ is a configuration which is going to be, at some point, resolved.
+This is actually represented on the `Configuration` type by the `canBeResolved` flag.
+A configuration that _can be resolved_ is a configuration for which we can compute a dependency graph, because it contains all the necessary information for resolution to happen.
 That is to say we're going to compute a dependency graph, resolve the components in the graph, and eventually get artifacts.
 A configuration which has `canBeResolved` set to `false` is not meant to be resolved.
 Such a configuration is there _only to declare dependencies_.
 The reason is that depending on the usage (compile classpath, runtime classpath), it _can_ resolve to different graphs.
 It is an error to try to resolve a configuration which has `canBeResolved` set to `false`.
+To some extend, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
+A resolvable configuration will extend at least one non resolvable configuration (and may extend more than one).
 
 On the other end, at the library project side (the _producer_), we also use configurations to represent what can be consumed.
 For example, the library may expose an API or a runtime, and we would attach artifacts to either one, the other, or both.
