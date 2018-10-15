@@ -15,15 +15,14 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import com.google.common.collect.ImmutableList
+
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.TestIncludeParser
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -41,7 +40,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyResolver = new DummyResolver()
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -89,7 +88,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private static IncludeDirectives includes(Collection<File> deps) {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { IncludeWithSimpleExpression.parse('<' + it.name + '>', false) }), ImmutableList.of(), ImmutableList.of())
+        return TestIncludeParser.systemIncludes(deps.collect { it.name })
     }
 
     def added(TestFile sourceFile) {
