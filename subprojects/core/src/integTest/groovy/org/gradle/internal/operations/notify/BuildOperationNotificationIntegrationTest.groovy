@@ -30,7 +30,7 @@ import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 

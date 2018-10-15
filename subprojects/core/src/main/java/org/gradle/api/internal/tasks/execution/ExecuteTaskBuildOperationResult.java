@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution.internal;
+package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
