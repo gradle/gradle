@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;

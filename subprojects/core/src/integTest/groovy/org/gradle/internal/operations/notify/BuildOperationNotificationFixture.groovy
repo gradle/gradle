@@ -115,7 +115,7 @@ class BuildOperationNotificationFixture {
                 void started(${BuildOperationStartedNotification.name} startedNotification) {
             
                     def details = startedNotification.notificationOperationDetails
-                    if (details instanceof org.gradle.internal.execution.ExecuteTaskBuildOperationType.Details) {
+                    if (details instanceof org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType.Details) {
                         details = [taskPath: details.taskPath, buildPath: details.buildPath, taskClass: details.taskClass.name]
                     } else  if (details instanceof org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details) {
                         details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
