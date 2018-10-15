@@ -26,7 +26,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * Represents a {@link WorkSpec} that contains constructor parameters.
+ * Represents an {@link ActionExecutionSpec} that contains constructor parameters.
  */
 public class SerializingActionExecutionSpec implements ActionExecutionSpec {
     private final String displayName;

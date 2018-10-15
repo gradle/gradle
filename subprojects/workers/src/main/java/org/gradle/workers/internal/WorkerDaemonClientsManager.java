@@ -96,7 +96,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerProtocol<ActionExecutionSpec>> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
+    public WorkerDaemonClient reserveNewClient(Class<? extends WorkerProtocol> workerProtocolImplementationClass, DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(workerProtocolImplementationClass, forkOptions);
         synchronized (lock) {
