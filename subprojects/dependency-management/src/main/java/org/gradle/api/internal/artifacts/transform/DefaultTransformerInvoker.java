@@ -42,8 +42,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         try {
             ImmutableList<File> result = ImmutableList.copyOf(cachingTransformerExecutor.getResult(primaryInput, transformer));
             invocation.success(result);
-        } catch (Throwable t) {
-            invocation.failure(new TransformInvocationException(primaryInput.getAbsoluteFile(), transformer.getImplementationClass(), t));
+        } catch (Exception e) {
+            invocation.failure(new TransformInvocationException(primaryInput.getAbsoluteFile(), transformer.getImplementationClass(), e));
         } finally {
             if (!hasCachedResult) {
                 artifactTransformListener.afterTransformerInvocation(transformer, subjectBeingTransformed);

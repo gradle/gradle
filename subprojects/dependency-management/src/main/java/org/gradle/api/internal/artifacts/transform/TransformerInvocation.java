@@ -29,7 +29,7 @@ public class TransformerInvocation {
     private final TransformationSubject subjectBeingTransformed;
     
     private List<File> result;
-    private Throwable failure;
+    private Exception failure;
 
     public TransformerInvocation(Transformer transformer, File primaryInput, TransformationSubject subjectBeingTransformed) {
         this.transformer = transformer;
@@ -53,7 +53,7 @@ public class TransformerInvocation {
         this.result = result;
     }
 
-    public void failure(Throwable failure) {
+    public void failure(Exception failure) {
         this.failure = failure;
     }
 
@@ -62,7 +62,7 @@ public class TransformerInvocation {
     }
 
     @Nullable
-    public Throwable getFailure() {
+    public Exception getFailure() {
         return failure;
     }
 }
