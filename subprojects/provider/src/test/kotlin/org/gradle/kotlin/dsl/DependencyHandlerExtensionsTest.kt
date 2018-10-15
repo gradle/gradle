@@ -58,7 +58,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given group and module, 'exclude' extension will build corresponding map`() {
 
-        val dependencies = DependencyHandlerScope(mock())
+        val dependencies = DependencyHandlerScope.of(mock())
         val dependency: ExternalModuleDependency = mock()
         val events = mutableListOf<String>()
         whenever(dependencies.create("dependency")).then {
@@ -93,7 +93,7 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given path and configuration, 'project' extension will build corresponding map`() {
 
-        val dependencies = DependencyHandlerScope(mock())
+        val dependencies = DependencyHandlerScope.of(mock())
         val dependency: ProjectDependency = mock()
         val events = mutableListOf<String>()
         val expectedProjectMap = mapOf("path" to ":project", "configuration" to "default")
@@ -130,7 +130,7 @@ class DependencyHandlerExtensionsTest {
             on { add(any(), any()) } doReturn mock<Dependency>()
         }
 
-        val dependencies = DependencyHandlerScope(dependencyHandler)
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
         dependencies {
             "configuration"("notation")
         }
@@ -148,7 +148,7 @@ class DependencyHandlerExtensionsTest {
             on { name } doReturn "c"
         }
 
-        val dependencies = DependencyHandlerScope(dependencyHandler)
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
         dependencies {
             configuration("notation")
         }
@@ -220,7 +220,7 @@ class DependencyHandlerExtensionsTest {
 
         val baseConfig = mock<Configuration>()
 
-        val dependencies = DependencyHandlerScope(dependencyHandler)
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
         dependencies {
             "configuration"(baseConfig)
         }
@@ -241,7 +241,7 @@ class DependencyHandlerExtensionsTest {
 
         val baseConfig = mock<Configuration>()
 
-        val dependencies = DependencyHandlerScope(dependencyHandler)
+        val dependencies = DependencyHandlerScope.of(dependencyHandler)
         dependencies {
             configuration(baseConfig)
         }
@@ -263,7 +263,7 @@ class DependencyHandlerExtensionsTest {
                 (it.getArgument(0) as Action<DependencyConstraintHandler>).execute(constraintHandler)
             }
         }
-        val dependencies = DependencyHandlerScope(dependenciesHandler)
+        val dependencies = DependencyHandlerScope.of(dependenciesHandler)
 
         // using the api
         dependencies {

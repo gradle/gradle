@@ -25,4 +25,4 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
  */
 @Incubating
 operator fun DependencyConstraintHandler.invoke(configuration: DependencyConstraintHandlerScope.() -> Unit) =
-    DependencyConstraintHandlerScope(this).configuration()
+    DependencyConstraintHandlerScope.of(this).configuration()

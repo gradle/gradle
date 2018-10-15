@@ -47,7 +47,7 @@ inline operator fun TaskContainer.invoke(
 ): TaskContainer =
 
     apply {
-        configuration(TaskContainerScope(this))
+        configuration(TaskContainerScope.of(this))
     }
 
 
@@ -142,7 +142,15 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction
 /**
  * Receiver for the `tasks` block providing an extended set of operators for the configuration of tasks.
  */
-class TaskContainerScope(val container: TaskContainer) : TaskContainer by container {
+class TaskContainerScope
+private constructor(
+    val container: TaskContainer
+) : TaskContainer by container {
+
+    companion object {
+        fun of(container: TaskContainer) =
+            TaskContainerScope(container)
+    }
 
     /**
      * Configures a task by name, without triggering its creation or configuration, failing if there is no such task.

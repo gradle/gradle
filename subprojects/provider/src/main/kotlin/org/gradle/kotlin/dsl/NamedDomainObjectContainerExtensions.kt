@@ -36,7 +36,7 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
 ): C =
 
     apply {
-        configuration(NamedDomainObjectContainerScope(this))
+        configuration(NamedDomainObjectContainerScope.of(this))
     }
 
 
@@ -193,9 +193,15 @@ class RegisteringDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>(
 /**
  * Receiver for [NamedDomainObjectContainer] configuration blocks.
  */
-class NamedDomainObjectContainerScope<T : Any>(
+class NamedDomainObjectContainerScope<T : Any>
+private constructor(
     private val container: NamedDomainObjectContainer<T>
 ) : NamedDomainObjectContainer<T> by container, PolymorphicDomainObjectContainer<T> {
+
+    companion object {
+        fun <T : Any> of(container: NamedDomainObjectContainer<T>) =
+            NamedDomainObjectContainerScope(container)
+    }
 
     override fun <U : T> register(name: String, type: Class<U>, configurationAction: Action<in U>): NamedDomainObjectProvider<U> =
         polymorphicDomainObjectContainer().register(name, type, configurationAction)
