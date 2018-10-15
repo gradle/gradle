@@ -188,10 +188,10 @@ class DependencyManagementBuildScopeServices {
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
-            new DefaultModuleVersionsCache(
+            new InMemoryModuleVersionsCache(timeProvider, new DefaultModuleVersionsCache(
                 timeProvider,
                 artifactCacheLockingManager,
-                moduleIdentifierFactory),
+                moduleIdentifierFactory)),
             new InMemoryModuleMetadataCache(timeProvider, new DefaultModuleMetadataCache(
                 timeProvider,
                 artifactCacheLockingManager,
