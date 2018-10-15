@@ -55,7 +55,7 @@ class TransformArtifactOperation implements RunnableBuildOperation {
                 LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifactId.getDisplayName());
             }
             result = transform.transform(file);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             failure = t;
         }
         if (!hasCachedResult) {

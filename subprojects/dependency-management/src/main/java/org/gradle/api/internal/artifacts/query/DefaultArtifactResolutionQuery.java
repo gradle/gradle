@@ -140,7 +140,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             try {
                 ComponentIdentifier validId = validateComponentIdentifier(componentId);
                 componentResults.add(buildComponentResult(validId, componentMetaDataResolver, artifactResolver));
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 componentResults.add(new DefaultUnresolvedComponentResult(componentId, t));
             }
         }

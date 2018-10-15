@@ -68,7 +68,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             return doSelect(producer);
         } catch (VariantSelectionException t) {
             return new BrokenResolvedArtifactSet(t);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             return new BrokenResolvedArtifactSet(VariantSelectionException.selectionFailed(producer, t));
         }
     }
