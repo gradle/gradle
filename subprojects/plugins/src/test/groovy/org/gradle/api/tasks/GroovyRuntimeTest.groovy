@@ -70,6 +70,8 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         "2.1.2"       | "-indy"    | ["groovy", "groovy-ant"]
         "2.5.2"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
         "2.5.2"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.3"       | ""         | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.3"       | "-indy"    | ["groovy", "groovy-ant", "groovy-templates"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {
