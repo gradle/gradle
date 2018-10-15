@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,4 +42,66 @@ public interface IncludeDirectives {
      * Returns a copy of these directives, with #import directives removed.
      */
     IncludeDirectives discardImports();
+
+    IncludeDirectives EMPTY = new IncludeDirectives() {
+        @Override
+        public List<Include> getQuotedIncludes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<Include> getSystemIncludes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<Include> getMacroIncludes() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<Include> getAll() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public List<Include> getIncludesOnly() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Iterable<Macro> getMacros(String name) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Iterable<MacroFunction> getMacroFunctions(String name) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Collection<Macro> getAllMacros() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public Collection<MacroFunction> getAllMacroFunctions() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public boolean hasMacros() {
+            return false;
+        }
+
+        @Override
+        public boolean hasMacroFunctions() {
+            return false;
+        }
+
+        @Override
+        public IncludeDirectives discardImports() {
+            return this;
+        }
+    };
 }
