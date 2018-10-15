@@ -87,7 +87,7 @@ class UserCodeBackedTransformer implements VariantTransformRegistry.Registration
         try {
             File absoluteFile = input.getAbsoluteFile();
             return transformedFileCache.getResult(absoluteFile, inputsHash, transformer);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             throw new ArtifactTransformException(input, to, transformer.getImplementationClass(), t);
         }
     }

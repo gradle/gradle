@@ -52,7 +52,7 @@ class TransformFileOperation implements RunnableBuildOperation {
                 LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
             }
             result = transform.transform(file);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             failure = t;
         }
         if (!hasCachedResult) {

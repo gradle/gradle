@@ -32,7 +32,7 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
         DependencySubstitutionInternal details = new DefaultDependencySubstitution(dependency.getSelector(), dependency.getReason());
         try {
             rule.execute(details);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             return SubstitutionResult.failed(e);
         }
         return SubstitutionResult.of(details);

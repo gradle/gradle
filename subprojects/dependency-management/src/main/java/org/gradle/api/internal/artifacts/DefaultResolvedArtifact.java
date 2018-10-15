@@ -139,7 +139,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
             try {
                 f = artifactSource.create();
                 file = f;
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 err = e;
                 failure = err;
                 throw UncheckedException.throwAsUncheckedException(err);

@@ -238,7 +238,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                         }
                         return;
                     }
-                } catch (Throwable throwable) {
+                } catch (Exception throwable) {
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }

@@ -69,7 +69,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         Set<File> files;
         try {
             files = dependencyMetadata.getFiles().getFiles();
-        } catch (Throwable throwable) {
+        } catch (Exception throwable) {
             return new BrokenResolvedArtifactSet(throwable);
         }
 
