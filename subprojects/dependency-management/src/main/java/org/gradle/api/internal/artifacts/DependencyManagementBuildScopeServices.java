@@ -205,12 +205,12 @@ class DependencyManagementBuildScopeServices {
                 timeProvider,
                 artifactCacheLockingManager
             )),
-            new DefaultModuleArtifactCache(
+            new InMemoryModuleArtifactCache(timeProvider, new DefaultModuleArtifactCache(
                 "module-artifact",
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactIdentifierFileStore.getFileAccessTracker()
-            )
+            ))
         );
         ModuleRepositoryCaches inMemoryCaches = new ModuleRepositoryCaches(
             new InMemoryModuleVersionsCache(timeProvider),
