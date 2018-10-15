@@ -175,7 +175,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
             
             task runInWorker2(type: WorkerTask) {
                 // This will cause the worker process to fail with exit code 127
-                list = runInWorker1.list + ["4"]
+                list = runInWorker1.list + ["poisonPill"]
 
                 isolationMode = IsolationMode.PROCESS
             }
@@ -263,7 +263,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
                         File outputFile = new File(outputDir, name);
                         FileHelper.write(id, outputFile);
                     }
-                    if (files.contains("4")) {
+                    if (files.contains("poisonPill")) {
                         System.exit(127);
                     }
                 }
