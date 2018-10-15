@@ -31,8 +31,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.IsolatableFactory;
 
-import java.util.List;
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private static final Object[] NO_PARAMETERS = new Object[0];
@@ -71,7 +71,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = DefaultTransformRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject(), transformerInvoker);
+        Registration registration = DefaultTransformationRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject(), transformerInvoker);
         transforms.add(registration);
     }
 

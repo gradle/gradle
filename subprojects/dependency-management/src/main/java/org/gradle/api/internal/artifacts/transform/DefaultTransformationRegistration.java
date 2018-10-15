@@ -31,7 +31,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Arrays;
 
-public class DefaultTransformRegistration implements VariantTransformRegistry.Registration {
+public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
@@ -53,10 +53,10 @@ public class DefaultTransformRegistration implements VariantTransformRegistry.Re
         paramsSnapshot.appendToHasher(hasher);
 
         Transformer transformer = new DefaultTransformer(implementation, paramsSnapshot, hasher.hash(), instantiator);
-        return new DefaultTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
-    public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
+    public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
         this.from = from;
         this.to = to;
         this.transformationStep = transformationStep;
