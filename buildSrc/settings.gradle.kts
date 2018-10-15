@@ -67,3 +67,19 @@ for (project in rootProject.children) {
     assert(project.buildFile.isFile)
 }
 
+fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
+
+fun getBuildJavaVendor() = System.getProperty("java.vendor")
+
+fun getBuildJavaHome() = System.getProperty("java.home")
+
+gradle.settingsEvaluated {
+    if (remoteBuildCacheEnabled(this) && !getBuildJavaVendor().contains("Oracle") && !JavaVersion.current().isJava9()) {
+        throw GradleException("Remote cache is enabled, which requires Oracle JDK 9 to perform this build. It's currently ${getBuildJavaVendor()} at ${getBuildJavaHome()} ")
+    }
+
+    if (JavaVersion.current().isJava8() && System.getProperty("org.gradle.ignoreBuildJavaVersionCheck") == null) {
+        throw GradleException("JDK 8 is required to perform this build. It's currently ${getBuildJavaVendor()} at ${getBuildJavaHome()} ")
+    }
+}
+
