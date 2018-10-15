@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
@@ -39,14 +38,10 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (taskOutputCacheEnabled) {
-            try {
-                TaskOutputCachingState taskOutputCachingState = task.getOutputs().getCachingState(context.getTaskProperties(), context.getBuildCacheKey());
-                state.setTaskOutputCaching(taskOutputCachingState);
-                if (!taskOutputCachingState.isEnabled()) {
-                    LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());
-                }
-            } catch (Exception t) {
-                throw new GradleException(String.format("Could not evaluate TaskOutputs.getCachingState().isEnabled() for %s.", task), t);
+            TaskOutputCachingState taskOutputCachingState = task.getOutputs().getCachingState(context.getTaskProperties(), context.getBuildCacheKey());
+            state.setTaskOutputCaching(taskOutputCachingState);
+            if (!taskOutputCachingState.isEnabled()) {
+                LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());
             }
         } else {
             state.setTaskOutputCaching(DefaultTaskOutputs.DISABLED);

@@ -397,6 +397,57 @@ The following types/formats are supported:
         file("out.txt").text == "1"
     }
 
+    def "input file collection containing task output property implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            def a = tasks.create("a", OutputFilesTask) {
+                out1 = file("file1.txt")
+                out2 = file("file2.txt")
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from a.out1
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+    def "input file collection containing collection property implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            def a = tasks.create("a", OutputFilesTask) {
+                out1 = file("a-1.txt")
+                out2 = file("a-2.txt")
+            }
+            def b = tasks.create("b", OutputFilesTask) {
+                out1 = file("b-1.txt")
+                out2 = file("b-2.txt")
+            }
+            def files = objects.setProperty(RegularFile).empty()
+            files.add(a.out1)
+            files.add(b.out2)
+            tasks.register("c", InputFilesTask) {
+                inFiles.from files
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":b", ":c")
+        file("out.txt").text == "1,2"
+    }
+
     def "input file property with value of flat map task provider implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
         taskTypeWithInputFileProperty()

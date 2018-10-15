@@ -16,8 +16,6 @@
 
 package org.gradle.caching;
 
-import org.gradle.api.Incubating;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -26,7 +24,6 @@ import java.io.OutputStream;
  *
  * @since 3.3
  */
-@Incubating
 public interface BuildCacheEntryWriter {
     /**
      * Writes a build cache entry to the given stream.

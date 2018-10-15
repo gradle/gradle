@@ -1,8 +1,8 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    id("gradlebuild.strict-compile")
-    id("gradlebuild.classycle")
+    gradlebuild.`strict-compile`
+    gradlebuild.classycle
 }
 
 dependencies {

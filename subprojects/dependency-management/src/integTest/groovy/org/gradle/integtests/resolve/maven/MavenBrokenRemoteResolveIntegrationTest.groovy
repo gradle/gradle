@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Unroll
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public void "reports and recovers from missing module"() {
@@ -222,7 +223,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    public void "reports and recovers from failed POM download"() {
+    void "reports and recovers from failed POM download"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
 
@@ -263,6 +264,149 @@ task showBroken { doLast { println configurations.broken.files } }
 
         then:
         succeeds("showBroken")
+    }
+
+    @Unroll("recovers from initial failed POM download (max retries = #retries)")
+    void "recovers from initial failed POM download"() {
+        withMaxHttpRetryCount(retries)
+
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { broken }
+dependencies {
+    broken 'group:projectA:1.3'
+}
+task showBroken { doLast { println configurations.broken.files } }
+"""
+
+        when:
+        (retries-1).times {
+            module.pom.expectGetBroken()
+        }
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        then:
+        succeeds("showBroken")
+
+        where:
+        retries << (1..3)
+    }
+
+    @Unroll("recovers from initial failed artifact download (max retries = #retries)")
+    void "recovers from initial failed artifact download"() {
+        withMaxHttpRetryCount(retries)
+
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { broken }
+dependencies {
+    broken 'group:projectA:1.3'
+}
+task showBroken { doLast { println configurations.broken.files } }
+"""
+
+        when:
+        module.pom.expectGet()
+        (retries-1).times {
+            module.artifact.expectGetBroken()
+        }
+        module.artifact.expectGet()
+
+        then:
+        succeeds("showBroken")
+
+        where:
+        retries << (1..3)
+    }
+
+    @Unroll("doesn't attempt to retry downloading missing POM file (max retries = #retries)")
+    void "doesn't attempt to retry downloading missing POM file"() {
+        withMaxHttpRetryCount(retries)
+
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { broken }
+dependencies {
+    broken 'group:projectA:1.3'
+}
+task showBroken { doLast { println configurations.broken.files } }
+"""
+
+        when:
+        module.pom.expectGetMissing()
+        module.artifact.expectHeadMissing()
+
+        then:
+        fails("showBroken")
+
+        and:
+        failure
+            .assertHasDescription('Execution failed for task \':showBroken\'.')
+            .assertResolutionFailure(':broken')
+            .assertHasCause('Could not find group:projectA:1.3.')
+
+        where:
+        retries << (1..3)
+    }
+
+    @Unroll("doesn't attempt to retry downloading missing artifact file (max retries = #retries)")
+    void "doesn't attempt to retry downloading missing artifact file"() {
+        withMaxHttpRetryCount(retries)
+
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { broken }
+dependencies {
+    broken 'group:projectA:1.3'
+}
+task showBroken { doLast { println configurations.broken.files } }
+"""
+
+        when:
+        module.pom.expectGet()
+        module.artifact.expectGetMissing()
+
+        then:
+        fails("showBroken")
+
+        and:
+        failure
+            .assertHasDescription('Execution failed for task \':showBroken\'.')
+            .assertResolutionFailure(':broken')
+            .assertHasCause("Could not resolve all files for configuration ':broken'.")
+            .assertHasCause('Could not find projectA.jar (group:projectA:1.3).')
+
+        where:
+        retries << (1..3)
     }
 
     public void "reports and recovers from failed artifact download"() {

@@ -107,7 +107,7 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
         and:
         failureDescriptionStartsWith("Plugin [id: 'org.gradle.non-existing', version: '1.0'] was not found in any of the following sources:")
         failureDescriptionContains("""
-            - Plugin Repositories (could not resolve plugin marker 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
+            - Plugin Repositories (could not resolve plugin artifact 'org.gradle.non-existing:org.gradle.non-existing.gradle.plugin:1.0')
               Searched in the following repositories:
                 Gradle Central Plugin Repository
         """.stripIndent().trim())

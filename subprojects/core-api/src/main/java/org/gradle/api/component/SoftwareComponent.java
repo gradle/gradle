@@ -16,7 +16,6 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -31,6 +30,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * </ul>
  */
-@Incubating @HasInternalProtocol
+@HasInternalProtocol
 public interface SoftwareComponent extends Named {
 }

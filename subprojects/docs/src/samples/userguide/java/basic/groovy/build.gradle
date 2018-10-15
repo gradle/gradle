@@ -59,8 +59,10 @@ dependencies {
 
 task configureJavadoc {
     doLast {
-        javadoc.options.doclet = 'org.asciidoctor.Asciidoclet'
-        javadoc.options.docletpath = configurations.asciidoclet.files.toList()
+        javadoc {
+            options.doclet = 'org.asciidoctor.Asciidoclet'
+            options.docletpath = configurations.asciidoclet.files.toList()
+        }
     }
 }
 

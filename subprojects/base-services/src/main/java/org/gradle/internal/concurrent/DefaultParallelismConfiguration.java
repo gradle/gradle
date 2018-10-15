@@ -18,7 +18,6 @@ package org.gradle.internal.concurrent;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.Incubating;
 import org.gradle.concurrent.ParallelismConfiguration;
 
 import java.io.Serializable;
@@ -41,7 +40,6 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
     /**
      * {@inheritDoc}
      */
-    @Incubating
     @Override
     public boolean isParallelProjectExecutionEnabled() {
         return parallelProjectExecution;
@@ -50,7 +48,6 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
     /**
      * {@inheritDoc}
      */
-    @Incubating
     @Override
     public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
         this.parallelProjectExecution = parallelProjectExecution;
@@ -59,7 +56,6 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
     /**
      * {@inheritDoc}
      */
-    @Incubating
     @Override
     public int getMaxWorkerCount() {
         return maxWorkerCount;
@@ -68,7 +64,6 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
     /**
      * {@inheritDoc}
      */
-    @Incubating
     @Override
     public void setMaxWorkerCount(int maxWorkerCount) {
         if (maxWorkerCount < 1) {

@@ -110,14 +110,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         reports = getObjectFactory().newInstance(FindBugsReportsImpl.class, this);
     }
 
-    /**
-     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
-     *
-     * @since 4.2
-     */
-    @Incubating
     @Inject
-    public ObjectFactory getObjectFactory() {
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -554,7 +548,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     @Nullable
     @Optional
     @Nested
@@ -567,7 +560,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     public void setIncludeFilterConfig(@Nullable TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
@@ -577,7 +569,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     @Nullable
     @Optional
     @Nested
@@ -590,7 +581,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     public void setExcludeFilterConfig(@Nullable TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
@@ -600,7 +590,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.4
      */
-    @Incubating
     @Nullable
     @Optional
     @Nested
@@ -613,7 +602,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.4
      */
-    @Incubating
     public void setExcludeBugsFilterConfig(@Nullable TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }

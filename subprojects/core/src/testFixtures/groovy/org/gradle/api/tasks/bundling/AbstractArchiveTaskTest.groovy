@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.AbstractCopyTaskContractTest
 
 abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
@@ -131,5 +132,17 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     def "correct archive path"() {
         expect:
         archiveTask.archivePath == new File(archiveTask.destinationDir, archiveTask.archiveName)
+    }
+
+    def "does not accept unset destinationDir"() {
+        given:
+        archiveTask.destinationDir = null
+
+        when:
+        archiveTask.archivePath
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The destinationDir property must be set. Please apply the base plugin or set it explicitly."
     }
 }

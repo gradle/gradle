@@ -126,6 +126,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         def archive = rootProject.task('foo', type: Jar, {})
         archive.setBaseName("base-name")
         archive.setExtension('extension')
+        archive.setDestinationDir(rootProject.buildDir)
 
         IvyArtifact ivyArtifact = parser.parseNotation(archive)
 

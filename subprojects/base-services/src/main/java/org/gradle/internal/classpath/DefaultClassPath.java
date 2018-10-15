@@ -16,7 +16,10 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.specs.NotSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -93,10 +96,12 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return files.toString();
     }
 
+    @Override
     public boolean isEmpty() {
         return files.isEmpty();
     }
 
+    @Override
     public List<URI> getAsURIs() {
         List<URI> urls = new ArrayList<URI>();
         for (File file : files) {
@@ -105,15 +110,18 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return urls;
     }
 
+    @Override
     public List<File> getAsFiles() {
         return files;
     }
 
+    @Override
     public URL[] getAsURLArray() {
         Collection<URL> result = getAsURLs();
         return result.toArray(new URL[0]);
     }
 
+    @Override
     public List<URL> getAsURLs() {
         List<URL> urls = new ArrayList<URL>();
         for (File file : files) {
@@ -126,6 +134,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return urls;
     }
 
+    @Override
     public ClassPath plus(ClassPath other) {
         if (files.isEmpty()) {
             return other;
@@ -136,11 +145,21 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return new DefaultClassPath(concat(files, other.getAsFiles()));
     }
 
+    @Override
     public ClassPath plus(Collection<File> other) {
         if (other.isEmpty()) {
             return this;
         }
         return new DefaultClassPath(concat(files, other));
+    }
+
+    @Override
+    public ClassPath removeIf(Spec<? super File> filter) {
+        List<File> remainingFiles = CollectionUtils.filter(files, new NotSpec<File>(filter));
+        if (remainingFiles.size() == files.size()) {
+            return this;
+        }
+        return DefaultClassPath.of(remainingFiles);
     }
 
     private ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {

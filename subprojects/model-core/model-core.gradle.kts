@@ -20,8 +20,8 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * The model management core.
  */
 plugins {
-    id("java-library")
-    id("gradlebuild.classycle")
+    `java-library`
+    gradlebuild.classycle
 }
 
 dependencies {

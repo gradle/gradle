@@ -24,9 +24,9 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -41,12 +41,13 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
     private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final LockableSetProperty<Linkage> linkage;
+    private final SetProperty<Linkage> linkage;
     private final Property<CppBinary> developmentBinary;
     private final Configuration apiElements;
     private final MainLibraryVariant mainVariant;
@@ -60,8 +61,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         publicHeaders = fileOperations.configurableFiles();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
-        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class)).empty();
-        linkage.add(Linkage.SHARED);
+        linkage = objectFactory.setProperty(Linkage.class);
+        linkage.set(Collections.singleton(Linkage.SHARED));
 
         dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
 
@@ -154,7 +155,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
-    public LockableSetProperty<Linkage> getLinkage() {
+    public SetProperty<Linkage> getLinkage() {
         return linkage;
     }
 }

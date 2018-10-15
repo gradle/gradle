@@ -21,19 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
         given:
+        taskTypeWritesPropertyValueToFile()
         buildFile << """
-class SomeTask extends DefaultTask {
-    @Input
-    final Property<String> prop = project.objects.property(String)
-    
-    @OutputFile
-    final Property<RegularFile> outputFile = project.objects.fileProperty()
-    
-    @TaskAction
-    void go() { 
-        outputFile.get().asFile.text = prop.get()
-    }
-}
 
 task thing(type: SomeTask) {
     prop = System.getProperty('prop')
@@ -69,6 +58,191 @@ task thing(type: SomeTask) {
 
         then:
         skipped(":thing")
+    }
+
+    def "can finalize the value of a property using API"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1 
+assert property.get() == 2 
+property.finalizeValue()
+assert property.get() == 3 
+assert property.get() == 3 
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+class SomeTask extends DefaultTask {
+    @Input
+    final Property<String> prop = project.objects.property(String)
+    
+    @OutputFile
+    final Property<RegularFile> outputFile = project.objects.fileProperty()
+    
+    @TaskAction
+    void go() {
+        prop.set("ignored")
+        outputFile.get().asFile.text = prop.get()
+    }
+}
+
+task thing(type: SomeTask) {
+    prop = "value 1"
+    outputFile = layout.buildDirectory.file("out.txt")
+    doLast {
+        prop.set("ignored")
+    }
+}
+
+afterEvaluate {
+    thing.prop = "value 2"
+}
+
+task before {
+    doLast {
+        thing.prop = providers.provider { "final value" }
+    }
+}
+thing.dependsOn before
+
+task after {
+    dependsOn thing
+    doLast {
+        thing.prop = "ignore"
+        assert thing.prop.get() == "final value"
+    }
+}
+"""
+
+        when:
+        executer.expectDeprecationWarning()
+        run("after")
+
+        then:
+        file("build/out.txt").text == "final value"
+    }
+
+    def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.property(String)
+
+task thing {
+    inputs.property("prop", prop)
+    prop.set("value 1")
+    doLast {
+        prop.set("ignored")
+        println "prop = " + prop.get()
+    }
+}
+"""
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = value 1")
+    }
+
+    def "reports failure due to broken @Input task property"() {
+        taskTypeWritesPropertyValueToFile()
+        buildFile << """
+
+task thing(type: SomeTask) {
+    prop = providers.provider { throw new RuntimeException("broken") }
+    outputFile = layout.buildDirectory.file("out.txt")
+}
+            
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("broken")
+    }
+
+    def "task @Input property calculation is called once only when task executes"() {
+        taskTypeWritesPropertyValueToFile()
+        buildFile << """
+
+task thing(type: SomeTask) {
+    prop = providers.provider { 
+        println("calculating value")
+        return "value"
+    }
+    outputFile = layout.buildDirectory.file("out.txt")
+}
+            
+        """
+
+        when:
+        run("thing")
+
+        then:
+        output.count("calculating value") == 1
+
+        when:
+        run("thing")
+
+        then:
+        result.assertTaskSkipped(":thing")
+        output.count("calculating value") == 1
+
+        when:
+        run("help")
+
+        then:
+        output.count("calculating value") == 0
+    }
+
+    def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
+        buildFile << """
+
+class SomeTask extends DefaultTask {
+    @Input
+    final Property<String> prop = project.objects.property(String)
+    
+    @InputFiles @SkipWhenEmpty
+    final SetProperty<RegularFile> outputFile = project.objects.setProperty(RegularFile)
+    
+    @TaskAction
+    void go() {
+    }
+}
+
+task thing(type: SomeTask) {
+    prop = providers.provider { 
+        throw new RuntimeException("should not be called")
+    }
+}
+            
+        """
+
+        when:
+        run("thing")
+
+        then:
+        result.assertTaskSkipped(":thing")
     }
 
     def "can set property value from DSL using a value or a provider"() {
@@ -246,5 +420,22 @@ project.extensions.create("some", SomeExtension, objects)
         outputContains("Using method ObjectFactory.property() method to create a property of type Set<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.setProperty() method instead.")
         outputContains("Using method ObjectFactory.property() method to create a property of type Directory has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.directoryProperty() method instead.")
         outputContains("Using method ObjectFactory.property() method to create a property of type RegularFile has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.fileProperty() method instead.")
+    }
+
+    def taskTypeWritesPropertyValueToFile() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Input
+                final Property<String> prop = project.objects.property(String)
+                
+                @OutputFile
+                final Property<RegularFile> outputFile = project.objects.fileProperty()
+                
+                @TaskAction
+                void go() {
+                    outputFile.get().asFile.text = prop.get()
+                }
+            }
+        """
     }
 }

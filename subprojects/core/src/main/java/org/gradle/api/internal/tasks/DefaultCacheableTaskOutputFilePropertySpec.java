@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.ProducerAwareProperty;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.DeferredUtil;
 
@@ -62,10 +61,16 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
 
     @Override
     public void attachProducer(Task producer) {
-        Object containerValue = value.getContainerValue();
-        if (containerValue instanceof ProducerAwareProperty) {
-            ((ProducerAwareProperty)containerValue).attachProducer(producer);
-        }
+        value.attachProducer(producer);
+    }
+
+    @Override
+    public void prepareValue() {
+        value.maybeFinalizeValue();
+    }
+
+    @Override
+    public void cleanupValue() {
     }
 
     @Override

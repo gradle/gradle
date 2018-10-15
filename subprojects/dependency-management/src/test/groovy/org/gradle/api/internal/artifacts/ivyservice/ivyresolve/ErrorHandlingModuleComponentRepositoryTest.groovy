@@ -37,6 +37,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
@@ -44,9 +45,18 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     def delegate = Mock(ModuleComponentRepositoryAccess)
     def repositoryBlacklister = Mock(RepositoryBlacklister)
     def someException = new RuntimeException('Something went wrong')
-    @Subject def access = new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister)
 
+    @Subject
+    ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess access
+
+    private ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess createAccess(int maxRetries = 1, int backoff = 0) {
+        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister, maxRetries, backoff)
+    }
+
+    @Unroll("can list module versions (max retries = #retries)")
     def "can list module versions"() {
+        access = createAccess(retries)
+
         given:
         def dependency = Mock(ModuleDependencyMetadata)
         def result = Mock(BuildableModuleVersionListingResolveResult)
@@ -60,7 +70,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.listModuleVersions(dependency, result)
 
         when: 'exception is thrown in resolution'
-        delegate.listModuleVersions(dependency, result) >> { throw someException }
+        retries * delegate.listModuleVersions(dependency, result) >> { throw someException }
         access.listModuleVersions(dependency, result)
 
         then: 'resolution fails and repo is blacklisted'
@@ -74,9 +84,15 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then: 'resolution fails directly'
         1 * result.failed(_ as ModuleVersionResolveException)
         0 * delegate._
+
+        where:
+        retries << (1..3)
     }
 
+    @Unroll("can resolve component meta data (max retries = #retries)")
     def "can resolve component meta data"() {
+        access = createAccess(retries)
+
         given:
         def moduleComponentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('a', 'b'), '1.0')
         def requestMetaData = Mock(ComponentOverrideMetadata)
@@ -90,7 +106,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         when: 'exception is thrown in resolution'
-        delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw someException }
+        retries * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw someException }
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'resolution fails and repo is blacklisted'
@@ -104,9 +120,15 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then: 'resolution fails directly'
         1 * result.failed(_ as ModuleVersionResolveException)
         0 * delegate._
+
+        where:
+        retries << (1..3)
     }
 
+    @Unroll("can resolve artifacts with type (max retries = #retries)")
     def "can resolve artifacts with type"() {
+        access = createAccess(retries)
+
         given:
         def component = Mock(ComponentResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
@@ -122,7 +144,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.resolveArtifactsWithType(component, artifactType, result)
 
         when: 'exception is thrown in resolution'
-        delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw someException }
+        retries * delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw someException }
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'resolution fails and repo is blacklisted'
@@ -136,9 +158,15 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)
         0 * delegate._
+
+        where:
+        retries << (1..3)
     }
 
+    @Unroll("can resolve artifacts (max retries = #retries)")
     def "can resolve artifacts"() {
+        access = createAccess(retries)
+
         given:
         def component = Mock(ComponentResolveMetadata)
         def componentId = Mock(ComponentIdentifier)
@@ -153,7 +181,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.resolveArtifacts(component, result)
 
         when: 'exception is thrown in resolution'
-        delegate.resolveArtifacts(component, result) >> { throw someException }
+        retries * delegate.resolveArtifacts(component, result) >> { throw someException }
         access.resolveArtifacts(component, result)
 
         then: 'resolution fails and repo is blacklisted'
@@ -167,9 +195,15 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)
         0 * delegate._
+
+        where:
+        retries << (1..3)
     }
 
+    @Unroll("can resolve artifact (max retries = #retries)")
     def "can resolve artifact"() {
+        access = createAccess(retries)
+
         given:
         def artifact = Mock(ComponentArtifactMetadata)
         def artifactId = Mock(ComponentArtifactIdentifier)
@@ -185,7 +219,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         1 * delegate.resolveArtifact(artifact, moduleSource, result)
 
         when: 'exception is thrown in resolution'
-        delegate.resolveArtifact(artifact, moduleSource, result) >> { throw someException }
+        retries * delegate.resolveArtifact(artifact, moduleSource, result) >> { throw someException }
         access.resolveArtifact(artifact, moduleSource, result)
 
         then: 'resolution fails and repo is blacklisted'
@@ -199,5 +233,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         then: 'resolution fails directly'
         1 * result.failed(_ as ArtifactResolveException)
         0 * delegate._
+
+        where:
+        retries << (1..3)
     }
 }

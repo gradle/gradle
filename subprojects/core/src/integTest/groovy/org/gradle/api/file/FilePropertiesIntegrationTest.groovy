@@ -48,87 +48,6 @@ class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("task output dir: " + testDirectory.file("output/some-dir/other-child"))
     }
 
-    def "reports failure to set directory property value using incompatible type"() {
-        given:
-        buildFile << """
-class SomeExtension {
-    final Property<Directory> prop
-    
-    @javax.inject.Inject
-    SomeExtension(ObjectFactory objects) {
-        prop = objects.directoryProperty()
-    }
-}
-
-extensions.create('custom', SomeExtension, objects)
-
-task useIntTypeDsl {
-    doLast {
-        custom.prop = 123
-    }
-}
-
-task useIntTypeApi {
-    doLast {
-        custom.prop.set(123)
-    }
-}
-
-task useFileTypeDsl {
-    doLast {
-        custom.prop = layout.projectDirectory.file("build.gradle")
-    }
-}
-
-task useFileProviderDsl {
-    doLast {
-        custom.prop = layout.buildDirectory.file("build.gradle")
-    }
-}
-
-task useFileProviderApi {
-    doLast {
-        custom.prop.set(layout.buildDirectory.file("build.gradle"))
-    }
-}
-"""
-
-        when:
-        fails("useIntTypeDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
-
-        when:
-        fails("useIntTypeApi")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
-
-        when:
-        fails("useFileTypeDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
-
-        when:
-        fails("useFileProviderDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useFileProviderDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
-
-        when:
-        fails("useFileProviderApi")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':useFileProviderApi'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
-    }
-
     def "can attach a calculated file to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -216,6 +135,87 @@ assert custom.prop.get().asFile == file("file4")
 
         expect:
         succeeds()
+    }
+
+    def "reports failure to set directory property value using incompatible type"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final Property<Directory> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.directoryProperty()
+    }
+}
+
+extensions.create('custom', SomeExtension, objects)
+
+task useIntTypeDsl {
+    doLast {
+        custom.prop = 123
+    }
+}
+
+task useIntTypeApi {
+    doLast {
+        custom.prop.set(123)
+    }
+}
+
+task useFileTypeDsl {
+    doLast {
+        custom.prop = layout.projectDirectory.file("build.gradle")
+    }
+}
+
+task useFileProviderDsl {
+    doLast {
+        custom.prop = layout.buildDirectory.file("build.gradle")
+    }
+}
+
+task useFileProviderApi {
+    doLast {
+        custom.prop.set(layout.buildDirectory.file("build.gradle"))
+    }
+}
+"""
+
+        when:
+        fails("useIntTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+
+        when:
+        fails("useIntTypeApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
+
+        when:
+        fails("useFileTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
+
+        when:
+        fails("useFileProviderDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileProviderDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
+
+        when:
+        fails("useFileProviderApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':useFileProviderApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
     }
 
     def "reports failure to set regular file property value using incompatible type"() {
@@ -318,8 +318,6 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = ${inputFileMethod}
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
@@ -328,36 +326,30 @@ task useDirProviderApi {
                     def file = outputFile.asFile.get()
                     file.text = ""
                     file << inputFile.asFile.get().text
-                    inputFiles.each { file << ',' + it.text }
                 }
             }
             
-            task createFile1(type: FileOutputTask)
-            task createFile2(type: FileOutputTask)
+            task createFile(type: FileOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputFile = createFile1.outputFile
-                inputFiles.from(createFile2.outputFile)
+                inputFile = createFile.outputFile
             }
 
             // Set values lazily
-            createFile1.inputFile = layout.projectDirectory.file("file1-source.txt")
-            createFile1.outputFile = layout.buildDirectory.file("file1.txt")
-            createFile2.inputFile = layout.projectDirectory.file("file2-source.txt")
-            createFile2.outputFile = layout.buildDirectory.file("file2.txt")
+            createFile.inputFile = layout.projectDirectory.file("file-source.txt")
+            createFile.outputFile = layout.buildDirectory.file("file.txt")
             
             buildDir = "output"
 """
-        file("file1-source.txt").text = "file1"
-        file("file2-source.txt").text = "file2"
+        file("file-source.txt").text = "file1"
         expectDeprecated(deprecated)
 
         when:
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
-        file("output/merged.txt").text == 'file1,file2'
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
@@ -366,12 +358,12 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
 
         when:
-        file("file1-source.txt").text = "new-file1"
+        file("file-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createFile1", ":merge")
-        file("output/merged.txt").text == 'new-file1,file2'
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'new-file1'
 
         where:
         outputFileMethod                 | inputFileMethod                  | deprecated
@@ -381,13 +373,139 @@ task useDirProviderApi {
     }
 
     @Unroll
+    def "task #annotation file property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                ${annotation}
+                final RegularFileProperty prop = project.objects.fileProperty()
+                
+                @TaskAction
+                void go() {
+                    prop.set(project.file("other.txt"))
+                    println "value: " + prop.get() 
+                }
+            }
+            
+            task show(type: SomeTask) {
+                prop = file("in.txt")
+            }
+"""
+        file("in.txt").createFile()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        outputContains("value: " + testDirectory.file("in.txt"))
+
+        where:
+        annotation    | _
+        "@InputFile"  | _
+        "@OutputFile" | _
+    }
+
+    @Unroll
+    def "task #annotation directory property is implicitly finalized and changes ignored when task starts execution"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                ${annotation}
+                final DirectoryProperty prop = project.objects.directoryProperty()
+                
+                @TaskAction
+                void go() {
+                    prop.set(project.file("other.dir"))
+                    println "value: " + prop.get() 
+                }
+            }
+            
+            task show(type: SomeTask) {
+                prop = file("in.dir")
+            }
+"""
+        file("in.dir").createDir()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("show")
+
+        then:
+        outputContains("value: " + testDirectory.file("in.dir"))
+
+        where:
+        annotation         | _
+        "@InputDirectory"  | _
+        "@OutputDirectory" | _
+    }
+
+    @Unroll
+    def "task ad hoc file property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.fileProperty()
+
+task thing {
+    ${registrationMethod}(prop)
+    prop.set(file("file-1"))
+    doLast {
+        prop.set(file("ignored"))
+        println "prop = " + prop.get()
+    }
+}
+"""
+        file("file-1").createFile()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = " + file("file-1"))
+
+        where:
+        registrationMethod | _
+        "inputs.file"      | _
+        "outputs.file"     | _
+    }
+
+    @Unroll
+    def "task ad hoc directory property registered using #registrationMethod is implicitly finalized and changes ignored when task starts execution"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.directoryProperty()
+
+task thing {
+    ${registrationMethod}(prop)
+    prop.set(file("file-1"))
+    doLast {
+        prop.set(file("ignored"))
+        println "prop = " + prop.get()
+    }
+}
+"""
+        file("file-1").createDir()
+
+        when:
+        executer.expectDeprecationWarning()
+        run("thing")
+
+        then:
+        output.contains("prop = " + file("file-1"))
+
+        where:
+        registrationMethod | _
+        "inputs.dir"       | _
+        "outputs.dir"      | _
+    }
+
+    @Unroll
     def "can wire the output file of an ad hoc task as input to another task using property created by #outputFileMethod"() {
         buildFile << """
             class MergeTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = project.objects.fileProperty()
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
@@ -396,33 +514,23 @@ task useDirProviderApi {
                     def file = outputFile.asFile.get()
                     file.text = ""
                     file << inputFile.asFile.get().text
-                    inputFiles.each { file << ',' + it.text }
                 }
             }
             
-            task createFile1 {
+            task createFile {
                 ext.outputFile = ${outputFileMethod}
                 outputs.file(outputFile)
                 doLast {
                     outputFile.get().asFile.text = 'file1'
                 }
             }
-            task createFile2 {
-                ext.outputFile = ${outputFileMethod}
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.get().asFile.text = 'file2'
-                }
-            }
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputFile = createFile1.outputFile
-                inputFiles.from(createFile2.outputFile)
+                inputFile = createFile.outputFile
             }
 
             // Set values lazily
-            createFile1.outputFile.set(layout.buildDirectory.file("file1.txt"))
-            createFile2.outputFile.set(layout.buildDirectory.file("file2.txt"))
+            createFile.outputFile.set(layout.buildDirectory.file("file.txt"))
             
             buildDir = "output"
 """
@@ -432,8 +540,8 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
-        file("output/merged.txt").text == 'file1,file2'
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
@@ -468,44 +576,37 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputDirectory
                 final DirectoryProperty inputDir = ${inputDirMethod}
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
-                    file.text = (inputDir.asFile.get().listFiles() + inputFiles.files)*.text.join(',')
+                    file.text = inputDir.asFile.get().listFiles()*.text.join(',')
                 }
             }
 
-            task createDir1(type: DirOutputTask)
-            task createDir2(type: DirOutputTask)
+            task createDir(type: DirOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputDir = createDir1.outputDir
-                inputFiles.from(createDir2.outputDir.asFileTree)
+                inputDir = createDir.outputDir
             }
 
             // Set values lazily
-            createDir1.inputFile = layout.projectDirectory.file("dir1-source.txt")
-            createDir1.outputDir = layout.buildDirectory.dir("dir1")
-            createDir2.inputFile = layout.projectDirectory.file("dir2-source.txt")
-            createDir2.outputDir = layout.buildDirectory.dir("dir2")
+            createDir.inputFile = layout.projectDirectory.file("dir-source.txt")
+            createDir.outputDir = layout.buildDirectory.dir("dir")
 
             buildDir = "output"
 """
-        file("dir1-source.txt").text = "dir1"
-        file("dir2-source.txt").text = "dir2"
+        file("dir-source.txt").text = "dir1"
 
         when:
         expectDeprecated(deprecated)
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
-        file("output/merged.txt").text == 'dir1,dir2'
+        result.assertTasksExecuted(":createDir", ":merge")
+        file("output/merged.txt").text == 'dir1'
 
         when:
         run("merge")
@@ -514,12 +615,12 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
 
         when:
-        file("dir1-source.txt").text = "new-dir1"
+        file("dir-source.txt").text = "new-dir1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createDir1", ":merge")
-        file("output/merged.txt").text == 'new-dir1,dir2'
+        result.assertTasksNotSkipped(":createDir", ":merge")
+        file("output/merged.txt").text == 'new-dir1'
 
         where:
         outputDirMethod                       | inputDirMethod                        | deprecated
@@ -534,41 +635,30 @@ task useDirProviderApi {
             class MergeTask extends DefaultTask {
                 @InputDirectory
                 final DirectoryProperty inputDir = project.objects.directoryProperty()
-                @InputFiles
-                final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
 
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
-                    file.text = (inputDir.asFile.get().listFiles() + inputFiles.files)*.text.join(',')
+                    file.text = inputDir.asFile.get().listFiles()*.text.join(',')
                 }
             }
 
-            task createDir1 {
+            task createDir {
                 ext.outputDir = ${outputDirMethod}
                 outputs.dir(outputDir)
                 doLast {
                     new File(outputDir.get().asFile, "file.txt").text = "dir1"
                 }
             }
-            task createDir2 {
-                ext.outputDir = ${outputDirMethod}
-                outputs.dir(outputDir)
-                doLast {
-                    new File(outputDir.get().asFile, "file.txt").text = "dir2"
-                }
-            }
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputDir = createDir1.outputDir
-                inputFiles.from(createDir2.outputDir.asFileTree)
+                inputDir = createDir.outputDir
             }
 
             // Set values lazily
-            createDir1.outputDir.set(layout.buildDirectory.dir("dir1"))
-            createDir2.outputDir.set(layout.buildDirectory.dir("dir2"))
+            createDir.outputDir.set(layout.buildDirectory.dir("dir1"))
 
             buildDir = "output"
 """
@@ -578,8 +668,8 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
-        file("output/merged.txt").text == 'dir1,dir2'
+        result.assertTasksExecuted(":createDir", ":merge")
+        file("output/merged.txt").text == 'dir1'
 
         when:
         run("merge")
@@ -778,7 +868,7 @@ class SomeTask extends DefaultTask {
         fails("consumer")
 
         then:
-        failure.assertHasDescription("Failed to capture fingerprint of input files for task ':consumer' property 'inputFiles' during up-to-date check.")
+        failure.assertHasDescription("Execution failed for task ':consumer'.")
         failure.assertHasCause("No value has been specified for this provider.")
         executedAndNotSkipped(':producer', ':consumer')
     }

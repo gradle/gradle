@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.IConventionAware;
@@ -30,7 +29,6 @@ import java.util.concurrent.Callable;
 /**
  * Preconfigures the project to run a gradle build comparison.
  */
-@Incubating
 public class CompareGradleBuildsPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);

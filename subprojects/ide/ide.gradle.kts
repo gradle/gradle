@@ -18,11 +18,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
-sourceSets.main {
-    java.setSrcDirs(setOf())
-    groovy.setSrcDirs(setOf("src/main/java", "src/main/groovy"))
-}
-
 dependencies {
     compile(library("groovy"))
 

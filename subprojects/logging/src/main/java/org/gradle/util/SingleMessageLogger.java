@@ -127,7 +127,7 @@ public class SingleMessageLogger {
     }
 
     /**
-     * Use for a method that is not deprecated, but some combination of parameter is deprecated.
+     * Use for a method that is not deprecated, but something about the method parameters or state is deprecated.
      */
     public static void nagUserOfDiscontinuedMethodInvocation(String invocation) {
         if (isEnabled()) {
@@ -141,7 +141,21 @@ public class SingleMessageLogger {
     }
 
     /**
-     * Use for a method that is not deprecated, but some combination of parameter is deprecated.
+     * Use for some operation that is not deprecated, but something about the method parameters or state is deprecated.
+     */
+    public static void nagUserOfDiscontinuedInvocation(String invocation) {
+        if (isEnabled()) {
+            nagUserWith(
+                String.format("%s has been deprecated.", invocation),
+                thisWillBecomeAnError(),
+                null,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    /**
+     * Use for a method that is not deprecated, but something about the method parameters or state is deprecated.
      */
     public static void nagUserOfReplacedMethodInvocation(String invocation, String replacement) {
         if (isEnabled()) {

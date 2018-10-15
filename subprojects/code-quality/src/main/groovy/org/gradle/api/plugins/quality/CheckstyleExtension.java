@@ -64,7 +64,6 @@ public class CheckstyleExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public TextResource getConfig() {
         return config;
     }
@@ -74,7 +73,6 @@ public class CheckstyleExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }

@@ -5,7 +5,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 plugins {
     `java-library`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {

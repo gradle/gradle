@@ -65,7 +65,8 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         fails('compileJava')
 
         then:
-        failure.assertHasDescription("Could not resolve all files for configuration ':compileClasspath'.")
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("""Could not find jms.jar (javax.jms:jms:1.1).
 Searched in the following locations:
     ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}javax/jms/jms/1.1/jms-1.1.jar""")

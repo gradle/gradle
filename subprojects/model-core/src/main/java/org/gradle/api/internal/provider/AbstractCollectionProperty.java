@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.EmptyCollection;
 import org.gradle.api.internal.provider.Collectors.NoValueCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
@@ -33,7 +34,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractMinimalProvider<C> implements CollectionPropertyInternal<T, C> {
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
@@ -56,27 +57,42 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, String.format("Cannot add a null element to a property of type %s.", collectionType.getSimpleName()));
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new SingleElement<T>(element));
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        collectors.add(new ElementFromProvider<T>(providerOfElement));
+        if (!assertMutable()) {
+            return;
+        }
+        collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
     @Override
     public void addAll(T... elements) {
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new ElementsFromArray<T>(elements));
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
+        if (!assertMutable()) {
+            return;
+        }
         collectors.add(new ElementsFromCollection<T>(elements));
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        collectors.add(new ElementsFromCollectionProvider<T>(provider));
+        if (!assertMutable()) {
+            return;
+        }
+        collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
     }
 
     @Nullable
@@ -91,7 +107,26 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        if (super.maybeVisitBuildDependencies(context)) {
+            return true;
+        }
+
+        boolean visitedAll = true;
+        if (!value.maybeVisitBuildDependencies(context)) {
+            visitedAll = false;
+        }
+        for (Collector<T> collector : collectors) {
+            if (!collector.maybeVisitBuildDependencies(context)) {
+                visitedAll = false;
+            }
+        }
+        return visitedAll;
+    }
+
+    @Override
     public boolean isPresent() {
+        assertReadable();
         if (!value.present()) {
             return false;
         }
@@ -105,6 +140,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public C get() {
+        assertReadable();
         List<T> values = new ArrayList<T>(1 + collectors.size());
         value.collectInto(valueCollector, values);
         for (Collector<T> collector : collectors) {
@@ -116,6 +152,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Nullable
     @Override
     public C getOrNull() {
+        assertReadable();
+        return doGetOrNull();
+    }
+
+    private C doGetOrNull() {
         List<T> values = new ArrayList<T>(1 + collectors.size());
         if (!value.maybeCollectInto(valueCollector, values)) {
             return null;
@@ -142,6 +183,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
+        if (!assertMutable()) {
+            return;
+        }
         collectors.clear();
         if (elements == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
@@ -152,10 +196,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void set(final Provider<? extends Iterable<? extends T>> provider) {
+        if (!assertMutable()) {
+            return;
+        }
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
-        ProviderInternal<?> p = Providers.internal(provider);
+        ProviderInternal<? extends Iterable<? extends T>> p = Providers.internal(provider);
         if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
         }
@@ -166,27 +213,38 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             }
         }
         collectors.clear();
-        value = new ElementsFromCollectionProvider<T>(provider);
+        value = new ElementsFromCollectionProvider<T>(p);
     }
 
     @Override
     public HasMultipleValues<T> empty() {
+        if (!assertMutable()) {
+            return this;
+        }
         value = (Collector<T>) EMPTY_COLLECTION;
         collectors.clear();
         return this;
     }
 
     @Override
-    public String toString() {
-        final String valueState;
-        if (value == EMPTY_COLLECTION) {
-            valueState = "empty";
-        } else if (value == NO_VALUE_COLLECTOR) {
-            valueState = "undefined";
+    protected void makeFinal() {
+        C collection = doGetOrNull();
+        if (collection != null) {
+            value = new ElementsFromCollection<T>(collection);
         } else {
-            valueState = "defined";
+            value = (Collector<T>) NO_VALUE_COLLECTOR;
         }
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
+        collectors.clear();
+    }
+
+    @Override
+    public String toString() {
+        List<String> values = new ArrayList<String>(1 + collectors.size());
+        values.add(value.toString());
+        for (Collector<T> collector : collectors) {
+            values.add(collector.toString());
+        }
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, values);
     }
 
     private static class ValidatingValueCollector<T> implements ValueCollector<T> {

@@ -590,7 +590,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 ARTIFACT_URLS: [],
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                METADATA_SOURCES: ['mavenPom'],
                 URL: 'https://plugins.gradle.org/m2',
             ]
         ]

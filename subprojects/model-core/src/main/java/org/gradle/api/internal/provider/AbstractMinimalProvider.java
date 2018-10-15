@@ -61,6 +61,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> 
     }
 
     @Override
+    public ProviderInternal<T> withFinalValue() {
+        T value = getOrNull();
+        if (value == null) {
+            return Providers.notDefined();
+        }
+        return Providers.of(value);
+    }
+
+    @Override
     public String toString() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("provider(%s)", GUtil.elvis(getType(), "?"));

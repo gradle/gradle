@@ -127,6 +127,7 @@ class PackageListGeneratorIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             task jar(type: Jar) {
                 archiveName = 'mylib.jar'
+                destinationDir = buildDir
                 from file('build/classes')
             }
         '''

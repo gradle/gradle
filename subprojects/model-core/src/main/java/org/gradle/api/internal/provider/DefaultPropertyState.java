@@ -20,9 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nullable;
-
-public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implements Property<T>, PropertyInternal<T> {
+public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private ProviderInternal<? extends T> provider = Providers.notDefined();
@@ -32,7 +30,6 @@ public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implemen
         this.sanitizer = ValueSanitizers.forType(type);
     }
 
-    @Nullable
     @Override
     public Class<T> getType() {
         return type;
@@ -49,6 +46,9 @@ public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implemen
 
     @Override
     public void set(T value) {
+        if (!assertMutable()) {
+            return;
+        }
         if (value == null) {
             this.provider = Providers.notDefined();
             return;
@@ -66,12 +66,11 @@ public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implemen
         return this;
     }
 
-    protected ProviderInternal<? extends T> getProvider() {
-        return provider;
-    }
-
     @Override
     public void set(Provider<? extends T> provider) {
+        if (!assertMutable()) {
+            return;
+        }
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
@@ -95,17 +94,29 @@ public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implemen
     }
 
     @Override
+    protected void makeFinal() {
+        provider = provider.withFinalValue();
+    }
+
+    protected ProviderInternal<? extends T> getProvider() {
+        return provider;
+    }
+
+    @Override
     public T get() {
+        assertReadable();
         return provider.get();
     }
 
     @Override
     public T getOrNull() {
+        assertReadable();
         return provider.getOrNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
+        assertReadable();
         T t = provider.getOrNull();
         if (t == null) {
             return defaultValue;
@@ -114,12 +125,8 @@ public class DefaultPropertyState<T> extends AbstractMinimalProvider<T> implemen
     }
 
     @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<S, T>(transformer, this);
-    }
-
-    @Override
     public boolean isPresent() {
+        assertReadable();
         return provider.isPresent();
     }
 

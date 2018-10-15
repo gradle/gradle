@@ -1031,6 +1031,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             project(':lib') {
                 task jar1(type: Jar) {
                     archiveName = 'util1.jar'
+                    destinationDir = buildDir
                 }
                 artifacts {
                     compile jar1

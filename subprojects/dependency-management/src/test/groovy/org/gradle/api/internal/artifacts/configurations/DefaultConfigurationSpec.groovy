@@ -90,11 +90,14 @@ class DefaultConfigurationSpec extends Specification {
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def projectState = Mock(ProjectState)
+    def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
         _ * resolver.getRepositories() >> []
         _ * projectStateRegistry.stateFor(_) >> projectState
+        _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
+        _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * projectState.withMutableState(_) >> { args -> args[0].create() }
     }
 

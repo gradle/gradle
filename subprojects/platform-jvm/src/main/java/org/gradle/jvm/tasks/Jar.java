@@ -18,7 +18,6 @@ package org.gradle.jvm.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
@@ -122,7 +121,6 @@ public class Jar extends Zip {
      * @since 2.14
      */
     @Input
-    @Incubating
     public String getManifestContentCharset() {
         return manifestContentCharset;
     }
@@ -134,7 +132,6 @@ public class Jar extends Zip {
      * @see #getManifestContentCharset()
      * @since 2.14
      */
-    @Incubating
     public void setManifestContentCharset(String manifestContentCharset) {
         if (manifestContentCharset == null) {
             throw new InvalidUserDataException("manifestContentCharset must not be null");

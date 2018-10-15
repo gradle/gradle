@@ -225,6 +225,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             task myTar(type: Tar) {
+                destinationDir = buildDir
+
                 assert compression == Compression.NONE
 
                 compression = Compression.GZIP
@@ -280,7 +282,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail('copy')
 
         then:
-        failure.assertThatDescription(Matchers.startsWith("Unable to expand TAR"))
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertThatCause(Matchers.startsWith("Unable to expand TAR"))
     }
 
     def cannotCreateAnEmptyZip() {

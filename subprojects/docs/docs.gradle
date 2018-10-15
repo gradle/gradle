@@ -253,7 +253,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
         'source-highlighter': 'coderay'
 }
 
-def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
+def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
@@ -324,7 +324,10 @@ tasks.withType(AsciidoctorTask).configureEach {
         encoding            : 'utf-8',
         idprefix            : '',
         website             : 'https://gradle.org',
-        javaApi             : 'https://docs.oracle.com/javase/7/docs/api',
+        javaApi             : javaApiUrl,
+        jdkDownloadUrl      : 'http://jdk.java.net/',
+        javadocReferenceUrl : 'http://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html',
+        minJdkVersion       : '8',
         antManual           : 'https://ant.apache.org/manual',
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',

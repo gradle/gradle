@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -26,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @see ResolutionResult
  */
 @UsedByScanPlugin
-@Incubating
 public interface DependencyResult {
     /**
      * <p>Returns the requested component.

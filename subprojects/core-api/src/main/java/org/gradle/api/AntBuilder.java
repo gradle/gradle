@@ -55,7 +55,6 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      *  @param antBuildFile The build file. This is resolved as per {@link org.gradle.api.Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
      */
-    @Incubating
     public abstract void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer);
 
     /**
