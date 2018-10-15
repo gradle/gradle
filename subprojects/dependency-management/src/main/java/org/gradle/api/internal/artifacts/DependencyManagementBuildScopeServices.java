@@ -201,10 +201,10 @@ class DependencyManagementBuildScopeServices {
                 mavenMetadataFactory,
                 ivyMetadataFactory,
                 stringInterner)),
-            new DefaultModuleArtifactsCache(
+            new InMemoryModuleArtifactsCache(timeProvider, new DefaultModuleArtifactsCache(
                 timeProvider,
                 artifactCacheLockingManager
-            ),
+            )),
             new DefaultModuleArtifactCache(
                 "module-artifact",
                 timeProvider,
