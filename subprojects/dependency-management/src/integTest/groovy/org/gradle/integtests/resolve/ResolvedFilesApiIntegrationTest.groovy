@@ -164,19 +164,7 @@ project(':a') {
         }
         compile project(':b')
     }
-    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('a')}
 }
 project(':b') {
     dependencies {
@@ -184,19 +172,7 @@ project(':b') {
             compatibilityRules.add(PaidRule)
         }
     }    
-    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('b')}
 }
 
 task show {
@@ -251,19 +227,7 @@ project(':a') {
         }
         compile project(':b')
     }
-    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('a')}
 }
 project(':b') {
     dependencies {
@@ -271,19 +235,7 @@ project(':b') {
             disambiguationRules.add(SelectPaidRule)
         }
     }    
-    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('b')}
 }
 
 task show {
@@ -325,37 +277,13 @@ project(':a') {
         attributesSchema.attribute(flavor)
         compile project(':b')
     }
-    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('a')}
 }
 project(':b') {
     dependencies {
         attributesSchema.attribute(flavor)
     }    
-    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('b')}
 }
 
 task show {
@@ -422,34 +350,10 @@ project(':a') {
         compile 'test:test:1.2'
         compile files('things.jar')
     }
-    task freeJar(type: Jar) { archiveName = 'a-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'a-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('a')}
 }
 project(':b') {
-    task freeJar(type: Jar) { archiveName = 'b-free.jar' }
-    task paidJar(type: Jar) { archiveName = 'b-paid.jar' }
-    tasks.withType(Jar) { destinationDir = buildDir }
-    configurations.compile.outgoing.variants {
-        free {
-            attributes.attribute(flavor, 'free')
-            artifact freeJar
-        }
-        paid {
-            attributes.attribute(flavor, 'paid')
-            artifact paidJar
-        }
-    }
+    ${freeAndPaidFlavoredJars('b')}
 }
 
 task show {
@@ -683,5 +587,23 @@ task show {
         "configurations.compile.incoming.artifactView({}).files"                                           | _
         "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+    }
+
+    private String freeAndPaidFlavoredJars(String prefix) {
+        """
+            task freeJar(type: Jar) { archiveName = '$prefix-free.jar' }
+            task paidJar(type: Jar) { archiveName = '$prefix-paid.jar' }
+            tasks.withType(Jar) { destinationDir = buildDir }
+            configurations.compile.outgoing.variants {
+                free {
+                    attributes.attribute(flavor, 'free')
+                    artifact freeJar
+                }
+                paid {
+                    attributes.attribute(flavor, 'paid')
+                    artifact paidJar
+                }
+            }
+        """
     }
 }
