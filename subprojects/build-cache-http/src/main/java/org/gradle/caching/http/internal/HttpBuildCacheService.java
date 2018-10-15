@@ -18,17 +18,14 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.IncompleteArgumentException;
-import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.NonRepeatableRequestException;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -39,6 +36,7 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.tasks.TaskOutputPacker;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.HttpClientResponse;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,16 +84,14 @@ public class HttpBuildCacheService implements BuildCacheService {
         httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
         addDiagnosticHeaders(httpGet);
 
-        CloseableHttpResponse response = null;
-        try {
-            response = httpClientHelper.performHttpRequest(httpGet);
+        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpGet)) {
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusLine);
             }
             int statusCode = statusLine.getStatusCode();
             if (isHttpSuccess(statusCode)) {
-                reader.readFrom(response.getEntity().getContent());
+                reader.readFrom(response.getContent());
                 return true;
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 return false;
@@ -109,19 +105,17 @@ public class HttpBuildCacheService implements BuildCacheService {
             }
         } catch (IOException e) {
             throw wrap(e);
-        } finally {
-            HttpClientUtils.closeQuietly(response);
         }
     }
 
-    private boolean handleRedirect(URI uri, CloseableHttpResponse response, int statusCode, String defaultMessage, String action) {
-        final Header locationHeader = response.getFirstHeader("location");
+    private boolean handleRedirect(URI uri, HttpClientResponse response, int statusCode, String defaultMessage, String action) {
+        String locationHeader = response.getHeader(HttpHeaders.LOCATION);
         if (locationHeader == null) {
             return throwHttpStatusCodeException(statusCode, defaultMessage);
         }
         try {
             throw new BuildCacheException(String.format("Received unexpected redirect (HTTP %d) to %s when " + action + " '%s'. "
-                + "Ensure the configured URL for the remote build cache is correct.", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
+                + "Ensure the configured URL for the remote build cache is correct.", statusCode, safeUri(new URI(locationHeader)), safeUri(uri)));
         } catch (URISyntaxException e) {
             return throwHttpStatusCodeException(statusCode, defaultMessage);
         }
@@ -168,9 +162,7 @@ public class HttpBuildCacheService implements BuildCacheService {
                 return false;
             }
         });
-        CloseableHttpResponse response = null;
-        try {
-            response = httpClientHelper.performHttpRequest(httpPut);
+        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpPut)) {
             StatusLine statusLine = response.getStatusLine();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusLine);
@@ -193,8 +185,6 @@ public class HttpBuildCacheService implements BuildCacheService {
             }
         } catch (IOException e) {
             throw wrap(e);
-        } finally {
-            HttpClientUtils.closeQuietly(response);
         }
     }
 
