@@ -20,6 +20,7 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.ivy.IvyFileRepository
+import spock.lang.Ignore
 
 class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -64,6 +65,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
         output.contains 'Resolved [lib-1.0.jar]'
     }
 
+    @Ignore("Test needs to be rewritten")
     def "descriptors and artifacts are cached across projects and repositories"() {
         given:
         ivyRepo.module("org", "lib").publish()

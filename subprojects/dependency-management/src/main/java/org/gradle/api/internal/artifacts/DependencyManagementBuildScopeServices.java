@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
@@ -45,10 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepository
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.InMemoryModuleArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.InMemoryModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
@@ -188,11 +184,11 @@ class DependencyManagementBuildScopeServices {
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
-            new InMemoryModuleVersionsCache(timeProvider, new DefaultModuleVersionsCache(
+            new DefaultModuleVersionsCache(
                 timeProvider,
                 artifactCacheLockingManager,
-                moduleIdentifierFactory)),
-            new InMemoryModuleMetadataCache(timeProvider, new DefaultModuleMetadataCache(
+                moduleIdentifierFactory),
+            new DefaultModuleMetadataCache(
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactCacheMetadata,
@@ -200,25 +196,19 @@ class DependencyManagementBuildScopeServices {
                 attributeContainerSerializer,
                 mavenMetadataFactory,
                 ivyMetadataFactory,
-                stringInterner)),
-            new InMemoryModuleArtifactsCache(timeProvider, new DefaultModuleArtifactsCache(
+                stringInterner),
+            new DefaultModuleArtifactsCache(
                 timeProvider,
                 artifactCacheLockingManager
-            )),
-            new InMemoryModuleArtifactCache(timeProvider, new DefaultModuleArtifactCache(
+            ),
+            new DefaultModuleArtifactCache(
                 "module-artifact",
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactIdentifierFileStore.getFileAccessTracker()
-            ))
+            )
         );
-        ModuleRepositoryCaches inMemoryCaches = new ModuleRepositoryCaches(
-            new InMemoryModuleVersionsCache(timeProvider),
-            new InMemoryModuleMetadataCache(timeProvider),
-            new InMemoryModuleArtifactsCache(timeProvider),
-            new InMemoryModuleArtifactCache(timeProvider)
-        );
-        return new ModuleRepositoryCacheProvider(caches, inMemoryCaches);
+        return new ModuleRepositoryCacheProvider(timeProvider, caches);
     }
 
     ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore) {
