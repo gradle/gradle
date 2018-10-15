@@ -206,6 +206,7 @@ public class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel);
+            addSystemPropertyIfExist(result, "org.gradle.ignoreBuildJavaVersionCheck", true);
 
             if (flamegraphs) {
                 File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");

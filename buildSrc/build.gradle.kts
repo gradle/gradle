@@ -28,6 +28,8 @@ plugins {
     id("org.gradle.kotlin.ktlint-convention") version "0.1.15" apply false
 }
 
+apply(from = "../gradle/shared-with-buildSrc/validate-build-jdk.gradle.kts")
+
 subprojects {
 
     apply(plugin = "java-library")
