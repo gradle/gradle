@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="eeff4410-1e7d-4db6-b7b8-34c1f2754477" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
-  <name>Release - Snapshot (from Quick Feedback)</name>
-  <description>Deploys the latest successful change on 'release' as a new snapshot</description>
+  <name>Release - Release Nightly Snapshot (from Quick Feedback)</name>
+  <description>Deploys the latest successful change on 'release' as a new release nightly snapshot</description>
   <settings>
     <options>
       <option name="artifactRules" value="incoming-build-receipt/build-receipt.properties =&gt; incoming-build-receipt&#xA;**/build/git-checkout/build/build-receipt.properties&#xA;**/build/distributions/*.zip =&gt; promote-build-distributions&#xA;**/build/website-checkout/data/releases.xml&#xA;**/build/git-checkout/build/reports/integTest/** =&gt; distribution-tests&#xA;**/smoke-tests/build/reports/tests/** =&gt; post-smoke-tests" />
@@ -17,7 +17,7 @@
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt &quot;-PgitUserName=Gradleware Git Bot&quot; &quot;-PgitUserEmail=gradlewaregitbot@gradleware.com&quot; -Igradle/buildScanInit.gradle -Djava7Home=%linux.jdk.for.gradle.compile% -Djava9Home=%linux.java9.oracle.64bit%" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="promoteReleaseSnapshot" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="promoteReleaseNightly" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
