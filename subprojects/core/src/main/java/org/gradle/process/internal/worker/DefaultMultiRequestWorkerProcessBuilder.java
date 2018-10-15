@@ -16,7 +16,9 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -38,6 +40,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     private final Class<WORKER> workerType;
     private final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
+    private Action<WorkerProcess> onFailure = Actions.doNothing();
 
     static {
         try {
@@ -112,15 +115,20 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
     }
 
     @Override
+    public void onProcessFailure(Action<WorkerProcess> action) {
+        this.onFailure = action;
+    }
+
+    @Override
     public WORKER build() {
         // Always publish process info for multi-request workers
         workerProcessBuilder.enableJvmMemoryInfoPublishing(true);
         final WorkerProcess workerProcess = workerProcessBuilder.build();
+        final Action<WorkerProcess> failureHandler = onFailure;
 
         return workerType.cast(Proxy.newProxyInstance(workerType.getClassLoader(), new Class[]{workerType}, new InvocationHandler() {
             private Receiver receiver = new Receiver(getBaseName());
             private RequestProtocol requestProtocol;
-
 
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -152,6 +160,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     try {
                         // Reached the end of input, worker has crashed or exited
                         requestProtocol = null;
+                        failureHandler.execute(workerProcess);
                         workerProcess.waitForStop();
                         // Worker didn't crash
                         throw new IllegalStateException(String.format("No response was received from %s but the worker process has finished.", getBaseName()));
