@@ -47,7 +47,7 @@ inline operator fun TaskContainer.invoke(
 ): TaskContainer =
 
     apply {
-        configuration(TaskContainerScope(this))
+        configuration(TaskContainerScope.of(this))
     }
 
 
@@ -57,7 +57,7 @@ inline operator fun TaskContainer.invoke(
 operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name)
 )
 
@@ -68,7 +68,7 @@ operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDele
 operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name).apply { configure(action) }
 )
 
@@ -79,7 +79,7 @@ operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, T
 operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name, type)
 )
 
@@ -90,7 +90,7 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskCon
 operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name, type).apply { configure(action) }
 )
 
@@ -101,7 +101,7 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<ou
 operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name)
 )
 
@@ -112,7 +112,7 @@ operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideD
 operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name, action)
 )
 
@@ -123,7 +123,7 @@ operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer
 operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name, type.java)
 )
 
@@ -134,7 +134,7 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out Task
 operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.register(property.name, type.java, action)
 )
 
@@ -142,7 +142,15 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction
 /**
  * Receiver for the `tasks` block providing an extended set of operators for the configuration of tasks.
  */
-class TaskContainerScope(val container: TaskContainer) : TaskContainer by container {
+class TaskContainerScope
+private constructor(
+    val container: TaskContainer
+) : TaskContainer by container {
+
+    companion object {
+        fun of(container: TaskContainer) =
+            TaskContainerScope(container)
+    }
 
     /**
      * Configures a task by name, without triggering its creation or configuration, failing if there is no such task.

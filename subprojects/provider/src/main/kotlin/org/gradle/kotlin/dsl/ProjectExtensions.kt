@@ -161,7 +161,7 @@ fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
  * @param configuration the configuration block.
  */
 fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
-    DependencyHandlerScope(dependencies).configuration()
+    DependencyHandlerScope.of(dependencies).configuration()
 
 
 /**
