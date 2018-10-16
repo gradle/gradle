@@ -117,7 +117,7 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
-    fun `can adapt trivariate function using KotlinClosure3`() {
+    fun `can adapt ternary function using KotlinClosure3`() {
 
         fun closure(function: (String, String, String) -> String) = KotlinClosure3(function)
 
@@ -127,7 +127,7 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
-    fun `can adapt trivariate null receiving function using KotlinClosure3`() {
+    fun `can adapt ternary null receiving function using KotlinClosure3`() {
 
         fun closure(function: (String?, String?, String?) -> String?) = KotlinClosure3(function)
 

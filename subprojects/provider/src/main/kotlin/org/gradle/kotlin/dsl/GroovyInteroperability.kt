@@ -122,7 +122,7 @@ class KotlinClosure2<in T : Any?, in U : Any?, V : Any>(
 
 
 /**
- * Adapts a trivariate Kotlin function to a binary Groovy [Closure].
+ * Adapts a ternary Kotlin function to a ternary Groovy [Closure].
  *
  * @param T the type of the first argument.
  * @param U the type of the second argument.
