@@ -100,7 +100,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass
  */
 class ExistingDomainObjectDelegateProvider<T>
 private constructor(
-    val delegateProvider: T
+    internal val delegateProvider: T
 ) {
     companion object {
         fun <T> of(delegateProvider: T) =
@@ -116,8 +116,8 @@ private constructor(
  */
 class ExistingDomainObjectDelegateProviderWithAction<C, T>
 private constructor(
-    val delegateProvider: C,
-    val action: T.() -> Unit
+    internal val delegateProvider: C,
+    internal val action: T.() -> Unit
 ) {
     companion object {
         fun <C, T> of(delegateProvider: C, action: T.() -> Unit) =
@@ -133,8 +133,8 @@ private constructor(
  */
 class ExistingDomainObjectDelegateProviderWithType<T, U : Any>
 private constructor(
-    val delegateProvider: T,
-    val type: KClass<U>
+    internal val delegateProvider: T,
+    internal val type: KClass<U>
 ) {
     companion object {
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>) =
@@ -150,9 +150,9 @@ private constructor(
  */
 class ExistingDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>
 private constructor(
-    val delegateProvider: T,
-    val type: KClass<U>,
-    val action: U.() -> Unit
+    internal val delegateProvider: T,
+    internal val type: KClass<U>,
+    internal val action: U.() -> Unit
 ) {
     companion object {
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>, action: U.() -> Unit) =
@@ -215,7 +215,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomain
  */
 class ExistingDomainObjectDelegate<T>
 private constructor(
-    val delegate: T
+    internal val delegate: T
 ) {
     companion object {
         fun <T> of(delegate: T) =
@@ -368,8 +368,8 @@ fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() 
  */
 class NamedDomainObjectCollectionDelegateProvider<T>
 private constructor(
-    val collection: NamedDomainObjectCollection<T>,
-    val configuration: T.() -> Unit
+    internal val collection: NamedDomainObjectCollection<T>,
+    internal val configuration: T.() -> Unit
 ) {
     companion object {
         fun <T> of(collection: NamedDomainObjectCollection<T>, configuration: T.() -> Unit) =

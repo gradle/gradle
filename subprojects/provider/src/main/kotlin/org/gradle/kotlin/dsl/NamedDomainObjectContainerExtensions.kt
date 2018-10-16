@@ -153,7 +153,7 @@ operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> Registeri
  */
 class RegisteringDomainObjectDelegateProvider<T>
 private constructor(
-    val delegateProvider: T
+    internal val delegateProvider: T
 ) {
     companion object {
         fun <T> of(delegateProvider: T) =
@@ -169,8 +169,8 @@ private constructor(
  */
 class RegisteringDomainObjectDelegateProviderWithAction<C, T>
 private constructor(
-    val delegateProvider: C,
-    val action: T.() -> Unit
+    internal val delegateProvider: C,
+    internal val action: T.() -> Unit
 ) {
     companion object {
         fun <C, T> of(delegateProvider: C, action: T.() -> Unit) =
@@ -186,8 +186,8 @@ private constructor(
  */
 class RegisteringDomainObjectDelegateProviderWithType<T, U : Any>
 private constructor(
-    val delegateProvider: T,
-    val type: KClass<U>
+    internal val delegateProvider: T,
+    internal val type: KClass<U>
 ) {
     companion object {
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>) =
@@ -203,9 +203,9 @@ private constructor(
  */
 class RegisteringDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>
 private constructor(
-    val delegateProvider: T,
-    val type: KClass<U>,
-    val action: U.() -> Unit
+    internal val delegateProvider: T,
+    internal val type: KClass<U>,
+    internal val action: U.() -> Unit
 ) {
     companion object {
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>, action: U.() -> Unit) =
@@ -317,8 +317,8 @@ fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit
  */
 class NamedDomainObjectContainerCreatingDelegateProvider<T : Any>
 private constructor(
-    val container: NamedDomainObjectContainer<T>,
-    val configuration: (T.() -> Unit)? = null
+    internal val container: NamedDomainObjectContainer<T>,
+    internal val configuration: (T.() -> Unit)? = null
 ) {
     companion object {
         fun <T : Any> of(container: NamedDomainObjectContainer<T>, configuration: (T.() -> Unit)? = null) =
@@ -360,9 +360,9 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>
  */
 class PolymorphicDomainObjectContainerCreatingDelegateProvider<T : Any, U : T>
 private constructor(
-    val container: PolymorphicDomainObjectContainer<T>,
-    val type: Class<U>,
-    val configuration: (U.() -> Unit)? = null
+    internal val container: PolymorphicDomainObjectContainer<T>,
+    internal val type: Class<U>,
+    internal val configuration: (U.() -> Unit)? = null
 ) {
     companion object {
         fun <T : Any, U : T> of(container: PolymorphicDomainObjectContainer<T>, type: Class<U>, configuration: (U.() -> Unit)? = null) =
@@ -397,9 +397,9 @@ fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
  */
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>
 private constructor(
-    val container: NamedDomainObjectContainer<T>,
-    val type: KClass<U>,
-    val configuration: (U.() -> Unit)? = null
+    internal val container: NamedDomainObjectContainer<T>,
+    internal val type: KClass<U>,
+    internal val configuration: (U.() -> Unit)? = null
 ) {
     companion object {
         fun <T : Any, U : T> of(container: NamedDomainObjectContainer<T>, type: KClass<U>, configuration: (U.() -> Unit)? = null) =
