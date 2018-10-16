@@ -165,7 +165,11 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+        // added to fix  MD5 error when .gradle project cache is part of the root source code dirs (typically in native builds)
+        // issue: https://github.com/gradle/gradle/issues/5941
+        DirectoryScanner.addDefaultExclude("**/.gradle/**"); // should never include the .gradle directory in a snapshot
+        FileSystemSnapshotter retval = new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+        return retval;
     }
 
     AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
