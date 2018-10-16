@@ -32,10 +32,9 @@ public class ScalaToolChainServiceRegistry extends AbstractPluginServiceRegistry
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
-
     private static class ProjectScopeCompileServices {
         ScalaToolChainInternal createScalaToolChain(GradleInternal gradle, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, FileResolver fileResolver, WorkerDirectoryProvider workerDirectoryProvider) {
-            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerDirectoryProvider.getIdleWorkingDirectory(), workerDaemonFactory, configurationContainer, dependencyHandler, fileResolver);
+            return new DownloadingScalaToolChain(gradle.getGradleUserHomeDir(), workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, configurationContainer, dependencyHandler, fileResolver);
         }
     }
 }

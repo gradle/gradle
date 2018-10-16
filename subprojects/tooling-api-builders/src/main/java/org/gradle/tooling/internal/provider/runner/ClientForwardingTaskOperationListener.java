@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Task;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.initialization.BuildEventConsumer;

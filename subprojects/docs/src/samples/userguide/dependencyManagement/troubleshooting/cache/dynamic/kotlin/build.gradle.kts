@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+plugins {
+    `java-library`
+}
 
-import org.gradle.api.Describable;
+repositories {
+    mavenCentral()
+}
 
-import java.io.File;
-import java.io.Serializable;
+dependencies {
+    implementation("org.springframework:spring-web:5.+")
+}
 
-public interface WorkSpec extends Serializable, Describable {
-    File getExecutionWorkingDir();
+// tag::dynamic-version-cache-control[]
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor(10, "minutes")
+}
+// end::dynamic-version-cache-control[]
+
+task<Copy>("copyLibs") {
+    from(configurations.compileClasspath)
+    into("$buildDir/libs")
 }

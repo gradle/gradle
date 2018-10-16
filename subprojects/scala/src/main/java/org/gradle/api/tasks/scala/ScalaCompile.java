@@ -88,7 +88,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             FileResolver fileResolver = getServices().get(FileResolver.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
-                getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
+                getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
                 getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), fileResolver);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }

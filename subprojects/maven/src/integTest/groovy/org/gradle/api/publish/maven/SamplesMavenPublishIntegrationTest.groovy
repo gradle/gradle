@@ -28,13 +28,15 @@ import spock.lang.Unroll
 class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sampleProject = new Sample(temporaryFolder)
 
+    @Unroll
     @UsesSample("maven-publish/quickstart")
-    def quickstartPublish() {
+    def "quickstart publish with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        executer.inDirectory(sampleDir)
 
         and:
-        def fileRepo = maven(sampleProject.dir.file("build/repo"))
+        def fileRepo = maven(sampleDir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
 
         when:
@@ -44,10 +46,14 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def pom = module.parsedPom
         module.assertPublishedAsJavaModule()
         pom.scopes.isEmpty()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("maven-publish/quickstart")
-    def quickstartPublishLocal() {
+    def "quickstart publish local with #dsl dsl"() {
         using m2
         
         given:
@@ -55,10 +61,11 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
 
         and:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        executer.inDirectory(sampleDir)
 
         and:
-        def fileRepo = maven(sampleProject.dir.file("build/repo"))
+        def fileRepo = maven(sampleDir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
 
         when:
@@ -67,15 +74,20 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         then: "jar is published to maven local repository"
         module.assertNotPublished()
         localModule.assertPublishedAsJavaModule()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("maven-publish/javaProject")
     def javaProject() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        executer.inDirectory(sampleDir)
 
         and:
-        def fileRepo = maven(sampleProject.dir.file("build/repos/releases"))
+        def fileRepo = maven(sampleDir.file("build/repos/releases"))
         def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0")
 
         when:
@@ -90,15 +102,20 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
             "javaProject-1.0.pom")
         module.parsedPom.packaging == null
         module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("maven-publish/multiple-publications")
-    def multiplePublications() {
+    def "multiple publications with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
 
         and:
-        def fileRepo = maven(sampleProject.dir.file("build/repo"))
+        def fileRepo = maven(sampleDir.file("build/repo"))
         def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
         def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3")
         def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3")
@@ -117,6 +134,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         and:
         project2impl.assertPublishedAsJavaModule()
         verifyPomFile(project2impl, "output/project2-impl.pom.xml")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll

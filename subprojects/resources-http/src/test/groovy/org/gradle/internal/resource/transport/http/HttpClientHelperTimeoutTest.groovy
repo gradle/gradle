@@ -18,26 +18,27 @@ package org.gradle.internal.resource.transport.http
 
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.ssl.SSLContexts
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import org.junit.rules.ExternalResource
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Specification
 import spock.lang.Subject
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 class HttpClientHelperTimeoutTest extends Specification {
 
-    @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
+    @Rule SetSystemProperties systemProperties = new SetSystemProperties((SOCKET_TIMEOUT_SYSTEM_PROPERTY): "500")
+    @Rule HttpServer httpServer = new HttpServer()
     @Subject HttpClientHelper client = new HttpClientHelper(httpSettings)
 
     def "throws exception if socket timeout is reached"() {
+        given:
+        httpServer.expectGetBlocking("/")
+        httpServer.start()
+
         when:
-        client.performRequest(new HttpGet(httpServer.uri), false)
+        client.performRequest(new HttpGet("${httpServer.uri}/"), false)
 
         then:
         def e = thrown(HttpRequestException)
@@ -45,39 +46,11 @@ class HttpClientHelperTimeoutTest extends Specification {
         e.cause.message == 'Read timed out'
     }
 
-    static class BlockingHttpServer extends ExternalResource {
-        private final Server server = new Server(0)
-        private final CountDownLatch latch = new CountDownLatch(1)
-
-        @Override
-        protected void before() {
-            server.addHandler(new AbstractHandler() {
-                void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                    try {
-                        latch.await(60, TimeUnit.SECONDS)
-                    } catch (InterruptedException e) {
-                        // ignore
-                    }
-                }
-            })
-            server.start()
-        }
-
-        @Override
-        protected void after() {
-            server.stop()
-        }
-
-        URI getUri() {
-            new URI("http://localhost:${server.connectors[0].localPort}/")
-        }
-    }
-
     private HttpSettings getHttpSettings() {
         Stub(HttpSettings) {
             getProxySettings() >> Mock(HttpProxySettings)
             getSecureProxySettings() >> Mock(HttpProxySettings)
-            getTimeoutSettings() >> new JavaSystemPropertiesHttpTimeoutSettings()
+            getTimeoutSettings() >> { new JavaSystemPropertiesHttpTimeoutSettings() }
             getSslContextFactory() >> Mock(SslContextFactory) {
                 createSslContext() >> SSLContexts.createDefault()
             }
