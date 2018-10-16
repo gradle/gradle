@@ -64,28 +64,28 @@ class PluginAwareExtensionsTest {
         val arbitraryTarget = "something"
 
         newPluginAwareMock<PluginAware>().run {
-            target.apply<AnyPlugin>(to = arbitraryTarget)
+            target.applyTo<AnyPlugin>(arbitraryTarget)
             inOrder(configurationAction) {
                 verify(configurationAction).plugin(AnyPlugin::class.java)
                 verify(configurationAction).to(arbitraryTarget)
             }
         }
         newPluginAwareMock<Gradle>().run {
-            target.apply<AnyPlugin>(to = arbitraryTarget)
+            target.applyTo<AnyPlugin>(arbitraryTarget)
             inOrder(configurationAction) {
                 verify(configurationAction).plugin(AnyPlugin::class.java)
                 verify(configurationAction).to(arbitraryTarget)
             }
         }
         newPluginAwareMock<Settings>().run {
-            target.apply<AnyPlugin>(to = arbitraryTarget)
+            target.applyTo<AnyPlugin>(arbitraryTarget)
             inOrder(configurationAction) {
                 verify(configurationAction).plugin(AnyPlugin::class.java)
                 verify(configurationAction).to(arbitraryTarget)
             }
         }
         newPluginAwareMock<Project>().run {
-            target.apply<AnyPlugin>(to = arbitraryTarget)
+            target.applyTo<AnyPlugin>(arbitraryTarget)
             inOrder(configurationAction) {
                 verify(configurationAction).plugin(AnyPlugin::class.java)
                 verify(configurationAction).to(arbitraryTarget)
