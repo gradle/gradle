@@ -50,6 +50,7 @@ public interface ProjectLayout {
      * @since 4.3
      * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
      */
+    @Deprecated
     DirectoryProperty directoryProperty();
 
     /**
@@ -59,6 +60,7 @@ public interface ProjectLayout {
      * @since 4.4
      * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
      */
+    @Deprecated
     DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider);
 
     /**
@@ -67,6 +69,7 @@ public interface ProjectLayout {
      * @since 4.3
      * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
      */
+    @Deprecated
     RegularFileProperty fileProperty();
 
     /**
@@ -76,6 +79,7 @@ public interface ProjectLayout {
      * @since 4.4
      * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
      */
+    @Deprecated
     RegularFileProperty fileProperty(Provider<? extends RegularFile> initialProvider);
 
     /**
