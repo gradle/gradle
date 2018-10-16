@@ -78,19 +78,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                         attributes { $freeRelease }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -144,19 +133,8 @@ include 'a', 'b'
                     foo.attributes { $freeDebug }
                     bar.attributes { $freeRelease }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
         def origFile = buildFile.text
 
@@ -232,19 +210,8 @@ include 'a', 'b'
                        attributes { $freeRelease }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -364,19 +331,8 @@ include 'a', 'b'
                        extendsFrom compile
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -426,19 +382,8 @@ include 'a', 'b'
                        attributes { $freeRelease }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -482,19 +427,8 @@ Variant 'bar':
                     bar
                     create('default').attributes { $freeDebug }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -581,19 +515,8 @@ Variant 'bar':
                     bar { attributes { $release } }
                     create 'default'
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -637,19 +560,8 @@ Variant 'bar':
                     bar { attributes { $release } }
                     create 'default'
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -745,19 +657,8 @@ All of them match the consumer attributes:
                         canBeConsumed = false
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -796,19 +697,8 @@ All of them match the consumer attributes:
                         canBeConsumed = false
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -984,19 +874,8 @@ All of them match the consumer attributes:
                        attributes { $free }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -1034,19 +913,8 @@ All of them match the consumer attributes:
                     foo.attributes { $debug }
                     bar.attributes { $debug }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -1094,19 +962,8 @@ All of them match the consumer attributes:
                       attributes { $freeDebug; attribute(extra, 'extra 2') }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -1248,17 +1105,7 @@ All of them match the consumer attributes:
                     foo project(':c')
                     bar project(':d')
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
             project(':c') {
                 configurations.create('default') {
@@ -1495,17 +1342,7 @@ All of them match the consumer attributes:
                     foo project(':c')
                     bar project(':c')
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
             project(':c') {
                 configurations {
@@ -1759,17 +1596,7 @@ All of them match the consumer attributes:
                        attributes { $release } // no match on `buildType`
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
         """
 
@@ -1812,17 +1639,7 @@ All of them match the consumer attributes:
                        attributes { $freeRelease } // match on `buildType`
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
         """
 
@@ -1874,17 +1691,7 @@ All of them match the consumer attributes:
                     foo project(':c')
                     bar project(':c')
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDir = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
             project(':c') {
                 configurations {
@@ -1974,6 +1781,22 @@ All of them match the consumer attributes:
 
         then:
         result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+    }
+
+    private String fooAndBarJars() {
+        '''
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                tasks.withType(Jar) { destinationDir = buildDir }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+        '''
     }
 
 }

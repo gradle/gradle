@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.Action;
+
 /**
  * Configures and builds multi-request workers. A multi-request worker runs zero or more requests in a forked worker process.
  *
@@ -32,4 +34,9 @@ public interface MultiRequestWorkerProcessBuilder<T> extends WorkerProcessSettin
      * <p>The worker process is not started until {@link WorkerControl#start()} is called on the returned object.</p>
      */
     T build();
+
+    /**
+     * Registers a callback to invoke if a failure in an underlying process is detected.
+     */
+    void onProcessFailure(Action<WorkerProcess> action);
 }

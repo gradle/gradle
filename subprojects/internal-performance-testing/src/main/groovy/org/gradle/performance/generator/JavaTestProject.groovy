@@ -33,8 +33,8 @@ enum JavaTestProject {
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", GROOVY, 10000, 0, '512m', '1g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
     MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", GROOVY, 100, 100, '512m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", GROOVY, composite(false), 100, 100, '512m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", GROOVY, composite(true), 100, 100, '512m',  '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", GROOVY, composite(false), 100, 100, '768m', '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", GROOVY, composite(true), 100, 100, '768m',  '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
     MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", GROOVY, 100, 100, '512m', '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
 
     SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", GROOVY, 50, 10, '256m', '64m', false, [assemble: productionFile('smallJavaMultiProject')]),

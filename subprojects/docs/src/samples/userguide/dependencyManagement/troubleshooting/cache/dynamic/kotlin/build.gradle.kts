@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,4 +14,25 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.springframework:spring-web:5.+")
+}
+
+// tag::dynamic-version-cache-control[]
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor(10, "minutes")
+}
+// end::dynamic-version-cache-control[]
+
+task<Copy>("copyLibs") {
+    from(configurations.compileClasspath)
+    into("$buildDir/libs")
+}

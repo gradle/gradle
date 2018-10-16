@@ -28,6 +28,7 @@ class WorkerDaemonClient implements Worker, Stoppable {
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private int uses;
+    private boolean failed;
 
     public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
@@ -74,5 +75,17 @@ class WorkerDaemonClient implements Worker, Stoppable {
 
     public LogLevel getLogLevel() {
         return logLevel;
+    }
+
+    public boolean isProcess(WorkerProcess workerProcess) {
+        return this.workerProcess.equals(workerProcess);
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public void setFailed(boolean failed) {
+        this.failed = failed;
     }
 }
