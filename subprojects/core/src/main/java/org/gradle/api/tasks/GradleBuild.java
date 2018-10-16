@@ -100,7 +100,7 @@ public class GradleBuild extends ConventionTask {
      * @return The build file. May be null.
      */
     @Nullable @Optional
-    @PathSensitive(PathSensitivity.NONE)
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
