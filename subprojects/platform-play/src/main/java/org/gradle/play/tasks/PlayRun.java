@@ -158,6 +158,11 @@ public class PlayRun extends ConventionTask {
         this.assetsDirs = assetsDirs;
     }
 
+    /**
+     * The runtime classpath for the Play application.
+     *
+     * @since 5.0
+     */
     @Classpath
     public FileCollection getRuntimeClasspath() {
         return runtimeClasspath;
@@ -167,6 +172,11 @@ public class PlayRun extends ConventionTask {
         this.runtimeClasspath = runtimeClasspath;
     }
 
+    /**
+     * The changing classpath for the Play application.
+     *
+     * @since 5.0
+     */
     @Classpath
     public FileCollection getChangingClasspath() {
         return changingClasspath;
