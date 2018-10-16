@@ -15,6 +15,11 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.inject.Inject;
+
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
@@ -30,6 +35,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -51,10 +57,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import javax.inject.Inject;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * Compiles native source files into object files.
  */
@@ -65,6 +67,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private boolean positionIndependentCode;
     private boolean debug;
     private boolean optimize;
+    private final Property<String> debugInfoFormat;
+    private final Property<String> optimizationLevel;
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection systemIncludes;
@@ -83,6 +87,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         this.source = getTaskFileVarFactory().newInputFileCollection(this);
         this.objectFileDir = objectFactory.directoryProperty();
         this.compilerArgs = getProject().getObjects().listProperty(String.class).empty();
+        this.debugInfoFormat = getProject().getObjects().property(String.class);
+        this.optimizationLevel = getProject().getObjects().property(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
         this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
@@ -130,7 +136,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
-
+        spec.setDebugInfoFormat(debugInfoFormat.getOrNull());
+        spec.setOptimizationLevel(optimizationLevel.getOrNull());
+        
         configureSpec(spec);
 
         NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
@@ -306,4 +314,25 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     protected FileCollection getHeaderDependencies() {
         return incrementalCompiler.getHeaderFiles();
     }
+
+    /**
+     * get the debug information format
+     * @since 5.1
+     */
+    @Optional
+    @Input
+    public Property<String> getDebugInfoFormat() {
+        return debugInfoFormat;
+    }
+
+    /**
+     * Optimization level '/O2' 'O1'
+     * @since 5.1
+     */
+    @Optional
+    @Input
+    public Property<String> getOptimizationLevel() {
+        return optimizationLevel;
+    }
+
 }

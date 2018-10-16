@@ -39,12 +39,15 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File objectFileDir;
     private boolean positionIndependentCode;
     private boolean debuggable;
+    private String debugInfoFormat;
     private boolean optimized;
+    private String optimizationLevel;
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
     private List<File> sourceFilesForPch = new ArrayList<File>();
     private String preCompiledHeader;
+
 
     @Override
     public List<File> getIncludeRoots() {
@@ -227,5 +230,25 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     @Override
     public void setSourceFilesForPch(List<File> sourceFilesForPch) {
         this.sourceFilesForPch = sourceFilesForPch;
+    }
+
+    @Override
+    public String getDebugInfoFormat() {
+        return debugInfoFormat;
+    }
+
+    @Override
+    public void setDebugInfoFormat(String debugInfoFormat) {
+        this.debugInfoFormat = debugInfoFormat;
+    }
+
+    @Override
+    public String getOptimizationLevel() {
+        return optimizationLevel;
+    }
+
+    @Override
+    public void setOptimizationLevel(String optimizationLevel) {
+        this.optimizationLevel = optimizationLevel;
     }
 }
