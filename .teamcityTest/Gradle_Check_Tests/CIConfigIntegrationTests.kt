@@ -193,8 +193,9 @@ class CIConfigIntegrationTests {
     @Test
     fun allSubprojectsDefineTheirUnitTestPropertyCorrectly() {
         val projectsWithUnitTests = CIBuildModel().subProjects.filter { it.unitTests }
-        val projectFoldersWithUnitTests = subProjectFolderList().filter { File(it, "src/test").exists() &&
-                    it.name != "docs" //docs:check is part of Sanity Check
+        val projectFoldersWithUnitTests = subProjectFolderList().filter { File(it, "src/test").exists()
+                    && it.name != "docs" //docs:check is part of Sanity Check
+                    && it.name != "architecture-test" //architectureTest:test is part of Sanity Check
         }
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
