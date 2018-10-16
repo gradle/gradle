@@ -345,6 +345,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     params.arguments += profiler.getAdditionalGradleArgs(spec)
 
                     params.jvmArguments = params.jvmArguments = params.jvmArguments ?: []
+                    params.jvmArguments += "-XX:+UseG1GC"
                     params.jvmArguments += profiler.getAdditionalJvmOpts(spec)
                 }
                 try {
