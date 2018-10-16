@@ -117,6 +117,26 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
+    fun `can adapt trivariate function using KotlinClosure3`() {
+
+        fun closure(function: (String, String, String) -> String) = KotlinClosure3(function)
+
+        assertEquals(
+            "foobarbaz",
+            closure { x, y, z -> x + y + z }.call("foo", "bar", "baz"))
+    }
+
+    @Test
+    fun `can adapt trivariate null receiving function using KotlinClosure3`() {
+
+        fun closure(function: (String?, String?, String?) -> String?) = KotlinClosure3(function)
+
+        assertEquals(
+            null,
+            closure { _, _, _ -> null }.call(null, null, null))
+    }
+
+    @Test
     fun `can invoke Closure`() {
 
         val invocations = mutableListOf<String>()
@@ -139,13 +159,20 @@ class GroovyInteroperabilityTest {
                 fun doCall(x: Any, y: Any) = invocations.add("c2($x, $y)")
             }
 
+        val c3 =
+            object : Closure<Boolean>(null, null) {
+                @Suppress("unused")
+                fun doCall(x: Any, y: Any, z: Any) = invocations.add("c3($x, $y, $z)")
+            }
+
         assert(c0())
         assert(c1(42))
         assert(c2(11, 33))
+        assert(c3(23, 7, 12))
 
         assertThat(
             invocations,
-            equalTo(listOf("c0", "c1(42)", "c2(11, 33)")))
+            equalTo(listOf("c0", "c1(42)", "c2(11, 33)", "c3(23, 7, 12)")))
     }
 
     @Test
