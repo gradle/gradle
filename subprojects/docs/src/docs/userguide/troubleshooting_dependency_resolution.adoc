@@ -104,3 +104,20 @@ This file is then checked in and the versions in it are used on all subsequent r
 Legacy projects sometimes prefer to consume <<declaring_dependencies.adoc#sec:declaring_file_dependency,file dependencies>> instead of <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependencies>>. File dependencies can point to any file in the filesystem and do not need to adhere a specific naming convention. It is recommended to clearly express the intention and a concrete version for file dependencies. File dependencies are not considered by Gradle's <<introduction_dependency_management.adoc#sec:dependency_resolution,version conflict resolution>>. Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it. For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
 
 As a result, the dependencies of the project are easier to maintain and organize. It's much easier to uncover potential API incompatibilities by the assigned version.
+
+[[sub:configuration_resolution_constraints]]
+== Constraints on configuration resolution
+
+Resolving configurations can have side effects on the state of the project model.  Because of this, configurations should be resolved safely when crossing project boundaries in a parallel-enabled build.  Gradle manages this safe access, but only if the configuration is accessed in a way that enables it to do so.  There are a number of ways a configuration might be resolved unsafely and Gradle will produce a warning of the unsafe access.  For example:
+
+* A task directly resolves a configuration in another project.
+* A task specifies a configuration in another project as an input file collection.
+* A build script for a project resolves a configuration in another project during evaluation.
+* A configuration is resolved in a user-managed thread (i.e. a thread not managed by Gradle).
+
+If an unsafe access deprecation warning is encountered, it should be fixed.  If not, it may result in confusing and indeterminate errors in other places in the build.
+
+In most cases, these can be fixed by defining a configuration in the project where the resolution is occurring and setting it to link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom-org.gradle.api.artifacts.Configuration...-[extend from] the configuration in the other project.  This allows gradle to manage the cross-project access and safely resolve the configuration in a parallel-enabled build.
+
+Resolving a configuration from a user-managed thread, on the other hand, is not supported.  To ensure that the configuration is resolved safely, it should be resolved in a Gradle-managed thread first.  Then, only the result should be used in the user-managed thread.
+
