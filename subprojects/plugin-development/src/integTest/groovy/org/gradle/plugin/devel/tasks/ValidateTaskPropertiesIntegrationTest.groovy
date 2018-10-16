@@ -377,4 +377,36 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "validateTaskProperties"
     }
+
+    def "can enable stricter validation"() {
+        buildFile << """
+            apply plugin: "groovy"
+
+            dependencies {
+                compile localGroovy()
+            }
+            
+            validateTaskProperties.enableStricterValidation = true
+        """
+        file("src/main/groovy/MyTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class MyTask extends DefaultTask {
+                @InputFile
+                File missingNormalization
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'missingNormalization' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+        """.stripIndent().trim()
+    }
 }
