@@ -176,7 +176,7 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
-    fun `#configureWithGroovy can dispatch keyword arguments against GroovyObject`() {
+    fun `#withGroovyBuilder can dispatch keyword arguments against GroovyObject`() {
 
         val expectedInvokeResult = Any()
         val delegate = mock<GroovyObject> {
@@ -199,7 +199,7 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
-    fun `#configureWithGroovy allow nested invocations against GroovyObject`() {
+    fun `#withGroovyBuilder allow nested invocations against GroovyObject`() {
 
         val expectedNestedInvokeResult = Any()
         val nestedDelegate = mock<GroovyObject> {
@@ -242,7 +242,7 @@ class GroovyInteroperabilityTest {
     }
 
     @Test
-    fun `#configureWithGroovy can dispatch keyword arguments against non GroovyObject`() {
+    fun `#withGroovyBuilder can dispatch keyword arguments against non GroovyObject`() {
 
         val expectedInvokeResult = Any()
         val delegate = mock<NonGroovyObject> {
