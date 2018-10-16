@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import java.io.File;
+
 /**
- * Empty interface for now to signal a dependency on an artifact transformation.
+ * Invokes a transformer on a single primary input.
  */
-public interface ArtifactTransformDependency {
+public interface TransformerInvoker {
+    void invoke(TransformerInvocation invocation);
+    boolean hasCachedResult(File primaryInput, Transformer transformer);
 }

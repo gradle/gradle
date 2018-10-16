@@ -28,13 +28,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultTransformNodeFactory implements TransformNodeFactory {
-    private final Map<ArtifactTransformKey, TransformNode> transformations = Maps.newConcurrentMap();
+public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
+    private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer) {
-        final List<UserCodeBackedTransformer> transformerChain = unpackTransformerChain(transformer);
-        final ImmutableList.Builder<TransformNode> builder = ImmutableList.builder();
+    public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation) {
+        final List<TransformationStep> transformationChain = unpackTransformation(transformation);
+        final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
             @Override
             public boolean visitArtifactSet(ResolvedArtifactSet set) {
@@ -46,35 +46,35 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
                         BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
                 }
                 BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                TransformNode transformNode = getOrCreate(singleArtifactSet, transformerChain);
-                builder.add(transformNode);
+                TransformationNode transformationNode = getOrCreate(singleArtifactSet, transformationChain);
+                builder.add(transformationNode);
                 return true;
             }
         });
         return builder.build();
     }
 
-    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<UserCodeBackedTransformer> transformerChain) {
-        ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
-        TransformNode transformNode = transformations.get(key);
-        if (transformNode == null) {
-            if (transformerChain.size() == 1) {
-                transformNode = TransformNode.initial(transformerChain.iterator().next(), singleArtifactSet);
+    private TransformationNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<TransformationStep> transformationChain) {
+        ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformationChain);
+        TransformationNode transformationNode = transformations.get(key);
+        if (transformationNode == null) {
+            if (transformationChain.size() == 1) {
+                transformationNode = TransformationNode.initial(transformationChain.iterator().next(), singleArtifactSet);
             } else {
-                TransformNode previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
-                transformNode = TransformNode.chained(transformerChain.get(transformerChain.size() - 1), previous, singleArtifactSet.getArtifactId());
+                TransformationNode previous = getOrCreate(singleArtifactSet, transformationChain.subList(0, transformationChain.size() - 1));
+                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous);
             }
-            transformations.put(key, transformNode);
+            transformations.put(key, transformationNode);
         }
-        return transformNode;
+        return transformationNode;
     }
 
-    private static List<UserCodeBackedTransformer> unpackTransformerChain(ArtifactTransformer transformer) {
-        final ImmutableList.Builder<UserCodeBackedTransformer> builder = ImmutableList.builder();
-        transformer.visitLeafTransformers(new Action<ArtifactTransformer>() {
+    private static List<TransformationStep> unpackTransformation(Transformation transformation) {
+        final ImmutableList.Builder<TransformationStep> builder = ImmutableList.builder();
+        transformation.visitTransformationSteps(new Action<TransformationStep>() {
             @Override
-            public void execute(ArtifactTransformer transformer) {
-                builder.add((UserCodeBackedTransformer) transformer);
+            public void execute(TransformationStep transformation) {
+                builder.add(transformation);
             }
         });
         return builder.build();
@@ -82,11 +82,11 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
 
     private static class ArtifactTransformKey {
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final List<UserCodeBackedTransformer> transformers;
+        private final List<TransformationStep> transformations;
 
-        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<UserCodeBackedTransformer> transformers) {
+        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<TransformationStep> transformations) {
             this.artifactIdentifier = artifactIdentifier;
-            this.transformers = transformers;
+            this.transformations = transformations;
         }
 
         @Override
@@ -103,13 +103,13 @@ public class DefaultTransformNodeFactory implements TransformNodeFactory {
             if (!artifactIdentifier.equals(that.artifactIdentifier)) {
                 return false;
             }
-            return transformers.equals(that.transformers);
+            return transformations.equals(that.transformations);
         }
 
         @Override
         public int hashCode() {
             int result = artifactIdentifier.hashCode();
-            result = 31 * result + transformers.hashCode();
+            result = 31 * result + transformations.hashCode();
             return result;
         }
     }

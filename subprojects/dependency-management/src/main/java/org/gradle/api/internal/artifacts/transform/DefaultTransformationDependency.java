@@ -20,17 +20,17 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 @NonNullApi
-public class DefaultArtifactTransformDependency implements ArtifactTransformDependency {
-    private final ArtifactTransformer transform;
+public class DefaultTransformationDependency implements TransformationDependency {
+    private final Transformation transformation;
     private final ResolvedArtifactSet artifacts;
 
-    public DefaultArtifactTransformDependency(ArtifactTransformer transform, ResolvedArtifactSet artifacts) {
-        this.transform = transform;
+    public DefaultTransformationDependency(Transformation transformation, ResolvedArtifactSet artifacts) {
+        this.transformation = transformation;
         this.artifacts = artifacts;
     }
 
-    public ArtifactTransformer getTransform() {
-        return transform;
+    public Transformation getTransformation() {
+        return transformation;
     }
 
     public ResolvedArtifactSet getArtifacts() {
@@ -46,9 +46,9 @@ public class DefaultArtifactTransformDependency implements ArtifactTransformDepe
             return false;
         }
 
-        DefaultArtifactTransformDependency that = (DefaultArtifactTransformDependency) o;
+        DefaultTransformationDependency that = (DefaultTransformationDependency) o;
 
-        if (!transform.equals(that.transform)) {
+        if (!transformation.equals(that.transformation)) {
             return false;
         }
         return artifacts.equals(that.artifacts);
@@ -56,7 +56,7 @@ public class DefaultArtifactTransformDependency implements ArtifactTransformDepe
 
     @Override
     public int hashCode() {
-        int result = transform.hashCode();
+        int result = transformation.hashCode();
         result = 31 * result + artifacts.hashCode();
         return result;
     }

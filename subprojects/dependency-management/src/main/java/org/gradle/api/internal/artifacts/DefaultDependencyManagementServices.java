@@ -64,10 +64,12 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
+import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
+import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -138,8 +140,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiatorFactory.decorate().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
         }
 
-        VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, transformedFileCache, isolatableFactory, classLoaderHierarchyHasher);
+        TransformerInvoker createTransformerInvoker(CachingTransformerExecutor cachingTransformerExecutor, ArtifactTransformListener artifactTransformListener) {
+            return new DefaultTransformerInvoker(cachingTransformerExecutor, artifactTransformListener);
+        }
+
+        VariantTransformRegistry createVariantTransforms(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {
+            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
@@ -285,8 +291,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildState currentBuild,
-                                                       ArtifactTransformListener transformListener) {
+                                                       BuildState currentBuild) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -302,8 +307,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributesSchema,
                                     attributesFactory),
                                 attributesSchema,
-                                attributesFactory,
-                                transformListener
+                                attributesFactory
                             ),
                             moduleIdentifierFactory,
                             buildOperationExecutor,

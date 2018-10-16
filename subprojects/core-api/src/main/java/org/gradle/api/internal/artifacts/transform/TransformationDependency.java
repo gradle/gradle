@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-
-import java.util.Collection;
-
-public interface TransformNodeFactory {
-    Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
+/**
+ * Empty interface for now to signal a dependency on an artifact transformation.
+ */
+public interface TransformationDependency {
 }

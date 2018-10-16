@@ -17,16 +17,25 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.util.BiFunction;
 
-public interface ArtifactTransformListener {
+import java.io.File;
+import java.util.List;
+
+/**
+ * The actual code which needs to be executed to transform a file.
+ *
+ * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
+ */
+public interface Transformer extends BiFunction<List<File>, File, File>, Describable {
+    Class<? extends ArtifactTransform> getImplementationClass();
 
     /**
-     * This method is called immediately before a transformer is invoked.
+     * The hash of the secondary inputs of the transformer.
+     *
+     * This includes the parameters and the implementation.
      */
-    void beforeTransformerInvocation(Describable transformer, Describable subject);
-
-    /**
-     * This method is call immediately after a transformer has been invoked.
-     */
-    void afterTransformerInvocation(Describable transformer, Describable subject);
+    HashCode getSecondaryInputHash();
 }

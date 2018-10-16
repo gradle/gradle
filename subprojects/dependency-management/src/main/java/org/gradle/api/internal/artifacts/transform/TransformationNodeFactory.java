@@ -16,17 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Describable;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
-public interface ArtifactTransformListener {
+import java.util.Collection;
 
-    /**
-     * This method is called immediately before a transformer is invoked.
-     */
-    void beforeTransformerInvocation(Describable transformer, Describable subject);
-
-    /**
-     * This method is call immediately after a transformer has been invoked.
-     */
-    void afterTransformerInvocation(Describable transformer, Describable subject);
+public interface TransformationNodeFactory {
+    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation);
 }

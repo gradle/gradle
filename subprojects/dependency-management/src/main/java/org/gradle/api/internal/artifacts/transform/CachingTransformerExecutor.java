@@ -18,21 +18,16 @@ package org.gradle.api.internal.artifacts.transform;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
 import java.util.List;
 
 @ThreadSafe
-public interface TransformedFileCache {
+public interface CachingTransformerExecutor {
     /**
-     * Returns the result of applying the given transform to the given file.
-     *
-     * @param inputFile The file to transform
-     * @param inputsHash The hash of the other inputs of the transform, such as transform implementation and configuration, but excluding the input file.
-     * @param transformer The transformer to apply to produce the output, if not already available
+     * Returns the result of applying the given transformer to the given file.
      */
-    List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer);
+    List<File> getResult(File primaryInput, Transformer transformer);
 
     boolean contains(File absoluteFile, HashCode inputsHash);
 }

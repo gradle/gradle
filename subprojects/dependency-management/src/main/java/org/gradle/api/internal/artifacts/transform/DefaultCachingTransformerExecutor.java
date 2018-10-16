@@ -61,7 +61,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORM
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
+public class DefaultCachingTransformerExecutor implements CachingTransformerExecutor, Stoppable, RootBuildLifecycleListener {
 
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
     private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
@@ -74,8 +74,8 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final FileAccessTracker fileAccessTracker;
 
-    public DefaultTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                       FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
+    public DefaultCachingTransformerExecutor(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+                                             FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
@@ -119,16 +119,17 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer) {
-        final CacheKey resultHash = getCacheKey(inputFile, inputsHash);
-        List<File> files = resultHashToResult.get(resultHash);
-        if (files != null) {
-            return files;
+    public List<File> getResult(File primaryInput, Transformer transformer) {
+        File absolutePrimaryInput = primaryInput.getAbsoluteFile();
+        CacheKey cacheKey = getCacheKey(absolutePrimaryInput, transformer);
+        List<File> transformedFiles = resultHashToResult.get(cacheKey);
+        if (transformedFiles != null) {
+            return transformedFiles;
         }
-        return loadIntoCache(inputFile, resultHash, transformer);
+        return loadIntoCache(absolutePrimaryInput, cacheKey, transformer);
     }
 
-    /*
+    /**
      * Loads the transformed files from the file system cache into memory. Creates them if they are not present yet.
      * This makes sure that only one thread tries to load a result for a given key.
      */
@@ -176,6 +177,10 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
                 return files;
             }
         });
+    }
+    
+    private CacheKey getCacheKey(File primaryInput, Transformer transformer) {
+        return getCacheKey(primaryInput, transformer.getSecondaryInputHash());
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {

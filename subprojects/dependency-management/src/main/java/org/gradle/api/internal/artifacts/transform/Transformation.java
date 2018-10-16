@@ -19,23 +19,25 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 
-import java.io.File;
-import java.util.List;
-
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
+ *
+ * This can encapsulate a single transformation step using a single transformer or a chain of transformation steps.
  */
-public interface ArtifactTransformer extends Describable {
-
-    /*
-     * Transforms the given input file. May call the underlying user-provided transform or retrieve a cached value.
-     */
-    List<File> transform(File input);
+public interface Transformation extends Describable {
 
     /**
-     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(File)} will be fast.
+     * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
      */
-    boolean hasCachedResult(File input);
+    TransformationSubject transform(TransformationSubject subject);
 
-    void visitLeafTransformers(Action<? super ArtifactTransformer> action);
+    /**
+     * Returns true if there is a cached result in memory, meaning that a call to {@link #transform(TransformationSubject)} will be fast.
+     */
+    boolean hasCachedResult(TransformationSubject subject);
+
+    /**
+     * Extract the transformation steps from this transformation.
+     */
+    void visitTransformationSteps(Action<? super TransformationStep> action);
 }
