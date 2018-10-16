@@ -53,6 +53,7 @@ public class DaemonParameters {
     private boolean foreground;
     private boolean stop;
     private boolean status;
+    private Priority priority = Priority.NORMAL;
     private JavaInfo jvm = Jvm.current();
 
     public DaemonParameters(BuildLayoutParameters layout) {
@@ -206,5 +207,18 @@ public class DaemonParameters {
 
     public Map<String, String> getEnvironmentVariables() {
         return envVariables;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public enum Priority {
+        LOW,
+        NORMAL,
     }
 }

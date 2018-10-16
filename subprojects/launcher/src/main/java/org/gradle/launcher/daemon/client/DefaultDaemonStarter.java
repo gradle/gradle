@@ -27,6 +27,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -93,6 +95,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         versionValidator.validate(daemonParameters);
 
         List<String> daemonArgs = new ArrayList<String>();
+        daemonArgs.addAll(getPriorityArgs(daemonParameters.getPriority()));
         daemonArgs.add(daemonParameters.getEffectiveJvm().getJavaExecutable().getAbsolutePath());
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
@@ -119,6 +122,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeSmallInt(daemonParameters.getPeriodicCheckInterval());
             encoder.writeBoolean(singleUse);
             encoder.writeString(daemonUid);
+            encoder.writeSmallInt(daemonParameters.getPriority().ordinal());
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);
@@ -134,6 +138,20 @@ public class DefaultDaemonStarter implements DaemonStarter {
         InputStream stdInput = buffer.getInputStream();
 
         return startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
+    }
+
+    private List<String> getPriorityArgs(DaemonParameters.Priority priority) {
+        if (priority == DaemonParameters.Priority.NORMAL) {
+            return Collections.emptyList();
+        }
+        OperatingSystem os = OperatingSystem.current();
+        if (os.isUnix()) {
+            return Arrays.asList("nice", "-n", "10");
+        } else if (os.isWindows()) {
+            return Arrays.asList("cmd", "/C", "start", "\"Gradle build daemon\"", "/B", "/belownormal", "/WAIT");
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {

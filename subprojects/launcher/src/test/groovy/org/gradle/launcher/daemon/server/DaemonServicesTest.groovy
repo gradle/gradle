@@ -19,6 +19,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo
@@ -34,10 +35,10 @@ class DaemonServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
-    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, asList()),
+    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, DaemonParameters.Priority.NORMAL, asList()),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
-    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, true, asList()),
+    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, true, DaemonParameters.Priority.NORMAL, asList()),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
 
