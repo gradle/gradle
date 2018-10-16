@@ -37,9 +37,7 @@ import spock.lang.Retry
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.performance.regression.inception.GradleInceptionPerformanceTest.extraGradleBuildArguments
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 /**
  * Test Gradle's build performance against current Gradle.
@@ -87,7 +85,7 @@ class GradleBuildPerformanceTest extends Specification {
                 super.defaultSpec(builder)
                 builder.workingDirectory = temporaryFolder.testDirectory
                 if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}", "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}", "-I", createMirrorInitScript().absolutePath)
+                    builder.invocation.args(extraGradleBuildArguments() as String[])
                 }
             }
         }
