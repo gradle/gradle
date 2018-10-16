@@ -110,8 +110,8 @@ import java.util.Map;
  * @since 3.0
  */
 @CacheableTask
-@SuppressWarnings("WeakerAccess")
-public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
+@SuppressWarnings("deprecation")
+public class ValidateTaskProperties extends ConventionTask implements VerificationTask, org.gradle.plugin.devel.tasks.internal.ValidateTaskPropertiesBackwardsCompatibleAdapter {
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
@@ -283,6 +283,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      *
      * @since 4.0
      */
+    @Override
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
@@ -304,6 +305,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     /**
      * The classpath used to load the classes under validation.
      */
+    @Override
     @Classpath
     public ConfigurableFileCollection getClasspath() {
         return classpath;
@@ -330,7 +332,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     /**
      * Enable the stricter validation for cacheable tasks for all tasks.
      *
-     * @since 5.0
+     * @since 5.1
      */
     @Incubating
     @Input
