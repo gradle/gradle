@@ -1,4 +1,5 @@
 dependencies {
+    api(kotlin("stdlib"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
