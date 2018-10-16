@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.impl.steps;
 
-package org.gradle.internal.execution;
-
-public interface UnitOfWork {
-    WorkIdentifier getIdentifier();
-//    void visitInputs(InputVisitor inputVisitor);
-//    void visitOutputs(OutputVisitor outputVisitor);
-    boolean execute();
-
-//    interface InputVisitor {
-//        void visitType(Class<?> type);
-//
-//        void visitInput(InputProperty input);
-//
-//        void visitFileInput(InputFileProperty input);
-//    }
-//
-//    interface OutputVisitor {
-//        void visitOutput(OutputFileProperty output);
-//    }
-}
+import org.gradle.api.NonNullApi;

@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl;
+package org.gradle.internal.execution.impl.steps;
 
-public class AfterPreviousExecutionSnapshot extends AbstractExecutionSnapshot {
+import org.gradle.internal.execution.UnitOfWork;
+
+public class ExecuteStep {
+    public void execute(UnitOfWork unitOfWork) {
+
+    }
 }

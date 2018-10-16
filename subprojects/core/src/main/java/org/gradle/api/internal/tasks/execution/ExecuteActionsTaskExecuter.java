@@ -84,7 +84,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             try {
                 executeAction(action.getDisplayName(), task, action, context);
                 if (buildCancellationToken.isCancellationRequested()) {
-                    return new BuildCancelledException("Build cancelled during task: " + task.getName());
+                    return new BuildCancelledException("Build cancelled during executing " + task);
                 }
             } catch (StopActionException e) {
                 // Ignore
