@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
@@ -29,6 +28,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -45,12 +45,12 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultSwiftXCTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
-        debuggerExecutableFile = projectLayout.fileProperty();
+    public DefaultSwiftXCTestExecutable(Names names, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        debuggerExecutableFile = objectFactory.fileProperty();
         linkTask = objectFactory.property(LinkExecutable.class);
         installTask = objectFactory.property(InstallExecutable.class);
-        files = fileOperations.files();
+        files = fileOperations.configurableFiles();
     }
 
     @Override

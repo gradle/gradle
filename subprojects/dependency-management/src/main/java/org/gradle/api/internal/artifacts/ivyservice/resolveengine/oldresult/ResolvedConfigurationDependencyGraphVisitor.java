@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 /**
@@ -30,7 +31,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
  */
 public class ResolvedConfigurationDependencyGraphVisitor implements DependencyArtifactsVisitor {
     private final ResolvedConfigurationBuilder builder;
-    private DependencyGraphNode root;
+    private RootGraphNode root;
 
     public ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder) {
         this.builder = builder;
@@ -50,7 +51,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
     }
 
     @Override
-    public void startArtifacts(DependencyGraphNode root) {
+    public void startArtifacts(RootGraphNode root) {
         this.root = root;
     }
 

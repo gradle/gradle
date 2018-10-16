@@ -75,7 +75,7 @@ class SwiftApplicationPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(SwiftCompile).name == ['compileDebugSwift', 'compileReleaseSwift']
+        project.tasks.withType(SwiftCompile)*.name == ['compileDebugSwift', 'compileReleaseSwift']
 
         and:
         def compileDebug = project.tasks.compileDebugSwift

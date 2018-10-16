@@ -19,7 +19,6 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import spock.lang.Ignore
 
 class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -60,41 +59,143 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         buildOperations.first('Configure build').id == loadProjectsBuildOperation.parentId
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/3873")
-    def "build operations for composite builds are fired and build path is exposed"() {
+    def "operations are fired for complex nest of builds"() {
+        settingsFile << """
+            rootProject.name = "root-changed"
+            includeBuild 'nested'
+        """
         buildFile << """
             apply plugin:'java'
-            
             dependencies {
-                compile 'org.acme:nested:+'
+                compile 'org.acme:nested-changed:+'
             }
         """
-        def nestedSettings = file("nested/settings.gradle")
-        nestedSettings.text = "rootProject.name = 'nested'"
-        file("nested/build.gradle").text = """
-            apply plugin: 'java'
-            group = 'org.acme'
-        """
-        when:
-        succeeds('build', '--include-build', 'nested')
 
-        def loadBuildBuildOperations = buildOperations.all(LoadBuildBuildOperationType)
-        def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
-        def configureBuildBuildOperations = buildOperations.all(ConfigureBuildBuildOperationType)
-        def loadProjectsBuildOperations = buildOperations.all(LoadProjectsBuildOperationType)
+        createDir("buildSrc") {
+            file("settings.gradle") << "rootProject.name = 'buildsrc-changed'"
+            file('build.gradle') << ""
+            dir("buildSrc") {
+                file("settings.gradle") << "rootProject.name = 'buildsrc-buildsrc-changed'"
+                file('build.gradle') << ""
+            }
+        }
+
+        createDir("nested") {
+            file("settings.gradle") << """
+                rootProject.name = "nested-changed"
+                includeBuild "nested-nested"
+            """
+            file("build.gradle") << """
+                apply plugin: 'java'
+                group = 'org.acme'
+            """
+            dir("buildSrc") {
+                file("settings.gradle") << "rootProject.name = 'nested-buildsrc-changed'"
+                file('build.gradle') << ""
+                dir("buildSrc") {
+                    file("settings.gradle") << "rootProject.name = 'nested-buildsrc-buildsrc-changed'"
+                    file('build.gradle') << ""
+                }
+            }
+
+            dir("nested-nested") {
+                file("settings.gradle") << """ rootProject.name = "nested-nested-changed" """
+                dir("buildSrc") {
+                    file("settings.gradle") << "rootProject.name = 'nested-nested-buildsrc-changed'"
+                    file('build.gradle') << ""
+                    dir("buildSrc") {
+                        file("settings.gradle") << "rootProject.name = 'nested-nested-buildsrc-buildsrc-changed'"
+                        file('build.gradle') << ""
+                    }
+                }
+            }
+        }
+
+        createDir("nested-cli") {
+            file("settings.gradle") << """
+                rootProject.name = "nested-cli-changed"
+                includeBuild "nested-cli-nested"
+            """
+            dir("buildSrc") {
+                file("settings.gradle") << "rootProject.name = 'nested-cli-buildsrc-changed'"
+                file('build.gradle') << ""
+                dir("buildSrc") {
+                    file("settings.gradle") << "rootProject.name = 'nested-cli-buildsrc-buildsrc-changed'"
+                    file('build.gradle') << ""
+                }
+            }
+
+            dir("nested-cli-nested") {
+                file("settings.gradle") << """ rootProject.name = "nested-cli-nested-changed" """
+                dir("buildSrc") {
+                    file("settings.gradle") << "rootProject.name = 'nested-cli-nested-buildsrc-changed'"
+                    file('build.gradle') << ""
+                    dir("buildSrc") {
+                        file("settings.gradle") << "rootProject.name = 'nested-cli-nested-buildsrc-buildsrc-changed'"
+                        file('build.gradle') << ""
+                    }
+                }
+            }
+        }
+
+        when:
+        succeeds('build', '--include-build', 'nested-cli')
 
         then:
-        loadBuildBuildOperations*.details.buildPath == [':nested', ':']
-        loadBuildBuildOperations*.result.isEmpty() == [true, true]
+        def loadBuildBuildOperations = buildOperations.all(LoadBuildBuildOperationType)
+        loadBuildBuildOperations*.details.buildPath == [
+            ":", ":buildSrc", ":buildSrc:buildSrc",
+            ":nested-changed", ":nested:buildSrc", ":nested:buildSrc:buildSrc",
+            ":nested-cli-changed", ":nested-cli:buildSrc", ":nested-cli:buildSrc:buildSrc",
+            ":nested-nested-changed", ":nested-nested:buildSrc", ":nested-nested:buildSrc:buildSrc",
+            ":nested-cli-nested-changed", ":nested-cli-nested:buildSrc", ":nested-cli-nested:buildSrc:buildSrc"
+        ]
 
-        evaluateSettingsBuildOperations*.details.buildPath == [':nested', ':']
-        evaluateSettingsBuildOperations*.result.isEmpty() == [true, true]
+        loadBuildBuildOperations*.details.includedBy == [
+            null, ":", ":buildSrc",
+            ":", ":nested-changed", ":nested:buildSrc",
+            ":", ":nested-cli-changed", ":nested-cli:buildSrc",
+            ":nested-changed", ":nested-nested-changed", ":nested-nested:buildSrc",
+            ":nested-cli-changed", ":nested-cli-nested-changed", ":nested-cli-nested:buildSrc"
+        ]
 
-        configureBuildBuildOperations*.details.buildPath == [':nested', ':']
-        configureBuildBuildOperations*.result.isEmpty() == [true, true]
+        def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
+        evaluateSettingsBuildOperations*.details.buildPath == [
+            ":buildSrc:buildSrc", ":buildSrc", ":",
+            ":nested:buildSrc:buildSrc", ":nested:buildSrc", ":nested-changed",
+            ":nested-cli:buildSrc:buildSrc", ":nested-cli:buildSrc", ":nested-cli-changed",
+            ":nested-nested:buildSrc:buildSrc", ":nested-nested:buildSrc", ":nested-nested-changed",
+            ":nested-cli-nested:buildSrc:buildSrc", ":nested-cli-nested:buildSrc", ":nested-cli-nested-changed",
+        ]
 
-        loadProjectsBuildOperations*.details.buildPath == [':nested', ':']
-        loadProjectsBuildOperations*.result.rootProject.projectDir == [nestedSettings.parent, settingsFile.parent]
+        def configureOrder = [
+            ":buildSrc:buildSrc", ":buildSrc",
+            ":nested:buildSrc:buildSrc", ":nested:buildSrc",
+            ":nested-cli:buildSrc:buildSrc", ":nested-cli:buildSrc",
+            ":nested-nested:buildSrc:buildSrc", ":nested-nested:buildSrc",
+            ":nested-cli-nested:buildSrc:buildSrc", ":nested-cli-nested:buildSrc",
+            ":",
+            ":nested-changed",
+            ":nested-cli-changed",
+            ":nested-nested-changed",
+            ":nested-cli-nested-changed"
+        ]
+
+        def configureBuildBuildOperations = buildOperations.all(ConfigureBuildBuildOperationType)
+        configureBuildBuildOperations*.details.buildPath == configureOrder
+        def loadProjectsBuildOperations = buildOperations.all(LoadProjectsBuildOperationType)
+        loadProjectsBuildOperations*.details.buildPath == configureOrder
+
+        def dirs = configureOrder
+            .collect { it.substring(1) } // strip leading :
+            .collect { it.replaceAll(":", "/") }
+            .collect { it.replaceAll("-changed", "") }
+            .collect { it.replaceAll("nested-nested", "nested/nested-nested") }
+            .collect { it.replaceAll("nested-cli-nested", "nested-cli/nested-cli-nested") }
+            .collect { it ? file(it) : testDirectory }
+            .collect { it.absolutePath }
+
+        loadProjectsBuildOperations*.result.rootProject.projectDir == dirs
     }
 
 }

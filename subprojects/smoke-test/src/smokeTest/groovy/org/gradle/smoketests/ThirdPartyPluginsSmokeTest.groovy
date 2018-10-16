@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -62,7 +63,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':shadowJar').outcome == SUCCESS
 
         where:
-        version << ["1.2.4", "2.0.3"]
+        version << TestedVersions.shadow
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
@@ -72,7 +73,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.7"
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:${TestedVersions.asciidoctor}"
                 }
             }
 
@@ -101,7 +102,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'java'
                 id 'application'
-                id "com.bmuschko.docker-java-application" version "3.2.5"
+                id "com.bmuschko.docker-java-application" version "${TestedVersions.docker}"
             }
 
             mainClassName = 'org.gradle.JettyMain'
@@ -128,7 +129,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '1.0.4.RELEASE'
+                id 'io.spring.dependency-management' version '${TestedVersions.springDependencyManagement}'
             }
 
             ${mavenCentralRepository()}
@@ -152,12 +153,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')
     }
 
-    @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin/2.0.0.RELEASE')
+    @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
         given:
         buildFile << """
             plugins {
-                id "org.springframework.boot" version "2.0.0.RELEASE"
+                id "org.springframework.boot" version "${TestedVersions.springBoot}"
             }
         """.stripIndent()
 
@@ -177,45 +178,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':buildEnvironment').outcome == SUCCESS
     }
 
-    @Issue(["gradle/gradle#2480", "https://plugins.gradle.org/plugin/io.spring.dependency-management"])
-    def "spring dependency management plugin and BOM"() {
-        given:
-        buildFile << """
-            buildscript {    
-                ${mavenCentralRepository()}
-            }
-            
-            plugins { 
-                id 'java'
-                id 'io.spring.dependency-management' version '1.0.4.RELEASE' 
-            }
-            
-            ${mavenCentralRepository()}
-            
-            dependencies {
-                compile('org.springframework.boot:spring-boot-starter')
-                testCompile('org.springframework.boot:spring-boot-starter-test')
-            }
-            
-            dependencyManagement {
-                imports { mavenBom("org.springframework.boot:spring-boot-dependencies:1.5.2.RELEASE") }
-            }
-            
-            task resolveDependencies {
-                doLast {
-                    configurations.compile.files
-                    configurations.testCompile.files
-                }
-            }
-        """
-
-        when:
-        runner('resolveDependencies').build()
-
-        then:
-        noExceptionThrown()
-    }
-
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
     def 'tomcat plugin'() {
         given:
@@ -224,7 +186,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         def stopPort = portAllocator.assignPort()
         buildFile << """
             plugins {
-                id "com.bmuschko.tomcat" version "2.5"
+                id "com.bmuschko.tomcat" version "${TestedVersions.tomcat}"
             }
 
             ${mavenCentralRepository()}
@@ -273,17 +235,18 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.gosu-lang.gosu')
+    @Ignore("Relies on SourceTask.source - https://github.com/gosu-lang/gradle-gosu-plugin/issues/47")
     def 'gosu plugin'() { // Requires JDK 8 or later
         given:
         buildFile << """
             plugins {
-                id 'org.gosu-lang.gosu' version '0.3.6'
+                id 'org.gosu-lang.gosu' version '${TestedVersions.gosu}'
             }
 
             ${mavenCentralRepository()}
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.9'
             }
             """.stripIndent()
 
@@ -306,43 +269,13 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':compileGosu').outcome == SUCCESS
     }
 
-    @Issue('https://plugins.gradle.org/plugin/org.xtext.xtend')
-    def 'xtend plugin'() {
-        given:
-        buildFile << """
-            plugins {
-                id "org.xtext.xtend" version "1.0.21"
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
-            }
-            """.stripIndent()
-
-        file('src/main/java/HelloWorld.xtend') << """
-            class HelloWorld {
-                def static void main(String[] args) {
-                    println("Hello World")
-                }
-            }
-            """
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':generateXtext').outcome == SUCCESS
-    }
-
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     def 'org.ajoberstar.grgit plugin'() {
         given:
         GitFileRepository.init(testProjectDir.root)
         buildFile << """
             plugins {
-                id "org.ajoberstar.grgit" version "2.1.1"
+                id "org.ajoberstar.grgit" version "${TestedVersions.grgit}"
             }
 
             def sourceFile = file("sourceFile")

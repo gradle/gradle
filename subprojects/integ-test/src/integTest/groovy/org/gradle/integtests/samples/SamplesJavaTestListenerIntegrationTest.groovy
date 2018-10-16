@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,8 +29,13 @@ class SamplesJavaTestListenerIntegrationTest extends  AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/testListener')
 
+    @Before
+    void setup() {
+        executer.withRepositoryMirrors()
+    }
+
     @Test
-    public void runsBuildAndShowsFailedTests() {
+    void runsBuildAndShowsFailedTests() {
         TestFile javaprojectDir = sample.dir
 
         // Build and test projects

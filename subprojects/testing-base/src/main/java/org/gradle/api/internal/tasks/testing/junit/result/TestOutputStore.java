@@ -125,7 +125,7 @@ public class TestOutputStore {
 
             Region streamRegion = isStdout ? region.stdOutRegion : region.stdErrRegion;
 
-            int total = output.getWritePosition();
+            long total = output.getWritePosition();
             if (streamRegion.start < 0) {
                 streamRegion.start = total;
             }

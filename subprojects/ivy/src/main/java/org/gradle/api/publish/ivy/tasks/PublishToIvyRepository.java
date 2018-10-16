@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
@@ -39,7 +38,6 @@ import java.util.concurrent.Callable;
  *
  * @since 1.3
  */
-@Incubating
 public class PublishToIvyRepository extends DefaultTask {
 
     private IvyPublicationInternal publication;
@@ -51,7 +49,7 @@ public class PublishToIvyRepository extends DefaultTask {
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
                 IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
             }
         }).withPropertyName("publication.publishableFiles");
 

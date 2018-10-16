@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 
 import java.io.File;
 import java.util.Collection;
@@ -34,14 +35,16 @@ import java.util.Set;
 
 class IncrementalCompilationInitializer {
     private final FileOperations fileOperations;
+    private final FileTree sourceTree;
 
-    public IncrementalCompilationInitializer(FileOperations fileOperations) {
+    public IncrementalCompilationInitializer(FileOperations fileOperations, FileTree sourceTree) {
         this.fileOperations = fileOperations;
+        this.sourceTree = sourceTree;
     }
 
     public void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
-            spec.setSource(new SimpleFileCollection());
+            spec.setSourceFiles(ImmutableSet.<File>of());
             spec.setClasses(Collections.<String>emptySet());
             return;
         }
@@ -50,15 +53,16 @@ class IncrementalCompilationInitializer {
         PatternSet sourceToCompile = patternSetFactory.create();
 
         preparePatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile);
-        narrowDownSourcesToCompile(spec, sourceToCompile);
+        spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
         deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
+        deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory());
     }
 
-    private void narrowDownSourcesToCompile(JavaCompileSpec spec, PatternSet sourceToCompile) {
-        spec.setSource(spec.getSource().getAsFileTree().matching(sourceToCompile));
+    private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
+        return sourceTree.matching(sourceToCompile);
     }
 
     private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
@@ -74,21 +78,25 @@ class IncrementalCompilationInitializer {
         spec.setClasses(classesToProcess);
     }
 
-    private void deleteStaleFilesIn(PatternSet classesToDelete, File destinationDir) {
+    private void deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {
         if (destinationDir == null) {
             return;
         }
-        FileTree deleteMe = fileOperations.fileTree(destinationDir).matching(classesToDelete);
-        fileOperations.delete(deleteMe);
+        Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(toDelete);
+        cleaner.addDirToClean(destinationDir);
+        cleaner.execute();
     }
 
-    void preparePatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
+    private void preparePatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
         for (String staleClass : staleClasses) {
             String path = staleClass.replaceAll("\\.", "/");
             filesToDelete.include(path.concat(".class"));
             filesToDelete.include(path.concat(".java"));
+            filesToDelete.include(path.concat(".h"));
             filesToDelete.include(path.concat("$*.class"));
             filesToDelete.include(path.concat("$*.java"));
+            filesToDelete.include(path.concat("$*.h"));
 
             sourceToCompile.include(path.concat(".java"));
             sourceToCompile.include(path.concat("$*.java"));

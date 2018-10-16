@@ -92,18 +92,43 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
         }
     }
 
+    @Override
+    public boolean hasUncompletedWork(BuildOperationRef operation) {
+        lock.lock();
+        try {
+            List<AsyncWorkCompletion> workItems = items.get(operation);
+            for (AsyncWorkCompletion workCompletion : workItems) {
+                if (!workCompletion.isComplete()) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
         final List<Throwable> failures = Lists.newArrayList();
         for (AsyncWorkCompletion item : workItems) {
             try {
                 item.waitForCompletion();
             } catch (Throwable t) {
+                if (Thread.currentThread().isInterrupted()) {
+                    cancel(workItems);
+                }
                 failures.add(t);
             }
         }
 
         if (failures.size() > 0) {
             throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+        }
+    }
+
+    private void cancel(Iterable<AsyncWorkCompletion> workItems) {
+        for (AsyncWorkCompletion workItem : workItems) {
+            workItem.cancel();
         }
     }
 

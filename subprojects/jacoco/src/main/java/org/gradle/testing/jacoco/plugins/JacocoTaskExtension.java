@@ -29,8 +29,10 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.Factory;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.RelativePathUtil;
 
 import javax.annotation.Nullable;
@@ -42,7 +44,6 @@ import java.util.List;
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
  */
-@Incubating
 public class JacocoTaskExtension {
 
     /**
@@ -121,6 +122,7 @@ public class JacocoTaskExtension {
      * @param destinationFile Destination file provider
      * @since 4.0
      */
+    @Incubating
     public void setDestinationFile(Provider<File> destinationFile) {
         this.destinationFile.set(destinationFile);
     }
@@ -130,15 +132,27 @@ public class JacocoTaskExtension {
     }
 
     /**
-     * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
+     * Whether or not data should be appended if the {@link #destinationFile} already exists. Defaults to {@code true}.
+     *
+     * @deprecated The Jacoco plugin now deletes the old coverage file before task execution, so the data will never be appended to an existing coverage file from another task.
+     * Use {@link org.gradle.testing.jacoco.tasks.JacocoMerge} to merge different execution files or use {@link org.gradle.testing.jacoco.tasks.JacocoReportBase#setExecutionData(FileCollection)} to generate a report from multiple execution files at once.
+     * Append is set to true for the agent since this allows multiple JVMs spawned by one task to write to the same {@link #destinationFile}.
      */
+    @Deprecated
     @Input
     public boolean isAppend() {
+        nagAboutDeprecatedAppendProperty();
         return append;
     }
 
+    @Deprecated
     public void setAppend(boolean append) {
+        nagAboutDeprecatedAppendProperty();
         this.append = append;
+    }
+
+    private void nagAboutDeprecatedAppendProperty() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("append", "Append should always be true.");
     }
 
     /**
@@ -303,6 +317,7 @@ public class JacocoTaskExtension {
      *
      * @since 4.6
      */
+    @Incubating
     @Classpath
     public FileCollection getAgentClasspath() {
         return agent.getAgentConf();
@@ -321,7 +336,12 @@ public class JacocoTaskExtension {
         builder.append(RelativePathUtil.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
         argument.append("destfile", getDestinationFile());
-        argument.append("append", isAppend());
+        argument.append("append", DeprecationLogger.whileDisabled(new Factory<Boolean>() {
+            @Override
+            public Boolean create() {
+                return isAppend();
+            }
+        }));
         argument.append("includes", getIncludes());
         argument.append("excludes", getExcludes());
         argument.append("exclclassloader", getExcludeClassLoaders());

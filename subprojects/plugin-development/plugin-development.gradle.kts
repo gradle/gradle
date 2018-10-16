@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +14,12 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
-    id("gradlebuild.strict-compile")
-    id("gradlebuild.classycle")
+    gradlebuild.`strict-compile`
+    gradlebuild.classycle
 }
 
 dependencies {
@@ -36,7 +37,7 @@ dependencies {
 
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
@@ -45,5 +46,5 @@ testFixtures {
 }
 
 testFilesCleanup {
-    isErrorWhenNotEmpty = false
+    policy.set(WhenNotEmpty.REPORT)
 }

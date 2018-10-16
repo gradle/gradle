@@ -17,6 +17,8 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
@@ -45,4 +47,16 @@ public class InvertedRenderableModuleResult extends RenderableModuleResult {
         }
         return new LinkedHashSet<RenderableDependency>(children.values());
     }
+
+    @Override
+    public String getName() {
+        String base = super.getName();
+        for (ComponentSelectionDescriptor descriptor : module.getSelectionReason().getDescriptions()) {
+            if (descriptor.getCause() == ComponentSelectionCause.CONFLICT_RESOLUTION) {
+                return base + " (" + descriptor.getCause().getDefaultReason() + " " + descriptor.getDescription() + ")";
+            }
+        }
+        return base;
+    }
+
 }

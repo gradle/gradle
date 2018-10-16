@@ -21,7 +21,7 @@ import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDescriptorParserTest {
 
-    def "a pom file with packaging=pom is a bom - dependencies declared in dependencyManagement block are treated as optional dependencies"() {
+    def "a pom file with packaging=pom is a bom - dependencies declared in dependencyManagement block are treated as optional non-transitive dependencies"() {
         given:
         pomFile << """
 <project>
@@ -51,7 +51,8 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '1.0')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
+        !dep.transitive
     }
 
     def "a bom can combine dependencies and dependencyManagement constraints"() {
@@ -91,12 +92,14 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         def depA = metadata.dependencies.find { it.selector.group == 'group-a'}
         depA.selector == moduleId('group-a', 'module-a', '1.0')
         !depA.optional
+        depA.transitive
         def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
         depB.selector == moduleId('group-b', 'module-b', '2.0')
-        depB.optional
+        depB.constraint
+        !depB.transitive
     }
 
-    def "a parent pom is not a bom - dependencies declared in dependencyManagement block are ignored"() {
+    def "dependency management block from parent pom is inherited"() {
         given:
         pomFile << """
 <project>
@@ -131,13 +134,16 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
 
         then:
-        metadata.dependencies.empty
+        metadata.dependencies.size() == 1
+        metadata.dependencies[0].constraint
+        metadata.dependencies[0].selector.module == 'module-b'
+        metadata.dependencies[0].selector.version == '1.0'
     }
 
     def "a bom can have a parent pom - dependencyManagement entries are combined"() {
@@ -186,7 +192,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
@@ -194,10 +200,12 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         then:
         def depC = metadata.dependencies.find { it.selector.group == 'group-c'}
         depC.selector == moduleId('group-c', 'module-c', '2.0')
-        depC.optional
+        depC.constraint
+        !depC.transitive
         def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
         depB.selector == moduleId('group-b', 'module-b', '1.0')
-        depB.optional
+        depB.constraint
+        !depB.transitive
     }
 
     def "an entry in the dependencyManagement block without version does not fail parsing"() {
@@ -229,10 +237,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
+        !dep.transitive
     }
 
-    def "a bom can declare an optional dependency with excludes"() {
+    def "a bom can declare a constraint with excludes"() {
         given:
         pomFile << """
 <project>
@@ -317,7 +326,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '1.0')
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
     }
 
     def "a bom can be composed of children and parents"() {
@@ -371,13 +380,13 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     </dependencyManagement>
 </project>
 """
-        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, _, MAVEN_POM) >> asResource(parent)
         when:
         parsePom()
 
         then:
         metadata.dependencies.size() == 3
-        metadata.dependencies.each { assert it.optional }
+        metadata.dependencies.each { assert it.constraint }
     }
 
     def "scopes defined in a bom are ignored"() {
@@ -411,6 +420,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.selector == moduleId('group-b', 'module-b', '1.0')
         dep.scope == MavenScope.Compile //compile is the 'default' scope
         hasDefaultDependencyArtifact(dep)
-        dep.optional
+        dep.constraint
+        !dep.transitive
     }
 }

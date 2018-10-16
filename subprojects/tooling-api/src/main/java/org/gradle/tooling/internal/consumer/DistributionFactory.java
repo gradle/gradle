@@ -184,7 +184,7 @@ public class DistributionFactory {
             });
             // Make sure file order is always consistent
             Arrays.sort(files);
-            return new DefaultClassPath(files);
+            return DefaultClassPath.of(files);
         }
     }
 

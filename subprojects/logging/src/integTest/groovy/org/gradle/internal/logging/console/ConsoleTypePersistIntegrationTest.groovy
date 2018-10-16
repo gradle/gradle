@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
     def "--console can be persisted in gradle.properties"() {
+
         given:
         buildFile << """
             task assertConsoleType { 

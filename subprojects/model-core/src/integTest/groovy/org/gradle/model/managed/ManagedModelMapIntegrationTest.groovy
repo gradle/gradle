@@ -199,7 +199,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
         fails "print"
 
         and:
-        failure.assertHasDescription("Exception thrown while executing model rule: container(Container) @ build.gradle line 8, column 15")
+        failure.assertHasCause("Exception thrown while executing model rule: container(Container) @ build.gradle line 8, column 15")
         failure.assertHasCause("""A model element of type: 'Container' can not be constructed.
 Its property 'org.gradle.model.ModelMap<java.io.InputStream> things' is not a valid managed collection
 A managed collection can not contain 'java.io.InputStream's""")

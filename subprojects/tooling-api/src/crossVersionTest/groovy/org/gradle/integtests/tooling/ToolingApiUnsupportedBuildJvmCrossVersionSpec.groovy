@@ -20,20 +20,19 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.Requires
 
-@Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+@Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6", "1.7") })
 @TargetGradleVersion("current")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         toolingApi.requireDaemons()
     }
 
-    def "cannot run a build when build is configured to use Java 6 or earlier"() {
+    def "cannot run a build when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
@@ -45,13 +44,13 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         caughtGradleConnectionException = thrown()
         caughtGradleConnectionException.message.startsWith("Could not execute build using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    def "cannot fetch model when build is configured to use Java 6 or earlier"() {
+    def "cannot fetch model when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
@@ -63,13 +62,13 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         caughtGradleConnectionException = thrown()
         caughtGradleConnectionException.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    def "cannot run action when build is configured to use Java 6 or earlier"() {
+    def "cannot run action when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
@@ -81,14 +80,13 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         caughtGradleConnectionException = thrown()
         caughtGradleConnectionException.message.startsWith("Could not run build action using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 
-    @ToolingApiVersion(">=2.6")
-    def "cannot run tests when build is configured to use Java 6 or earlier"() {
+    def "cannot run tests when build is configured to use Java 7 or earlier"() {
         given:
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
@@ -100,9 +98,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         caughtGradleConnectionException = thrown()
         caughtGradleConnectionException.message.startsWith("Could not execute tests using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 }

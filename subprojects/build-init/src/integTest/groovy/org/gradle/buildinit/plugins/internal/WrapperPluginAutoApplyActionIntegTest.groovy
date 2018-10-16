@@ -82,20 +82,4 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         then:
         wrapper.generated()
     }
-
-    def "manually declared wrapper task is preferred"() {
-        when:
-        buildFile << """
-
-                task wrapper {
-                    doLast {
-                        println "running custom wrapper task"
-                    }
-                }
-            """
-        run 'wrapper'
-        then:
-        output.contains("running custom wrapper task")
-        wrapper.notGenerated()
-    }
 }

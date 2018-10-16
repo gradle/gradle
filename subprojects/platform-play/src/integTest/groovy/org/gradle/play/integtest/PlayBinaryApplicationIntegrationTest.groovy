@@ -39,12 +39,12 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
     def "can run play app"() {
         setup:
-        patchForPlay()
         run "assemble"
         buildFile << """
             model {
                 tasks.runPlayBinary {
                     httpPort = 0
+                    ${java9AddJavaSqlModuleArgs()}
                 }
             }
         """

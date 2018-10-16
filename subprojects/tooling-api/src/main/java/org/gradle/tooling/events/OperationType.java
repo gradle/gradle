@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * Enumerates the different types of operations for which progress events can be received.
  *
  * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.Set)
  */
-@Incubating
 public enum OperationType {
 
     /**

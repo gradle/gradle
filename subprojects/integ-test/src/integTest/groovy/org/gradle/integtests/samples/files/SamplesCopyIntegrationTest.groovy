@@ -16,78 +16,105 @@
 
 package org.gradle.integtests.samples.files
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
-class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
+class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can copy a single file"() {
+    def "can copy a single file with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can copy a single file using task properties for the paths"() {
+    def "can copy a single file using task properties for the paths with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport2')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can copy a single file using the file method"() {
+    def "can copy a single file using the file method with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport3')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can specify multiple files in a from"() {
+    def "can specify multiple files in a from with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReportsForArchiving')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/manual.pdf').isFile()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/manual.pdf').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can filter files to a specific type"() {
+    def "can filter files to a specific type with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
         reportsDir.file('numbers.csv').touch()
 
@@ -98,17 +125,22 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('copyPdfReportsForArchiving')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').assertDoesNotExist()
-        sample.dir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
-        sample.dir.file('build/toArchive/numbers.csv').assertDoesNotExist()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/metrics/scatterPlot.pdf').assertDoesNotExist()
+        dslDir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
+        dslDir.file('build/toArchive/numbers.csv').assertDoesNotExist()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can filter files to a specific type including in subdirectories"() {
+    def "can filter files to a specific type including in subdirectories with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
         reportsDir.file('numbers.csv').touch()
 
@@ -119,17 +151,22 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('copyAllPdfReportsForArchiving')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
-        sample.dir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
-        sample.dir.file('build/toArchive/numbers.csv').assertDoesNotExist()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
+        dslDir.file('build/toArchive/scatterPlot.pdf').assertDoesNotExist()
+        dslDir.file('build/toArchive/numbers.csv').assertDoesNotExist()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can copy a directory"() {
+    def "can copy a directory with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
         reportsDir.file('numbers.csv').touch()
 
@@ -140,16 +177,21 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('copyReportsDirForArchiving')
 
         then:
-        sample.dir.file('build/toArchive/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
-        sample.dir.file('build/toArchive/numbers.csv').isFile()
+        dslDir.file('build/toArchive/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/metrics/scatterPlot.pdf').isFile()
+        dslDir.file('build/toArchive/numbers.csv').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can copy a directory, including itself"() {
+    def "can copy a directory, including itself with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
         reportsDir.file('numbers.csv').touch()
 
@@ -160,31 +202,41 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('copyReportsDirForArchiving2')
 
         then:
-        sample.dir.file('build/toArchive/reports/my-report.pdf').isFile()
-        sample.dir.file('build/toArchive/reports/metrics/scatterPlot.pdf').isFile()
-        sample.dir.file('build/toArchive/reports/numbers.csv').isFile()
+        dslDir.file('build/toArchive/reports/my-report.pdf').isFile()
+        dslDir.file('build/toArchive/reports/metrics/scatterPlot.pdf').isFile()
+        dslDir.file('build/toArchive/reports/numbers.csv').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can rename files as they are copied"() {
+    def "can rename files as they are copied with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('copyFromStaging')
 
         then:
-        def outputDir = sample.dir.file("build/explodedWar")
+        def outputDir = dslDir.file("build/explodedWar")
         outputDir.file('web.xml').isFile()
         outputDir.file('index.html').isFile()
         outputDir.file('products/gradle.html').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can truncate filenames as they are copied"() {
+    def "can truncate filenames as they are copied with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
         reportsDir.file('numbers-long.csv').touch()
 
@@ -195,21 +247,26 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('copyWithTruncate')
 
         then:
-        sample.dir.file('build/toArchive/my-repor~13').isFile()
-        sample.dir.file('build/toArchive/metrics/plot.pdf').isFile()
-        sample.dir.file('build/toArchive/numbers-~16').isFile()
+        dslDir.file('build/toArchive/my-repor~13').isFile()
+        dslDir.file('build/toArchive/metrics/plot.pdf').isFile()
+        dslDir.file('build/toArchive/numbers-~16').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/sampleJavaProject")
-    def "can nest child specifications"() {
+    def "can nest child specifications with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('nestedSpecs')
 
         then:
-        def outputDir = sample.dir.file("build/explodedWar")
+        def outputDir = dslDir.file("build/explodedWar")
         outputDir.file('index-staging.html').assertDoesNotExist()
         outputDir.file('index.html.tmp').assertDoesNotExist()
         outputDir.file('home.html').isFile()
@@ -217,18 +274,23 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         outputDir.file('products/collaboration.jpg').isFile()
         outputDir.file('WEB-INF/classes/Hello.class').isFile()
         outputDir.file('WEB-INF/lib/commons-io-2.6.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can use a standalone copyspec within a copy"() {
+    def "can use a standalone copyspec within a copy with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('copyAssets')
 
         then:
-        def outputDir = sample.dir.file("build/inPlaceApp")
+        def outputDir = dslDir.file("build/inPlaceApp")
         outputDir.file('web.xml').assertDoesNotExist()
         outputDir.file('index-staging.html').assertDoesNotExist()
         outputDir.file('index.html').isFile()
@@ -236,19 +298,24 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         outputDir.file('products/gradle.html').isFile()
         outputDir.file('products/collaboration.jpg').isFile()
         outputDir.file('products/collaboration.jpg~').assertDoesNotExist()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can use a standalone copyspec within an archiving task"() {
+    def "can use a standalone copyspec within an archiving task with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('distApp')
 
         then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/dists/my-app-dist.zip')
+        def tmpOutDir = dslDir.file("tmp")
+        def zipFile = dslDir.file('build/dists/my-app-dist.zip')
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file('web.xml').assertDoesNotExist()
@@ -257,42 +324,55 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
         tmpOutDir.file('logo.png').isFile()
         tmpOutDir.file('products/gradle.html').isFile()
         tmpOutDir.file('products/collaboration.jpg').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can share a configuration closure with copy patterns no. 1"() {
+    def "can share a configuration closure with copy patterns no. 1 with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
-        succeeds('copAppAssets')
+        succeeds('copyAppAssets')
 
         then:
-        def outputDir = sample.dir.file("build/inPlaceApp")
+        def outputDir = dslDir.file("build/inPlaceApp")
         outputDir.file('web.xml').assertDoesNotExist()
         outputDir.file('index-staging.html').isFile()
         outputDir.file('logo.png').isFile()
         outputDir.file('products/gradle.html').assertDoesNotExist()
         outputDir.file('products/collaboration.jpg').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can share a configuration closure with copy patterns no. 2"() {
+    def "can share a configuration closure with copy patterns no. 2 with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('archiveDistAssets')
 
         then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file('build/dists/distribution-assets.zip')
+        def tmpOutDir = dslDir.file("tmp")
+        def zipFile = dslDir.file('build/dists/distribution-assets.zip')
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file('home.html').isFile()
         tmpOutDir.file('images/plot.eps').assertDoesNotExist()
         tmpOutDir.file('images/logo.png').isFile()
         tmpOutDir.file('images/photo.jpg').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     /* THIS TEST DOES NOT WORK
@@ -302,21 +382,26 @@ class SamplesCopyIntegrationTest extends AbstractIntegrationSpec {
      * the way the tests are run doesn't interact with ant.defaultexcludes()
      * well.
      *
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can change Ant default excludes"() {
+    def "can change Ant default excludes with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('forcedCopy')
 
         then:
-        def outputDir = sample.dir.file("build/inPlaceApp")
+        def outputDir = dslDir.file("build/inPlaceApp")
         outputDir.file('index-staging.html').isFile()
         outputDir.file('logo.png').isFile()
         outputDir.file('.git/stuff.txt').isFile()
         outputDir.file('products/collaboration.jpg').isFile()
         outputDir.file('products/collaboration.jpg~').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
     */
 }

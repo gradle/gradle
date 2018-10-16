@@ -23,21 +23,34 @@ import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Unroll
+
+import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
+@Requires(KOTLIN_SCRIPT)
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    def setup() {
+        executer.withRepositoryMirrors()
+    }
+
+    @Unroll
     @UsesSample("testKit/gradleRunner/junitQuickstart")
-    def junitQuickstart() {
+    def "junitQuickstart with #dsl dsl"() {
         expect:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
         succeeds "check"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("testKit/gradleRunner/spockQuickstart")
@@ -47,29 +60,43 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         succeeds "check"
     }
 
+    @Unroll
     @UsesSample("testKit/gradleRunner/manualClasspathInjection")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Uses Gradle 2.8 which does not support Java 9
-    def manualClasspathInjection() {
+    @Requires(JDK8_OR_EARLIER)
+    // Uses Gradle 2.8 which does not support Java 9
+    def "manualClasspathInjection with #dsl dsl"() {
         expect:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
         succeeds "check"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("testKit/gradleRunner/automaticClasspathInjectionQuickstart")
-    def automaticClasspathInjectionQuickstart() {
+    def "automaticClasspathInjectionQuickstart with #dsl dsl"() {
         expect:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
         succeeds "check"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet")
-    def automaticClasspathInjectionCustomTestSourceSet() {
+    def "automaticClasspathInjectionCustomTestSourceSet with #dsl dsl"() {
         expect:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
         succeeds "check"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER]) // Uses Gradle 2.6 which does not support Java 9
+    @Requires([ONLINE, JDK8_OR_EARLIER])
+    // Uses Gradle 2.6 which does not support Java 9
     @UsesSample("testKit/gradleRunner/gradleVersion")
     def gradleVersion() {
         expect:

@@ -18,14 +18,25 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     private final VersionComparator versionComparator;
+    private final VersionParser versionParser;
 
+    /**
+     * This constructor is here to maintain backwards compatibility with the nebula plugins
+     * and should be removed as soon as possible.
+     */
+    @Deprecated
     public DefaultVersionSelectorScheme(VersionComparator versionComparator) {
+        this(versionComparator, new VersionParser());
+    }
+
+    public DefaultVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
         this.versionComparator = versionComparator;
+        this.versionParser = versionParser;
     }
 
     public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
-            return new VersionRangeSelector(selectorString, versionComparator.asVersionComparator());
+            return new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
         }
 
         if (selectorString.endsWith("+")) {
@@ -45,15 +56,10 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
 
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
-        if (selector instanceof ExactVersionSelector) {
-            return new VersionRangeSelector("]" + selector.getSelector() + ",)", versionComparator.asVersionComparator());
-        }
-        if (selector instanceof VersionRangeSelector) {
-            VersionRangeSelector vrs = (VersionRangeSelector) selector;
-            if (vrs.getUpperBound() != null) {
-                String lowerBoundInclusion = vrs.isUpperInclusive() ? "]" : "[";
-                return new VersionRangeSelector(lowerBoundInclusion + vrs.getUpperBound() + ",)", versionComparator.asVersionComparator());
-            }
+        // TODO:DAZ We can probably now support more versions with `strictly` but we'll need more test coverage
+        if ((selector instanceof ExactVersionSelector)
+            || (selector instanceof VersionRangeSelector && ((VersionRangeSelector) selector).getUpperBound() != null)) {
+            return new InverseVersionSelector(selector);
         }
         throw new IllegalArgumentException("Version '" + renderSelector(selector) + "' cannot be converted to a strict version constraint.");
     }

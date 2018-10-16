@@ -21,17 +21,25 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
+
+import javax.annotation.Nullable;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
-public class DefaultSourceSet implements SourceSet {
+public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
     private final String name;
     private final String baseName;
     private FileCollection compileClasspath;
@@ -43,25 +51,27 @@ public class DefaultSourceSet implements SourceSet {
     private final String displayName;
     private final SourceDirectorySet allSource;
     private final ClassDirectoryBinaryNamingScheme namingScheme;
+    private final ExtensibleDynamicObject extensibleDynamicObject;
     private DefaultSourceSetOutput output;
 
-    public DefaultSourceSet(String name, SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public DefaultSourceSet(String name, ObjectFactory objectFactory, Instantiator instantiator) {
         this.name = name;
         this.baseName = name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, SourceSet.class, instantiator);
 
         String javaSrcDisplayName = displayName + " Java source";
 
-        javaSource = sourceDirectorySetFactory.create("java", javaSrcDisplayName);
+        javaSource = objectFactory.sourceDirectorySet("java", javaSrcDisplayName);
         javaSource.getFilter().include("**/*.java");
 
-        allJavaSource = sourceDirectorySetFactory.create(javaSrcDisplayName);
+        allJavaSource = objectFactory.sourceDirectorySet("alljava", javaSrcDisplayName);
         allJavaSource.getFilter().include("**/*.java");
         allJavaSource.source(javaSource);
 
         String resourcesDisplayName = displayName + " resources";
-        resources = sourceDirectorySetFactory.create(resourcesDisplayName);
+        resources = objectFactory.sourceDirectorySet("resources", resourcesDisplayName);
         resources.getFilter().exclude(new Spec<FileTreeElement>() {
             public boolean isSatisfiedBy(FileTreeElement element) {
                 return javaSource.contains(element.getFile());
@@ -69,9 +79,10 @@ public class DefaultSourceSet implements SourceSet {
         });
 
         String allSourceDisplayName = displayName + " source";
-        allSource = sourceDirectorySetFactory.create(allSourceDisplayName);
+        allSource = objectFactory.sourceDirectorySet("allsource", allSourceDisplayName);
         allSource.source(resources);
         allSource.source(javaSource);
+
     }
 
     public String getName() {
@@ -107,7 +118,7 @@ public class DefaultSourceSet implements SourceSet {
         return getTaskName(null, "jar");
     }
 
-    public String getTaskName(String verb, String target) {
+    public String getTaskName(@Nullable String verb, @Nullable String target) {
         return namingScheme.getTaskName(verb, target);
     }
 
@@ -214,7 +225,7 @@ public class DefaultSourceSet implements SourceSet {
         return javaSource;
     }
 
-    public SourceSet java(Closure configureClosure) {
+    public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
     }
@@ -233,7 +244,7 @@ public class DefaultSourceSet implements SourceSet {
         return resources;
     }
 
-    public SourceSet resources(Closure configureClosure) {
+    public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;
     }
@@ -246,5 +257,19 @@ public class DefaultSourceSet implements SourceSet {
 
     public SourceDirectorySet getAllSource() {
         return allSource;
+    }
+
+    @Override
+    public ExtensionContainer getExtensions() {
+        return getConvention();
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return extensibleDynamicObject;
+    }
+
+    public Convention getConvention() {
+        return extensibleDynamicObject.getConvention();
     }
 }

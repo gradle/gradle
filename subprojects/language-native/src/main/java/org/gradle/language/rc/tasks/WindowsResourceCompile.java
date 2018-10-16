@@ -76,7 +76,7 @@ public class WindowsResourceCompile extends DefaultTask {
         source = getProject().files();
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
-        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, Providers.FALSE);
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, macros, Providers.FALSE);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {

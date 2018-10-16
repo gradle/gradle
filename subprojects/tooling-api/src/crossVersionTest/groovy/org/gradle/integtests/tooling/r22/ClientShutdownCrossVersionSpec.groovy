@@ -18,15 +18,12 @@ package org.gradle.integtests.tooling.r22
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-@ToolingApiVersion(">=2.2")
 class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
@@ -50,7 +47,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         thrown(IllegalStateException)
     }
 
-    @TargetGradleVersion(">=2.2")
     def "cleans up idle daemons when tooling API session is shutdown"() {
         withConnection { connection ->
             connection.getModel(GradleBuild)
@@ -64,7 +60,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.daemons.daemon.stops()
     }
 
-    @TargetGradleVersion(">=2.2")
     def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
         given:
         buildFile << """
@@ -93,7 +88,6 @@ task slow { doLast { new URL("${server.uri}").text } }
         toolingApi.daemons.daemon.stops()
     }
 
-    @TargetGradleVersion(">=2.2")
     def "shutdown ignores daemons that are no longer running"() {
         given:
         withConnection { connection ->
@@ -109,7 +103,6 @@ task slow { doLast { new URL("${server.uri}").text } }
         noExceptionThrown()
     }
 
-    @TargetGradleVersion(">=2.2")
     def "shutdown ignores daemons that were not started by client"() {
         given:
         daemonExecutor().run()

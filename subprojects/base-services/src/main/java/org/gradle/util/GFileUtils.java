@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.IoActions;
 import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
@@ -28,6 +28,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,8 +66,10 @@ public class GFileUtils {
      * (or directory) must exist.
      */
     public static void touchExisting(File file) {
-        if (!file.setLastModified(System.currentTimeMillis())) {
-            throw new UncheckedIOException("Could not update time stamp for " + file);
+        try {
+            Files.setLastModifiedTime(file.toPath(), FileTime.fromMillis(System.currentTimeMillis()));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not update time stamp for " + file, e);
         }
     }
 
@@ -231,16 +235,8 @@ public class GFileUtils {
         } catch (Exception e) {
             throw new TailReadingException(e);
         } finally {
-            IOUtils.closeQuietly(fileReader);
-            IOUtils.closeQuietly(reader);
-        }
-    }
-
-    public static void writeStringToFile(File file, String data) {
-        try {
-            FileUtils.writeStringToFile(file, data);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            IoActions.closeQuietly(fileReader);
+            IoActions.closeQuietly(reader);
         }
     }
 

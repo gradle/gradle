@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.apache.tools.ant.types.Commandline;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
@@ -31,6 +33,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -252,7 +255,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         javaExecHandleBuilder.setDebug(enabled);
     }
@@ -277,6 +280,29 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     public List<String> getArgs() {
         return javaExecHandleBuilder.getArgs();
+    }
+
+    /**
+     * Parses an argument list from {@code args} and passes it to {@link #setArgs(List)}.
+     *
+     * <p>
+     * The parser supports both single quote ({@code '}) and double quote ({@code "}) as quote delimiters.
+     * For example, to pass the argument {@code foo bar}, use {@code "foo bar"}.
+     * </p>
+     * <p>
+     * Note: the parser does <strong>not</strong> support using backslash to escape quotes. If this is needed,
+     * use the other quote delimiter around it.
+     * For example, to pass the argument {@code 'singly quoted'}, use {@code "'singly quoted'"}.
+     * </p>
+     *
+     * @param args Args for the main class. Will be parsed into an argument list.
+     * @return this
+     * @since 4.9
+     */
+    @Incubating
+    @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
+    public JavaExec setArgsString(String args) {
+        return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
     }
 
     /**

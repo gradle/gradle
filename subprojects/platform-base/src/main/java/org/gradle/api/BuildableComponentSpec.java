@@ -34,7 +34,7 @@ public interface BuildableComponentSpec extends Buildable, ComponentSpec {
     /**
      * Specifies the task responsible for building this component.
      */
-    void setBuildTask(Task buildTask);
+    void setBuildTask(@Nullable Task buildTask);
 
     /**
      * Adds tasks required to build this component. Tasks added this way are subsequently

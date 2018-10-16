@@ -18,12 +18,13 @@ package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
-class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
+class TaskTypeTaskStateChanges implements TaskStateChanges {
     private final TaskExecution previousExecution;
     private final TaskExecution currentExecution;
     private final TaskInternal task;
@@ -35,47 +36,45 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     }
 
     @Override
-    protected void addAllChanges(List<TaskStateChange> changes) {
+    public boolean accept(TaskStateChangeVisitor visitor) {
         ImplementationSnapshot prevImplementation = previousExecution.getTaskImplementation();
         ImplementationSnapshot taskImplementation = currentExecution.getTaskImplementation();
         if (!taskImplementation.getTypeName().equals(prevImplementation.getTypeName())) {
-            changes.add(new DescriptiveChange("Task '%s' has changed type from '%s' to '%s'.",
-                    task.getIdentityPath(), prevImplementation.getTypeName(), taskImplementation.getTypeName()));
-            return;
+            return visitor.visitChange(new DescriptiveChange("Task '%s' has changed type from '%s' to '%s'.",
+                task.getIdentityPath(), prevImplementation.getTypeName(), taskImplementation.getTypeName()));
         }
-        if (taskImplementation.hasUnknownClassLoader()) {
-            changes.add(new DescriptiveChange("Task '%s' was loaded with an unknown classloader", task.getIdentityPath()));
-            return;
+        if (taskImplementation.isUnknown()) {
+            return visitor.visitChange(new DescriptiveChange("Task '%s' %s", task.getIdentityPath(), taskImplementation.getUnknownReason()));
         }
-        if (prevImplementation.hasUnknownClassLoader()) {
-            changes.add(new DescriptiveChange("Task '%s' was loaded with an unknown classloader during the previous execution", task.getIdentityPath()));
-            return;
+        if (prevImplementation.isUnknown()) {
+            return visitor.visitChange(new DescriptiveChange("During the previous execution of the task '%s', it %s", task.getIdentityPath(), prevImplementation.getUnknownReason()));
         }
         if (!taskImplementation.getClassLoaderHash().equals(prevImplementation.getClassLoaderHash())) {
-            changes.add(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", task.getIdentityPath(), prevImplementation.getClassLoaderHash(), taskImplementation.getClassLoaderHash()));
-            return;
+            return visitor.visitChange(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", task.getIdentityPath(), prevImplementation.getClassLoaderHash(), taskImplementation.getClassLoaderHash()));
         }
 
         ImmutableList<ImplementationSnapshot> taskActionImplementations = currentExecution.getTaskActionImplementations();
-        if (hasAnyUnknownClassLoader(taskActionImplementations)) {
-            changes.add(new DescriptiveChange("Task '%s' has an additional action that was loaded with an unknown classloader", task.getIdentityPath()));
-            return;
+        ImplementationSnapshot unknownImplementation = findUnknownImplementation(taskActionImplementations);
+        if (unknownImplementation != null) {
+            return visitor.visitChange(new DescriptiveChange("Task '%s' has an additional action that %s", task.getIdentityPath(), unknownImplementation.getUnknownReason()));
         }
-        if (hasAnyUnknownClassLoader(previousExecution.getTaskActionImplementations())) {
-            changes.add(new DescriptiveChange("Task '%s' had an additional action that was loaded with an unknown classloader during the previous execution", task.getIdentityPath()));
-            return;
+        ImplementationSnapshot previousUnknownImplementation = findUnknownImplementation(previousExecution.getTaskActionImplementations());
+        if (previousUnknownImplementation != null) {
+            return visitor.visitChange(new DescriptiveChange("During the previous execution of the task '%s', it had an additional action that %s", task.getIdentityPath(), previousUnknownImplementation.getUnknownReason()));
         }
         if (!taskActionImplementations.equals(previousExecution.getTaskActionImplementations())) {
-            changes.add(new DescriptiveChange("Task '%s' has additional actions that have changed", task.getIdentityPath()));
+            return visitor.visitChange(new DescriptiveChange("Task '%s' has additional actions that have changed", task.getIdentityPath()));
         }
+        return true;
     }
 
-    private static boolean hasAnyUnknownClassLoader(Iterable<ImplementationSnapshot> implementations) {
+    @Nullable
+    private static ImplementationSnapshot findUnknownImplementation(Iterable<ImplementationSnapshot> implementations) {
         for (ImplementationSnapshot implementation : implementations) {
-            if (implementation.hasUnknownClassLoader()) {
-                return true;
+            if (implementation.isUnknown()) {
+                return implementation;
             }
         }
-        return false;
+        return null;
     }
 }

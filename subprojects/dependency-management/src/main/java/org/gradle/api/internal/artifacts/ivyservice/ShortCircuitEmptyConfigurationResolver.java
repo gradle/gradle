@@ -23,7 +23,9 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -31,6 +33,8 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -38,21 +42,22 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.BuildIdentity;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildIdentity thisBuild;
+    private final BuildIdentifier thisBuild;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentity thisBuild) {
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.delegate = delegate;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -60,9 +65,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
+    public List<ResolutionAwareRepository> getRepositories() {
+        return delegate.getRepositories();
+    }
+
+    @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
         if (configuration.getAllDependencies().isEmpty()) {
-            emptyGraph(configuration, result);
+            emptyGraph(configuration, result, false);
         } else {
             delegate.resolveBuildDependencies(configuration, result);
         }
@@ -71,31 +81,43 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     @Override
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
-            emptyGraph(configuration, results);
+            emptyGraph(configuration, results, true);
         } else {
             delegate.resolveGraph(configuration, results);
         }
     }
 
-    private void emptyGraph(ConfigurationInternal configuration, ResolverResults results) {
+    private void emptyGraph(ConfigurationInternal configuration, ResolverResults results, boolean verifyLocking) {
+        if (verifyLocking && configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
+            DependencyLockingProvider dependencyLockingProvider = configuration.getResolutionStrategy().getDependencyLockingProvider();
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(configuration.getName());
+            if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
+                // Invalid lock state, need to do a real resolution to gather locking failures
+                delegate.resolveGraph(configuration, results);
+                return;
+            }
+            dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), Collections.<ModuleComponentIdentifier>emptySet(), Collections.<ModuleComponentIdentifier>emptySet());
+        }
         Module module = configuration.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild.getCurrentBuild());
-        results.graphResolved(emptyResult, emptyProjectResult, new EmptyResults());
+        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
+        results.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE);
     }
 
     @Override
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        if (configuration.getAllDependencies().isEmpty()) {
-            results.artifactsResolved(new EmptyResolvedConfiguration(), new EmptyResults());
+        if (configuration.getAllDependencies().isEmpty() && results.getVisitedArtifacts() == EmptyResults.INSTANCE) {
+            results.artifactsResolved(new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
             delegate.resolveArtifacts(configuration, results);
         }
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
+        private static final EmptyResults INSTANCE = new EmptyResults();
+
         @Override
         public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
             return this;

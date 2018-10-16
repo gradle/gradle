@@ -18,9 +18,10 @@ package org.gradle.plugins.ide.eclipse
 
 import groovy.xml.XmlUtil
 import org.custommonkey.xmlunit.XMLUnit
+import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class EclipseProjectFixture {
+class EclipseProjectFixture extends IdeProjectFixture {
     private final Node project
 
     private EclipseProjectFixture(Node project) {

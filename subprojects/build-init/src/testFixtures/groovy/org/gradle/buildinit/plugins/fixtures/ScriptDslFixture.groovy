@@ -76,8 +76,7 @@ class ScriptDslFixture {
         assert getBuildFile(parentFolder).exists()
         assert getSettingsFile(parentFolder).exists()
         def gradleVersion = GradleVersion.current().version
-        def distributionType = scriptDsl.wrapperDistributionType.name().toLowerCase()
-        new WrapperTestFixture(parentFolder).generated(gradleVersion, distributionType)
+        new WrapperTestFixture(parentFolder).generated(gradleVersion)
     }
 
     void assertWrapperNotGenerated(TestFile parentFolder = rootDir) {

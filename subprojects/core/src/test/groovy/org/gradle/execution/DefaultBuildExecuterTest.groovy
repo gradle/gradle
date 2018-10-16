@@ -24,60 +24,64 @@ class DefaultBuildExecuterTest extends Specification {
     def "execute method calls execute method on first execution action"() {
         BuildExecutionAction action1 = Mock()
         BuildExecutionAction action2 = Mock()
+        def failures = []
 
         given:
         def buildExecution = new DefaultBuildExecuter([action1, action2])
 
         when:
-        buildExecution.execute(gradleInternal)
+        buildExecution.execute(gradleInternal, failures)
 
         then:
-        1 * action1.execute(!null)
+        1 * action1.execute(!null, failures)
         0 * _._
     }
 
     def "calls next action in chain when execution action calls proceed"() {
         BuildExecutionAction action1 = Mock()
         BuildExecutionAction action2 = Mock()
+        def failures = []
 
         given:
         def buildExecution = new DefaultBuildExecuter([action1, action2])
 
         when:
-        buildExecution.execute(gradleInternal)
+        buildExecution.execute(gradleInternal, failures)
 
         then:
-        1 * action1.execute(!null) >> { it[0].proceed() }
+        1 * action1.execute(!null, failures) >> { it[0].proceed() }
 
         and:
-        1 * action2.execute(!null)
+        1 * action2.execute(!null, failures)
     }
 
     def "does nothing when last execution action calls proceed"() {
         BuildExecutionAction action1 = Mock()
+        def failures = []
 
         given:
         def buildExecution = new DefaultBuildExecuter([action1])
 
         when:
-        buildExecution.execute(gradleInternal)
+        buildExecution.execute(gradleInternal, failures)
 
         then:
-        1 * action1.execute(!null) >> { it[0].proceed() }
+        1 * action1.execute(!null, failures) >> { it[0].proceed() }
         0 * _._
     }
 
     def "makes Gradle instance available to actions"() {
         BuildExecutionAction executionAction = Mock()
+        def failures = []
 
         given:
         def buildExecution = new DefaultBuildExecuter([executionAction])
 
         when:
-        buildExecution.execute(gradleInternal)
+        buildExecution.execute(gradleInternal, failures)
 
         then:
-        1 * executionAction.execute(!null) >> {
+        1 * executionAction.execute(!null, failures) >> {
             assert it[0].gradle ==gradleInternal
         }
     }

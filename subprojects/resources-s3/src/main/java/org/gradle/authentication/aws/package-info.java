@@ -19,7 +19,6 @@
  *
  * @since 3.1
  */
-@org.gradle.api.Incubating
 package org.gradle.authentication.aws;
 
 

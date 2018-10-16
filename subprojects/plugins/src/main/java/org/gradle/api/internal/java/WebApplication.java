@@ -17,6 +17,7 @@
 package org.gradle.api.internal.java;
 
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
@@ -84,6 +85,11 @@ public class WebApplication implements SoftwareComponentInternal {
 
         @Override
         public Set<? extends Capability> getCapabilities() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<ExcludeRule> getGlobalExcludes() {
             return Collections.emptySet();
         }
     }

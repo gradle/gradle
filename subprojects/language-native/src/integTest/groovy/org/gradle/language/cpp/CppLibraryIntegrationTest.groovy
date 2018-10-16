@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppGreeterWithOptionalFeature
@@ -539,5 +541,32 @@ project(':greeter') {
         result.assertTasksExecuted(compileAndLinkTasks([':lib2', ':lib1'], debug), ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/hello").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/log").assertExists()
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "system headers are not evaluated when compiler warnings are enabled"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+
+        and:
+        file("src/main/cpp/includingIoStream.cpp") << """
+            #include <stdio.h>
+            #include <iostream>
+        """
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            library {
+                binaries.configureEach {
+                    compileTask.get().compilerArgs.add("-Wall")
+                    compileTask.get().compilerArgs.add("-Werror")
+                }
+            }
+         """
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assemble")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 }

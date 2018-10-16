@@ -22,12 +22,12 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
+import org.gradle.internal.Factories
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -42,7 +42,7 @@ class DefaultReportContainerTest extends Specification {
 
             c.delegate = new Object() {
                 Report createReport(String name) {
-                    add(SimpleReport, name, name, Report.OutputType.FILE, TestFiles.resolver(), DefaultReportContainerTest.project)
+                    add(SimpleReport, name, Factories.constant(name), Report.OutputType.FILE, DefaultReportContainerTest.project)
                 }
             }
 
@@ -58,7 +58,7 @@ class DefaultReportContainerTest extends Specification {
         }
     }
 
-    def container
+    DefaultReportContainer container
 
     def setup() {
         container = createContainer {
@@ -78,7 +78,7 @@ class DefaultReportContainerTest extends Specification {
 
     def "container is immutable"() {
         when:
-        container.add(new SimpleReport("d", "d", Report.OutputType.FILE, TestFiles.resolver(), project))
+        container.add(new SimpleReport("d", Factories.constant("d"), Report.OutputType.FILE, project))
 
         then:
         thrown(ReportContainer.ImmutableViolationException)

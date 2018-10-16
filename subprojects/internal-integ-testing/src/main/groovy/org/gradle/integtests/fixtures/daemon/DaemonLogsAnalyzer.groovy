@@ -18,14 +18,14 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.internal.service.scopes.BasicGlobalScopeServices
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
-import static org.gradle.integtests.fixtures.RetryRuleUtil.daemonStoppedWithSocketExceptionOnWindows
+import static org.gradle.integtests.fixtures.RetryConditions.daemonStoppedWithSocketExceptionOnWindows
 
 class DaemonLogsAnalyzer implements DaemonsFixture {
     private final File daemonLogsDir
@@ -40,7 +40,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         def services = ServiceRegistryBuilder.builder()
             .parent(LoggingServiceRegistry.newEmbeddableLogging())
             .parent(NativeServicesTestFixture.getInstance())
-            .provider(new GlobalScopeServices(false))
+            .provider(new BasicGlobalScopeServices())
             .provider(new DaemonClientGlobalServices())
             .provider(new DaemonRegistryServices(daemonBaseDir))
             .build()

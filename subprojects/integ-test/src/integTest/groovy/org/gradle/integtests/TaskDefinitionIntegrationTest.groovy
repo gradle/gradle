@@ -47,15 +47,14 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can define tasks using task keyword and identifier"() {
         buildFile << """
             task nothing
-            task withAction << { }
+            task withAction { doLast {} }
             task emptyOptions()
             task task
             task withOptions(dependsOn: [nothing, withAction, emptyOptions, task])
-            task withOptionsAndAction(dependsOn: withOptions) << { }
+            task withOptionsAndAction(dependsOn: withOptions) { doLast {} }
         """
 
         expect:
-        executer.expectDeprecationWarning()
         succeeds ":emptyOptions", ":nothing", ":task", ":withAction", ":withOptions", ":withOptionsAndAction"
     }
 
@@ -63,28 +62,26 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ext.v = 'Task'
             task "nothing\$v"
-            task "withAction\$v" << { }
+            task "withAction\$v" { doLast {} }
             task "emptyOptions\$v"()
             task "withOptions\$v"(dependsOn: [nothingTask, withActionTask, emptyOptionsTask])
-            task "withOptionsAndAction\$v"(dependsOn: withOptionsTask) << { }
+            task "withOptionsAndAction\$v"(dependsOn: withOptionsTask) { doLast {} }
         """
 
         expect:
-        executer.expectDeprecationWarning()
         succeeds ":emptyOptionsTask", ":nothingTask", ":withActionTask", ":withOptionsTask", ":withOptionsAndActionTask"
     }
 
     def "can define tasks using task keyword and String"() {
         buildFile << """
             task 'nothing'
-            task 'withAction' << { }
+            task 'withAction' { doLast {} }
             task 'emptyOptions'()
             task 'withOptions'(dependsOn: [nothing, withAction, emptyOptions])
-            task 'withOptionsAndAction'(dependsOn: withOptions) << { }
+            task 'withOptionsAndAction'(dependsOn: withOptions) { doLast {} }
         """
 
         expect:
-        executer.expectDeprecationWarning()
         succeeds ":emptyOptions", ":nothing",":withAction", ":withOptions", ":withOptionsAndAction"
     }
 
@@ -105,23 +102,24 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define tasks using task method expression"() {
         buildFile << """
-            ext.a = 'a' == 'b' ? null: task(withAction) << { }
+            ext.a = 'a' == 'b' ? null: task(withAction) { doLast {} }
             a = task(nothing)
             a = task(emptyOptions())
             ext.taskName = 'dynamic'
-            a = task("\$taskName") << { }
+            a = task("\$taskName") { doLast {} }
             a = task('string')
-            a = task('stringWithAction') << { }
+            a = task('stringWithAction') { doLast {} }
             a = task('stringWithOptions', description: 'description')
-            a = task('stringWithOptionsAndAction', description: 'description') << { }
+            a = task('stringWithOptionsAndAction', description: 'description') { doLast {} }
             a = task(withOptions, description: 'description')
-            a = task(withOptionsAndAction, description: 'description') << { }
+            a = task(withOptionsAndAction, description: 'description') { doLast {} }
             a = task(anotherWithAction).doFirst\n{}
-            task all(dependsOn: tasks as List)
+            task all(dependsOn: [":anotherWithAction", ":dynamic", ":emptyOptions",
+            ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
+            ":withAction", ":withOptions", ":withOptionsAndAction"])
         """
 
         expect:
-        executer.expectDeprecationWarning()
         succeeds ":anotherWithAction", ":dynamic", ":emptyOptions",
             ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
             ":withAction", ":withOptions", ":withOptionsAndAction", ":all"
@@ -141,7 +139,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             [withDescription, asMethod].each {
                 assert 'value' == it.description
             }
-            task all(dependsOn: tasks as List)
+            task all(dependsOn: ["withDescription", "asMethod", "asStatement", "dynamic", "asExpression", "postConfigure"])
             class TestTask extends DefaultTask { String property }
         """
 
@@ -166,11 +164,93 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             cl.call('i')
             assert 'value' == f.property
             assert 'value' == i.property
-            task all(dependsOn: tasks as List)
+            task all(dependsOn: [":a", ":d", ":e", ":f", ":g", ":h", ":i"])
         """
 
         expect:
         succeeds ":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all"
+    }
+
+    def "reports failure in task constructor when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.create("broken", Broken)
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task configuration block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.create("broken") {
+                throw new RuntimeException("broken task")
+            }
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in all block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.configureEach {
+                throw new RuntimeException("broken task")
+            }
+            tasks.create("broken")
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task constructor when task replaced"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.create("broken")
+            tasks.replace("broken", Broken)
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
     }
 
     def "unsupported task parameter fails with decent error message"() {
@@ -179,26 +259,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'a'
         then:
         failure.assertHasCause("Could not create task 'a': Unknown argument(s) in task definition: [Type]")
-    }
-
-    def "renders deprecation message when using left shift operator to define action"() {
-        given:
-        String taskName = 'helloWorld'
-        String message = 'Hello world!'
-
-        buildFile << """
-            task $taskName << {
-                println '$message'
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds taskName
-
-        then:
-        output.contains(message)
-        output.contains("The Task.leftShift(Closure) method has been deprecated and is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
     }
 
     def "can construct a custom task without constructor arguments"() {
@@ -261,7 +321,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
 
         where:
         description   | script
@@ -279,7 +341,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -298,6 +362,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("constructorArgs must be a List or Object[]")
 
         where:
@@ -318,6 +383,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
@@ -336,6 +402,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Received null for CustomTask constructor argument #$position")
 
         where:
@@ -477,5 +544,112 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains("got it 15")
+    }
+
+    def "renders deprecation warning when adding a pre-created task to the task container"() {
+        given:
+        buildFile << """
+            Task foo = tasks.create("foo")
+            
+            tasks.add(new Bar("bar", foo))
+            
+            class Bar implements Task {
+                String name
+                
+                @Delegate
+                Task delegate
+                
+                Bar(String name, Task delegate) {
+                    this.name = name
+                    this.delegate = delegate
+                }
+                
+                String getName() {
+                    return name
+                }
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds("help")
+
+        then:
+        outputContains("Using method TaskContainer.add() has been deprecated. This will fail with an error in Gradle 6.0. Please use the TaskContainer.register() method instead.")
+    }
+
+    def "cannot add a pre-created task provider to the task container"() {
+        given:
+        buildFile << """
+            Task foo = tasks.create("foo")
+            
+            tasks.addLater(provider { foo })
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
+    }
+
+    def "can extract schema from task container"() {
+        given:
+        buildFile << """
+            class Foo extends DefaultTask {}
+            tasks.create("foo", Foo)
+            tasks.register("bar", Foo) {
+                assert false : "This should not be realized"
+            }
+            tasks.create("builtInTask", Copy)
+            tasks.register("defaultTask") {
+                assert false : "This should not be realized"
+            }
+             
+            def schema = tasks.collectionSchema.elements.collectEntries { e ->
+                [ e.name, e.publicType.simpleName ]
+            }
+            assert schema.size() == 16
+            
+            assert schema["help"] == "Help"
+            
+            assert schema["projects"] == "ProjectReportTask"
+            assert schema["tasks"] == "TaskReportTask"
+            assert schema["properties"] == "PropertyReportTask"
+            
+            assert schema["dependencyInsight"] == "DependencyInsightReportTask"
+            assert schema["dependencies"] == "DependencyReportTask"
+            assert schema["buildEnvironment"] == "BuildEnvironmentReportTask"
+            
+            assert schema["components"] == "ComponentReport"
+            assert schema["model"] == "ModelReport"
+            assert schema["dependentComponents"] == "DependentComponentsReport"
+            
+            assert schema["init"] == "InitBuild"
+            assert schema["wrapper"] == "Wrapper"
+            
+            assert schema["foo"] == "Foo"
+            assert schema["bar"] == "Foo"
+            assert schema["builtInTask"] == "Copy"
+            assert schema["defaultTask"] == "DefaultTask"
+        """
+        expect:
+        succeeds("help")
+    }
+
+    def "cannot add a pre-created provider of tasks to the task container"() {
+        given:
+        buildFile << """
+            Task foo = tasks.create("foo")
+            Task bar = tasks.create("bar")
+            
+            tasks.addAllLater(provider { [foo, bar] })
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
 }

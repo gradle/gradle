@@ -16,64 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskValidationException;
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.util.DeprecationLogger;
-
-import java.util.List;
 
 public interface TaskValidationContext {
-    enum Severity {
-        WARNING() {
-            @Override
-            public boolean report(Task task, List<String> messages, TaskStateInternal state) {
-                StringBuilder builder = new StringBuilder();
-                builder.append(getMainMessage(task, messages));
-                builder.append(" Registering invalid inputs and outputs via TaskInputs and TaskOutputs methods ");
-                builder.append(LoggingDeprecatedFeatureHandler.getDeprecationMessage());
-                builder.append(".");
-                for (String message : messages) {
-                    builder.append("\n - ");
-                    builder.append(message);
-                }
-                DeprecationLogger.nagUserWith(builder.toString());
-                return true;
-            }
-        },
-        ERROR() {
-            @Override
-            public boolean report(Task task, List<String> messages, TaskStateInternal state) {
-                List<InvalidUserDataException> causes = Lists.newArrayListWithCapacity(messages.size());
-                for (String message : messages) {
-                    causes.add(new InvalidUserDataException(message));
-                }
-                String errorMessage = getMainMessage(task, messages);
-                state.setOutcome(new TaskValidationException(errorMessage, causes));
-                return false;
-            }
-        };
-
-        private static String getMainMessage(Task task, List<String> messages) {
-            if (messages.size() == 1) {
-                return String.format("A problem was found with the configuration of %s.", task);
-            } else {
-                return String.format("Some problems were found with the configuration of %s.", task);
-            }
-        }
-
-        /**
-         * Reports task validation errors. Returns {@code true} if task execution should continue, {@code false} otherwise.
-         */
-        public abstract boolean report(Task task, List<String> messages, TaskStateInternal state);
-    }
 
     FileResolver getResolver();
 
-    void recordValidationMessage(Severity severity, String message);
-
-    Severity getHighestSeverity();
+    void recordValidationMessage(String message);
 }

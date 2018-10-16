@@ -122,7 +122,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             import spock.lang.Specification
 
             class BuildLogicFunctionalTest extends Specification {
-                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
 
                 def setup() {

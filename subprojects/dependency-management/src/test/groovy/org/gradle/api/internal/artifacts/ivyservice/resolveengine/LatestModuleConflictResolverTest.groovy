@@ -17,12 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import spock.lang.Unroll
 
 class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
     def setup() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator())
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(), new VersionParser())
     }
 
     @Unroll

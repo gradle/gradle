@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.gradle;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
@@ -26,7 +25,6 @@ import org.gradle.tooling.model.ProjectModel;
  *
  * @since 1.12
  */
-@Incubating
 public interface GradlePublication extends ProjectModel {
 
     /**
@@ -34,7 +32,6 @@ public interface GradlePublication extends ProjectModel {
      *
      * @since 3.3
      */
-    @Incubating
     ProjectIdentifier getProjectIdentifier();
 
     /**

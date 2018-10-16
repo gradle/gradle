@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -33,19 +34,28 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.INPUT_FILE_VALIDATOR);
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath, ValidationAction validator) {
+    public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.NO_OP);
+    }
+
+    @Override
+    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath) {
         FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return createInputFileSpec(new FileTreeValue(dirPath, fileTree), validator);
+        return createInputFilesSpec(new FileTreeValue(dirPath, fileTree), ValidationActions.INPUT_DIRECTORY_VALIDATOR);
+    }
+
+    private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
+        return new DefaultTaskInputFilePropertySpec(task.toString(), resolver, paths, validationAction);
     }
 
     @Override
     public DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value) {
-        return new DefaultTaskInputPropertySpec(task.getInputs(), name, value);
+        return new DefaultTaskInputPropertySpec(name, value);
     }
 
     @Override
@@ -60,16 +70,16 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputFilesSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
+        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, OutputType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
     }
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
+        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, OutputType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
     }
 
     private DefaultCacheableTaskOutputFilePropertySpec createOutputFilePropertySpec(ValidatingValue path, OutputType file, ValidationAction outputFileValidator) {
-        return new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, file, path, outputFileValidator);
+        return new DefaultCacheableTaskOutputFilePropertySpec(task.toString(), resolver, file, path, outputFileValidator);
     }
 
     private static class FileTreeValue implements ValidatingValue {
@@ -85,6 +95,16 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
         @Override
         public Object call() {
             return fileTree;
+        }
+
+        @Override
+        public void attachProducer(Task producer) {
+            delegate.attachProducer(producer);
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            delegate.maybeFinalizeValue();
         }
 
         @Override

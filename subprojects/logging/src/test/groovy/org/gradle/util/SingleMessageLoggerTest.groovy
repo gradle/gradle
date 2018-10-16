@@ -18,6 +18,7 @@ package org.gradle.util
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -32,7 +33,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All)
+        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningMode.All, Mock(DeprecatedUsageBuildOperationProgressBroadaster))
     }
 
     def cleanup() {
@@ -123,11 +124,11 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         def major = GradleVersion.current().nextMajor
 
         when:
-        SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
+        SingleMessageLogger.nagUserOfDeprecated("foo", "bar.")
 
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message.startsWith("foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.")
+        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle ${major.version}. bar.")
     }
 }

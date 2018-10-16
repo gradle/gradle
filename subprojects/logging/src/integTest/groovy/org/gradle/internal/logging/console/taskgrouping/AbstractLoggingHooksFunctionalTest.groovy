@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+
 
 abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest{
     def setup() {
@@ -34,7 +36,42 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
     }
 
-    def "listener added to task receives only the output generated while the task is running"() {
+    def "listener added to script receives output synchronously and only while script is running"() {
+        buildFile << """
+            System.out.println "before" 
+            System.err.println "before" 
+
+            def output = new CollectingListener()
+            def error = new CollectingListener()
+            logging.addStandardOutputListener(output)            
+            logging.addStandardErrorListener(error)            
+
+            System.out.println "output 1" 
+            assert output.toString().readLines() == ["output 1"]
+            System.err.println "error 1" 
+            assert error.toString().readLines() == ["error 1"]
+            
+            task log {
+                doLast {
+                    System.out.println "output 2"
+                    assert output.toString().readLines() == ["output 1"]
+                    System.err.println "error 2" 
+                    assert error.toString().readLines() == ["error 1"]
+                }
+            }
+            
+            gradle.buildFinished {
+                println "finished"
+                assert output.toString().readLines() == ["output 1"]
+                assert error.toString().readLines() == ["error 1"]
+            }
+        """
+
+        expect:
+        succeeds("log")
+    }
+
+    def "listener added to task receives output synchronously and only while the task is running"() {
         buildFile << """
             def output = new CollectingListener()
             def error = new CollectingListener()
@@ -45,21 +82,27 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
                 doLast {
                     logging.addStandardOutputListener(output)
                     logging.addStandardErrorListener(error)
-                    System.out.println "output" 
+                    System.out.println "output"
+                    assert output.toString().readLines() == [":log", "output"]
                     System.err.println "error" 
+                    assert error.toString().readLines() == ["error"]
                 }
             }
-            
+
+            // Listener added before
             log.logging.addStandardOutputListener(before)
             log.logging.addStandardErrorListener(before)
+            System.out.println "ignore" 
+            System.err.println "ignore" 
 
             task other {
                 dependsOn log
                 doLast {
+                    // Listener added after
                     log.logging.addStandardOutputListener(after)
                     log.logging.addStandardErrorListener(after)
-                    System.out.println "other" 
-                    System.err.println "other" 
+                    System.out.println "ignore" 
+                    System.err.println "ignore" 
                 }
             }
             
@@ -186,5 +229,54 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         !lines.contains('info')
         !lines.contains('lifecycle')
         !lines.contains('warn')
+    }
+
+    def "broken listener fails build but does not kill logging output"() {
+        buildFile << """
+            class BrokenListener implements StandardOutputListener {
+                void onOutput(CharSequence output) {
+                    throw new RuntimeException("broken")
+                }
+            }
+            def output = new BrokenListener()
+            def error = new BrokenListener()
+
+            task brokenOut {
+                doLast {
+                    logging.addStandardOutputListener(output)
+                    System.out.println "output 1" 
+                    assert false // should not get here
+                }
+            }
+            task brokenErr {
+                doLast {
+                    logging.addStandardErrorListener(error)
+                    System.err.println "error 1" 
+                    assert false // should not get here
+                }
+            }
+            task ok {
+                doLast {
+                    System.out.println "output 2" 
+                    System.err.println "error 2" 
+                }
+            }
+        """
+
+        expect:
+        executer.withArguments("--continue")
+        fails("brokenOut", "brokenErr", "ok")
+
+        failure.assertHasFailures(2)
+        failure.assertHasCause("broken")
+
+        result.groupedOutput.task(":brokenOut").output == "output 1"
+        if (errorsShouldAppearOnStdout()) {
+            result.groupedOutput.task(":brokenErr").output == "error 1"
+        } else {
+            result.assertHasErrorOutput("error 1")
+        }
+        outputContains("output 2")
+        result.assertHasErrorOutput("error 2")
     }
 }

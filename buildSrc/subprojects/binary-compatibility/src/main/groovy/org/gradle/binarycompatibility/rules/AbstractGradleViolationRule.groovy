@@ -16,11 +16,13 @@
 
 package org.gradle.binarycompatibility.rules
 
+import com.google.gson.Gson
+import com.google.gson.stream.JsonWriter
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter
-import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
@@ -30,6 +32,7 @@ import japicmp.model.JApiMethod
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating
+import org.gradle.binarycompatibility.AcceptedApiChange
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.ApiChange
 
@@ -110,11 +113,15 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def visitor = new GenericVisitorAdapter<Object, Void>() {
             @Override
             Object visit(MethodDeclaration declaration, Void arg) {
-                if (declaration.name == method.name && declaration.annotations.any { it.name.name == Override.simpleName } ) {
+                if (declaration.name.asString() == method.name && declaration.annotations.any { it.name.asString() == Override.simpleName } ) {
                     return new Object()
                 }
                 return null
             }
+        }
+        // No point in parsing the source file if the method is not there any more.
+        if (method.changeStatus == JApiChangeStatus.REMOVED) {
+            return false
         }
         return JavaParser.parse(sourceFileFor(method.jApiClass.fullyQualifiedName)).accept(visitor, null) != null
     }
@@ -148,14 +155,12 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
             seenApiChanges.add(change)
             return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
         }
-        def acceptanceJson = new LinkedHashMap<String, Object>([
-            type: change.type,
-            member: change.member,
-            acceptation: '&lt;ADD YOUR CUSTOM REASON HERE&gt;'
-        ])
-        if (change.changes) {
-            acceptanceJson.changes = change.changes
-        }
+        def acceptanceJson = new AcceptedApiChange(
+            change.type,
+            change.member,
+            '[ADD YOUR CUSTOM REASON HERE]',
+            change.changes
+        )
 
         def id = "accept" + (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
@@ -165,11 +170,20 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 <div class="collapse" id="${id}">
                   <div class="well">
                       In order to accept this change add the following to <code>subprojects/distributions/src/changes/accepted-public-api-changes.json</code>:
-                    <pre>${JsonOutput.prettyPrint(JsonOutput.toJson(acceptanceJson))}</pre>
+                    <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
                 </div>""".stripIndent()
         )
         return violation
+    }
+
+    private static String prettyPrintJson(def acceptanceJson) {
+        def stringWriter = new StringWriter()
+        new JsonWriter(stringWriter).withCloseable { writer ->
+            writer.setIndent("    ")
+            new Gson().toJson(acceptanceJson, AcceptedApiChange, writer)
+        }
+        return stringWriter.toString()
     }
 
     String getCurrentVersion() {

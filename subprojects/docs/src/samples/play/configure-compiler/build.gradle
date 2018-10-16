@@ -1,9 +1,9 @@
-// START SNIPPET play-idea
+// tag::play-idea[]
 plugins {
     id 'play'
     id 'idea'
 }
-// END SNIPPET play-idea
+// end::play-idea[]
 
 repositories {
     jcenter()
@@ -21,9 +21,10 @@ repositories {
 dependencies {
     play 'commons-lang:commons-lang:2.6'
     playTest "com.google.guava:guava:17.0"
+    playTest "org.scalatestplus.play:scalatestplus-play_2.12:3.1.2"
 }
 
-// START SNIPPET play-configure-compiler
+// tag::play-configure-compiler[]
 model {
     components {
         play {
@@ -35,4 +36,4 @@ model {
         }
     }
 }
-// END SNIPPET play-configure-compiler
+// end::play-configure-compiler[]

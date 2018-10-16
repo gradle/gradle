@@ -27,6 +27,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -218,10 +219,7 @@ public class IdeaModule {
 
     /**
      * The directories containing the production sources.
-     * <p>
-     * For backward-compatibility it is set of directories containing the production sources from <tt>project.sourceSets.main.allSource</tt>.
-     * <p>
-     * Starting with Gradle 5.0 it is set of directories containing the production sources from <tt>project.sourceSets.main.allJava</tt>.
+     *
      * For example see docs for {@link IdeaModule}
      */
     public Set<File> getSourceDirs() {
@@ -237,12 +235,10 @@ public class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    @Incubating
     public Set<File> getGeneratedSourceDirs() {
         return generatedSourceDirs;
     }
 
-    @Incubating
     public void setGeneratedSourceDirs(Set<File> generatedSourceDirs) {
         this.generatedSourceDirs = generatedSourceDirs;
     }
@@ -317,10 +313,7 @@ public class IdeaModule {
 
     /**
      * The directories containing the test sources.
-     * <p>
-     * For backward-compatibility it is set of directories containing the test sources from <tt>project.sourceSets.test.allSource</tt>.
-     * <p>
-     * Starting with Gradle 5.0 it is set of directories containing the test sources from <tt>project.sourceSets.test.allJava</tt>.
+     *
      * For example see docs for {@link IdeaModule}
      */
     public Set<File> getTestSourceDirs() {
@@ -455,12 +448,10 @@ public class IdeaModule {
      * <p>
      * The Idea module language level is based on the {@code sourceCompatibility} settings for the associated Gradle project.
      */
-    @Incubating
     public IdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
     }
 
-    @Incubating
     public void setLanguageLevel(IdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
     }
@@ -471,12 +462,10 @@ public class IdeaModule {
      * <p>
      * The Idea module bytecode version is based on the {@code targetCompatibility} settings for the associated Gradle project.
      */
-    @Incubating
     public JavaVersion getTargetBytecodeVersion() {
         return targetBytecodeVersion;
     }
 
-    @Incubating
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -484,12 +473,10 @@ public class IdeaModule {
     /**
      * The Scala version used by this module.
      */
-    @Incubating
     public ScalaPlatform getScalaPlatform() {
         return scalaPlatform;
     }
 
-    @Incubating
     public void setScalaPlatform(ScalaPlatform scalaPlatform) {
         this.scalaPlatform = scalaPlatform;
     }
@@ -555,7 +542,7 @@ public class IdeaModule {
      * @since 3.5
      */
     public void iml(Action<? super IdeaModuleIml> action) {
-        action.execute(getIml());
+        action.execute(iml);
     }
 
     /**
@@ -572,7 +559,7 @@ public class IdeaModule {
 
     public void setOutputFile(File newOutputFile) {
         setName(newOutputFile.getName().replaceFirst("\\.iml$", ""));
-        iml.setGenerateTo(newOutputFile.getParentFile());
+        getIml().setGenerateTo(newOutputFile.getParentFile());
     }
 
     /**
@@ -582,7 +569,9 @@ public class IdeaModule {
      */
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal.getServices().get(IdeArtifactRegistry.class));
+        IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
+        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry);
         return ideaDependenciesProvider.provide(this);
     }
 

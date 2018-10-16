@@ -51,8 +51,7 @@ public class OperationIdentifier implements Serializable {
         return id == that.id;
     }
 
-    @Override
     public int hashCode() {
-        return (int) id;
+        return Long.hashCode(id);
     }
 }

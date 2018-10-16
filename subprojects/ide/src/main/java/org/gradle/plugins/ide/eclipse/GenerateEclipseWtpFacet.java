@@ -16,10 +16,13 @@
 package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet;
 import org.gradle.plugins.ide.eclipse.model.WtpFacet;
+
+import javax.inject.Inject;
 
 /**
  * Generates the org.eclipse.wst.common.project.facet.core settings file for Eclipse WTP.
@@ -36,6 +39,11 @@ public class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
         facet = getInstantiator().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(getXmlTransformer()));
     }
 
+    @Inject
+    public GenerateEclipseWtpFacet(EclipseWtpFacet facet) {
+        this.facet = facet;
+    }
+
     @Override
     protected WtpFacet create() {
         return new WtpFacet(getXmlTransformer());
@@ -44,6 +52,14 @@ public class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     @Override
     protected void configure(WtpFacet xmlFacet) {
         facet.mergeXmlFacet(xmlFacet);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (facet == null) {
+            return super.getXmlTransformer();
+        }
+        return facet.getFile().getXmlTransformer();
     }
 
     /**

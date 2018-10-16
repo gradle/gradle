@@ -52,7 +52,8 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
                 crossBuildSessionScopeServices,
                 startParameter,
                 requestContext,
-                actionParameters.getInjectedPluginClasspath()
+                actionParameters.getInjectedPluginClasspath(),
+                requestContext.getCancellationToken()
             );
             try {
                 SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);

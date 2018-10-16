@@ -53,14 +53,6 @@ public interface CacheBuilder {
     CacheBuilder withCrossVersionCache(LockTarget lockTarget);
 
     /**
-     * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.
-     *
-     * @param validator The validator
-     * @return this
-     */
-    CacheBuilder withValidator(CacheValidator validator);
-
-    /**
      * Specifies the display name for this cache. This display name is used in logging and error messages.
      */
     CacheBuilder withDisplayName(String displayName);
@@ -83,7 +75,7 @@ public interface CacheBuilder {
      *
      * A clean-up action is run when a cache is closed, but only after a certain interval of time after the last clean-up.
      *
-     * Currently, a clean-up action is run after {@value org.gradle.cache.internal.DefaultPersistentDirectoryCache#CLEANUP_INTERVAL} days.
+     * Currently, a clean-up action is run after {@value org.gradle.cache.internal.DefaultPersistentDirectoryCache#CLEANUP_INTERVAL_IN_HOURS} hours.
      *
      */
     CacheBuilder withCleanup(CleanupAction cleanup);

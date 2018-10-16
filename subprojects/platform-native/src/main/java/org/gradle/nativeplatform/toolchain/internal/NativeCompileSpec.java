@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
 import java.io.File;
@@ -37,6 +36,10 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     void include(Iterable<File> includeRoots);
 
     void include(File... includeRoots);
+
+    List<File> getSystemIncludeRoots();
+
+    void systemInclude(Iterable<File> systemIncludeRoots);
 
     List<File> getSourceFiles();
 
@@ -86,7 +89,7 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setPreCompiledHeader(String header);
 
-    Map<File, IncludeDirectives> getSourceFileIncludeDirectives();
+    List<File> getSourceFilesForPch();
 
-    void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map);
+    void setSourceFilesForPch(List<File> sourceFilesForPch);
 }

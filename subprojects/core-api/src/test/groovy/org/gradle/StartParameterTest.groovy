@@ -54,6 +54,7 @@ class StartParameterTest extends Specification {
         parameter.buildCacheEnabled = true
         parameter.interactive = true
         parameter.writeDependencyLocks = true
+        parameter.lockedDependenciesToUpdate = ['foo']
         parameter.includeBuild(new File('participant'))
 
         when:
@@ -124,6 +125,7 @@ class StartParameterTest extends Specification {
         !parameter.buildCacheEnabled
         !parameter.interactive
         !parameter.writeDependencyLocks
+        parameter.lockedDependenciesToUpdate.isEmpty()
 
         assertThat(parameter, isSerializable())
     }
@@ -289,6 +291,7 @@ class StartParameterTest extends Specification {
         parameter.buildCacheEnabled = true
         parameter.interactive = true
         parameter.writeDependencyLocks = true
+        parameter.lockedDependenciesToUpdate = ['foo']
 
         assertThat(parameter, isSerializable())
 
@@ -311,6 +314,7 @@ class StartParameterTest extends Specification {
         newParameter.buildCacheEnabled == parameter.buildCacheEnabled
         newParameter.interactive == parameter.interactive
         newParameter.writeDependencyLocks == parameter.writeDependencyLocks
+        newParameter.lockedDependenciesToUpdate == parameter.lockedDependenciesToUpdate
 
         newParameter.buildFile == null
         newParameter.taskRequests.empty

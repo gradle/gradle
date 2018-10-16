@@ -30,6 +30,7 @@ import java.nio.charset.Charset
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.withArgument("--no-daemon")
         executer.requireIsolatedDaemons()
     }
 

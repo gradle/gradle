@@ -27,19 +27,25 @@ class DefaultDependencyConstraintTest extends Specification {
         dependencyConstraint.group == "org.gradle"
         dependencyConstraint.name == "gradle-core"
         dependencyConstraint.version == "4.4-beta2"
-        dependencyConstraint.versionConstraint.preferredVersion == "4.4-beta2"
+        dependencyConstraint.versionConstraint.preferredVersion == ""
+        dependencyConstraint.versionConstraint.requiredVersion == "4.4-beta2"
+        dependencyConstraint.versionConstraint.strictVersion == ""
         dependencyConstraint.versionConstraint.rejectedVersions == []
     }
 
 
     void "knows if is equal to"() {
         expect:
-        new DefaultDependencyConstraint("group1", "name1", "version1") == new DefaultDependencyConstraint("group1", "name1", "version1")
-        new DefaultDependencyConstraint("group1", "name1", "version1").hashCode() == new DefaultDependencyConstraint("group1", "name1", "version1").hashCode()
-        new DefaultDependencyConstraint("group1", "name1", "version1") != new DefaultDependencyConstraint("group1", "name1", "version2")
-        new DefaultDependencyConstraint("group1", "name1", "version1") != new DefaultDependencyConstraint("group1", "name2", "version1")
-        new DefaultDependencyConstraint("group1", "name1", "version1") != new DefaultDependencyConstraint("group2", "name1", "version1")
-        new DefaultDependencyConstraint("group1", "name1", "version1") != new DefaultDependencyConstraint("group2", "name1", "version1")
+        constraint("group1", "name1", "version1") == constraint("group1", "name1", "version1")
+        constraint("group1", "name1", "version1").hashCode() == constraint("group1", "name1", "version1").hashCode()
+        constraint("group1", "name1", "version1") != constraint("group1", "name1", "version2")
+        constraint("group1", "name1", "version1") != constraint("group1", "name2", "version1")
+        constraint("group1", "name1", "version1") != constraint("group2", "name1", "version1")
+        constraint("group1", "name1", "version1") != constraint("group2", "name1", "version1")
+    }
+
+    DefaultDependencyConstraint constraint(String group, String name, String version) {
+        return new DefaultDependencyConstraint(group, name, version)
     }
 
     def "creates deep copy"() {

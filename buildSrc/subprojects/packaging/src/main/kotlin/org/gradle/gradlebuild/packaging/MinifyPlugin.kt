@@ -18,7 +18,9 @@ package org.gradle.gradlebuild.packaging
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.attributes.Attribute
+
+import org.gradle.gradlebuild.packaging.Attributes.artifactType
+import org.gradle.gradlebuild.packaging.Attributes.minified
 
 import org.gradle.kotlin.dsl.*
 
@@ -39,8 +41,6 @@ open class MinifyPlugin : Plugin<Project> {
                 "it.unimi.dsi.fastutil.ints.IntSets"
             )
         )
-        val artifactType = Attribute.of("artifactType", String::class.java)
-        val minified = Attribute.of("minified", Boolean::class.javaObjectType)
 
         allprojects {
             plugins.withId("java-base") {
@@ -60,7 +60,7 @@ open class MinifyPlugin : Plugin<Project> {
                          */
                         from.attribute(minified, false).attribute(artifactType, "jar")
                         to.attribute(minified, true).attribute(artifactType, "jar")
-                        artifactTransform(MinifyTransform::class.java) {
+                        artifactTransform(MinifyTransform::class) {
                             params(keepPatterns)
                         }
                     }

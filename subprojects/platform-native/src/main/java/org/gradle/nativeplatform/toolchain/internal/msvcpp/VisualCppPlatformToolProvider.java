@@ -51,7 +51,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpe
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.metadata.VisualCppMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -101,17 +101,28 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
-    public ToolSearchResult isToolAvailable(ToolType toolType) {
-        return new ToolSearchResult() {
-            @Override
-            public boolean isAvailable() {
-                return true;
-            }
+    public CommandLineToolSearchResult locateTool(ToolType compilerType) {
+        switch (compilerType) {
+            case C_COMPILER:
+            case CPP_COMPILER:
+                return new CommandLineToolSearchResult() {
+                    @Override
+                    public File getTool() {
+                        return visualCpp.getCompilerExecutable();
+                    }
 
-            @Override
-            public void explain(TreeVisitor<? super String> visitor) {
-            }
-        };
+                    @Override
+                    public boolean isAvailable() {
+                        return true;
+                    }
+
+                    @Override
+                    public void explain(TreeVisitor<? super String> visitor) {
+                    }
+                };
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 
     @Override
@@ -147,7 +158,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     private <T extends BinaryToolSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> outputCleaningCompiler) {
-            return new VersionAwareCompiler<T>(outputCleaningCompiler, new DefaultCompilerVersion(VisualCppToolChain.DEFAULT_NAME, "Microsoft", visualCpp.getImplementationVersion()));
+        return new VersionAwareCompiler<T>(outputCleaningCompiler, new DefaultCompilerVersion(VisualCppToolChain.DEFAULT_NAME, "Microsoft", visualCpp.getImplementationVersion()));
     }
 
     @Override

@@ -15,48 +15,67 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Unroll
 
-class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'customPlugin')
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-    def getProducerDir() {
-        return sample.dir.file('plugin')
-    }
+@Requires(KOTLIN_SCRIPT)
+@Ignore
+class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
+    @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    def getConsumerDir() {
-        return sample.dir.file('consumer')
-    }
-
-    public void canTestPluginAndTaskImplementation() {
+    @Unroll
+    @UsesSample("customPlugin")
+    def "can test plugin and task implementation with #dsl dsl"() {
         when:
-        executer.inDirectory(producerDir).withTasks('check').run()
+        TestFile dslDir = sample.dir.file("$dsl/plugin")
+        executer.inDirectory(dslDir).withTasks('check').run()
 
         then:
-        def result = new DefaultTestExecutionResult(producerDir)
+        def result = new DefaultTestExecutionResult(dslDir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    public void canPublishAndUsePluginAndTestImplementations() {
+    @Unroll
+    @UsesSample("customPlugin")
+    def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {
         given:
-        using m2 //uploadArchives is leaking to ~/.m2 folder
-        executer.inDirectory(producerDir).withTasks('uploadArchives').run()
+        TestFile dslDir = sample.dir.file(dsl)
+        TestFile producerDir = dslDir.file(producerName)
+        executer.inDirectory(producerDir).withTasks('publish').run()
+        executer.beforeExecute {
+            inDirectory(dslDir.file('consumer'))
+            withArgument("-PproducerName=$producerName")
+        }
 
         when:
-        executer.inDirectory(consumerDir)
         succeeds('greeting')
 
         then:
         outputContains('howdy!')
 
         when:
-        executer.inDirectory(consumerDir)
         succeeds('hello')
 
         then:
         outputContains('hello from GreetingTask')
+
+        where:
+        producerName       | dsl
+        'plugin'           | 'groovy'
+        'javaGradlePlugin' | 'groovy'
+        'plugin'           | 'kotlin'
+        'javaGradlePlugin' | 'kotlin'
     }
 }

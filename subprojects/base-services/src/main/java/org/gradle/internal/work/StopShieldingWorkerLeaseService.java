@@ -16,9 +16,11 @@
 
 package org.gradle.internal.work;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.util.Path;
 
-import java.util.concurrent.Callable;
+import java.util.Collection;
 
 public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
 
@@ -34,8 +36,8 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        return delegate.withLocks(locks, action);
+    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+        return delegate.withLocks(locks, factory);
     }
 
     @Override
@@ -44,8 +46,8 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        return delegate.withoutLocks(locks, action);
+    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+        return delegate.withoutLocks(locks, factory);
     }
 
     @Override
@@ -69,13 +71,18 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public ResourceLock getProjectLock(String gradlePath, String projectPath) {
-        return delegate.getProjectLock(gradlePath, projectPath);
+    public ResourceLock getProjectLock(Path buildIdentityPath, Path projectPath) {
+        return delegate.getProjectLock(buildIdentityPath, projectPath);
     }
 
     @Override
-    public <T> T withoutProjectLock(Callable<T> action) {
-        return delegate.withoutProjectLock(action);
+    public Collection<? extends ResourceLock> getCurrentProjectLocks() {
+        return delegate.getCurrentProjectLocks();
+    }
+
+    @Override
+    public <T> T withoutProjectLock(Factory<T> factory) {
+        return delegate.withoutProjectLock(factory);
     }
 
     @Override

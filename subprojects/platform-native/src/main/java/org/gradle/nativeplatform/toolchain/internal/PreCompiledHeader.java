@@ -29,8 +29,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import javax.annotation.Nullable;
 
 public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     FileCollection pchObjects;
@@ -108,6 +108,7 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     }
 
     @Internal
+    @Nullable
     @Override
     public Task getBuildTask() {
         return super.getBuildTask();
@@ -120,6 +121,7 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
     }
 
     @Internal
+    @Nullable
     @Override
     public Task getCheckTask() {
         return super.getCheckTask();

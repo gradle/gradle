@@ -16,23 +16,26 @@
 
 package org.gradle.performance.regression.java
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "up-to-date assemble on #testProject"() {
-        //This test scenario can potentially be replaced with an incremental change test
-
+    def "up-to-date assemble on #testProject (parallel #parallel)"() {
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["4.7-20180330212523+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
         def result = runner.run()
@@ -41,8 +44,46 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                   | parallel
+        LARGE_MONOLITHIC_JAVA_PROJECT | false
+        LARGE_JAVA_MULTI_PROJECT      | true
+        LARGE_JAVA_MULTI_PROJECT      | false
+    }
+
+    @Unroll
+    def "up-to-date assemble on #testProject with local build cache enabled (parallel #parallel)"() {
+        given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = ['assemble']
+        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.args += ["-Dorg.gradle.parallel=$parallel", "-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
+        def cacheDir = temporaryFolder.file("local-cache")
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+                cacheDir.deleteDir().mkdirs()
+                def settingsFile = new TestFile(projectDir).file('settings.gradle')
+                settingsFile << """
+                    buildCache {
+                        local {
+                            directory = '${cacheDir.absoluteFile.toURI()}'
+                        }
+                    }
+                """.stripIndent()
+            }
+        })
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                   | parallel
+        LARGE_MONOLITHIC_JAVA_PROJECT | false
+        LARGE_JAVA_MULTI_PROJECT      | true
+        LARGE_JAVA_MULTI_PROJECT      | false
     }
 }

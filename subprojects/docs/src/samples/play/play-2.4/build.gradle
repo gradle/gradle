@@ -28,7 +28,7 @@ model {
     }
 }
 
-// START SNIPPET play-injected-routes-compiler
+// tag::play-injected-routes-compiler[]
 model {
     components {
         play {
@@ -36,4 +36,4 @@ model {
         }
     }
 }
-// END SNIPPET play-injected-routes-compiler
+// end::play-injected-routes-compiler[]

@@ -17,12 +17,10 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Timeout
-
-import java.util.concurrent.TimeUnit
 
 class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
@@ -33,7 +31,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3579')
-    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    @IntegrationTestTimeout(60)
     def 'can use artifact resolution queries in parallel to file resolution'() {
         given:
         def module = mavenHttpRepo.module('group', "artifact", '1.0').publish()
@@ -43,6 +41,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
         settingsFile << 'include "query", "resolve"'
         buildFile << """ 
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier as DMI
 
 allprojects {
     apply plugin: 'java'
@@ -60,7 +59,7 @@ project('query') {
         doLast {
             '${server.uri}/sync'.toURL().text
             dependencies.createArtifactResolutionQuery()
-                        .forComponents(new DefaultModuleComponentIdentifier('group','artifact','1.0'))
+                        .forComponents(new DefaultModuleComponentIdentifier(DMI.newId('group','artifact'),'1.0'))
                         .withArtifacts(JvmLibrary)
                         .execute()
         }

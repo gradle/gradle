@@ -83,8 +83,8 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
 
     def "Publishes one Ivy marker for every plugin"() {
         given:
-        plugin('foo', 'com.example.foo')
-        plugin('bar', 'com.example.bar')
+        plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
+        plugin('bar', 'com.example.bar', 'The Bar Plugin', 'The greatest Bar plugin of all time.')
         publishToIvy()
 
         when:
@@ -97,12 +97,14 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             marker.assertPublished()
             assert marker.parsedIvy.dependencies['com.example:plugins:1.0']
         }
+        fooMarker.parsedIvy.description.text() == 'The greatest Foo plugin of all time.'
+        barMarker.parsedIvy.description.text() == 'The greatest Bar plugin of all time.'
     }
 
     def "Publishes one Maven marker for every plugin"() {
         given:
-        plugin('foo', 'com.example.foo')
-        plugin('bar', 'com.example.bar')
+        plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
+        plugin('bar', 'com.example.bar', 'The Bar Plugin', 'The greatest Bar plugin of all time.')
         publishToMaven()
 
         when:
@@ -114,6 +116,14 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         [fooMarker, barMarker].each { marker ->
             marker.assertPublished()
             assert marker.parsedPom.scopes['runtime'].expectDependency('com.example:plugins:1.0')
+        }
+        with(fooMarker.parsedPom) {
+            it.name == 'The Foo Plugin'
+            it.description == 'The greatest Foo plugin of all time.'
+        }
+        with(barMarker.parsedPom) {
+            it.name == 'The Bar Plugin'
+            it.description == 'The greatest Bar plugin of all time.'
         }
     }
 
@@ -224,7 +234,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         """
     }
 
-    def plugin(String name, String pluginId) {
+    def plugin(String name, String pluginId, String displayName = null, String description = null) {
         String implementationClass = name.capitalize();
 
         file("src/main/java/com/xxx/${implementationClass}.java") << """
@@ -241,6 +251,8 @@ public class ${implementationClass} implements Plugin<Project> {
                     ${name} {
                         id = '${pluginId}'
                         implementationClass = '${implementationClass}'
+                        ${displayName ? "displayName = '$displayName'" : ""}
+                        ${description ? "description = '$description'" : ""}
                     }
                 }
             }

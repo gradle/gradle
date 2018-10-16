@@ -16,29 +16,40 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
+import org.gradle.internal.text.TreeFormatter;
 
-import java.util.Collection;
+import java.util.List;
 
-public class LockOutOfDateException extends RuntimeException {
+import static java.util.Collections.emptyList;
 
-    public static LockOutOfDateException createLockOutOfDateException(Iterable<String> errors) {
-        StringBuilder builder = new StringBuilder("Dependency lock out of date:\n");
+public class LockOutOfDateException extends GraphValidationException {
+
+    private final List<String> errors;
+
+    public static LockOutOfDateException createLockOutOfDateException(String configurationName, Iterable<String> errors) {
+        TreeFormatter treeFormatter = new TreeFormatter();
+        treeFormatter.node("Dependency lock state for configuration '" + configurationName + "' is out of date");
+        treeFormatter.startChildren();
         for (String error : errors) {
-            builder.append("\t").append(error).append("\n");
+            treeFormatter.node(error);
         }
-        return new LockOutOfDateException(builder.toString());
+        treeFormatter.endChildren();
+        return new LockOutOfDateException(treeFormatter.toString(), ImmutableList.copyOf(errors));
     }
 
-    public static LockOutOfDateException createLockOutOfDateExceptionStrictMode(Collection<ModuleComponentIdentifier> extraModules) {
-        StringBuilder builder = new StringBuilder("Dependency lock out of date (strict mode):\n");
-        for (ModuleComponentIdentifier extraModule : extraModules) {
-            builder.append("Module missing from lock file: ").append(extraModule.getGroup()).append(":").append(extraModule.getModule()).append(":").append(extraModule.getVersion()).append("\n");
-        }
-        return new LockOutOfDateException(builder.toString());
-    }
-
-    private LockOutOfDateException(String message) {
+    public LockOutOfDateException(String message) {
         super(message);
+        this.errors = emptyList();
+    }
+
+    private LockOutOfDateException(String message, List<String> errors) {
+        super(message);
+        this.errors = errors;
+    }
+
+    public List<String> getErrors() {
+        return errors;
     }
 }

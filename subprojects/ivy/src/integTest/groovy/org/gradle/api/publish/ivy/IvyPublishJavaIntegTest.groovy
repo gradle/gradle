@@ -17,19 +17,20 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
-    def javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
+    IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     String getDependencies() {
         """dependencies {
-                api "commons-collections:commons-collections:3.2.2"
-                compileOnly "javax.servlet:servlet-api:2.5"
-                runtimeOnly "commons-io:commons-io:1.4"
-                testImplementation "junit:junit:4.12"
-            }
+               api "commons-collections:commons-collections:3.2.2"
+               compileOnly "javax.servlet:servlet-api:2.5"
+               runtimeOnly "commons-io:commons-io:1.4"
+               testImplementation "junit:junit:4.12"
+           }
 """
     }
 
@@ -354,6 +355,53 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
+    void "generated ivy descriptor includes configuration exclusions"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+            configurations.apiElements {
+                exclude group: "foo", module: "bar"
+            }
+
+            configurations.runtimeElements {
+                exclude group: "baz", module: "qux"
+            }
+
+            $dependencies
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile", "baz:qux@runtime"]
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('commons-collections:commons-collections:3.2.2') {
+                hasExclude('foo', 'bar')
+                noMoreExcludes()
+            }
+        }
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-io:commons-io:1.4') {
+                hasExclude('baz', 'qux')
+                noMoreExcludes()
+            }
+        }
+    }
+
     void "defaultDependencies are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
@@ -422,7 +470,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
             configurations.api.withDependencies { deps ->
                 deps.each { dep ->
-                    dep.version { prefer 'X' }
+                    dep.version { require 'X' }
                 }
             }
 """
@@ -435,14 +483,16 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
 
-    def "can publish java-library with strict dependencies"() {
+    def "can publish java-library with strict and prefer dependencies"() {
         requiresExternalDependencies = true
 
         given:
         createBuildScripts("""
 
             dependencies {
-                api "org.springframework:spring-core:2.5.6"
+                api("org.springframework:spring-core") {
+                    version { prefer '2.5.6' }
+                }
                 implementation("commons-collections:commons-collections") {
                     version { strictly '3.2.2' }
                 }
@@ -468,20 +518,26 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.springframework:spring-core:2.5.6') {
+            dependency('org.springframework:spring-core:') {
                 noMoreExcludes()
+                prefers('2.5.6')
+                strictly(null)
                 rejects()
             }
             noMoreDependencies()
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:3.2.2') {
+            dependency('commons-collections:commons-collections:') {
                 noMoreExcludes()
-                rejects ']3.2.2,)'
+                prefers(null)
+                strictly('3.2.2')
+                rejects()
             }
-            dependency('org.springframework:spring-core:2.5.6') {
+            dependency('org.springframework:spring-core:') {
                 noMoreExcludes()
+                prefers('2.5.6')
+                strictly(null)
                 rejects()
             }
             noMoreDependencies()
@@ -504,6 +560,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 constraints {
                     api "commons-logging:commons-logging:1.1"
                     implementation "commons-logging:commons-logging:1.2"
+                    
                     implementation("org.tukaani:xz") {
                         version { strictly "1.6" }
                     }
@@ -552,7 +609,11 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:1.6') { rejects(']1.6,)') }
+            constraint('org.tukaani:xz:') {
+                prefers(null)
+                strictly('1.6')
+                rejects()
+            }
 
             noMoreDependencies()
         }
@@ -622,7 +683,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 // Constraints cannot be published to Ivy files. Since we publish the _declared_ dependency
                 // versions and not the resolved ones, this can't be resolved
                 shouldFail {
-                    assertHasDescription 'Could not resolve all files for configuration'
+                    assertHasCause 'Could not resolve all files for configuration'
                     assertHasCause 'Could not find commons-collections:commons-collections:.'
                 }
             }
@@ -643,9 +704,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                         }
                     }
                 }
-                implementation("commons-collections:commons-collections") {
+                implementation("commons-collections:commons-collections:[3.2, 4)") {
                     version { 
-                        prefer '[3.2, 4)'
                         reject '3.2.1', '[3.2.2,)'
                     }
                 }
@@ -735,6 +795,108 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    def "can publish java-library with dependencies/constraints with attributes"() {
+        requiresExternalDependencies = true
+        given:
+        settingsFile << "include 'utils'\n"
+        file("utils/build.gradle") << '''
+            def attr1 = Attribute.of('custom', String)
+            version = '1.0'
+            configurations {
+                one {
+                    attributes.attribute(attr1, 'magnificient')
+                }
+                two {
+                    attributes.attribute(attr1, 'bazinga')
+                }
+            }
+        '''
+        createBuildScripts("""
+            def attr1 = Attribute.of('custom', String)
+            def attr2 = Attribute.of('nice', Boolean)
+
+            dependencies {
+                api("org.test:bar:1.0") {
+                    attributes {
+                        attribute(attr1, 'hello')
+                    }
+                }
+                
+                api(project(':utils')) {
+                    attributes {
+                        attribute(attr1, 'bazinga')
+                    }
+                }
+                
+                constraints {
+                    implementation("org.test:bar:1.1") {
+                        attributes {
+                            attribute(attr1, 'world')
+                            attribute(attr2, true)
+                        }
+                    }
+                }
+            }
+            
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.test:bar:1.0') {
+                hasAttribute('custom', 'hello')
+            }
+            dependency('publishTest:utils:1.0') {
+                hasAttribute('custom', 'bazinga')
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:1.0') {
+                hasAttribute('custom', 'hello')
+            }
+            dependency('publishTest:utils:1.0') {
+                hasAttribute('custom', 'bazinga')
+            }
+            constraint('org.test:bar:1.1') {
+                hasAttributes(custom: 'world', nice: true)
+            }
+            noMoreDependencies()
+        }
+    }
+
+    @Issue("gradle/gradle#5450")
+    def "doesn't fail with NPE if no component is attached to a publication"() {
+        createBuildScripts("""
+        publishing {
+            publications {
+                java(IvyPublication) {
+                    artifact jar
+                }
+            }
+        }
+        """)
+
+        when:
+        run "generateMetadataFileForJavaPublication"
+
+        then:
+        skipped(':generateMetadataFileForJavaPublication')
+        outputContains "Ivy publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
+    }
 
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "

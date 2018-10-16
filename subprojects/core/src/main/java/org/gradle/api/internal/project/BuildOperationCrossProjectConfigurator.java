@@ -16,88 +16,69 @@
 
 package org.gradle.api.internal.project;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.DefaultMutationGuard;
+import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collections;
 
-public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
+public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
 
     private final BuildOperationExecutor buildOperationExecutor;
+    private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public Project project(Project project, Closure<? super Project> configureClosure) {
-        runProjectConfigureClosure(project, configureClosure);
-        return project;
-    }
-
-    @Override
     public Project project(Project project, Action<? super Project> configureAction) {
-        runProjectConfigureAction(project, configureAction);
+        runProjectConfigureActionWithMutationLock(project, configureAction);
         return project;
-    }
-
-    @Override
-    public void subprojects(Iterable<Project> projects, Closure<? super Project> configureClosure) {
-        runBlockConfigureClosure(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureClosure);
     }
 
     @Override
     public void subprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction);
-    }
-
-    @Override
-    public void allprojects(Iterable<Project> projects, Closure<? super Project> configureClosure) {
-        runBlockConfigureClosure(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureClosure);
+        runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction, true);
     }
 
     @Override
     public void allprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction);
+        runBlockConfigureAction(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureAction, true);
     }
 
     @Override
     public Project rootProject(Project project, Action<Project> buildOperationExecutor) {
-        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
+        // TODO We don't fire rootProject blocks with the project mutation lock because they fire in projectsLoaded which is too early for the project to be registerd in ProjectRegistry
+        runBlockConfigureAction(BlockConfigureBuildOperation.ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor, false);
         return project;
     }
 
-    private void runBlockConfigureClosure(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Closure<? super Project> configureClosure) {
+    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction, final boolean withMutationLock) {
         buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
             @Override
             protected void doRunProjectConfigure(Project project) {
-                runProjectConfigureClosure(project, configureClosure);
+                if (withMutationLock) {
+                    runProjectConfigureActionWithMutationLock(project, configureAction);
+                } else {
+                    runProjectConfigureAction(project, configureAction);
+                }
             }
         });
     }
 
-    private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction) {
-        buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
+    private void runProjectConfigureActionWithMutationLock(final Project project, final Action<? super Project> configureAction) {
+        ((ProjectInternal)project).getMutationState().withMutableState(new Runnable() {
             @Override
-            protected void doRunProjectConfigure(Project project) {
+            public void run() {
                 runProjectConfigureAction(project, configureAction);
-            }
-        });
-    }
-
-    private void runProjectConfigureClosure(final Project project, final Closure<? super Project> configureClosure) {
-        buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
-
-            @Override
-            public void run(BuildOperationContext context) {
-                ConfigureUtil.configure(configureClosure, project);
             }
         });
     }
@@ -106,9 +87,14 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, configureAction);
+                Actions.with(project, mutationGuard.withMutationEnabled(configureAction));
             }
         });
+    }
+
+    @Override
+    public MutationGuard getMutationGuard() {
+        return mutationGuard;
     }
 
     private static abstract class BlockConfigureBuildOperation implements RunnableBuildOperation {

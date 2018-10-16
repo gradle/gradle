@@ -1,0 +1,23 @@
+configurations {
+    compile
+}
+
+// tag::generated-file-dependencies[]
+dependencies {
+    compile files("$buildDir/classes") {
+        builtBy 'compile'
+    }
+}
+
+task compile {
+    doLast {
+        println 'compiling classes'
+    }
+}
+
+task list(dependsOn: configurations.compile) {
+    doLast {
+        println "classpath = ${configurations.compile.collect { File file -> file.name }}"
+    }
+}
+// end::generated-file-dependencies[]

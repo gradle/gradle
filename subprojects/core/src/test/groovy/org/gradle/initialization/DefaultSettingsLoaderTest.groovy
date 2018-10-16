@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
@@ -32,6 +33,7 @@ class DefaultSettingsLoaderTest extends Specification {
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
     def settingsLocation = new SettingsLocation(FileUtils.canonicalize(new File("someDir")), null);
+    def settingsScript = Mock(ScriptSource)
     def startParameter = new StartParameter();
     def classLoaderScope = Mock(ClassLoaderScope)
     def settingsFinder = Mock(ISettingsFinder)
@@ -54,12 +56,14 @@ class DefaultSettingsLoaderTest extends Specification {
         gradle.getServices() >> services
         gradle.getIdentityPath() >> Path.ROOT
         settingsFinder.find(startParameter) >> settingsLocation
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _, _) >> { GradleInternal gradle, File rootDir, StartParameter sp ->
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> { File rootDir, StartParameter sp ->
             assert rootDir == settingsLocation.getSettingsDir()
             assert sp == startParameter
             classLoaderScope
         }
         1 * settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter) >> settings
+        1 * settings.settingsScript >> settingsScript
+        1 * settingsScript.displayName >> "foo"
 
         then:
         settingsHandler.findAndLoadSettings(gradle).is(settings)

@@ -74,7 +74,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
 
     @Override
     public ModuleVersionIdentifier getCoordinates() {
-        return new DefaultModuleVersionIdentifier(group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
+        return DefaultModuleVersionIdentifier.newId(group.get(), baseName.get() + "_" + GUtil.toWords(name, '_'), version.get());
     }
 
     @Override

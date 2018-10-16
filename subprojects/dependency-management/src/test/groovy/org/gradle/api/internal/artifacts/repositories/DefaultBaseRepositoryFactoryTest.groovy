@@ -28,12 +28,15 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.cached.ExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -50,18 +53,18 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ivyContextManager = Mock(IvyContextManager)
     final AuthenticationSchemeRegistry authenticationSchemeRegistry = new DefaultAuthenticationSchemeRegistry()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
-    final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
+    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory())
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator, fileResolver, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
-        TestUtil.instantiatorFactory(), Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, ivyMetadataFactory
+        TestUtil.instantiatorFactory(), Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter(), Mock(ObjectFactory)
     )
 
     def testCreateFlatDirResolver() {
         expect:
-        def repo =factory.createFlatDirRepository()
+        def repo = factory.createFlatDirRepository()
         repo instanceof DefaultFlatDirArtifactRepository
     }
 

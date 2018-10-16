@@ -48,6 +48,7 @@ trait HttpServerFixture {
     private AuthScheme authenticationScheme = AuthScheme.BASIC
     private boolean logRequests = true
     private final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
+    private final Set<Map<String, String>> allHeaders = Sets.newLinkedHashSet()
     private boolean configured
     private int assignedPort
 
@@ -81,6 +82,10 @@ trait HttpServerFixture {
         return authenticationAttempts
     }
 
+    Set<Map<String, String>> getAllHeaders() {
+        return allHeaders
+    }
+
     boolean getLogRequests() {
         return logRequests
     }
@@ -108,7 +113,7 @@ trait HttpServerFixture {
     void start() {
         if (!configured) {
             HandlerCollection handlers = new HandlerCollection()
-            handlers.addHandler(new LoggingHandler(authenticationAttempts, logRequests))
+            handlers.addHandler(new LoggingHandler(authenticationAttempts, allHeaders, logRequests))
             handlers.addHandler(collection)
             handlers.addHandler(getCustomHandler())
             server.setHandler(handlers)
@@ -148,15 +153,18 @@ trait HttpServerFixture {
 
     private static class LoggingHandler extends AbstractHandler {
         private final Set<String> authenticationAttempts
+        private final Set<Map<String, String>> allHeaders
         private final boolean logRequests
 
-        LoggingHandler(Set<String> authenticationAttempts, boolean logRequests) {
+        LoggingHandler(Set<String> authenticationAttempts, Set<Map<String, String>> allHeaders, boolean logRequests) {
             this.logRequests = logRequests
             this.authenticationAttempts = authenticationAttempts
+            this.allHeaders = allHeaders
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            String authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
+            allHeaders << request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
+            String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {
                     authenticationAttempts << authorization.split(" ")[0]
@@ -169,6 +177,11 @@ trait HttpServerFixture {
             if (logRequests) {
                 println("handling http request: $request.method $target")
             }
+        }
+
+        protected String getAuthorizationHeader(HttpServletRequest request) {
+            def header = request.getHeader(HttpHeaders.AUTHORIZATION)
+            return header
         }
     }
 

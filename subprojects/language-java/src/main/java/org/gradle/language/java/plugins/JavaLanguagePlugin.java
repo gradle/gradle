@@ -22,13 +22,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
@@ -94,8 +95,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
             ModelSchemaStore schemaStore = serviceRegistry.get(ModelSchemaStore.class);
-            BuildIdentity buildIdentity = serviceRegistry.get(BuildIdentity.class);
-            languages.add(new Java(schemaStore, buildIdentity));
+            BuildIdentifier currentBuild = serviceRegistry.get(BuildState.class).getBuildIdentifier();
+            languages.add(new Java(schemaStore, currentBuild));
         }
     }
 
@@ -105,8 +106,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
         private final JavaSourceTransformTaskConfig config;
 
-        public Java(ModelSchemaStore schemaStore, BuildIdentity buildIdentity) {
-            this.config = new JavaSourceTransformTaskConfig(schemaStore, buildIdentity);
+        public Java(ModelSchemaStore schemaStore, BuildIdentifier currentBuild) {
+            this.config = new JavaSourceTransformTaskConfig(schemaStore, currentBuild);
         }
 
         @Override
@@ -142,11 +143,11 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         private static class JavaSourceTransformTaskConfig implements SourceTransformTaskConfig {
 
             private final ModelSchemaStore schemaStore;
-            private final BuildIdentity buildIdentity;
+            private final BuildIdentifier currentBuild;
 
-            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, BuildIdentity buildIdentity) {
+            private JavaSourceTransformTaskConfig(ModelSchemaStore schemaStore, BuildIdentifier currentBuild) {
                 this.schemaStore = schemaStore;
-                this.buildIdentity = buildIdentity;
+                this.currentBuild = currentBuild;
             }
 
             @Override
@@ -178,7 +179,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 compile.setTargetCompatibility(targetCompatibility);
                 compile.setSourceCompatibility(targetCompatibility);
 
-                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore, buildIdentity);
+                SourceSetDependencyResolvingClasspath classpath = classpathFor(binary, javaSourceSet, serviceRegistry, schemaStore, currentBuild);
                 compile.setClasspath(classpath);
             }
 
@@ -186,7 +187,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 return first(assembly.getClassDirectories());
             }
 
-            private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, BuildIdentity thisBuild) {
+            private static SourceSetDependencyResolvingClasspath classpathFor(BinarySpec binary, JavaSourceSet javaSourceSet, ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, BuildIdentifier thisBuild) {
                 Iterable<DependencySpec> dependencies = compileDependencies(binary, javaSourceSet);
 
                 ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);

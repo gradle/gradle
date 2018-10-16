@@ -16,14 +16,12 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A dependency that was resolved successfully.
  */
 @UsedByScanPlugin
-@Incubating
 public interface ResolvedDependencyResult extends DependencyResult {
     /**
      * Returns the selected component. This may not necessarily be the same as the requested component. For example, a dynamic version

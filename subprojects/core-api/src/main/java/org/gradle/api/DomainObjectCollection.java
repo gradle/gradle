@@ -29,7 +29,11 @@ import java.util.Collection;
  * <p>
  * You can also add actions which are executed as elements are added to the collection. Actions added to filtered collections will be fired if an addition/removal
  * occurs for the source collection that matches the filter.</p>
- *
+ * <p>
+ * {@code DomainObjectCollection} instances are not <em>thread-safe</em> and undefined behavior may result from the invocation of any method on a collection that is being mutated by another
+ * thread; this includes direct invocations, passing the collection to a method that might perform invocations, and using an existing iterator to examine the collection.
+ * </p>
+ * 
  * @param <T> The type of domain objects in this collection.
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
@@ -38,11 +42,22 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
-     * @param provider A {@link Provider} that can provider the element when required.
+     * @param provider A {@link Provider} that can provide the element when required.
      * @since 4.8
      */
     @Incubating
     void addLater(Provider<? extends T> provider);
+
+    /**
+     * Adds elements to this collection, given a {@link Provider} of {@link Iterable} that will provide the elements when required.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param provider A {@link Provider} of {@link Iterable} that can provide the elements when required.
+     * @since 5.0
+     */
+    @Incubating
+    void addAllLater(Provider<? extends Iterable<T>> provider);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is
@@ -98,7 +113,9 @@ public interface DomainObjectCollection<T> extends Collection<T> {
 
     /**
      * Adds an {@code Action} to be executed when an object is added to this collection.
-     *
+     * <p>
+     * Like {@link #all(Action)}, this method will cause all objects in this container to be realized.
+     * </p>
      * @param action The action to be executed
      * @return the supplied action
      */
@@ -109,6 +126,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * closure as the parameter.
      *
      * @param action The closure to be called
+     * @see #whenObjectAdded(Action)
      */
     void whenObjectAdded(Closure action);
 
@@ -147,25 +165,11 @@ public interface DomainObjectCollection<T> extends Collection<T> {
     /**
      * Configures each element in this collection using the given action, as each element is required. Actions are run in the order added.
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param action A {@link Action} that can configure the element when required.
-     * @since 4.8
+     * @since 4.9
      */
     @Incubating
-    void configureEachLater(Action<? super T> action);
-
-    /**
-     * Configures each element in this collection of the given type using the given action, as each element is required. Actions are run in the order added.
-     *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
-     * @param type The type of element.
-     * @param action A {@link Action} that can configure the element when required.
-     * @since 4.8
-     */
-    @Incubating
-    <S extends T> void configureEachLater(Class<S> type, Action<? super S> action);
+    void configureEach(Action<? super T> action);
 
     // note: this is here to override the default Groovy Collection.findAll { } method.
     /**

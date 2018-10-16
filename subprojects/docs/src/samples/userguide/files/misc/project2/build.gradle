@@ -1,9 +1,0 @@
-// START SNIPPET using-root-dir-property
-File configFile = file("${rootDir}/shared/config.xml")
-// END SNIPPET using-root-dir-property
-
-task checkConfigFile {
-    doLast {
-        assert configFile.exists()
-    }
-}

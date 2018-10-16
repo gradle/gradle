@@ -13,11 +13,11 @@
 // limitations under the License.
 
 [[overview]]
-== Overview
+= Overview
 
 
 [[sec:special_feature_of_gradle]]
-=== Features
+== Features
 
 Here is a list of some of Gradle's features.
 
@@ -44,16 +44,15 @@ Gradle fully supports your existing Maven or Ivy repository infrastructure for p
 Ease of migration::
 Gradle can adapt to any structure you have. Therefore you can always develop your Gradle build in the same branch where your production build lives and both can evolve in parallel. We usually recommend to write tests that make sure that the produced artifacts are similar. That way migration is as less disruptive and as reliable as possible. This is following the best-practices for refactoring by applying baby steps.
 Groovy::
-Gradle's build scripts are written in Groovy, not XML. But unlike other approaches this is not for simply exposing the raw scripting power of a dynamic language. That would just lead to a very difficult to maintain build. The whole design of Gradle is oriented towards being used as a language, not as a rigid framework. And Groovy is our glue that allows you to tell your individual story with the abstractions Gradle (or you) provide. Gradle provides some standard stories but they are not privileged in any form. This is for us a major distinguishing feature compared to other declarative build systems. Our Groovy support is not just sugar coating. The whole Gradle API is fully Groovy-ized. Adding Groovy results in an enjoyable and productive experience.
+Gradle's build scripts are written in Groovy or Kotlin, not XML. But unlike other approaches this is not for simply exposing the raw scripting power of a dynamic language. That would just lead to a very difficult to maintain build. The whole design of Gradle is oriented towards being used as a language, not as a rigid framework. And Groovy is our glue that allows you to tell your individual story with the abstractions Gradle (or you) provide. Gradle provides some standard stories but they are not privileged in any form. This is for us a major distinguishing feature compared to other declarative build systems. Our Groovy support is not just sugar coating. The whole Gradle API is fully Groovy-ized. Adding Groovy results in an enjoyable and productive experience.
 The Gradle wrapper::
 The Gradle Wrapper allows you to execute Gradle builds on machines where Gradle is not installed. This is useful for example for some continuous integration servers. It is also useful for an open source project to keep the barrier low for building it. The wrapper is also very interesting for the enterprise. It is a zero administration approach for the client machines. It also enforces the usage of a particular Gradle version thus minimizing support issues.
 Free and open source::
-Gradle is an open source project, and is licensed under the {website}/license[ASL].
-
+Gradle is an open source project, and is licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 
 
 [[sec:why_groovy]]
-=== Why Groovy?
+== Why Groovy?
 
 We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous when used in _build scripts_. There are a couple of dynamic languages out there. Why Groovy? The answer lies in the context Gradle is operating in. Although Gradle is a general purpose build tool at its core, its main focus are Java projects. In such projects the team members will be very familiar with Java. We think a build should be as transparent as possible to _all_ team members.
 

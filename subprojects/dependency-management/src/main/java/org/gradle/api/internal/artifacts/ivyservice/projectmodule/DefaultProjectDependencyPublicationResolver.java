@@ -62,7 +62,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         if (publications.isEmpty()) {
             // Project has no publications: simply use the project name in place of the dependency name
             if (coordsType.isAssignableFrom(ModuleVersionIdentifier.class)) {
-                return coordsType.cast(new DefaultModuleVersionIdentifier(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
+                return coordsType.cast(DefaultModuleVersionIdentifier.newId(dependency.getGroup(), dependencyProject.getName(), dependency.getVersion()));
             }
             throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), dependencyProject.getDisplayName()));
         }
@@ -76,10 +76,18 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             }
         }
         Set<ProjectPublication> topLevel = new LinkedHashSet<ProjectPublication>();
+        Set<ProjectPublication> topLevelWithComponent = new LinkedHashSet<ProjectPublication>();
         for (ProjectPublication publication : publications) {
             if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
                 topLevel.add(publication);
+                if (publication.getComponent() != null) {
+                    topLevelWithComponent.add(publication);
+                }
             }
+        }
+
+        if (topLevelWithComponent.size() == 1) {
+            return topLevelWithComponent.iterator().next().getCoordinates(coordsType);
         }
 
         // See if all entry points have the same identifier

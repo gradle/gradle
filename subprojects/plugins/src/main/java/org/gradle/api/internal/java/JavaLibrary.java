@@ -24,25 +24,21 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.model.DefaultObjectFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -58,9 +54,6 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  */
 public class JavaLibrary implements SoftwareComponentInternal {
 
-    // This must ONLY be used in the deprecated constructor, for backwards compatibility
-    private final static ObjectFactory DEPRECATED_OBJECT_FACTORY = new DefaultObjectFactory(DirectInstantiator.INSTANCE, NamedObjectInstantiator.INSTANCE);
-
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
     private final UsageContext compileUsage;
@@ -73,27 +66,11 @@ public class JavaLibrary implements SoftwareComponentInternal {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
-        this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
-        this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
+        this.runtimeUsage = createRuntimeUsageContext();
+        this.compileUsage = createCompileUsageContext();
         if (artifact != null) {
             this.artifacts.add(artifact);
         }
-    }
-
-    /**
-     * This constructor should not be used, and is maintained only for backwards
-     * compatibility with the widely used Shadow plugin.
-     */
-    @Deprecated
-    public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
-        DeprecationLogger.nagUserOfDeprecatedThing("A constructor for `org.gradle.api.internal.java.JavaLibrary` is used by Shadow plugin v1.2.x, and has been preserved for compatibility",
-            "If you're using the Shadow plugin, try upgrading to v2.x");
-        this.artifacts.add(jarArtifact);
-        this.objectFactory = DEPRECATED_OBJECT_FACTORY;
-        this.attributesFactory = new DefaultImmutableAttributesFactory(new BackwardsCompatibilityIsolatableFactory(), NamedObjectInstantiator.INSTANCE);
-        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
-        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
-        this.configurations = null;
     }
 
     @VisibleForTesting
@@ -132,65 +109,38 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
     }
 
-    private class RuntimeUsageContext extends AbstractUsageContext {
-        private DomainObjectSet<ModuleDependency> dependencies;
-        private DomainObjectSet<DependencyConstraint> dependencyConstraints;
-        private Set<? extends Capability> capabilities;
-
-        RuntimeUsageContext(String usageName) {
-            super(usageName);
-        }
-
-        @Override
-        public String getName() {
-            return "runtime";
-        }
-
-        @Override
-        public Set<ModuleDependency> getDependencies() {
-            if (dependencies == null) {
-                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies().withType(ModuleDependency.class);
-            }
-            return dependencies;
-        }
-
-        @Override
-        public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            if (dependencyConstraints == null) {
-                dependencyConstraints = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencyConstraints();
-            }
-            return dependencyConstraints;
-        }
-
-        @Override
-        public Set<? extends Capability> getCapabilities() {
-            if (capabilities == null) {
-                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME),
-                    Sets.<Capability>newHashSet(),
-                    Sets.<Configuration>newHashSet()));
-            }
-            return capabilities;
-        }
+    private UsageContext createRuntimeUsageContext() {
+        return new ConfigurationUsageContext(Usage.JAVA_RUNTIME, "runtime", RUNTIME_ELEMENTS_CONFIGURATION_NAME);
     }
 
-    private class CompileUsageContext extends AbstractUsageContext {
+    private UsageContext createCompileUsageContext() {
+        return new ConfigurationUsageContext(Usage.JAVA_API, "api", API_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    private class ConfigurationUsageContext extends AbstractUsageContext {
+        private final String name;
+        private final String configurationName;
         private DomainObjectSet<ModuleDependency> dependencies;
         private DomainObjectSet<DependencyConstraint> dependencyConstraints;
         private Set<? extends Capability> capabilities;
+        private Set<ExcludeRule> excludeRules;
 
-        CompileUsageContext(String usageName) {
+
+        ConfigurationUsageContext(String usageName, String name, String configurationName) {
             super(usageName);
+            this.name = name;
+            this.configurationName = configurationName;
         }
 
         @Override
         public String getName() {
-            return "api";
+            return name;
         }
 
         @Override
         public Set<ModuleDependency> getDependencies() {
             if (dependencies == null) {
-                dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies().withType(ModuleDependency.class);
+                dependencies = getConfiguration().getIncoming().getDependencies().withType(ModuleDependency.class);
             }
             return dependencies;
         }
@@ -198,7 +148,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
             if (dependencyConstraints == null) {
-                dependencyConstraints = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencyConstraints();
+                dependencyConstraints = getConfiguration().getIncoming().getDependencyConstraints();
             }
             return dependencyConstraints;
         }
@@ -206,11 +156,23 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<? extends Capability> getCapabilities() {
             if (capabilities == null) {
-                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME),
+                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(getConfiguration(),
                     Sets.<Capability>newHashSet(),
                     Sets.<Configuration>newHashSet()));
             }
             return capabilities;
+        }
+
+        @Override
+        public Set<ExcludeRule> getGlobalExcludes() {
+            if (excludeRules == null) {
+                this.excludeRules = ImmutableSet.copyOf(getConfiguration().getExcludeRules());
+            }
+            return excludeRules;
+        }
+
+        private Configuration getConfiguration() {
+            return configurations.getByName(configurationName);
         }
     }
 
@@ -241,6 +203,11 @@ public class JavaLibrary implements SoftwareComponentInternal {
         public Set<? extends Capability> getCapabilities() {
             return Collections.emptySet();
         }
+
+        @Override
+        public Set<ExcludeRule> getGlobalExcludes() {
+            return Collections.emptySet();
+        }
     }
 
     /**
@@ -262,7 +229,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
                 }
 
                 @Override
-                public void appendToHasher(BuildCacheHasher hasher) {
+                public void appendToHasher(Hasher hasher) {
                     throw new UnsupportedOperationException();
                 }
             };

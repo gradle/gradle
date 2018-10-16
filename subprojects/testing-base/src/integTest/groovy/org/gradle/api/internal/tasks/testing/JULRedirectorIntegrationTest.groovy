@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -24,7 +24,7 @@ import org.junit.Rule
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
+class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest {
     def static final LYRICS = [
         "I'm a lumberjack, and I'm okay.",
         "I sleep all night and I work all day.",
@@ -69,30 +69,6 @@ class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
         DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory);
         LYRICS.each {
             testResult.testClass("com.example.LumberJackTest").assertStderr(containsString(it));
-        }
-    }
-
-    /* Relies on the resources directory:
-     * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
-     */
-    def defaultLoggingConfigNoFineLevelWhenDisabled() {
-        given:
-        testResources.maybeCopy('JULRedirectorIntegrationTest/loggingConfig')
-        buildFile << """
-            test {
-                systemProperty 'java.util.logging.config.file', 'src/test/resources/logging.properties'
-                systemProperty 'org.gradle.readLoggingConfigFile', 'false'
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run("test")
-
-        then:
-        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory);
-        LYRICS.each {
-            testResult.testClass("com.example.LumberJackTest").assertStderr(not(containsString(it)));
         }
     }
 }

@@ -20,11 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -34,7 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 
-public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler {
+public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol, StreamFailureHandler, Stoppable {
     private final String workerImplementationName;
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
@@ -52,7 +53,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             }
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);

@@ -22,18 +22,16 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT;
-
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final MavenImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final FeaturePreviews featurePreviews;
 
@@ -41,7 +39,7 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
                                              ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
                                              FeaturePreviews featurePreviews) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.attributesFactory = attributesFactory;
+        this.attributesFactory = new DefaultMavenImmutableAttributesFactory(attributesFactory, objectInstantiator);
         this.objectInstantiator = objectInstantiator;
         this.featurePreviews = featurePreviews;
     }
@@ -49,11 +47,11 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     @Override
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator, featurePreviews.isFeatureEnabled(IMPROVED_POM_SUPPORT));
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator);
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
-        return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
+        return moduleIdentifierFactory.moduleWithVersion(from.getModuleIdentifier(), from.getVersion());
     }
 
     @Override
@@ -65,6 +63,6 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, featurePreviews.isFeatureEnabled(IMPROVED_POM_SUPPORT));
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator);
     }
 }

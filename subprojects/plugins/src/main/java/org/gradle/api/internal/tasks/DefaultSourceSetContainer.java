@@ -18,18 +18,21 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.reflect.Instantiator;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
-    private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
     private final Instantiator instantiator;
 
-    public DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, Instantiator classGenerator, SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, Instantiator classGenerator, ObjectFactory objectFactory) {
         super(SourceSet.class, classGenerator, new Namer<SourceSet>() {
             public String determineName(SourceSet ss) {
                 return ss.getName();
@@ -38,14 +41,19 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.instantiator = classGenerator;
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+        this.objectFactory = objectFactory;
     }
 
     @Override
     protected SourceSet doCreate(String name) {
-        DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, sourceDirectorySetFactory);
+        DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, objectFactory, instantiator);
         sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, taskResolver));
 
         return sourceSet;
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return typeOf(SourceSetContainer.class);
     }
 }

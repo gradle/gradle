@@ -18,6 +18,8 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -31,7 +33,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         mavenRepo.module("org.test", "buildB", "1.0").publish()
         mavenRepo.module("org.test", "b2", "1.0").publish()
 
-        resolve = new ResolveTestFixture(buildA.buildFile)
+        resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -99,6 +101,62 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                 compositeSubstitute()
             }
         }
+    }
+
+    def "can inject substitutions into other builds"() {
+        given:
+        mavenRepo.module("org.test", "plugin", "1.0").publish()
+
+        dependency "org.test:buildB:1.0"
+        dependency buildB, "org.test:XXX:1.0"
+
+        includeBuild buildB
+        includeBuild buildC, """
+            substitute module("org.test:XXX") with project(":")
+"""
+
+        expect:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+                configuration = "runtimeElements"
+                compositeSubstitute()
+                edge("org.test:XXX:1.0", "project :buildC", "org.test:buildC:1.0") {
+                    configuration = "runtimeElements"
+                    compositeSubstitute()
+                }
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5871")
+    def "can inject substitutions into other builds when root build does not reference included builds via a dependency and included build has non-empty script classpath"() {
+        mavenRepo.module("org.test", "plugin", "1.0").publish()
+
+        given:
+        buildA.buildFile << """
+            task assembleB {
+                dependsOn gradle.includedBuild("buildB").task(":assemble")
+            }
+        """
+        dependency buildB, "org.test:XXX:1.0"
+        buildC.buildFile.text = """
+            buildscript { 
+                repositories { maven { url = "${mavenRepo.uri}" } }
+                dependencies { classpath "org.test:plugin:1.0" }
+            }
+        """ + buildC.buildFile.text
+
+        includeBuild buildB
+        includeBuild buildC, """
+            substitute module("org.test:XXX") with project(":")
+"""
+
+        when:
+        execute(buildA, "assembleB")
+
+        then:
+        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:jar")
     }
 
     def "can substitute arbitrary coordinates for included build"() {
@@ -173,7 +231,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
-        def resolve = new ResolveTestFixture(buildA.buildFile)
         resolve.prepare()
         execute(buildA, ":checkDeps", buildArgs)
         resolve.expectGraph {

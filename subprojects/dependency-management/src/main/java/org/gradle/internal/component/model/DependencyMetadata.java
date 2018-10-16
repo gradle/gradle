@@ -71,7 +71,7 @@ public interface DependencyMetadata {
      * Is this a strong dependency, does it is merely a constraint on the module to select if brought in
      * by another dependency? ("Optional" dependencies are "constraints")
      */
-    boolean isPending();
+    boolean isConstraint();
 
     /**
      * An optional human readable reason why this dependency is used.
@@ -83,4 +83,5 @@ public interface DependencyMetadata {
      * Returns a copy of this dependency with the given selection reason.
      */
     DependencyMetadata withReason(String reason);
+
 }

@@ -4,8 +4,8 @@ import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 
 sourceSets {
     smokeTest {
-        compileClasspath += main.output + test.output
-        runtimeClasspath += compileClasspath
+        compileClasspath += main.output
+        runtimeClasspath += main.output
     }
 }
 
@@ -27,6 +27,7 @@ dependencies {
     smokeTestRuntimeOnly project(':jacoco')
     smokeTestRuntimeOnly project(':maven')
     smokeTestRuntimeOnly project(':plugins')
+    smokeTestRuntimeOnly project(':pluginDevelopment')
     smokeTestRuntimeOnly project(':toolingApiBuilders')
 }
 
@@ -39,14 +40,14 @@ testFixtures {
     from(':versionControl')
 }
 
-processSmokeTestResources {
+tasks.named("processSmokeTestResources").configure {
     from ("$rootDir/gradle/init-scripts") {
         into "org/gradle/smoketests/cache-init-scripts"
         include "overlapping-task-outputs-stats-init.gradle"
     }
 }
 
-tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
+tasks.register('smokeTest', SmokeTest) { SmokeTest task ->
     group = "Verification"
     description = "Runs Smoke tests"
     testClassesDirs = sourceSets.smokeTest.output.classesDirs
@@ -54,19 +55,19 @@ tasks.create('smokeTest', SmokeTest) { SmokeTest task ->
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
 }
 
-plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin).configureEach { // lazy as plugin not applied yet
+    def sourceSet = sourceSets.smokeTest
     idea {
         module {
-            sourceSets.smokeTest.allSource.srcDirs.each {
-                testSourceDirs += it
-            }
+            testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
+            testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
             scopes.TEST.plus.add(configurations.smokeTestCompile)
             scopes.TEST.plus.add(configurations.smokeTestRuntime)
         }
     }
 }
 
-plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin).configureEach { // lazy as plugin not applied yet
     eclipse {
         classpath {
             plusConfigurations.add(configurations.smokeTestCompile)

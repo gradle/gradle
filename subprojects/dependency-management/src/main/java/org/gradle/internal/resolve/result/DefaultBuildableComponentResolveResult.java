@@ -28,6 +28,9 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
     private ComponentResolveMetadata metadata;
     private ModuleVersionResolveException failure;
 
+    public DefaultBuildableComponentResolveResult() {
+    }
+
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
         metadata = null;
         this.failure = failure;
@@ -95,4 +98,5 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
             idResolve.resolved(metadata);
         }
     }
+
 }

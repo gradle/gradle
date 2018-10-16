@@ -22,11 +22,6 @@ import library
 import maxParallelForks
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
-import org.gradle.api.JavaVersion.VERSION_1_1
-import org.gradle.api.JavaVersion.VERSION_1_5
-import org.gradle.api.JavaVersion.VERSION_1_6
-import org.gradle.api.JavaVersion.VERSION_1_7
-import org.gradle.api.JavaVersion.VERSION_1_8
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -40,28 +35,61 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
-import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
-import testLibraries
+import java.util.concurrent.Callable
 import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
-    UNDEFINED(VERSION_1_1, VERSION_1_1),
-    ENTRY_POINT(VERSION_1_5, VERSION_1_5),
-    WORKER(VERSION_1_6, VERSION_1_6),
-    CORE(VERSION_1_7, VERSION_1_7),
-    PLUGIN(VERSION_1_7, VERSION_1_7),
-    INTERNAL(VERSION_1_7, VERSION_1_7),
-    REQUIRES_JAVA_8(VERSION_1_8, VERSION_1_8)
+enum class ModuleType(val compatibility: JavaVersion) {
+
+    /**
+     * This module type is used by modules that contain code that is used by one
+     * of the entry points of using Gradle, such as the Wrapper, the Launcher
+     * and the Tooling API.
+     * Such entry points need to run on older Java versions than those parts of
+     * the codebase are executed from builds, if only to print a message
+     * indicating that the old JDK is not supported anymore.
+     */
+    ENTRY_POINT(JavaVersion.VERSION_1_6),
+
+    /**
+     * This module type is used by modules that contain code that needs to
+     * be able to run in worker JVMs where we usually support older Java
+     * versions.
+     * Some of these modules use APIs that are not available in the specified
+     * Java version but only in parts that are not called from workers.
+     */
+    WORKER(JavaVersion.VERSION_1_6),
+
+    /**
+     * This module type is used by all modules that end up in the distribution
+     * and are not used by entry points or workers.
+     */
+    CORE(JavaVersion.VERSION_1_8),
+
+    /**
+     * This module type is used by internal modules that are not part of
+     * the distribution.
+     */
+    INTERNAL(JavaVersion.VERSION_1_8),
+
+    /**
+     * This module type is used for one-off modules that would normally use
+     * {@link #ENTRY_POINT} or {@link #WORKER} but explicitly require Java 8,
+     * e.g. due to the requirements of a downstream dependency (e.g. JUnit
+     * Platform).
+     */
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        apply { plugin("groovy") }
+        apply(plugin = "groovy")
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
@@ -78,11 +106,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
-            tasks.withType<JavaCompile> {
+            tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
                 configureCompileTask(this, options, availableJavaInstallations)
             }
-            tasks.withType<GroovyCompile> {
+            tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
                 configureCompileTask(this, options, availableJavaInstallations)
             }
@@ -95,50 +123,48 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val targetJdkVersion = maxOf(compileTask.project.java.targetCompatibility, VERSION_1_7)
-        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(targetJdkVersion)
+        val jdkForCompilation = availableJavaInstallations.javaInstallationForCompilation
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
-        compileTask.inputs.property("javaInstallation", when (compileTask) {
-            is JavaCompile -> jdkForCompilation
-            else -> availableJavaInstallations.currentJavaInstallation
-        }.displayName)
+        compileTask.inputs.property("javaInstallation", Callable {
+            when (compileTask) {
+                is JavaCompile -> jdkForCompilation
+                else -> availableJavaInstallations.currentJavaInstallation
+            }.vendorAndMajorVersion
+        })
     }
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest by tasks.creating(ClasspathManifest::class)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
-    }
-
-    private
-    fun Project.addDependencies() {
-        dependencies {
-            val testCompile by configurations
-            testCompile(library("junit"))
-            testCompile(library("groovy"))
-            testCompile(testLibrary("spock"))
-            testLibraries("jmock").forEach { testCompile(it) }
-
-            components {
-                withModule("org.spockframework:spock-core") {
-                    allVariants {
-                        withDependencyConstraints {
-                            filter { it.group == "org.objenesis" }.forEach {
-                                it.version { prefer("1.2") }
-                                it.because("1.2 is required by Gradle and part of the distribution")
-                            }
-                        }
-                    }
+        plugins.withType<IdeaPlugin> {
+            configure<IdeaModel> {
+                module {
+                    resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
+                    testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
                 }
             }
         }
     }
 
     private
+    fun Project.addDependencies() {
+        dependencies {
+            val testCompile = configurations.getByName("testCompile")
+            val testRuntime = configurations.getByName("testRuntime")
+            testCompile(library("junit"))
+            testCompile(library("groovy"))
+            testCompile(testLibrary("spock"))
+            testRuntime(testLibrary("bytebuddy"))
+            testRuntime(library("objenesis"))
+        }
+    }
+
+    private
     fun Project.addCompileAllTask() {
-        tasks.create("compileAll") {
+        tasks.register("compileAll") {
             val compileTasks = project.tasks.matching {
                 it is JavaCompile || it is GroovyCompile
             }
@@ -148,7 +174,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureJarTasks() {
-        tasks.withType<Jar>().all {
+        tasks.withType<Jar>().configureEach {
             version = rootProject.extra["baseVersion"] as String
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
@@ -160,20 +186,26 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.configureTests() {
         val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
 
-        tasks.withType<Test>().all {
+        tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
             jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-            executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
+            executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
             environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
             if (javaInstallationForTest.javaVersion.isJava7) {
                 // enable class unloading
                 jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
             }
+            if (javaInstallationForTest.javaVersion.isJava9Compatible) {
+                //allow embedded executer to modify environment variables
+                jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+                //allow embedded executer to inject legacy types into the system classloader
+                jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+            }
             // Includes JVM vendor and major version
-            inputs.property("javaInstallation", javaInstallationForTest.displayName)
+            inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
             doFirst {
                 if (BuildEnvironment.isCiServer) {
-                    println("maxParallelForks for '$path' is $maxParallelForks")
+                    logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
                 }
             }
         }
@@ -186,7 +218,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
             override fun asArguments(): Iterable<String> {
                 return if (BuildEnvironment.isCiServer) {
-                    mapOf(
+                    getRepoMirrorSystemProperties() + mapOf(
                         "org.gradle.test.maxParallelForks" to test.maxParallelForks,
                         "org.gradle.ci.agentCount" to 2,
                         "org.gradle.ci.agentNum" to agentNum
@@ -199,30 +231,35 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
         }
     }
+
+    private
+    fun getRepoMirrorSystemProperties(): List<String> = collectMirrorUrls().map {
+        "-Dorg.gradle.integtest.mirrors.${it.key}=${it.value}"
+    }
+
+    private
+    fun collectMirrorUrls(): Map<String, String> =
+    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
+        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
+            val (name, url) = nameToUrl.split(':', limit = 2)
+            name to url
+        } ?: emptyMap()
 }
 
 
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
-    var moduleType: ModuleType = ModuleType.UNDEFINED
+    var moduleType: ModuleType? = null
         set(value) {
-            field = value
-            // Entry points should run against Java so that we can give good error messages for people trying to run
-            // Gradle on Java 5. But Java 9 no longer support Java 5. Therefore, to be able to build Gradle on Java 9,
-            // we need to change the version to the minimum supported one.
-            if (BuildEnvironment.javaVersion.isJava9Compatible && moduleType == ModuleType.ENTRY_POINT) {
-                project.java.sourceCompatibility = VERSION_1_6
-                project.java.targetCompatibility = VERSION_1_6
-            } else {
-                project.java.targetCompatibility = moduleType.target
-                project.java.sourceCompatibility = moduleType.source
-            }
+            field = value!!
+            project.java.targetCompatibility = value.compatibility
+            project.java.sourceCompatibility = value.compatibility
         }
 
     init {
         project.afterEvaluate {
-            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
+            if (this@UnitTestAndCompileExtension.moduleType == null) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
         }

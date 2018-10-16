@@ -33,6 +33,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.XcodeRootExtension;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
@@ -48,7 +49,7 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.internal.Actions;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -70,7 +71,6 @@ import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -85,15 +85,13 @@ public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
     private final IdeArtifactRegistry artifactRegistry;
-    private final ProjectPathRegistry projectPathRegistry;
     private DefaultXcodeProject xcodeProject;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, IdeArtifactRegistry artifactRegistry, ProjectPathRegistry projectPathRegistry) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, IdeArtifactRegistry artifactRegistry) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
         this.artifactRegistry = artifactRegistry;
-        this.projectPathRegistry = projectPathRegistry;
     }
 
     @Override
@@ -103,14 +101,14 @@ public class XcodePlugin extends IdePlugin {
 
     @Override
     protected void onApply(final Project project) {
-        Task lifecycleTask = getLifecycleTask();
-        lifecycleTask.setDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)");
+        TaskProvider<? extends Task> lifecycleTask = getLifecycleTask();
+        lifecycleTask.configure(withDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)"));
 
         if (isRoot()) {
             DefaultXcodeRootExtension xcode = (DefaultXcodeRootExtension) project.getExtensions().create(XcodeRootExtension.class, "xcode", DefaultXcodeRootExtension.class, objectFactory);
             xcodeProject = xcode.getProject();
             final GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project, xcode.getWorkspace());
-            lifecycleTask.dependsOn(workspaceTask);
+            lifecycleTask.configure(dependsOn(workspaceTask));
             addWorkspace(xcode.getWorkspace());
         } else {
             DefaultXcodeExtension xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
@@ -120,7 +118,7 @@ public class XcodePlugin extends IdePlugin {
         xcodeProject.setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
         GenerateXcodeProjectFileTask projectTask = createProjectTask((ProjectInternal) project);
-        lifecycleTask.dependsOn(projectTask);
+        lifecycleTask.configure(dependsOn(projectTask));
 
         project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcodeProject, project));
 
@@ -139,13 +137,12 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeCleanTask(Project project) {
-        getCleanTask().setDescription("Cleans XCode project files (xcodeproj)");
         Delete cleanTask = project.getTasks().create("cleanXcodeProject", Delete.class);
         cleanTask.delete(xcodeProject.getLocationDir());
         if (isRoot()) {
             cleanTask.delete(project.file(project.getName() + ".xcworkspace"));
         }
-        getCleanTask().dependsOn(cleanTask);
+        getCleanTask().configure(Actions.composite(withDescription("Cleans XCode project files (xcodeproj)"), dependsOn(cleanTask)));
     }
 
     private GenerateXcodeProjectFileTask createProjectTask(final ProjectInternal project) {
@@ -161,7 +158,7 @@ public class XcodePlugin extends IdePlugin {
         projectFileTask.setXcodeProject(xcodeProject);
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
 
-        artifactRegistry.registerIdeArtifact(new XcodeProjectMetadata(xcodeProject, projectFileTask));
+        artifactRegistry.registerIdeProject(new XcodeProjectMetadata(xcodeProject, projectFileTask));
 
         return projectFileTask;
     }
@@ -176,7 +173,7 @@ public class XcodePlugin extends IdePlugin {
         GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
         workspaceFileTask.dependsOn(workspaceSettingsFileTask);
         workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
-        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeArtifacts(XcodeProjectMetadata.class));
+        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeProjectFiles(XcodeProjectMetadata.class));
 
         return workspaceFileTask;
     }
@@ -453,12 +450,8 @@ public class XcodePlugin extends IdePlugin {
             @Override
             public boolean isSatisfiedBy(ComponentIdentifier id) {
                 if (id instanceof ProjectComponentIdentifier) {
-                    ProjectComponentIdentifier identifier = (ProjectComponentIdentifier) id;
-                    for (Path path : projectPathRegistry.getAllImplicitProjectPaths()) {
-                        if (identifier.equals(projectPathRegistry.getProjectComponentIdentifier(path))) {
-                            return true;
-                        }
-                    }
+                    // Include as binary when the target project is not included in the workspace
+                    return artifactRegistry.getIdeProject(XcodeProjectMetadata.class, (ProjectComponentIdentifier) id) == null;
                 }
                 return false;
             }

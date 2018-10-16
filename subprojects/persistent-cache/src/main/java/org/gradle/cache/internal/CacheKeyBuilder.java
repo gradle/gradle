@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 
@@ -71,6 +72,11 @@ public interface CacheKeyBuilder {
         public CacheKeySpec plus(ClassLoader cl) {
             return plusComponent(cl);
         }
+
+        public CacheKeySpec plus(HashCode hashCode) {
+            return plusComponent(hashCode);
+        }
+
 
         String getPrefix() {
             return prefix;

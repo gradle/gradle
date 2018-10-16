@@ -17,14 +17,17 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -33,14 +36,19 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
+import org.gradle.util.SingleMessageLogger;
 import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
@@ -48,9 +56,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.util.NameValidator.asValidName;
-
-public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
+public class DefaultSettings extends AbstractPluginAware implements SettingsInternal, DynamicObjectAware, HasConvention {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
     private ScriptSource settingsScript;
 
@@ -63,6 +69,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private ProjectDescriptor defaultProjectDescriptor;
 
     private GradleInternal gradle;
+
+    private final ExtensibleDynamicObject extensibleDynamicObject;
 
     private final ClassLoaderScope settingsClassLoaderScope;
     private final ClassLoaderScope buildRootClassLoaderScope;
@@ -82,7 +90,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         this.startParameter = startParameter;
         this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, asValidName(settingsDir.getName()), settingsDir);
+        this.extensibleDynamicObject = new ExtensibleDynamicObject(this, DefaultSettings.class, services.get(Instantiator.class));
+        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
     @Override
@@ -275,12 +284,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
-        if (gradle.getParent() == null) {
-            File projectDir = getFileResolver().resolve(rootProject);
-            includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
-        } else {
-            throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", getRootProject().getName()));
-        }
+        File projectDir = getFileResolver().resolve(rootProject);
+        includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
     }
 
     @Override
@@ -318,6 +323,26 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void enableFeaturePreview(String name) {
-        services.get(FeaturePreviews.class).enableFeature(name);
+        Feature feature = Feature.withName(name);
+        if (feature.isActive()) {
+            services.get(FeaturePreviews.class).enableFeature(feature);
+        } else {
+            SingleMessageLogger.nagUserOfDeprecated("enableFeaturePreview('" + feature.name() + "')", "The feature flag is no longer relevant, please remove it from your settings file.");
+        }
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return extensibleDynamicObject;
+    }
+
+    @Override
+    public ExtensionContainer getExtensions() {
+        return extensibleDynamicObject.getConvention();
+    }
+
+    @Override
+    public Convention getConvention() {
+        return extensibleDynamicObject.getConvention();
     }
 }

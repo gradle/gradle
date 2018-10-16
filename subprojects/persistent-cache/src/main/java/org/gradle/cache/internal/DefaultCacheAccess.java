@@ -165,6 +165,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
         try {
             // Take ownership
             takeOwnershipNow();
+            if (fileLockHeldByOwner != null) {
+                fileLockHeldByOwner.run();
+            }
+            crossProcessCacheAccess.close();
             if (cleanupAction != null) {
                 try {
                     if (cleanupAction.requiresCleanup()) {
@@ -174,10 +178,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
                     LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
                 }
             }
-            if (fileLockHeldByOwner != null) {
-                fileLockHeldByOwner.run();
-            }
-            crossProcessCacheAccess.close();
             if (cacheClosedCount != 1) {
                 LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
             }

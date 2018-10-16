@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -63,7 +62,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final boolean testable;
     private final FileCollection source;
     private final FileCollection compileModules;
-    private final FileCollection linkLibs;
+    private final Configuration linkLibs;
     private final Configuration runtimeLibs;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
@@ -73,19 +72,17 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Property<SwiftVersion> sourceCompatibility;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, objectFactory, projectLayout, componentImplementation);
+    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, componentImplementation);
         this.module = module;
         this.testable = testable;
         this.source = source;
-        this.moduleFile = projectLayout.fileProperty();
+        this.moduleFile = objectFactory.fileProperty();
         this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
-
-        Names names = getNames();
 
         // TODO - reduce duplication with C++ binary
         importPathConfiguration = configurations.create(names.withPrefix("swiftCompile"));
@@ -155,6 +152,10 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
     @Override
     public FileCollection getLinkLibraries() {
+        return linkLibs;
+    }
+
+    public Configuration getLinkConfiguration() {
         return linkLibs;
     }
 

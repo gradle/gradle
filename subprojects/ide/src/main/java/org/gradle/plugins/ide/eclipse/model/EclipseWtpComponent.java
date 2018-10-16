@@ -23,10 +23,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -144,6 +148,7 @@ public class EclipseWtpComponent {
     private String libDeployPath;
     private Map<String, File> pathVariables = Maps.newHashMap();
 
+    @Inject
     public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
         this.project = project;
         this.file = file;
@@ -381,7 +386,10 @@ public class EclipseWtpComponent {
 
     public void mergeXmlComponent(WtpComponent xmlComponent) {
         file.getBeforeMerged().execute(xmlComponent);
-        new WtpComponentFactory(project).configure(this, xmlComponent);
+        ProjectInternal projectInternal = (ProjectInternal) this.project;
+        IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
+        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
+        new WtpComponentFactory(projectInternal, ideArtifactRegistry, projectRegistry).configure(this, xmlComponent);
         file.getWhenMerged().execute(xmlComponent);
     }
 }

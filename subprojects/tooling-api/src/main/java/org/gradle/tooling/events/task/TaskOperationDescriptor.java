@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
@@ -23,7 +22,6 @@ import org.gradle.tooling.events.OperationDescriptor;
  *
  * @since 2.5
  */
-@Incubating
 public interface TaskOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the path of the task.

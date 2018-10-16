@@ -43,6 +43,10 @@ public class SourceFile {
     }
 
     public TestFile writeToDir(TestFile base) {
+        return writeToDir(base, name);
+    }
+
+    public TestFile writeToDir(TestFile base, String name) {
         TestFile file = base.file(path, name);
         writeToFile(file);
         return file;

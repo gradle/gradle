@@ -15,9 +15,12 @@
  */
 package org.gradle.cache.internal;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Action;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.InsufficientLockModeException;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
@@ -46,7 +49,11 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
@@ -87,7 +94,7 @@ public class DefaultFileLockManager implements FileLockManager {
         return lock(target, options, targetDisplayName, operationDisplayName, null);
     }
 
-    public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended) {
+    public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended) {
         if (options.getMode() == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
@@ -124,7 +131,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private int port;
         private final long lockId;
 
-        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Runnable whenContended) throws Throwable {
+        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.generateId();
             if (options.getMode() == LockMode.None) {
@@ -221,15 +228,6 @@ public class DefaultFileLockManager implements FileLockManager {
             CompositeStoppable stoppable = new CompositeStoppable();
             stoppable.add(new Stoppable() {
                 public void stop() {
-                    try {
-                        fileLockContentionHandler.stop(lockId);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
-                    }
-                }
-            });
-            stoppable.add(new Stoppable() {
-                public void stop() {
                     if (lockFileAccess == null) {
                         return;
                     }
@@ -257,6 +255,15 @@ public class DefaultFileLockManager implements FileLockManager {
                         }
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to release lock on " + displayName, e);
+                    }
+                }
+            });
+            stoppable.add(new Stoppable() {
+                public void stop() {
+                    try {
+                        fileLockContentionHandler.stop(lockId);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                     }
                 }
             });
@@ -352,7 +359,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 lastLockHolderPort = lockInfo.port;
                                 lastPingTime = 0;
                             }
-                            if (fileLockContentionHandler.maybePingOwner(lockInfo.port, lockInfo.lockId, displayName, backoff.timer.getElapsedMillis() - lastPingTime)) {
+                            if (fileLockContentionHandler.maybePingOwner(lockInfo.port, lockInfo.lockId, displayName, backoff.timer.getElapsedMillis() - lastPingTime, backoff.signal)) {
                                 lastPingTime = backoff.timer.getElapsedMillis();
                                 LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, lockId: {}). Pinged owner at port {}", lockInfo.pid, lockInfo.lockId, lockInfo.port);
                             }
@@ -382,10 +389,10 @@ public class DefaultFileLockManager implements FileLockManager {
     private static class ExponentialBackoff {
 
         private static final int CAP_FACTOR = 100;
-
-        private static final long SLOT_TIME = 25L;
+        private static final long SLOT_TIME = 25;
 
         private final Random random = new Random();
+        private final AwaitableFileLockReleasedSignal signal = new AwaitableFileLockReleasedSignal();
 
         private final int timeoutMs;
         private CountdownTimer timer;
@@ -406,13 +413,57 @@ public class DefaultFileLockManager implements FileLockManager {
                 if (timer.hasExpired()) {
                     break;
                 }
-                Thread.sleep(backoffPeriodFor(++iteration));
+                boolean signaled = signal.await(backoffPeriodFor(++iteration));
+                if (signaled) {
+                    iteration = 0;
+                }
             }
             return result;
         }
 
         long backoffPeriodFor(int iteration) {
             return random.nextInt(Math.min(iteration, CAP_FACTOR)) * SLOT_TIME;
+        }
+    }
+
+    @VisibleForTesting
+    static class AwaitableFileLockReleasedSignal implements FileLockReleasedSignal {
+
+        private final Lock lock = new ReentrantLock();
+        private final Condition condition = lock.newCondition();
+        private int waiting;
+
+        public boolean await(long millis) throws InterruptedException {
+            lock.lock();
+            try {
+                waiting++;
+                return condition.await(millis, MILLISECONDS);
+            } finally {
+                waiting--;
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void trigger() {
+            lock.lock();
+            try {
+                if (waiting > 0) {
+                    condition.signalAll();
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @VisibleForTesting
+        boolean isWaiting() {
+            lock.lock();
+            try {
+                return waiting > 0;
+            } finally {
+                lock.unlock();
+            }
         }
     }
 }

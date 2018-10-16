@@ -1,0 +1,68 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    repositories {
+        mavenCentral()
+    }
+
+    publishing {
+        repositories {
+            maven {
+                url = "${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
+            }
+        }
+    }
+}
+
+project(':project1') {
+    dependencies {
+       compile 'org.slf4j:slf4j-api:1.7.10'
+    }
+
+    // tag::customize-identity[]
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = 'org.gradle.sample'
+                artifactId = 'project1-sample'
+                version = '1.1'
+
+                from components.java
+            }
+        }
+    }
+    // end::customize-identity[]
+}
+
+project(':project2') {
+    dependencies {
+       compile 'commons-collections:commons-collections:3.2.2', project(':project1')
+    }
+
+    // tag::multiple-publications[]
+    group = "org.gradle.sample"
+    version = "2.3"
+
+    task apiJar(type: Jar) {
+        baseName = 'project2-api'
+        from sourceSets.main.output
+        exclude '**/impl/**'
+    }
+
+    publishing {
+        publications {
+            impl(MavenPublication) {
+                artifactId = 'project2-impl'
+
+                from components.java
+            }
+            api(MavenPublication) {
+                artifactId = 'project2-api'
+
+                artifact apiJar
+            }
+        }
+    }
+    // end::multiple-publications[]
+}

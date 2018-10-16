@@ -91,6 +91,7 @@ public class BuildActionSerializer {
             nullableFileSerializer.write(encoder, startParameter.getSettingsFile());
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
+            nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getProjectCacheDir());
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
             encoder.writeBoolean(startParameter.isUseEmptySettings());
@@ -100,6 +101,7 @@ public class BuildActionSerializer {
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
             fileListSerializer.write(encoder, startParameter.getInitScripts());
+            stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());
 
             // Flags
             encoder.writeBoolean(startParameter.isBuildProjectDependencies());
@@ -109,14 +111,12 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isContinueOnFailure());
             encoder.writeBoolean(startParameter.isOffline());
             encoder.writeBoolean(startParameter.isRefreshDependencies());
-            encoder.writeBoolean(startParameter.isRecompileScripts());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeBoolean(startParameter.isBuildScan());
             encoder.writeBoolean(startParameter.isNoBuildScan());
-            encoder.writeBoolean(startParameter.isInteractive());
             encoder.writeBoolean(startParameter.isWriteDependencyLocks());
 
             // Deprecations (these should just be rendered on the client instead of being sent to the daemon to send them back again)
@@ -159,6 +159,7 @@ public class BuildActionSerializer {
             startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
+            startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
             startParameter.setProjectCacheDir(nullableFileSerializer.read(decoder));
             startParameter.setIncludedBuilds(fileListSerializer.read(decoder));
             if (decoder.readBoolean()) {
@@ -170,6 +171,7 @@ public class BuildActionSerializer {
             startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setSystemPropertiesArgs(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setInitScripts(fileListSerializer.read(decoder));
+            startParameter.setLockedDependenciesToUpdate(stringListSerializer.read(decoder));
 
             // Flags
             startParameter.setBuildProjectDependencies(decoder.readBoolean());
@@ -179,14 +181,12 @@ public class BuildActionSerializer {
             startParameter.setContinueOnFailure(decoder.readBoolean());
             startParameter.setOffline(decoder.readBoolean());
             startParameter.setRefreshDependencies(decoder.readBoolean());
-            startParameter.setRecompileScripts(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setBuildScan(decoder.readBoolean());
             startParameter.setNoBuildScan(decoder.readBoolean());
-            startParameter.setInteractive(decoder.readBoolean());
             startParameter.setWriteDependencyLocks(decoder.readBoolean());
 
             for (String warning : stringSetSerializer.read(decoder)) {

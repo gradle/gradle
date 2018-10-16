@@ -23,15 +23,14 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-
-import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.junit.Assert.assertTrue
 
@@ -52,7 +51,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = project.getServices().get(ITaskFactory.class).create(name, type)
+        Task task = project.getServices().get(TaskInstantiator.class).create(name, type)
         assertTrue(type.isAssignableFrom(task.getClass()))
         return type.cast(task)
     }
@@ -97,21 +96,9 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         "task '" + getTask().getPath() + "'" == getTask().toString()
     }
 
-    def "test deleteAllActions"() {
-        given:
-        Action<? super Task> action1 = Actions.<Task>doNothing()
-        Action<? super Task> action2 = Actions.<Task>doNothing()
-        getTask().doLast(action1)
-        getTask().doLast(action2)
-
-        expect:
-        getTask().is(getTask().deleteAllActions())
-        getTask().getActions().isEmpty()
-    }
-
     def "test setActions"() {
         given:
-        getTask().deleteAllActions()
+        getTask().setActions([])
 
         when:
         getTask().getActions().add(Actions.doNothing())
@@ -179,8 +166,8 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
     def "onlyIf predicate is true when task is enabled and all predicates are true"() {
         given:
-        final AtomicBoolean condition1 = new AtomicBoolean(true)
-        final AtomicBoolean condition2 = new AtomicBoolean(true)
+        final MutableBoolean condition1 = new MutableBoolean(true)
+        final MutableBoolean condition2 = new MutableBoolean(true)
 
         def task = getTask()
         task.onlyIf(new Spec<Task>() {
@@ -227,7 +214,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
     def "can replace onlyIf spec"() {
         given:
-        final AtomicBoolean condition1 = new AtomicBoolean(true)
+        final MutableBoolean condition1 = new MutableBoolean(true)
         final task = getTask()
         final Spec spec = Mock(Spec.class)
         task.onlyIf(spec)

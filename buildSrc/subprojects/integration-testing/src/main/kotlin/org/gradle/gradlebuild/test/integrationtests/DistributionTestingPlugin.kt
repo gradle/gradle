@@ -16,27 +16,36 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.java
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
-import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.bundling.Zip
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
+
 import org.gradle.kotlin.dsl.*
-import java.io.File
-import kotlin.collections.component1
-import kotlin.collections.component2
+
+import accessors.base
+import org.gradle.api.file.FileCollection
+import org.gradle.api.model.ObjectFactory
+import org.gradle.gradlebuild.packaging.ShadedJar
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.kotlin.dsl.support.serviceOf
+
 import kotlin.collections.set
+
+import java.io.File
 
 
 class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        tasks.withType<DistributionTest> {
+        tasks.withType<DistributionTest>().configureEach {
             dependsOn(":toolingApi:toolingApiShadedJar")
             dependsOn(":cleanUpCaches")
             finalizedBy(":cleanUpDaemons")
@@ -44,59 +53,71 @@ class DistributionTestingPlugin : Plugin<Project> {
 
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
-            configureGradleTestEnvironment(this)
-            setDedicatedTestOutputDirectoryPerTask(this)
-            addSetUpAndTearDownActions(this)
+            configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base, rootProject.objects)
+            addSetUpAndTearDownActions(gradle)
         }
     }
 
     private
-    fun Project.addSetUpAndTearDownActions(distributionTest: DistributionTest) {
+    fun DistributionTest.addSetUpAndTearDownActions(gradle: Gradle) {
         lateinit var daemonListener: Any
 
         // TODO Why don't we register with the test listener of the test task
         // We would not need to do late configuration and need to add a global listener
         // We now add multiple global listeners stepping on each other
-        distributionTest.doFirst {
+        doFirst {
             // TODO Refactor to not reach into tasks of another project
-            val cleanUpDaemons: CleanUpDaemons by rootProject.tasks
+            val cleanUpDaemons: CleanUpDaemons by gradle.rootProject.tasks
             daemonListener = cleanUpDaemons.newDaemonListener()
             gradle.addListener(daemonListener)
         }
 
         // TODO Remove once we go to task specific listeners.
-        distributionTest.doLast {
+        doLast {
             gradle.removeListener(daemonListener)
         }
     }
 
     private
-    fun Project.setDedicatedTestOutputDirectoryPerTask(distributionTest: DistributionTest) {
-        distributionTest.reports.junitXml.destination = File(java.testResultsDir, distributionTest.name)
-        // TODO Confirm that this is not needed
-        afterEvaluate {
-            distributionTest.reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention, objects: ObjectFactory) {
+
+        val projectDirectory = layout.projectDirectory
+
+        // TODO: Replace this with something in the Gradle API to make this transition easier
+        fun dirWorkaround(directory: () -> File): Provider<Directory> = objects.directoryProperty().also {
+            it.set(projectDirectory.dir(providers.provider { directory().absolutePath }))
+        }
+
+        gradleInstallationForTest.apply {
+            val intTestImage: Sync by project.tasks
+            gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir"))
+            gradleGeneratedApiJarCacheDir.set(providers.provider {
+                projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$classpathHash")
+            })
+            daemonRegistry.set(layout.buildDirectory.dir("daemon"))
+            gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
+            toolingApiShadedJarDir.set(dirWorkaround {
+                // TODO Refactor to not reach into tasks of another project
+                val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks
+                toolingApiShadedJar.jarFile.get().asFile.parentFile
+            })
+        }
+
+        libsRepository.dir.set(projectDirectory.dir("build/repo"))
+
+        binaryDistributions.apply {
+            distsDir.set(dirWorkaround { basePluginConvention.distsDir })
+            distZipVersion = project.version.toString()
         }
     }
 
     private
-    fun Project.configureGradleTestEnvironment(distributionTest: DistributionTest): Unit = distributionTest.run {
-        gradleInstallationForTest.run {
-            val intTestImage: Sync by tasks
-            val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
-            gradleHomeDir.set(dir { intTestImage.destinationDir })
-            gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
-            daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-            toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
-        }
+    val DistributionTest.classpathHash
+        get() = project.classPathHashOf(classpath)
 
-        libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
-
-        binaryDistributions.run {
-            distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
-            distZipVersion = project.version.toString()
-        }
-    }
+    private
+    fun Project.classPathHashOf(files: FileCollection) =
+        serviceOf<ClasspathHasher>().hash(DefaultClassPath.of(files))
 
     private
     fun DistributionTest.setJvmArgsOfTestJvm() {
@@ -125,22 +146,5 @@ class DistributionTestingPlugin : Plugin<Project> {
 
         systemProperties["org.gradle.integtest.multiversion"] =
             ifProperty("testAllVersions", "all") ?: "default"
-
-        val mirrorUrls = collectMirrorUrls()
-        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google")
-        mirrors.forEach { mirror ->
-            systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
-        }
     }
-
-    fun Project.dir(directory: () -> File): Provider<Directory> {
-        return layout.buildDirectory.dir(provider { directory().absolutePath })
-    }
-
-    fun collectMirrorUrls(): Map<String, String> =
-    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
-            val (name, url) = nameToUrl.split(':', limit = 2)
-            name to url
-        } ?: emptyMap()
 }

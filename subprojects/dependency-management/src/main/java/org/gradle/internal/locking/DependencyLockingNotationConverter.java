@@ -16,28 +16,21 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 class DependencyLockingNotationConverter {
 
-    DependencyConstraint convertToDependencyConstraint(String module) {
-        int groupNameSeparatorIndex = module.indexOf(':');
-        int nameVersionSeparatorIndex = module.lastIndexOf(':');
-        if (groupNameSeparatorIndex < 0 || nameVersionSeparatorIndex == groupNameSeparatorIndex) {
-            throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + module + "'");
+    ModuleComponentIdentifier convertFromLockNotation(String notation) {
+        String[] parts = notation.split(":");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + notation + "'");
         }
-        DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
-                                                                                            module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
-                                                                                            module.substring(nameVersionSeparatorIndex + 1));
-
-        constraint.because("dependency was locked to version " + constraint.getVersion());
-
-        return constraint;
+        return DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(parts[0], parts[1]), parts[2]);
     }
 
     String convertToLockNotation(ModuleComponentIdentifier id) {
-        return id.getDisplayName();
+        return id.getGroup() + ":" + id.getModule() + ":" + id.getVersion();
     }
 }

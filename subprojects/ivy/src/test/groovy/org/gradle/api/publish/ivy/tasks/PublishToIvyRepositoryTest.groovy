@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.tasks
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.publish.internal.PublicationArtifactSet
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
@@ -57,9 +58,11 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
     def "the publishableFiles of the publication are inputs of the task"() {
         given:
-        def publishableFiles = project.files("a", "b", "c")
+        def publishableFiles = project.layout.files("a", "b", "c")
 
-        publication.getPublishableFiles() >> publishableFiles
+        publication.getPublishableArtifacts() >> Mock(PublicationArtifactSet) {
+            getFiles() >> publishableFiles
+        }
 
         when:
         publish.publication = publication

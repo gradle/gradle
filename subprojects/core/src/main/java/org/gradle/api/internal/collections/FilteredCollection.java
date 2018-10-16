@@ -15,7 +15,12 @@
  */
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,6 +37,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean add(S o) {
+        throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
+    }
+
+    @Override
+    public boolean addRealized(S o) {
         throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
     }
 
@@ -73,7 +83,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         if (collection.isEmpty()) {
             return true;
         } else {
-            for (T o : collection) {
+            for (T o : this) {
                 if (accept(o)) {
                     return false;
                 }
@@ -87,6 +97,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         return collection.estimatedSize();
     }
 
+    @Override
+    public MutationGuard getMutationGuard() {
+        return collection.getMutationGuard();
+    }
+
     private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
         private final CollectionFilter<S> filter;
         private final Iterator<T> iterator;
@@ -95,7 +110,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         private S next;
 
         FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
-            this.iterator = collection.iterator();
+            this.iterator = collection.iteratorNoFlush();
             this.filter = filter;
             this.estimatedSize = collection.estimatedSize();
             this.next = findNext();
@@ -142,6 +157,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public Iterator<S> iterator() {
+        collection.realizePending(filter.getType());
         return new FilteringIterator<T, S>(collection, filter);
     }
 
@@ -153,11 +169,57 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int size() {
         int i = 0;
-        for (T o : collection) {
+        // NOTE: There isn't much we can do about collection.matching { } filters as the spec requires a realized element, unless make major changes
+        for (T o : this) {
             if (accept(o)) {
                 ++i;
             }
         }
         return i;
+    }
+
+    @Override
+    public Iterator<S> iteratorNoFlush() {
+        return new FilteringIterator<T, S>(collection, filter);
+    }
+
+    @Override
+    public void realizePending() {
+        realizePending(filter.getType());
+    }
+
+    @Override
+    public void realizePending(Class<?> type) {
+        collection.realizePending(type);
+    }
+
+    @Override
+    public boolean addPending(ProviderInternal<? extends S> provider) {
+        return collection.addPending(provider);
+    }
+
+    @Override
+    public boolean removePending(ProviderInternal<? extends S> provider) {
+        return collection.removePending(provider);
+    }
+
+    @Override
+    public boolean addPendingCollection(CollectionProviderInternal<S, ? extends Iterable<S>> provider) {
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerOfT = Cast.uncheckedCast(provider);
+        return collection.addPendingCollection(providerOfT);
+    }
+
+    @Override
+    public boolean removePendingCollection(CollectionProviderInternal<S, ? extends Iterable<S>> provider) {
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerOfT = Cast.uncheckedCast(provider);
+        return collection.removePendingCollection(providerOfT);
+    }
+
+    @Override
+    public void onRealize(Action<S> action) { }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends S> provider) {
+        collection.realizeExternal(provider);
     }
 }

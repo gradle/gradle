@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.model.gradle;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 import java.io.File;
 
@@ -26,7 +24,6 @@ import java.io.File;
  *
  * @since 1.8
  */
-@Incubating
 public interface GradleScript {
     /**
      * Returns the source file for this script, or {@code null} if this script has no associated source file.

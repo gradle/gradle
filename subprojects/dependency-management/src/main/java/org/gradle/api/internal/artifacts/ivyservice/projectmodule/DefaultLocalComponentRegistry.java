@@ -20,12 +20,9 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     private final List<LocalComponentProvider> providers;
-    private final ConcurrentMap<ProjectComponentIdentifier, LocalComponentMetadata> projects = new ConcurrentHashMap<ProjectComponentIdentifier, LocalComponentMetadata>();
 
     public DefaultLocalComponentRegistry(List<LocalComponentProvider> providers) {
         this.providers = providers;
@@ -33,17 +30,12 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
-        LocalComponentMetadata metaData = projects.get(projectIdentifier);
-        if (metaData != null) {
-            return metaData;
-        }
         for (LocalComponentProvider provider : providers) {
             LocalComponentMetadata componentMetaData = provider.getComponent(projectIdentifier);
             if (componentMetaData != null) {
-                projects.putIfAbsent(projectIdentifier, componentMetaData);
                 return componentMetaData;
             }
         }
-        return null;
+        throw new IllegalArgumentException(projectIdentifier + " not found.");
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
+import org.gradle.internal.Describables
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 
@@ -36,12 +37,12 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 
     def "serializes custom reasons"() {
         expect:
-        check(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason("my conflict resolution"))
-        check(VersionSelectionReasons.FORCED.withReason("forced by me"))
-        check(VersionSelectionReasons.REQUESTED.withReason("I really asked for it"))
-        check(VersionSelectionReasons.ROOT.withReason("I know this is the root of the graph"))
-        check(VersionSelectionReasons.SELECTED_BY_RULE.withReason("Wouldn't it be nice to add custom reasons?"))
-        check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE.withReason("More details!"))
+        check(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("my conflict resolution")))
+        check(VersionSelectionReasons.FORCED.withReason(Describables.of("forced by me")))
+        check(VersionSelectionReasons.REQUESTED.withReason(Describables.of("I really asked for it")))
+        check(VersionSelectionReasons.ROOT.withReason(Describables.of("I know this is the root of the graph")))
+        check(VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("Wouldn't it be nice to add custom reasons?")))
+        check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("More details!")))
     }
 
     def "multiple writes of the same custom reason"() {
@@ -72,7 +73,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     }
 
     private static ComponentSelectionReasonInternal withReason(String reason) {
-        VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE.withReason(reason)])
+        VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(reason))])
     }
 
     @Override

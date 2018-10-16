@@ -18,10 +18,9 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.LockableProperty;
-import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
@@ -41,19 +40,19 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Property<String> module;
     private final String name;
     private final Names names;
-    private final LockableProperty<SwiftVersion> sourceCompatibility;
-    private final LockableSetProperty<OperatingSystemFamily> operatingSystems;
+    private final Property<SwiftVersion> sourceCompatibility;
+    private final SetProperty<OperatingSystemFamily> operatingSystems;
 
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);
-        sourceCompatibility = new LockableProperty<SwiftVersion>(objectFactory.property(SwiftVersion.class));
+        sourceCompatibility = objectFactory.property(SwiftVersion.class);
 
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
-        operatingSystems = new LockableSetProperty<OperatingSystemFamily>(objectFactory.setProperty(OperatingSystemFamily.class));
+        operatingSystems = objectFactory.setProperty(OperatingSystemFamily.class);
         operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
     }
 
@@ -83,12 +82,12 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public LockableProperty<SwiftVersion> getSourceCompatibility() {
+    public Property<SwiftVersion> getSourceCompatibility() {
         return sourceCompatibility;
     }
 
     @Override
-    public LockableSetProperty<OperatingSystemFamily> getOperatingSystems() {
+    public SetProperty<OperatingSystemFamily> getOperatingSystems() {
         return operatingSystems;
     }
 }

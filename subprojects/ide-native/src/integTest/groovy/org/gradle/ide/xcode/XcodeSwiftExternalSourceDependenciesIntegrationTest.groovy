@@ -185,6 +185,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
 
         then:
         result.assertTasksExecuted(":greeter:compileDebugSwift",
+            ":compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
@@ -238,6 +239,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
 
         then:
         result.assertTasksExecuted(":greeter:compileDebugSwift",
+            ":compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")

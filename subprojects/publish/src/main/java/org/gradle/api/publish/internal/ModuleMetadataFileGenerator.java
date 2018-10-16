@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Named;
@@ -26,7 +27,6 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -136,7 +136,16 @@ public class ModuleMetadataFileGenerator {
 
         jsonWriter.name("version");
         jsonWriter.beginObject();
-        if (!versionConstraint.getPreferredVersion().isEmpty()) {
+
+        // For now, 'requires' implies 'prefers', and 'strictly' implies 'requires'
+        // Only publish the defining constraint.
+        if (!versionConstraint.getStrictVersion().isEmpty()) {
+            jsonWriter.name("strictly");
+            jsonWriter.value(versionConstraint.getStrictVersion());
+        } else if (!versionConstraint.getRequiredVersion().isEmpty()) {
+            jsonWriter.name("requires");
+            jsonWriter.value(versionConstraint.getRequiredVersion());
+        } else if (!versionConstraint.getPreferredVersion().isEmpty()) {
             jsonWriter.name("prefers");
             jsonWriter.value(versionConstraint.getPreferredVersion());
         }
@@ -359,13 +368,14 @@ public class ModuleMetadataFileGenerator {
         }
         jsonWriter.name("dependencies");
         jsonWriter.beginArray();
+        Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
-            writeDependency(moduleDependency, jsonWriter);
+            writeDependency(moduleDependency, additionalExcludes, jsonWriter);
         }
         jsonWriter.endArray();
     }
 
-    private void writeDependency(Dependency dependency, JsonWriter jsonWriter) throws IOException {
+    private void writeDependency(Dependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter) throws IOException {
         jsonWriter.beginObject();
         if (dependency instanceof ProjectDependency) {
             ProjectDependency projectDependency = (ProjectDependency) dependency;
@@ -381,7 +391,7 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.name("module");
             jsonWriter.value(dependency.getName());
             VersionConstraint vc;
-            if (dependency instanceof ModuleVersionSelector) {
+            if (dependency instanceof ExternalDependency) {
                 vc = ((ExternalDependency) dependency).getVersionConstraint();
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
@@ -389,7 +399,8 @@ public class ModuleMetadataFileGenerator {
             writeVersionConstraint(vc, jsonWriter);
         }
         if (dependency instanceof ModuleDependency) {
-            writeExcludes((ModuleDependency) dependency, jsonWriter);
+            writeExcludes((ModuleDependency) dependency, additionalExcludes, jsonWriter);
+            writeAttributes(((ModuleDependency)dependency).getAttributes(), jsonWriter);
         }
         String reason = dependency.getReason();
         if (StringUtils.isNotEmpty(reason)) {
@@ -418,6 +429,7 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.name("module");
         jsonWriter.value(dependencyConstraint.getName());
         writeVersionConstraint(dependencyConstraint.getVersionConstraint(), jsonWriter);
+        writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
         String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {
             jsonWriter.name("reason");
@@ -426,12 +438,12 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endObject();
     }
 
-    private void writeExcludes(ModuleDependency moduleDependency, JsonWriter jsonWriter) throws IOException {
+    private void writeExcludes(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter) throws IOException {
         Set<ExcludeRule> excludeRules;
         if (!moduleDependency.isTransitive()) {
             excludeRules = Collections.<ExcludeRule>singleton(new DefaultExcludeRule(null, null));
         } else {
-            excludeRules = moduleDependency.getExcludeRules();
+            excludeRules = Sets.union(additionalExcludes, moduleDependency.getExcludeRules());
         }
         if (excludeRules.isEmpty()) {
             return;

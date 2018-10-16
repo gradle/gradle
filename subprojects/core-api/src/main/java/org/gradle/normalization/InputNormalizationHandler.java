@@ -17,7 +17,6 @@
 package org.gradle.normalization;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -27,7 +26,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 4.0
  */
-@Incubating
 @HasInternalProtocol
 public interface InputNormalizationHandler {
     /**

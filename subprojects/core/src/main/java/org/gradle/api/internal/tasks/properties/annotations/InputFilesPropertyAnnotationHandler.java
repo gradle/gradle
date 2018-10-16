@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.tasks.InputFiles;
 
@@ -30,7 +29,6 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputPropertyAn
 
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
-        return specFactory.createInputFileSpec(propertyValue, ValidationActions.NO_OP);
+        return specFactory.createInputFilesSpec(propertyValue);
     }
-
 }

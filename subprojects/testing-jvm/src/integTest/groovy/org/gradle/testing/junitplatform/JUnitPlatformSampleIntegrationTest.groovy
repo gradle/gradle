@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junitplatform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
@@ -25,11 +25,11 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
-class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
+class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample('testing/junitplatform/jupiter')
+    @UsesSample('testing/junitplatform/jupiter/groovy')
     def 'jupiter sample test'() {
         given:
         sample sample
@@ -46,7 +46,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
             .assertTestSkipped('disabled')
     }
 
-    @UsesSample('testing/junitplatform/mix')
+    @UsesSample('testing/junitplatform/mix/groovy')
     def 'mix JUnit3/4/5'() {
         given:
         sample sample
@@ -63,7 +63,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
             .testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(1, 0, 0)
     }
 
-    @UsesSample('testing/junitplatform/engine')
+    @UsesSample('testing/junitplatform/engine/groovy')
     def 'engine sample test'() {
         given:
         sample sample
@@ -77,7 +77,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
             .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0, 0)
     }
 
-    @UsesSample('testing/junitplatform/tagging')
+    @UsesSample('testing/junitplatform/tagging/groovy')
     def 'tagging sample test'() {
         given:
         sample sample

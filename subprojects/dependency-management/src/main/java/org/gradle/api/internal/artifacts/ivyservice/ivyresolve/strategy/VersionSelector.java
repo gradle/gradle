@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
+/**
+ * Implementations of version selector are expected to be immutable and thread-safe.
+ */
 public interface VersionSelector {
     /**
      * Indicates if the given version selector is dynamic.

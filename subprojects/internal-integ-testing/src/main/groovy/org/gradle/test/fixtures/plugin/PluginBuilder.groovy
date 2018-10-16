@@ -94,8 +94,8 @@ class PluginBuilder {
 
         // The implementation jar module.
         def module = mavenRepo.module(group, artifact, version)
-        def artifactFile = module.getArtifactFile()
         def pluginModule = module.publish()
+        def artifactFile = module.getArtifactFile()
 
         def markerModules = new ArrayList<Module>()
 

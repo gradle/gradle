@@ -21,7 +21,7 @@ import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetCoverage({ PlayCoverage.PLAY24_OR_LATER })
+@TargetCoverage({ PlayCoverage.DEFAULT })
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
 
@@ -52,7 +52,6 @@ class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
         given:
         withRoutesTemplate()
         withInjectedRoutesController()
-        fixForPlayVersion()
         buildFile << """
 model {
     components {
@@ -71,7 +70,6 @@ model {
     def "recompiles when route compiler type is changed"() {
         when:
         withRoutesTemplate()
-        fixForPlayVersion()
         then:
         succeeds("compilePlayBinaryScala")
 

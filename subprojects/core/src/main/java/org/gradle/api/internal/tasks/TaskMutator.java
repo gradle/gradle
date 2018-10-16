@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.util.ObservableList;
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 
 import java.beans.PropertyChangeEvent;
@@ -27,7 +26,6 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class TaskMutator {
     private final TaskInternal task;
-    private boolean executingleftShiftAction;
 
     public TaskMutator(TaskInternal task) {
         this.task = task;
@@ -82,57 +80,7 @@ public class TaskMutator {
         throw new IllegalStateException(format(method));
     }
 
-    public ContextAwareTaskAction leftShift(final ContextAwareTaskAction action) {
-        return new LeftShiftTaskAction(action);
-    }
-
     private String format(String method) {
-        if (executingleftShiftAction) {
-            return String.format("Cannot call %s on %s after task has started execution. Check the configuration of %s as you may have misused '<<' at task declaration.", method, task, task);
-        }
         return String.format("Cannot call %s on %s after task has started execution.", method, task);
-    }
-
-    private class LeftShiftTaskAction implements ContextAwareTaskAction {
-        private final ContextAwareTaskAction action;
-
-        public LeftShiftTaskAction(ContextAwareTaskAction action) {
-            this.action = action;
-        }
-
-        @Override
-        public void execute(Task task) {
-            executingleftShiftAction = true;
-            try {
-                action.execute(task);
-            } finally {
-                executingleftShiftAction = false;
-            }
-        }
-
-        @Override
-        public void contextualise(TaskExecutionContext context) {
-            action.contextualise(context);
-        }
-
-        @Override
-        public void releaseContext() {
-            action.releaseContext();
-        }
-
-        @Override
-        public ClassLoader getClassLoader() {
-            return action.getClassLoader();
-        }
-
-        @Override
-        public String getActionClassName() {
-            return action.getActionClassName();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return action.getDisplayName();
-        }
     }
 }

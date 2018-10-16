@@ -49,6 +49,9 @@ public class PropertyDetailRenderer {
         if (!propertyDoc.getMetaData().isWriteable()) {
             title.appendChild(document.createTextNode(" (read-only)"));
         }
+        else if (!propertyDoc.getMetaData().isReadable()) {
+            title.appendChild(document.createTextNode(" (write-only)"));
+        }
 
         warningsRenderer.renderTo(propertyDoc, "property", section);
 

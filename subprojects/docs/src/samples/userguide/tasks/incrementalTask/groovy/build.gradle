@@ -1,0 +1,84 @@
+task originalInputs() {
+    doLast {
+        file('inputs').mkdir()
+        file('inputs/1.txt').text = 'Content for file 1.'
+        file('inputs/2.txt').text = 'Content for file 2.'
+        file('inputs/3.txt').text = 'Content for file 3.'
+    }
+}
+
+// tag::updated-inputs[]
+task updateInputs() {
+    doLast {
+        file('inputs/1.txt').text = 'Changed content for existing file 1.'
+        file('inputs/4.txt').text = 'Content for new file 4.'
+    }
+}
+// end::updated-inputs[]
+
+// tag::removed-input[]
+task removeInput() {
+    doLast {
+        file('inputs/3.txt').delete()
+    }
+}
+// end::removed-input[]
+
+// tag::removed-output[]
+task removeOutput() {
+    doLast {
+        file("$buildDir/outputs/1.txt").delete()
+    }
+}
+// end::removed-output[]
+
+// tag::reverse[]
+task incrementalReverse(type: IncrementalReverseTask) {
+    inputDir = file('inputs')
+    outputDir = file("$buildDir/outputs")
+    inputProperty = project.properties['taskInputProperty'] ?: 'original'
+}
+// end::reverse[]
+
+// tag::incremental-task[]
+class IncrementalReverseTask extends DefaultTask {
+    @InputDirectory
+    def File inputDir
+
+    @OutputDirectory
+    def File outputDir
+
+    @Input
+    def inputProperty
+
+    @TaskAction
+    void execute(IncrementalTaskInputs inputs) {
+        println inputs.incremental ? 'CHANGED inputs considered out of date'
+                                   : 'ALL inputs considered out of date'
+        // tag::handle-non-incremental-inputs[]
+        if (!inputs.incremental)
+            project.delete(outputDir.listFiles())
+        // end::handle-non-incremental-inputs[]
+
+        // tag::out-of-date-inputs[]
+        inputs.outOfDate { change ->
+            if (change.file.directory) return
+
+            println "out of date: ${change.file.name}"
+            def targetFile = new File(outputDir, change.file.name)
+            targetFile.text = change.file.text.reverse()
+        }
+        // end::out-of-date-inputs[]
+
+        // tag::removed-inputs[]
+        inputs.removed { change ->
+            if (change.file.directory) return
+
+            println "removed: ${change.file.name}"
+            def targetFile = new File(outputDir, change.file.name)
+            targetFile.delete()
+        }
+        // end::removed-inputs[]
+    }
+}
+// end::incremental-task[]

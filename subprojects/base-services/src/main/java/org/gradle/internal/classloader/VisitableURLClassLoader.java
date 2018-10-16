@@ -27,32 +27,59 @@ import java.util.List;
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
         }
     }
 
-    public VisitableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
-        super(urls.toArray(new URL[0]), parent);
+    // TODO:lptr When we drop Java 8 support we can switch to using ClassLoader.getName() instead of storing our own
+    private final String name;
+
+    public VisitableURLClassLoader(String name, ClassLoader parent, Collection<URL> urls) {
+        this(name, urls.toArray(new URL[0]), parent);
     }
 
-    public VisitableURLClassLoader(ClassLoader parent, ClassPath classPath) {
-        super(classPath.getAsURLArray(), parent);
+    public VisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+        this(name, classPath.getAsURLArray(), parent);
+    }
+
+    private VisitableURLClassLoader(String name, URL[] classpath, ClassLoader parent) {
+        super(classpath, parent);
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void addURL(URL url) {
+        super.addURL(url);
+    }
+
+    @Override
+    public String toString() {
+        return VisitableURLClassLoader.class.getSimpleName() + "(" + name + ")";
     }
 
     public void visit(ClassLoaderVisitor visitor) {
         URL[] urls = getURLs();
-        visitor.visitSpec(new Spec(Arrays.asList(urls)));
+        visitor.visitSpec(new Spec(name, Arrays.asList(urls)));
         visitor.visitClassPath(urls);
         visitor.visitParent(getParent());
     }
 
     public static class Spec extends ClassLoaderSpec {
+        final String name;
         final List<URL> classpath;
 
-        public Spec(List<URL> classpath) {
+        public String getName() {
+            return name;
+        }
+
+        public Spec(String name, List<URL> classpath) {
+            this.name = name;
             this.classpath = classpath;
         }
 
@@ -62,7 +89,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         @Override
         public String toString() {
-            return "{url-class-loader " + " classpath:" + classpath + "}";
+            return "{url-class-loader name:" + name + ", classpath:" + classpath + "}";
         }
 
         @Override

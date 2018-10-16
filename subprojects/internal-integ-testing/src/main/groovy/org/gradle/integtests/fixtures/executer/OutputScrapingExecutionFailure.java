@@ -27,19 +27,21 @@ import java.util.regex.Pattern;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private static final Pattern FAILURE_PATTERN = Pattern.compile("(<.*> \\d{1,3}% \\w+ \\[\\d+s])*(> .*)?FAILURE: .+");
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("FAILURE: (.+)");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private static final Pattern EXCEPTION_PATTERN = Pattern.compile("(?ms)^\\* Exception is:$(.+?):(.+?)$");
     private static final Pattern EXCEPTION_CAUSE_PATTERN = Pattern.compile("(?ms)^Caused by: (.+?):(.+?)$");
-    private final String description;
+    private final String summary;
+    private final List<String> descriptions = new ArrayList<String>();
     private final String lineNumber;
     private final String fileName;
     private final String resolution;
@@ -71,7 +73,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         // Find failure section
         Pair<LogContent, LogContent> match = withoutDebug.splitOnFirstMatchingLine(FAILURE_PATTERN);
         if (match == null) {
-            // Not present in output, check error output. Currently, some early failures are still written to stderr. This fixture is also used to scrape the output of older Gradle versions (but shouldn't be)
+            // Not present in output, check error output.
             match = LogContent.of(error).removeAnsiChars().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
             if (match != null) {
                 match = Pair.of(withoutDebug, match.getRight());
@@ -90,7 +92,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
         String failureText = failureContent.withNormalizedEol();
 
-        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureText);
+        java.util.regex.Matcher matcher = FAILURE_PATTERN.matcher(failureText);
+        if (matcher.lookingAt()) {
+            summary = matcher.group(1);
+        } else {
+            summary = "";
+        }
+
+        matcher = LOCATION_PATTERN.matcher(failureText);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
             lineNumber = matcher.group(3);
@@ -103,15 +112,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         if (matcher.find()) {
             String problemStr = matcher.group(1);
             Problem problem = extract(problemStr);
-            description = problem.description;
+            descriptions.add(problem.description);
             causes.addAll(problem.causes);
             while (matcher.find()) {
                 problemStr = matcher.group(1);
                 problem = extract(problemStr);
+                descriptions.add(problem.description);
                 causes.addAll(problem.causes);
             }
-        } else {
-            description = "";
         }
 
         matcher = RESOLUTION_PATTERN.matcher(failureText);
@@ -198,6 +206,17 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
+    @Override
+    public ExecutionFailure assertHasFailures(int count) {
+        assertThat(this.descriptions.size(), equalTo(count));
+        if (count == 1) {
+            assertThat(summary, equalTo("Build failed with an exception."));
+        } else {
+            assertThat(summary, equalTo(String.format("Build completed with %s failures.", count)));
+        }
+        return this;
+    }
+
     public ExecutionFailure assertHasCause(String description) {
         assertThatCause(startsWith(description));
         return this;
@@ -240,7 +259,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-        assertThat(description, matcher);
+        assertThat(descriptions, hasItem(matcher));
         return this;
     }
 

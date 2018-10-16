@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
  */
 public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "1.0";
+    public static final String DEFAULT_CODENARC_VERSION = "1.2.1";
     private CodeNarcExtension extension;
 
     @Override
@@ -68,9 +68,13 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     }
 
     @Override
-    protected void configureTaskDefaults(CodeNarc task, String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("codenarc");
+    protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
+    }
+
+    @Override
+    protected void configureTaskDefaults(CodeNarc task, String baseName) {
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

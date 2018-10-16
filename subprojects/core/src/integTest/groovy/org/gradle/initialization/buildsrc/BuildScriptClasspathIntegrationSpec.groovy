@@ -16,20 +16,24 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.internal.classpath.DefaultCachedClasspathTransformer
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 import spock.lang.Unroll
 
-class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
+class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
+    static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+
     @Rule public final HttpServer server = new HttpServer()
     MavenHttpRepository repo
 
     def setup() {
-        executer.requireDaemon()
-        executer.requireIsolatedDaemons()
         repo = new MavenHttpRepository(server, mavenRepo)
 
         repo.module("commons-io", "commons-io", "1.4").publish().allowAll()
@@ -90,33 +94,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
     def "build script classloader copies only non-cached jar files"() {
         given:
-        buildFile << """
-            buildscript {
-                repositories {
-                    flatDir { dirs 'repo' }
-                    maven{ url "${repo.uri}" }
-                }
-                dependencies {
-                    classpath name: 'test', version: '1.3-BUILD-SNAPSHOT'
-                    classpath 'commons-io:commons-io:1.4@jar'
-                }
-            }
-
-            task showBuildscript {
-                doLast {
-                    showUrls(getClass().getClassLoader())
-                }
-            }
-
-            def showUrls(classloader) {
-                if (classloader instanceof java.net.URLClassLoader) {
-                    classloader.URLs.each { println ">>>" + it }
-                }
-                if (classloader.parent != null) {
-                    showUrls(classloader.parent)
-                }
-            }
-        """
+        createBuildFileThatPrintsClasspathURLs("""
+            classpath name: 'test', version: '1.3-BUILD-SNAPSHOT'
+            classpath 'commons-io:commons-io:1.4@jar'
+        """)
         ArtifactBuilder builder = artifactBuilder()
         File jarFile = file("repo/test-1.3-BUILD-SNAPSHOT.jar")
 
@@ -135,7 +116,37 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         notInJarCache("commons-io-1.4.jar")
     }
 
+    private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
+        buildFile.text = """
+            buildscript {
+                repositories {
+                    flatDir { dirs 'repo' }
+                    maven{ url "${repo.uri}" }
+                }
+                dependencies {
+                    ${dependencies}
+                }
+            }
+
+            task showBuildscript {
+                doLast {
+                    showUrls(getClass().getClassLoader())
+                }
+            }
+
+            def showUrls(classloader) {
+                if (classloader instanceof java.net.URLClassLoader) {
+                    classloader.URLs.each { println ">>>" + it }
+                }
+                if (classloader.parent != null) {
+                    showUrls(classloader.parent)
+                }
+            }
+        """
+    }
+
     def "url connection caching is not disabled by default"() {
+
         given:
         buildFile << """
             task checkUrlConnectionCaching {
@@ -146,6 +157,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
         """
+        executer.requireDaemon().requireIsolatedDaemons()
 
         expect:
         succeeds("checkUrlConnectionCaching")
@@ -203,12 +215,80 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         outputContains("hello again")
     }
 
+    def "cleans up unused cached JARs"() {
+        given:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        artifactBuilder().buildJar(file("repo/a-1.jar"))
+
+        when:
+        createBuildFileThatPrintsClasspathURLs("""
+            classpath name: 'a', version: '1'
+        """)
+        succeeds("showBuildscript")
+
+        then:
+        def jar = inJarCache("a-1.jar").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        gcFile.lastModified = daysAgo(2)
+        writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+
+        and:
+        createBuildFileThatPrintsClasspathURLs()
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("showBuildscript").start().waitForFinish()
+
+        then:
+        jar.assertDoesNotExist()
+
+        when:
+        createBuildFileThatPrintsClasspathURLs("""
+            classpath name: 'a', version: '1'
+        """)
+        succeeds("showBuildscript")
+
+        then:
+        jar.assertExists()
+    }
+
+    def "cleans up unused versions of jars cache"() {
+        given:
+        requireOwnGradleUserHomeDir() // messes with caches
+        def oldCacheDirs = [
+            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-1"),
+            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-2")
+        ]
+        gcFile.createFile().lastModified = daysAgo(2)
+
+        when:
+        succeeds("tasks")
+
+        then:
+        oldCacheDirs.each {
+            it.assertDoesNotExist()
+        }
+    }
+
     void notInJarCache(String filename) {
         inJarCache(filename, false)
     }
 
-    void inJarCache(String filename, boolean shouldBeFound=true) {
-        String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }
-        assert fullpath.contains("/caches/jars-3/") == shouldBeFound
+    TestFile inJarCache(String filename, boolean shouldBeFound=true) {
+        String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
+        assert fullpath.startsWith(cacheDir.toURI().toString()) == shouldBeFound
+        return new TestFile(new File(URI.create(fullpath)))
     }
+
+    TestFile getGcFile() {
+        return cacheDir.file("gc.properties")
+    }
+
+    TestFile getCacheDir() {
+        return userHomeCacheDir.file(DefaultCachedClasspathTransformer.CACHE_KEY)
+    }
+
+
 }

@@ -20,78 +20,131 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sample = new Sample(temporaryFolder)
 
+    def setup() {
+        requireGradleDistribution()
+    }
+
+    @Unroll
     @UsesSample('compositeBuilds/basic')
-    def "can run app with command-line composite"() {
+    def "can run app with command-line composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
-        executer.inDirectory(sample.dir.file("my-app")).withArguments("--include-build", "../my-utils")
+        executer.inDirectory(sample.dir.file("$dsl/my-app")).withArguments("--include-build", "../my-utils")
         succeeds(':run')
 
         then:
         executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":run"
         outputContains("The answer is 42")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('compositeBuilds/basic')
-    def "can run app when modified to be a composite"() {
+    def "can run app when modified to be a composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
-        executer.inDirectory(sample.dir.file("my-app")).withArguments("--settings-file", "settings-composite.gradle")
+        executer.inDirectory(sample.dir.file("$dsl/my-app"))
+            .withArguments("--settings-file", "settings-composite.$extension")
         succeeds(':run')
 
         then:
         executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":run"
         outputContains("The answer is 42")
+
+        where:
+        dsl      | extension
+        'groovy' | 'gradle'
+        'kotlin' | 'gradle.kts'
     }
 
+    @Unroll
     @UsesSample('compositeBuilds/basic')
-    def "can run app when included in a composite"() {
+    def "can run app when included in a composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
-        executer.inDirectory(sample.dir.file("composite"))
+        executer.inDirectory(sample.dir.file("$dsl/composite"))
         succeeds(':run')
 
         then:
         executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":my-app:run", ":run"
         outputContains("The answer is 42")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('compositeBuilds/hierarchical-multirepo')
-    def "can run app in hierarchical composite"() {
+    def "can run app in hierarchical composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
-        executer.inDirectory(sample.dir.file("multirepo-app"))
+        executer.inDirectory(sample.dir.file("multirepo-app/$dsl"))
         succeeds(':run')
 
         then:
         executed ":number-utils:jar", ":string-utils:jar", ":run"
         outputContains("The answer is 42")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('compositeBuilds/hierarchical-multirepo')
-    def "can publish locally and remove submodule from hierarchical composite"() {
+    def "can publish locally and remove submodule from hierarchical composite with #dsl dsl"() {
+        given:
+        def multiRepoAppDir = sample.dir.file("multirepo-app/$dsl")
+        executer.withRepositoryMirrors()
+
         when:
-        executer.inDirectory(sample.dir.file("multirepo-app"))
+        executer.inDirectory(multiRepoAppDir)
         succeeds(':publishDeps')
 
         then:
         executed ":number-utils:uploadArchives", ":string-utils:uploadArchives"
-        sample.dir.file('local-repo/org.sample/number-utils/1.0').assertContainsDescendants("ivy-1.0.xml", "number-utils-1.0.jar")
-        sample.dir.file('local-repo/org.sample/string-utils/1.0').assertContainsDescendants("ivy-1.0.xml", "string-utils-1.0.jar")
-
-        when:
-        sample.dir.file("multirepo-app/modules/string-utils").deleteDir()
 
         and:
-        executer.inDirectory(sample.dir.file("multirepo-app"))
+        multiRepoAppDir.file('../local-repo/org.sample/number-utils/1.0')
+            .assertContainsDescendants("ivy-1.0.xml", "number-utils-1.0.jar")
+        multiRepoAppDir.file('../local-repo/org.sample/string-utils/1.0')
+            .assertContainsDescendants("ivy-1.0.xml", "string-utils-1.0.jar")
+
+        when:
+        multiRepoAppDir.file("modules/string-utils").deleteDir()
+
+        and:
+        executer.inDirectory(multiRepoAppDir)
         succeeds(":run")
 
         then:
         executed ":number-utils:jar", ":run"
         notExecuted ":string-utils:jar"
         outputContains("The answer is 42")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample('compositeBuilds/plugin-dev')
@@ -117,24 +170,34 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("G'day Bob!!!")
     }
 
+    @Unroll
     @UsesSample('compositeBuilds/declared-substitution')
-    def "can include build with declared substitution"() {
+    def "can include build with declared substitution with #dsl dsl"() {
+        given:
+        def myAppDir = sample.dir.file("$dsl/my-app")
+
         when:
-        executer.inDirectory(sample.dir.file("my-app"))
-            .withArguments("--settings-file", "settings-without-declared-substitution.gradle")
+        executer.inDirectory(myAppDir)
+            .withArguments("--settings-file", "settings-without-declared-substitution.$extension")
         fails(':run')
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':run'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':runtimeClasspath'.")
-        failure.assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
+        //TODO:kotlin-dsl uncomment once we're no longer on a kotlin eap
+        //failure.assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
 
         when:
-        executer.inDirectory(sample.dir.file("my-app"))
+        executer.inDirectory(myAppDir)
         succeeds(':run')
 
         then:
         executed ":anonymous-library:jar", ":run"
         outputContains("The answer is 42")
+
+        where:
+        dsl      | extension
+        'groovy' | 'gradle'
+        'kotlin' | 'gradle.kts'
     }
 }

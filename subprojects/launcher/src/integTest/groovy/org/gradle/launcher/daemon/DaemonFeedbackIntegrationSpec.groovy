@@ -17,10 +17,12 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
-import spock.lang.Timeout
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -59,7 +61,7 @@ task sleep {
         }
     }
 
-    @Timeout(25)
+    @IntegrationTestTimeout(25)
     def "promptly shows decent message when daemon cannot be started"() {
         when:
         executer.withArguments("-Dorg.gradle.jvmargs=-Xyz").run()
@@ -156,6 +158,9 @@ task sleep {
         log.count('error me!') == 1
     }
 
+    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
+    //Java 9 and above needs --add-opens to make environment variable mutation work
+    @Requires([TestPrecondition.NOT_JDK_IBM, TestPrecondition.JDK8_OR_EARLIER])
     def "foreground daemon log honors log levels for logging"() {
         given:
         file("build.gradle") << """
@@ -170,7 +175,7 @@ task sleep {
         poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
         when:
-        def infoBuild = executer.withArguments("-i", "-Dorg.gradle.jvmargs=-ea").run()
+        def infoBuild = executer.withArguments("-i").run()
 
         then:
         infoBuild.output.count("debug me!") == 0
@@ -184,7 +189,7 @@ task sleep {
         daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
 
         when:
-        def debugBuild = executer.withArguments("-d", "-Dorg.gradle.jvmargs=-ea").run()
+        def debugBuild = executer.withArguments("-d").run()
 
         then:
         debugBuild.output.count("debug me!") == 1

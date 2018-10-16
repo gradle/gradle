@@ -40,7 +40,7 @@ dependencies {
         // Reject dependencies we do not want completely
         add("default", "org.sonatype.sisu:sisu-inject-plexus") {
             version { rejectAll() }
-            because("We do not wand this dependency injection on the classpath")
+            because("We do not want this dependency injection on the classpath")
         }
     }
 }

@@ -18,50 +18,54 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+
+import java.util.Collections;
+import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-
     private final DocumentationRegistry documentationRegistry;
 
-    public GroovyProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                       TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor, DocumentationRegistry documentationRegistry) {
-        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+    public GroovyProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+                                       TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super("groovy", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
-
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
+    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
             .plugin("Apply the groovy plugin to add support for Groovy", "groovy")
-            .compileDependency("Use the latest Groovy version for building this library",
+            .implementationDependency("Use the latest Groovy version for building this library",
                 "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
-            .testCompileDependency("Use the awesome Spock testing and specification framework",
+            .testImplementationDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
-        configureBuildScript(buildScriptBuilder);
-        buildScriptBuilder.create().generate();
+        configureBuildScript(settings, buildScriptBuilder);
 
-        TemplateOperation groovySourceTemplate = sourceTemplateOperation();
-        whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(testFramework)).generate();
+        TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
+        TemplateOperation testSourceTemplate = testTemplateOperation(settings);
+        whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == SPOCK;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return SPOCK;
     }
 
-    protected abstract TemplateOperation sourceTemplateOperation();
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(SPOCK);
+    }
 
-    protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
+    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
 
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
+
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
     }
 }

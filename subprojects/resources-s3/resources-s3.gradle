@@ -13,7 +13,7 @@ dependencies {
     implementation project(':resourcesHttp')
     implementation libraries.slf4j_api.coordinates
     implementation libraries.guava.coordinates
-    implementation libraries.awsS3_core.coordinates, libraries.awsS3_s3.coordinates, libraries.awsS3_kms.coordinates
+    implementation libraries.awsS3_core.coordinates, libraries.awsS3_s3.coordinates, libraries.awsS3_kms.coordinates, libraries.jaxb.coordinates
     implementation libraries.jackson_core.coordinates, libraries.jackson_annotations.coordinates, libraries.jackson_databind.coordinates
     implementation libraries.commons_httpclient.coordinates, libraries.joda.coordinates
     implementation libraries.commons_lang.coordinates
@@ -26,10 +26,10 @@ testFixtures {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }
-

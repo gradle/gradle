@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
@@ -40,7 +39,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        CloseableHttpResponse response = http.performGet(location, revalidate);
+        HttpClientResponse response = http.performGet(location, revalidate);
         if (response != null) {
             return wrapResponse(uri, response);
         }
@@ -55,14 +54,14 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     public HttpResponseResource getRawResource(final URI uri, boolean revalidate) {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
-        CloseableHttpResponse response = http.performRawGet(location, revalidate);
+        HttpClientResponse response = http.performRawGet(location, revalidate);
         return wrapResponse(uri, response);
     }
 
     public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
         String location = uri.toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
-        CloseableHttpResponse response = http.performHead(location, revalidate);
+        HttpClientResponse response = http.performHead(location, revalidate);
 
         ExternalResourceMetaData result = null;
         if (response != null) {
@@ -76,7 +75,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         return result;
     }
 
-    private HttpResponseResource wrapResponse(URI uri, CloseableHttpResponse response) {
+    private HttpResponseResource wrapResponse(URI uri, HttpClientResponse response) {
         return new HttpResponseResource("GET", uri, response);
     }
 

@@ -21,11 +21,15 @@ import com.google.gson.stream.JsonReader
 import library
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ComponentMetadataContext
+import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.DirectDependenciesMetadata
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.extra
 import java.io.File
+import javax.inject.Inject
+import kotlin.reflect.KClass
 
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
@@ -33,62 +37,56 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
         dependencies {
             components {
                 // Gradle distribution - minify: remove unused transitive dependencies
-                withLibraryDependencies(library("maven3")) {
-                    removeAll {
-                        it.name != "maven-settings-builder" &&
-                            it.name != "maven-model" &&
-                            it.name != "maven-model-builder" &&
-                            it.name != "maven-artifact" &&
-                            it.name != "maven-aether-provider" &&
-                            it.group != "org.sonatype.aether"
-                    }
-                }
-                withLibraryDependencies(library("awsS3_core")) {
-                    removeAll { it.name == "jackson-dataformat-cbor" }
-                }
-                withLibraryDependencies(library("jgit")) {
-                    removeAll { it.group == "com.googlecode.javaewah" }
-                }
-                withLibraryDependencies(library("maven3_wagon_http_shared4")) {
-                    removeAll { it.group == "org.jsoup" }
-                }
-                withLibraryDependencies(library("aether_connector")) {
-                    removeAll { it.group == "org.sonatype.sisu" }
-                }
-                withLibraryDependencies(library("maven3_compat")) {
-                    removeAll { it.group == "org.sonatype.sisu" }
-                }
-                withLibraryDependencies(library("maven3_plugin_api")) {
-                    removeAll { it.group == "org.sonatype.sisu" }
-                }
+                withModule(library("maven3"), MavenDependencyCleaningRule::class.java)
+                withLibraryDependencies(library("awsS3_core"), DependencyRemovalByNameRule::class, setOf("jackson-dataformat-cbor"))
+                withLibraryDependencies(library("jgit"), DependencyRemovalByGroupRule::class, setOf("com.googlecode.javaewah"))
+                withLibraryDependencies(library("maven3_wagon_http_shared"), DependencyRemovalByGroupRule::class, setOf("org.jsoup"))
+                withLibraryDependencies(library("aether_connector"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+                withLibraryDependencies(library("maven3_compat"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+                withLibraryDependencies(library("maven3_plugin_api"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
 
                 // Read capabilities declared in capabilities.json
                 readCapabilitiesFromJson()
 
-                //TODO check if we can upgrade the following dependencies and remove the rules
-                downgradeIvy("org.codehaus.groovy:groovy-all")
-                downgradeTestNG("org.codehaus.groovy:groovy-all")
+                withModule("org.spockframework:spock-core", ReplaceCglibNodepWithCglibRule::class.java)
+                // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
+                withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
+                    setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
+                withLibraryDependencies("cglib:cglib", DependencyRemovalByNameRule::class, setOf("ant"))
 
-                downgradeXmlApis("jaxen:jaxen")
-                downgradeXmlApis("jdom:jdom")
-                downgradeXmlApis("xalan:xalan")
-                downgradeXmlApis("jaxen:jaxen")
+                // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
+                withLibraryDependencies("org.gradle:sample-discovery", DependencyRemovalByNameRule::class, setOf("asciidoctorj", "asciidoctorj-api"))
+
+                withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
+                withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
+                withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
+                withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
 
                 // Test dependencies - minify: remove unused transitive dependencies
-                withLibraryDependencies("org.littleshoot:littleproxy") {
-                    removeAll { it.name == "barchart-udt-bundle" || it.name == "guava" || it.name == "commons-cli" }
-                }
+                withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
+                    setOf("barchart-udt-bundle", "guava", "commons-cli"))
             }
         }
     }
 
     private
     fun Project.readCapabilitiesFromJson() {
-        val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
-        if (capabilitiesFile.exists()) {
-            readCapabilities(capabilitiesFile).forEach {
-                it.configure(dependencies.components, configurations)
+        val extra = gradle.rootProject.extra
+        val capabilities: List<CapabilitySpec>
+        if (extra.has("capabilities")) {
+            @Suppress("unchecked_cast")
+            capabilities = extra["capabilities"] as List<CapabilitySpec>
+        } else {
+            val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
+            if (capabilitiesFile.exists()) {
+                capabilities = readCapabilities(capabilitiesFile)
+            } else {
+                capabilities = emptyList()
             }
+            extra["capabilities"] = capabilities
+        }
+        capabilities.forEach {
+            it.configure(dependencies.components, configurations)
         }
     }
 
@@ -110,9 +108,23 @@ inline
 fun <reified T> Gson.fromJson(json: JsonReader) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)
 
 
+open class CapabilityRule @Inject constructor(
+    val name: String,
+    val version: String
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withCapabilities {
+                addCapability("org.gradle.internal.capability", name, version)
+            }
+        }
+    }
+}
+
+
 class CapabilitySpec {
     lateinit var name: String
-    lateinit var providedBy: List<String>
+    lateinit var providedBy: Set<String>
     lateinit var selected: String
     var upgrade: String? = null
 
@@ -132,24 +144,18 @@ class CapabilitySpec {
 
     private
     fun ComponentMetadataHandler.declareSyntheticCapability(provider: String, version: String) {
-        withModule(provider) {
-            allVariants {
-                withCapabilities {
-                    addCapability("org.gradle.internal.capability", name, version)
-                }
-            }
-        }
+        withModule(provider, CapabilityRule::class.java, {
+            params(name)
+            params(version)
+        })
     }
 
     private
     fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
-        withModule(module) {
-            allVariants {
-                withCapabilities {
-                    addCapability("org.gradle.internal.capability", name, "${providedBy.size + 1}")
-                }
-            }
-        }
+        withModule(module, CapabilityRule::class.java, {
+            params(name)
+            params("${providedBy.size + 1}")
+        })
     }
 
     /**
@@ -161,34 +167,53 @@ class CapabilitySpec {
     private
     fun ConfigurationContainer.forceUpgrade(to: String, version: String) = all {
         resolutionStrategy.dependencySubstitution {
-            providedBy.forEach { source ->
-                substitute(module(source))
-                    .because("Forceful upgrade of capability $name")
-                    .with(module("$to:$version"))
+            all {
+                if (providedBy.contains(requested.toString())) {
+                    useTarget("$to:$version", "Forceful upgrade of capability $name")
+                }
             }
         }
     }
 }
 
 
-fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
-    withModule(module) {
-        allVariants {
+open class DependencyRemovalByNameRule @Inject constructor(
+    val moduleToRemove: Set<String>
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencies {
-                action()
+                removeAll { moduleToRemove.contains(it.name) }
             }
         }
     }
 }
 
 
-fun ComponentMetadataHandler.downgradeIvy(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.apache.ivy" }.forEach {
-                    it.version { prefer("2.2.0") }
-                    it.because("Gradle depends on ivy implementation details which changed with newer versions")
+open class DependencyRemovalByGroupRule @Inject constructor(
+    val groupsToRemove: Set<String>
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll { groupsToRemove.contains(it.group) }
+            }
+        }
+    }
+}
+
+
+open class MavenDependencyCleaningRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll {
+                    it.name != "maven-settings-builder" &&
+                        it.name != "maven-model" &&
+                        it.name != "maven-model-builder" &&
+                        it.name != "maven-artifact" &&
+                        it.name != "maven-aether-provider" &&
+                        it.group != "org.sonatype.aether"
                 }
             }
         }
@@ -196,28 +221,35 @@ fun ComponentMetadataHandler.downgradeIvy(module: String) {
 }
 
 
-fun ComponentMetadataHandler.downgradeTestNG(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.testng" }.forEach {
-                    it.version { prefer("6.3.1") }
-                    it.because("6.3.1 is required by Gradle and part of the distribution")
-                }
-            }
-        }
-    }
+fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KClass<out ComponentMetadataRule>, modulesToRemove: Set<String>) {
+    withModule(module, kClass.java, {
+        params(modulesToRemove)
+    })
 }
 
 
-fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
-    withModule(module) {
-        allVariants {
+open class DowngradeXmlApisRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
             withDependencies {
                 filter { it.group == "xml-apis" }.forEach {
-                    it.version { prefer("1.4.01") }
+                    it.version { require("1.4.01") }
                     it.because("Gradle has trouble with the versioning scheme and pom redirects in higher versions")
                 }
+            }
+        }
+    }
+}
+
+
+open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                filter { it.name == "cglib-nodep" }.forEach {
+                    add("${it.group}:cglib:3.2.7")
+                }
+                removeAll { it.name == "cglib-nodep" }
             }
         }
     }

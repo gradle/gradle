@@ -16,13 +16,12 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.collect.ImmutableListMultimap;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +38,7 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
+    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;
@@ -58,9 +57,9 @@ public interface TaskOutputPacker {
     class UnpackResult {
         private final OriginTaskExecutionMetadata originMetadata;
         private final long entries;
-        private final ImmutableListMultimap<String, FileSnapshot> snapshots;
+        private final Map<String, ? extends FileSystemLocationSnapshot> snapshots;
 
-        public UnpackResult(OriginTaskExecutionMetadata originMetadata, long entries, ImmutableListMultimap<String, FileSnapshot> snapshots) {
+        public UnpackResult(OriginTaskExecutionMetadata originMetadata, long entries, Map<String, ? extends FileSystemLocationSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;
@@ -74,7 +73,7 @@ public interface TaskOutputPacker {
             return entries;
         }
 
-        public ImmutableListMultimap<String, FileSnapshot> getSnapshots() {
+        public Map<String, ? extends FileSystemLocationSnapshot> getSnapshots() {
             return snapshots;
         }
     }

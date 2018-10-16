@@ -16,14 +16,15 @@
 
 package org.gradle.platform.base.component.internal;
 
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
 import org.gradle.platform.base.BinarySpec;
@@ -38,7 +39,7 @@ import javax.annotation.Nullable;
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
-    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final ITaskFactory taskFactory, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory) {
         super(ComponentSpec.class);
         this.projectIdentifier = projectIdentifier;
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
@@ -60,14 +61,14 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
                         binaryNode,
                         componentNode,
                         instantiator,
-                        taskFactory);
+                        taskInstantiator);
             }
         });
         registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
             @Override
             public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
                 ComponentSpecIdentifier id = getId(findOwner(node), sourceSetName);
-                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, sourceDirectorySetFactory));
+                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, objectFactory));
             }
         });
     }

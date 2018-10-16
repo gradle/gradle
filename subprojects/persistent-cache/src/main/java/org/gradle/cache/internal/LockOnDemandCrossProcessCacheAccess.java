@@ -19,6 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -38,11 +39,11 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
     private final Action<FileLock> onOpen;
     private final Action<FileLock> onClose;
     private final Runnable unlocker;
-    private final Runnable whenContended;
+    private final Action<FileLockReleasedSignal> whenContended;
     private int lockCount;
     private FileLock fileLock;
     private CacheInitializationAction initAction;
-    private boolean contended;
+    private FileLockReleasedSignal lockReleaseSignal;
 
     /**
      * Actions are notified when lock is opened or closed. Actions are called while holding state lock, so that no other threads are working with cache while these are running.
@@ -132,7 +133,7 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
                 throw new IllegalStateException("Mismatched lock count.");
             }
             lockCount--;
-            if (lockCount == 0 && contended) {
+            if (lockCount == 0 && lockReleaseSignal != null) {
                 releaseLockIfHeld();
             } // otherwise, keep lock open
         } finally {
@@ -150,9 +151,15 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         try {
             onClose.execute(fileLock);
         } finally {
-            fileLock.close();
-            fileLock = null;
-            contended = false;
+            try {
+                fileLock.close();
+                fileLock = null;
+            } finally {
+                if (lockReleaseSignal != null) {
+                    lockReleaseSignal.trigger();
+                    lockReleaseSignal = null;
+                }
+            }
         }
     }
 
@@ -162,18 +169,19 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         return unlocker;
     }
 
-    private class ContendedAction implements Runnable {
+    private class ContendedAction implements Action<FileLockReleasedSignal> {
         @Override
-        public void run() {
+        public void execute(FileLockReleasedSignal signal) {
             stateLock.lock();
             try {
                 if (lockCount == 0) {
                     LOGGER.debug("Lock on {} requested by another process - releasing lock.", cacheDisplayName);
                     releaseLockIfHeld();
+                    signal.trigger();
                 } else {
                     // Lock is in use - mark as contended
                     LOGGER.debug("Lock on {} requested by another process - lock is in use and will be released when operation completed.", cacheDisplayName);
-                    contended = true;
+                    lockReleaseSignal = signal;
                 }
             } finally {
                 stateLock.unlock();

@@ -23,11 +23,15 @@ import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Arrays;
 
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
+
+    private ClassPath gradleApi;
 
     public DependencyClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         this.moduleRegistry = moduleRegistry;
@@ -48,6 +52,13 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath gradleApi() {
+        if (gradleApi == null) {
+            gradleApi = initGradleApi();
+        }
+        return gradleApi;
+    }
+
+    private ClassPath initGradleApi() {
         ClassPath classpath = ClassPath.EMPTY;
         for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
             for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {

@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
@@ -51,6 +50,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final LogContent error;
     private final LogContent mainContent;
     private final LogContent postBuild;
+    private final LogContent errorContent;
     private GroupedOutputFixture groupedOutputFixture;
     private Set<String> tasks;
 
@@ -91,6 +91,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.mainContent = match.getLeft();
             this.postBuild = match.getRight().drop(1);
         }
+        this.errorContent = error.removeAnsiChars();
     }
 
     public String getOutput() {
@@ -135,12 +136,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the "Deprecated Gradle features..." message and "See https://docs.gradle.org..."
                 i+=2;
-            } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
-                // Remove the Java 7 deprecation warning. This should be removed after 5.0
-                i++;
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                    i++;
-                }
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 i++;
@@ -161,12 +156,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
-        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        String actualText = postBuild.withNormalizedEol();
-        if (!actualText.contains(expectedText)) {
-            failOnMissingOutput("Did not find expected text in post-build output.", "Post-build output", expectedText, actualText);
-        }
-        return this;
+        return assertContentContains(postBuild.withNormalizedEol(), expectedOutput, "Post-build output");
     }
 
     @Override
@@ -179,27 +169,45 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertOutputContains(String expectedOutput) {
+    public ExecutionResult assertContentContains(String actualText, String expectedOutput, String label) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        String actualText = getMainContent().withNormalizedEol();
         if (!actualText.contains(expectedText)) {
-            failOnMissingOutput("Did not find expected text in build output.", "Build output", expectedOutput, actualText);
+            failOnMissingOutput("Did not find expected text in " + label.toLowerCase() + ".", label, expectedOutput, actualText);
         }
         return this;
     }
 
     @Override
+    public ExecutionResult assertOutputContains(String expectedOutput) {
+        return assertContentContains(getMainContent().withNormalizedEol(), expectedOutput, "Build output");
+    }
+
+    @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return getMainContent().withNormalizedEol().contains(expectedOutput);
+        return getError().contains(expectedOutput) || getRawError().contains(expectedOutput);
     }
 
     @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
-        return assertOutputContains(expectedOutput);
+        return assertContentContains(errorContent.withNormalizedEol(), expectedOutput, "Error output");
+    }
+
+    @Override
+    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
+        return assertContentContains(getError(), expectedOutput, "Error output");
+    }
+
+    @Override
+    public ExecutionResult assertRawOutputContains(String expectedOutput) {
+        return assertContentContains(getOutput(), expectedOutput, "Build output");
     }
 
     public String getError() {
         return error.withNormalizedEol();
+    }
+
+    public String getRawError() {
+        return errorContent.getRawContent().withNormalizedEol();
     }
 
     public List<String> getExecutedTasks() {

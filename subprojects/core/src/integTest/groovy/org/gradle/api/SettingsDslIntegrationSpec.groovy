@@ -32,4 +32,99 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         then:
         succeeds('help')
     }
+
+    def "can dynamically access properties"() {
+
+        given:
+        file("gradle.properties") << "someProjectProperty=true"
+        settingsFile << """
+            if (properties.someProjectProperty == 'true') {
+                println('signal')
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains('signal')
+    }
+
+    def "Can type-safely use ExtensionAware with the Groovy DSL"() {
+        when:
+        def answerFile = "answerHolder.gradle"
+        testDirectory.file(answerFile) << """
+        extensions["theAnswer"] = {
+            42
+        }
+        """
+
+        settingsFile << """
+        buildscript {
+            extensions["aValue"] = "hello"
+
+            assert extensions["aValue"] == "hello" : "Can access inside buildscript"
+        }
+
+        assert extensions["aValue"] == "hello" : "Can access outside buildscript"
+
+        apply from: '$answerFile'
+
+        assert(extensions["theAnswer"]() == 42) : "Can access from applied file"
+        """
+        then:
+        succeeds('help')
+    }
+
+    def "Can type-safely use ExtensionAware with the Kotlin DSL"() {
+        when:
+        // Need to use settings.extra because Kotlin DSL needs to be re-compiled
+        def answerFile = "answerHolder.settings.gradle.kts"
+
+        // Need to use settings because Kotlin DSL needs to be re-compiled
+        testDirectory.file(answerFile) << """
+        val theAnswer: () -> Int by settings.extra {
+            { 42 }
+        }
+        """
+
+        settingsKotlinFile << """
+        buildscript {
+            settings.extra["aValue"] = "hello"
+
+            assert(settings.extra["aValue"] == "hello") {
+                "Can access inside buildscript"
+            }
+
+            val hamlet by settings.extra {
+                "To be or not to be"
+            }
+
+            assert(hamlet == "To be or not to be") {
+                "Can access inside buildscript"
+            }
+        }
+        
+        assert(settings.extra["aValue"] == "hello") {
+            "Can access outside buildscript"
+        }
+        
+        val hamlet: String by settings.extra
+        
+        assert(hamlet == "To be or not to be") {
+            "Can access delegate outside buildscript"
+        }
+        
+        apply(from = "$answerFile")
+
+        val theAnswer: () -> Int by settings.extra
+
+        assert(theAnswer() == 42) {
+            "Can access from applied file"
+        }
+        """
+        then:
+        succeeds('help')
+    }
+
 }

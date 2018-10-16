@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -31,25 +33,28 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
     public NoMatchingConfigurationSelectionException(
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
-        ComponentResolveMetadata targetComponent) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent));
+        ComponentResolveMetadata targetComponent,
+        boolean variantAware) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
-        for (ConfigurationMetadata configurationMetadata : targetComponent.getVariantsForGraphTraversal()) {
+        Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
+        ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
+        for (ConfigurationMetadata configurationMetadata : variantsParticipatingInSelection) {
             configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Unable to find a matching configuration of " + targetComponent.getId().getDisplayName());
+        formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName());
         formatter.startChildren();
         if (configurations.isEmpty()) {
-            formatter.node("None of the consumable configurations have attributes.");
+            formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");
         } else {
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ConfigurationMetadata configuration : configurations.values()) {
-                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configuration);
+                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configuration, variantAware);
             }
         }
         formatter.endChildren();

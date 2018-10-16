@@ -68,10 +68,12 @@ public class ProjectProfile extends Operation {
         return projectPath;
     }
 
+    @Override
     public String getDescription() {
         return projectPath;
     }
 
+    @Override
     long getElapsedTime() {
         return getTasks().getElapsedTime();
     }

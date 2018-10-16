@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+
 abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
 
     private static final String HELLO_WORLD_MESSAGE = 'Hello world'
@@ -42,6 +44,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
         given:
         def externalBuildScriptPath = 'external/other.gradle'
         buildFile << mainBuildScript(externalBuildScriptPath)
+        file('external/settings.gradle') << "rootProject.name = 'external'"
         file(externalBuildScriptPath) << externalBuildScript()
 
         when:
@@ -65,7 +68,6 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
                 mustRunAfter helloWorld
                 buildFile = '$externalBuildScript'
                 tasks = ['important']
-                startParameter.searchUpwards = false
             }
             
             task byeWorld {

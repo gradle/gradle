@@ -16,9 +16,13 @@
 package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 
 import javax.annotation.Nullable;
@@ -30,11 +34,13 @@ import java.util.List;
  * Executes a Gradle build.
  */
 public class GradleBuild extends ConventionTask {
-    private final NestedBuildFactory nestedBuildFactory;
+    private final BuildState currentBuild;
+    private final BuildStateRegistry buildStateRegistry;
     private StartParameter startParameter;
 
     public GradleBuild() {
-        this.nestedBuildFactory = getServices().get(NestedBuildFactory.class);
+        this.currentBuild = getServices().get(BuildState.class);
+        this.buildStateRegistry = getServices().get(BuildStateRegistry.class);
         this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
@@ -149,11 +155,14 @@ public class GradleBuild extends ConventionTask {
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
-        BuildController buildController = nestedBuildFactory.nestedBuildController(BuildDefinition.fromStartParameter(getStartParameter()));
-        try {
-            buildController.run();
-        } finally {
-            buildController.stop();
-        }
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter(), getServices().get(PublicBuildPath.class));
+        StandAloneNestedBuild nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild);
+        nestedBuild.run(new Transformer<Void, BuildController>() {
+            @Override
+            public Void transform(BuildController buildController) {
+                buildController.run();
+                return null;
+            }
+        });
     }
 }

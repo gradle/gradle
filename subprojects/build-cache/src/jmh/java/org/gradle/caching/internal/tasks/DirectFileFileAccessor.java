@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@SuppressWarnings("Since15")
 public class DirectFileFileAccessor extends AbstractFileAccessor {
 
     public DirectFileFileAccessor(DirectoryProvider directoryProvider) {

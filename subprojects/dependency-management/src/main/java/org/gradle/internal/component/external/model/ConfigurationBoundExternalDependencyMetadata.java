@@ -44,6 +44,9 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
+    private final boolean isTransitive;
+    private final boolean isConstraint;
+
     private boolean alwaysUseAttributeMatching;
 
     private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
@@ -51,6 +54,8 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
+        this.isTransitive = dependencyDescriptor.isTransitive();
+        this.isConstraint = dependencyDescriptor.isConstraint();
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
@@ -60,6 +65,10 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
         this.alwaysUseAttributeMatching = true;
         return this;
+    }
+
+    public ExternalDependencyDescriptor getDependencyDescriptor() {
+        return dependencyDescriptor;
     }
 
     /**
@@ -79,7 +88,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     private boolean hasVariants(ComponentResolveMetadata targetComponent) {
-        return !targetComponent.getVariantsForGraphTraversal().isEmpty();
+        return targetComponent.getVariantsForGraphTraversal().isPresent();
     }
     @Override
     public List<IvyArtifactName> getArtifacts() {
@@ -95,7 +104,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getModuleIdentifier(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes());
             if (newSelector.equals(getSelector())) {
                 return this;
             }
@@ -114,7 +123,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes());
         return withRequested(newSelector);
     }
 
@@ -124,6 +133,10 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
             return this;
         }
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
+    }
+
+    public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
@@ -143,12 +156,12 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
 
     @Override
     public boolean isTransitive() {
-        return dependencyDescriptor.isTransitive();
+        return isTransitive;
     }
 
     @Override
-    public boolean isPending() {
-        return dependencyDescriptor.isOptional();
+    public boolean isConstraint() {
+        return isConstraint;
     }
 
     @Override

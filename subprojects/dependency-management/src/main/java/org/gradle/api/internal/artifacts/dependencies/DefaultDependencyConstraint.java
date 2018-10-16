@@ -16,63 +16,87 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
 
-public class DefaultDependencyConstraint implements DependencyConstraint {
+public class DefaultDependencyConstraint implements DependencyConstraintInternal {
 
-    public static DefaultDependencyConstraint strictConstraint(String group, String name, String version) {
-        return new DefaultDependencyConstraint(group, name, new DefaultMutableVersionConstraint(version, true));
-    }
+    private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
-    private final String group;
-    private final String name;
+    private final ModuleIdentifier moduleIdentifier;
     private final MutableVersionConstraint versionConstraint;
 
     private String reason;
+    private ImmutableAttributesFactory attributesFactory;
+    private AttributeContainerInternal attributes;
+    private boolean force;
 
     public DefaultDependencyConstraint(String group, String name, String version) {
-        this.group = group;
-        this.name = name;
+        this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
-    private DefaultDependencyConstraint(String group, String name, MutableVersionConstraint versionConstraint) {
-        this.group = group;
-        this.name = name;
+    private DefaultDependencyConstraint(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
+        this.moduleIdentifier = module;
         this.versionConstraint = versionConstraint;
     }
 
     @Nullable
     @Override
     public String getGroup() {
-        return group;
+        return moduleIdentifier.getGroup();
     }
 
     @Override
     public String getName() {
-        return name;
+        return moduleIdentifier.getName();
     }
 
-    @Nullable
     @Override
     public String getVersion() {
-        return versionConstraint.getPreferredVersion();
+        return Strings.emptyToNull(versionConstraint.getRequiredVersion());
     }
 
     @Override
-    public int hashCode() {
-        int result = group != null ? group.hashCode() : 0;
-        result = 31 * result + name.hashCode();
-        result = 31 * result + versionConstraint.hashCode();
-        return result;
+    public AttributeContainer getAttributes() {
+        return attributes == null ? ImmutableAttributes.EMPTY : attributes.asImmutable();
+    }
+
+    @Override
+    public DependencyConstraint attributes(Action<? super AttributeContainer> configureAction) {
+        if (attributesFactory == null) {
+            warnAboutInternalApiUse();
+            return this;
+        }
+        if (attributes == null) {
+            attributes = attributesFactory.mutable();
+        }
+        configureAction.execute(attributes);
+        return this;
+    }
+
+    private void warnAboutInternalApiUse() {
+        LOG.warn("Cannot set attributes for constraint \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
+    }
+
+    public void setAttributesFactory(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -83,19 +107,16 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DependencyConstraint that = (DependencyConstraint) o;
-        return contentEquals(that);
+        DefaultDependencyConstraint that = (DefaultDependencyConstraint) o;
+        return Objects.equal(moduleIdentifier, that.moduleIdentifier) &&
+            Objects.equal(versionConstraint, that.versionConstraint) &&
+            Objects.equal(attributes, that.attributes) &&
+            force == that.force;
     }
 
-    private boolean contentEquals(DependencyConstraint dependency) {
-        if (this == dependency) {
-            return true;
-        }
-        if (dependency == null || getClass() != dependency.getClass()) {
-            return false;
-        }
-        DefaultDependencyConstraint that = (DefaultDependencyConstraint) dependency;
-        return StringUtils.equals(group, that.getGroup()) && StringUtils.equals(name, that.getName()) && versionConstraint.equals(that.versionConstraint);
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(moduleIdentifier, versionConstraint, attributes);
     }
 
     @Override
@@ -114,6 +135,11 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     @Override
+    public ModuleIdentifier getModule() {
+        return moduleIdentifier;
+    }
+
+    @Override
     public String getReason() {
         return reason;
     }
@@ -124,8 +150,28 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     public DependencyConstraint copy() {
-        DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(group, name, versionConstraint);
+        DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(moduleIdentifier, versionConstraint);
         constraint.reason = reason;
+        constraint.attributes = attributes;
+        constraint.attributesFactory = attributesFactory;
+        constraint.force = force;
         return constraint;
+    }
+
+    @Override
+    public String toString() {
+        return "constraint " +
+            moduleIdentifier + ":" + versionConstraint +
+            ", attributes=" + attributes;
+    }
+
+    @Override
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    @Override
+    public boolean isForce() {
+        return force;
     }
 }

@@ -17,12 +17,13 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout;
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 
 public class DefaultGradleDistribution implements GradleDistribution {
 
@@ -76,6 +77,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
             return false;
         }
+        
+        if (isSameOrOlder("1.0")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_7) <= 0;
+        }
 
         // 1.x works on Java 5 - 8
         if (isSameOrOlder("1.12")) {
@@ -87,8 +92,16 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
-        // 3.x works on Java 7 - 8
-        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+        // 3.x - 4.6 works on Java 7 - 8
+        if(isSameOrOlder("4.6")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+        }
+
+        if (isSameOrOlder("4.10")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
+        }
+
+        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
     }
 
     public boolean worksWith(OperatingSystem os) {
@@ -103,10 +116,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     public boolean isDaemonIdleTimeoutConfigurable() {
         return isSameOrNewer("1.0-milestone-7");
-    }
-
-    public boolean isOpenApiSupported() {
-        return isSameOrNewer("0.9-rc-1") && !isSameOrNewer("2.0-rc-1");
     }
 
     public boolean isToolingApiSupported() {
@@ -144,55 +153,21 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("2.9-rc-1");
     }
 
-    public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("4.7-rc-1")) {
-            return VersionNumber.parse("2.56");
-        } else if (isSameOrNewer("4.6-rc-1")) {
-            return VersionNumber.parse("2.53");
-        } else if (isSameOrNewer("4.5.1-rc-1")) {
-            return VersionNumber.parse("2.51");
-        } else if (isSameOrNewer("4.5-rc-1")) {
-            return VersionNumber.parse("2.48");
-        } else if (isSameOrNewer("4.4-rc-1")) {
-            return VersionNumber.parse("2.36");
-        } else if (isSameOrNewer("4.3-rc-1")) {
-            return VersionNumber.parse("2.31");
-        } else if (isSameOrNewer("4.2-rc-1")) {
-            return VersionNumber.parse("2.24");
-        } else if (isSameOrNewer("3.2-rc-1")) {
-            return VersionNumber.parse("2.23");
-        } else if (isSameOrNewer("3.1-rc-1")) {
-            return VersionNumber.parse("2.21");
-        } else if (isSameOrNewer("3.0-milestone-1")) {
-            return VersionNumber.parse("2.17");
-        } else if (isSameOrNewer("2.8-rc-1")) {
-            return VersionNumber.parse("2.16");
-        } else if (isSameOrNewer("2.4-rc-1")) {
-            return VersionNumber.parse("2.15");
-        } else if (isSameOrNewer("2.2-rc-1")) {
-            return VersionNumber.parse("2.14");
-        } else if (isSameOrNewer("2.1-rc-3")) {
-            return VersionNumber.parse("2.13");
-        } else if (isSameOrNewer("2.0-rc-1")) {
-            return VersionNumber.parse("2.12");
-        } else if (isSameOrNewer("1.12-rc-1")) {
-            return VersionNumber.parse("2.6");
-        } else if (isSameOrNewer("1.11-rc-1")) {
-            return VersionNumber.parse("2.2");
-        } else if (isSameOrNewer("1.9-rc-2")) {
-            return VersionNumber.parse("2.1");
+    public CacheVersion getArtifactCacheLayoutVersion() {
+        if (isSameOrNewer("1.9-rc-2")) {
+            return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get();
         } else if (isSameOrNewer("1.9-rc-1")) {
-            return VersionNumber.parse("1.31");
+            return CacheVersion.parse("1.31");
         } else if (isSameOrNewer("1.7-rc-1")) {
-            return VersionNumber.parse("0.26");
+            return CacheVersion.parse("0.26");
         } else if (isSameOrNewer("1.6-rc-1")) {
-            return VersionNumber.parse("0.24");
+            return CacheVersion.parse("0.24");
         } else if (isSameOrNewer("1.4-rc-1")) {
-            return VersionNumber.parse("0.23");
+            return CacheVersion.parse("0.23");
         } else if (isSameOrNewer("1.3")) {
-            return VersionNumber.parse("0.15");
+            return CacheVersion.parse("0.15");
         } else {
-            return VersionNumber.parse("0.1");
+            return CacheVersion.parse("0.1");
         }
     }
 
@@ -224,6 +199,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     public boolean isFullySupportsIvyRepository() {
         return isSameOrNewer("1.0-milestone-7");
+    }
+
+    @Override
+    public boolean isAddsTaskExecutionExceptionAroundAllTaskFailures() {
+        return isSameOrNewer("5.0");
     }
 
     protected boolean isSameOrNewer(String otherVersion) {

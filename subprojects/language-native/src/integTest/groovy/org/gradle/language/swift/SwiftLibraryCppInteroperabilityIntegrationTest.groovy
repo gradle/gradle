@@ -39,9 +39,9 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
                     api project(':cppGreeter')
                 }
                 library.binaries.configureEach {
-                    if (targetPlatform.operatingSystem.macOsX) {
+                    if (targetPlatform.operatingSystemFamily.macOs) {
                         linkTask.get().linkerArgs.add("-lc++")
-                    } else if (targetPlatform.operatingSystem.linux) {
+                    } else if (targetPlatform.operatingSystemFamily.linux) {
                         linkTask.get().linkerArgs.add("-lstdc++")
                     }
                 }

@@ -18,15 +18,16 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.util.TestUtil
+import org.gradle.util.SnapshotTestUtil
 import spock.lang.Specification
 
 class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<String> FOO = Attribute.of("foo", String)
     private static final Attribute<String> BAR = Attribute.of("bar", String)
+    private static final Attribute<Object> OTHER_BAR = Attribute.of(BAR.name, Object.class)
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
-    def snapshotter = TestUtil.valueSnapshotter()
+    def snapshotter = SnapshotTestUtil.valueSnapshotter()
     def instantiator = NamedObjectInstantiator.INSTANCE
 
     def factory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
@@ -211,5 +212,63 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         then:
         UnsupportedOperationException t = thrown()
         t.message == "Mutation of attributes is not allowed"
+    }
+
+    def "can override values"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1"))
+        def set2 = factory.of(BAR, "bar2")
+
+        when:
+        def concat = factory.concat(set1, set2)
+
+        then:
+        concat.keySet() == [FOO, BAR] as Set
+        concat.getAttribute(FOO) == "foo1"
+        concat.getAttribute(BAR) == "bar2"
+    }
+
+    def "can replace attribute with same name and different type"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
+        def set2 = factory.of(BAR, "bar2")
+
+        when:
+        def concat = factory.concat(set1, set2)
+
+        then:
+        concat.keySet() == [FOO, BAR] as Set
+        concat.getAttribute(FOO) == "foo1"
+        concat.getAttribute(BAR) == "bar2"
+    }
+
+    def "can detect incompatible values when merging"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1"))
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        AttributeMergingException e = thrown()
+        e.attribute == BAR
+        e.leftValue == "bar1"
+        e.rightValue == "bar2"
+    }
+
+    def "can detect incompatible attributes with different types when merging"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        AttributeMergingException e = thrown()
+        e.attribute == OTHER_BAR
+        e.leftValue == "bar1"
+        e.rightValue == "bar2"
     }
 }

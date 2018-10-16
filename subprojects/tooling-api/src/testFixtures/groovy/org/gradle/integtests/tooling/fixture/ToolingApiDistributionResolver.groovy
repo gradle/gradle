@@ -18,41 +18,18 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.initialization.BuildIdentity
-import org.gradle.initialization.DefaultBuildRequestMetaData
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.concurrent.Stoppable
-import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.services.LoggingServiceRegistry
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices
-import org.gradle.internal.service.scopes.BuildScopeServices
-import org.gradle.internal.service.scopes.BuildSessionScopeServices
-import org.gradle.internal.service.scopes.BuildTreeScopeServices
-import org.gradle.internal.service.scopes.GlobalScopeServices
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
-import org.gradle.internal.service.scopes.ProjectScopeServices
-import org.gradle.internal.time.Time
-import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.TestUtil
+import org.gradle.testfixtures.ProjectBuilder
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private boolean useExternalToolingApiDistribution = false;
-    private CompositeStoppable stopLater = new CompositeStoppable()
+    private boolean useExternalToolingApiDistribution = false
 
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
@@ -65,7 +42,7 @@ class ToolingApiDistributionResolver {
     }
 
     ToolingApiDistributionResolver withDefaultRepository() {
-        withRepository("https://repo.gradle.org/gradle/repo")
+        withRepository(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {
@@ -88,52 +65,9 @@ class ToolingApiDistributionResolver {
     }
 
     private DependencyResolutionServices createResolutionServices() {
-        ServiceRegistry globalRegistry = ServiceRegistryBuilder.builder()
-            .parent(LoggingServiceRegistry.newEmbeddableLogging())
-            .parent(NativeServicesTestFixture.getInstance())
-            .provider(new GlobalScopeServices(false))
-            .build()
-        def startParameter = new StartParameterInternal()
-        startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
-        def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
-        def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
-        def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.currentTimeMillis())
-        def crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalRegistry, startParameter)
-        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
-        def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
-        def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
-        topLevelRegistry.add(BuildIdentity, new BuildIdentity() {
-            @Override
-            BuildIdentifier getCurrentBuild() {
-                return new DefaultBuildIdentifier(":")
-            }
-        })
-        def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
-
-        def workerLeaseService = buildSessionServices.get(WorkerLeaseService)
-        def workerLeaseCompletion = workerLeaseService.getWorkerLease().start()
-        stopLater.add(new Stoppable() {
-            @Override
-            void stop() {
-                workerLeaseCompletion.leaseFinish()
-            }
-        })
-
-        stopLater.add(projectRegistry)
-        stopLater.add(topLevelRegistry)
-        stopLater.add(buildTreeScopeServices)
-        stopLater.add(buildSessionServices)
-        stopLater.add(new Stoppable() {
-            @Override
-            void stop() {
-                userHomeScopeServiceRegistry.release(gradleUserHomeServices)
-            }
-        })
-        stopLater.add(globalRegistry)
-
-        // Need to load this early, since listener is registered in construction: otherwise it will be loaded in the middle of resolve
-        projectRegistry.get(GradleLauncherFactory)
-        return projectRegistry.get(DependencyResolutionServices)
+        // Create a dummy project and use its services
+        ProjectInternal project = ProjectBuilder.builder().build()
+        return project.services.get(DependencyResolutionServices)
     }
 
     ToolingApiDistributionResolver withExternalToolingApiDistribution() {
@@ -142,6 +76,5 @@ class ToolingApiDistributionResolver {
     }
 
     void stop() {
-        stopLater.stop()
     }
 }

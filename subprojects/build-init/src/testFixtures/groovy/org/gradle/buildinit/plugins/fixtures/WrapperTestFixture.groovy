@@ -34,12 +34,12 @@ class WrapperTestFixture {
         this.projectDirectory = projectdirectory
     }
 
-    public void generated(String version = GradleVersion.current().version, String distributionType = "bin") {
+    public void generated(String version = GradleVersion.current().version) {
         projectDirectory.file(GRADLEW_BASH_SCRIPT).assertExists()
         projectDirectory.file(GRADLEW_BATCH_SCRIPT).assertExists()
         projectDirectory.file(GRADLEW_WRAPPER_JAR).assertExists()
         projectDirectory.file(GRADLEW_PROPERTY_FILE).assertExists()
-        projectDirectory.file(GRADLEW_PROPERTY_FILE).assertContents(containsString("gradle-${version}-${distributionType}.zip"))
+        projectDirectory.file(GRADLEW_PROPERTY_FILE).assertContents(containsString("gradle-${version}-bin.zip"))
     }
 
     public void notGenerated() {

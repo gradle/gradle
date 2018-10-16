@@ -16,26 +16,24 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
-    public static final String SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE = "Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set";
     private final DefaultConfigurableFileCollection outputDirectories;
     private Object resourcesDir;
-    private Object classesDir;
 
     private final DefaultConfigurableFileCollection classesDirs;
     private final DefaultConfigurableFileCollection dirs;
@@ -51,11 +49,11 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
         this.outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver);
         outputDirectories.from(new Callable() {
-            public Object call() throws Exception {
+            public Object call() {
                 return classesDirs;
             }
         }, new Callable() {
-            public Object call() throws Exception {
+            public Object call() {
                 return getResourcesDir();
             }
         });
@@ -74,35 +72,9 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     @Override
-    public File getClassesDir() {
-        if (isLegacyLayout()) {
-            return fileResolver.resolve(classesDir);
-        }
-        SingleMessageLogger.nagUserOfDeprecatedBehaviour(SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE);
-        Object firstClassesDir = CollectionUtils.findFirst(classesDirs.getFrom(), Specs.SATISFIES_ALL);
-        if (firstClassesDir!=null) {
-            return fileResolver.resolve(firstClassesDir);
-        }
-        return null;
-    }
-
-    @Override
-    public void setClassesDir(File classesDir) {
-        setClassesDir((Object)classesDir);
-    }
-
-    @Override
-    public void setClassesDir(Object classesDir) {
-        SingleMessageLogger.nagUserOfDeprecatedBehaviour(SINGLE_CLASSES_DIR_DEPRECATION_MESSAGE);
-        this.classesDir = classesDir;
-        this.classesDirs.setFrom(classesDir);
-    }
-
-    @Override
-    public FileCollection getClassesDirs() {
+    public ConfigurableFileCollection getClassesDirs() {
         return classesDirs;
     }
-
 
     /**
      * Adds a new classes directory that compiled classes are assembled into.
@@ -115,10 +87,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     @Override
     public boolean isLegacyLayout() {
-        return classesDir!=null;
+        DeprecationLogger.nagUserOfDiscontinuedProperty("legacyLayout", "The method always returns false.");
+        return false;
     }
 
     @Override
+    @Nullable
     public File getResourcesDir() {
         if (resourcesDir == null) {
             return null;

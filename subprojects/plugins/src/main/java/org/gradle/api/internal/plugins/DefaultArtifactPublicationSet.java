@@ -15,44 +15,111 @@
  */
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.ChangingValueHandler;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+
+import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
 public class DefaultArtifactPublicationSet {
-    private final PublishArtifactSet artifacts;
-    private PublishArtifact defaultArtifact;
+    private final PublishArtifactSet artifactContainer;
+    private DefaultArtifactProvider defaultArtifactProvider;
 
-    public DefaultArtifactPublicationSet(PublishArtifactSet artifacts) {
-        this.artifacts = artifacts;
+    public DefaultArtifactPublicationSet(PublishArtifactSet artifactContainer) {
+        this.artifactContainer = artifactContainer;
     }
 
     public void addCandidate(PublishArtifact artifact) {
-        String thisType = artifact.getType();
-
-        if (defaultArtifact == null) {
-            artifacts.add(artifact);
-            defaultArtifact = artifact;
-            return;
+        if (defaultArtifactProvider == null) {
+            defaultArtifactProvider = new DefaultArtifactProvider();
+            artifactContainer.addAllLater(defaultArtifactProvider);
         }
-
-        String currentType = defaultArtifact.getType();
-        if (thisType.equals("ear")) {
-            replaceCurrent(artifact);
-        } else if (thisType.equals("war")) {
-            if (currentType.equals("jar")) {
-                replaceCurrent(artifact);
-            }
-        } else if (!thisType.equals("jar")) {
-            artifacts.add(artifact);
-        }
+        defaultArtifactProvider.addArtifact(artifact);
     }
 
-    private void replaceCurrent(PublishArtifact artifact) {
-        artifacts.remove(defaultArtifact);
-        artifacts.add(artifact);
-        defaultArtifact = artifact;
+    private static class DefaultArtifactProvider extends AbstractReadOnlyProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
+        private Set<PublishArtifact> defaultArtifacts;
+        private Set<PublishArtifact> artifacts;
+        private PublishArtifact currentDefault;
+        private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<Set<PublishArtifact>>();
+
+        void addArtifact(PublishArtifact artifact) {
+            if (artifacts == null) {
+                artifacts = Sets.newLinkedHashSet();
+            }
+
+            if (artifacts.add(artifact) && defaultArtifacts != null) {
+                Set<PublishArtifact> previousArtifacts = Sets.newLinkedHashSet(defaultArtifacts);
+                defaultArtifacts = null;
+                changingValue.handle(previousArtifacts);
+            }
+        }
+
+        @Override
+        public Class<? extends PublishArtifact> getElementType() {
+            return PublishArtifact.class;
+        }
+
+        @Override
+        public int size() {
+            return artifacts.size();
+        }
+
+        @Nullable
+        @Override
+        public Class<Set<PublishArtifact>> getType() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Set<PublishArtifact> getOrNull() {
+            if (defaultArtifacts == null) {
+                defaultArtifacts = Sets.newLinkedHashSet();
+                currentDefault = null;
+                if (artifacts != null) {
+                    for (PublishArtifact artifact : artifacts) {
+                        String thisType = artifact.getType();
+
+                        if (currentDefault == null) {
+                            defaultArtifacts.add(artifact);
+                            currentDefault = artifact;
+                        } else {
+                            String currentType = currentDefault.getType();
+                            if (thisType.equals("ear")) {
+                                replaceCurrent(artifact);
+                            } else if (thisType.equals("war")) {
+                                if (currentType.equals("jar")) {
+                                    replaceCurrent(artifact);
+                                }
+                            } else if (!thisType.equals("jar")) {
+                                defaultArtifacts.add(artifact);
+                            }
+                        }
+                    }
+                }
+            }
+            return defaultArtifacts;
+        }
+
+        void replaceCurrent(PublishArtifact artifact) {
+            defaultArtifacts.remove(currentDefault);
+            defaultArtifacts.add(artifact);
+            currentDefault = artifact;
+        }
+
+        @Override
+        public void onValueChange(Action<Set<PublishArtifact>> action) {
+            changingValue.onValueChange(action);
+        }
     }
 }

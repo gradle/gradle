@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.maven;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.PublishArtifact;
 
 import java.util.Set;
@@ -24,6 +25,43 @@ import java.util.Set;
  * of artifacts.
  */
 public interface MavenDeployment {
+
+    /**
+     * Returns the packaging for this deployment.
+     *
+     * @return The packaging. Never null.
+     * @since 4.8
+     */
+    @Incubating
+    String getPackaging();
+
+    /**
+     * Returns the group ID for this deployment.
+     *
+     * @return The group ID. Never null.
+     * @since 4.8
+     */
+    @Incubating
+    String getGroupId();
+
+    /**
+     * Returns the artifact ID for this deployment.
+     *
+     * @return The artifact ID. Never null.
+     * @since 4.8
+     */
+    @Incubating
+    String getArtifactId();
+
+    /**
+     * Returns the version for this deployment.
+     *
+     * @return The version. Never null.
+     * @since 4.8
+     */
+    @Incubating
+    String getVersion();
+
     /**
      * Returns the POM for this deployment.
      *

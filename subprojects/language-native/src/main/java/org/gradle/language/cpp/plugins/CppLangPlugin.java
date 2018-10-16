@@ -37,6 +37,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
@@ -84,6 +85,11 @@ public class CppLangPlugin implements Plugin<Project> {
         @Override
         public String getLanguageName() {
             return "cpp";
+        }
+
+        @Override
+        public ToolType getToolType() {
+            return ToolType.CPP_COMPILER;
         }
 
         @Override

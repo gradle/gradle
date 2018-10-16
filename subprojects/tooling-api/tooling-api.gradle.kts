@@ -1,11 +1,44 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import accessors.*
+import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.packaging.ShadedJar
+import org.gradle.gradlebuild.packaging.ShadedJarExtension
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
+
+plugins {
+    gradlebuild.`shaded-jar`
+}
 
 val testPublishRuntime by configurations.creating
+
+val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType<BuildReceipt>().named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
+
+the<ShadedJarExtension>().apply {
+    shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
+    keepPackages.set(listOf("org.gradle.tooling"))
+    unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
+    ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
+    buildReceiptFile.set(buildReceipt)
+}
 
 dependencies {
     compile(project(":core"))
@@ -15,8 +48,8 @@ dependencies {
     publishCompile(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
     compile(library("jcip"))
 
-    testFixturesCompile(project(":baseServicesGroovy"))
-    testFixturesCompile(project(":internalIntegTesting"))
+    testFixturesApi(project(":baseServicesGroovy"))
+    testFixturesApi(project(":internalIntegTesting"))
 
     integTestRuntime(project(":toolingApiBuilders"))
     integTestRuntime(project(":ivy"))
@@ -25,6 +58,7 @@ dependencies {
     crossVersionTestRuntime(project(":buildComparison"))
     crossVersionTestRuntime(project(":ivy"))
     crossVersionTestRuntime(project(":maven"))
+    crossVersionTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {
@@ -38,45 +72,13 @@ testFixtures {
     from(":ide")
 }
 
-val jar: Jar by tasks
+apply(from = "buildship.gradle")
 
-val baseVersion: String by rootProject.extra
-
-val shadedJarWithoutVersion by tasks.creating(ShadedJar::class) {
-    val outputDir = file("$buildDir/shaded-jar-without-version")
-    sourceFiles = jar.outputs.files +
-        files(deferred { configurations.runtimeClasspath - configurations.publishCompile })
-    analysisFile = file("$outputDir/analysis.txt")
-    classesDir = file("$outputDir/classes")
-    jarFile = file("$outputDir/gradle-tooling-api-shaded-$baseVersion.jar")
-    keepPackages = setOf("org.gradle.tooling")
-    unshadedPackages = setOf("org.gradle", "org.slf4j", "sun.misc")
-    ignorePackages = setOf("org.gradle.tooling.provider.model")
-    shadowPackage = "org.gradle.internal.impldep"
-}
-
-val buildReceipt = tasks.getByPath(":createBuildReceipt")
-
-val toolingApiShadedJar by tasks.creating(Zip::class) {
-    destinationDir = file("$buildDir/shaded-jar")
-    dependsOn(shadedJarWithoutVersion, buildReceipt)
-    from(zipTree(shadedJarWithoutVersion.jarFile))
-    baseName = "gradle-tooling-api-shaded"
-    from(buildReceipt) {
-        into("/org/gradle")
-    }
-    extension = "jar"
-    version = baseVersion
-}
-
-apply { from("buildship.gradle") }
-
-val sourceJar: Jar by tasks
-
-sourceJar.run {
+tasks.named<Jar>("sourceJar") {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
+        val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        from(sourceSet.groovy.srcDirs)
+        from(sourceSet.java.srcDirs)
     }
 }
 
@@ -84,24 +86,15 @@ eclipse {
     classpath {
         file.whenMerged(Action<Classpath> {
             //**TODO
-            entries.removeAll { path.contains("src/test/groovy") }
-            entries.removeAll { path.contains("src/integTest/groovy") }
+            entries.removeAll { it is SourceFolder && it.path.contains("src/test/groovy") }
+            entries.removeAll { it is SourceFolder && it.path.contains("src/integTest/groovy") }
         })
     }
 }
 
-artifacts {
-    add("publishRuntime", mapOf(
-        "file" to toolingApiShadedJar.archivePath,
-        "name" to base.archivesBaseName,
-        "type" to "jar",
-        "builtBy" to toolingApiShadedJar
-    ))
-}
-
-tasks.create<Upload>("publishLocalArchives") {
+tasks.register<Upload>("publishLocalArchives") {
     val repoBaseDir = rootProject.file("build/repo")
-    configuration = configurations.publishRuntime
+    configuration = configurations["publishRuntime"] // TODO:kotlin-dsl revert to accessor
     isUploadDescriptor = false
     repositories {
         ivy {
@@ -119,9 +112,11 @@ tasks.create<Upload>("publishLocalArchives") {
 
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 
-integTestTasks.all {
+integTestTasks.configureEach {
     binaryDistributions.binZipRequired = true
     libsRepository.required = true
 }
 
-testFilesCleanup.isErrorWhenNotEmpty = false
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
+}

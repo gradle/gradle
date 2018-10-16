@@ -17,23 +17,21 @@
 package org.gradle.api.tasks.javadoc
 
 import org.apache.commons.io.FileUtils
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.gradle.util.WrapUtil
 
 class JavadocTest extends AbstractProjectBuilderSpec {
     def testDir = temporaryFolder.getTestDirectory()
     def destDir = new File(testDir, "dest")
     def srcDir = new File(testDir, "srcdir")
-    def classpath = WrapUtil.toSet(new File("classpath"))
     def toolChain = Mock(JavaToolChainInternal)
     def toolProvider = Mock(ToolProvider)
     def generator = Mock(Compiler)
-    def configurationMock = new SimpleFileCollection(classpath)
+    def configurationMock = ImmutableFileCollection.of(new File("classpath"))
     def executable = "somepath"
     Javadoc task
 

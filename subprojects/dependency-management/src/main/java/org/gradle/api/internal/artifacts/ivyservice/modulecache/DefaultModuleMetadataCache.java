@@ -16,10 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
@@ -38,18 +39,19 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
-    private final CacheLockingManager cacheLockingManager;
+    private final ArtifactCacheLockingManager artifactCacheLockingManager;
 
     public DefaultModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
-                                      CacheLockingManager cacheLockingManager,
+                                      ArtifactCacheLockingManager artifactCacheLockingManager,
                                       ArtifactCacheMetadata artifactCacheMetadata,
                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                       AttributeContainerSerializer attributeContainerSerializer,
                                       MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                      IvyMutableModuleMetadataFactory ivyMetadataFactory) {
+                                      IvyMutableModuleMetadataFactory ivyMetadataFactory,
+                                      Interner<String> stringInterner) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
-        this.cacheLockingManager = cacheLockingManager;
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory, stringInterner);
+        this.artifactCacheLockingManager = artifactCacheLockingManager;
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
@@ -60,7 +62,7 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
+        return artifactCacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
     @Override
@@ -82,7 +84,7 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
 
     private CachedMetadata loadCachedMetadata(final ModuleComponentAtRepositoryKey key) {
         final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
-        return cacheLockingManager.useCache(new Factory<CachedMetadata>() {
+        return artifactCacheLockingManager.useCache(new Factory<CachedMetadata>() {
             @Override
             public CachedMetadata create() {
                 ModuleMetadataCacheEntry entry = cache.get(key);
@@ -110,7 +112,7 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
             getCache().put(key, entry);
         } else {
             // Need to lock the cache in order to write to the module metadata store
-            cacheLockingManager.useCache(new Runnable() {
+            artifactCacheLockingManager.useCache(new Runnable() {
                 @Override
                 public void run() {
                     final ModuleComponentResolveMetadata metadata = cachedMetadata.getMetadata();

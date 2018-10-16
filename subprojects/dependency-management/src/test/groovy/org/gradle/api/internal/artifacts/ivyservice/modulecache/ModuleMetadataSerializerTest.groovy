@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser
@@ -25,23 +26,26 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -49,8 +53,8 @@ import spock.lang.Unroll
 class ModuleMetadataSerializerTest extends Specification {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
-    private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
+    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory())
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
@@ -135,7 +139,7 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {
-        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId('test', 'test-module', '1.0'))
+        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('test', 'test-module'), '1.0'))
         gradleMetadataParser.parse(resource(gradleFile), metadata)
         metadata
     }
@@ -146,7 +150,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private ModuleMetadataSerializer moduleMetadataSerializer() {
         new ModuleMetadataSerializer(
-            new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE),
+            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE),
             mavenMetadataFactory,
             ivyMetadataFactory
         )
@@ -154,7 +158,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private GradlePomModuleDescriptorParser pomParser() {
         new GradlePomModuleDescriptorParser(
-            new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme()),
+            new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())),
             moduleIdentifierFactory,
             Stub(FileResourceRepository),
             mavenMetadataFactory
@@ -172,7 +176,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private ModuleMetadataParser gradleMetadataParser() {
         new ModuleMetadataParser(
-            TestUtil.attributesFactory(),
+            AttributeTestUtil.attributesFactory(),
             moduleIdentifierFactory,
             NamedObjectInstantiator.INSTANCE
         )

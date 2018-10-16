@@ -16,12 +16,12 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.IsolationMode
-import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@IntegrationTestTimeout(120)
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Unroll
     def "produces a sensible error when there is a failure in the worker runnable in #isolationMode"() {
@@ -100,29 +100,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
         and:
         failureHasCause("Failed to run Gradle Worker Daemon")
-    }
-
-    def "produces a sensible error if the specified working directory cannot be used"() {
-        executer.withStackTraceChecksDisabled()
-        withRunnableClassInBuildSrc()
-
-        buildFile << """
-            task runInDaemon(type: WorkerTask) {
-                isolationMode = IsolationMode.PROCESS
-                additionalForkOptions = {
-                    it.workingDir = project.file("doesNotExist")
-                }
-            }
-        """.stripIndent()
-
-        when:
-        fails("runInDaemon")
-
-        then:
-        failureHasCause("Could not set process working directory to '" + file('doesNotExist').absolutePath + "'")
-
-        and:
-        failureHasCause("A failure occurred while executing org.gradle.test.TestRunnable")
     }
 
     @Unroll

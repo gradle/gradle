@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -29,7 +28,7 @@ class CompileOptionsTest extends Specification {
     CompileOptions compileOptions
 
     def setup()  {
-        compileOptions = new CompileOptions(TestUtil.objectFactory())
+        compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
         compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
     }
@@ -48,7 +47,6 @@ class CompileOptionsTest extends Specification {
 
         compileOptions.compilerArgs.empty
         compileOptions.encoding == null
-        compileOptions.bootClasspath == null
         compileOptions.bootstrapClasspath == null
         compileOptions.extensionDirs == null
 
@@ -148,70 +146,14 @@ class CompileOptionsTest extends Specification {
         debugUseCalled
     }
 
-    @SuppressWarnings("GrDeprecatedAPIUsage")
     def "define"() {
         compileOptions.debug = false
-        compileOptions.bootClasspath = 'xxxx'
         compileOptions.fork = false
-        compileOptions.define(debug: true, bootClasspath: null)
+        compileOptions.define(debug: true)
 
         expect:
         compileOptions.debug
-        compileOptions.bootClasspath == null
-        compileOptions.bootstrapClasspath == null
         !compileOptions.fork
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "boot classpath is reflected via deprecated property"() {
-        def bootstrapClasspath = Mock(FileCollectionInternal)
-
-        when:
-        compileOptions.bootstrapClasspath = bootstrapClasspath
-
-        then:
-        compileOptions.bootstrapClasspath == bootstrapClasspath
-
-        when:
-        def deprecatedPath = compileOptions.bootClasspath
-
-        then:
-        deprecatedPath == "resolved"
-        1 * bootstrapClasspath.getAsPath() >> "resolved"
-        0 * _
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "setting deprecated bootClasspath resets bootstrapClasspath"() {
-        given:
-        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib1.jar"))
-
-        when:
-        compileOptions.bootClasspath = "lib2.jar"
-
-        then:
-        compileOptions.bootClasspath == "lib2.jar"
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "setting deprecated bootClasspath sets bootstrapClasspath"() {
-        given:
-        compileOptions.bootClasspath = "lib2.jar"
-
-        expect:
-        compileOptions.bootstrapClasspath.files as List == [new File("lib2.jar")]
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "setting bootstrapClasspath sets deprecated bootClasspath"() {
-        given:
-        compileOptions.bootClasspath = "lib1.jar"
-
-        when:
-        compileOptions.bootstrapClasspath = new SimpleFileCollection(new File("lib2.jar"))
-
-        then:
-        compileOptions.bootClasspath == "lib2.jar"
     }
 
     def "converts GStrings to Strings when getting all compiler arguments"() {

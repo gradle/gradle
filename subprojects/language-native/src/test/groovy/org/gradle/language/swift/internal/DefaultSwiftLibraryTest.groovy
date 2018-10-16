@@ -25,6 +25,7 @@ import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -36,7 +37,7 @@ class DefaultSwiftLibraryTest extends Specification {
     DefaultSwiftLibrary library
 
     def setup() {
-        library = new DefaultSwiftLibrary("main", project.objects, project, project.configurations)
+        library = new DefaultSwiftLibrary("main", project.objects, project.fileOperations, project.configurations)
     }
 
     def "has display name"() {
@@ -107,8 +108,8 @@ class DefaultSwiftLibraryTest extends Specification {
 
     private NativeVariantIdentity getIdentity() {
         return new NativeVariantIdentity("test", null, null, null, true, false, TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS),
-            new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable()),
-            new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable())
+            new DefaultUsageContext("test", null, AttributeTestUtil.attributesFactory().mutable()),
+            new DefaultUsageContext("test", null, AttributeTestUtil.attributesFactory().mutable())
         )
     }
 

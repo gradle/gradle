@@ -23,8 +23,14 @@ import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.plugins.ide.fixtures.IdeaProjectFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Before
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
+    @Before
+    void setUp() {
+        executer.withRepositoryMirrors()
+    }
+
     protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
         def settingsFile = file("settings.gradle")
         settingsFile << settingsScript

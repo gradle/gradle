@@ -36,10 +36,14 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
+import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
@@ -67,7 +71,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
                                  LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider,
-                                 LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                                 LocalMavenRepositoryLocator mavenRepositoryLocator, ObjectFactory objectFactory) {
+        super(objectFactory);
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
@@ -79,11 +84,16 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
+    @Override
+    public RepositoryDescriptor getDescriptor() {
+        throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies, and don't have repository details available.");
+    }
+
     public ModuleVersionPublisher createPublisher() {
         return this;
     }
 
-    protected abstract MavenPublishAction createPublishAction(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
@@ -110,8 +120,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private void publish() {
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
-            File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishAction publishAction = createPublishAction(pomFile, null, mavenRepositoryLocator);
+            MavenProjectIdentity projectIdentity = new ReadableMavenProjectIdentity(mavenDeployment.getGroupId(), mavenDeployment.getArtifactId(), mavenDeployment.getVersion());
+            MavenPublishAction publishAction = createPublishAction(mavenDeployment.getPackaging(), projectIdentity, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(publishAction, mavenDeployment);
             execute(publishAction);
@@ -128,6 +138,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     }
 
     private void addArtifacts(MavenPublishAction publishAction, MavenDeployment mavenDeployment) {
+        publishAction.setPomArtifact(mavenDeployment.getPomArtifact().getFile());
         if (mavenDeployment.getMainArtifact() != null) {
             publishAction.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
         }

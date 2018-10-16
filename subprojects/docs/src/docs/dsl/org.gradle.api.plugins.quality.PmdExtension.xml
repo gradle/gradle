@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>5.2.3</literal></td>
+                <td><literal>6.8.0</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
@@ -18,7 +18,7 @@
             </tr>
             <tr>
                 <td>ruleSets</td>
-                <td><literal>["basic"]</literal></td>
+                <td><literal>["category/java/errorprone.xml"]</literal></td>
             </tr>
             <tr>
                 <td>ruleSetConfig</td>

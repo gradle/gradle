@@ -42,4 +42,6 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     void setClasses(Set<String> classes);
 
     Set<String> getClasses();
+
+    List<File> getModulePath();
 }

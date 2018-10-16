@@ -20,11 +20,9 @@ import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
-@ToolingApiVersion(">=2.2")
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def setup() {
@@ -144,20 +142,29 @@ project.logger.debug("debug logging");
     }
 
     private removeStartupWarnings(String output) {
-        if (output.startsWith('Starting a Gradle Daemon')) {
-            output = output.substring(output.indexOf('\n') + 1)
-        }
-        if (output.startsWith('Parallel execution is an incubating feature.')) {
+        while (output.startsWith('Starting a Gradle Daemon') || output.startsWith('Parallel execution is an incubating feature.')) {
             output = output.substring(output.indexOf('\n') + 1)
         }
         output
     }
 
     private ExecutionResult runUsingCommandLine() {
-        targetDist.executer(temporaryFolder, getBuildContext())
+        def executer = targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
+            .withTestConsoleAttached()
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
-            .run()
+
+        if (targetVersion.baseVersion >= GradleVersion.version("4.0")) {
+            executer.withArgument("--console=plain")
+        }
+
+        // We changed the test console system property value in 4.9
+        if (targetVersion.baseVersion >= GradleVersion.version("4.8")
+            && targetVersion.baseVersion < GradleVersion.version("4.9")) {
+            executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
+        }
+
+        return executer.run()
     }
 
     String normaliseOutput(String output) {

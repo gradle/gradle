@@ -36,10 +36,6 @@ public abstract class Factories {
         };
     }
 
-    public static <T> Factory<T> constantNull() {
-        return constant(null);
-    }
-
     public static <T> Factory<T> softReferenceCache(Factory<T> factory) {
         return new CachingSoftReferenceFactory<T>(factory);
     }

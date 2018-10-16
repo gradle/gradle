@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioRootExtension;
@@ -87,11 +88,21 @@ public class VisualStudioPlugin extends IdePlugin {
         if (isRoot()) {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry);
             final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
-            getLifecycleTask().dependsOn(solution);
+            getLifecycleTask().configure(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.dependsOn(solution);
+                }
+            });
             addWorkspace(solution);
         } else {
             extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry);
-            getLifecycleTask().dependsOn(extension.getProjects());
+            getLifecycleTask().configure(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.dependsOn(extension.getProjects());
+                }
+            });
         }
         includeBuildFileInProject(extension);
 
@@ -188,26 +199,14 @@ public class VisualStudioPlugin extends IdePlugin {
     }
 
     private void configureCleanTask() {
-        final Delete cleanTask = (Delete) getCleanTask();
+        final TaskProvider<Delete> cleanTask = (TaskProvider<Delete>) getCleanTask();
 
-        project.getTasks().withType(GenerateSolutionFileTask.class).all(new Action<GenerateSolutionFileTask>() {
+        cleanTask.configure(new Action<Delete>() {
             @Override
-            public void execute(GenerateSolutionFileTask task) {
-                cleanTask.delete(task.getOutputs().getFiles());
-            }
-        });
-
-        project.getTasks().withType(GenerateFiltersFileTask.class).all(new Action<GenerateFiltersFileTask>() {
-            @Override
-            public void execute(GenerateFiltersFileTask task) {
-                cleanTask.delete(task.getOutputs().getFiles());
-            }
-        });
-
-        project.getTasks().withType(GenerateProjectFileTask.class).all(new Action<GenerateProjectFileTask>() {
-            @Override
-            public void execute(GenerateProjectFileTask task) {
-                cleanTask.delete(task.getOutputs().getFiles());
+            public void execute(Delete cleanTask) {
+                cleanTask.delete(project.getTasks().withType(GenerateSolutionFileTask.class));
+                cleanTask.delete(project.getTasks().withType(GenerateFiltersFileTask.class));
+                cleanTask.delete(project.getTasks().withType(GenerateProjectFileTask.class));
             }
         });
     }

@@ -17,22 +17,21 @@
 package org.gradle.workers.internal;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.work.AbstractConditionalExecution;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
+import org.gradle.internal.work.ConditionalExecutionQueue;
+import org.gradle.internal.work.DefaultConditionalExecutionQueue;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
@@ -48,28 +47,26 @@ import org.gradle.workers.WorkerExecutor;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
-    private final ListeningExecutorService executor;
+    private final ConditionalExecutionQueue<DefaultWorkResult> executionQueue;
     private final WorkerFactory daemonWorkerFactory;
     private final WorkerFactory isolatedClassloaderWorkerFactory;
     private final WorkerFactory noIsolationWorkerFactory;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final WorkerLeaseRegistry workerLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
 
     public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
-                                 FileResolver fileResolver, ExecutorFactory executorFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
-                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider) {
+                                 PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
+                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
         this.fileResolver = fileResolver;
-        this.executor = MoreExecutors.listeningDecorator(executorFactory.create("Worker Daemon Execution"));
+        this.executionQueue = workerExecutionQueueFactory.create();
         this.workerLeaseRegistry = workerLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -79,13 +76,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     @Override
     public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
+        File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
+        configuration.getForkOptions().setWorkingDir(workingDirectory);
         configAction.execute(configuration);
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
+
+        if (!workingDirectory.equals(configuration.getForkOptions().getWorkingDir())) {
+            throw new WorkExecutionException(description + ": setting the working directory of a worker is not supported.");
+        }
 
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getForkOptions().getWorkingDir(), configuration.getParams());
+            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -96,19 +99,20 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private void submit(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
-        ListenableFuture<DefaultWorkResult> workerDaemonResult = executor.submit(new Callable<DefaultWorkResult>() {
+        WorkerExecution execution = new WorkerExecution(spec.getDisplayName(), currentWorkerWorkerLease, new Callable<DefaultWorkResult>() {
             @Override
             public DefaultWorkResult call() throws Exception {
                 try {
                     WorkerFactory workerFactory = getWorkerFactory(isolationMode);
                     Worker worker = workerFactory.getWorker(daemonForkOptions);
-                    return worker.execute(spec, currentWorkerWorkerLease, currentBuildOperation);
+                    return worker.execute(spec, currentBuildOperation);
                 } catch (Throwable t) {
                     throw new WorkExecutionException(spec.getDisplayName(), t);
                 }
             }
         });
-        registerAsyncWork(spec.getDisplayName(), workerDaemonResult);
+        executionQueue.submit(execution);
+        asyncWorkTracker.registerWork(currentBuildOperation, execution);
     }
 
     private WorkerLease getCurrentWorkerLease() {
@@ -133,33 +137,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    void registerAsyncWork(final String description, final Future<DefaultWorkResult> workItem) {
-        asyncWorkTracker.registerWork(buildOperationExecutor.getCurrentOperation(), new AsyncWorkCompletion() {
-            @Override
-            public void waitForCompletion() {
-                try {
-                    DefaultWorkResult result = workItem.get();
-                    if (!result.isSuccess()) {
-                        throw new WorkExecutionException(description, result.getException());
-                    }
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                } catch (ExecutionException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-
-            @Override
-            public boolean isComplete() {
-                return workItem.isDone();
-            }
-        });
-    }
-
+    /**
+     * Wait for any outstanding work to complete.  Note that if there is uncompleted work associated
+     * with the current build operation, we'll also temporarily expand the thread pool of the execution queue.
+     * This is to avoid a thread starvation scenario (see {@link DefaultConditionalExecutionQueue#expand(boolean)}
+     * for further details).
+     */
     @Override
     public void await() throws WorkerExecutionException {
         BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
+            if (asyncWorkTracker.hasUncompletedWork(currentOperation)) {
+                executionQueue.expand();
+            }
             asyncWorkTracker.waitForCompletion(currentOperation, false);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
@@ -240,7 +230,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         JavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver);
         userForkOptions.copyTo(forkOptions);
-        forkOptions.setWorkingDir(workerDirectoryProvider.getIdleWorkingDirectory());
+        forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
         return new DaemonForkOptionsBuilder(fileResolver)
                         .javaForkOptions(forkOptions)
@@ -270,8 +260,79 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Contextual
     private static class WorkExecutionException extends RuntimeException {
+        WorkExecutionException(String description) {
+            super(toMessage(description));
+        }
         WorkExecutionException(String description, Throwable cause) {
-            super("A failure occurred while executing " + description, cause);
+            super(toMessage(description), cause);
+        }
+
+        private static String toMessage(String description) {
+            return "A failure occurred while executing " + description;
+        }
+    }
+
+    private static class WorkerExecution extends AbstractConditionalExecution<DefaultWorkResult> implements AsyncWorkCompletion {
+        private final String description;
+
+        public WorkerExecution(String description, WorkerLease parentWorkerLease, Callable<DefaultWorkResult> callable) {
+            super(callable, new LazyChildWorkerLeaseLock(parentWorkerLease));
+            this.description = description;
+        }
+
+        @Override
+        public void waitForCompletion() {
+            DefaultWorkResult result = await();
+            if (!result.isSuccess()) {
+                throw new WorkExecutionException(description, result.getException());
+            }
+        }
+    }
+
+    private static class LazyChildWorkerLeaseLock implements ResourceLock {
+        private final WorkerLease parentWorkerLease;
+        private WorkerLease child;
+
+        public LazyChildWorkerLeaseLock(WorkerLease parentWorkerLease) {
+            this.parentWorkerLease = parentWorkerLease;
+        }
+
+        @Override
+        public boolean isLocked() {
+            return getChild().isLocked();
+        }
+
+        @Override
+        public boolean isLockedByCurrentThread() {
+            return getChild().isLockedByCurrentThread();
+        }
+
+        @Override
+        public boolean tryLock() {
+            child = parentWorkerLease.createChild();
+            if (child.tryLock()) {
+                return true;
+            } else {
+                child = null;
+                return false;
+            }
+        }
+
+        @Override
+        public void unlock() {
+            getChild().unlock();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return getChild().getDisplayName();
+        }
+
+        private WorkerLease getChild() {
+            if (child == null) {
+                throw new IllegalStateException("Detected attempt to access LazyChildWorkerLeaseLock before tryLock() has succeeded.  tryLock must be succeed before other methods are called.");
+            }
+            return child;
         }
     }
 }

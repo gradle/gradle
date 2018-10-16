@@ -275,6 +275,49 @@ model {
         skipped compileTask
     }
 
+    def "source is recompiled when headers form a cycle and one is changed"() {
+        given:
+        def headerFile1 = file("src/main/headers/bar.h")
+        def headerFile2 = file("src/main/headers/foo.h")
+        headerFile1 << """
+            #ifndef FOO
+            #include "./${headerFile2.name}"
+            #endif
+        """
+        headerFile2 << """
+            #define FOO
+            
+            #include "./${headerFile1.name}"
+        """
+
+        sourceFile << """
+            #include "${headerFile1.name}"
+        """
+
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        headerFile1 << """
+            // Some extra content
+        """
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+
+        and:
+        succeeds "mainExecutable"
+
+        and:
+        skipped compileTask
+    }
+
     def "source is not recompiled when preprocessor removed header is changed"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
@@ -419,8 +462,8 @@ model {
         given:
         outputs.snapshot { run "mainExecutable" }
 
-        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n"
-        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n"
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n// needs to be different"
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n// needs to be different"
 
         when:
         buildFile << """
@@ -468,8 +511,8 @@ model {
         outputs.snapshot { run "mainExecutable" }
 
         when:
-        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n"
-        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n"
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n// needs to be different"
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n// needs to be different"
 
         and:
         run "mainExecutable"
@@ -481,7 +524,25 @@ model {
         outputs.recompiledFiles allSources
     }
 
-    def "recompiles when replacement header file is added to source directory"() {
+    def "recompiles when replacement header file with different content is added to source directory"() {
+        given:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        sourceFile.parentFile.file(sharedHeaderFile.name) << sharedHeaderFile.text << "\n// needs to be different"
+        sourceFile.parentFile.file(commonHeaderFile.name) << commonHeaderFile.text << "\n// needs to be different"
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFiles allSources + [commonHeaderFile]
+    }
+
+    def "does not recompile when replacement header file with same content is added to source directory"() {
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -496,7 +557,7 @@ model {
         executedAndNotSkipped compileTask
 
         and:
-        outputs.recompiledFiles allSources + [commonHeaderFile]
+        outputs.recompiledFiles sharedHeaderFile, commonHeaderFile
     }
 
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {

@@ -16,9 +16,10 @@
 
 package org.gradle.internal.locking
 
-import org.gradle.api.artifacts.result.ResolutionResult
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static java.util.Collections.emptySet
 
 class NoOpDependencyLockingProviderTest extends Specification {
 
@@ -27,19 +28,19 @@ class NoOpDependencyLockingProviderTest extends Specification {
 
     def 'does not find locked dependencies'() {
         when:
-        def result = provider.findLockedDependencies('conf')
+        def result = provider.loadLockState('conf')
 
         then:
-        result.isEmpty()
+        !result.mustValidateLockState()
     }
 
     def 'does nothing on persist'() {
         given:
-        def result = Mock(ResolutionResult)
+        def result = Mock(Set)
 
 
         when:
-        provider.persistResolvedDependencies('conf', result)
+        provider.persistResolvedDependencies('conf', result, emptySet())
 
         then:
         0 * _

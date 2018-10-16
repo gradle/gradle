@@ -16,14 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.versioning
 
-import org.gradle.tooling.internal.protocol.*
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1
-import org.gradle.tooling.model.gradle.GradleBuild
+
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
@@ -31,67 +29,6 @@ import spock.lang.Specification
 
 class ModelMappingTest extends Specification {
     final mapping = new ModelMapping()
-
-    def "maps model type to protocol type"() {
-        expect:
-        mapping.getProtocolType(modelType) == protocolType
-
-        where:
-        modelType                  | protocolType
-        Void                       | Void
-        HierarchicalEclipseProject | HierarchicalEclipseProjectVersion1
-        EclipseProject             | EclipseProjectVersion3
-        IdeaProject                | InternalIdeaProject
-        GradleProject              | InternalGradleProject
-        BasicIdeaProject           | InternalBasicIdeaProject
-        BuildEnvironment           | InternalBuildEnvironment
-        ProjectOutcomes            | InternalProjectOutcomes
-    }
-
-    def "can use a protocol type as model type"() {
-        expect:
-        mapping.getProtocolType(modelType) == modelType
-
-        where:
-        modelType << [
-                HierarchicalEclipseProjectVersion1,
-                EclipseProjectVersion3,
-                InternalIdeaProject,
-                InternalGradleProject,
-                InternalBasicIdeaProject,
-                InternalBuildEnvironment,
-                InternalProjectOutcomes
-        ]
-    }
-
-    def "uses null protocol type for custom model type"() {
-        expect:
-        mapping.getProtocolType(CustomModel) == null
-    }
-
-    def "uses null protocol type for model types added after 1.6"() {
-        expect:
-        mapping.getProtocolType(GradleBuild) == null
-    }
-
-    def "maps model type to model identifier"() {
-        expect:
-        def id = mapping.getModelIdentifierFromModelType(modelType)
-        id.name == modelName
-
-        where:
-        modelType                  | modelName
-        Void                       | ModelIdentifier.NULL_MODEL
-        HierarchicalEclipseProject | "org.gradle.tooling.model.eclipse.HierarchicalEclipseProject"
-        EclipseProject             | "org.gradle.tooling.model.eclipse.EclipseProject"
-        IdeaProject                | "org.gradle.tooling.model.idea.IdeaProject"
-        GradleProject              | "org.gradle.tooling.model.GradleProject"
-        BasicIdeaProject           | "org.gradle.tooling.model.idea.BasicIdeaProject"
-        BuildEnvironment           | "org.gradle.tooling.model.build.BuildEnvironment"
-        ProjectOutcomes            | "org.gradle.tooling.model.outcomes.ProjectOutcomes"
-        GradleBuild                | "org.gradle.tooling.model.gradle.GradleBuild"
-        CustomModel                | CustomModel.name
-    }
 
     def "maps model type to version it was added in"() {
         expect:

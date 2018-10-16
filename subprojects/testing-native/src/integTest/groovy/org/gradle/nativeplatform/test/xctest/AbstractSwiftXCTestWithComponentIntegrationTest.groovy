@@ -30,7 +30,7 @@ abstract class AbstractSwiftXCTestWithComponentIntegrationTest extends AbstractS
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
         fixture.assertTestCasesRan(testExecutionResult)
     }
 

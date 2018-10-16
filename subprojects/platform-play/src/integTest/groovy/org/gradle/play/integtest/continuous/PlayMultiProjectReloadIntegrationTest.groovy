@@ -25,8 +25,14 @@ import org.gradle.test.fixtures.file.TestFile
 
 class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
-    PlayApp playApp = new PlayMultiProject()
+    PlayApp playApp = new PlayMultiProject(versionNumber)
     TestFile playRunBuildFile = file("primary/build.gradle")
+
+    def setup() {
+        buildFile << playLogbackDependenciesIfPlay25(versionNumber)
+        playRunBuildFile << playLogbackDependenciesIfPlay25(versionNumber)
+        file('submodule/build.gradle') << playLogbackDependenciesIfPlay25(versionNumber)
+    }
 
     def cleanup() {
         stopGradle()
@@ -53,7 +59,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     }
 
     private void addHelloWorld() {
-        file("primary/conf/routes") << "\nGET     /hello                   controllers.Application.hello"
+        file("primary/conf/routes") << "\nGET     /hello                   ${controllers()}.Application.hello"
         file("primary/app/controllers/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, '''
   def hello = Action {
@@ -82,7 +88,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     }
 
     private void addSubmoduleHelloWorld() {
-        file("primary/conf/routes") << "\nGET     /subhello                   controllers.submodule.Application.hello"
+        file("primary/conf/routes") << "\nGET     /subhello                   ${controllers()}.submodule.Application.hello"
         file("submodule/app/controllers/submodule/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, '''
   def hello = Action {
@@ -111,7 +117,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     }
 
     private void addSubmoduleHelloWorldFromJavaClass() {
-        file("primary/conf/routes") << "\nGET     /subhello                   controllers.submodule.Application.hello"
+        file("primary/conf/routes") << "\nGET     /subhello                   ${controllers()}.submodule.Application.hello"
         file("submodule/app/controllers/submodule/Application.scala").with {
             text = text.replaceFirst(~/(?m)^import\s/, '''
 import org.test.Util

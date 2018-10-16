@@ -25,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-@SuppressWarnings("Since15")
 public abstract class AbstractFileAccessor implements DataAccessor {
     private final DirectoryProvider directoryProvider;
 

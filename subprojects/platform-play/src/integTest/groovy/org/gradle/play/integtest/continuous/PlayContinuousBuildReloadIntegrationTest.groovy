@@ -24,22 +24,33 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
  */
 class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegrationTest {
 
+    protected static final String PENDING_DETECTED_MESSAGE = 'Pending changes detected'
+
     int pendingChangesMarker
 
     def setup() {
         buildFile << """
                 def pendingChangesManager = gradle.services.get(${PendingChangesManager.canonicalName})
                 pendingChangesManager.addListener {
-                    println "Pending changes detected"
+                    println "$PENDING_DETECTED_MESSAGE"
                 }
         """
+        buildFile << playLogbackDependenciesIfPlay25(versionNumber)
     }
 
-    private int waitForChangesToBePickedUp() {
+    protected int waitForChangesToBePickedUp() {
+        waitForConditionSatisfied { output -> output.contains(PENDING_DETECTED_MESSAGE) }
+    }
+
+    protected int waitForBuildFinish() {
+        waitForConditionSatisfied { output -> output ==~ /(?s).*Waiting for changes.*/ }
+    }
+
+    private int waitForConditionSatisfied(Closure predicate){
         def buildOutput = ''
         ConcurrentTestUtil.poll {
             buildOutput = buildOutputSoFar()
-            assert buildOutput.substring(pendingChangesMarker).contains("Pending changes detected")
+            assert predicate(buildOutput.substring(pendingChangesMarker))
         }
         pendingChangesMarker = buildOutput.length()
     }
@@ -74,6 +85,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         then:
         println "CHECKING ERROR PAGE"
         errorPageHasTaskFailure("compilePlayBinaryScala")
+        waitForBuildFinish()
         serverStartCount == 1
         !executedTasks.contains('runPlayBinary')
 

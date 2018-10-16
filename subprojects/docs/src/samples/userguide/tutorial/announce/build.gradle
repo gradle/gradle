@@ -3,9 +3,9 @@ apply {
   plugin 'java'
 }
 
-// START SNIPPET full-example
+// tag::full-example[]
 announce {
   announceTwitterUsername = 'AnnounceExampleTwitterAccount'
   announceTwitterPassword = 'your-password'
 }
-// END SNIPPET full-example
+// end::full-example[]

@@ -45,4 +45,8 @@ public abstract class AbstractRepositoryLayout implements RepositoryLayout {
             schemes.add(baseUri.getScheme());
         }
     }
+
+    public abstract Set<String> getIvyPatterns();
+
+    public abstract Set<String> getArtifactPatterns();
 }

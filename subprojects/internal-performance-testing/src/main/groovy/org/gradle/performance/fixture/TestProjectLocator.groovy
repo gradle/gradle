@@ -23,6 +23,9 @@ class TestProjectLocator {
         if (!dir.directory) {
             throw new IllegalArgumentException("Did not find test project at: '$dir.absolutePath'. Please run 'gradlew $name' to generate the test project.")
         }
+        if (!new File(dir, "settings.gradle").file && !new File(dir, "settings.gradle.kts").file) {
+            throw new IllegalArgumentException("Test project at '$dir.absolutePath' does not have a settings script. Please add one.")
+        }
         dir
     }
 }

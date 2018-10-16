@@ -19,11 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.BuildIdentity
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultDependencySubstitutionSpec extends Specification {
@@ -77,19 +79,23 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE.withReason('with custom reason')
+        details.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.selectionDescription.description == 'with custom reason'
     }
 
     def "can specify target project"() {
         def project = Mock(ProjectInternal)
+        project.identityPath >> Path.path(":id:path")
+        project.projectPath >> Path.path(":bar")
+        project.name >> "bar"
+
         def services = new DefaultServiceRegistry()
-        services.add(BuildIdentity, Stub(BuildIdentity))
+        services.add(BuildState, Stub(BuildState))
 
         when:
         details.useTarget(project)
 
         then:
-        _ * project.path >> ":bar"
         project.getServices() >> services
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"

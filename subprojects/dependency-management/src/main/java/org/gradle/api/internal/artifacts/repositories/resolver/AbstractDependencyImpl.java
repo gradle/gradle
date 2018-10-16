@@ -18,31 +18,34 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 
 public abstract class AbstractDependencyImpl<T extends DependencyMetadata> implements DependencyMetadata<T> {
-    private final String group;
-    private final String name;
+    private final ModuleIdentifier moduleIdentifier;
     private MutableVersionConstraint versionConstraint;
     private String reason;
+    private AttributeContainer attributes = ImmutableAttributes.EMPTY;
 
     public AbstractDependencyImpl(String group, String name, String version) {
-        this.group = group;
-        this.name = name;
+        this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
     @Override
     public String getGroup() {
-        return this.group;
+        return moduleIdentifier.getGroup();
     }
 
     @Override
     public String getName() {
-        return this.name;
+        return moduleIdentifier.getName();
     }
 
     @Override
@@ -51,8 +54,19 @@ public abstract class AbstractDependencyImpl<T extends DependencyMetadata> imple
     }
 
     @Override
+    public ModuleIdentifier getModule() {
+        return moduleIdentifier;
+    }
+
+    @Override
     public T version(Action<? super MutableVersionConstraint> configureAction) {
         configureAction.execute(versionConstraint);
+        return Cast.uncheckedCast(this);
+    }
+
+    @Override
+    public T attributes(Action<? super AttributeContainer> configureAction) {
+        configureAction.execute(attributes);
         return Cast.uncheckedCast(this);
     }
 
@@ -65,6 +79,15 @@ public abstract class AbstractDependencyImpl<T extends DependencyMetadata> imple
     public T because(String reason) {
         this.reason = reason;
         return Cast.uncheckedCast(this);
+    }
+
+    public void setAttributes(AttributeContainer attributes) {
+        this.attributes = attributes;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
     }
 
     @Override

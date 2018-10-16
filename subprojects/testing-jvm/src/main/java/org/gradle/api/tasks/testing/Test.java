@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.specs.Spec;
@@ -50,9 +49,12 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -67,9 +69,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -83,7 +83,7 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
- * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
  * The sample below shows various configuration options.
  *
  * <pre class='autoTested'>
@@ -442,7 +442,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * {@inheritDoc}
      */
     @Override
-    @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005. [INCUBATING]")
+    @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
     }
@@ -579,6 +579,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
 
+        if (getDebug()) {
+            getLogger().info("Running tests for remote debugging.");
+        }
+
         try {
             super.executeTests();
         } finally {
@@ -704,35 +708,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the root folder for the compiled test sources.
-     *
-     * @return All test class directories to be used.
-     * @deprecated Use {@link #getTestClassesDirs()}.
-     */
-    @Deprecated
-    @Internal
-    @Nullable
-    public File getTestClassesDir() {
-        SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
-        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
-            return null;
-        }
-        return getProject().file(CollectionUtils.first(testClassesDirs));
-    }
-
-    /**
-     * Sets the root folder for the compiled test sources.
-     *
-     * @param testClassesDir The root folder
-     * @deprecated Use {@link #setTestClassesDirs(FileCollection)}.
-     */
-    @Deprecated
-    public void setTestClassesDir(File testClassesDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
-        setTestClassesDirs(getProject().files(testClassesDir));
-    }
-
-    /**
      * Returns the directories for the compiled test sources.
      *
      * @return All test class directories to be used.
@@ -836,8 +811,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @return The test framework options.
      */
     @Nested
-    // TestFrameworkOptions currently don't have any annotated properties. We use this nested input to distinguish between testing frameworks.
-    // This works since the actual option class changes when we change the testing framework.
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }
@@ -955,7 +928,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param testFrameworkConfigure An action used to configure the TestNG options.
      * @since 3.5
      */
-    public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
+    public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
     }
 
@@ -1036,6 +1009,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    @SkipWhenEmpty
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
@@ -1046,7 +1020,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param action configuration of the test filter
      * @since 1.10
      */
-    @Incubating
     public void filter(Action<TestFilter> action) {
         action.execute(getFilter());
     }

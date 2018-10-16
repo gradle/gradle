@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
@@ -121,7 +121,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public FileCollection getResourceFiles() {
-        return new SimpleFileCollection();
+        return ImmutableFileCollection.of();
     }
 
     @Override

@@ -16,18 +16,20 @@
 
 package org.gradle.plugins.ide.fixtures
 
+import org.gradle.test.fixtures.file.TestFile
+
 class IdeaFixtures {
-    static parseFile(File file) {
-        assert file.file
+    static parseFile(TestFile file) {
+        file.assertIsFile()
         new XmlSlurper().parse(file)
     }
 
-    static IdeaProjectFixture parseIpr(File projectFile) {
-        return new IdeaProjectFixture(parseFile(projectFile))
+    static IdeaProjectFixture parseIpr(TestFile projectFile) {
+        return new IdeaProjectFixture(projectFile, parseFile(projectFile))
     }
 
-    static IdeaModuleFixture parseIml(File moduleFile) {
-        return new IdeaModuleFixture(parseFile(moduleFile))
+    static IdeaModuleFixture parseIml(TestFile moduleFile) {
+        return new IdeaModuleFixture(moduleFile, parseFile(moduleFile))
     }
 
     private IdeaFixtures() {}

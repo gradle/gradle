@@ -27,7 +27,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", "XYZ", true)
+        def formattedText = formatter.format(":test", "XYZ", true)
 
         then:
         formattedText.size() == 3
@@ -43,7 +43,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", "", true)
+        def formattedText = formatter.format(":test", "", true)
 
         then:
         formattedText.size() == 2
@@ -57,7 +57,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", "XYZ", false)
+        def formattedText = formatter.format(":test", "XYZ", false)
 
         then:
         formattedText.size() == 3
@@ -73,7 +73,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formatter = new PrettyPrefixedLogHeaderFormatter()
 
         when:
-        def formattedText = formatter.format(":test", "", "", false)
+        def formattedText = formatter.format(":test", "", false)
 
         then:
         formattedText.size() == 2

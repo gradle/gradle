@@ -51,7 +51,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def loadCommand = Mock(BuildCacheLoadCommand)
     def storeCommand = Mock(BuildCacheStoreCommand)
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
-    def outputContentSnapshots = [:]
+    def outputFingerprints = [:]
 
     def executer = new SkipCachedTaskExecuter(buildCacheController, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
@@ -72,7 +72,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
@@ -99,7 +98,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
@@ -110,13 +108,12 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFingerprints, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -136,20 +133,18 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
         1 * taskState.getFailure() >> null
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFingerprints, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -169,7 +164,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
@@ -179,30 +173,11 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> new RuntimeException()
         0 * _
     }
 
-    def "does not cache results when cache key is invalid"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        interaction { cachingEnabled() }
-        1 * taskContext.taskProperties >> taskProperties
-        1 * taskContext.buildCacheKey >> cacheKey
-
-        then:
-        1 * cacheKey.isValid() >> false
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * cacheKey.isValid() >> false
-        0 * _
-    }
-
-    def "executes task and does not cache results when cacheIf is false"() {
+    def "executes task and does not cache results when caching was disabled"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -226,7 +201,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
@@ -240,13 +214,12 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * taskState.getFailure() >> null
-        1 * cacheKey.isValid() >> true
 
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFingerprints, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -263,7 +236,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
@@ -291,7 +263,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
-        1 * cacheKey.isValid() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
@@ -302,14 +273,13 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
 
         then:
-        1 * cacheKey.isValid() >> true
         1 * taskState.getFailure() >> null
 
         then:
         1 * taskContext.getExecutionTime() >> 1
         1 * cacheKey.getDisplayName() >> "cache key"
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.getOutputContentSnapshots()
+        1 * taskArtifactState.getOutputFingerprints()
         1 * buildCacheCommandFactory.createStore(*_)
         1 * buildCacheController.store(_) >> { throw new RuntimeException("unknown error") }
 

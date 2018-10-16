@@ -102,4 +102,23 @@ class LinePerThreadBufferingOutputStreamTest extends ConcurrentSpec {
         1 * action.endOfStream(null)
         0 * action._
     }
+
+    def "can reuse the output stream on the same thread after it has been closed"() {
+        TextStream action = Mock()
+        def outstr = new LinePerThreadBufferingOutputStream(action)
+
+        when:
+        outstr.write("text".bytes)
+        outstr.close()
+
+        then:
+        1 * action.text("text")
+
+        when:
+        outstr.write("text".bytes)
+        outstr.close()
+
+        then:
+        1 * action.text("text")
+    }
 }

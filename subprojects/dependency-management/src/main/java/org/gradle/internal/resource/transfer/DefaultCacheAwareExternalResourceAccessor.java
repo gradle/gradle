@@ -20,10 +20,9 @@ import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
@@ -60,17 +59,17 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final CacheLockingManager cacheLockingManager;
+    private final ArtifactCacheLockingManager artifactCacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy;
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
         this.temporaryFileProvider = temporaryFileProvider;
-        this.cacheLockingManager = cacheLockingManager;
+        this.artifactCacheLockingManager = artifactCacheLockingManager;
         this.externalResourceCachePolicy = externalResourceCachePolicy;
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
@@ -174,7 +173,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             });
             return result == null ? null : result.getResult();
         } catch (Exception e) {
-            throw new ResourceException(location.getUri(), String.format("Failed to download SHA1 for resource '%s'.", location), e);
+            LOGGER.debug(String.format("Failed to download SHA1 for resource '%s'.", location), e);
+            return null;
         }
     }
 
@@ -213,7 +213,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final ExternalResourceName source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
-        return cacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
+        return artifactCacheLockingManager.useCache(new Factory<LocallyAvailableExternalResource>() {
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();
@@ -223,7 +223,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         });
     }
 
-    public long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
+    private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
     }
 

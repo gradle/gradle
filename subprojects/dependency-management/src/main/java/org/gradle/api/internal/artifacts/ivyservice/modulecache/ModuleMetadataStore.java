@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Interner;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -32,22 +34,25 @@ import java.io.FileOutputStream;
 
 public class ModuleMetadataStore {
 
+    private static final Joiner PATH_JOINER = Joiner.on("/");
     private final PathKeyFileStore metaDataStore;
     private final ModuleMetadataSerializer moduleMetadataSerializer;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final Interner<String> stringInterner;
 
-    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner) {
         this.metaDataStore = metaDataStore;
         this.moduleMetadataSerializer = moduleMetadataSerializer;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.stringInterner = stringInterner;
     }
 
     public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
-        String filePath = getFilePath(component);
+        String[] filePath = getFilePath(component);
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
             try {
-                KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(resource.getFile()));
+                StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner);
                 try {
                     return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory);
                 } finally {
@@ -61,8 +66,8 @@ public class ModuleMetadataStore {
     }
 
     public LocallyAvailableResource putModuleDescriptor(ModuleComponentAtRepositoryKey component, final ModuleComponentResolveMetadata metadata) {
-        String filePath = getFilePath(component);
-        return metaDataStore.add(filePath, new Action<File>() {
+        String[] filePath = getFilePath(component);
+        return metaDataStore.add(PATH_JOINER.join(filePath), new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
                     KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
@@ -78,9 +83,15 @@ public class ModuleMetadataStore {
         });
     }
 
-    private String getFilePath(ModuleComponentAtRepositoryKey componentId) {
+    private String[] getFilePath(ModuleComponentAtRepositoryKey componentId) {
         ModuleComponentIdentifier moduleComponentIdentifier = componentId.getComponentId();
-        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + componentId.getRepositoryId() + "/descriptor.bin";
+        return new String[] {
+            moduleComponentIdentifier.getGroup(),
+            moduleComponentIdentifier.getModule(),
+            moduleComponentIdentifier.getVersion(),
+            componentId.getRepositoryId(),
+            "descriptor.bin"
+        };
     }
 
 }

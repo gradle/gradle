@@ -22,16 +22,19 @@ import org.gradle.api.artifacts.component.ComponentSelector;
  * A dependency that is defined locally in a build script, not resolved from a repository.
  * This has a simplified model of a dependency, that maps from a single module configuration to a single target configuration.
  */
-public interface LocalOriginDependencyMetadata extends DependencyMetadata {
+public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata {
     String getModuleConfiguration();
 
     String getDependencyConfiguration();
 
-    /**
-     * Was the dependency created with the 'force' attribute.
-     */
-    boolean isForce();
-
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);
+
+    @Override
+    LocalOriginDependencyMetadata forced();
+
+    /**
+     * Is this a dependency constraint created for a dependency lock?
+     */
+    boolean isFromLock();
 }

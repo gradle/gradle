@@ -19,29 +19,28 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleVersions
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Retry
 import spock.lang.Timeout
 
+import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
 import static org.hamcrest.Matchers.containsString
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Timeout(180)
-@TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
+@Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {
 
     public static final String WAITING_MESSAGE = "Waiting for changes to input files of tasks..."
@@ -57,9 +56,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionFailure failure
 
     int buildTimeout = 20
-
-    @Rule
-    RetryRule timeoutRetryRule = RetryRuleUtil.retryContinuousBuildSpecificationOnTimeout(this)
 
     @Rule
     GradleBuildCancellation cancellationTokenSource

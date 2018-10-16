@@ -16,9 +16,9 @@
 
 package org.gradle.internal.operations.logging;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
 
@@ -87,7 +87,7 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
             }
             logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
         } finally {
-            IOUtils.closeQuietly(logWriter);
+            IoActions.closeQuietly(logWriter);
             started = false;
         }
     }

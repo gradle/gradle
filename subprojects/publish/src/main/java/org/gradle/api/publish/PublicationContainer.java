@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish;
 
-import org.gradle.api.*;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 
 /**
  * A {@code PublicationContainer} is responsible for creating and managing {@link Publication} instances.
@@ -43,6 +43,5 @@ import org.gradle.api.*;
  * @see Publication
  * @see PublishingExtension
  */
-@Incubating
 public interface PublicationContainer extends ExtensiblePolymorphicDomainObjectContainer<Publication> {
 }

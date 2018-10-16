@@ -61,7 +61,7 @@ public class DefaultImmutableModuleIdentifierFactory implements ImmutableModuleI
         }
         ModuleVersionIdentifier identifier = byVersion.get(version);
         if (identifier == null) {
-            identifier = new DefaultModuleVersionIdentifier(mi, version);
+            identifier =  DefaultModuleVersionIdentifier.newId(mi, version);
             byVersion.put(version, identifier);
         }
         return identifier;

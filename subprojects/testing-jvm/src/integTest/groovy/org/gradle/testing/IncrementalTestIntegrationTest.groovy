@@ -31,6 +31,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         executer.noExtraLogging()
+        executer.withRepositoryMirrors()
     }
 
     def doesNotRunStaleTests() {
@@ -52,7 +53,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         file('src/main/java/MainClass.java').assertIsFile().copyFrom(file('NewMainClass.java'))
 
         then:
-        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':compileTestJava', ':testClasses', ':test')
+        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':test')
         succeeds('test').assertTasksNotSkipped()
 
         when:
@@ -105,7 +106,7 @@ public class BarTest {
         """
 
         when:
-        succeeds("test", "-Dtest.single=Foo")
+        succeeds("test", "--tests", "Foo*")
 
         then:
         //asserting on output because test results are kept in between invocations
@@ -113,14 +114,14 @@ public class BarTest {
         outputContains("executed Test test(FooTest)")
 
         when:
-        succeeds("test", "-Dtest.single=Bar")
+        succeeds("test", "--tests", "Bar*")
 
         then:
         outputContains("executed Test test(BarTest)")
         outputDoesNotContain("executed Test test(FooTest)")
 
         when:
-        succeeds("test", "-Dtest.single=Bar")
+        succeeds("test", "--tests", "Bar*")
 
         then:
         result.assertTaskSkipped(":test")

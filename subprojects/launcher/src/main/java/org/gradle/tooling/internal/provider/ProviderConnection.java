@@ -43,13 +43,13 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -57,6 +57,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,8 +103,7 @@ public class ProviderConnection {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
         Parameters params = initParams(providerParameters);
-        Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
-        if (type == InternalBuildEnvironment.class) {
+        if (BuildEnvironment.class.getName().equals(modelName)) {
             //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
@@ -119,7 +119,7 @@ public class ProviderConnection {
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
-        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+        return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
@@ -137,8 +137,26 @@ public class ProviderConnection {
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
-        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+        return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
+    }
 
+    public Object runPhasedAction(InternalPhasedAction clientPhasedAction,
+                                  PhasedActionResultListener resultListener,
+                                  BuildCancellationToken cancellationToken,
+                                  ProviderOperationParameters providerParameters) {
+        List<String> tasks = providerParameters.getTasks();
+        SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
+        Parameters params = initParams(providerParameters);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
+        try {
+            return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
+                providerParameters, params);
+        } finally {
+            failsafePhasedActionResultListener.rethrowErrors();
+        }
     }
 
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
@@ -146,13 +164,18 @@ public class ProviderConnection {
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
-        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+        return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
-    private Object run(BuildAction action, BuildCancellationToken cancellationToken, ProgressListenerConfiguration progressListenerConfiguration, ProviderOperationParameters providerParameters, Parameters parameters) {
+    private Object run(BuildAction action, BuildCancellationToken cancellationToken,
+                       ProgressListenerConfiguration progressListenerConfiguration,
+                       BuildEventConsumer buildEventConsumer,
+                       ProviderOperationParameters providerParameters,
+                       Parameters parameters) {
         try {
             BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()), cancellationToken, progressListenerConfiguration.buildEventConsumer);
+            boolean interactive = providerParameters.getStandardInput() != null;
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
             BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters, sharedServices);
             if (result.failure != null) {
                 throw (RuntimeException) payloadSerializer.deserialize(result.failure);

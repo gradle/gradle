@@ -76,4 +76,9 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     public boolean isComposite() {
         return descriptor.isComposite();
     }
+
+    @Override
+    public boolean isRoot() {
+        return descriptor.isRoot();
+    }
 }

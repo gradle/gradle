@@ -1,26 +1,28 @@
-// START SNIPPET play-coffeescript
+// tag::play-coffeescript[]
 plugins {
     id 'play'
     id 'play-coffeescript'
 }
-// END SNIPPET play-coffeescript
+// end::play-coffeescript[]
 
-// START SNIPPET play-platform
+// tag::play-platform[]
 model {
     components {
         play {
-            platform play: '2.5.18', scala: '2.11', java: '1.8'
+            platform play: '2.6.15', scala: '2.12', java: '1.8'
             injectedRoutesGenerator = true
         }
     }
 }
-// END SNIPPET play-platform
+// end::play-platform[]
 
-// START SNIPPET play-dependencies
+// tag::play-dependencies[]
 dependencies {
     play "commons-lang:commons-lang:2.6"
+    play "com.typesafe.play:play-guice_2.12:2.6.15"
+    play "ch.qos.logback:logback-classic:1.2.3"
 }
-// END SNIPPET play-dependencies
+// end::play-dependencies[]
 
 repositories {
     jcenter()

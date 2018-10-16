@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
@@ -24,7 +24,7 @@ import org.junit.Rule
 
 import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
 
-class TestNGFailurePolicyIntegrationTest extends AbstractIntegrationSpec {
+class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public TestResources resources = new TestResources(testDirectoryProvider)
 

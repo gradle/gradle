@@ -16,8 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
@@ -34,7 +36,8 @@ class DefaultToolChainSelectorTest extends Specification {
     def os = Stub(OperatingSystemInternal)
     def arch = Stub(ArchitectureInternal)
     def host = new DefaultNativePlatform("host", os, arch)
-    def selector = new DefaultToolChainSelector(modelRegistry)
+    def objectFactory = Mock(ObjectFactory)
+    def selector = new DefaultToolChainSelector(modelRegistry, objectFactory)
 
     def setup() {
         selector.host = host
@@ -45,7 +48,9 @@ class DefaultToolChainSelectorTest extends Specification {
         def toolChain = Mock(NativeToolChainInternal)
         def toolProvider = Mock(PlatformToolProvider)
 
+
         given:
+        objectFactory.named(_, _) >> Mock(OperatingSystemFamily)
         modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
 
         when:
@@ -69,9 +74,12 @@ class DefaultToolChainSelectorTest extends Specification {
         def toolProvider = Mock(PlatformToolProvider)
         def x86ToolChain = Mock(NativeToolChainInternal)
         def x86ToolProvider = Mock(PlatformToolProvider)
+        def windows = Mock(OperatingSystemFamily)
 
         given:
+        objectFactory.named(_, _) >> windows
         modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
+        windows.isWindows() >> true
         os.windows >> true
         arch.amd64 >> true
 
@@ -100,9 +108,12 @@ class DefaultToolChainSelectorTest extends Specification {
         def toolProvider = Mock(PlatformToolProvider)
         def x86ToolChain = Mock(NativeToolChainInternal)
         def x86ToolProvider = Mock(PlatformToolProvider)
+        def windows = Mock(OperatingSystemFamily)
 
         given:
+        objectFactory.named(_, _) >> windows
         modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
+        windows.isWindows() >> true
         os.windows >> true
         arch.amd64 >> true
 

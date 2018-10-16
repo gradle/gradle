@@ -16,9 +16,10 @@
 
 package org.gradle.ide.xcode.fixtures
 
+import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class XcodeProjectPackage {
+class XcodeProjectPackage extends IdeProjectFixture {
     final TestFile dir
     final TestFile workspaceSettingsFile
     final ProjectFile projectFile

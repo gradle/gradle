@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.buildevents
 
-import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 
-class RichConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest implements RichConsoleStyling {
+class RichConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
-    String failureMessage = styled("BUILD FAILED", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
-    String successMessage = styled('BUILD SUCCESSFUL', Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD)
+    String failureMessage = buildFailedStyled.errorOutput
+    String successMessage = buildSuccessStyled.output
 }

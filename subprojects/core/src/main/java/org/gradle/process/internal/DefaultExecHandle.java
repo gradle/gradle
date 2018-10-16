@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -113,10 +114,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
+    private final BuildCancellationToken buildCancellationToken;
+
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
-                      Executor executor) {
+                      Executor executor, BuildCancellationToken buildCancellationToken) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -131,6 +134,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.lock = new ReentrantLock();
         this.stateChanged = lock.newCondition();
         this.state = ExecHandleState.INIT;
+        this.buildCancellationToken = buildCancellationToken;
         processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
@@ -193,6 +197,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
+        buildCancellationToken.removeCallback(shutdownHookAction);
         ExecHandleState currentState;
         lock.lock();
         try {
@@ -255,7 +260,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 try {
                     stateChanged.await();
                 } catch (InterruptedException e) {
-                    //ok, wrapping up
+                    execHandleRunner.abortProcess();
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
 
@@ -294,7 +300,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 try {
                     stateChanged.await();
                 } catch (InterruptedException e) {
-                    //ok, wrapping up...
+                    execHandleRunner.abortProcess();
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
@@ -325,6 +331,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     void started() {
         ShutdownHookActionRegister.addAction(shutdownHookAction);
+        buildCancellationToken.addCallback(shutdownHookAction);
         setState(ExecHandleState.STARTED);
         broadcast.getSource().executionStarted(this);
     }
@@ -419,8 +426,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
         @Override
         public void stop() {
-            inputHandler.stop();
             outputHandler.stop();
+            inputHandler.stop();
+        }
+
+        @Override
+        public void disconnect() {
+            outputHandler.disconnect();
+            inputHandler.disconnect();
         }
     }
 }

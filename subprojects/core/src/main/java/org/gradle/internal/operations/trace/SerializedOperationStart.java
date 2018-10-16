@@ -17,13 +17,12 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationStartEvent;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
 class SerializedOperationStart implements SerializedOperation {
 
@@ -41,33 +40,8 @@ class SerializedOperationStart implements SerializedOperation {
         this.parentId = descriptor.getParentId() == null ? null : descriptor.getParentId().getId();
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
-        this.details = transform(descriptor.getDetails());
+        this.details = toSerializableModel(descriptor.getDetails());
         this.detailsClassName = details == null ? null : descriptor.getDetails().getClass().getName();
-    }
-
-    private Object transform(Object details) {
-        if (details instanceof ExecuteTaskBuildOperationType.Details) {
-            ExecuteTaskBuildOperationType.Details cast = (ExecuteTaskBuildOperationType.Details) details;
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("buildPath", cast.getBuildPath());
-            map.put("taskPath", cast.getTaskPath());
-            map.put("taskClass", cast.getTaskClass().getName());
-            map.put("taskId", cast.getTaskId());
-            return map;
-        }
-
-        if (details instanceof ApplyPluginBuildOperationType.Details) {
-            ApplyPluginBuildOperationType.Details cast = (ApplyPluginBuildOperationType.Details) details;
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("pluginId", cast.getPluginId());
-            map.put("pluginClass", cast.getPluginClass().getName());
-            map.put("targetType", cast.getTargetType());
-            map.put("targetPath", cast.getTargetPath());
-            map.put("buildPath", cast.getBuildPath());
-            return map;
-        }
-
-        return details;
     }
 
     SerializedOperationStart(Map<String, ?> map) {

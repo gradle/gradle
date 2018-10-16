@@ -19,5 +19,4 @@
  *
  * @since 1.4
  */
-@org.gradle.api.Incubating
 package org.gradle.api.publish.maven;

@@ -19,42 +19,49 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
     private instantiator = DirectInstantiator.INSTANCE
-    private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class)
-    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class)
+    private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
+    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())
+    private componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()
 
-    def versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
+    def versionIdentifier = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "producer"), "1.0")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     def testAttribute = Attribute.of("someAttribute", String)
-    def attributes = TestUtil.attributesFactory().of(testAttribute, "someValue")
-    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
-    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    def attributes = AttributeTestUtil.attributesFactory().of(testAttribute, "someValue")
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory())
+    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     def gradleMetadata
-    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(mavenComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
-    def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
-    def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
+    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(mavenComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser)
+    def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser)
+    def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser)
 
     private ivyComponentMetadata() {
         ivyMetadataFactory.create(componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
@@ -62,7 +69,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     private gradleComponentMetadata() {
         def metadata = mavenMetadataFactory.create(componentIdentifier)
         metadata.addVariant("variantDefinedInGradleMetadata1", attributes) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
-        metadata.addVariant("variantDefinedInGradleMetadata2", TestUtil.attributesFactory().of(testAttribute, "other")) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
+        metadata.addVariant("variantDefinedInGradleMetadata2", AttributeTestUtil.attributesFactory().of(testAttribute, "other")) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         gradleMetadata = metadata
         metadata
     }
@@ -149,10 +156,10 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
 
     void resolve(MutableModuleComponentResolveMetadata component) {
         def immutable = component.asImmutable()
-        def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
-        def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, null, [] as List, [], false, false, true, false, null)
+        def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
+        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
 
         def configuration = consumer.selectConfigurations(attributes, immutable, schema)[0]
         configuration.dependencies

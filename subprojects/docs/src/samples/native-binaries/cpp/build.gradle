@@ -1,33 +1,33 @@
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'cpp'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
-// START SNIPPET libraries
+// tag::libraries[]
 model {
     components {
         hello(NativeLibrarySpec)
     }
 }
-// END SNIPPET libraries
+// end::libraries[]
 
-// START SNIPPET executables
+// tag::executables[]
 model {
     components {
         main(NativeExecutableSpec) {
-// START SNIPPET source-library
+// tag::source-library[]
             sources {
                 cpp {
                     lib library: "hello"
                 }
             }
-// END SNIPPET source-library
+// end::source-library[]
         }
     }
 }
 
-// END SNIPPET executables
+// end::executables[]
 
-// START SNIPPET all-binaries
+// tag::all-binaries[]
 model {
     binaries {
         all {
@@ -46,7 +46,7 @@ model {
         }
     }
 }
-// END SNIPPET all-binaries
+// end::all-binaries[]
 
 // For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
 model {

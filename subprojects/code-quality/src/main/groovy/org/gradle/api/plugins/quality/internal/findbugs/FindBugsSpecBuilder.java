@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class FindBugsSpecBuilder {
     private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
     private static final Set<String> VALID_REPORT_LEVELS = ImmutableSet.of("experimental", "low", "medium", "high");
@@ -246,7 +247,7 @@ public class FindBugsSpecBuilder {
             args.addAll(extraArgs);
         }
 
-        for (File classDir : classesDirs.getFiles()) {
+        for (File classDir : classesDirs) {
             // FindBugs cannot handle missing directories
             if (classDir.exists()) {
                 args.add(classDir.getAbsolutePath());

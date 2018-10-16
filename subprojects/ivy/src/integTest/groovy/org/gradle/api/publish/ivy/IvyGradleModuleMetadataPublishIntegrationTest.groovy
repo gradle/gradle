@@ -33,6 +33,7 @@ class TestUsage implements org.gradle.api.internal.component.UsageContext {
     Set dependencyConstraints = []
     Set artifacts = []
     Set capabilities = []
+    Set globalExcludes = []
     AttributeContainer attributes
 }
 
@@ -199,7 +200,7 @@ class TestCapability implements Capability {
         api.dependencies[1].coords == 'group.b:utils:0.01'
     }
 
-    def "publishes component with strict dependencies"() {
+    def "publishes component with strict and prefer dependencies"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'ivy-publish'
@@ -220,7 +221,12 @@ class TestCapability implements Capability {
                         strictly '1.0'
                     }
                 }
-                implementation("org:bar:2.0")
+                implementation("org:bar") {
+                    version {
+                        prefer '1.0'
+                    }
+                }
+                implementation("org:baz:2.0")
             }
 
             publishing {
@@ -243,17 +249,28 @@ class TestCapability implements Capability {
         module.assertPublished()
         module.parsedModuleMetadata.variants.size() == 1
         def variant = module.parsedModuleMetadata.variants[0]
-        variant.dependencies.size() == 2
+        variant.dependencies.size() == 3
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == '1.0'
-        variant.dependencies[0].rejectsVersion == [']1.0,)']
+        variant.dependencies[0].version == null
+        variant.dependencies[0].prefers == null
+        variant.dependencies[0].strictly == '1.0'
+        variant.dependencies[0].rejectsVersion == []
 
         variant.dependencies[1].group == 'org'
         variant.dependencies[1].module == 'bar'
-        variant.dependencies[1].version == '2.0'
+        variant.dependencies[1].version == null
+        variant.dependencies[1].prefers == '1.0'
+        variant.dependencies[1].strictly == null
         variant.dependencies[1].rejectsVersion == []
+
+        variant.dependencies[2].group == 'org'
+        variant.dependencies[2].module == 'baz'
+        variant.dependencies[2].version == '2.0'
+        variant.dependencies[2].prefers == null
+        variant.dependencies[2].strictly == null
+        variant.dependencies[2].rejectsVersion == []
     }
 
     def "publishes component with dependency constraints"() {
@@ -356,7 +373,8 @@ class TestCapability implements Capability {
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == '1.0'
+        variant.dependencies[0].version == null
+        variant.dependencies[0].prefers == '1.0'
         variant.dependencies[0].rejectsVersion == ['1.1', '[1.3,1.4]']
 
         variant.dependencies[1].group == 'org'
@@ -460,4 +478,68 @@ class TestCapability implements Capability {
             noMoreDependencies()
         }
     }
+
+    def "publishes dependency/constraint attributes"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            def attr1 = Attribute.of('custom', String)
+            def attr2 = Attribute.of('nice', Boolean)
+            
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                   attributes {
+                      attribute(attr1, 'foo')
+                   }
+                }
+                constraints {                
+                    implementation("org:bar:2.0") {
+                        attributes {
+                           attribute(attr2, true)
+                        }
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variant('api') {
+            dependency('org:foo:1.0') {
+                hasAttribute('custom', 'foo')
+            }
+            constraint('org:bar:2.0') {
+                hasAttribute('nice', true)
+            }
+            noMoreDependencies()
+        }
+    }
+
 }

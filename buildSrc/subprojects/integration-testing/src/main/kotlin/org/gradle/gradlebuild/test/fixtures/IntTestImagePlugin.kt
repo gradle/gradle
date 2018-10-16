@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
-
 import org.gradle.kotlin.dsl.*
 import useAllDistribution
 import java.util.concurrent.Callable
@@ -42,54 +41,63 @@ import java.util.concurrent.Callable
 open class IntTestImagePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val intTestImage by tasks.creating(Sync::class) {
+        val intTestImage = tasks.register("intTestImage", Sync::class) {
             group = "Verification"
             into(file("$buildDir/integ test"))
         }
 
-        tasks.withType<DistributionTest> {
+        tasks.withType<DistributionTest>().configureEach {
             dependsOn(intTestImage)
         }
 
         val partialDistribution by configurations.creating {
             attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
             }
             isCanBeResolved = true
             isCanBeConsumed = false
         }
 
         if (useAllDistribution) {
-            val unpackAllDistribution by tasks.creating(Sync::class) {
+            val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
+
+            val unpackAllDistribution = tasks.register("unpackAllDistribution", Sync::class) {
                 dependsOn(":distributions:allZip")
-                from(Callable { zipTree(rootProject.project("distributions").tasks.getByName<Zip>("allZip").archivePath) })
-                into("$buildDir/tmp/unpacked-all-distribution")
+                // TODO: This should be modelled as a publication
+                from(Callable {
+                    val distributionsProject = rootProject.project("distributions")
+                    val allZip = distributionsProject.tasks.getByName<Zip>("allZip")
+                    zipTree(allZip.archivePath)
+                })
+                into(unpackedPath)
             }
-            val unpackedPath = "${unpackAllDistribution.destinationDir}/gradle-$version"
-            intTestImage.apply {
+
+            intTestImage.configure {
                 dependsOn(unpackAllDistribution)
-                from(unpackedPath)
+                from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
             val selfRuntime by configurations.creating {
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 }
                 isCanBeResolved = true
                 isCanBeConsumed = false
             }
             afterEvaluate {
-                if (project.tasks.findByName("jar") != null) {
+                if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {
                         selfRuntime(this@afterEvaluate)
                     }
                 }
-                intTestImage.apply {
+                intTestImage.configure {
                     into("bin") {
                         from(Callable { project(":launcher").tasks.getByName("startScripts").outputs.files })
+                        // TODO: This is probably supposed to be fileMode = ...
                         Integer.parseInt("0755", 8)
                     }
 
+                    // TODO: Model these as publications of different types of distributions
                     val runtimeClasspathConfigurations = (rootProject.configurations["coreRuntime"]
                         + rootProject.configurations["coreRuntimeExtensions"]
                         + selfRuntime
@@ -98,6 +106,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                     val libsThisProjectDoesNotUse = (rootProject.configurations["runtime"] + rootProject.configurations["gradlePlugins"]) - runtimeClasspathConfigurations
 
                     into("lib") {
+                        from(Callable { project(":apiMetadata").tasks.getByName("jar").outputs.files })
                         from(rootProject.configurations["runtime"] - libsThisProjectDoesNotUse)
                         into("plugins") {
                             from(rootProject.configurations["gradlePlugins"] - rootProject.configurations["runtime"] - libsThisProjectDoesNotUse)
@@ -105,7 +114,10 @@ open class IntTestImagePlugin : Plugin<Project> {
                     }
 
                     into("samples") {
-                        from(Callable { (project(":docs").extra.get("outputs") as Map<String, FileCollection>)["samples"] })
+                        from(Callable {
+                            val outputs: Map<String, FileCollection> by project(":docs").extra
+                            outputs["samples"]
+                        })
                     }
 
                     doLast {

@@ -28,8 +28,8 @@ import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
+import org.gradle.plugins.ide.internal.tooling.model.TaskNameComparator;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.Collection;
@@ -78,7 +78,7 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
         }
 
         // construct project tasks
-        List<LaunchableGradleTask> projectTasks = tasks(project);
+        List<LaunchableGradleTask> projectTasks = tasks(project, projectIdentifier);
 
         // construct build invocations from task selectors and project tasks
         return new DefaultBuildInvocations()
@@ -92,10 +92,10 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
     }
 
     // build tasks without project reference
-    private List<LaunchableGradleTask> tasks(Project project) {
+    private List<LaunchableGradleTask> tasks(Project project, DefaultProjectIdentifier projectIdentifier) {
         List<LaunchableGradleTask> tasks = Lists.newArrayList();
         for (Task task : taskLister.listProjectTasks(project)) {
-            tasks.add(buildFromTask(new LaunchableGradleTask(), task));
+            tasks.add(buildFromTask(new LaunchableGradleTask(), projectIdentifier, task));
         }
         return tasks;
     }

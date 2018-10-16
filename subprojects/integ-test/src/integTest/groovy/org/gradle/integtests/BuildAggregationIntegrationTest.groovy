@@ -29,11 +29,11 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
             task build(type: GradleBuild) {
                 dir = 'other'
                 tasks = ['dostuff']
-                startParameter.searchUpwards = false
             }
 '''
 
         and:
+        file('other/settings.gradle') << "rootProject.name = 'other'"
         file('other/build.gradle') << '''
             assert gradle.parent != null
             task dostuff {
@@ -70,6 +70,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def reportsNestedBuildFailure() {
         when:
+        file('other/settings.gradle') << "rootProject.name = 'other'"
         TestFile other = file('other/other.gradle') << '''
             throw new ArithmeticException('broken')
 '''
@@ -77,7 +78,6 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             task build(type: GradleBuild) {
                 buildFile = 'other/other.gradle'
-                startParameter.searchUpwards = false
             }
 '''
 
@@ -128,7 +128,6 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
             task build(type: GradleBuild) {
               dependsOn upper
               tasks = ["upper"]
-              startParameter.searchUpwards = false
               outputs.file "build.gradle" // having an output (or input) triggers the bug
             }
         """

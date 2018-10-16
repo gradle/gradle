@@ -180,18 +180,6 @@ class OptionReaderTest extends Specification {
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
     }
 
-    def "Deprecated internal annotations can be used but output warnings"() {
-        when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(new DeprecatedInternalAnnotations());
-
-        then:
-        options[0].name == "stringValue"
-        options[0].description == "string value"
-        options[0].argumentType == String
-        options[0].optionElement.elementName == "setStringValue"
-        options[0].availableValues == ["dynValue1", "dynValue2"] as Set
-    }
-
     public static class TestClass1{
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
@@ -338,19 +326,6 @@ class OptionReaderTest extends Specification {
         @Option(option = "option1", description = "desc")
         public void setOption1(String value) {
         }
-    }
-
-    public static class DeprecatedInternalAnnotations {
-
-        @org.gradle.api.internal.tasks.options.Option(option = "stringValue", description = "string value")
-        public void setStringValue(String value) {
-        }
-
-        @org.gradle.api.internal.tasks.options.OptionValues("stringValue")
-        public Collection<CustomClass> getAvailableValues() {
-            return Arrays.asList(new CustomClass(value: "dynValue1"), new CustomClass(value: "dynValue2"))
-        }
-
     }
 
     enum TestEnum {

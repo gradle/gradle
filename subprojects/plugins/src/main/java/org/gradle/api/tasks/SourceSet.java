@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.ExtensionAware;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +42,7 @@ import javax.annotation.Nullable;
  * }
  * </pre>
  */
-public interface SourceSet {
+public interface SourceSet extends ExtensionAware {
     /**
      * The name of the main source set.
      */
@@ -95,7 +96,7 @@ public interface SourceSet {
      * @since 4.6
      */
     @Incubating
-    void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath);
+    void setAnnotationProcessorPath(FileCollection annotationProcessorPath);
 
     /**
      * Returns the classpath used to execute this source.
@@ -143,7 +144,7 @@ public interface SourceSet {
      * @param configureClosure The closure to use to configure the resources.
      * @return this
      */
-    SourceSet resources(Closure configureClosure);
+    SourceSet resources(@Nullable Closure configureClosure);
 
     /**
      * Configures the non-Java resources for this set.
@@ -170,7 +171,7 @@ public interface SourceSet {
      * @param configureClosure The closure to use to configure the Java source.
      * @return this
      */
-    SourceSet java(Closure configureClosure);
+    SourceSet java(@Nullable Closure configureClosure);
 
     /**
      * Configures the Java source for this set.
@@ -260,7 +261,6 @@ public interface SourceSet {
      *
      * @since 2.12
      */
-    @Incubating
     String getCompileOnlyConfigurationName();
 
     /**
@@ -269,7 +269,6 @@ public interface SourceSet {
      *
      * @since 2.12
      */
-    @Incubating
     String getCompileClasspathConfigurationName();
 
     /**
@@ -292,7 +291,6 @@ public interface SourceSet {
      *
      * @since 3.3
      */
-    @Incubating
     String getApiConfigurationName();
 
     /**
@@ -302,7 +300,6 @@ public interface SourceSet {
      * @return The configuration name
      * @since 3.4
      */
-    @Incubating
     String getImplementationConfigurationName();
 
     /**
@@ -314,7 +311,6 @@ public interface SourceSet {
      *
      * @since 3.3
      */
-    @Incubating
     String getApiElementsConfigurationName();
 
     /**
@@ -325,7 +321,6 @@ public interface SourceSet {
      * @return the runtime only configuration name
      * @since 3.4
      */
-    @Incubating
     String getRuntimeOnlyConfigurationName();
 
     /**
@@ -335,17 +330,15 @@ public interface SourceSet {
      * @return the name of the runtime classpath configuration
      * @since 3.4
      */
-    @Incubating
     String getRuntimeClasspathConfigurationName();
 
     /**
-     * Returns the name of the configuration containing elements that are stricly required
+     * Returns the name of the configuration containing elements that are strictly required
      * at runtime. Consumers of this configuration will get all the mandatory elements for
      * this component to execute at runtime.
      *
      * @return the name of the runtime elements configuration.
      * @since 3.4
      */
-    @Incubating
     String getRuntimeElementsConfigurationName();
 }

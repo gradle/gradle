@@ -17,12 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import com.google.common.collect.Lists
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
+import org.gradle.api.artifacts.ComponentMetadataListerDetails
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
@@ -33,11 +36,17 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Subject
@@ -51,10 +60,11 @@ class ResolveIvyFactoryTest extends Specification {
     ModuleRepositoryCacheProvider cacheProvider
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
-    VersionSelectorScheme versionSelectorScheme
     VersionComparator versionComparator
     ImmutableModuleIdentifierFactory moduleIdentifierFactory
     RepositoryBlacklister repositoryBlacklister
+    VersionParser versionParser
+    InstantiatorFactory instantiatorFactory
 
     def setup() {
         moduleVersionsCache = Mock(ModuleVersionsCache)
@@ -68,17 +78,17 @@ class ResolveIvyFactoryTest extends Specification {
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
-        versionSelectorScheme = Mock(VersionSelectorScheme)
         versionComparator = Mock(VersionComparator)
         repositoryBlacklister = Mock(RepositoryBlacklister)
+        versionParser = new VersionParser()
+        instantiatorFactory = Mock()
 
-        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, buildCommencedTimeProvider,
-            versionSelectorScheme, versionComparator, moduleIdentifierFactory, repositoryBlacklister)
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, buildCommencedTimeProvider, versionComparator, moduleIdentifierFactory, repositoryBlacklister, versionParser, instantiatorFactory)
     }
 
     def "returns an empty resolver when no repositories are configured" () {
         when:
-        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor))
+        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -97,7 +107,7 @@ class ResolveIvyFactoryTest extends Specification {
         })
 
         when:
-        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessor))
+        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
         then:
         assert resolver instanceof UserResolverChain
@@ -119,6 +129,9 @@ class ResolveIvyFactoryTest extends Specification {
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
         ImmutableMetadataSources metadataSources = Stub()
+        MetadataArtifactProvider metadataArtifactProvider = Stub()
+        InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory = Stub()
+        InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
@@ -130,7 +143,10 @@ class ResolveIvyFactoryTest extends Specification {
                 artifactFileStore,
                 moduleIdentifierFactory,
                 metadataSources,
-                Stub(MetadataArtifactProvider)
+                metadataArtifactProvider,
+                componentMetadataSupplierFactory,
+                versionListerFactory,
+                Mock(Instantiator)
             ]
         ) {
             appendId(_) >> { }

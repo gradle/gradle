@@ -72,11 +72,6 @@ public class IncludeWithSimpleExpression extends AbstractInclude {
         return type;
     }
 
-    public static Include parse(String value, boolean isImport) {
-        Expression expression = RegexBackedCSourceParser.parseExpression(value);
-        return IncludeWithSimpleExpression.create(expression.getValue(), isImport, expression.getType());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

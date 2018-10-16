@@ -68,6 +68,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         where:
         modelType << modelsHavingGradleProjectIdentifier
     }
+
     private static void assertSameIdentifiers(def gradleProject, def model) {
         assertSameIdentifiers([gradleProject], [model])
     }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.*
@@ -27,7 +28,10 @@ class ClassSetAnalysisTest extends Specification {
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                               Map<String, IntSet> classToConstants = [:],
                               Map<String, Set<String>> classesToChildren = [:], DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
-        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren, aggregatedTypes, dependentsOnAll, fullRebuildCause))
+        new ClassSetAnalysis(
+            new ClassSetAnalysisData(dependents.keySet(), dependents, classToConstants, classesToChildren, fullRebuildCause),
+            new AnnotationProcessingData([:], aggregatedTypes.dependentClasses, dependentsOnAll.dependentClasses, null)
+        )
     }
 
     def "returns empty analysis"() {

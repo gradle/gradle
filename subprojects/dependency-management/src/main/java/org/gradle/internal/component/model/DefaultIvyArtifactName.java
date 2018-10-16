@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.base.Objects;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
@@ -67,7 +66,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             result.append("-");
             result.append(classifier);
         }
-        if (GUtil.isTrue(extension)) {
+        if (GUtil.isTrue(extension) && !Files.getFileExtension(name).equals(extension)) {
             result.append(".");
             result.append(extension);
         }
@@ -76,7 +75,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, type, extension, classifier);
+        return name.hashCode() ^ type.hashCode() ^ (extension == null ? 0 : extension.hashCode()) ^ (classifier == null ? 0 : classifier.hashCode());
     }
 
     @Override

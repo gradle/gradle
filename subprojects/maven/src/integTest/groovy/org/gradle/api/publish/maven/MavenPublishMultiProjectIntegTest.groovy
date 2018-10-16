@@ -16,8 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
+
+import java.util.concurrent.atomic.AtomicInteger
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = javaLibrary(mavenRepo.module("org.gradle.test", "project1", "1.0"))
@@ -68,7 +73,7 @@ project(":project3") {
         }
     }
 
-    def "reports failure when project dependency references a project with multiple publications"() {
+    def "reports failure when project dependency references a project with multiple conflicting publications"() {
         createBuildScripts("""
 project(":project3") {
     publishing {
@@ -93,12 +98,30 @@ project(":project3") {
         fails "publish"
 
         then:
-        failure.assertHasCause "Exception thrown while executing model rule: PublishingPlugin.Rules#publishing"
         failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in project ':project3':
-  - Maven publication 'extra' with coordinates extra.group:extra:extra
+  - Maven publication 'maven' with coordinates org.gradle.test:project3:3.0
   - Maven publication 'extraComp' with coordinates extra.group:extra-comp:extra
-  - Maven publication 'maven' with coordinates org.gradle.test:project3:3.0"""
+  - Maven publication 'extra' with coordinates extra.group:extra:extra"""
+    }
+
+    def "referenced project can have additional non-component publications"() {
+        createBuildScripts("""
+project(":project3") {
+    publishing {
+        publications {
+            extra(MavenPublication) {
+                groupId "extra.group"
+                artifactId "extra"
+                version "extra"
+            }
+        }
+    }
+}
+""")
+
+        expect:
+        succeeds "publish"
     }
 
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
@@ -237,6 +260,60 @@ project(":project2") {
         project1.assertApiDependencies("org.gradle.test:project2:2.0")
     }
 
+    @Issue("https://github.com/gradle/gradle-native/issues/867")
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "can resolve non-build dependencies while projects are configured in parallel"() {
+        def parallelProjectCount = 20
+        using m2
+
+        given:
+        settingsFile << """
+            (0..${parallelProjectCount}).each {
+                include "producer" + it
+                include "consumer" + it
+            }
+        """
+
+        buildFile << """
+            def resolutionCount = [:].withDefault { new ${AtomicInteger.canonicalName}(0) }.asSynchronized()
+
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'maven'
+                
+                group = "org.gradle.test"
+                version = "1.0"
+
+                tasks.named("jar") {
+                    resolutionCount[project.name].incrementAndGet()
+                    println project.name + " RESOLUTION"
+                }
+            }
+           
+            subprojects {
+                if (name.startsWith("consumer")) {
+                    dependencies {
+                        (0..${parallelProjectCount}).each {
+                            testCompile project(":producer" + it)
+                        }
+                    }
+                }
+            }
+            
+            def verify = tasks.register("verify") {
+                dependsOn ((0..${parallelProjectCount}).collect { ":consumer" + it + ":install" })
+                doLast {
+                    println resolutionCount
+                    assert !resolutionCount.empty
+                    assert !resolutionCount.values().any { it > 1 }
+                }
+            }
+        """
+
+        expect:
+        succeeds "verify", "--parallel"
+    }
+
     @Issue("GRADLE-3366")
     def "project dependency excludes are correctly reflected in pom when using maven-publish plugin"() {
         given:
@@ -310,6 +387,7 @@ project(":project2") {
         }
     }
 
+    @Ignore("TODO: CC, there's currently no support for platform() on a local project. We must think about the concept of Gradle platform first")
     def "publish and resolve java-library with dependency on java-library-platform"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

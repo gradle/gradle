@@ -19,8 +19,8 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.CacheValidator;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -32,7 +32,6 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +41,7 @@ public class InMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, @Nullable CacheValidator cacheValidator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, CleanupAction cleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, CleanupAction cleanup) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cleanup);
         if (initializer != null) {
@@ -71,7 +70,7 @@ public class InMemoryCacheFactory implements CacheFactory {
         public void close() {
             if (cleanup!=null) {
                 synchronized (this) {
-                    cleanup.clean(this);
+                    cleanup.clean(this, CleanupProgressMonitor.NO_OP);
                 }
             }
             closed = true;
@@ -145,8 +144,13 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public String toString() {
+        public String getDisplayName() {
             return "InMemoryCache '" + displayName + "' " + cacheDir;
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
         }
     }
 }

@@ -23,9 +23,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.SingleMessageLogger;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -92,10 +90,7 @@ public class OptionReader {
 
     private static String[] getOptionNames(JavaMethod<Object, Collection> optionValueMethod) {
         OptionValues optionValues = optionValueMethod.getMethod().getAnnotation(OptionValues.class);
-        if (optionValues != null) {
-            return optionValues.value();
-        }
-        return optionValueMethod.getMethod().getAnnotation(org.gradle.api.internal.tasks.options.OptionValues.class).value();
+        return optionValues.value();
     }
 
     private Collection<OptionElement> getOptionElements(Object target) {
@@ -111,22 +106,16 @@ public class OptionReader {
     private List<OptionElement> getFieldAnnotations(Class<?> type) {
         List<OptionElement> fieldOptionElements = new ArrayList<OptionElement>();
         for (Field field : type.getDeclaredFields()) {
-            Option option = findOption(field, Option.class);
+            Option option = findOption(field);
             if (option != null) {
                 fieldOptionElements.add(FieldOptionElement.create(option, field, optionValueNotationParserFactory));
-            } else {
-                org.gradle.api.internal.tasks.options.Option internalOption = findOption(field, org.gradle.api.internal.tasks.options.Option.class);
-                if (internalOption != null) {
-                    SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.Option", "Use org.gradle.api.tasks.options.Option instead");
-                    fieldOptionElements.add(FieldOptionElement.create(internalOption, field, optionValueNotationParserFactory));
-                }
             }
         }
         return fieldOptionElements;
     }
 
-    private <T extends Annotation> T findOption(Field field, Class<T> optionType) {
-        T option = field.getAnnotation(optionType);
+    private Option findOption(Field field) {
+        Option option = field.getAnnotation(Option.class);
         if (option != null) {
             if (Modifier.isStatic(field.getModifiers())) {
                 throw new OptionValidationException(String.format("@Option on static field '%s' not supported in class '%s'.",
@@ -139,24 +128,18 @@ public class OptionReader {
     private List<OptionElement> getMethodAnnotations(Class<?> type) {
         List<OptionElement> methodOptionElements = new ArrayList<OptionElement>();
         for (Method method : type.getDeclaredMethods()) {
-            Option option = findOption(method, Option.class);
+            Option option = findOption(method);
             if (option != null) {
                 OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method,
                     optionValueNotationParserFactory);
                 methodOptionElements.add(methodOptionDescriptor);
-            }  else {
-                org.gradle.api.internal.tasks.options.Option internalOption = findOption(method, org.gradle.api.internal.tasks.options.Option.class);
-                if (internalOption != null) {
-                    SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.Option", "Use org.gradle.api.tasks.options.Option instead");
-                    methodOptionElements.add(MethodOptionElement.create(internalOption, method, optionValueNotationParserFactory));
-                }
             }
         }
         return methodOptionElements;
     }
 
-    private <T extends Annotation> T findOption(Method method, Class<T> optionType) {
-        T option = method.getAnnotation(optionType);
+    private Option findOption(Method method) {
+        Option option = method.getAnnotation(Option.class);
         if (option != null) {
             if (Modifier.isStatic(method.getModifiers())) {
                 throw new OptionValidationException(String.format("@Option on static method '%s' not supported in class '%s'.",
@@ -170,24 +153,17 @@ public class OptionReader {
         List<JavaMethod<Object, Collection>> methods = new ArrayList<JavaMethod<Object, Collection>>();
         for (Class<?> type = declaredClass; type != Object.class && type != null; type = type.getSuperclass()) {
             for (Method method : type.getDeclaredMethods()) {
-                JavaMethod<Object, Collection> optionValuesMethod = getAsOptionValuesMethod(type, method, OptionValues.class);
+                JavaMethod<Object, Collection> optionValuesMethod = getAsOptionValuesMethod(type, method);
                 if (optionValuesMethod != null) {
                     methods.add(optionValuesMethod);
-                } else {
-                    optionValuesMethod = getAsOptionValuesMethod(type, method, org.gradle.api.internal.tasks.options.OptionValues.class);
-                    if (optionValuesMethod != null) {
-                        SingleMessageLogger.nagUserOfDeprecated("org.gradle.api.internal.tasks.options.OptionValues", "Use org.gradle.api.tasks.options.OptionValues instead");
-                        methods.add(optionValuesMethod);
-                    }
                 }
-
             }
         }
         return methods;
     }
 
-    private static <T extends Annotation> JavaMethod<Object, Collection> getAsOptionValuesMethod(Class<?> type, Method method, Class<T> optionValuesType) {
-        T optionValues = method.getAnnotation(optionValuesType);
+    private static JavaMethod<Object, Collection> getAsOptionValuesMethod(Class<?> type, Method method) {
+        OptionValues optionValues = method.getAnnotation(OptionValues.class);
         if (optionValues == null) {
             return null;
         }

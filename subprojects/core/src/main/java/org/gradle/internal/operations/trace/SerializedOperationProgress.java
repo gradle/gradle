@@ -22,6 +22,8 @@ import org.gradle.internal.operations.OperationProgressEvent;
 
 import java.util.Map;
 
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
+
 class SerializedOperationProgress implements SerializedOperation {
 
     final long id;
@@ -32,12 +34,8 @@ class SerializedOperationProgress implements SerializedOperation {
     SerializedOperationProgress(OperationIdentifier id, OperationProgressEvent progressEvent) {
         this.id = id.getId();
         this.time = progressEvent.getTime();
-        this.details = transform(progressEvent.getDetails());
+        this.details = toSerializableModel(progressEvent.getDetails());
         this.detailsClassName = details == null ? null : progressEvent.getDetails().getClass().getName();
-    }
-
-    private Object transform(Object details) {
-        return details;
     }
 
     SerializedOperationProgress(Map<String, ?> map) {

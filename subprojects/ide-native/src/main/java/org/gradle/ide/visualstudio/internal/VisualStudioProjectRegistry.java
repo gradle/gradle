@@ -54,7 +54,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         if (vsProject == null) {
             vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, componentName, visualStudioVersion, sdkVersion, fileResolver, getInstantiator());
             add(vsProject);
-            ideArtifactRegistry.registerIdeArtifact(vsProject.getPublishArtifact());
+            ideArtifactRegistry.registerIdeProject(vsProject.getPublishArtifact());
         }
         return vsProject;
     }

@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.CacheableTask;
@@ -41,6 +40,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -103,7 +103,8 @@ public class Javadoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        final File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDir();
+        GFileUtils.cleanDirectory(destinationDir);
 
         StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
@@ -169,7 +170,7 @@ public class Javadoc extends SourceTask {
     /**
      * Returns the tool chain that will be used to generate the Javadoc.
      */
-    @Incubating @Inject
+    @Inject
     public JavaToolChain getToolChain() {
         // Implementation is generated
         throw new UnsupportedOperationException();
@@ -178,7 +179,6 @@ public class Javadoc extends SourceTask {
     /**
      * Sets the tool chain to use to generate the Javadoc.
      */
-    @Incubating
     public void setToolChain(@SuppressWarnings("unused") JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();

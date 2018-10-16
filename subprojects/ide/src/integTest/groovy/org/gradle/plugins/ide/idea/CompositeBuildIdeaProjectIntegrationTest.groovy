@@ -217,7 +217,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency "org.test:buildB:1.0"
         dependency "org.test:buildC:1.0"
 
-        def buildC = file("hierarchy", "buildB");
+        def buildC = file("hierarchy", "buildB")
         buildC.file('settings.gradle') << """
             rootProject.name = 'buildC'
 """

@@ -16,10 +16,9 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A {@code SourceSetContainer} manages a set of {@link SourceSet} objects.
  */
-public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet>, NamedDomainObjectSet<SourceSet> {
+public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet> {
 }

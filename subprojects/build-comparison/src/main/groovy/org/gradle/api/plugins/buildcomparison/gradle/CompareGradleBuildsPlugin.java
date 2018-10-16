@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.IConventionAware;
@@ -30,13 +29,12 @@ import java.util.concurrent.Callable;
 /**
  * Preconfigures the project to run a gradle build comparison.
  */
-@Incubating
 public class CompareGradleBuildsPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         final ReportingExtension reportingExtension = project.getExtensions().findByType(ReportingExtension.class);
 
-        project.getTasks().withType(CompareGradleBuilds.class, new Action<CompareGradleBuilds>() {
+        project.getTasks().withType(CompareGradleBuilds.class).configureEach(new Action<CompareGradleBuilds>() {
             @Override
             public void execute(final CompareGradleBuilds task) {
                 ((IConventionAware) task).getConventionMapping().map("reportDir", new Callable<File>() {
@@ -48,6 +46,6 @@ public class CompareGradleBuildsPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().create("compareGradleBuilds", CompareGradleBuilds.class);
+        project.getTasks().register("compareGradleBuilds", CompareGradleBuilds.class);
     }
 }

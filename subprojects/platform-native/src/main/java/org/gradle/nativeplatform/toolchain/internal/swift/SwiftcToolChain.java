@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.swift;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -43,6 +42,7 @@ import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +94,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
-        SearchResult<SwiftcMetadata> swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(compiler.getTool(), ImmutableList.<String>of());
+        SearchResult<SwiftcMetadata> swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(compiler.getTool(), Collections.<String>emptyList(), toolSearchPath.getPath());
         result.mustBeAvailable(swiftcMetaData);
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);

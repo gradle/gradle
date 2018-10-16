@@ -16,10 +16,6 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
@@ -29,6 +25,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
@@ -37,15 +34,16 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class S3Client {
@@ -64,7 +62,6 @@ public class S3Client {
      * Constructor without privided credentials to deleguate to the default provider chain.
      * @since 3.1
      */
-    @Incubating
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         amazonS3Client = new AmazonS3Client(createConnectionProperties());
@@ -95,17 +92,6 @@ public class S3Client {
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
     }
 
-    private void checkRequiredJigsawModuleIsOnPath() {
-        if (JavaVersion.current().isJava9Compatible()) {
-            try {
-                Class.forName("javax.xml.bind.DatatypeConverter");
-            } catch (ClassNotFoundException e) {
-                throw new GradleException("Cannot publish to S3 since the module 'java.xml.bind' is not available. "
-                    + "Please add \"-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'\" to your GRADLE_OPTS.");
-            }
-        }
-    }
-
     private ClientConfiguration createConnectionProperties() {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
@@ -127,7 +113,6 @@ public class S3Client {
     }
 
     public void put(InputStream inputStream, Long contentLength, URI destination) {
-        checkRequiredJigsawModuleIsOnPath();
         try {
             S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
@@ -137,7 +122,8 @@ public class S3Client {
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(contentLength);
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, s3BucketKey, inputStream, objectMetadata);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, s3BucketKey, inputStream, objectMetadata)
+                .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
             amazonS3Client.putObject(putObjectRequest);

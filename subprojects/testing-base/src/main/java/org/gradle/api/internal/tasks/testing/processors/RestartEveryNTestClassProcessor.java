@@ -66,8 +66,9 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
     @Override
     public void stopNow() {
         stoppedNow = true;
-        if (processor != null) {
-            processor.stopNow();
+        TestClassProcessor toStop = processor;
+        if (toStop != null) {
+            toStop.stopNow();
         }
     }
 

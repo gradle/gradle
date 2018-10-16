@@ -17,31 +17,18 @@
 package org.gradle.internal.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * The overall execution of a task, including:
+ * To be removed before 5.0 final.
  *
- * - User lifecycle callbacks (TaskExecutionListener.beforeExecute and TaskExecutionListener.afterExecute)
- * - Gradle execution mechanics (e.g. up-to-date and build cache “checks”, property validation, build cache output store, etc.)
- *
- * That is, this operation does not represent just the execution of task actions.
- *
- * This operation can fail _and_ yield a result.
- * If the operation gets as far as invoking the task executer
- * (i.e. beforeTask callbacks did not fail), then a result is expected.
- * If the task execution fails, or if afterTask callbacks fail, an operation failure is expected _in addition_.
- *
- * Important note: the scan listener currently expects to receive the operation started notification on the
- * _same thread_ that is about to execute the task. If this changes (e.g. notifications are dispatched async),
- * additional changes need to be made to convey the thread/worker that is going to be used to execute the task.
+ * @see org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
  */
+@Deprecated
 public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, ExecuteTaskBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         String getBuildPath();
@@ -49,15 +36,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         String getTaskPath();
 
         /**
-         * An ID for the task, that disambiguates it from other tasks with the same path.
-         *
-         * Due to a bug in Gradle, two tasks with the same path can be executed.
-         * This is very problematic for build scans.
-         * As such, scans need to be able to differentiate between different tasks with the same path.
-         * The combination of the path and ID does this.
-         *
-         * In later versions of Gradle, executing two tasks with the same path will be prevented
-         * and this value can be noop-ed.
+         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
          */
         long getTaskId();
 
@@ -65,7 +44,6 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
 
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         /**
@@ -135,7 +113,5 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
     }
 
     private ExecuteTaskBuildOperationType() {
-
     }
-
 }

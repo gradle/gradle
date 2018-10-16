@@ -158,14 +158,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 """
     }
 
-    private void resolveArtifacts() {
-        execute(buildA, ":resolve", arguments)
-    }
-
-    private void resolveArtifactsFails() {
-        fails(buildA, ":resolve", arguments)
-    }
-
     private void assertResolved(TestFile... files) {
         String[] names = files.collect { it.name }
         buildA.file('libs').assertHasDescendants(names)

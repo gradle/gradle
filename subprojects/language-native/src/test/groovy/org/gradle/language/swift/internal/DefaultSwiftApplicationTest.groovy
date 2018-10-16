@@ -30,7 +30,7 @@ class DefaultSwiftApplicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def app = new DefaultSwiftApplication("main", project.objects, project)
+    def app = new DefaultSwiftApplication("main", project.objects, project.fileOperations)
 
     def "has display name"() {
         expect:
@@ -78,7 +78,7 @@ class DefaultSwiftApplicationTest extends Specification {
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
             isDebuggable() >> true
-            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.MAC_OS)
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.MACOS)
         }
     }
 }

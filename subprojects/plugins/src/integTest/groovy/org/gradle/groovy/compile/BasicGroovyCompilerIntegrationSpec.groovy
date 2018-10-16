@@ -44,6 +44,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
+        executer.withRepositoryMirrors()
     }
 
     def "compileGoodCode"() {
@@ -279,7 +280,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.compilerArgs << '-proc:none'
+                options.annotationProcessorPath = files()
             }
         """
 
@@ -384,7 +385,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    // JavaFx was removed in JDK 10
+    // Only oracle distribution contains JavaFx
+    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
     def "compileJavaFx8Code"() {
         expect:
         succeeds("compileGroovy")
@@ -609,8 +612,8 @@ ${compilerConfiguration()}
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -661,10 +664,6 @@ ${compilerConfiguration()}
 
     String checkCompileOutput(String errorMessage) {
         failure.assertHasErrorOutput(errorMessage)
-    }
-
-    protected boolean gradleLeaksIntoAnnotationProcessor() {
-        return false;
     }
 
     def writeAnnotationProcessingBuild(String java, String groovy) {

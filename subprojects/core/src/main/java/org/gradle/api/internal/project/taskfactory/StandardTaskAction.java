@@ -18,12 +18,14 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
+import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.lang.reflect.Method;
 
-class StandardTaskAction implements ClassLoaderAwareTaskAction, Describable {
+class StandardTaskAction implements ImplementationAwareTaskAction, Describable {
     private final Class<? extends Task> type;
     private final Method method;
 
@@ -47,13 +49,8 @@ class StandardTaskAction implements ClassLoaderAwareTaskAction, Describable {
     }
 
     @Override
-    public ClassLoader getClassLoader() {
-        return method.getDeclaringClass().getClassLoader();
-    }
-
-    @Override
-    public String getActionClassName() {
-        return type.getName();
+    public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+        return ImplementationSnapshot.of(type.getName(), hasher.getClassLoaderHash(method.getDeclaringClass().getClassLoader()));
     }
 
     @Override

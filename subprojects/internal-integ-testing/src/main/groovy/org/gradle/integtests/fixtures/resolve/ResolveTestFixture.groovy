@@ -21,16 +21,18 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
+
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -59,21 +61,27 @@ class ResolveTestFixture {
     /**
      * Injects the appropriate stuff into the build script.
      */
-    void prepare(String existingScript = '') {
+    void prepare(String additionalContent = '') {
+        def existingScript = buildFile.exists() ? buildFile.text : ""
+        def start = existingScript.indexOf("RESOLVE_TEST_FIXTURE_START") - 2
+        def end = existingScript.indexOf("RESOLVE_TEST_FIXTURE_END") + 25
+        if (start >= 0) {
+            existingScript = existingScript.substring(0, start) + existingScript.substring(end, existingScript.length())
+        }
         def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
-        buildFile << """
+        buildFile.text = existingScript + """//RESOLVE_TEST_FIXTURE_START
 buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
-$existingScript
+$additionalContent
 allprojects {
-    tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
+    tasks.register("checkDeps", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
         it.buildArtifacts = ${buildArtifacts}
         ${inputs}
     }
-}
+}//RESOLVE_TEST_FIXTURE_END
 """
     }
 
@@ -116,7 +124,7 @@ allprojects {
         compare("lenient filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
 
         def actualConfigurations = findLines(configDetails, 'configuration') as Set
-        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]" }
+        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() }
         compare("configurations in graph", actualConfigurations, expectedConfigurations)
 
         def actualComponents = findLines(configDetails, 'component')
@@ -204,7 +212,7 @@ allprojects {
         String module = line.substring(start, idx) // [mv:
         start = idx + 9
         idx = line.indexOf(']', start) // [reason:
-        List<String> reasons = line.substring(start, idx).split(',') as List<String>
+        List<String> reasons = line.substring(start, idx).split('!!') as List<String>
         start = idx + 15
         String variant = null
         Map<String, String> attributes = [:]
@@ -314,6 +322,7 @@ allprojects {
         private String defaultConfig
 
         final Set<NodeBuilder> constraints = new LinkedHashSet<>()
+        final Set<String> virtualConfigurations = []
 
         GraphBuilder(String defaultConfig) {
             this.defaultConfig = defaultConfig
@@ -327,6 +336,10 @@ allprojects {
             def nodes = new HashSet<>()
             visitDeps(root.deps, nodes, new HashSet<>())
             return nodes
+        }
+
+        void virtualConfiguration(String id) {
+            virtualConfigurations << id
         }
 
         private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
@@ -528,7 +541,7 @@ allprojects {
         }
 
         String getReason() {
-            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join(',')
+            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join('!!')
         }
 
         private NodeBuilder addNode(String id, String moduleVersionId = id) {
@@ -582,12 +595,15 @@ allprojects {
         /**
          * Defines a link between nodes created through a dependency constraint.
          */
-        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId) {
+        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
             if (this == graph.root) {
                 graph.constraints.add(node)
             }
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
             return node
         }
 
@@ -658,10 +674,27 @@ allprojects {
         }
 
         /**
+         * Marks that this node was selected due to conflict resolution.
+         */
+        NodeBuilder byConflictResolution(String message) {
+            reasons << "${ComponentSelectionCause.CONFLICT_RESOLUTION.defaultReason}: $message".toString()
+            this
+        }
+
+        /**
          * Marks that this node was selected by a rule.
          */
         NodeBuilder selectedByRule() {
             reasons << 'selected by rule'
+            this
+        }
+
+
+        /**
+         * Marks that this node was selected by a rule.
+         */
+        NodeBuilder selectedByRule(String message) {
+            reasons << "${ComponentSelectionCause.SELECTED_BY_RULE.defaultReason}: $message".toString()
             this
         }
 
@@ -689,7 +722,20 @@ allprojects {
             this
         }
 
-        NodeBuilder variant(String name, Map<String, String> attributes = [:]) {
+        NodeBuilder byConstraint(String reason) {
+            reasons << "${ComponentSelectionCause.CONSTRAINT.defaultReason}: $reason".toString()
+            this
+        }
+
+        /**
+         * Marks that this node was selected by the given reason
+         */
+        NodeBuilder byReasons(List<String> reasons) {
+            this.reasons.addAll(reasons)
+            this
+        }
+
+        NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
             checkVariant = true
             variantName = name
             variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
@@ -698,6 +744,15 @@ allprojects {
             }
             this
         }
+    }
+
+    /**
+     * Enables Maven derived variants, as if the Java plugin was applied
+     */
+    void addDefaultVariantDerivationStrategy() {
+        buildFile << """
+            allprojects { dependencies.components.variantDerivationStrategy = new org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy() }
+        """
     }
 }
 
@@ -811,8 +866,14 @@ class GenerateGraphTask extends DefaultTask {
         }.sort().join(',')
     }
 
-    def formatReason(ComponentSelectionReason reason) {
-        def reasons = reason.descriptions.collect { it.description }.join(',')
+    def formatReason(ComponentSelectionReasonInternal reason) {
+        def reasons = reason.descriptions.collect {
+            if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
+                "${it.cause.defaultReason}: ${it.description}".replaceAll('\n', ' ')
+            } else {
+                it.description
+            }
+        }.join('!!')
         return reasons
     }
 }

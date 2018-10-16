@@ -45,4 +45,10 @@ public class SubVersionSelector extends AbstractStringVersionSelector {
     public boolean accept(String candidate) {
         return candidate.startsWith(prefix);
     }
+
+    @Override
+    public boolean canShortCircuitWhenVersionAlreadyPreselected() {
+        return false;
     }
+
+}

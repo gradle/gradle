@@ -17,10 +17,11 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -37,32 +38,35 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
 
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
-        log("taskClass", taskImplementation.getTypeName());
-        if (!taskImplementation.hasUnknownClassLoader()) {
-            log("classLoaderHash", taskImplementation.getClassLoaderHash());
-        }
+        log("taskImplementation", taskImplementation);
         delegate.appendTaskImplementation(taskImplementation);
     }
 
     @Override
     public void appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations) {
         for (ImplementationSnapshot actionImpl : taskActionImplementations) {
-            log("actionType", actionImpl.getTypeName());
-            log("actionClassLoaderHash", actionImpl.hasUnknownClassLoader() ? null : actionImpl.getClassLoaderHash());
+            log("actionImplementation", actionImpl);
         }
         delegate.appendTaskActionImplementations(taskActionImplementations);
     }
 
     @Override
-    public void appendInputPropertyHash(String propertyName, HashCode hashCode) {
-        LOGGER.lifecycle("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
-        delegate.appendInputPropertyHash(propertyName, hashCode);
+    public void appendInputValuePropertyHash(String propertyName, HashCode hashCode) {
+        LOGGER.lifecycle("Appending inputValuePropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
+        delegate.appendInputValuePropertyHash(propertyName, hashCode);
     }
 
     @Override
-    public void inputPropertyLoadedByUnknownClassLoader(String propertyName) {
-        LOGGER.lifecycle("The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", propertyName);
-        delegate.inputPropertyLoadedByUnknownClassLoader(propertyName);
+    public void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fileCollectionFingerprint) {
+        LOGGER.lifecycle("Appending inputFilePropertyHash for '{}' to build cache key: {}", propertyName, fileCollectionFingerprint.getHash());
+        delegate.appendInputFilesProperty(propertyName, fileCollectionFingerprint);
+
+    }
+
+    @Override
+    public void inputPropertyNotCacheable(String propertyName, String nonCacheableReason) {
+        LOGGER.lifecycle("Non-cacheable inputs: property '{}' {}.", propertyName, nonCacheableReason);
+        delegate.inputPropertyNotCacheable(propertyName, nonCacheableReason);
     }
 
     @Override

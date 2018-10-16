@@ -23,11 +23,9 @@ import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMi
 import org.gradle.tooling.internal.consumer.converters.IdeaModuleDependencyTargetNameMixin;
 import org.gradle.tooling.internal.consumer.converters.IdeaProjectJavaLanguageSettingsMixin;
 import org.gradle.tooling.internal.consumer.converters.IncludedBuildsMixin;
-import org.gradle.tooling.internal.consumer.converters.TaskDisplayNameMixin;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.idea.IdeaDependency;
@@ -45,10 +43,9 @@ public class HasCompatibilityMapping {
         viewBuilder.mixInTo(BasicGradleProject.class, new BasicGradleProjectIdentifierMixin(projectIdentifier.getBuildIdentifier()));
         FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(projectIdentifier);
         identifierProvider.applyTo(viewBuilder);
-        viewBuilder.mixInTo(GradleTask.class, TaskDisplayNameMixin.class);
         viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);
         viewBuilder.mixInTo(IdeaDependency.class, IdeaModuleDependencyTargetNameMixin.class);
-        viewBuilder.mixInTo(GradleBuild.class, new IncludedBuildsMixin());
+        viewBuilder.mixInTo(GradleBuild.class, IncludedBuildsMixin.class);
         return viewBuilder;
     }
 }

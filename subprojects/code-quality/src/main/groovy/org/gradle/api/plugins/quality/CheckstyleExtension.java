@@ -42,7 +42,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     public CheckstyleExtension(Project project) {
         this.project = project;
-        configDir = project.getLayout().directoryProperty();
+        configDir = project.getObjects().directoryProperty();
     }
 
     /**
@@ -64,7 +64,6 @@ public class CheckstyleExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public TextResource getConfig() {
         return config;
     }
@@ -74,7 +73,6 @@ public class CheckstyleExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }
@@ -108,7 +106,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * Path to other Checkstyle configuration files. By default, this path is {@code $projectDir/config/checkstyle}
+     * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>

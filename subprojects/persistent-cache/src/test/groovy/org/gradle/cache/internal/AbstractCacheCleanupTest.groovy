@@ -16,7 +16,9 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.PersistentCache
+import org.gradle.api.specs.Spec
+import org.gradle.cache.CleanableStore
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,54 +26,110 @@ import spock.lang.Specification
 class AbstractCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
-    def persistentCache = Mock(PersistentCache)
-
-    def setup() {
-        persistentCache.getBaseDir() >> cacheDir
-        persistentCache.reservedCacheFiles >> Arrays.asList(cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock"))
+    def cleanableStore = Mock(CleanableStore) {
+        getBaseDir() >> cacheDir
+        getReservedCacheFiles() >> []
     }
+    def progressMonitor = Mock(CleanupProgressMonitor)
+    def deletedFiles = []
 
-    def "filters for cache entry files"() {
-        expect:
-        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("cache.properties").touch())
-        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("gc.properties").touch())
-        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("cache.lock").touch())
-
-        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("0"*32).touch())
-        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
-        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
-    }
-
-    def "deletes files"() {
+    def "deletes non-reserved matching files"() {
         def cacheEntries = [
-            createCacheEntry(),
-            createCacheEntry(),
-            createCacheEntry(),
+            temporaryFolder.createFile("1"),
+            temporaryFolder.createFile("2"),
+            temporaryFolder.createFile("3"),
         ]
+
         when:
-        AbstractCacheCleanup.cleanupFiles(persistentCache, cacheEntries)
+        cleanupAction(finder(cacheEntries), { it != cacheEntries[2] })
+            .clean(cleanableStore, progressMonitor)
+
         then:
-        cacheEntries.each {
-            it.assertDoesNotExist()
-        }
+        1 * cleanableStore.getReservedCacheFiles() >> [cacheEntries[0]]
+        1 * progressMonitor.incrementDeleted()
+        1 * progressMonitor.incrementSkipped()
+        cacheEntries[0].assertExists()
+        cacheEntries[1].assertDoesNotExist()
+        cacheEntries[2].assertExists()
+        deletedFiles == [cacheEntries[1]]
     }
 
     def "can delete directories"() {
-        def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt())).file("subdir/somefile")
+        given:
+        def cacheEntry = cacheDir.file("subDir").createFile("somefile")
         cacheEntry.text = "delete me"
+
         when:
-        AbstractCacheCleanup.cleanupFiles(persistentCache, [cacheEntry])
+        cleanupAction(finder([cacheEntry.parentFile]), { true })
+            .clean(cleanableStore, progressMonitor)
+
         then:
+        1 * progressMonitor.incrementDeleted()
         cacheEntry.assertDoesNotExist()
+        cacheEntry.parentFile.assertDoesNotExist()
+        deletedFiles == [cacheEntry.parentFile]
     }
 
-    private Random r = new Random()
-    def createCacheEntry(int size=1024, long timestamp=0) {
-        def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt()))
-        def data = new byte[size]
-        r.nextBytes(data)
-        cacheEntry.bytes = data
-        cacheEntry.lastModified = timestamp
-        return cacheEntry
+    def "deletes empty parent directories"() {
+        given:
+        def grandparent = cacheDir.createDir("a")
+        def parent = grandparent.createDir("b")
+        def file = parent.createFile("somefile")
+
+        when:
+        cleanupAction(finder([file]), { true })
+            .clean(cleanableStore, progressMonitor)
+
+        then:
+        1 * progressMonitor.incrementDeleted()
+        file.assertDoesNotExist()
+        parent.assertDoesNotExist()
+        grandparent.assertDoesNotExist()
+        cacheDir.assertExists()
+        deletedFiles == [file, parent, grandparent]
+    }
+
+    def "does not delete non-empty parent directories"() {
+        given:
+        def grandparent = cacheDir.createDir("a")
+        def anotherFile = grandparent.createFile("anotherfile")
+        def parent = grandparent.createDir("b")
+        def file = parent.createFile("somefile")
+
+        when:
+        cleanupAction(finder([file]), { true })
+            .clean(cleanableStore, progressMonitor)
+
+        then:
+        1 * progressMonitor.incrementDeleted()
+        file.assertDoesNotExist()
+        parent.assertDoesNotExist()
+        grandparent.assertExists()
+        anotherFile.assertExists()
+        cacheDir.assertExists()
+        deletedFiles == [file, parent]
+    }
+
+    FilesFinder finder(files) {
+        Stub(FilesFinder) {
+            find(_, _) >> { baseDir, filter ->
+                assert filter instanceof NonReservedFileFilter
+                files.findAll { filter.accept(it) }
+            }
+        }
+    }
+
+    AbstractCacheCleanup cleanupAction(FilesFinder finder, Spec<File> spec) {
+        new AbstractCacheCleanup(finder) {
+            @Override
+            protected boolean shouldDelete(File file) {
+                return spec.isSatisfiedBy(file)
+            }
+
+            @Override
+            protected void handleDeletion(File file) {
+                deletedFiles.add(file)
+            }
+        }
     }
 }

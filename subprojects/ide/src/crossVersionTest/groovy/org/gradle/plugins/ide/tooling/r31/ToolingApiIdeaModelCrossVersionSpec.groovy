@@ -27,7 +27,7 @@ import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=3.1")
-    @TargetGradleVersion(">=1.2")
+    @TargetGradleVersion(">=2.6")
     def "Provides target module name for module dependencies"() {
 
 
@@ -57,8 +57,8 @@ project(':impl') {
         mod.targetModuleName == 'api'
     }
 
-    @ToolingApiVersion(">=2.0 !3.0") // broken on 3.0
-    @TargetGradleVersion(">=1.8")
+    @ToolingApiVersion(">3.0")
+    @TargetGradleVersion(">=2.6")
     def "can query dependencies for model produced from BuildAction"() {
         def fakeRepo = new MavenFileRepository(file("repo"))
         def dependency = fakeRepo.module("foo.bar", "coolLib", "1.0")
@@ -108,7 +108,7 @@ project(':impl') {
         lib.scope.scope == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
-        mod.dependencyModule == project.modules.find { it.name == 'api'}
+        mod.targetModuleName == 'api'
         if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'
         } else {

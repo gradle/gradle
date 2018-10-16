@@ -53,13 +53,13 @@ class BuildScriptTransformerSpec extends Specification {
 
     private CompiledScript<Script, BuildScriptData> parse(String script) {
         def source = new StringScriptSource("test script", script)
-        def sourceHashCode = Hashing.md5().hashString(script)
+        def sourceHashCode = Hashing.hashString(script)
         def target = Mock(ScriptTarget) {
             getClasspathBlockName() >> "buildscript"
         }
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(source, target)
-        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
+        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }

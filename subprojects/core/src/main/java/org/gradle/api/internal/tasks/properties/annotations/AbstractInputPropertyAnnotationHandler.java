@@ -29,19 +29,25 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import java.io.File;
 
 public abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return !visitor.visitOutputFilePropertiesOnly();
+    }
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         PathSensitive pathSensitive = propertyValue.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
+            // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
+            // https://guides.gradle.org/using-build-cache/#relocatability
             pathSensitivity = PathSensitivity.ABSOLUTE;
         } else {
             pathSensitivity = pathSensitive.value();
         }
         DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
         fileSpec
-            .withPropertyName(propertyValue.getPropertyName()).optional(propertyValue.isOptional())
+            .withPropertyName(propertyValue.getPropertyName())
             .withPathSensitivity(pathSensitivity)
             .skipWhenEmpty(propertyValue.isAnnotationPresent(SkipWhenEmpty.class))
             .optional(propertyValue.isOptional());

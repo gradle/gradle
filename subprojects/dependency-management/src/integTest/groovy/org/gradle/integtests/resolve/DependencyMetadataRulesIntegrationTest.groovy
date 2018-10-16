@@ -65,16 +65,20 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "#thing can be added using #notation notation"() {
         when:
         buildFile << """
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        with${toCamelCase(thing)} {
+                            add $declaration
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 $variantToTest 'org.test:moduleB'
                 components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") { 
-                            with${toCamelCase(thing)} {
-                                add $declaration
-                            }
-                        }
-                    }
+                    withModule('org.test:moduleA', ModifyRule)
                 }
             }
         """
@@ -113,18 +117,22 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "#thing can be added and configured using #notation notation"() {
         when:
         buildFile << """
-            dependencies {
-                $variantToTest 'org.test:moduleB'
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            with${toCamelCase(thing)} {
-                                add($declaration) {
-                                    it.version { strictly '1.0' }
-                                }
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        with${toCamelCase(thing)} {
+                            add($declaration) {
+                                it.version { strictly '1.0' }
                             }
                         }
                     }
+                }
+            }
+
+            dependencies {
+                $variantToTest 'org.test:moduleB'
+                components {
+                    withModule('org.test:moduleA', ModifyRule)
                 }
             }
         """
@@ -169,15 +177,19 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            withDependencies {
-                                removeAll { it.versionConstraint.preferredVersion == '1.0' }
-                            }
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        withDependencies {
+                            removeAll { it.versionConstraint.requiredVersion == '1.0' }
                         }
                     }
+                }
+            }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA', ModifyRule)
                 }
             }
         """
@@ -208,16 +220,20 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        withDependencyConstraints {
+                            removeAll { it.versionConstraint.requiredVersion == '2.0' }
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 $variantToTest 'org.test:moduleB:1.0'
                 components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            withDependencyConstraints {
-                                removeAll { it.versionConstraint.preferredVersion == '2.0' }
-                            }
-                        }
-                    }
+                    withModule('org.test:moduleA', ModifyRule)
                 }
             }
         """
@@ -250,31 +266,43 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "#thing modifications are visible in the next rule"() {
         when:
         buildFile << """
+            class AddRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        with${toCamelCase(thing)} { d ->
+                            assert d.size() == 0
+                            d.add 'org.test:moduleB:1.0'
+                        }
+                    }
+                }
+            }
+
+            class RemoveRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        with${toCamelCase(thing)} { d ->
+                            assert d.size() == 1
+                            d.removeAll { true }
+                        }
+                    }
+                }
+            }
+
+            class VerifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        with${toCamelCase(thing)} { d ->
+                            assert d.size() == 0
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") { 
-                            with${toCamelCase(thing)} { d ->
-                                assert d.size() == 0
-                                d.add 'org.test:moduleB:1.0'
-                            }
-                        }
-                    }
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            with${toCamelCase(thing)} { d ->
-                                assert d.size() == 1
-                                d.removeAll { true }
-                            }
-                        }
-                    }
-                    all {
-                        withVariant("$variantToTest") { 
-                            with${toCamelCase(thing)} { d ->
-                                assert d.size() == 0
-                            }
-                        }
-                    }
+                    withModule('org.test:moduleA', AddRule)
+                    withModule('org.test:moduleA', RemoveRule)
+                    all(VerifyRule)
                 }
             }
         """
@@ -300,27 +328,32 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | _
     }
 
-    def "can set version on dependency"() {
+    @Unroll
+    def "can set version on dependency using #keyword"() {
         given:
         repository {
             'org.test:moduleA:1.0'() {
-                dependsOn 'org.test:moduleB:2.0'
+                dependsOn 'org.test:moduleB'
             }
         }
 
         when:
         buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") { 
-                            withDependencies {
-                                it.each {
-                                    it.version { prefer '1.0' }
-                                }
+            class VersionSettingRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        withDependencies {
+                            it.each {
+                                it.version { ${keyword} '1.0' }
                             }
                         }
                     }
+                }
+            }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA', VersionSettingRule)
                 }
             }
         """
@@ -345,10 +378,13 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         }
+
+        where:
+        keyword << ["prefer", "require", "strictly"]
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     def "can set version on dependency constraint"() {
         given:
@@ -360,18 +396,22 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
-            dependencies {
-                $variantToTest 'org.test:moduleB'
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") { 
-                            withDependencyConstraints {
-                                it.each {
-                                    it.version { prefer '1.0' }
-                                }
+            class VersionSettingRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") { 
+                        withDependencyConstraints {
+                            it.each {
+                                it.version { require '1.0' }
                             }
                         }
                     }
+                }
+            }
+
+            dependencies {
+                $variantToTest 'org.test:moduleB'
+                components {
+                    withModule('org.test:moduleA', VersionSettingRule)
                 }
             }
         """
@@ -403,15 +443,19 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "changing dependencies in one variant leaves other variants untouched"() {
         when:
         buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("default") {
-                            withDependencies {
-                                add('org.test:moduleB:1.0')
-                            }
+            class ModifyDepRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("default") {
+                        withDependencies {
+                            add('org.test:moduleB:1.0')
                         }
                     }
+                }
+            }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA', ModifyDepRule)
                 }
             }
         """
@@ -436,15 +480,19 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "can update all variants at once"() {
         when:
         buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        allVariants {
-                            withDependencies {
-                                add('org.test:moduleB:1.0')
-                            }
+            class ModifyDepRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.allVariants {
+                        withDependencies {
+                            add('org.test:moduleB:1.0')
                         }
                     }
+                }
+            }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA', ModifyDepRule)
                 }
             }
         """
@@ -486,16 +534,20 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
+            class ModifyDepRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('$variantToTest') {
+                        with${toCamelCase(thing)} { d ->
+                            add('org.test:moduleC:1.0')
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 $variantToTest 'org.test:moduleC'
                 components {
-                    withModule('org.test:moduleB') {
-                        withVariant('$variantToTest') {
-                            with${toCamelCase(thing)} { d ->
-                                add('org.test:moduleC:1.0')
-                            }
-                        }
-                    }
+                    withModule('org.test:moduleB', ModifyDepRule)
                 }
             }
         """
@@ -561,22 +613,31 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
+            class AddModuleCRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('$variantToTest') {
+                        withDependencies {
+                            add('org.test:moduleC:1.0')
+                        }
+                    }
+                }
+            }
+
+            class AddModuleDRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('anotherVariantWithFormatCustom') {
+                        withDependencies {
+                            add('org.test:moduleD:1.0')
+                        }
+                    }
+                }
+            }
+
             dependencies {
                 components {
-                    withModule('org.test:moduleB') {
-                        withVariant('$variantToTest') {
-                            withDependencies {
-                                add('org.test:moduleC:1.0')
-                            }
-                        }
-                    }
-                    withModule('org.test:moduleC') { //this second rule is here to test that the correct variant was chosen, which is the one adding the dependency to moduleD
-                        withVariant('anotherVariantWithFormatCustom') {
-                            withDependencies {
-                                add('org.test:moduleD:1.0')
-                            }
-                        }
-                    }
+                    withModule('org.test:moduleB', AddModuleCRule)
+                    //this second rule is here to test that the correct variant was chosen, which is the one adding the dependency to moduleD
+                    withModule('org.test:moduleC', AddModuleDRule)
                 }
             }
         """
@@ -624,6 +685,18 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        withDependencies {
+                            //check that the dependency has not been removed already during resolution of the other configuration
+                            assert it.size() == 1
+                            removeAll { true }
+                        }
+                    }
+                }
+            }
+
             configurations { anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } } }
             
             dependencies {
@@ -632,16 +705,12 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
             dependencies {
                 components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            withDependencies {
-                                //check that the dependency has not been removed already during resolution of the other configuration
-                                assert it.size() == 1
-                                removeAll { true }
-                            }
-                        }
-                    }
+                    withModule('org.test:moduleA', ModifyRule)
                 }
+            }
+
+            configurations.all {
+                incoming.beforeResolve { println "Resolving \$name" }
             }
         """
         repositoryInteractions {
@@ -672,23 +741,27 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
-            dependencies {
-                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
- 
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            with${toCamelCase(thing)} { d ->
-                                d.findAll { it.name == 'moduleB' }.each {
-                                    it.version { strictly '1.0' }
-                                }
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        with${toCamelCase(thing)} { d ->
+                            d.findAll { it.name == 'moduleB' }.each {
+                                it.version { strictly '1.0' }
                             }
                         }
                     }
                 }
             }
+
+            dependencies {
+                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+ 
+                components {
+                    withModule('org.test:moduleA', ModifyRule)
+                }
+            }
         """
-        if (defineAsConstraint && !gradleMetadataEnabled && useIvy()) {
+        if (defineAsConstraint && !gradleMetadataEnabled) {
             //in plain ivy, we do not have the constraint published. But we can add still add it.
             buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB:1.0')")
         }
@@ -705,8 +778,8 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org.test:moduleB' prefers '1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects ']1.0,)'"""
+   Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' strictly '1.0'"""
 
         where:
         thing                    | defineAsConstraint
@@ -723,53 +796,62 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             }
             'org.test:moduleA:1.0'() {
                 if (defineAsConstraint) {
-                    constraint 'org.test:moduleB:1.1'
+                    constraint 'org.test:moduleB:1.+'
                 } else {
-                    dependsOn 'org.test:moduleB:1.1'
+                    dependsOn 'org.test:moduleB:1.+'
                 }
             }
         }
 
         when:
         buildFile << """
-            dependencies {
-                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
- 
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") {
-                            with${toCamelCase(thing)} { d ->
-                                d.findAll { it.name == 'moduleB' }.each {
-                                    it.version { 
-                                        prefer '1.0'
-                                        reject '1.1', '1.2'
-                                    }
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant("$variantToTest") {
+                        with${toCamelCase(thing)} { d ->
+                            d.findAll { it.name == 'moduleB' }.each {
+                                it.version { 
+                                    reject '1.1', '1.2'
                                 }
                             }
                         }
                     }
                 }
             }
+
+            dependencies {
+                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+ 
+                components {
+                    withModule('org.test:moduleA', ModifyRule)
+                }
+            }
         """
-        if (defineAsConstraint && !gradleMetadataEnabled && useIvy()) {
+        if (defineAsConstraint && !gradleMetadataEnabled) {
             //in plain ivy, we do not have the constraint published. But we can add still add it.
-            buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB') { version { prefer '1.0'; reject '1.1', '1.2' }}")
+            buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB') { version { require '1.+'; reject '1.1', '1.2' }}")
         }
 
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
             }
-            'org.test:moduleB:1.1'() {
-                expectGetMetadata()
+            'org.test:moduleB' {
+                expectVersionListing()
+                '1.0' {
+                    expectGetMetadataMissing()
+                }
+                '1.1' {
+                    expectGetMetadata()
+                }
             }
         }
 
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org.test:moduleB' prefers '1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects any of "'1.1', '1.2'\""""
+   Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB:1.+' rejects any of "'1.1', '1.2'\""""
 
         where:
         thing                    | defineAsConstraint
@@ -788,17 +870,21 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant('$variantToTest') {
-                            withDependencies {
-                                it.each {
-                                    it.because 'can set a custom reason in a rule'
-                                }
+            class ReasonRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('$variantToTest') {
+                        withDependencies {
+                            it.each {
+                                it.because 'can set a custom reason in a rule'
                             }
                         }
                     }
+                }
+            }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA', ReasonRule)
                 }
             }
         """
@@ -842,27 +928,31 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         when:
         buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant('$variantToTest') {
-                            withDependencies {
-                                it.each {
-                                    it.because 'can set a custom reason in a rule'
-                                }
+            class ReasonRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.withVariant('$variantToTest') {
+                        withDependencies {
+                            it.each {
+                                it.because 'can set a custom reason in a rule'
                             }
-                            withDependencyConstraints {
-                                it.each {
-                                    it.version { prefer '1.1' }
-                                    it.because '1.0 is buggy'
-                                }
+                        }
+                        withDependencyConstraints {
+                            it.each {
+                                it.version { strictly '1.1' }
+                                it.because '1.0 is buggy'
                             }
                         }
                     }
                 }
             }
+
+            dependencies {
+                components {
+                    withModule('org.test:moduleA', ReasonRule)
+                }
+            }
         """
-        boolean constraintsUnsupported = !gradleMetadataEnabled && useIvy()
+        boolean constraintsUnsupported = !gradleMetadataEnabled
 
         repositoryInteractions {
             'org.test:moduleA:1.0' {
@@ -911,7 +1001,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        module("org.test:moduleC:1.1").byConflictResolution()
+                        module("org.test:moduleC:1.1").byConflictResolution("between versions 1.0 and 1.1")
                     }
                 }
             }

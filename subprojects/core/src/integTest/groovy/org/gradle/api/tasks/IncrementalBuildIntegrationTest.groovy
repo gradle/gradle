@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
 
@@ -554,7 +553,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         given:
         def inputFile = file('src.txt')
         inputFile.text = "__"
-        int before = inputFile.length()
+        long before = inputFile.length()
 
         expect:
         (10..40).each {
@@ -832,7 +831,6 @@ task b(dependsOn: a)
 task otherBuild(type: GradleBuild) {
     buildFile = 'build.gradle'
     tasks = ['generate']
-    startParameter.searchUpwards = false
 }
 task transform(type: TransformerTask) {
     dependsOn otherBuild
@@ -1193,42 +1191,6 @@ task generate(type: TransformerTask) {
         file("build/output/file.txt").assertExists()
     }
 
-    @Unroll
-    def "produces a sensible error when a task #description causes dependency resolution"() {
-        buildFile << """
-            ${jcenterRepository()}
-            
-            configurations {
-                foo
-            }
-            
-            dependencies {
-                foo "commons-io:commons-io:1.2"
-            }
-            
-            task foobar(type: MisbehavingTask) {
-                misbehavingProperty = configurations.foo
-            }
-            
-            class MisbehavingTask extends DefaultTask {
-                @${propertyType.simpleName}
-                def misbehavingProperty 
-            }
-        """
-
-        when:
-        fails("foobar")
-
-        then:
-        failure.assertHasDescription message
-
-        where:
-        description   | propertyType | message
-        "output"      | OutputFiles  | "A deadlock was detected while resolving the outputs for task ':foobar'. This can be caused, for instance, by an output or local state property causing dependency resolution."
-        "local state" | LocalState   | "A deadlock was detected while resolving the outputs for task ':foobar'. This can be caused, for instance, by an output or local state property causing dependency resolution."
-        "destroyable" | Destroys     | "A deadlock was detected while resolving the destroyables for task ':foobar'. This can be caused, for instance, by a destroyable property causing dependency resolution."
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/2180")
     def "fileTrees can be used as output files"() {
         given:
@@ -1256,40 +1218,6 @@ task generate(type: TransformerTask) {
 
         then:
         skippedTasks.contains(':myTask')
-    }
-
-    def "using non-directory fileTrees as outputs is deprecated"() {
-        given:
-
-        buildScript """       
-            task myTask {
-                inputs.file file('input.txt')
-                outputs.files({
-                    def outputFile = new File('build/output.zip')
-                    outputFile.exists() ? zipTree(outputFile) : files(outputFile)
-                }).optional()
-                doLast {
-                    file('build').mkdirs()
-                    ant.zip(baseDir: ".", destFile: file('build/output.zip'), includes: 'input.txt')
-                }
-            }
-        """.stripIndent()
-
-        file('input.txt').text = 'input file'
-
-        when:
-        succeeds 'myTask'
-
-        then:
-        nonSkippedTasks.contains(':myTask')
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds('myTask')
-
-        then:
-        skippedTasks.contains(':myTask')
-        output.contains('Adding file trees which are not directory trees as output files has been deprecated and is scheduled to be removed in Gradle 5.0')
     }
 
     def "task with no actions is skipped even if it has inputs"() {

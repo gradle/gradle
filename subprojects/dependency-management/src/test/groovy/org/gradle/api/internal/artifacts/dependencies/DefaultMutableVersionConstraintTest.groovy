@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dependencies
 
-import org.gradle.api.InvalidUserDataException
+
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultMutableVersionConstraintTest extends Specification {
     def "defaults to an empty reject list"() {
@@ -26,66 +25,43 @@ class DefaultMutableVersionConstraintTest extends Specification {
         def e = new DefaultMutableVersionConstraint('1.0')
 
         then:
-        e.preferredVersion == '1.0'
+        e.requiredVersion == '1.0'
+        e.preferredVersion == ''
+        e.strictVersion == ''
         e.rejectedVersions == []
     }
 
-    @Unroll
-    def "computes the complement of preferred version #preferred"() {
-        when:
-        def e = new DefaultMutableVersionConstraint(preferred, true)
-
-        then:
-        e.preferredVersion == preferred
-        e.rejectedVersions == [complement]
-
-        where:
-        preferred    | complement
-        '1.0'        | ']1.0,)'
-        '[1.0, 2.0]' | ']2.0,)'
-        '[1.0, 2.0[' | '[2.0,)'
-        '(, 2.0['    | '[2.0,)'
-        '(, 2.0]'    | ']2.0,)'
-    }
-
-    @Unroll
-    def "fails converting version #preferred to a strict dependency"() {
-        when:
-        def e = new DefaultMutableVersionConstraint(preferred, true)
-
-        then:
-        IllegalArgumentException ex = thrown()
-        ex.message == "Version '$preferred' cannot be converted to a strict version constraint."
-
-        where:
-        preferred << ['[1.0,)', '1.+', '1+']
-    }
-
-    def "can override preferred version with another preferred version"() {
+    def "can override preferred version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
-
-        when:
         version.prefer('2.0')
 
+        when:
+        version.prefer('3.0')
+
         then:
-        version.preferredVersion == '2.0'
+        version.requiredVersion == '1.0'
+        version.preferredVersion == '3.0'
+        version.strictVersion == ''
         version.rejectedVersions == []
     }
 
-    def "can override strict version with preferred version"() {
+    def "can override required version"() {
         given:
-        def version = new DefaultMutableVersionConstraint('1.0', true)
-
-        when:
+        def version = new DefaultMutableVersionConstraint('1.0')
         version.prefer('2.0')
 
+        when:
+        version.require('3.0')
+
         then:
+        version.requiredVersion == '3.0'
         version.preferredVersion == '2.0'
+        version.strictVersion == ''
         version.rejectedVersions == []
     }
 
-    def "can override preferred version with strict version"() {
+    def "can override required version with strict version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
 
@@ -93,8 +69,36 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.strictly('2.0')
 
         then:
+        version.requiredVersion == '2.0'
+        version.preferredVersion == ''
+        version.strictVersion == '2.0'
+    }
+
+    def "can override strict version with required version"() {
+        given:
+        def version = DefaultMutableVersionConstraint.withStrictVersion('1.0')
+
+        when:
+        version.require('2.0')
+
+        then:
+        version.requiredVersion == '2.0'
+        version.preferredVersion == ''
+        version.strictVersion == ''
+    }
+
+    def "can combine strict version with preferred version"() {
+        given:
+        def version = DefaultMutableVersionConstraint.withStrictVersion('1.0')
+
+        when:
+        version.prefer('2.0')
+
+        then:
+        version.requiredVersion == '1.0'
         version.preferredVersion == '2.0'
-        version.rejectedVersions == [']2.0,)']
+        version.strictVersion == '1.0'
+        version.rejectedVersions == []
     }
 
     def "can declare rejected versions"() {
@@ -105,14 +109,14 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.reject('1.0.1')
 
         then:
-        version.preferredVersion == '1.0'
+        version.requiredVersion == '1.0'
         version.rejectedVersions == ['1.0.1']
 
         when:
-        version.reject('1.0.2')
+        version.reject('1.0.1', '1.0.2')
 
         then:
-        version.preferredVersion == '1.0'
+        version.requiredVersion == '1.0'
         version.rejectedVersions == ['1.0.1', '1.0.2']
     }
 
@@ -125,7 +129,24 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.prefer('1.1')
 
         then:
+        version.requiredVersion == '1.0'
         version.preferredVersion == '1.1'
+        version.strictVersion == ''
+        version.rejectedVersions == []
+    }
+
+    def "calling 'require' resets the list of rejects"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject('1.0.1')
+
+        when:
+        version.require('1.1')
+
+        then:
+        version.requiredVersion == '1.1'
+        version.preferredVersion == ''
+        version.strictVersion == ''
         version.rejectedVersions == []
     }
 
@@ -138,20 +159,22 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.strictly('1.1')
 
         then:
-        version.preferredVersion == '1.1'
-        version.rejectedVersions == [']1.1,)']
+        version.requiredVersion == '1.1'
+        version.preferredVersion == ''
+        version.strictVersion == '1.1'
+        version.rejectedVersions == []
     }
 
-    def "cannot use an empty list of rejections"() {
+    def "can clear list of rejections"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject("1.1")
 
         when:
         version.reject()
 
         then:
-        InvalidUserDataException e = thrown()
-        e.message == "The 'reject' clause requires at least one rejected version"
+        version.rejectedVersions == []
     }
 
     def "calling rejectAll is equivalent to having empty preferred version and '+' reject"() {

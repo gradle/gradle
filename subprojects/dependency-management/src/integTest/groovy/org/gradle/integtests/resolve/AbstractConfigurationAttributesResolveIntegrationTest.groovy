@@ -78,18 +78,8 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
                         attributes { $freeRelease }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -143,18 +133,8 @@ include 'a', 'b'
                     foo.attributes { $freeDebug }
                     bar.attributes { $freeRelease }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
         def origFile = buildFile.text
 
@@ -230,18 +210,8 @@ include 'a', 'b'
                        attributes { $freeRelease }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -307,6 +277,7 @@ include 'a', 'b'
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     freeDebug fooJar
                     freeRelease fooJar
@@ -360,18 +331,8 @@ include 'a', 'b'
                        extendsFrom compile
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -421,26 +382,16 @@ include 'a', 'b'
                        attributes { $freeRelease }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause '''Configuration 'bar' in project :b does not match the consumer attributes
-Configuration 'bar':
+        failure.assertHasCause '''Variant 'bar' in project :b does not match the consumer attributes
+Variant 'bar':
   - Required buildType 'debug' and found incompatible value 'release'.
   - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -476,18 +427,8 @@ Configuration 'bar':
                     bar
                     create('default').attributes { $freeDebug }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -529,6 +470,7 @@ Configuration 'bar':
                 }
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
+                   destinationDir = buildDir
                 }
                 artifacts {
                     'default' barJar
@@ -573,18 +515,8 @@ Configuration 'bar':
                     bar { attributes { $release } }
                     create 'default'
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -594,11 +526,11 @@ Configuration 'bar':
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""Unable to find a matching configuration of project :b:
-  - Configuration 'bar':
+        failure.assertHasCause("""Unable to find a matching variant of project :b:
+  - Variant 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' but no value provided.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.""")
     }
@@ -628,18 +560,8 @@ Configuration 'bar':
                     bar { attributes { $release } }
                     create 'default'
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -649,12 +571,12 @@ Configuration 'bar':
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+        failure.assertHasCause("""Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar': Found buildType 'release' but wasn't required.
-  - Configuration 'foo':
+  - Variant 'bar': Found buildType 'release' but wasn't required.
+  - Variant 'foo':
       - Found buildType 'release' but wasn't required.
       - Found flavor 'free' but wasn't required.""")
     }
@@ -695,7 +617,16 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Unable to find a matching configuration of project :b: None of the consumable configurations have attributes."
+        failure.assertHasCause """Unable to find a matching configuration of project :b:
+  - Configuration 'archives':
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' but no value provided.
+  - Configuration 'bar':
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' but no value provided.
+  - Configuration 'foo':
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' but no value provided."""
     }
 
     def "does not select explicit configuration when it's not consumable"() {
@@ -726,18 +657,8 @@ All of them match the consumer attributes:
                         canBeConsumed = false
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -776,29 +697,19 @@ All of them match the consumer attributes:
                         canBeConsumed = false
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause '''Unable to find a matching configuration of project :b:
-  - Configuration 'bar':
+        failure.assertHasCause '''Unable to find a matching variant of project :b:
+  - Variant 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found incompatible value 'paid'.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -845,6 +756,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -903,6 +815,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -916,14 +829,14 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+        failure.assertHasCause("""Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar':
+  - Variant 'bar':
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided.""")
     }
@@ -961,18 +874,8 @@ All of them match the consumer attributes:
                        attributes { $free }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
@@ -1010,30 +913,20 @@ All of them match the consumer attributes:
                     foo.attributes { $debug }
                     bar.attributes { $debug }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar': Required buildType 'debug' and found compatible value 'debug'.
-  - Configuration 'foo': Required buildType 'debug' and found compatible value 'debug'."""
+  - Variant 'bar': Required buildType 'debug' and found compatible value 'debug'.
+  - Variant 'foo': Required buildType 'debug' and found compatible value 'debug'."""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -1069,33 +962,23 @@ All of them match the consumer attributes:
                       attributes { $freeDebug; attribute(extra, 'extra 2') }
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
-
         """
 
         when:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar':
+  - Variant 'bar':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1153,6 +1036,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     debug fooJar
                     compile barJar
@@ -1165,14 +1049,14 @@ All of them match the consumer attributes:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - compile
   - debug
 All of them match the consumer attributes:
-  - Configuration 'compile':
+  - Variant 'compile':
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'debug':
+  - Variant 'debug':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided."""
     }
@@ -1221,16 +1105,7 @@ All of them match the consumer attributes:
                     foo project(':c')
                     bar project(':d')
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
             project(':c') {
                 configurations.create('default') {
@@ -1320,6 +1195,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1403,6 +1279,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1465,16 +1342,7 @@ All of them match the consumer attributes:
                     foo project(':c')
                     bar project(':c')
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
             project(':c') {
                 configurations {
@@ -1495,6 +1363,7 @@ All of them match the consumer attributes:
                 task bar2Jar(type: Jar) {
                    baseName = 'c-bar2'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar, foo2Jar
                     bar barJar, bar2Jar
@@ -1507,15 +1376,15 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :c:
+        failure.assertHasCause """Cannot choose between the following variants of project :c:
   - foo
   - foo2
 All of them match the consumer attributes:
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'foo2':
+  - Variant 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1524,15 +1393,15 @@ All of them match the consumer attributes:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :c:
+        failure.assertHasCause """Cannot choose between the following variants of project :c:
   - bar
   - bar2
 All of them match the consumer attributes:
-  - Configuration 'bar':
+  - Variant 'bar':
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'bar2':
+  - Variant 'bar2':
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1603,6 +1472,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1673,6 +1543,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     _compileFreeDebug fooJar
                     _compileFreeRelease barJar
@@ -1725,16 +1596,7 @@ All of them match the consumer attributes:
                        attributes { $release } // no match on `buildType`
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
         """
 
@@ -1777,16 +1639,7 @@ All of them match the consumer attributes:
                        attributes { $freeRelease } // match on `buildType`
                     }
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
         """
 
@@ -1838,16 +1691,7 @@ All of them match the consumer attributes:
                     foo project(':c')
                     bar project(':c')
                 }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+                ${fooAndBarJars()}
             }
             project(':c') {
                 configurations {
@@ -1864,6 +1708,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'c-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     foo fooJar
                     bar barJar
@@ -1921,6 +1766,7 @@ All of them match the consumer attributes:
                 task barJar(type: Jar) {
                    baseName = 'b-bar'
                 }
+                tasks.withType(Jar) { destinationDir = buildDir }
                 artifacts {
                     'default' defaultJar
                     foo fooJar
@@ -1935,6 +1781,22 @@ All of them match the consumer attributes:
 
         then:
         result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+    }
+
+    private String fooAndBarJars() {
+        '''
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                tasks.withType(Jar) { destinationDir = buildDir }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+        '''
     }
 
 }

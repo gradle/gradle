@@ -66,29 +66,6 @@ class ProviderStartParameterConverterTest extends Specification {
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
     }
 
-    def "can overwrite searchUpwards via build arguments"() {
-        given:
-        params.getArguments() >> ['-u']
-
-        when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
-
-        then:
-        !start.searchUpwards
-    }
-
-    def "searchUpwards configured directly on the action wins over the command line setting"() {
-        given:
-        params.getArguments() >> ['-u']
-        params.isSearchUpwards() >> true
-
-        when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
-
-        then:
-        start.searchUpwards
-    }
-
     def "the start parameter is configured from properties"() {
         when:
         def properties = [

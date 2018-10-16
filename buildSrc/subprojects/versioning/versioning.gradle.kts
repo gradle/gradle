@@ -2,6 +2,8 @@ plugins {
     `java-gradle-plugin`
 }
 
+apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+
 dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
@@ -10,12 +12,12 @@ dependencies {
 }
 
 gradlePlugin {
-    (plugins) {
-        "wrapper" {
+    plugins {
+        register("wrapper") {
             id = "gradlebuild.wrapper"
             implementationClass = "org.gradle.gradlebuild.versioning.WrapperPlugin"
         }
-        "updateVersions" {
+        register("updateVersions") {
             id = "gradlebuild.update-versions"
             implementationClass = "org.gradle.gradlebuild.versioning.UpdateVersionsPlugin"
         }

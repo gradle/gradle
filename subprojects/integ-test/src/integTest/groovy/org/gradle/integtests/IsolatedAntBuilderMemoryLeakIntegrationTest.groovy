@@ -18,9 +18,13 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
+
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
     private void goodCode(String groovyVersion, TestFile root = testDirectory) {
@@ -109,10 +113,10 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     @Unroll
     void "Doesn't fail with a PermGen space error or a missing method exception"() {
         given:
-        buildFile << '''
+        buildFile << """
 buildscript {
   repositories {
-    gradlePluginPortal()
+    ${gradlePluginRepositoryDefinition()} 
   }
 
   dependencies {
@@ -122,8 +126,7 @@ buildscript {
 
 import org.ajoberstar.grgit.*
 Grgit.open(currentDir: project.rootProject.rootDir)
-
-'''
+"""
         withCheckstyle()
         goodCode('localGroovy()')
 

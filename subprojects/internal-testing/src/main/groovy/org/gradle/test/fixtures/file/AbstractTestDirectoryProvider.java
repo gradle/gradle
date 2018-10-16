@@ -18,7 +18,6 @@ package org.gradle.test.fixtures.file;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
@@ -44,24 +43,30 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     private TestFile dir;
     private String prefix;
     private boolean cleanup = true;
-
-    private String determinePrefix() {
-        StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
-        for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().endsWith("Test") || element.getClassName().endsWith("Spec")) {
-                return StringUtils.substringAfterLast(element.getClassName(), ".") + "/unknown-test";
-            }
-        }
-        return "unknown-test-class";
-    }
+    private boolean suppressCleanupErrors = false;
 
     @Override
     public void suppressCleanup() {
         cleanup = false;
     }
 
+    public void suppressCleanupErrors() {
+        suppressCleanupErrors = true;
+    }
+
     public boolean isCleanup() {
         return cleanup;
+    }
+
+    public void cleanup() {
+        if (cleanup && dir != null && dir.exists()) {
+            ConcurrentTestUtil.poll(new Closure(null, null) {
+                @SuppressWarnings("UnusedDeclaration")
+                void doCall() throws IOException {
+                    FileUtils.forceDelete(dir);
+                }
+            });
+        }
     }
 
     public Statement apply(final Statement base, Description description) {
@@ -85,14 +90,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
             base.evaluate();
 
             try {
-                if (cleanup && dir != null && dir.exists()) {
-                    ConcurrentTestUtil.poll(new Closure(null, null) {
-                        @SuppressWarnings("UnusedDeclaration")
-                        void doCall() throws IOException {
-                            FileUtils.forceDelete(dir);
-                        }
-                    });
-                }
+                cleanup();
             } catch (Exception e) {
                 if (suppressCleanupErrors()) {
                     System.err.println(cleanupErrorMessage());
@@ -104,7 +102,8 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
 
         private boolean suppressCleanupErrors() {
-            return testClass().getAnnotation(LeaksFileHandles.class) != null
+            return suppressCleanupErrors
+                || testClass().getAnnotation(LeaksFileHandles.class) != null
                 || description.getAnnotation(LeaksFileHandles.class) != null;
         }
 
@@ -161,7 +160,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         if (prefix == null) {
             // This can happen if this is used in a constructor or a @Before method. It also happens when using
             // @RunWith(SomeRunner) when the runner does not support rules.
-            prefix = determinePrefix();
+            prefix = "unknown-test-class";
         }
         return prefix;
     }

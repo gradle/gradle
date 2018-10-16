@@ -17,13 +17,12 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.GradleVersion
-import spock.lang.Timeout
-
-import java.util.concurrent.TimeUnit
 
 class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
-    @Timeout(value = 90, unit = TimeUnit.SECONDS)
+
+    @IntegrationTestTimeout(120)
     def "should not hang when running with security manager"() {
         given:
         buildFile << """ 
@@ -60,6 +59,6 @@ public class SecurityManagerTest {
         fails('test')
         failure.assertHasCause("""Process 'Gradle Test Executor 1' finished with non-zero exit value 1
 This problem might be caused by incorrect test process configuration.
-Please refer to the test execution section in the user guide at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_plugin.html#sec:test_execution""")
+Please refer to the test execution section in the user guide at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_testing.html#sec:test_execution""")
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.jvm.internal.resolve;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -58,7 +60,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
         this.displayName = displayName;
         this.variants = variants;
         this.dependencies = dependencies;
-        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null);
+        this.resolutionStrategy = new DefaultResolutionStrategy(DependencySubstitutionRules.NO_OP, VcsMappingsStore.NO_OP, null, moduleIdentifierFactory, null, NoOpDependencyLockingProvider.getInstance());
     }
 
     @Override
@@ -107,6 +109,11 @@ public class JvmLibraryResolveContext implements ResolveContext {
             });
         }
         return componentMetadata;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return ImmutableAttributes.EMPTY;
     }
 
 }

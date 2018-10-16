@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -69,7 +70,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
-task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
+wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
 """
         executer.withTasks('wrapper').run()
@@ -87,7 +88,7 @@ task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.ver
     def "tooling api searches up from the project directory to find the wrapper properties"() {
         projectDir.file('settings.gradle') << "include 'child'"
         projectDir.file('build.gradle') << """
-task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
+wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 allprojects {
     task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
 }
@@ -167,12 +168,12 @@ allprojects {
 
             repositories {
                 maven { url "${buildContext.libsRepo.toURI()}" }
-                maven { url "https://repo.gradle.org/gradle/repo" }
+                ${RepoScriptBlockUtil.gradleRepositoryDefintion()}
             }
 
             dependencies {
                 // If this test fails due to a missing tooling API jar 
-                // re-run `gradle prepareVersionsInfo intTestImage publishLocalArchives` 
+                // re-run `gradle prepareVersionsInfo toolingApi:intTestImage publishLocalArchives` 
                 compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
                 runtime 'org.slf4j:slf4j-simple:1.7.10'
             }

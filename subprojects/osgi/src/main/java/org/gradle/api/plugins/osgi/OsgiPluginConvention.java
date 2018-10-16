@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 
@@ -33,10 +34,18 @@ import static org.gradle.util.ConfigureUtil.configure;
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.osgi.OsgiPlugin}.
  */
+@Deprecated
 public class OsgiPluginConvention {
     private final ProjectInternal project;
 
+    /**
+     * Creates an {@link OsgiPluginConvention} instance.
+     *
+     * @deprecated Creating instances of this class is deprecated. These should be created by the OSGi plugin only.
+     */
+    @Deprecated
     public OsgiPluginConvention(ProjectInternal project) {
+        DeprecationLogger.nagUserOfDeprecated("Creating instances of OsgiPluginConvention");
         this.project = project;
     }
 

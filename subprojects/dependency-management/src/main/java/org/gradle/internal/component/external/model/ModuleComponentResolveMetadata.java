@@ -55,7 +55,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     /**
      * Returns the hash of the resource(s) from which this metadata was created.
      */
-    HashValue getContentHash();
+    HashValue getOriginalContentHash();
 
     /**
      * Returns the variants of this component
@@ -64,4 +64,5 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
 
     ImmutableAttributesFactory getAttributesFactory();
 
+    VariantMetadataRules getVariantMetadataRules();
 }

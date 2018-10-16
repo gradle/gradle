@@ -17,15 +17,20 @@ package org.gradle.api.tasks
 
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.internal.Actions
 import org.gradle.internal.Transformers
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.WorkspaceTest
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
-@SuppressWarnings("GroovyPointlessBoolean")
+@UsesNativeServices
 class AbstractCopyTaskTest extends WorkspaceTest {
 
     def taskPropertiesWithOutput = Mock(TaskProperties) {
@@ -33,30 +38,38 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         hasDeclaredOutputs() >> true
     }
     TestCopyTask task
+    TestFile projectDir
 
     def setup() {
-        task = TestUtil.create(temporaryFolder).task(TestCopyTask)
+        projectDir = file("project").createDir()
+        def project = (ProjectInternal) ProjectBuilder.builder()
+            .withProjectDir(projectDir)
+            .withGradleUserHomeDir(file("userHome").createDir())
+            .build()
+        task = TestUtil.createTask(TestCopyTask, project)
     }
 
     def "copy spec methods delegate to main spec of copy action"() {
         given:
-        file("include") << "bar"
+        projectDir.file("include") << "bar"
 
         when:
-        task.from testDirectory.absolutePath
+        task.from projectDir.absolutePath
         task.include "include"
 
         then:
         task.mainSpec.getIncludes() == ["include"].toSet()
-        task.mainSpec.buildRootResolver().source.files == task.project.fileTree(testDirectory).files
+        task.mainSpec.buildRootResolver().source.files == task.project.fileTree(projectDir).files
     }
 
     @Unroll
     def "task output caching is disabled when #description is used"() {
         when:
         method(task)
+
         then:
-        task.outputs.getCachingState(taskPropertiesWithOutput).enabled == false
+        def cachingState = task.outputs.getCachingState(taskPropertiesWithOutput, new DefaultTaskOutputCachingBuildCacheKeyBuilder().build())
+        !cachingState.enabled
 
         where:
         description                 | method

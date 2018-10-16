@@ -113,7 +113,7 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
     private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+                .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
                 .toComposite();
     }
 }

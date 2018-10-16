@@ -16,30 +16,29 @@
 
 package org.gradle.api.internal.notations;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.TypedNotationConverter;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.GUtil;
 
-import java.util.List;
+import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
 
-public class ModuleIdentifierNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
-    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',');
+public class ModuleIdentifierNotationConverter implements NotationConverter<String, ModuleIdentifier> {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     public ModuleIdentifierNotationConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(String.class);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     /**
      * Empty String for either group or module name is not allowed.
      */
-    protected ModuleIdentifier parseType(String notation) {
+    @Override
+    public void convert(String notation, NotationConvertResult<? super ModuleIdentifier> result) throws TypeConversionException {
         assert notation != null;
         String[] split = notation.split(":");
         if (split.length != 2) {
@@ -47,23 +46,11 @@ public class ModuleIdentifierNotationConverter extends TypedNotationConverter<St
         }
         String group = validate(split[0].trim(), notation);
         String name = validate(split[1].trim(), notation);
-        return moduleIdentifierFactory.module(group, name);
-    }
-
-    public static String validate(String part, String notation) {
-        if (!GUtil.isTrue(part)) {
-            throw new UnsupportedNotationException(notation);
-        }
-        for (char c : INVALID_SPEC_CHARS) {
-            if (part.indexOf(c) != -1) {
-                throw new UnsupportedNotationException(notation);
-            }
-        }
-        return part;
+        result.converted(moduleIdentifierFactory.module(group, name));
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("String describing the module in 'group:name' format").example("'org.gradle:gradle-core'.");
+        visitor.candidate("String describing the module in 'group:name' format").example("'org.gradle:gradle-core'");
     }
 }

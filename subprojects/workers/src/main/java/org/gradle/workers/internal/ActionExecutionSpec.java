@@ -16,7 +16,11 @@
 
 package org.gradle.workers.internal;
 
-public interface ActionExecutionSpec extends WorkSpec {
+import org.gradle.api.Describable;
+
+import java.io.Serializable;
+
+public interface ActionExecutionSpec extends Serializable, Describable {
     Class<?> getImplementationClass();
 
     @Override

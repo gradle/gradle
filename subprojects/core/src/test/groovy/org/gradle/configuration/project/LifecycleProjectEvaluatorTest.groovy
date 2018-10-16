@@ -21,20 +21,25 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
-import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification
 
 class LifecycleProjectEvaluatorTest extends Specification {
+
     private project = Mock(ProjectInternal)
     private gradle = Mock(GradleInternal)
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private buildOperationExecutor = new TestBuildOperationExecutor()
     private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate)
-    private state = Mock(ProjectStateInternal)
+    private state = new ProjectStateInternal()
+    private mutationState = Mock(ProjectState)
+
+    final RuntimeException failure1 = new RuntimeException()
+    final RuntimeException failure2 = new RuntimeException()
 
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
@@ -46,149 +51,210 @@ class LifecycleProjectEvaluatorTest extends Specification {
         project.projectPath >> Path.path(":project1")
         project.path >> project.projectPath.toString()
         project.identityPath >> Path.path(":project1")
+        project.stepEvaluationListener(listener, _) >> { listener, step ->
+            step.execute(listener)
+            null
+        }
+        project.getMutationState() >> mutationState
+        mutationState.withMutableState(_) >> { args -> args[0].run() }
     }
 
     void "nothing happens if project was already configured"() {
-        state.executed >> true
+        given:
+        state.configured()
 
         when:
-        evaluator.evaluate(project, state)
+        evaluate()
 
         then:
+        state.executed
         0 * delegate._
+
+        and:
+        operations.empty
     }
 
     void "nothing happens if project is being configured now"() {
-        state.executing >> true
+        given:
+        state.toBeforeEvaluate()
 
         when:
-        evaluator.evaluate(project, state)
+        evaluate()
 
         then:
+        state.configuring
         0 * delegate._
+
+        and:
+        operations.empty
     }
 
     void "evaluates the project firing all necessary listeners and updating the state"() {
         when:
-        evaluator.evaluate(project, state)
+        evaluate()
 
         then:
-        1 * listener.beforeEvaluate(project)
-        1 * state.setExecuting(true)
+        1 * listener.beforeEvaluate(project) >> {
+            assert !state.unconfigured
+            assert !state.executed
+            assert state.configuring
+        }
 
         then:
-        1 * delegate.evaluate(project, state)
+        1 * delegate.evaluate(project, state) >> {
+            assert !state.unconfigured
+            assert !state.executed
+            assert state.configuring
+
+        }
 
         then:
-        1 * state.setExecuting(false)
-        1 * state.executed()
-        1 * listener.afterEvaluate(project, state)
+        1 * listener.afterEvaluate(project, state) >> {
+            assert !state.unconfigured
+            assert state.executed
+            assert state.configuring
+        }
 
         and:
-        buildOperationExecutor.operations[0].name == 'Configure project :project1'
-        buildOperationExecutor.operations[0].displayName == 'Configure project :project1'
+        state.executed
+
+        and:
+        operations.size() == 3
+        assertConfigureOp(operations[0])
+        assertBeforeEvaluateOp(operations[1])
+        assertAfterEvaluateOp(operations[2])
     }
 
     void "notifies listeners and updates state on evaluation failure"() {
-        def failure = new RuntimeException()
-
         when:
-        evaluator.evaluate(project, state)
-
-        then:
-        1 * delegate.evaluate(project, state) >> { throw failure }
-
-        and:
-        1 * state.executed({
-            assertIsConfigurationFailure(it, failure)
-        })
-        1 * state.setExecuting(false)
+        1 * delegate.evaluate(project, state) >> { throw failure1 }
         1 * listener.afterEvaluate(project, state)
 
+        then:
+        failsWithCause(failure1)
+
         and:
-        _ * state.hasFailure() >> true
+        operations.size() == 3
+        assertConfigureOp(operations[0], failure1)
+        assertBeforeEvaluateOp(operations[1])
+        assertAfterEvaluateOp(operations[2])
     }
 
     void "updates state and does not delegate when beforeEvaluate action fails"() {
-        def failure = new RuntimeException()
-
         when:
-        evaluator.evaluate(project, state)
+        1 * listener.beforeEvaluate(project) >> { throw failure1 }
+
+        and:
+        failsWithCause(failure1)
 
         then:
-        1 * listener.beforeEvaluate(project) >> { throw failure }
-        1 * state.executed({
-            assertIsConfigurationFailure(it, failure)
-        })
         0 * delegate._
         0 * listener._
+
+        and:
+        operations.size() == 2
+        assertConfigureOp(operations[0], failure1)
+        assertBeforeEvaluateOp(operations[1], failure1)
     }
 
     void "updates state when afterEvaluate action fails"() {
-        def failure = new RuntimeException()
-
         when:
-        evaluator.evaluate(project, state)
+        1 * listener.afterEvaluate(project, state) >> { throw failure1 }
 
         then:
-        delegate.evaluate(project, state)
+        failsWithCause(failure1)
 
         and:
-        1 * state.setExecuting(false)
-        1 * state.executed()
-
-        then:
-        1 * listener.afterEvaluate(project, state) >> { throw failure }
-        1 * state.executed({
-            assertIsConfigurationFailure(it, failure)
-        })
-
-        and:
-        state.hasFailure() >>> [false, true]
-    }
-
-    def assertIsConfigurationFailure(def it, def cause) {
-        assert it instanceof ProjectConfigurationException
-        assert it.message == "A problem occurred configuring <project>."
-        assert it.cause == cause
-        true
+        operations.size() == 3
+        assertConfigureOp(operations[0], failure1)
+        assertBeforeEvaluateOp(operations[1])
+        assertAfterEvaluateOp(operations[2], failure1)
     }
 
     void "notifies listeners and updates state on evaluation failure even if afterEvaluate fails"() {
-        def failure = new RuntimeException()
-
         when:
-        evaluator.evaluate(project, state)
-
-        then:
-        delegate.evaluate(project, state) >> { throw failure }
+        1 * delegate.evaluate(project, state) >> { throw failure1 }
 
         and:
-        _ * project.toString() >> "project1"
-        1 * state.executed(_)
-        1 * state.setExecuting(false)
+        1 * listener.afterEvaluate(project, state) >> { throw failure2 }
 
         then:
-        1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate") }
-        _ * state.hasFailure() >> true
-        0 * state.executed(_)
-    }
-
-    def "forwards project details to configure project operation descriptor"() {
-        when:
-        evaluator.evaluate(project, state)
-
-        then:
-        buildOperationExecutor.operations.size() == 1
-        BuildOperationDescriptor descriptor = buildOperationExecutor.operations[0]
-        ConfigureProjectBuildOperationType.Details details = descriptor.details
+        failsWithCause(failure1)
 
         and:
-        descriptor.name == 'Configure project :project1'
-        descriptor.displayName == 'Configure project :project1'
-        descriptor.progressDisplayName == null
-        details.buildPath == Path.path(':').path
-        details.projectPath == Path.path(':project1').path
+        operations.size() == 3
+        assertConfigureOp(operations[0], failure1)
+        assertBeforeEvaluateOp(operations[1])
+        assertAfterEvaluateOp(operations[2], failure2)
     }
+
+    private void failsWithCause(RuntimeException cause) {
+        try {
+            evaluate()
+            throw new AssertionError("Expected to fail")
+        } catch (ProjectConfigurationException e) {
+            assert e.message == "A problem occurred configuring <project>."
+            assert e.cause == cause
+
+            assert state.executed
+            assert state.failure.is(e)
+        } catch (Exception e) {
+            throw new AssertionError("Unexpected type of failure", e)
+        }
+    }
+
+    private void evaluate() {
+        evaluator.evaluate(project, state)
+    }
+
+    static void assertConfigureOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
+        assert op.descriptor.name == 'Configure project :project1'
+        assert op.descriptor.displayName == 'Configure project :project1'
+
+        def details = op.descriptor.details as ConfigureProjectBuildOperationType.Details
+        details.projectPath == ":project1"
+        details.buildPath == ":"
+
+        assertOpFailureOrNot(op, ConfigureProjectBuildOperationType.Result, failureCause)
+    }
+
+    static void assertBeforeEvaluateOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
+        assert op.descriptor.name == 'Notify beforeEvaluate listeners of :project1'
+        assert op.descriptor.displayName == 'Notify beforeEvaluate listeners of :project1'
+
+        def details = op.descriptor.details as NotifyProjectBeforeEvaluatedBuildOperationType.Details
+        details.projectPath == ":project1"
+        details.buildPath == ":"
+
+        assertOpFailureOrNot(op, NotifyProjectBeforeEvaluatedBuildOperationType.Result, failureCause)
+    }
+
+    static void assertAfterEvaluateOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
+        assert op.descriptor.name == 'Notify afterEvaluate listeners of :project1'
+        assert op.descriptor.displayName == 'Notify afterEvaluate listeners of :project1'
+
+        def details = op.descriptor.details as NotifyProjectAfterEvaluatedBuildOperationType.Details
+        details.projectPath == ":project1"
+        details.buildPath == ":"
+
+        assertOpFailureOrNot(op, NotifyProjectAfterEvaluatedBuildOperationType.Result, failureCause)
+    }
+
+    private static void assertOpFailureOrNot(TestBuildOperationExecutor.Log.Record op, Class<?> resultType, Throwable failureCause) {
+        if (failureCause) {
+            assert op.result == null
+            assert op.failure instanceof ProjectConfigurationException
+            assert op.failure.message == "A problem occurred configuring <project>."
+            assert op.failure.cause.is(failureCause)
+        } else {
+            assert resultType.isInstance(op.result)
+            assert op.failure == null
+        }
+    }
+
+    List<TestBuildOperationExecutor.Log.Record> getOperations() {
+        buildOperationExecutor.log.records
+    }
+
 
 }

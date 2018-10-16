@@ -16,19 +16,17 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.Sample
-import org.junit.Rule
-import spock.lang.Timeout
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
-
-@Timeout(60)
+@IntegrationTestTimeout(60)
 class WorkerDaemonWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
-    @Rule
-    Sample workerExecutorSample = new Sample(temporaryFolder, "workerApi/workerDaemon")
+    String getSampleName() {
+        "workerApi/workerDaemon"
+    }
 
     @Override
-    void assertSampleSpecificOutcome() {
-        workerExecutorSample.dir.file("sources").listFiles().each { File sourceFile ->
+    void assertSampleSpecificOutcome(String dsl) {
+        workerExecutorSample(dsl).file("sources").listFiles().each { File sourceFile ->
             result.assertOutputContains("Reversed ${sourceFile.size()} bytes from ${sourceFile.name}")
         }
     }

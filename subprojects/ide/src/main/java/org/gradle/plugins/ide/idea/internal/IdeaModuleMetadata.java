@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
@@ -26,9 +27,9 @@ import java.util.Set;
 
 public class IdeaModuleMetadata implements IdeProjectMetadata {
     private final IdeaModule ideaModule;
-    private final Task generatorTask;
+    private final TaskProvider<? extends Task> generatorTask;
 
-    public IdeaModuleMetadata(IdeaModule ideaModule, Task generatorTask) {
+    public IdeaModuleMetadata(IdeaModule ideaModule, TaskProvider<? extends Task> generatorTask) {
         this.ideaModule = ideaModule;
         this.generatorTask = generatorTask;
     }
@@ -44,6 +45,6 @@ public class IdeaModuleMetadata implements IdeProjectMetadata {
 
     @Override
     public Set<? extends Task> getGeneratorTasks() {
-        return Collections.singleton(generatorTask);
+        return Collections.singleton(generatorTask.get());
     }
 }

@@ -34,6 +34,23 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         buildFile << app.extraConfiguration
     }
 
+    def "clean build with PCH does not fail"() {
+        given:
+        writeStandardSourceFiles()
+
+        when:
+        buildFile << preCompiledHeaderComponent()
+
+        then:
+        args("--info")
+        succeeds "helloSharedLibrary"
+        libAndPCHTasksExecuted()
+        pchCompiledOnceForEach([ PCHHeaderDirName ])
+
+        expect:
+        succeeds("clean", "helloSharedLibrary")
+    }
+
     def "can set a precompiled header on a source set for a source header in the headers directory" () {
         given:
         writeStandardSourceFiles(path)
@@ -108,11 +125,9 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
             model {
                 components {
                     hello {
-                        binaries.all {
-                            if (toolChain.name == "visualCpp") {
-                                ${app.sourceType}Compiler.args "/I${safeHeaderDirPath}"
-                            } else {
-                                ${app.sourceType}Compiler.args "-I${safeHeaderDirPath}"
+                        sources.all {
+                            exportedHeaders {
+                                srcDir "${safeHeaderDirPath}"
                             }
                         }
                     }

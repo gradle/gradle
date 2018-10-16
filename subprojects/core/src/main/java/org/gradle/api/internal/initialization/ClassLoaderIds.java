@@ -73,6 +73,11 @@ public class ClassLoaderIds {
         }
 
         @Override
+        public String getDisplayName() {
+            return type + "[" + Arrays.toString(attributes) + "]";
+        }
+
+        @Override
         public String toString() {
             return "ClassLoaderId{type=" + type + ", attributes=" + Arrays.toString(attributes) + '}';
         }

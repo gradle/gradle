@@ -64,61 +64,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
-    def "configures test task when debug property is set"() {
-        given:
-        buildFile << """
-            apply plugin: 'java'
-            task validate() {
-                doFirst {
-                    assert test.debug
-                }
-            }
-            test.dependsOn(validate)
-            test.enabled = false
-        """
-
-        when:
-        executer.withArgument("-Dtest.debug")
-
-        then:
-        succeeds("test")
-    }
-
-    def "configures test task when test.single property is set"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.tasks.properties.PropertyVisitor
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
-            import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
-            import org.gradle.api.internal.tasks.TaskPropertyUtils
-
-            apply plugin: 'java'
-
-            task validate() {
-                doFirst {
-                    assert test.includes  == ['**/pattern*.class'] as Set
-                    boolean hasSourceFiles = false
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
-                        @Override
-                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-                            hasSourceFiles |= inputFileProperty.isSkipWhenEmpty() && !inputFileProperty.propertyFiles.empty
-                        }
-                    })
-                    assert !hasSourceFiles
-                }
-            }
-            test.include 'ignoreme'
-            test.dependsOn(validate)
-            test.enabled = false
-        """
-
-        when:
-        executer.withArgument("-Dtest.single=pattern")
-
-        then:
-        succeeds("test")
-    }
-
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
         given:
         file('src/test/java/ExceptionTest.java') << """
@@ -496,5 +441,42 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5305")
+    def "test can install an irreplaceable SecurityManager"() {
+        given:
+        executer.withStackTraceChecksDisabled()
+        buildFile << """
+            apply plugin:'java'
+            ${mavenCentralRepository()}
+            dependencies { testCompile 'junit:junit:4.12' }
+        """
+
+        and:
+        file('src/test/java/SecurityManagerInstallationTest.java') << """
+            import org.junit.Test;
+            import java.security.Permission;
+
+            public class SecurityManagerInstallationTest {
+                @Test
+                public void testSecurityManagerCleanExit() {
+                    System.setSecurityManager(new SecurityManager() {
+                        @Override
+                        public void checkPermission(Permission perm) {
+                            if ("setSecurityManager".equals(perm.getName())) {
+                                throw new SecurityException("You cannot replace this security manager!");
+                            }
+                        }
+                    });
+                }
+            }
+        """
+
+        when:
+        succeeds "test"
+
+        then:
+        outputContains "Unable to reset SecurityManager"
     }
 }

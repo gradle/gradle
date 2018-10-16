@@ -24,7 +24,7 @@ public interface ExecutionResult {
     /**
      * Stdout of the Gradle execution, normalized to use new-line char as line separator.
      *
-     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods.</p>
+     * <p>You should avoid using this method as it couples the tests to a particular layout for the console. Instead use the more descriptive assertion methods on this class.</p>
      */
     String getOutput();
 
@@ -62,6 +62,13 @@ public interface ExecutionResult {
     ExecutionResult assertHasErrorOutput(String expectedOutput);
 
     /**
+     * Asserts that this result includes the given error log message in the raw output (including ANSI characters and build result message).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertHasRawErrorOutput(String expectedOutput);
+
+    /**
      * Returns true when this result includes the given error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
@@ -76,6 +83,22 @@ public interface ExecutionResult {
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
     ExecutionResult assertOutputContains(String expectedOutput);
+
+    /**
+     * Asserts that this result includes the given non-error log message (including ANSI characters and build result message).
+     *
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertRawOutputContains(String expectedOutput);
+
+    /**
+     * Asserts that the given content includes the given log message.
+     *
+     * @param content The content to check
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     * @param label The label to use when printing a failure
+     */
+    ExecutionResult assertContentContains(String content, String expectedOutput, String label);
 
     /**
      * Asserts that this result does not include the given log message anywhere in the build output.

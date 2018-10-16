@@ -17,18 +17,22 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,16 +41,16 @@ import java.util.Map;
 public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements DeclaredTaskOutputFileProperty {
 
     private final OutputType outputType;
-    private final ValidatingValue paths;
+    private final ValidatingValue value;
     private final ValidationAction validationAction;
-    private final String taskName;
+    private final String taskDisplayName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue paths, ValidationAction validationAction) {
-        this.taskName = taskName;
+    public CompositeTaskOutputPropertySpec(String taskDisplayName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
+        this.taskDisplayName = taskDisplayName;
         this.resolver = resolver;
         this.outputType = outputType;
-        this.paths = paths;
+        this.value = value;
         this.validationAction = validationAction;
     }
 
@@ -55,11 +59,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     }
 
     public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
-        Object unpackedPaths = DeferredUtil.unpack(paths);
-        if (unpackedPaths == null) {
-            return Iterators.emptyIterator();
-        } else if (unpackedPaths instanceof Map) {
-            final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedPaths).entrySet().iterator();
+        Object unpackedValue = DeferredUtil.unpack(value);
+        if (unpackedValue == null) {
+            return Collections.emptyIterator();
+        } else if (unpackedValue instanceof Map) {
+            final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedValue).entrySet().iterator();
             return new AbstractIterator<TaskOutputFilePropertySpec>() {
                 @Override
                 protected TaskOutputFilePropertySpec computeNext() {
@@ -77,51 +81,68 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 }
             };
         } else {
-            final List<Object> roots = Lists.newArrayList();
-            resolver.resolveFiles(paths).visitRootElements(new FileCollectionVisitor() {
+            final List<File> roots = Lists.newArrayList();
+            final MutableBoolean nonFileRoot = new MutableBoolean();
+            FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedValue);
+            outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
-                    visitRoot(fileCollection);
+                    Iterables.addAll(roots, fileCollection);
                 }
 
                 @Override
-                public void visitTree(FileTreeInternal fileTree) {
-                    visitRoot(fileTree);
+                public void visitGenericFileTree(FileTreeInternal fileTree) {
+                    nonFileRoot.set(true);
                 }
 
                 @Override
                 public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                    visitRoot(directoryTree);
-                }
-
-                private void visitRoot(Object root) {
-                    roots.add(root);
+                    // We could support an unfiltered DirectoryFileTree here as a cacheable root,
+                    // but because @OutputDirectory also doesn't support it we choose not to.
+                    nonFileRoot.set(true);
                 }
             });
 
-            final Iterator<Object> iterator = roots.iterator();
-            return new AbstractIterator<TaskOutputFilePropertySpec>() {
-                private int index;
+            if (nonFileRoot.get()) {
+                return Iterators.<TaskOutputFilePropertySpec>singletonIterator(CompositeTaskOutputPropertySpec.this);
+            } else {
+                final Iterator<File> iterator = roots.iterator();
+                return new AbstractIterator<TaskOutputFilePropertySpec>() {
+                    private int index;
 
-                @Override
-                protected TaskOutputFilePropertySpec computeNext() {
-                    if (!iterator.hasNext()) {
-                        return endOfData();
+                    @Override
+                    protected TaskOutputFilePropertySpec computeNext() {
+                        if (!iterator.hasNext()) {
+                            return endOfData();
+                        }
+                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec.this, "$" + (++index), iterator.next());
                     }
-                    Object root = iterator.next();
-                    return new NonCacheableTaskOutputPropertySpec(taskName, CompositeTaskOutputPropertySpec.this, ++index, resolver, root);
-                }
-            };
+                };
+            }
         }
     }
 
     @Override
+    public void attachProducer(Task producer) {
+        value.attachProducer(producer);
+    }
+
+    @Override
+    public void prepareValue() {
+        value.maybeFinalizeValue();
+    }
+
+    @Override
+    public void cleanupValue() {
+    }
+
+    @Override
     public void validate(TaskValidationContext context) {
-        paths.validate(getPropertyName(), isOptional(), validationAction, context);
+        value.validate(getPropertyName(), isOptional(), validationAction, context);
     }
 
     @Override
     public FileCollection getPropertyFiles() {
-        return new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
+        return new TaskPropertyFileCollection(taskDisplayName, "output", this, resolver, value);
     }
 }

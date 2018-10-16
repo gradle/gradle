@@ -17,11 +17,11 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class DefaultMutableAttributeContainerTest extends Specification {
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
 
     def "can override attributes from parent"() {
         def attr1 = Attribute.of("one", String)

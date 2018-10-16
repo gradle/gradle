@@ -215,13 +215,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
 
         then:
-        runtimeConfiguration.artifacts.collect { it.archiveTask } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]
+        runtimeConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
 
         when:
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archivesConfiguration.artifacts.collect { it.archiveTask } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]
+        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
     }
 
     def addsJavaLibraryComponent() {
@@ -233,7 +233,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def javaLibrary = project.components.getByName("java")
 
         then:
-        javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
+        javaLibrary.artifacts.collect {it.file} == [jarTask.archivePath]
         javaLibrary.usages[0].dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
     }
 
@@ -313,7 +313,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
-        task.options.annotationProcessorPath.processorPath.is(project.sourceSets.main.annotationProcessorPath)
+        task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
         task.destinationDir == project.sourceSets.main.java.outputDir
         task.source.files == project.sourceSets.main.java.files
 
@@ -340,7 +340,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
-        task.options.annotationProcessorPath.processorPath.is(project.sourceSets.test.annotationProcessorPath)
+        task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
         task.destinationDir == project.sourceSets.test.java.outputDir
         task.source.files == project.sourceSets.test.java.files
 
@@ -384,7 +384,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Javadoc
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
-        Assert.assertThat(task.classpath, sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        Assert.assertThat(task.classpath, sameCollection(project.layout.configurableFiles(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.destinationDir == project.file("$project.docsDir/javadoc")
         task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
 

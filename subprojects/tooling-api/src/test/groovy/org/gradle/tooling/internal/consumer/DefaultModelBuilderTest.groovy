@@ -22,7 +22,6 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.internal.Exceptions
@@ -73,7 +72,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
 
     def "can configure the operation"() {
         ResultHandler<GradleProject> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        ResultHandlerVersion1<GradleProject> adaptedHandler
         GradleProject result = Mock()
 
         when:
@@ -104,7 +103,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
 
     def "wraps failure to fetch model"() {
         ResultHandler<GradleProject> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        ResultHandlerVersion1<GradleProject> adaptedHandler
         RuntimeException failure = new RuntimeException()
         GradleConnectionException wrappedFailure
 
@@ -129,7 +128,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
 
     def "provides compatibility hint on failure"() {
         ResultHandler<GradleProject> handler = Mock()
-        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        ResultHandlerVersion1<GradleProject> adaptedHandler
         RuntimeException failure = new UnsupportedOperationException()
         GradleConnectionException wrappedFailure
 

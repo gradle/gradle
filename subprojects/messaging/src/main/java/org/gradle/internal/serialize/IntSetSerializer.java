@@ -19,6 +19,7 @@ package org.gradle.internal.serialize;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 
 import java.io.EOFException;
 
@@ -31,6 +32,9 @@ public class IntSetSerializer implements Serializer<IntSet> {
     @Override
     public IntSet read(Decoder decoder) throws EOFException, Exception {
         int size = decoder.readInt();
+        if (size == 0) {
+            return IntSets.EMPTY_SET;
+        }
         IntSet result = new IntOpenHashSet(size);
         for (int i = 0; i < size; i++) {
             result.add(decoder.readInt());

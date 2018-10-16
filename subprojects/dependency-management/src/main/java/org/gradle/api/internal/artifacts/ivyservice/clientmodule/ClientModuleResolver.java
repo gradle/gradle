@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
@@ -27,6 +29,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -147,8 +150,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-            return ImmutableList.of();
+        public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+            return Optional.absent();
         }
 
         @Override
@@ -172,6 +175,11 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
+        public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+            return ImmutableList.of();
+        }
+
+        @Override
         public AttributeContainer getAttributes() {
             return delegate.getAttributes();
         }
@@ -179,7 +187,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
     private static class ClientModuleConfigurationMetadata extends DefaultConfigurationMetadata {
         ClientModuleConfigurationMetadata(ModuleComponentIdentifier componentId, String name, ModuleComponentArtifactMetadata artifact, List<ModuleDependencyMetadata> dependencies) {
-            super(componentId, name, true, true, ImmutableList.<String>of(), ImmutableList.of(artifact), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of());
+            super(componentId, name, true, true, ImmutableSet.<String>of(), ImmutableList.of(artifact), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY);
             setDependencies(dependencies);
         }
     }

@@ -21,8 +21,13 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
-import org.gradle.internal.Actions;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.ImmutableActionSet;
 
 import javax.annotation.Nullable;
@@ -33,9 +38,13 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
+    private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
+
+    private ImmutableAttributesFactory attributesFactory;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
-    private Action<? super ModuleDependency> onMutate = Actions.doNothing();
+    private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
+    private AttributeContainerInternal attributes;
 
     @Nullable
     private String configuration;
@@ -111,6 +120,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
+        target.setAttributes(attributes);
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
@@ -138,20 +148,56 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (isTransitive() != dependencyRhs.isTransitive()) {
             return false;
         }
-        if (getArtifacts() != null ? !getArtifacts().equals(dependencyRhs.getArtifacts())
-                : dependencyRhs.getArtifacts() != null) {
+        if (!Objects.equal(getArtifacts(), dependencyRhs.getArtifacts())) {
             return false;
         }
-        if (getExcludeRules() != null ? !getExcludeRules().equals(dependencyRhs.getExcludeRules())
-                : dependencyRhs.getExcludeRules() != null) {
+        if (!Objects.equal(getExcludeRules(), dependencyRhs.getExcludeRules())) {
+            return false;
+        }
+        if (!Objects.equal(getAttributes(), dependencyRhs.getAttributes())) {
             return false;
         }
         return true;
     }
 
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes == null ? ImmutableAttributes.EMPTY : attributes.asImmutable();
+    }
+
+    @Override
+    public AbstractModuleDependency attributes(Action<? super AttributeContainer> configureAction) {
+        validateMutation();
+        if (attributesFactory == null) {
+            warnAboutInternalApiUse();
+            return this;
+        }
+        if (attributes == null) {
+            attributes = attributesFactory.mutable();
+        }
+        configureAction.execute(attributes);
+        return this;
+    }
+
+    private void warnAboutInternalApiUse() {
+        LOG.warn("Cannot set attributes for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
+    }
+
+    public void setAttributesFactory(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
+    }
+
+    protected ImmutableAttributesFactory getAttributesFactory() {
+        return attributesFactory;
+    }
+
+    void setAttributes(AttributeContainerInternal attributes) {
+        this.attributes = attributes;
+    }
+
     @SuppressWarnings("unchecked")
     public void addMutationValidator(Action<? super ModuleDependency> action) {
-        this.onMutate = ImmutableActionSet.of(onMutate, action);
+        this.onMutate = onMutate.add(action);
     }
 
     protected void validateMutation() {

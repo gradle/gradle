@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Insufficient
 import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Sufficient
 
-@TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
+@TargetCoverage({ JacocoCoverage.DEFAULT_COVERAGE })
 class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     private final static String[] TEST_TASK_PATH = [':test'] as String[]

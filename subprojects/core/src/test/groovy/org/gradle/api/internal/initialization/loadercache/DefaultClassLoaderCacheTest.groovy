@@ -30,8 +30,14 @@ class DefaultClassLoaderCacheTest extends Specification {
 
     def classpathHasher = new FileClasspathHasher()
     def cache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(classpathHasher), classpathHasher)
-    def id1 = new ClassLoaderId() {}
-    def id2 = new ClassLoaderId() {}
+    def id1 = new ClassLoaderId() {
+        @Override
+        String getDisplayName() { "id1" }
+    }
+    def id2 = new ClassLoaderId() {
+        @Override
+        String getDisplayName() { "id2" }
+    }
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -43,7 +49,7 @@ class DefaultClassLoaderCacheTest extends Specification {
     }
 
     ClassPath classPath(String... paths) {
-        new DefaultClassPath(paths.collect { file(it) } as Iterable<File>)
+        DefaultClassPath.of(paths.collect { file(it) } as Iterable<File>)
     }
 
     ClassLoader classLoader(ClassPath classPath) {

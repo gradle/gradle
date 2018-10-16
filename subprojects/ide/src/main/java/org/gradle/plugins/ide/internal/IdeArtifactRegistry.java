@@ -24,23 +24,26 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public interface IdeArtifactRegistry {
-    void registerIdeArtifact(IdeProjectMetadata ideProjectMetadata);
+    /**
+     * Registers an IDE project model to be included in the IDE workspace.
+     */
+    void registerIdeProject(IdeProjectMetadata ideProjectMetadata);
 
     /**
-     * Finds an IDE metadata artifact with the specified type. Does not execute tasks to build the artifact.
+     * Finds an IDE project with the given type in the given project. Does not execute tasks to build the project file.
      */
     @Nullable
-    <T extends IdeProjectMetadata> T getIdeArtifactMetadata(Class<T> type, ProjectComponentIdentifier project);
+    <T extends IdeProjectMetadata> T getIdeProject(Class<T> type, ProjectComponentIdentifier project);
 
     /**
-     * Finds all known IDE metadata artifacts with the specified type, in all builds. Does not execute tasks to build the artifact.
+     * Finds all known IDE projects with the given type that should be included in the IDE workspace. Does not execute tasks to build the artifact.
      */
-    <T extends IdeProjectMetadata> List<Reference<T>> getIdeArtifactMetadata(Class<T> type);
+    <T extends IdeProjectMetadata> List<Reference<T>> getIdeProjects(Class<T> type);
 
     /**
-     * Returns a {@link FileCollection} containing all metadata artifacts with the specified type, in all builds.
+     * Returns a {@link FileCollection} containing the files for all IDE projects with the specified type that should be included in the IDE workspace.
      */
-    FileCollection getIdeArtifacts(Class<? extends IdeProjectMetadata> type);
+    FileCollection getIdeProjectFiles(Class<? extends IdeProjectMetadata> type);
 
     interface Reference<T extends IdeProjectMetadata> {
         T get();

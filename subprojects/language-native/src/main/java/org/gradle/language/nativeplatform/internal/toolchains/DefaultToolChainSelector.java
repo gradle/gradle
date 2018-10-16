@@ -16,11 +16,13 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -33,17 +35,20 @@ import javax.inject.Inject;
 
 public class DefaultToolChainSelector implements ToolChainSelector {
     private final ModelRegistry modelRegistry;
+    private final ObjectFactory objectFactory;
     private DefaultNativePlatform host;
 
     @Inject
-    public DefaultToolChainSelector(ModelRegistry modelRegistry) {
+    public DefaultToolChainSelector(ModelRegistry modelRegistry, ObjectFactory objectFactory) {
         this.modelRegistry = modelRegistry;
+        this.objectFactory = objectFactory;
         this.host = DefaultNativePlatform.host();
     }
 
     @Override
     public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
         DefaultNativePlatform targetMachine = host;
+        OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, targetMachine.getOperatingSystem().toFamilyName());
 
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
@@ -53,7 +58,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         // TODO - don't select again here, as the selection is already performed to select the toolchain
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetMachine);
 
-        if (!toolProvider.isAvailable() && targetMachine.getOperatingSystem().isWindows() && targetMachine.getArchitecture().isAmd64()) {
+        if (!toolProvider.isAvailable() && operatingSystemFamily.isWindows() && targetMachine.getArchitecture().isAmd64()) {
             // Try building x86 on Windows. Don't do this for other operating systems (yet)
             DefaultNativePlatform x86platformRequest = targetMachine.withArchitecture(Architectures.of(Architectures.X86));
             NativeToolChainInternal x86ToolChain = registry.getForPlatform(sourceLanguage, x86platformRequest);
@@ -66,13 +71,15 @@ public class DefaultToolChainSelector implements ToolChainSelector {
             }
         }
 
-        // TODO - use a better name for the platforms, rather than "current"
+        // TODO - use a better name for the platforms, rather than "host"
 
-        T targetPlatform = null;
+        final T targetPlatform;
         if (CppPlatform.class.isAssignableFrom(platformType)) {
-            targetPlatform = platformType.cast(new DefaultCppPlatform("host", targetMachine));
+            targetPlatform = platformType.cast(new DefaultCppPlatform("host", operatingSystemFamily, targetMachine));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            targetPlatform = platformType.cast(new DefaultSwiftPlatform("host", targetMachine));
+            targetPlatform = platformType.cast(new DefaultSwiftPlatform("host", operatingSystemFamily, targetMachine));
+        } else {
+            throw new IllegalArgumentException("Unknown type of platform " + platformType);
         }
         return new DefaultResult<T>(toolChain, toolProvider, targetPlatform);
     }

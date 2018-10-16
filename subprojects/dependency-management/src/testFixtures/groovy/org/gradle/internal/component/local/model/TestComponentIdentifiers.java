@@ -18,6 +18,9 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.util.Path;
 
 public class TestComponentIdentifiers {
     public static ProjectComponentIdentifier newProjectId(String projectPath) {
@@ -25,7 +28,12 @@ public class TestComponentIdentifiers {
     }
 
     public static ProjectComponentIdentifier newProjectId(String buildName, String projectPath) {
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(buildName), projectPath);
+        Path path = Path.path(projectPath);
+        String name = path.getName();
+        if (name == null) {
+            name = "root";
+        }
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(buildName), path, path, name);
     }
 
     public static ProjectComponentSelector newSelector(String projectPath) {
@@ -33,6 +41,11 @@ public class TestComponentIdentifiers {
     }
 
     public static ProjectComponentSelector newSelector(String buildName, String projectPath) {
-        return new DefaultProjectComponentSelector(buildName, projectPath);
+        Path path = Path.path(projectPath);
+        String name = path.getName();
+        if (name == null) {
+            name = "root";
+        }
+        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildName), path, path, name, ImmutableAttributes.EMPTY);
     }
 }

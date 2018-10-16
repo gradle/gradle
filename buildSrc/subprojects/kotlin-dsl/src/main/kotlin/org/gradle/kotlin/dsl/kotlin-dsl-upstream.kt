@@ -1,21 +1,12 @@
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 
 
 // This file contains members intended to be pulled upstream into the next Gradle Kotlin DSL release
-
-
-/**
- * Creates and adds a new extension to this container.
- *
- * @see [ExtensionContainer.create]
- */
-inline
-fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any?): T =
-    create(name, T::class.java, *constructionArguments)
 
 
 /**
@@ -55,3 +46,7 @@ fun <reified T : Any> TaskContainer.getByName(name: String) =
 inline
 fun <reified T : Any> TaskContainer.getByName(name: String, configure: T.() -> Unit) =
     getByName<T>(name).also(configure)
+
+
+inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
+    withType(T::class.java)

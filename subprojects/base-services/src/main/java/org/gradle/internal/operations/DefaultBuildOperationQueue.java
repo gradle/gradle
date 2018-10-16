@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -24,7 +25,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -186,7 +186,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
                 return getNextOperation();
@@ -200,9 +200,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // condition where the pending count is 0, but a child worker lease is still held when
             // the parent lease is released.
             completeOperations(
-                workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), new Callable<Integer>() {
+                workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), new Factory<Integer>() {
                     @Override
-                    public Integer call() throws Exception {
+                    public Integer create() {
                         int operationCount = 0;
                         T operation = firstOperation;
                         while (operation != null) {

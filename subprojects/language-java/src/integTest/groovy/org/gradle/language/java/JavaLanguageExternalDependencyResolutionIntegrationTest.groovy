@@ -242,7 +242,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         fails 'mainJar'
 
         and:
-        failureDescriptionContains("Could not resolve all dependencies for 'Jar 'main:jar''")
+        failureCauseContains("Could not resolve all dependencies for 'Jar 'main:jar''")
         failureCauseContains('Could not find org.gradle:test:1.0')
     }
 

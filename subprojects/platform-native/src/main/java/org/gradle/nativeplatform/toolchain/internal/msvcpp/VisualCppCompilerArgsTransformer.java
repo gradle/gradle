@@ -58,6 +58,9 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
         for (File file : spec.getIncludeRoots()) {
             args.add("/I" + file.getAbsolutePath());
         }
+        for (File file : spec.getSystemIncludeRoots()) {
+            args.add("/I" + file.getAbsolutePath());
+        }
     }
 
     protected void addMacroArgs(T spec, List<String> args) {

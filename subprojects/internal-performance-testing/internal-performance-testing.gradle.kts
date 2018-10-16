@@ -18,7 +18,7 @@ import accessors.*
 
 plugins {
     `javascript-base`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 val reports by configurations.creating
@@ -44,30 +44,30 @@ dependencies {
     compile(library("jgit"))
     compile(library("commons_httpclient"))
     compile(library("jsch"))
+    compile(library("commons_math"))
+    compile(library("jcl_to_slf4j"))
 
-    flamegraph("com.github.oehme:jfr-flame-graph:v0.0.5:all")
+    flamegraph("com.github.oehme:jfr-flame-graph:v0.0.10:all")
 
     runtime("com.h2database:h2:1.4.192")
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    moduleType = ModuleType.REQUIRES_JAVA_8
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-val reportResources by tasks.creating(Copy::class) {
+val reportResources = tasks.register<Copy>("reportResources") {
     from(reports)
     into("$generatedResourcesDir/org/gradle/reporting")
 }
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir)
 
-tasks {
-    "jar"(Jar::class) {
-        inputs.files(flamegraph)
-        from(files(deferred{ flamegraph.map { zipTree(it) } }))
-    }
+tasks.named<Jar>("jar") {
+    inputs.files(flamegraph)
+    from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
 
 testFixtures {

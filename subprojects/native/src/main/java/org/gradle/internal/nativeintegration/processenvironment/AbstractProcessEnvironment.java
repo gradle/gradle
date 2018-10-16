@@ -17,7 +17,6 @@ package org.gradle.internal.nativeintegration.processenvironment;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.JavaVersion;
 import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -33,9 +32,6 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     @Override
     public EnvironmentModificationResult maybeSetEnvironment(Map<String, String> source) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
-        }
         // need to take copy to prevent ConcurrentModificationException
         List<String> keysToRemove = Lists.newArrayList(Sets.difference(System.getenv().keySet(), source.keySet()));
         for (String key : keysToRemove) {
@@ -57,9 +53,6 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     @Override
     public EnvironmentModificationResult maybeRemoveEnvironmentVariable(String name) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
-        }
         removeEnvironmentVariable(name);
         return EnvironmentModificationResult.SUCCESS;
     }
@@ -79,9 +72,6 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
 
     @Override
     public EnvironmentModificationResult maybeSetEnvironmentVariable(String name, String value) {
-        if (JavaVersion.current().isJava9Compatible()) {
-            return EnvironmentModificationResult.JAVA_9_IMMUTABLE_ENVIRONMENT;
-        }
         setEnvironmentVariable(name, value);
         return EnvironmentModificationResult.SUCCESS;
     }

@@ -30,10 +30,10 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         def numberOfInputProperties = 10
         def numberOfTasks = 100
         def totalNumberOfOutputDirectories = numberOfTasks
-        def millisecondsToKill = 200
+        def killPollInterval = 10
         def totalNumberOfOutputFiles = numberOfTasks * numberOfOutputFilesPerTask + totalNumberOfOutputDirectories
 
-        setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, millisecondsToKill)
+        setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, killPollInterval)
 
         executer.beforeExecute {
             // We need a separate JVM in order not to kill the test JVM
@@ -44,7 +44,7 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds("createFiles")
         succeeds("clean")
         fails("createFiles", "-PkillMe=true", "--max-workers=${numberOfTasks}")
-        def createdFiles = file('build').allDescendants().size()
+        def createdFiles = file('build').allDescendants().size() as BigDecimal
         println "\nNumber of created files when the process has been killed: ${createdFiles}"
 
         then:
@@ -63,10 +63,10 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
      * Each of those tasks has {@code numberOfInputProperties} directory inputs, each one of them pointing to the input directory {@code 'inputs'}.
      * The {@code 'inputs'} directory contains {@code numberOfFiles}.
      * The {@code createFiles${number}} tasks create {@code numberOfFiles} files into the output directory {@code 'build/output${number}'} by using the worker API. So the task actions execute in parallel.
-     * If the Gradle property {@code 'killMe'} is set to some truthy value, each of those tasks will a new {@link Thread} which will exit the Gradle JVM {@code millisecondsToKill} ms after the task started executing.
+     * If the Gradle property {@code 'killMe'} is set to some truthy value, we start a {@link Thread} which checks every {@code killPollInterval} ms if there are more than 40 output directories in 'build` and kills the Gradle process if there are.
      * Finally, there is one task depending on all the tasks which are creating files. This one is just called {@code createFiles}.
      */
-    private void setupTestProject(int numberOfFiles, int numberOfInputProperties, int numberOfTasks, int millisecondsToKill) {
+    private void setupTestProject(int numberOfFiles, int numberOfInputProperties, int numberOfTasks, int killPollInterval) {
         buildFile << """
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
@@ -112,16 +112,6 @@ class CreateFilesTask extends DefaultTask {
             isolationMode = IsolationMode.NONE
             params(outputDir)
         }
-        if (project.findProperty("killMe")) {
-            new Thread({
-                while (true) {
-                    Thread.sleep(${millisecondsToKill})
-                    if (outputDir.parentFile.listFiles().size() > 40) {
-                        System.exit(1)
-                    }
-                }
-            }).start()
-        }
     }
 }   
 
@@ -136,6 +126,16 @@ task createFiles
     })           
 }
 
+if (project.findProperty("killMe")) {
+    new Thread({
+        while (true) {
+            Thread.sleep(${killPollInterval})
+            if (buildDir.exists() && buildDir.listFiles().size() > 20) {
+                System.exit(1)
+            }
+        }
+    }).start()
+}
         """
 
         file('inputs').create {
@@ -145,7 +145,7 @@ task createFiles
         }
     }
 
-    private String inputProperty(Integer postfix) {
+    private static String inputProperty(Integer postfix) {
         """
             @InputDirectory
             File inputDir${postfix}       

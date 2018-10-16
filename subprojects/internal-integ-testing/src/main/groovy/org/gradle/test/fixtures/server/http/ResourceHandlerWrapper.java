@@ -25,16 +25,44 @@ class ResourceHandlerWrapper implements ResourceHandler, WaitPrecondition {
     private final Lock lock;
     private final ResourceHandler handler;
     private boolean started;
+    private boolean received;
 
     public ResourceHandlerWrapper(Lock lock, ResourceExpectation expectation) {
         this.lock = lock;
         handler = expectation.create(this);
     }
 
+    void received() {
+        lock.lock();
+        try {
+            received = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean isReceived() {
+        lock.lock();
+        try {
+            return received;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     void released() {
         lock.lock();
         try {
             started = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean isReleased() {
+        lock.lock();
+        try {
+            return started;
         } finally {
             lock.unlock();
         }

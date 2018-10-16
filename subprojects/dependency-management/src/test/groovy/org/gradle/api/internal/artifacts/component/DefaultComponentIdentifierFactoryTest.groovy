@@ -16,81 +16,64 @@
 
 package org.gradle.api.internal.artifacts.component
 
-import org.gradle.api.Project
-import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModule
-import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
-import org.gradle.api.internal.artifacts.Module
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ProjectBackedModule
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.BuildIdentity
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultComponentIdentifierFactoryTest extends Specification {
-    BuildIdentity buildIdentity = Mock(BuildIdentity)
-    ComponentIdentifierFactory componentIdentifierFactory = new DefaultComponentIdentifierFactory(buildIdentity)
+    def buildIdentity = Mock(BuildState)
+    def componentIdentifierFactory = new DefaultComponentIdentifierFactory(buildIdentity)
 
     def "can create project component identifier"() {
         given:
-        BuildIdentifier buildId = new DefaultBuildIdentifier("build")
-        Project project = Mock(ProjectInternal)
-        Module module = new ProjectBackedModule(project)
+        def project = Mock(ProjectInternal)
+        def expectedId = Stub(ProjectComponentIdentifier)
+        def module = new ProjectBackedModule(project)
 
         when:
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
+        def componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
         project.path >> ':a'
-        buildIdentity.getCurrentBuild() >> buildId
+        buildIdentity.getIdentifierForProject(Path.path(':a')) >> expectedId
 
         and:
-        componentIdentifier == new DefaultProjectComponentIdentifier(buildId, ':a')
+        componentIdentifier == expectedId
     }
 
     def "can create module component identifier"() {
         given:
-        Module module = new DefaultModule('some-group', 'some-name', '1.0')
+        def module = new DefaultModule('some-group', 'some-name', '1.0')
 
         when:
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
+        def componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
 
         then:
-        componentIdentifier == new DefaultModuleComponentIdentifier('some-group', 'some-name', '1.0')
+        componentIdentifier == new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('some-group', 'some-name'), '1.0')
     }
 
     def "can create component identifier for project dependency in same build"() {
         given:
-        BuildIdentifier buildId = new DefaultBuildIdentifier("build")
-        ProjectComponentSelector selector = new DefaultProjectComponentSelector("build", ":a")
+        def buildId = new DefaultBuildIdentifier("build")
+        def selector = new DefaultProjectComponentSelector(buildId, Path.path(":id:path"), Path.path(":project:path"), "name", ImmutableAttributes.EMPTY)
 
         when:
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)
+        def componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)
 
         then:
         buildIdentity.getCurrentBuild() >> buildId
 
         and:
-        componentIdentifier == new DefaultProjectComponentIdentifier(buildId, ':a')
-    }
-
-    def "can create component identifier for project dependency in different build"() {
-        given:
-        BuildIdentifier buildId = new DefaultBuildIdentifier("other")
-        ProjectComponentSelector selector = new DefaultProjectComponentSelector("build", ":a")
-
-        when:
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)
-
-        then:
-        buildIdentity.getCurrentBuild() >> buildId
-
-        and:
-        componentIdentifier == new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier("build"), ':a')
+        componentIdentifier == new DefaultProjectComponentIdentifier(buildId, selector.identityPath, selector.projectPath(), selector.projectName)
     }
 }

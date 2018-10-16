@@ -83,7 +83,8 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
                 throw new IllegalStateException("Timeout waiting for concurrent jobs to complete.");
             }
         } catch (InterruptedException e) {
-            throw new UncheckedException(e);
+            executor.shutdownNow();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         executorPolicy.onStop();
     }
@@ -99,6 +100,15 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
                 threadPoolExecutor.setMaximumPoolSize(numThreads);
                 threadPoolExecutor.setCorePoolSize(numThreads);
             }
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @Override
+    public void setKeepAlive(int timeout, TimeUnit timeUnit) {
+        if (executor instanceof ThreadPoolExecutor) {
+            ((ThreadPoolExecutor)executor).setKeepAliveTime(timeout, timeUnit);
         } else {
             throw new UnsupportedOperationException();
         }

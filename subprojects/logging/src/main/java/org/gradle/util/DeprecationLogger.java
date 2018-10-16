@@ -15,4 +15,5 @@
  */
 package org.gradle.util;
 
-public class DeprecationLogger extends SingleMessageLogger {}
+public class DeprecationLogger extends SingleMessageLogger {
+}

@@ -18,7 +18,7 @@ package org.gradle.internal.logging.sink;
 
 public final class ConsoleStateUtil {
 
-    public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
+    public static final String INTERACTIVE_TOGGLE = "org.gradle.internal.interactive";
 
     private ConsoleStateUtil() {
     }

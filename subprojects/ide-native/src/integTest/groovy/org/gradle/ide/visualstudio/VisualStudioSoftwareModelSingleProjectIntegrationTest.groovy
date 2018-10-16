@@ -233,7 +233,7 @@ model {
             .fails()
 
         then:
-        resultDebug.assertOutputContains("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
+        resultDebug.assertHasErrorOutput("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
     }
 
     @Requires(TestPrecondition.MSBUILD)

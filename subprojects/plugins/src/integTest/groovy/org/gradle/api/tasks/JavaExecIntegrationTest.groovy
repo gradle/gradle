@@ -31,7 +31,10 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Driver.java").text = mainClass("""
             try {
                 FileWriter out = new FileWriter("out.txt");
-                out.write(args[0]);
+                for (String arg: args) {
+                    out.write(arg);
+                    out.write("\\n");
+                }
                 out.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -43,7 +46,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java"
 
             task run(type: JavaExec) {
-                classpath = project.files(compileJava)
+                classpath = project.layout.files(compileJava)
                 main "driver.Driver"
                 args "1"
             }
@@ -65,7 +68,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "java exec is not incremental by default"() {
         when:
         run "run"
@@ -78,6 +81,30 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":run"
+    }
+
+    def 'arguments passed via command line take precedence and is not incremental by default'() {
+        when:
+        run("run", "--args", "2 '3' \"4\"")
+
+        then:
+        executedAndNotSkipped ":run"
+        assertOutputFileIs('''\
+        2
+        3
+        4
+        '''.stripIndent())
+
+        when:
+        run("run", "--args", "2 '3' \"4\"")
+
+        then:
+        executedAndNotSkipped ":run"
+        assertOutputFileIs('''\
+        2
+        3
+        4
+        '''.stripIndent())
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
@@ -107,6 +134,36 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":run"
+    }
+
+    def 'arguments passed via command line matter in incremental check'() {
+        given:
+        buildFile << """
+            run.outputs.file "out.txt"
+        """
+
+        when:
+        run("run", "--args", "2")
+
+        then:
+        executedAndNotSkipped ":run"
+        assertOutputFileIs("2\n")
+
+        when:
+        run("run", "--args", "2")
+
+        then:
+        skipped ":run"
+
+        when:
+        file("out.txt").delete()
+
+        and:
+        run("run", "--args", "2")
+
+        then:
+        executedAndNotSkipped ":run"
+        assertOutputFileIs("2\n")
     }
 
     def "arguments can be passed by using argument providers"() {
@@ -175,5 +232,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":run"
         outputFile.text == "different"
+    }
+
+    private void assertOutputFileIs(String text) {
+        assert file("out.txt").text == text
     }
 }

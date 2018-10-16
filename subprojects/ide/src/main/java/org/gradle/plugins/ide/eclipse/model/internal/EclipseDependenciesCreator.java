@@ -21,14 +21,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -53,14 +54,16 @@ public class EclipseDependenciesCreator {
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
+    private final ProjectComponentIdentifier currentProjectId;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
+        currentProjectId = projectRegistry.stateFor(classpath.getProject()).getComponentIdentifier();
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
-        EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor();
+        EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
         new IdeDependencySet(classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations()).visit(visitor);
         return visitor.getDependencies();
     }
@@ -72,8 +75,11 @@ public class EclipseDependenciesCreator {
         private final List<AbstractClasspathEntry> files = Lists.newArrayList();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
-        private final ProjectComponentIdentifier currentProjectId = DefaultProjectComponentIdentifier.newProjectId(classpath.getProject());
+        private final Project project;
 
+        public EclipseDependenciesVisitor(Project project) {
+            this.project = project;
+        }
 
         @Override
         public boolean isOffline() {
@@ -103,7 +109,7 @@ public class EclipseDependenciesCreator {
             File sourceFile = sources.isEmpty() ? null : sources.iterator().next().getFile();
             File javaDocFile = javaDoc.isEmpty() ? null : javaDoc.iterator().next().getFile();
             ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-            DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion());
+            ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion());
             modules.add(createLibraryEntry(artifact.getFile(), sourceFile, javaDocFile, classpath, moduleVersionIdentifier, pathToSourceSets));
         }
 
@@ -114,7 +120,7 @@ public class EclipseDependenciesCreator {
 
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
-            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency);
+            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
             files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, pathToSourceSets));
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
         }

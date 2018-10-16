@@ -30,6 +30,8 @@ public interface ProjectRegistry<T extends ProjectIdentifier> {
 
     @Nullable T getProject(File projectDir);
 
+    int size();
+
     Set<T> getAllProjects();
 
     Set<T> getAllProjects(String path);

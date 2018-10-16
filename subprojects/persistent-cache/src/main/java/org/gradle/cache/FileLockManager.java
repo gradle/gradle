@@ -15,6 +15,8 @@
  */
 package org.gradle.cache;
 
+import org.gradle.api.Action;
+
 import javax.annotation.Nullable;
 import java.io.File;
 
@@ -54,7 +56,7 @@ public interface FileLockManager {
      * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received.
      * Note: currently, implementations are permitted to invoke the action <em>after</em> the lock as been closed.
      */
-    FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Runnable whenContended) throws LockTimeoutException;
+    FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Action<FileLockReleasedSignal> whenContended) throws LockTimeoutException;
 
     enum LockMode {
         /**

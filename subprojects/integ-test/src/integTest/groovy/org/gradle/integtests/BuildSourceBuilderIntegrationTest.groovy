@@ -17,11 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import spock.lang.Timeout
 
-@Timeout(300)
+@IntegrationTestTimeout(300)
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
@@ -42,10 +42,13 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
 
+        int MAX_LOOP_COUNT = java.util.concurrent.TimeUnit.MINUTES.toMillis(5) / 10
         task blocking(type:BuildSrcTask) {
             doLast {
                 file("run1washere.lock").createNewFile()
-                while(!file("run2washere.lock").exists()){
+                
+                int count = 0
+                while(!file("run2washere.lock").exists() && count++ < MAX_LOOP_COUNT){
                     sleep 10
                 }
             }
@@ -53,7 +56,8 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
         task releasing(type:BuildSrcTask) {
             doLast {
-                while(!file("run1washere.lock").exists()){
+                int count = 0
+                while(!file("run1washere.lock").exists() && count++ < MAX_LOOP_COUNT){
                     sleep 10
                 }
                 file("run2washere.lock").createNewFile()
@@ -80,6 +84,10 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         def firstTaskTimeFromSecondBuildSrcBuild = startedTaskTimes(secondBuildResult.output).values().min()
 
         lastTaskTimeFromFirstBuildSrcBuild < firstTaskTimeFromSecondBuildSrcBuild
+
+        cleanup:
+        runReleaseHandle.abort()
+        runBlockingHandle.abort()
     }
 
     Map<String, Long> startedTaskTimes(String output) {

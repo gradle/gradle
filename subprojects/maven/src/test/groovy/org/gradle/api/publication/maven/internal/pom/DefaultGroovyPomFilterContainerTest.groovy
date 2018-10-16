@@ -17,104 +17,58 @@ package org.gradle.api.publication.maven.internal.pom
 
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.maven.PomFilterContainer
-import org.gradle.api.artifacts.maven.PublishFilter
 import org.gradle.api.publication.maven.internal.BasePomFilterContainer
 import org.gradle.api.publication.maven.internal.BasePomFilterContainerTest
-import org.hamcrest.BaseMatcher
-import org.hamcrest.Description
-import org.hamcrest.Factory
-import org.hamcrest.Matcher
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
 
-import java.lang.reflect.Proxy
-
-import static org.junit.Assert.assertSame
-
-@RunWith(JMock)
 class DefaultGroovyPomFilterContainerTest extends BasePomFilterContainerTest {
     static final String TEST_NAME = "somename"
+    static final String TEST_GROUP = "testGroup"
     PomFilterContainer groovyPomFilterContainer
 
-    @Before
-    public void setUp() {
-        super.setUp()
-    }
-
     protected BasePomFilterContainer createPomFilterContainer() {
-        return groovyPomFilterContainer = new BasePomFilterContainer(mavenPomFactoryMock);
+        return groovyPomFilterContainer = new BasePomFilterContainer(mavenPomFactoryMock)
     }
 
-    @Test
-    public void addFilterWithClosure() {
+    def addFilterWithClosure() {
+        when:
         Closure closureFilter = {}
         MavenPom pom = groovyPomFilterContainer.addFilter(TEST_NAME, closureFilter)
-        assertSame(pomMock, pom);
-        assertSame(pomMock, groovyPomFilterContainer.pom(TEST_NAME));
-        assertSame(closureFilter, getClosureFromProxy(groovyPomFilterContainer.filter(TEST_NAME)));
+
+        then:
+        pom == pomMock
+        groovyPomFilterContainer.pom(TEST_NAME) == pomMock
     }
 
-    private Closure getClosureFromProxy(PublishFilter filter) {
-        Proxy.getInvocationHandler(filter).delegate
-    }
-
-    @Test
-    public void filterWithClosure() {
+    def filterWithClosure() {
+        when:
         Closure closureFilter = {}
-        context.checking {
-            one(pomFilterMock).setFilter(withParam(FilterMatcher.equalsFilter(closureFilter)))
-        }
         groovyPomFilterContainer.filter(closureFilter)
+
+        then:
+        1 * pomFilterMock.setFilter(_)
     }
 
-    @Test
-    public void defaultPomWithClosure() {
-        String testGroup = "testGroup"
-        context.checking {
-            one(pomFilterMock).getPomTemplate(); will(returnValue(pomMock))
-            one(pomMock).setGroupId(testGroup);
-        }
+    def defaultPomWithClosure() {
+        when:
         groovyPomFilterContainer.pom {
-            groupId = testGroup
+            groupId = TEST_GROUP
         }
+
+        then:
+        1 * pomFilterMock.pomTemplate >> pomMock
+        1 * pomMock.setGroupId(TEST_GROUP)
     }
 
-    @Test
-    public void pomWithClosure() {
+    def pomWithClosure() {
+        when:
         groovyPomFilterContainer.addFilter(TEST_NAME, {})
-        String testGroup = "testGroup"
-        context.checking {
-            one(pomMock).setGroupId(testGroup);
-        }
         groovyPomFilterContainer.pom(TEST_NAME) {
-            groupId = testGroup
+            groupId = TEST_GROUP
         }
+
+        then:
+        1 * pomMock.setGroupId(TEST_GROUP)
     }
-}
-
-public class FilterMatcher extends BaseMatcher {
-    Closure filter
-
-    public void describeTo(Description description) {
-        description.appendText("matching filter");
-    }
-
-    public boolean matches(Object actual) {
-        return getClosureFromProxy(actual) == filter;
-    }
-
-    private Closure getClosureFromProxy(PublishFilter filter) {
-        Proxy.getInvocationHandler(filter).delegate
-    }
-
-
-    @Factory
-    public static Matcher<PublishFilter> equalsFilter(Closure filter) {
-        return new FilterMatcher(filter: filter);
-    }
-
 }
 
 

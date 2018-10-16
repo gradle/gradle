@@ -20,7 +20,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -28,17 +27,21 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
-import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
-import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -50,9 +53,14 @@ import org.gradle.internal.typeconversion.NotationParser;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * Generates a report that attempts to answer questions like:
@@ -81,11 +89,11 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
  * For more information please refer to {@link DependencyInsightReportTask#setDependencySpec(Object)}
  * and {@link DependencyInsightReportTask#setConfiguration(String)}
  */
-@Incubating
 public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
+    private boolean showSinglePathToDependency;
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
@@ -145,6 +153,27 @@ public class DependencyInsightReportTask extends DefaultTask {
         this.configuration = getProject().getConfigurations().getByName(configurationName);
     }
 
+    /**
+     * Tells if the report should only show one path to each dependency.
+     *
+     * @since 4.9
+     */
+    @Internal
+    public boolean isShowSinglePathToDependency() {
+        return showSinglePathToDependency;
+    }
+
+    /**
+     * Tells if the report should only display a single path to each dependency, which
+     * can be useful when the graph is large. This is false by default, meaning that for
+     * each dependency, the report will display all paths leading to it.
+     * @since 4.9
+     */
+    @Option(option = "singlepath", description = "Show at most one path to each dependency")
+    public void setShowSinglePathToDependency(boolean showSinglePathToDependency) {
+        this.showSinglePathToDependency = showSinglePathToDependency;
+    }
+
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();
@@ -160,9 +189,59 @@ public class DependencyInsightReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected VersionParser getVersionParser() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * An injected {@link ImmutableAttributesFactory}.
+     *
+     * @since 4.9
+     */
+    @Inject
+    protected ImmutableAttributesFactory getAttributesFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         final Configuration configuration = getConfiguration();
+        assertValidTaskConfiguration(configuration);
+
+        StyledTextOutput output = getTextOutputFactory().create(getClass());
+        ResolutionErrorRenderer errorHandler = new ResolutionErrorRenderer(dependencySpec);
+        Set<DependencyResult> selectedDependencies = selectDependencies(configuration, errorHandler);
+
+        if (selectedDependencies.isEmpty()) {
+            output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
+            return;
+        }
+        errorHandler.renderErrors(output);
+        renderSelectedDependencies(configuration, output, selectedDependencies);
+        renderBuildScanHint(output);
+    }
+
+    private void renderSelectedDependencies(Configuration configuration, StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
+        GraphRenderer renderer = new GraphRenderer(output);
+        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
+        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory());
+        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
+        DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
+        dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
+        dependencyGraphRenderer.render(itemsToRender);
+        dependencyGraphRenderer.complete();
+    }
+
+    private void renderBuildScanHint(StyledTextOutput output) {
+        output.println();
+        output.text("A web-based, searchable dependency report is available by adding the ");
+        output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        output.println(" option.");
+    }
+
+    private void assertValidTaskConfiguration(Configuration configuration) {
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
@@ -172,12 +251,11 @@ public class DependencyInsightReportTask extends DefaultTask {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
+    }
 
-
-        StyledTextOutput output = getTextOutputFactory().create(getClass());
-        final GraphRenderer renderer = new GraphRenderer(output);
-
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
+    private Set<DependencyResult> selectDependencies(Configuration configuration, ResolutionErrorRenderer errorHandler) {
+        ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
+        ResolutionResult result = incoming.getResolutionResult(errorHandler);
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
         result.allDependencies(new Action<DependencyResult>() {
@@ -188,46 +266,11 @@ public class DependencyInsightReportTask extends DefaultTask {
                 }
             }
         });
-
-        if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
-            return;
-        }
-
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, getVersionSelectorScheme(), getVersionComparator());
-
-        NodeRenderer nodeRenderer = new NodeRenderer() {
-            public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
-                boolean leaf = node.getChildren().isEmpty();
-                target.text(leaf ? configuration.getName() : node.getName());
-                if (alreadyRendered && !leaf) {
-                    target.withStyle(Info).text(" (*)");
-                }
-            }
-        };
-
-        LegendRenderer legendRenderer = new LegendRenderer(output);
-        DependencyGraphRenderer dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer, legendRenderer);
-
-        int i = 1;
-        for (final RenderableDependency dependency : sortedDeps) {
-            renderer.visit(new RenderDependencyAction(dependency, configuration), true);
-            dependencyGraphRenderer.render(dependency);
-            boolean last = i++ == sortedDeps.size();
-            if (!last) {
-                output.println();
-            }
-        }
-
-        legendRenderer.printLegend();
-
-        output.println();
-        output.text("A web-based, searchable dependency report is available by adding the ");
-        output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
-        output.println(" option.");
+        return selectedDependencies;
     }
 
-    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainerInternal requestedAttributes) {
+
+    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
@@ -267,21 +310,21 @@ public class DependencyInsightReportTask extends DefaultTask {
         not_requested
     }
 
-    private static class RenderDependencyAction implements Action<StyledTextOutput> {
-        private final RenderableDependency dependency;
+    private static class RootDependencyRenderer implements NodeRenderer {
         private final Configuration configuration;
+        private final ImmutableAttributesFactory attributesFactory;
 
-        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration) {
-            this.dependency = dependency;
+        public RootDependencyRenderer(Configuration configuration, ImmutableAttributesFactory attributesFactory) {
             this.configuration = configuration;
+            this.attributesFactory = attributesFactory;
         }
 
-        public void execute(StyledTextOutput out) {
+        @Override
+        public void renderNode(StyledTextOutput out, RenderableDependency dependency, boolean alreadyRendered) {
             out.withStyle(Identifier).text(dependency.getName());
             if (StringUtils.isNotEmpty(dependency.getDescription())) {
                 out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
             }
-            printVariantDetails(out);
             switch (dependency.getResolutionState()) {
                 case FAILED:
                     out.withStyle(Failure).text(" FAILED");
@@ -292,22 +335,62 @@ public class DependencyInsightReportTask extends DefaultTask {
                     out.withStyle(Failure).text(" (n)");
                     break;
             }
+            printVariantDetails(out, dependency);
+            printExtraDetails(out, dependency);
         }
 
-        private void printVariantDetails(StyledTextOutput out) {
+        private void printExtraDetails(StyledTextOutput out, RenderableDependency dependency) {
+            List<Section> extraDetails = dependency.getExtraDetails();
+            if (!extraDetails.isEmpty()) {
+                printSections(out, extraDetails, 1);
+            }
+        }
+
+        private void printSections(StyledTextOutput out, List<Section> extraDetails, int depth) {
+            for (Section extraDetail : extraDetails) {
+                printSection(out, extraDetail, depth);
+                printSections(out, extraDetail.getChildren(), depth + 1);
+            }
+        }
+
+        private void printSection(StyledTextOutput out, Section extraDetail, int depth) {
+            out.println();
+            String indent = StringUtils.leftPad("", 3 * depth) + (depth > 1 ? "- " : "");
+            String appendix = extraDetail.getChildren().isEmpty() ? "" : ":";
+            String description = StringUtils.trim(extraDetail.getDescription());
+            String padding = "\n" + StringUtils.leftPad("", indent.length());
+            description = description.replaceAll("(?m)(\r?\n)", padding);
+            out.withStyle(Description).text(indent + description + appendix);
+        }
+
+        private void printVariantDetails(StyledTextOutput out, RenderableDependency dependency) {
             ResolvedVariantResult resolvedVariant = dependency.getResolvedVariant();
             if (resolvedVariant != null) {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
                 AttributeContainer attributes = resolvedVariant.getAttributes();
-                AttributeContainerInternal requested = (AttributeContainerInternal) configuration.getAttributes();
+                AttributeContainer requested = getRequestedAttributes(configuration, dependency);
                 if (!attributes.isEmpty() || !requested.isEmpty()) {
                     writeAttributeBlock(out, attributes, requested);
                 }
             }
         }
 
-        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested) {
+        private AttributeContainer getRequestedAttributes(Configuration configuration, RenderableDependency dependency) {
+            if (dependency instanceof HasAttributes) {
+                AttributeContainer dependencyAttributes = ((HasAttributes) dependency).getAttributes();
+                return concat(configuration.getAttributes(), dependencyAttributes);
+            }
+            return configuration.getAttributes();
+        }
+
+        private AttributeContainer concat(AttributeContainer configAttributes, AttributeContainer dependencyAttributes) {
+            return attributesFactory.concat(
+                ((AttributeContainerInternal) configAttributes).asImmutable(),
+                ((AttributeContainerInternal) dependencyAttributes).asImmutable());
+        }
+
+        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested) {
             out.withStyle(Description).text(" [");
             out.println();
             int maxAttributeLen = computeAttributePadding(attributes, requested);
@@ -320,7 +403,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             out.withStyle(Description).text("   ]");
         }
 
-        private void writeMissingAttributes(StyledTextOutput out, AttributeContainerInternal requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
+        private void writeMissingAttributes(StyledTextOutput out, AttributeContainer requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
             if (missing.size() != requested.keySet().size()) {
                 out.println();
             }
@@ -332,7 +415,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         }
 
-        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
+        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
             for (Attribute<?> attribute : attributes.keySet()) {
                 Object actualValue = attributes.getAttribute(attribute);
                 AttributeMatchDetails match = match(attribute, actualValue, requested);
@@ -355,7 +438,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         }
 
-        private int computeAttributePadding(AttributeContainer attributes, AttributeContainerInternal requested) {
+        private int computeAttributePadding(AttributeContainer attributes, AttributeContainer requested) {
             int maxAttributeLen = 0;
             for (Attribute<?> attribute : requested.keySet()) {
                 maxAttributeLen = Math.max(maxAttributeLen, attribute.getName().length());
@@ -367,4 +450,21 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
     }
+
+    private static class ReplaceProjectWithConfigurationNameRenderer implements NodeRenderer {
+        private final Configuration configuration;
+
+        public ReplaceProjectWithConfigurationNameRenderer(Configuration configuration) {
+            this.configuration = configuration;
+        }
+
+        public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
+            boolean leaf = node.getChildren().isEmpty();
+            target.text(leaf ? configuration.getName() : node.getName());
+            if (alreadyRendered && !leaf) {
+                target.withStyle(Info).text(" (*)");
+            }
+        }
+    }
+
 }

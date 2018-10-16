@@ -32,7 +32,7 @@ class TaskContainerExtensionsTest {
     fun `can configure by name and type using getByName`() {
 
         val task = mock<Upload>()
-        val tasks = mock<TaskContainer>() {
+        val tasks = mock<TaskContainer>(name = "tasks") {
             on { getByName("uploadArchives") } doReturn task
         }
 

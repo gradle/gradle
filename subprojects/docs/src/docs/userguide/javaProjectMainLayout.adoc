@@ -11,11 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-| `src/main/java`
-| 
-| Production Java source
+`src/main/java`::
+Production Java source.
 
-| `src/main/resources`
-| 
-| Production resources
-
+`src/main/resources`::
+Production resources, such as XML and properties files.

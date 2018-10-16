@@ -21,12 +21,13 @@ testFixtures {
     from(':core')
 }
 
-task crossVersionTests(type: org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
+tasks.register("crossVersionTests", org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }

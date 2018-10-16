@@ -25,12 +25,10 @@ public class UserInputResumeEventSerializer implements Serializer<UserInputResum
 
     @Override
     public void write(Encoder encoder, UserInputResumeEvent event) throws Exception {
-        encoder.writeBoolean(true);
     }
 
     @Override
     public UserInputResumeEvent read(Decoder decoder) throws Exception {
-        decoder.readBoolean();
         return new UserInputResumeEvent();
     }
 }

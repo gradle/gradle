@@ -1,4 +1,4 @@
-// START SNIPPET complete-example
+// tag::complete-example[]
 apply plugin: "cpp"
 apply plugin: 'google-test-test-suite'
 
@@ -35,7 +35,7 @@ model {
         }
     }
 }
-// START SNIPPET configure-test-binary
+// tag::configure-test-binary[]
 model {
     binaries {
         withType(GoogleTestTestSuiteBinarySpec) {
@@ -58,8 +58,8 @@ model {
         }
     }
 }
-// END SNIPPET configure-test-binary
-// END SNIPPET complete-example
+// end::configure-test-binary[]
+// end::complete-example[]
 
 model {
     binaries {

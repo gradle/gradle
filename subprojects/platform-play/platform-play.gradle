@@ -16,8 +16,8 @@ dependencies {
 
     integTestRuntime project(":compositeBuilds")
     integTestRuntime project(":idePlay")
-    testFixturesCompile project(":internalIntegTesting")
-    testFixturesCompile libraries.commons_httpclient.coordinates
+    testFixturesApi project(":internalIntegTesting")
+    testFixturesApi libraries.commons_httpclient.coordinates
 }
 
 gradlebuildJava {
@@ -36,11 +36,11 @@ testFixtures {
     from(':platformBase')
 }
 
-integTest {
+tasks.named("integTest").configure {
     exclude 'org/gradle/play/prepare/**'
 }
 
-task integTestPrepare(type: org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
+def integTestPrepare = tasks.register("integTestPrepare", org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
     systemProperties['org.gradle.integtest.executer'] = 'embedded'
     if (BuildEnvironment.isCiServer) {
         systemProperties['org.gradle.integtest.multiversion'] = 'all'
@@ -49,8 +49,8 @@ task integTestPrepare(type: org.gradle.gradlebuild.test.integrationtests.Integra
     maxParallelForks = 1
 }
 
-tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
-    if (task != integTestPrepare) {
+tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest).configureEach { task ->
+    if (task.name != "integTestPrepare") {
         task.dependsOn(integTestPrepare)
     }
 }

@@ -30,8 +30,8 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
 
     def "actions do nothing when none registered"() {
         expect:
-        r.addAction.execute("a")
-        r.removeAction.execute("a")
+        r.fireObjectAdded("a")
+        r.fireObjectRemoved("a")
     }
 
     def "nothing subscribed when no actions registered"() {
@@ -50,7 +50,7 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
         r.registerEagerAddAction(String, action2)
 
         when:
-        r.addAction.execute("a")
+        r.fireObjectAdded("a")
 
         then:
         1 * action1.execute("a")

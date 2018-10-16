@@ -23,15 +23,13 @@ import org.gradle.play.internal.platform.PlayMajorVersion
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 
 class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
-    static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_2_X): 99,
-                                                       (PlayMajorVersion.PLAY_2_3_X): 102,
-                                                       (PlayMajorVersion.PLAY_2_4_X): 96,
-                                                       (PlayMajorVersion.PLAY_2_5_X): 105,
-                                                       (PlayMajorVersion.PLAY_2_6_X): 108]
+    static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_4_X): 96,
+                                                       (PlayMajorVersion.PLAY_2_5_X): 108,
+                                                       (PlayMajorVersion.PLAY_2_6_X): 111]
 
     @Override
     PlayApp getPlayApp() {
-        new BasicPlayApp()
+        new BasicPlayApp(versionNumber)
     }
 
     String[] getSourcePaths() {

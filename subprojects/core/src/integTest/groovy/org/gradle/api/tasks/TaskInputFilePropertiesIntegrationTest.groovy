@@ -54,13 +54,13 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3193")
-    def "TaskInputs.#method shows deprecation warning when used with complex input"() {
+    def "TaskInputs.#method shows error message when used with complex input"() {
         buildFile << """
             task dependencyTask {
             }
 
             task test {
-                inputs.$method(dependencyTask)
+                inputs.$method(dependencyTask).withPropertyName('input')
                 doFirst {
                     // Need a task action to not skip this task
                 }
@@ -68,13 +68,47 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
-        succeeds "test"
-
-        output.contains "Using TaskInputs.$method() with something that doesn't resolve to a File object has been deprecated and is scheduled to be removed in Gradle 5.0. Use TaskInputs.files() instead."
+        fails "test"
+        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasCause("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
 
         where:
-        method << ["file", "dir"]
+        method | targetType
+        "dir"  | "directory"
+        "file" | "file"
+    }
+
+    @Unroll
+    def "#annotation.simpleName shows error message when used with complex input"() {
+        buildFile << """
+            import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+
+            class CustomTask extends DefaultTask {
+                @Optional @${annotation.name} input
+                @TaskAction void doSomething() {
+                    println("Yay!")
+                }
+            }
+
+            task dependencyTask {
+            }
+
+            task customTask(type: CustomTask) {
+                input = dependencyTask
+            }
+        """
+
+        expect:
+        fails "customTask"
+        failure.assertHasDescription("A problem was found with the configuration of task ':customTask'.")
+        failure.assertHasCause("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
+
+        where:
+        annotation     | targetType
+        InputDirectory | "directory"
+        InputFile      | "file"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3792")

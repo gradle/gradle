@@ -21,7 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
+import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
@@ -32,12 +34,15 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
+    private final ComponentMetadataHandler componentMetadataHandler;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyFactory dependencyFactory) {
+                                              DependencyFactory dependencyFactory,
+                                              ComponentMetadataHandler componentMetadataHandler) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
+        this.componentMetadataHandler = componentMetadataHandler;
     }
 
     @Override
@@ -58,6 +63,35 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     @Override
     public DependencyConstraint create(Object dependencyNotation, Action<? super DependencyConstraint> configureAction) {
         return doCreate(dependencyNotation, configureAction);
+    }
+
+    @Override
+    public DependencyConstraint platform(Object notation) {
+        DependencyConstraint dependencyConstraint = create(notation);
+        PlatformSupport.addPlatformAttribute(dependencyConstraint, PlatformSupport.REGULAR_PLATFORM);
+        return dependencyConstraint;
+    }
+
+    @Override
+    public DependencyConstraint platform(Object notation, Action<? super DependencyConstraint> configureAction) {
+        DependencyConstraint dep = platform(notation);
+        configureAction.execute(dep);
+        return dep;
+    }
+
+    @Override
+    public DependencyConstraint enforcedPlatform(Object notation) {
+        DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
+        platformDependency.setForce(true);
+        PlatformSupport.addPlatformAttribute(platformDependency, PlatformSupport.ENFORCED_PLATFORM);
+        return platformDependency;
+    }
+
+    @Override
+    public DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction) {
+        DependencyConstraint dep = enforcedPlatform(notation);
+        configureAction.execute(dep);
+        return dep;
     }
 
     private DependencyConstraint doCreate(Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {

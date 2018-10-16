@@ -34,11 +34,17 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
+
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
         project.applicationDefaultJvmArgs == []
         project.applicationDistribution instanceof CopySpec
+
+        def application = project.extensions.getByName('application')
+        application instanceof JavaApplication
+        application.applicationName == project.name
+        application.applicationDistribution.is(project.applicationDistribution)
     }
 
     def "adds run task to project"() {

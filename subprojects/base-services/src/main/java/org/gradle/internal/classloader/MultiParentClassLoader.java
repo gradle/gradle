@@ -16,7 +16,6 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.reflect.JavaMethod;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,14 +36,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
 
-    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = ClassLoaderUtils.getPackagesMethod();
-    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD =  ClassLoaderUtils.getPackageMethod();
-
     private final List<ClassLoader> parents;
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -87,10 +82,11 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
         throw new ClassNotFoundException(String.format("%s not found.", name));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {
-            Package p = GET_PACKAGE_METHOD.invoke(parent, name);
+            Package p = ClassLoaderUtils.getPackage(parent, name);
             if (p != null) {
                 return p;
             }
@@ -102,7 +98,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     protected Package[] getPackages() {
         Set<Package> packages = new LinkedHashSet<Package>();
         for (ClassLoader parent : parents) {
-            Package[] parentPackages = GET_PACKAGES_METHOD.invoke(parent);
+            Package[] parentPackages = ClassLoaderUtils.getPackages(parent);
             packages.addAll(Arrays.asList(parentPackages));
         }
         return packages.toArray(new Package[0]);

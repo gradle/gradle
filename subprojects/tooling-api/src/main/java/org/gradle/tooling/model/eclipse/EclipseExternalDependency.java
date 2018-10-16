@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.ExternalDependency;
 
 /**
@@ -23,7 +22,6 @@ import org.gradle.tooling.model.ExternalDependency;
  *
  * @since 2.14
  */
-@Incubating
 public interface EclipseExternalDependency extends ExternalDependency, EclipseClasspathEntry {
 
 }

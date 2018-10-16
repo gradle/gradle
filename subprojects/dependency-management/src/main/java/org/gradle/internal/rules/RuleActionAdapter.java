@@ -19,10 +19,10 @@ package org.gradle.internal.rules;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 
-public interface RuleActionAdapter<T> {
-    RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure);
+public interface RuleActionAdapter {
+    <T> RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure);
 
-    RuleAction<? super T> createFromAction(Action<? super T> action);
+    <T> RuleAction<? super T> createFromAction(Action<? super T> action);
 
-    RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource);
+    <T> RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource);
 }

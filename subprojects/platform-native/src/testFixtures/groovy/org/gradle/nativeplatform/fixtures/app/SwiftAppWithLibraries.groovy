@@ -39,8 +39,8 @@ class SwiftAppWithLibraries implements AppElement {
         return greeter
     }
 
-    SourceElement getApplication() {
-        return new SourceElement() {
+    SwiftSourceElement getApplication() {
+        return new SwiftSourceElement('app') {
             @Override
             List<SourceFile> getFiles() {
                 return [main.sourceFile].collect {

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A set of {@link Dependency} objects which can be resolved to a set of files. There are various methods on this type that you can use to get the result in different forms:
@@ -32,6 +33,7 @@ import org.gradle.api.file.FileCollection;
  *
  * <p>The dependencies are resolved once only, when the result is first requested. The result is reused and returned for subsequent calls. Once resolved, any mutation to the dependencies will result in an error.</p>
  */
+@HasInternalProtocol
 public interface ResolvableDependencies extends ArtifactView {
     /**
      * Returns the name of this set.
@@ -109,7 +111,6 @@ public interface ResolvableDependencies extends ArtifactView {
      * @return the resolution result
      * @since 1.3
      */
-    @Incubating
     ResolutionResult getResolutionResult();
 
     /**
@@ -118,7 +119,6 @@ public interface ResolvableDependencies extends ArtifactView {
      * @throws ResolveException On failure to resolve or download any artifact.
      * @since 3.4
      */
-    @Incubating
     ArtifactCollection getArtifacts() throws ResolveException;
 
     /**
@@ -127,6 +127,5 @@ public interface ResolvableDependencies extends ArtifactView {
      *
      * @since 3.4
      */
-    @Incubating
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);
 }

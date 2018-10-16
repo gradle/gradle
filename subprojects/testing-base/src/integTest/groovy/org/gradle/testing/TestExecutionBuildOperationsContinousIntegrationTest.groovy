@@ -17,12 +17,12 @@
 package org.gradle.testing
 
 import org.gradle.api.Action
-import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.util.ClosureBackedAction
 import org.junit.Rule
 
 import static org.gradle.testing.TestExecutionBuildOperationTestUtils.assertJunit
@@ -47,6 +47,10 @@ class TestExecutionBuildOperationsContinousIntegrationTest extends AbstractConti
 
     void afterBuild() {
         afterExecute*.execute(executer)
+    }
+
+    def setup() {
+        executer.withRepositoryMirrors()
     }
 
     def "emits test operations for continuous builds"() {

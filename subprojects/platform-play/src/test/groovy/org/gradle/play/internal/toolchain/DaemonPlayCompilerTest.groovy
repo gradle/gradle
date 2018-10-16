@@ -16,8 +16,8 @@
 
 package org.gradle.play.internal.toolchain
 
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.compile.BaseForkOptions
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
 import org.gradle.workers.internal.WorkerDaemonFactory
@@ -30,7 +30,7 @@ class DaemonPlayCompilerTest extends Specification {
     def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
-    def fileResolver = Mock(FileResolver)
+    def fileResolver = Mock(PathToFileResolver)
 
     def setup(){
         _ * spec.getForkOptions() >> forkOptions
@@ -43,10 +43,10 @@ class DaemonPlayCompilerTest extends Specification {
         def packages = ["foo", "bar"]
         def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, classpath, packages, fileResolver)
         when:
-        def context = compiler.toInvocationContext(spec)
+        def daemonForkOptions = compiler.toDaemonForkOptions(spec)
         then:
-        context.daemonForkOptions.getClasspath() == classpath
-        context.daemonForkOptions.getSharedPackages() == packages
+        daemonForkOptions.getClasspath() == classpath
+        daemonForkOptions.getSharedPackages() == packages
     }
 
     def "applies fork settings to daemon options"(){
@@ -56,9 +56,9 @@ class DaemonPlayCompilerTest extends Specification {
         1 * forkOptions.getMemoryInitialSize() >> "256m"
         1 * forkOptions.getMemoryMaximumSize() >> "512m"
         then:
-        def context = compiler.toInvocationContext(spec)
-        context.daemonForkOptions.javaForkOptions.getMinHeapSize() == "256m"
-        context.daemonForkOptions.javaForkOptions.getMaxHeapSize() == "512m"
+        def daemonForkOptions = compiler.toDaemonForkOptions(spec)
+        daemonForkOptions.javaForkOptions.getMinHeapSize() == "256m"
+        daemonForkOptions.javaForkOptions.getMaxHeapSize() == "512m"
     }
 
     def someClasspath() {

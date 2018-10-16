@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ReadableContent;
 
 import java.io.IOException;
@@ -53,7 +54,7 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
         try {
             IOUtils.copyLarge(content, outstream);
         } finally {
-            IOUtils.closeQuietly(content);
+            IoActions.closeQuietly(content);
         }
     }
 

@@ -17,11 +17,9 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -29,11 +27,10 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -46,8 +43,11 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 
 /**
  * Compiles Java source files.
@@ -58,9 +58,6 @@ import javax.inject.Inject;
  *     tasks.withType(JavaCompile) {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
- *
- *         //enable incremental compilation
- *         options.incremental = true
  *     }
  * </pre>
  */
@@ -90,7 +87,6 @@ public class JavaCompile extends AbstractCompile {
      * @return The tool chain.
      */
     @Nested
-    @Incubating
     public JavaToolChain getToolChain() {
         if (toolChain != null) {
             return toolChain;
@@ -103,7 +99,6 @@ public class JavaCompile extends AbstractCompile {
      *
      * @param toolChain The tool chain.
      */
-    @Incubating
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
     }
@@ -119,9 +114,8 @@ public class JavaCompile extends AbstractCompile {
         Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
             createCompiler(spec),
             getPath(),
-            (IncrementalTaskInputsInternal) inputs,
-            source,
-            getEffectiveAnnotationProcessorPath()
+            inputs,
+            getSource()
         );
         performCompilation(spec, incrementalCompiler);
     }
@@ -136,8 +130,10 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     protected void compile() {
         DefaultJavaCompileSpec spec = createSpec();
+        spec.setSourceFiles(getSource());
         performCompilation(spec, createCompiler(spec));
     }
 
@@ -159,12 +155,11 @@ public class JavaCompile extends AbstractCompile {
 
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
-        spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
-        spec.setAnnotationProcessorPath(ImmutableList.copyOf(getEffectiveAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.<File>of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
@@ -190,16 +185,18 @@ public class JavaCompile extends AbstractCompile {
     /**
      * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
      *
-     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)} or {@link CompileOptions#setCompilerArgs(java.util.List)}. When not explicitly set using one of the methods on {@link CompileOptions}, the compile classpath will be used when there are annotation processors present in the compile classpath. Otherwise this path will be empty.
+     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)}.
      *
      * <p>This path is always empty when annotation processing is disabled.</p>
      *
      * @since 3.4
+     * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
      */
-    @Incubating
-    @Classpath
+    @Deprecated
+    @Internal
+    @Nullable
     public FileCollection getEffectiveAnnotationProcessorPath() {
-        AnnotationProcessorPathFactory annotationProcessorPathFactory = getServices().get(AnnotationProcessorPathFactory.class);
-        return annotationProcessorPathFactory.getEffectiveAnnotationProcessorClasspath(compileOptions, getClasspath());
+        SingleMessageLogger.nagUserOfReplacedProperty("JavaCompile.effectiveAnnotationProcessorPath", "JavaCompile.options.annotationProcessorPath");
+        return compileOptions.getAnnotationProcessorPath();
     }
 }

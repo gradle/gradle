@@ -16,9 +16,11 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -30,7 +32,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 abstract class ExternalDependencyDescriptorTest extends Specification {
     def attributesSchema = Stub(AttributesSchemaInternal)
 
-    def requested = newSelector("org", "module", v("1.2+"))
+    def requested = newSelector(DefaultModuleIdentifier.newId("org", "module"), v("1.2+"))
     def id = DefaultModuleVersionIdentifier.newId("org", "module", "1.2+")
 
     static VersionConstraint v(String version) {
@@ -45,7 +47,7 @@ abstract class ExternalDependencyDescriptorTest extends Specification {
         given:
 
         when:
-        def target = newSelector("org", "module", v("1.3+"))
+        def target = newSelector(DefaultModuleIdentifier.newId("org", "module"), v("1.3+"))
         def copy = metadata.withRequested(target)
 
         then:
@@ -69,7 +71,7 @@ abstract class ExternalDependencyDescriptorTest extends Specification {
 
     def configuration(String name, String... parents) {
         def config = Stub(ConfigurationMetadata)
-        config.hierarchy >> ([name] as Set) + (parents as Set)
+        config.hierarchy >> ImmutableSet.copyOf(([name] as Set) + (parents as Set))
         return config
     }
 }

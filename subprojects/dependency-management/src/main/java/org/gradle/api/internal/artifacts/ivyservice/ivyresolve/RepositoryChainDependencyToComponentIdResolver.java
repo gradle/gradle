@@ -17,56 +17,57 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
 public class RepositoryChainDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
     private final DynamicVersionResolver dynamicRevisionResolver;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final VersionSelectorScheme versionSelectorScheme;
+    private final AttributeContainer consumerAttributes;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionSelectorScheme versionSelectorScheme) {
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.versionSelectorScheme = versionSelectorScheme;
-        this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, VersionParser versionParser, AttributeContainer consumerAttributes, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
+        this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, versionParser, metaDataFactory, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, cachePolicy);
+        this.consumerAttributes = consumerAttributes;
     }
 
     public void add(ModuleComponentRepository repository) {
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint resolvedVersionConstraint, BuildableComponentIdResolveResult result) {
+    @Override
+    public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
         ComponentSelector componentSelector = dependency.getSelector();
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
-            if (resolvedVersionConstraint == null) {
-                // TODO:DAZ This shouldn't be required, but `ExternalResourceResolverDescriptorParseContext` does not provide a resolved constraint
-                VersionConstraint raw = module.getVersionConstraint();
-                resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
-            }
-            VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
-            if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, resolvedVersionConstraint.getRejectedSelector(), result);
+            if (acceptor.isDynamic()) {
+                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), acceptor, rejector, consumerAttributes, result);
             } else {
-                String version = resolvedVersionConstraint.getPreferredVersion();
-                ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
-                ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
-                result.resolved(id, mvId);
+                String version = acceptor.getSelector();
+                ModuleIdentifier moduleId = module.getModuleIdentifier();
+                ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(moduleId, version);
+                ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(moduleId, version);
+                if (rejector != null && rejector.accept(version)) {
+                    result.rejected(id, mvId);
+                } else {
+                    result.resolved(id, mvId);
+                }
             }
         }
     }

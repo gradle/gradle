@@ -18,13 +18,9 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
-import java.util.Collections;
-import java.util.Set;
-
-public class RenderableUnresolvedDependencyResult implements RenderableDependency {
+public class RenderableUnresolvedDependencyResult extends AbstractRenderableDependency {
     private final UnresolvedDependencyResult dependency;
 
     public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
@@ -37,23 +33,8 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
     }
 
     @Override
-    public Set<RenderableDependency> getChildren() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public Object getId() {
         return dependency.getAttempted();
-    }
-
-    @Override
-    public String getDescription() {
-        return null;
-    }
-
-    @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return null;
     }
 
     @Override
@@ -70,9 +51,15 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
             ModuleComponentSelector attemptedSelector = (ModuleComponentSelector)attempted;
 
             if(requestedSelector.getGroup().equals(attemptedSelector.getGroup())
-                    && requestedSelector.getModule().equals(attemptedSelector.getModule())
-                    && !requestedSelector.getVersionConstraint().equals(attemptedSelector.getVersionConstraint())) {
-                return requested.getDisplayName() + " -> " + ((ModuleComponentSelector) attempted).getVersionConstraint().getPreferredVersion();
+                && requestedSelector.getModule().equals(attemptedSelector.getModule())) {
+
+                String requestedVersion = requestedSelector.getVersion();
+                String attemptedVersion = attemptedSelector.getVersion();
+                if (attemptedVersion.equals(requestedVersion)) {
+                    return requested.getDisplayName();
+                } else {
+                    return requested.getDisplayName() + " -> " + attemptedVersion;
+                }
             }
         }
 

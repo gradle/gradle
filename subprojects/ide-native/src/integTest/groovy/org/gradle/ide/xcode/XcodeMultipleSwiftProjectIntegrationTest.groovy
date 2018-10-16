@@ -178,7 +178,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
                 application {
                     binaries.configureEach {
                         dependencies {
-                            if (targetPlatform.operatingSystem.macOsX) {
+                            if (targetPlatform.operatingSystemFamily.macOs) {
                                 implementation project(':hello')
                             }
                         }

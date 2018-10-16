@@ -40,7 +40,6 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
     def gradleVersion = GradleVersion.current().version
     def cacheBuilder = Mock(CacheBuilder)
     def cache = Mock(PersistentCache)
-
     def "can close cache"() {
         when:
         def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
@@ -107,7 +106,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        0 * cache.useCache(_)
+        1 * cache.useCache(_)
         jarFile == resolvedFile
     }
 }

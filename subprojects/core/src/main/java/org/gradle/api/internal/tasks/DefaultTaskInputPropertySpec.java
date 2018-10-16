@@ -18,19 +18,17 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
-import org.gradle.api.tasks.TaskInputs;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSupport implements DeclaredTaskInputProperty {
+public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputProperty {
 
     private final String propertyName;
     private final ValidatingValue value;
     private boolean optional;
 
-    public DefaultTaskInputPropertySpec(TaskInputs taskInputs, String propertyName, ValidatingValue value) {
-        super(taskInputs);
+    public DefaultTaskInputPropertySpec(String propertyName, ValidatingValue value) {
         this.propertyName = propertyName;
         this.value = value;
     }
@@ -54,6 +52,15 @@ public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSu
     @Override
     public Object getValue() {
         return value.call();
+    }
+
+    @Override
+    public void prepareValue() {
+        value.maybeFinalizeValue();
+    }
+
+    @Override
+    public void cleanupValue() {
     }
 
     @Override

@@ -17,12 +17,14 @@
 package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
@@ -39,7 +41,6 @@ import java.io.File;
  *
  * @since 1.4
  */
-@Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
     private IvyModuleDescriptorSpec descriptor;
@@ -109,6 +110,16 @@ public class GenerateIvyDescriptor extends DefaultTask {
         ivyGenerator.setBranch(descriptorInternal.getBranch());
         ivyGenerator.setExtraInfo(descriptorInternal.getExtraInfo().asMap());
 
+        for (IvyModuleDescriptorAuthor ivyAuthor : descriptorInternal.getAuthors()) {
+            ivyGenerator.addAuthor(ivyAuthor);
+        }
+
+        for (IvyModuleDescriptorLicense ivyLicense : descriptorInternal.getLicenses()) {
+            ivyGenerator.addLicense(ivyLicense);
+        }
+
+        ivyGenerator.setDescription(descriptorInternal.getDescription());
+
         for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
             ivyGenerator.addConfiguration(ivyConfiguration);
         }
@@ -119,6 +130,10 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
         for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies()) {
             ivyGenerator.addDependency(ivyDependency);
+        }
+
+        for (IvyExcludeRule excludeRule : descriptorInternal.getGlobalExcludes()) {
+            ivyGenerator.addGlobalExclude(excludeRule);
         }
 
         ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());

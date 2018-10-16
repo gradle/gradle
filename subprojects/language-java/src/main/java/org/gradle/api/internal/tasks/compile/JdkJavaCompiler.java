@@ -59,7 +59,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
-        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSource());
+        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         StandardJavaFileManager fileManager = standardFileManager;
         if (JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options)) {
             fileManager = (StandardJavaFileManager) SourcepathIgnoringProxy.proxy(standardFileManager, StandardJavaFileManager.class);
@@ -67,9 +67,8 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
 
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
-        if (annotationProcessors != null) {
-            task = new IncrementalAnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
-        }
+        task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
+        task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
     }
 

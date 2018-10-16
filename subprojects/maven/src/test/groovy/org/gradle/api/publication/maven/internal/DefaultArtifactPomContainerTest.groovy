@@ -33,7 +33,7 @@ class DefaultArtifactPomContainerTest extends Specification {
     def setup() {
         _ * pomMetaInfoProvider.mavenPomDir >> pomDir
     }
-    
+
     def addsArtifactToFirstMatchingArtifactPom() {
         File artifactFile = new File('artifact')
         Artifact artifact = artifact()
@@ -88,11 +88,13 @@ class DefaultArtifactPomContainerTest extends Specification {
         return artifact
     }
 
-    def pom(String artifactId) {
+    def pom(String artifactId, String groupId = 'com.acme', String version = '0.1') {
         ArtifactPom pom = Mock()
         MavenPom mavenPom = Mock()
         _ * pom.pom >> mavenPom
         _ * mavenPom.artifactId >> artifactId
+        _ * mavenPom.groupId >> groupId
+        _ * mavenPom.version >> version
         return pom
     }
 }

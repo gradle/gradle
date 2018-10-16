@@ -24,10 +24,12 @@ import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.*
+
 
 class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
-    PlayApp playApp = new PlayMultiProject()
-    PlayApp childApp = new BasicPlayApp()
+    PlayApp playApp = new PlayMultiProject(versionNumber)
+    PlayApp childApp = new BasicPlayApp(versionNumber)
     TestFile childDirectory = testDirectory.file('child')
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
     RunningPlayApp runningChildApp = new RunningPlayApp(childDirectory)
@@ -117,6 +119,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
             model {
                 tasks.runPlayBinary {
                     httpPort = 0
+                    ${java9AddJavaSqlModuleArgs()}
                 }
             }
 

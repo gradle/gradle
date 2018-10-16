@@ -20,7 +20,6 @@
 
 buildscript {
     repositories {
-        maven { url 'https://gradle.artifactoryonline.com/gradle/gradle-build-internal' }
         maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
     dependencies {

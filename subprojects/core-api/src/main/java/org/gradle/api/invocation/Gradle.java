@@ -20,9 +20,9 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
@@ -349,14 +349,13 @@ public interface Gradle extends PluginAware {
      *
      * @since 3.1
      */
-    @Incubating
     Collection<IncludedBuild> getIncludedBuilds();
 
     /**
      * Returns the included build with the specified name for this build.
      *
+     * @throws UnknownDomainObjectException when there is no build with the given name
      * @since 3.1
      */
-    @Incubating
-    IncludedBuild includedBuild(String name);
+    IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
 }

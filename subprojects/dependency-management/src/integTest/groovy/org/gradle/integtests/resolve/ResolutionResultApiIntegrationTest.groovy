@@ -78,7 +78,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         then:
         output.contains """
 cool-project:5.0 root
-foo:1.0 conflict resolution
+foo:1.0 between versions 0.5 and 1.0
 leaf:2.0 forced
 bar:1.0 requested
 baz:1.0 requested
@@ -142,7 +142,6 @@ baz:1.0 requested
         run "checkDeps"
     }
 
-    // TODO CC: Ideally, we should also keep the "rule applied" reason, but the infrastructure doesn't let us do this yet
     def "resolution result API gives access to dependency reasons in case of conflict and selection by rule"() {
         given:
         mavenRepo.with {
@@ -168,7 +167,7 @@ baz:1.0 requested
                             all {
                                 if (it.requested instanceof ModuleComponentSelector) {
                                     if (it.requested.module == 'leaf' && it.requested.version == '0.9') {
-                                        it.useTarget group: 'org.test', name: it.requested.module, version: '1.0'
+                                        it.useTarget("substitute 0.9 with 1.0", group: 'org.test', name: it.requested.module, version: '1.0')
                                     }
                                 }
                             }
@@ -218,12 +217,15 @@ baz:1.0 requested
             root(":", ":test:") {
                 module('org.test:a:1.0:runtime') {
                     edge('org.test:leaf:0.9', 'org.test:leaf:1.1')
-                        .byConflictResolution() // conflict with the version requested by 'b'
+                        .byConflictResolution("between versions 1.0 and 1.1") // conflict with the version requested by 'b'
                         .byReason('second reason') // this comes from 'b'
-                        // ideally, should also have a reason for the dependency upgrade from 0.9 to 1.0
+                        .selectedByRule("substitute 0.9 with 1.0")
                 }
                 module('org.test:b:1.0:runtime') {
-                    module('org.test:leaf:1.1').byConflictResolution().byReason('second reason')
+                    module('org.test:leaf:1.1')
+                        .selectedByRule("substitute 0.9 with 1.0")
+                        .byConflictResolution("between versions 1.0 and 1.1")
+                        .byReason('second reason')
                 }
             }
         }

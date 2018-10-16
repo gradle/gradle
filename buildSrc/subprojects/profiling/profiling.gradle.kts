@@ -1,28 +1,25 @@
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
+
 plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
+apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+apply<PrecompiledScriptPlugins>()
 
 dependencies {
-    implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.5")
-    implementation("org.jsoup:jsoup:1.11.2")
-    implementation("com.gradle:build-scan-plugin:1.13-rc-1-20180316150839-master")
+    implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.7")
+    implementation("org.jsoup:jsoup:1.11.3")
+    implementation("com.gradle:build-scan-plugin:2.0-rc-3-20181016094325-release")
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
 }
 
 gradlePlugin {
-    (plugins) {
-        "buildscan" {
+    plugins {
+        register("buildscan") {
             id = "gradlebuild.buildscan"
             implementationClass = "org.gradle.gradlebuild.profiling.buildscan.BuildScanPlugin"
         }
-        "jhm" {
-            id = "gradlebuild.jmh"
-            implementationClass = "org.gradle.gradlebuild.profiling.JmhPlugin"
-        }
     }
 }
-
-

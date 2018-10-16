@@ -27,9 +27,12 @@ import org.junit.Test
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.file.TestFiles.resolver
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class BaseDirFileResolverTest {
     static final String TEST_PATH = 'testpath'
@@ -44,7 +47,7 @@ class BaseDirFileResolverTest {
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
-        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, resolver().getPatternSetFactory())
+        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, TestFiles.getPatternSetFactory())
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }

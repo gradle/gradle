@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -27,7 +29,8 @@ import java.util.List;
 public abstract class AttributeConfigurationSelector {
 
     public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
+        Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
+        ImmutableList<? extends ConfigurationMetadata> consumableConfigurations = variantsForGraphTraversal.or(ImmutableList.<ConfigurationMetadata>of());
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
         ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
@@ -38,9 +41,9 @@ public abstract class AttributeConfigurationSelector {
         if (matches.size() == 1) {
             return matches.get(0);
         } else if (!matches.isEmpty()) {
-            throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent);
+            throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent());
         } else {
-            throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent);
+            throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent());
         }
     }
 }

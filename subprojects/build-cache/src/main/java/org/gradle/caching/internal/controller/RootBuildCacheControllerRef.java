@@ -49,6 +49,16 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
+        public boolean isEnabled() {
+            return delegate.isEnabled();
+        }
+
+        @Override
+        public boolean isEmitDebugLogging() {
+            return delegate.isEmitDebugLogging();
+        }
+
+        @Override
         @Nullable
         public <T> T load(BuildCacheLoadCommand<T> command) {
             return delegate.load(command);

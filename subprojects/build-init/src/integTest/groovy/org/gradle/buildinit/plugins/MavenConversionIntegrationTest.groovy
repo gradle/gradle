@@ -15,6 +15,7 @@
  */
 
 package org.gradle.buildinit.plugins
+
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -27,6 +28,7 @@ import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -49,6 +51,10 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
+        executer.withRepositoryMirrors()
+        executer.beforeExecute {
+            executer.ignoreMissingSettingsFile()
+        }
     }
 
     def "multiModule"() {
@@ -134,19 +140,18 @@ Root project 'webinar-parent'
 
     def "singleModule"() {
         when:
-        executer.withArgument("-d")
         run 'init'
 
         then:
         gradleFilesGenerated()
 
         when:
-        //TODO this build should fail because the TestNG test is failing
-        //however the plugin does not generate testNG for single module project atm (bug)
-        //def failure = runAndFail('clean', 'build')  //assert if fails for the right reason
-        run 'clean', 'build'
+        fails 'clean', 'build'
+
         then:
         file("build/libs/util-2.5.jar").exists()
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
     }
 
     def "singleModule with explicit project dir"() {
@@ -161,12 +166,12 @@ Root project 'webinar-parent'
         gradleFilesGenerated()
 
         when:
-        //TODO this build should fail because the TestNG test is failing
-        //however the plugin does not generate testNG for single module project atm (bug)
-        //def failure = runAndFail('clean', 'build')  //assert if fails for the right reason
-        run 'clean', 'build'
+        fails 'clean', 'build'
+
         then:
         file("build/libs/util-2.5.jar").exists()
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
     }
 
     def "testjar"() {
@@ -192,11 +197,12 @@ Root project 'webinar-parent'
         gradleFilesGenerated()
 
         and:
-        buildFile.text.contains("""configurations.all {
-it.exclude group: 'org.apache.maven'
-it.exclude group: 'org.apache.maven', module: 'badArtifact'
-it.exclude group: '*', module: 'badArtifact'
-}""")
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
+    exclude(group: 'org.apache.maven')
+    exclude(group: 'org.apache.maven', module: 'badArtifact')
+    exclude(group: '*', module: 'badArtifact')
+    exclude(group: 'broken')
+}"""))
         when:
         run 'clean', 'build'
 
@@ -215,6 +221,7 @@ it.exclude group: '*', module: 'badArtifact'
         run 'clean', 'build'
 
         then:
+        file("build.gradle").text.contains("compileOnly 'junit:junit:4.10'")
         file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 
@@ -330,6 +337,17 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
+    }
+
+    def "kotlin dsl is not supported"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+
+        when:
+        fails 'init', '--dsl', 'kotlin'
+
+        then:
+        failure.assertHasCause("The requested DSL 'kotlin' is not supported for 'pom' setup type")
     }
 
     void gradleFilesGenerated(TestFile parentFolder = file(".")) {

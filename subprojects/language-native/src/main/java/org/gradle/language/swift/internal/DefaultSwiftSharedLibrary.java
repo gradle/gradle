@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -35,6 +34,7 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.nativeplatform.Linkage;
@@ -55,14 +55,14 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
-        this.linkFile = projectLayout.fileProperty();
-        this.runtimeFile = projectLayout.fileProperty();
+    public DefaultSwiftSharedLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        this.linkFile = objectFactory.fileProperty();
+        this.runtimeFile = objectFactory.fileProperty();
         this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
     }
 
     @Override

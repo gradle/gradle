@@ -94,15 +94,14 @@ abstract class OutputSpecification extends Specification {
     }
 
     ProgressStartEvent start(Map args) {
-        Long parentId = args.containsKey("parentId") ? args.parentId : counter
+        Long parentId = args.containsKey("parentId") ? args.parentId : null
         OperationIdentifier parent = parentId ? new OperationIdentifier(parentId) : null
         Object buildOperationId = args.containsKey("buildOperationId") ? new OperationIdentifier(args.buildOperationId) : null
-        Object parentBuildOperationId = args.containsKey("parentBuildOperationId") ? new OperationIdentifier(args.parentBuildOperationId) : null
         boolean buildOperationStart = args.buildOperationStart
         BuildOperationCategory buildOperationCategory = args.containsKey("buildOperationCategory") ? args.buildOperationCategory : BuildOperationCategory.UNCATEGORIZED
         Long id = args.containsKey("id") ? args.id : ++counter
         String category = args.containsKey("category") ? args.category : CATEGORY
-        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.shortDescription, args.loggingHeader, args.status, 0, buildOperationStart, buildOperationId, parentBuildOperationId, buildOperationCategory)
+        return new ProgressStartEvent(new OperationIdentifier(id), parent, tenAm, category, args.description, args.loggingHeader, args.status, 0, buildOperationStart, buildOperationId, buildOperationCategory)
     }
 
     ProgressEvent progress(String status) {

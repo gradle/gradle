@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
-import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
@@ -30,6 +30,9 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.java9AddJavaSqlModuleArgs
+
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
@@ -51,7 +54,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         jar("primary/build/playBinary/lib/primary.jar").containsDescendants(
-            "Routes.class",
+            "router/Routes.class",
             "controllers/Application.class")
         jar("primary/build/playBinary/lib/primary-assets.jar").hasDescendants(
             "public/primary.txt")
@@ -91,13 +94,13 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         )
     }
 
-
     def "can run play app"() {
         setup:
         file("primary/build.gradle") << """
     model {
         tasks.runPlayBinary {
             httpPort = 0
+            ${java9AddJavaSqlModuleArgs()}
         }
     }
 """

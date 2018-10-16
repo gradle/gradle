@@ -28,7 +28,6 @@ import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -50,10 +49,9 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     @Override
     public WorkResult execute(T spec) {
-        InvocationContext invocationContext = toInvocationContext(spec);
-        DaemonForkOptions daemonForkOptions = invocationContext.getDaemonForkOptions();
+        DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
         Worker worker = workerFactory.getWorker(daemonForkOptions);
-        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerCallable.class, "compiler daemon", invocationContext.getInvocationWorkingDir(), new Object[] {delegate, spec}));
+        DefaultWorkResult result = worker.execute(new SimpleActionExecutionSpec(CompilerCallable.class, "compiler daemon", new Object[] {delegate, spec}));
         if (result.isSuccess()) {
             return result;
         } else {
@@ -61,7 +59,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         }
     }
 
-    protected abstract InvocationContext toInvocationContext(T spec);
+    protected abstract DaemonForkOptions toDaemonForkOptions(T spec);
 
     protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
         BaseForkOptions merged = new BaseForkOptions();
@@ -86,33 +84,6 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         @Override
         public WorkResult call() throws Exception {
             return compiler.execute(compileSpec);
-        }
-    }
-
-    protected static class InvocationContext {
-        private File invocationWorkingDir;
-        private DaemonForkOptions daemonForkOptions;
-
-        public InvocationContext(File invocationWorkingDir, DaemonForkOptions daemonForkOptions) {
-            this.invocationWorkingDir = invocationWorkingDir;
-            this.daemonForkOptions = daemonForkOptions;
-        }
-
-        File getInvocationWorkingDir() {
-            return invocationWorkingDir;
-        }
-
-        DaemonForkOptions getDaemonForkOptions() {
-            return daemonForkOptions;
-        }
-
-        public InvocationContext mergeWith(InvocationContext invocationContext) {
-            if (!getInvocationWorkingDir().equals(invocationContext.getInvocationWorkingDir())) {
-                throw new IllegalArgumentException("Cannot merge an InvocationContext with a different invocation working directory (this: " + getInvocationWorkingDir() + ", other: " + invocationContext.getInvocationWorkingDir() + ").");
-            }
-
-            DaemonForkOptions mergedForkOptions = getDaemonForkOptions().mergeWith(invocationContext.getDaemonForkOptions());
-            return new InvocationContext(getInvocationWorkingDir(), mergedForkOptions);
         }
     }
 }

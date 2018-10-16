@@ -127,36 +127,6 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         0 * target._
     }
 
-    def insertsLogHeaderForOperationWhoseLoggingHeaderIsNotTheSameAsShortDescriptionWhenDeferredMode() {
-        ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target)
-        def startEvent = start(loggingHeader: 'header', shortDescription: 'short-description')
-        def completeEvent = complete('status')
-
-        when:
-        generator.onOutput(startEvent)
-
-        then:
-        1 * target.onOutput(!null) >> { args ->
-            StyledTextOutputEvent event = args[0]
-            assert event.spans[0].text == 'header'
-        }
-        0 * target._
-
-        when:
-        generator.onOutput(completeEvent)
-
-        then:
-        1 * target.onOutput(!null) >> { args ->
-            StyledTextOutputEvent event = args[0]
-            assert event.spans.size() == 3
-            assert event.spans[0].text == toNative(' ')
-            assert event.spans[1].text == toNative('status')
-            assert event.spans[2].text == toNative('\n')
-            assert event.timestamp == completeEvent.timestamp
-        }
-        0 * target._
-    }
-
     def insertsLogHeaderWhenOperationHasNoFinalStatusAndInDeferredMode() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target)
 

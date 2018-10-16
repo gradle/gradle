@@ -25,7 +25,6 @@ import org.gradle.internal.filewatch.AbstractFileWatcherTest
 import org.gradle.internal.filewatch.FileWatcher
 import org.gradle.internal.filewatch.FileWatcherEvent
 import org.gradle.internal.filewatch.FileWatcherListener
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.UsesNativeServices
 import spock.lang.AutoCleanup
 import spock.lang.Unroll
@@ -37,7 +36,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
 
-import static org.gradle.internal.filewatch.jdk7.WatchServiceFileWatcherBackingTest.DirNotExistsTestScenario.*
+import static org.gradle.internal.filewatch.jdk7.WatchServiceFileWatcherBackingTest.DirNotExistsTestScenario.SIBLINGS_PARENT_EXISTS_INITIALLY
+import static org.gradle.internal.filewatch.jdk7.WatchServiceFileWatcherBackingTest.DirNotExistsTestScenario.SIBLING_EXISTS_INITIALLY
+import static org.gradle.internal.filewatch.jdk7.WatchServiceFileWatcherBackingTest.DirNotExistsTestScenario.SIBLING_NOT_EXISTING_INITIALLY
 
 @UsesNativeServices
 class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
@@ -51,8 +52,6 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
         SIBLINGS_PARENT_EXISTS_INITIALLY,
         SIBLING_NOT_EXISTING_INITIALLY
     }
-
-    def fileSystem = Stub(FileSystem)
 
     @Unroll
     def "checks for scenario when the first directory to watch doesn't exist - #testScenario"() {
@@ -86,7 +85,7 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
         def watchService = FileSystems.getDefault().newWatchService()
         // holds all registered watches so that we can check that sibling wasn't watched at all
         def registeredWatches = [].asSynchronized()
-        def watchServiceRegistrar = new WatchServiceRegistrar(watchService, listener, fileSystem) {
+        def watchServiceRegistrar = new WatchServiceRegistrar(watchService, listener) {
             @Override
             protected void watchDir(Path dir) throws IOException {
                 registeredWatches.add(dir.toFile().absolutePath)
@@ -157,7 +156,7 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
         def onError = Mock(Action)
         def listener = Mock(FileWatcherListener)
         def watchService = Mock(WatchService)
-        def fileWatcher = new WatchServiceFileWatcherBacking(onError, listener, watchService, fileSystem)
+        def fileWatcher = new WatchServiceFileWatcherBacking(onError, listener, watchService)
         def listenerExecutorService = MoreExecutors.listeningDecorator(executorService)
         def mockExecutorService = Mock(ListeningExecutorService)
         def submitLatch = new CountDownLatch(1)

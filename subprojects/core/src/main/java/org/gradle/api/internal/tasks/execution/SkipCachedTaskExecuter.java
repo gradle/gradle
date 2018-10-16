@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
@@ -32,6 +31,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,54 +71,46 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
             }
-            if (cacheKey.isValid()) {
-                TaskArtifactState taskState = context.getTaskArtifactState();
-                // TODO: This is really something we should do at an earlier/higher level so that the input and output
-                // property values are locked in at this point.
-                outputProperties = resolveProperties(taskProperties.getOutputFileProperties());
-                if (taskState.isAllowedToUseCachedResults()) {
-                    try {
-                        OriginTaskExecutionMetadata originMetadata = buildCache.load(
-                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskState)
-                        );
-                        if (originMetadata != null) {
-                            state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                            context.setOriginExecutionMetadata(originMetadata);
-                            return;
-                        }
-                    } catch (UnrecoverableTaskOutputUnpackingException e) {
-                        // We didn't manage to recover from the unpacking error, there might be leftover
-                        // garbage among the task's outputs, thus we must fail the build
-                        throw e;
-                    } catch (Exception e) {
-                        // There was a failure during downloading, previous task outputs should bu unaffected
-                        LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", task, e);
+            TaskArtifactState taskState = context.getTaskArtifactState();
+            // TODO: This is really something we should do at an earlier/higher level so that the input and output
+            // property values are locked in at this point.
+            outputProperties = resolveProperties(taskProperties.getOutputFileProperties());
+            if (taskState.isAllowedToUseCachedResults()) {
+                try {
+                    OriginTaskExecutionMetadata originMetadata = buildCache.load(
+                        buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskState)
+                    );
+                    if (originMetadata != null) {
+                        state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                        context.setOriginExecutionMetadata(originMetadata);
+                        return;
                     }
-                } else {
-                    LOGGER.info("Not loading {} from cache because pulling from cache is disabled for this task", task);
+                } catch (UnrecoverableTaskOutputUnpackingException e) {
+                    // We didn't manage to recover from the unpacking error, there might be leftover
+                    // garbage among the task's outputs, thus we must fail the build
+                    throw e;
+                } catch (Exception e) {
+                    // There was a failure during downloading, previous task outputs should bu unaffected
+                    LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", task, e);
                 }
             } else {
-                LOGGER.info("Not caching {} because no valid cache key was generated", task);
+                LOGGER.info("Not loading {} from cache because loading from cache is disabled for this task", task);
             }
         }
 
         delegate.execute(task, state, context);
 
         if (taskOutputCachingEnabled) {
-            if (cacheKey.isValid()) {
-                if (state.getFailure() == null) {
-                    try {
-                        TaskArtifactState taskState = context.getTaskArtifactState();
-                        Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
-                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
-                    } catch (Exception e) {
-                        LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
-                    }
-                } else {
-                    LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
+            if (state.getFailure() == null) {
+                try {
+                    TaskArtifactState taskState = context.getTaskArtifactState();
+                    Map<String, CurrentFileCollectionFingerprint> outputFingerprints = taskState.getOutputFingerprints();
+                    buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputFingerprints, task, context.getExecutionTime()));
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
                 }
             } else {
-                LOGGER.info("Not pushing results from {} to cache because no valid cache key was generated", task);
+                LOGGER.debug("Not storing result of {} in cache because the task failed", task);
             }
         }
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
@@ -35,4 +36,10 @@ public interface DependencyGraphComponent extends ComponentResult {
     ComponentResolveMetadata getMetadata();
 
     Collection<? extends DependencyGraphComponent> getDependents();
+
+    /**
+     * Returns all versions that were seen for this component during
+     * resolution.
+     */
+    Collection<? extends ModuleVersionIdentifier> getAllVersions();
 }

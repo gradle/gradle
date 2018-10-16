@@ -16,10 +16,15 @@
 
 package org.gradle.plugin.use.resolve.internal
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
@@ -30,15 +35,27 @@ import spock.lang.Specification
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME
 
 class ArtifactRepositoriesPluginResolverTest extends Specification {
-    def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
+    def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser()))
     def repository = Mock(ArtifactRepositoryInternal) {
         getDisplayName() >> "maven(url)"
     }
     def repositories = Mock(RepositoryHandler) {
         iterator() >> [repository].iterator()
     }
+    def resolvedConfiguration = Mock(ResolvedConfiguration) {
+        hasError() >> false
+    }
+    def configuration = Mock(Configuration) {
+        getResolvedConfiguration() >> resolvedConfiguration
+        setTransitive(false) >> {}
+    }
+    def configurations = Mock(ConfigurationContainer) {
+        detachedConfiguration(_) >> configuration
+    }
+
     def resolution = Mock(DependencyResolutionServices) {
         getResolveRepositoryHandler() >> repositories
+        getConfigurationContainer() >> configurations
     }
     def result = Mock(PluginResolutionResult)
 
@@ -56,12 +73,12 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         1 * result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source")
     }
 
-    def "fail pluginRequests with SNAPSHOT versions"() {
+    def "succeed pluginRequests with SNAPSHOT versions"() {
         when:
         resolver.resolve(request("plugin", "1.1-SNAPSHOT"), result)
 
         then:
-        1 * result.notFound(SOURCE_NAME, "snapshot plugin versions are not supported")
+        1 * result.found(SOURCE_NAME, _)
     }
 
     def "fail pluginRequests with dynamic versions"() {

@@ -16,48 +16,51 @@
 
 package org.gradle.workers.internal
 
-import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.internal.work.ConditionalExecution
+import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
+import org.gradle.testing.internal.util.Specification
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.junit.Rule
-import spock.lang.Specification
+import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
     @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
+    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)
     def noIsolationWorkerFactory = Mock(WorkerFactory)
-    def executorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def fileResolver = Mock(FileResolver)
-    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def fileResolver = Mock(PathToFileResolver)
+    def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
+        getWorkingDirectory() >> { temporaryFolder.root }
+    }
     def runnable = Mock(Runnable)
-    def executor = Mock(ManagedExecutor)
     def instantiatorFactory = Mock(InstantiatorFactory)
+    def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
+    def executionQueue = Mock(ConditionalExecutionQueue)
     def worker = Mock(Worker)
-    ListenableFutureTask task
+    ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
         _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
-        _ * executorFactory.create(_ as String) >> executor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider)
+        _ * executionQueueFactory.create() >> executionQueue
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -139,14 +142,14 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
-        1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
+        1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
         when:
-        task.run()
+        task.getExecution().run()
 
         then:
         1 * workerDaemonFactory.getWorker(_) >> worker
-        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+        1 * worker.execute(_, _) >> { spec, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
@@ -161,14 +164,14 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
-        1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
+        1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
         when:
-        task.run()
+        task.getExecution().run()
 
         then:
         1 * inProcessWorkerFactory.getWorker(_) >> worker
-        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+        1 * worker.execute(_, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }
@@ -183,14 +186,14 @@ class DefaultWorkerExecutorTest extends Specification {
 
         then:
         1 * buildOperationWorkerRegistry.getCurrentWorkerLease()
-        1 * executor.execute(_ as ListenableFutureTask) >> { args -> task = args[0] }
+        1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
         when:
-        task.run()
+        task.getExecution().run()
 
         then:
         1 * noIsolationWorkerFactory.getWorker(_) >> worker
-        1 * worker.execute(_, _, _) >> { spec, workOperation, buildOperation ->
+        1 * worker.execute(_, _) >> { spec, workOperation, buildOperation ->
             assert spec.implementationClass == TestRunnable
             return new DefaultWorkResult(true, null)
         }

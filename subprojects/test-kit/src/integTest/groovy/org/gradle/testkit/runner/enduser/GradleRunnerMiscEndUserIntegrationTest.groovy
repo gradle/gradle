@@ -152,15 +152,18 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             import spock.lang.Specification
 
             class $className extends Specification {
-                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
+                File settingsFile
 
                 def setup() {
+                    settingsFile = testProjectDir.newFile('settings.gradle')
                     buildFile = testProjectDir.newFile('build.gradle')
                 }
 
                 def "execute helloWorld task"() {
                     given:
+                    settingsFile << "rootProject.name = 'hello-world'"
                     buildFile << '''
                         task helloWorld {
                             doLast {

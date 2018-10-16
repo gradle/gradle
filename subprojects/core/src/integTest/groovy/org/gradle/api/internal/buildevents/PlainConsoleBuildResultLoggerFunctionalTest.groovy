@@ -20,6 +20,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 
 class PlainConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
-    String failureMessage = "BUILD FAILED"
-    String successMessage = "BUILD SUCCESSFUL"
+    String failureMessage = buildFailed
+    String successMessage = buildSuccess
 }

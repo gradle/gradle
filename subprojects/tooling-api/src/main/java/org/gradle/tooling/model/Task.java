@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling.model;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -58,7 +56,6 @@ public interface Task extends Launchable {
      * @return the group a task belongs to.
      * @since 2.5
      */
-    @Incubating
     @Nullable
     String getGroup();
 }

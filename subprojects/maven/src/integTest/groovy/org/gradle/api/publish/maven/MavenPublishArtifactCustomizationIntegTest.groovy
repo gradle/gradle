@@ -146,7 +146,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             withModuleMetadata {
                 shouldFail {
                     // We have a publication but artifacts have been modified, which currently disables publication
-                    assertHasDescription 'Could not resolve all files'
+                    assertHasCause 'Could not resolve all files'
                     assertHasCause 'Could not find group:projectText:1.0.'
                 }
             }
@@ -376,6 +376,22 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }
 
+    def "artifact coordinates are evaluated lazily"() {
+        given:
+        createBuildScripts("""
+            publications.create("mavenCustom", MavenPublication) {
+                artifact customJar
+            }
+        """, "version = 2.0")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "2.0")
+        module.assertPublished()
+        module.assertArtifactsPublished("projectText-2.0.pom", "projectText-2.0-customjar.jar")
+    }
+
     private createBuildScripts(def publications, def append = "") {
         settingsFile << "rootProject.name = 'projectText'"
         buildFile << """
@@ -395,7 +411,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             }
 
             task regularFileTask {
-                ext.outputFile = newOutputFile()
+                ext.outputFile = project.objects.fileProperty()
+                outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
                 doLast {
                     outputFile.get().getAsFile() << 'foo'

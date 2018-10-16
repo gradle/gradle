@@ -18,27 +18,23 @@ package org.gradle.internal.resource.transport.aws.s3
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.amazonaws.services.s3.model.CannedAccessControlList
 import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.http.HttpProxySettings
-import org.gradle.util.Requires
 import spock.lang.Ignore
 import spock.lang.Specification
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
-
 class S3ClientTest extends Specification {
     final S3ConnectionProperties s3ConnectionProperties = Mock()
-
 
     def setup(){
         _ * s3ConnectionProperties.getEndpoint() >> Optional.absent()
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "Should upload to s3"() {
         given:
         AmazonS3Client amazonS3Client = Mock()
@@ -52,6 +48,7 @@ class S3ClientTest extends Specification {
             PutObjectRequest putObjectRequest = args[0]
             assert putObjectRequest.bucketName == 'localhost'
             assert putObjectRequest.key == 'maven/snapshot/myFile.txt'
+            assert putObjectRequest.cannedAcl == CannedAccessControlList.BucketOwnerFullControl
             assert putObjectRequest.metadata.contentLength == 12
         }
     }
@@ -170,7 +167,6 @@ class S3ClientTest extends Specification {
         ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "should include uri when upload fails"() {
         AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")

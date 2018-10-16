@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    testFixturesCompile project(':internalIntegTesting')
+    testFixturesApi project(':internalIntegTesting')
 }
 
 gradlebuildJava {
@@ -16,13 +16,13 @@ testFixtures {
     from(':core')
 }
 
-tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
+tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.configureEach {
     options {
         excludeCategories 'org.gradle.soak.categories.SoakTest'
     }
 }
 
-task('soakTest', type: org.gradle.gradlebuild.test.integrationtests.SoakTest) {
+tasks.register('soakTest', org.gradle.gradlebuild.test.integrationtests.SoakTest) {
     testClassesDirs = sourceSets.integTest.output.classesDirs
     classpath = sourceSets.integTest.runtimeClasspath
     systemProperties['org.gradle.soaktest'] = 'true'

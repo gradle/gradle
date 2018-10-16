@@ -16,22 +16,27 @@
 
 package org.gradle.internal.operations.notify
 
-import com.google.common.base.Predicate
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.configuration.project.NotifyProjectAfterEvaluatedBuildOperationType
+import org.gradle.configuration.project.NotifyProjectBeforeEvaluatedBuildOperationType
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.EvaluateSettingsBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
+import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
+
+    def notifications = new BuildOperationNotificationFixture(testDirectory)
 
     def "obtains notifications about init scripts"() {
         when:
@@ -40,7 +45,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
             println "init script"
         """
         buildScript """
-           ${registerListenerWithDrainRecordings()}
+           ${notifications.registerListener()}
             task t
         """
 
@@ -49,58 +54,44 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t"
 
         then:
-        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":", uri: null])
-        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":buildSrc", uri: null])
+        notifications.started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":", uri: null, applicationId: { it instanceof Number }])
+        notifications.started(ApplyScriptPluginBuildOperationType.Details, [targetType: "gradle", targetPath: null, file: init.absolutePath, buildPath: ":buildSrc", uri: null, applicationId: { it instanceof Number }])
     }
 
     def "can emit notifications from start of build"() {
         when:
         buildScript """
-           ${registerListenerWithDrainRecordings()}
+           ${notifications.registerListener()}
             task t
         """
 
         succeeds "t", "-S"
 
         then:
-        started(LoadBuildBuildOperationType.Details, [buildPath: ":"])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: testDirectory.absolutePath, settingsFile: settingsFile.absolutePath, buildPath: ":"])
-        finished(EvaluateSettingsBuildOperationType.Result, [:])
-        started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
-        finished(LoadProjectsBuildOperationType.Result)
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
-        started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
-        finished(ApplyPluginBuildOperationType.Result, [:])
-        started(ApplyScriptPluginBuildOperationType.Details, [targetType: "project", targetPath: ":", file: buildFile.absolutePath, buildPath: ":", uri: null])
-        finished(ApplyScriptPluginBuildOperationType.Result, [:])
-        finished(ConfigureProjectBuildOperationType.Result, [:])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":", includedBy: null])
+        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: testDirectory.absolutePath, settingsFile: settingsFile.absolutePath, buildPath: ":"])
+        notifications.finished(EvaluateSettingsBuildOperationType.Result, [:])
+        notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
+        notifications.finished(LoadProjectsBuildOperationType.Result)
+        notifications.started(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":"])
+        notifications.finished(NotifyProjectsLoadedBuildOperationType.Result)
 
-        started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
-        finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
-        started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
-        finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
-    }
+        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
+        notifications.started(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
+        notifications.started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
+        notifications.finished(ApplyPluginBuildOperationType.Result, [:])
+        notifications.started(ApplyScriptPluginBuildOperationType.Details, [targetType: "project", targetPath: ":", file: buildFile.absolutePath, buildPath: ":", uri: null, applicationId: { it instanceof Number }])
+        notifications.finished(ApplyScriptPluginBuildOperationType.Result, [:])
+        notifications.started(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
+        notifications.finished(ConfigureProjectBuildOperationType.Result, [:])
+        notifications.started(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ':'])
+        notifications.finished(NotifyProjectsEvaluatedBuildOperationType.Result, [:])
 
-    def "can emit notifications from point of registration"() {
-        when:
-        buildScript """
-           ${registerListener()}
-            task t
-        """
-
-        succeeds "t", "-S"
-
-        then:
-        // Operations that started before the listener registration are not included (even if they finish _after_ listener registration)
-        notIncluded(EvaluateSettingsBuildOperationType.Details)
-        notIncluded(LoadProjectsBuildOperationType.Details)
-        notIncluded(ApplyPluginBuildOperationType.Details)
-        notIncluded(ConfigureProjectBuildOperationType.Details)
-
-        started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
-        finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
-        started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
-        finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
+        notifications.started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
+        notifications.finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
+        notifications.started(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ':'])
+        notifications.started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
+        notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
     def "can emit notifications for nested builds"() {
@@ -111,7 +102,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         buildScript """
-           ${registerListenerWithDrainRecordings()}
+           ${notifications.registerListener()}
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
             }
@@ -120,67 +111,109 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t"
 
         then:
-        started(LoadBuildBuildOperationType.Details, [buildPath: ":"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":", includedBy: null])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc", includedBy: ":"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":a", includedBy: ":"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc", includedBy: ":a"])
 
-        started(LoadBuildBuildOperationType.Details, [buildPath: ":"])
-        started(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"])
-        started(LoadBuildBuildOperationType.Details, [buildPath: ":a"])
-        started(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath, buildPath: ":buildSrc"])
+        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath, buildPath: ":a"])
+        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a/buildSrc').absolutePath, settingsFile: file('a/buildSrc/settings.gradle').absolutePath, buildPath: ":a:buildSrc"])
+        notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').absolutePath, settingsFile: file('settings.gradle').absolutePath, buildPath: ":"])
 
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath, buildPath: ":buildSrc"])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath, buildPath: ":a"])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a/buildSrc').absolutePath, settingsFile: file('a/buildSrc/settings.gradle').absolutePath, buildPath: ":a:buildSrc"])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').absolutePath, settingsFile: file('settings.gradle').absolutePath, buildPath: ":"])
+        notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":buildSrc"])
+        notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":a"])
+        notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
 
-        started(LoadProjectsBuildOperationType.Details, [buildPath: ":buildSrc"])
-        started(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"])
-        started(LoadProjectsBuildOperationType.Details, [buildPath: ":a"])
-        started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
+        notifications.started(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":buildSrc"])
+        notifications.started(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":a"])
+        notifications.started(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":"])
 
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
+        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
+        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
+        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
 
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+        notifications.started(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
+        notifications.started(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
+        notifications.started(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
+        notifications.started(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+
+        notifications.started(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
+        notifications.started(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
+        notifications.started(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
+        notifications.started(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+
+        notifications.started(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc"])
+        notifications.started(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a"])
+        notifications.started(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":"])
+
+        notifications.started(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"])
+        notifications.started(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"])
+        notifications.started(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"])
 
         // evaluate hierarchies
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
+        notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
+        notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
-        op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).id
-        op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).id
-        op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
-        op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+        notifications.op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
+        notifications.op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
 
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
+        notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
+        notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
-        op(LoadProjectsBuildOperationType.Details, [buildPath: ":"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
-        op(LoadProjectsBuildOperationType.Details, [buildPath: ":a"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
-        op(LoadProjectsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
-        op(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+        notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
+        notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+
+        notifications.op(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
+        notifications.op(NotifyProjectsLoadedBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+
+        notifications.op(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
+        notifications.op(NotifyProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+
+        notifications.op(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).id
+        notifications.op(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).id
+        notifications.op(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).id
+        notifications.op(NotifyProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).id
+
+        notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).id
+        notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).id
+        notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).id
+        notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).id
+
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
     }
 
     def "emits for GradleBuild tasks"() {
         when:
         def initScript = file("init.gradle") << """
             if (parent == null) {
-                ${registerListener()}
+                ${notifications.registerListener()}
             }
         """
-
+        settingsFile << "rootProject.name = 'parent'"
         buildScript """
             task t(type: GradleBuild) {
                 tasks = ["o"]
-                startParameter.searchUpwards = false
             }
             task o
         """
@@ -190,11 +223,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         then:
         executedTasks.find { it.endsWith(":o") }
 
-        started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
-        started(ConfigureProjectBuildOperationType.Details) {
+        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+        notifications.started(ConfigureProjectBuildOperationType.Details) {
             it.projectPath == ":" && it.buildPath != ":"
         }
-        started(ExecuteTaskBuildOperationType.Details) {
+        notifications.started(ExecuteTaskBuildOperationType.Details) {
             it.taskPath == ":o"
         }
     }
@@ -202,11 +235,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     def "listeners are deregistered after build"() {
         when:
         executer.requireDaemon().requireIsolatedDaemons()
-        buildFile << registerListener() << "task t"
+        buildFile << notifications.registerListener() << "task t"
         succeeds("t")
 
         then:
-        finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
+        notifications.finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
 
         when:
         // remove listener
@@ -214,7 +247,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds("x")
 
         then:
-        recordedOps.findAll { it.detailsType == CalculateTaskGraphBuildOperationType.Result.name }.size() == 0
+        notifications.recordedOps.findAll { it.detailsType == CalculateTaskGraphBuildOperationType.Result.name }.size() == 0
     }
 
     // This test simulates what the build scan plugin does.
@@ -222,7 +255,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         given:
         file("buildSrc/build.gradle") << ""
         file("build.gradle") << """
-            ${registerListenerWithDrainRecordings()}
+            ${notifications.registerListener()}
             task t
         """
 
@@ -231,132 +264,9 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         output.contains(":buildSrc:compileJava") // executedTasks check fails with in process executer
-        recordedOps.findAll { it.detailsType == ConfigureProjectBuildOperationType.Details.name }.size() == 2
-        recordedOps.findAll { it.detailsType == ExecuteTaskBuildOperationType.Details.name }.size() == 14 // including all buildSrc task execution events
+        notifications.recordedOps.findAll { it.detailsType == ConfigureProjectBuildOperationType.Details.name }.size() == 2
+        notifications.recordedOps.findAll { it.detailsType == ExecuteTaskBuildOperationType.Details.name }.size() == 14 // including all buildSrc task execution events
     }
 
-
-    def isChildren(def parent, def child) {
-        assert parent.id == child.parentId
-        true
-    }
-
-    def op(Class<ConfigureProjectBuildOperationType.Details> detailsClass, Map<String, String> details = [:]) {
-        recordedOps.find { op ->
-            return op.detailsType == detailsClass.name && op.details.subMap(details.keySet()) == details
-        }
-    }
-
-    void started(Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
-        has(true, type, payloadTest)
-    }
-
-    void started(Class<?> type, Map<String, ?> payload = null) {
-        has(true, type, (Map) payload)
-    }
-
-    void finished(Class<?> type, Map<String, ?> payload = null) {
-        has(false, type, (Map) payload)
-    }
-
-    void has(boolean started, Class<?> type, Map<String, ?> payload) {
-        has(started, type, payload ? { it == payload } : { true })
-    }
-
-    void has(boolean started, Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
-        def typedOps = recordedOps.findAll { op ->
-            return started ? op.detailsType == type.name : op.resultType == type.name
-        }
-        assert typedOps.size() > 0
-
-        if (payloadTest != null) {
-            def matchingOps = typedOps.findAll { matchingOp ->
-                started ? payloadTest.apply(matchingOp.details) : payloadTest.apply(matchingOp.result)
-            }
-            assert matchingOps.size()
-        }
-    }
-
-    def getRecordedOps() {
-        def jsonSlurper = new groovy.json.JsonSlurper()
-        jsonSlurper.parse(file('buildOpNotifications.json'))
-    }
-
-    void notIncluded(Class<?> type) {
-        assert !recordedOps.any { it.detailsType == type.name }
-    }
-
-    String registerListener() {
-        listenerClass() + """
-        registrar.registerBuildScopeListener(listener)
-        """
-    }
-
-    String registerListenerWithDrainRecordings() {
-        listenerClass() + """
-        registrar.registerBuildScopeListenerAndReceiveStoredOperations(listener)
-        """
-    }
-
-    String listenerClass() {
-        """
-            def listener = new ${BuildOperationNotificationListener.name}() {
-
-                LinkedHashMap<Object,BuildOpsEntry> ops = new LinkedHashMap()
-            
-                @Override
-                void started(${BuildOperationStartedNotification.name} startedNotification) {
-            
-                    def details = startedNotification.notificationOperationDetails
-                    if (details instanceof org.gradle.internal.execution.ExecuteTaskBuildOperationType.Details) {
-                        details = [taskPath: details.taskPath, buildPath: details.buildPath, taskClass: details.taskClass.name]
-                    } else  if (details instanceof org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details) {
-                        details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
-                    }
-
-                    ops.put(startedNotification.notificationOperationId, new BuildOpsEntry(id: startedNotification.notificationOperationId?.id,
-                            parentId: startedNotification.notificationOperationParentId?.id,
-                            detailsType: startedNotification.notificationOperationDetails.getClass().getInterfaces()[0].getName(),
-                            details: details, 
-                            started: startedNotification.notificationOperationStartedTimestamp))
-                }
-            
-                @Override
-                void finished(${BuildOperationFinishedNotification.name} finishedNotification) {
-                    def result = finishedNotification.getNotificationOperationResult()
-                    if (result instanceof ${ResolveConfigurationDependenciesBuildOperationType.Result.name}) {
-                        result = []
-                    }
-                    def op = ops.get(finishedNotification.notificationOperationId)
-                    op.resultType = finishedNotification.getNotificationOperationResult().getClass().getInterfaces()[0].getName()
-                    op.result = result
-                    op.finished = finishedNotification.getNotificationOperationFinishedTimestamp()
-                }
-            
-                void store(File target){
-                    target.withPrintWriter { pw ->
-                        String json = groovy.json.JsonOutput.toJson(ops.values());
-                        pw.append(json)
-                    }
-                }
-            
-                static class BuildOpsEntry {
-                    Object id
-                    Object parentId
-                    Object details
-                    Object result
-                    String detailsType
-                    String resultType
-                    long started
-                    long finished
-                }
-            }
-
-            def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)            
-            gradle.buildFinished {
-                listener.store(file('${file('buildOpNotifications.json').toURI()}'))
-            }
-        """
-    }
 
 }

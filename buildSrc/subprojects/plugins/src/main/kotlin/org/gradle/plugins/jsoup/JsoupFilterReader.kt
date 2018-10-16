@@ -63,5 +63,7 @@ class DeferringReader(private val source: Reader) : Reader() {
         return delegate!!.read(cbuf, off, len)
     }
 
-    override fun close() = Unit
+    override fun close() {
+        source.close()
+    }
 }

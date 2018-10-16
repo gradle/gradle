@@ -56,7 +56,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":")
-        output.count("Parallel execution with configuration on demand is an incubating feature") == 1
+        output.count("Configuration on demand is an incubating feature") == 1
     }
 
     def "can be enabled from command line for a single module build"() {
@@ -273,7 +273,6 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
-        executer.expectDeprecationWarning()
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:
@@ -348,7 +347,7 @@ project(':api') {
         file("b/build.gradle") << """
             apply plugin: 'java'
             project(':b') {
-                dependencies { compile project(':a') }
+                dependencies { implementation project(':a') }
             }
         """
 
@@ -366,7 +365,7 @@ project(':api') {
         file("b/build.gradle") << """
             apply plugin: 'java'
             project(':b') {
-                dependencies { compile project(':a') }
+                dependencies { implementation project(':a') }
             }
         """
 

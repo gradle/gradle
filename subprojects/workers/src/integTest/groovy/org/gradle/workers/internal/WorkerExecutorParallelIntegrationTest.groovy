@@ -17,13 +17,13 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@IntegrationTestTimeout(120)
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
@@ -378,6 +378,54 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
 
         when:
         handler.release(3)
+
+        then:
+        gradle.waitForFinish()
+    }
+
+    def "does not start more than max-workers threads when work items do not submit more work"() {
+        def maxWorkers = 3
+        def workItems = 200
+
+        given:
+        buildFile << """
+            task parallelWorkTask(type: MultipleWorkItemTask) {
+                doLast {
+                    ${workItems}.times { i ->
+                        submitWorkItem("workItem\${i}")
+                    }
+                }
+                doLast {
+                    def threadGroup = Thread.currentThread().threadGroup
+                    println "\\nWorker Executor threads:"
+                    def threads = new Thread[threadGroup.activeCount()]
+                    threadGroup.enumerate(threads) 
+                    def executorThreads = threads.findAll { it?.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                    executorThreads.each { println it }
+                    
+                    // Ensure that we don't leave any threads lying around
+                    assert executorThreads.size() <= ${maxWorkers}
+                }
+            }
+        """
+
+        // warm buildSrc
+        succeeds("help")
+
+        def calls = []
+        workItems.times { i -> calls << "workItem${i}" }
+        def handler = blockingHttpServer.expectConcurrentAndBlock(maxWorkers, calls as String[])
+
+        when:
+        args("--max-workers=${maxWorkers}")
+        executer.withTasks("parallelWorkTask")
+        def gradle = executer.start()
+
+        then:
+        workItems.times {
+            handler.waitForAllPendingCalls()
+            handler.release(1)
+        }
 
         then:
         gradle.waitForFinish()
@@ -815,7 +863,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 def isolationMode = IsolationMode.NONE
                 def additionalForkOptions = {}
                 def runnableClass = TestParallelRunnable.class
-                def additionalClasspath = project.files()
+                def additionalClasspath = project.layout.files()
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {

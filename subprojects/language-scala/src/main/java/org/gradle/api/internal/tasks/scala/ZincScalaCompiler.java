@@ -66,8 +66,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
 
             List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
             List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
-            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getCompileClasspath()), ImmutableList.copyOf(spec.getSource()), spec.getDestinationDir(),
-                    scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
+            Inputs inputs = Inputs.create(ImmutableList.copyOf(spec.getCompileClasspath()), ImmutableList.copyOf(spec.getSourceFiles()), spec.getDestinationDir(),
+                    scalacOptions, javacOptions, spec.getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
             if (LOGGER.isDebugEnabled()) {
                 Inputs.debug(inputs, logger);
             }

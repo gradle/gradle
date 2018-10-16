@@ -26,22 +26,35 @@ class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestI
         """
     }
 
-    def "builds and runs test suite when no main component"() {
-        buildFile << """
-            apply plugin: 'cpp-unit-test'
+    @Override
+    protected void writeTests() {
+        file("src/test/headers/tests.h") << """
+            extern int test();
         """
-
         file("src/test/cpp/test.cpp") << """
-int main() {
-    return 0;
-}
-"""
+            #include <tests.h>
+            int test() {
+                return 0;
+            }
+        """
+        file("src/test/cpp/test_main.cpp") << """
+            #include <tests.h>
+            int main() {
+                return test();
+            }
+        """
+    }
 
-        when:
-        succeeds("check")
+    @Override
+    protected void changeTestImplementation() {
+        file("src/test/cpp/test.cpp") << """
+            void test_func() { }
+        """
+    }
 
-        then:
-        result.assertTasksExecuted( tasksToBuildAndRunUnitTest, ":test", ":check")
+    @Override
+    protected void assertTestCasesRan() {
+        // Ok
     }
 
     def "test fails when test executable returns non-zero status"() {
@@ -59,7 +72,7 @@ int main() {
         fails("check")
 
         then:
-        result.assertTasksExecuted( tasksToBuildAndRunUnitTest)
+        result.assertTasksExecuted(tasksToBuildAndRunUnitTest)
         failure.assertHasDescription("Execution failed for task ':runTest'.")
         failure.assertHasCause("There were failing tests. See the results at:")
     }

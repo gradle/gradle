@@ -28,8 +28,6 @@ import java.util.Set;
  * Represents a component instance in the resolved dependency graph. Provides some basic identity and dependency information about the component.
  */
 @UsedByScanPlugin
-@Incubating
-// Should really be named ComponentGraphResult
 public interface ResolvedComponentResult {
 
     /**
@@ -94,5 +92,6 @@ public interface ResolvedComponentResult {
      *
      * @since 4.6
      */
+    @Incubating
     ResolvedVariantResult getVariant();
 }

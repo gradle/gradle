@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -23,23 +24,40 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 
 import java.util.List;
 
-public class DefaultResolvedVersionConstraint extends DefaultImmutableVersionConstraint implements ResolvedVersionConstraint {
+public class DefaultResolvedVersionConstraint implements ResolvedVersionConstraint {
     private final VersionSelector preferredVersionSelector;
+    private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
-
-    public DefaultResolvedVersionConstraint(VersionSelector preferredVersionSelector, VersionSelector rejectedVersionsSelector) {
-        super(preferredVersionSelector.getSelector());
-        this.preferredVersionSelector = preferredVersionSelector;
-        this.rejectedVersionsSelector = rejectedVersionsSelector;
-    }
+    private final boolean rejectAll;
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
-        super(parent.getPreferredVersion(), parent.getRejectedVersions());
+        this(parent.getRequiredVersion(), parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
+    }
 
-        String preferredVersion = parent.getPreferredVersion();
-        List<String> rejectedVersions = parent.getRejectedVersions();
-        this.preferredVersionSelector = scheme.parseSelector(preferredVersion);
-        this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
+    @VisibleForTesting
+    public DefaultResolvedVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
+        // For now, required and preferred are treated the same
+
+        boolean strict = !strictVersion.isEmpty();
+        String version = strict ? strictVersion : requiredVersion;
+        this.requiredVersionSelector = scheme.parseSelector(version);
+        this.preferredVersionSelector = preferredVersion.isEmpty() ? null : scheme.parseSelector(preferredVersion);
+
+        if (strict) {
+            if (!rejectedVersions.isEmpty()) {
+                throw new IllegalArgumentException("Cannot combine 'strict' and'reject' in a single version constraint.");
+            }
+            this.rejectedVersionsSelector = getRejectionForStrict(version, scheme);
+            rejectAll = false;
+        } else {
+            this.rejectedVersionsSelector = toRejectSelector(scheme, rejectedVersions);
+            rejectAll = isRejectAll(version, rejectedVersions);
+        }
+    }
+
+    private VersionSelector getRejectionForStrict(String version, VersionSelectorScheme versionSelectorScheme) {
+        VersionSelector preferredSelector = versionSelectorScheme.parseSelector(version);
+        return versionSelectorScheme.complementForRejection(preferredSelector);
     }
 
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
@@ -55,7 +73,31 @@ public class DefaultResolvedVersionConstraint extends DefaultImmutableVersionCon
     }
 
     @Override
+    public VersionSelector getRequiredSelector() {
+        return requiredVersionSelector;
+    }
+
+    @Override
     public VersionSelector getRejectedSelector() {
         return rejectedVersionsSelector;
+    }
+
+    @Override
+    public boolean isRejectAll() {
+        return rejectAll;
+    }
+
+    private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
+        return "".equals(preferredVersion)
+            && hasMatchAllSelector(rejectedVersions);
+    }
+
+    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
+        for (String version : rejectedVersions) {
+            if ("+".equals(version)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

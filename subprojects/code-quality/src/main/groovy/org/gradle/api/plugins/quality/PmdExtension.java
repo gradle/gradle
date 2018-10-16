@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -46,18 +45,18 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["basic", "braces"]
+     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      */
     public List<String> getRuleSets() {
         return ruleSets;
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["basic", "braces"]
+     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
@@ -66,7 +65,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Convenience method for adding rule sets.
      *
-     * Example: ruleSets "basic", "braces"
+     * Example: ruleSets "category/java/errorprone.xml", "category/java/bestpractices.xml"
      *
      * @param ruleSets the rule sets to be added
      */
@@ -109,7 +108,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * Example: rulePriority = 3
      */
-    @Incubating
     public int getRulePriority() {
         return rulePriority;
     }
@@ -117,7 +115,6 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Sets the rule priority threshold.
      */
-    @Incubating
     public void setRulePriority(int intValue) {
         Pmd.validate(intValue);
         rulePriority = intValue;
@@ -132,7 +129,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     @Nullable
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
@@ -147,7 +143,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
@@ -167,7 +162,7 @@ public class PmdExtension extends CodeQualityExtension {
      * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = project.files(ruleSetFiles);
+        this.ruleSetFiles = project.getLayout().configurableFiles(ruleSetFiles);
     }
 
     /**
@@ -184,7 +179,6 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @Incubating
     public boolean isConsoleOutput() {
         return consoleOutput;
     }
@@ -192,7 +186,6 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @Incubating
     public void setConsoleOutput(boolean consoleOutput) {
         this.consoleOutput = consoleOutput;
     }

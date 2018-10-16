@@ -40,7 +40,7 @@ class CppPCHCompilerTest extends VisualCppNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
-        return [ '/Yc' ] + super.getCompilerSpecificArguments(includeDir)
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
+        return [ '/Yc' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

@@ -17,9 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 public interface PropertySpecFactory {
-    DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths, ValidationAction validationAction);
+    DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths);
 
-    DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath, ValidationAction validator);
+    DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths);
+
+    DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue path);
 
     DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value);
 

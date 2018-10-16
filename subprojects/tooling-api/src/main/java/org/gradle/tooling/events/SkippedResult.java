@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * Describes how an operation was skipped.
  *
  * @since 2.4
  */
-@Incubating
 public interface SkippedResult extends OperationResult {
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.remote.internal.inet;
 import com.google.common.base.Objects;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.io.BufferCaster;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.ObjectReader;
@@ -88,7 +89,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (IOException e) {
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
     }
@@ -120,7 +121,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (IOException e) {
             throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         }
     }
@@ -130,7 +131,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         try {
             encoder.flush();
             outstr.flush();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not write '%s'.", remoteAddress), e);
         }
     }
@@ -155,7 +156,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             selector = Selector.open();
             socket.register(selector, SelectionKey.OP_READ);
             buffer = ByteBuffer.allocateDirect(4096);
-            buffer.limit(0);
+            BufferCaster.cast(buffer).limit(0);
         }
 
         @Override
@@ -183,19 +184,19 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     return -1;
                 }
 
-                buffer.clear();
+                BufferCaster.cast(buffer).clear();
                 int nread;
                 try {
                     nread = socket.read(buffer);
                 } catch (IOException e) {
                     if (isEndOfStream(e)) {
-                        buffer.position(0);
-                        buffer.limit(0);
+                        BufferCaster.cast(buffer).position(0);
+                        BufferCaster.cast(buffer).limit(0);
                         return -1;
                     }
                     throw e;
                 }
-                buffer.flip();
+                BufferCaster.cast(buffer).flip();
 
                 if (nread < 0) {
                     return -1;
@@ -256,7 +257,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         }
 
         private void writeBufferToChannel() throws IOException {
-            buffer.flip();
+            BufferCaster.cast(buffer).flip();
             int count = writeWithNonBlockingRetry();
             if (count == 0) {
                 // buffer was still full after non-blocking retries, now block

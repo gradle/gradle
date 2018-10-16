@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -25,9 +24,9 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -42,12 +41,13 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
     private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final LockableSetProperty<Linkage> linkage;
+    private final SetProperty<Linkage> linkage;
     private final Property<CppBinary> developmentBinary;
     private final Configuration apiElements;
     private final MainLibraryVariant mainVariant;
@@ -58,11 +58,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
-        publicHeaders = fileOperations.files();
+        publicHeaders = fileOperations.configurableFiles();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
-        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
-        linkage.add(Linkage.SHARED);
+        linkage = objectFactory.setProperty(Linkage.class);
+        linkage.set(Collections.singleton(Linkage.SHARED));
 
         dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
 
@@ -77,13 +77,13 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
 
     public DefaultCppStaticLibrary addStaticLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
@@ -155,7 +155,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
-    public LockableSetProperty<Linkage> getLinkage() {
+    public SetProperty<Linkage> getLinkage() {
         return linkage;
     }
 }

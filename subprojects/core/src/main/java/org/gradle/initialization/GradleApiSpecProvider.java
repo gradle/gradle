@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Incubating;
 
 import java.util.Set;
 
@@ -27,12 +26,16 @@ import java.util.Set;
  *
  * A SPI suitable for use with Java's {@link java.util.ServiceLoader}.
  */
-@Incubating
 public interface GradleApiSpecProvider {
 
     Spec get();
 
     interface Spec {
+        /**
+         * Set of classes which should be visible from the Gradle API ClassLoader.
+         */
+        Set<Class<?>> getExportedClasses();
+
         /**
          * Set of packages and enclosing sub-packages which should be visible from the Gradle API ClassLoader.
          *
@@ -44,6 +47,11 @@ public interface GradleApiSpecProvider {
          * Set of resource prefixes which should be visible from the Gradle API ClassLoader.
          */
         Set<String> getExportedResourcePrefixes();
+
+        /**
+         * Set of resources which should be visible from the Gradle API ClassLoader.
+         */
+        Set<String> getExportedResources();
     }
 
     /**
@@ -53,12 +61,22 @@ public interface GradleApiSpecProvider {
     class SpecAdapter implements Spec {
 
         @Override
+        public Set<Class<?>> getExportedClasses() {
+            return ImmutableSet.of();
+        }
+
+        @Override
         public Set<String> getExportedPackages() {
             return ImmutableSet.of();
         }
 
         @Override
         public Set<String> getExportedResourcePrefixes() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public Set<String> getExportedResources() {
             return ImmutableSet.of();
         }
     }

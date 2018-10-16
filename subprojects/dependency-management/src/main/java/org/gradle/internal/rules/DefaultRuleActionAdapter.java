@@ -21,20 +21,20 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.model.internal.type.ModelType;
 
-public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
+public class DefaultRuleActionAdapter implements RuleActionAdapter {
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule for '%s'.";
     private static final String INVALID_ACTION_ERROR = "The action provided is not valid as a rule for '%s'.";
     private static final String INVALID_RULE_SOURCE_ERROR = "The rule source provided does not provide a valid rule for '%s'.";
 
-    private final RuleActionValidator<T> ruleActionValidator;
+    private final RuleActionValidator ruleActionValidator;
     private final String context;
 
-    public DefaultRuleActionAdapter(RuleActionValidator<T> ruleActionValidator, String context) {
+    public DefaultRuleActionAdapter(RuleActionValidator ruleActionValidator, String context) {
         this.ruleActionValidator = ruleActionValidator;
         this.context = context;
     }
 
-    public RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure) {
+    public <T> RuleAction<? super T> createFromClosure(Class<T> subjectType, Closure<?> closure) {
         try {
             return ruleActionValidator.validate(new ClosureBackedRuleAction<T>(subjectType, closure));
         } catch (RuleActionValidationException e) {
@@ -42,7 +42,7 @@ public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
         }
     }
 
-    public RuleAction<? super T> createFromAction(Action<? super T> action) {
+    public <T> RuleAction<? super T> createFromAction(Action<? super T> action) {
         try {
             return ruleActionValidator.validate(new NoInputsRuleAction<T>(action));
         } catch (RuleActionValidationException e) {
@@ -50,7 +50,7 @@ public class DefaultRuleActionAdapter<T> implements RuleActionAdapter<T> {
         }
     }
 
-    public RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource) {
+    public <T> RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource) {
         try {
             return ruleActionValidator.validate(RuleSourceBackedRuleAction.create(ModelType.of(subjectType), ruleSource));
         } catch (RuleActionValidationException e) {

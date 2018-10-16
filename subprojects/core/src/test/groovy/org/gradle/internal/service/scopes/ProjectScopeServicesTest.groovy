@@ -39,11 +39,14 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.plugins.PluginRegistry
+import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.DefaultAntBuilderFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskStatistics
 import org.gradle.api.logging.LoggingManager
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -54,8 +57,10 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleExtractor
@@ -114,6 +119,11 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
         parent.get(StreamHasher) >> Mock(StreamHasher)
         parent.get(FileHasher) >> Mock(FileHasher)
+        parent.get(TaskStatistics) >> new TaskStatistics()
+        parent.get(TextResourceLoader) >> Mock(TextResourceLoader)
+        parent.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
+        parent.get(CrossProjectConfigurator) >> Mock(CrossProjectConfigurator)
+        parent.get(ProjectStateRegistry) >> Mock(ProjectStateRegistry)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

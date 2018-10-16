@@ -21,12 +21,12 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,8 +69,8 @@ public class WatchServiceFileWatcherBacking {
         }
     };
 
-    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService, FileSystem fileSystem) throws IOException {
-        this(onError, listener, watchService, new WatchServiceRegistrar(watchService, listener, fileSystem));
+    WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService) throws IOException {
+        this(onError, listener, watchService, new WatchServiceRegistrar(watchService, listener));
     }
 
     WatchServiceFileWatcherBacking(Action<? super Throwable> onError, FileWatcherListener listener, WatchService watchService, WatchServiceRegistrar watchServiceRegistrar) throws IOException {
@@ -92,7 +92,7 @@ public class WatchServiceFileWatcherBacking {
                             try {
                                 pumpEvents();
                             } catch (InterruptedException e) {
-                                // just stop
+                                Thread.currentThread().interrupt();
                             } catch (Throwable t) {
                                 if (!(Throwables.getRootCause(t) instanceof InterruptedException)) {
                                     stop();
@@ -117,7 +117,7 @@ public class WatchServiceFileWatcherBacking {
                 public void onFailure(Throwable t) {
                     running.set(false);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return fileWatcher;
         } else {
             throw new IllegalStateException("file watcher is started");

@@ -18,27 +18,29 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ComponentResultSerializerTest extends SerializerSpec {
 
-    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "serializes"() {
-        def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'module', 'version')
-        def attributes = TestUtil.attributesFactory().mutable()
+        def componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'module'), 'version')
+        def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
         def selection = new DetachedComponentResult(12L,
-            newId("org", "foo", "2.0"),
+            newId('org', 'foo', '2.0'),
             VersionSelectionReasons.requested(),
             componentIdentifier, 'default',
-            attributes)
+            attributes,
+            'repoName')
 
         when:
         def result = serialize(selection, serializer)
@@ -46,9 +48,10 @@ class ComponentResultSerializerTest extends SerializerSpec {
         then:
         result.resultId == 12L
         result.selectionReason == VersionSelectionReasons.requested()
-        result.moduleVersion == newId("org", "foo", "2.0")
+        result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
-        result.variantName == 'default'
+        result.variantName.displayName == 'default'
         result.variantAttributes == attributes.asImmutable()
+        result.repositoryName == 'repoName'
     }
 }

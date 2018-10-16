@@ -51,7 +51,11 @@ import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
+import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Callable;
 
 /**
@@ -96,6 +100,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         ObjectConnection connection = null;
         WorkerLogEventListener workerLogEventListener = null;
+        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(workerServices.get(WorkerDirectoryProvider.class));
         try {
             // Read serialized worker
             byte[] serializedWorker = decoder.readBinary();
@@ -110,6 +115,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             }
 
             connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
@@ -138,11 +144,44 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             if (connection != null) {
                 connection.stop();
             }
+            unrecoverableErrorHandler.close();
             messagingServices.close();
             loggingManager.stop();
         }
 
         return null;
+    }
+
+    private class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
+        private final File workerDirectory;
+        private PrintStream ps;
+
+        private PrintUnrecoverableErrorToFileHandler(WorkerDirectoryProvider workerDirectoryProvider) {
+            this.workerDirectory = workerDirectoryProvider.getWorkingDirectory();
+        }
+
+        @Override
+        public void execute(Throwable throwable) {
+            if (ps == null) {
+                String fileName = "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt";
+                try {
+                    ps = new PrintStream(new File(workerDirectory, fileName));
+                } catch (FileNotFoundException ignored) {
+                    // ignored
+                }
+            }
+            if (ps != null) {
+                ps.println("Encountered unrecoverable error:");
+                throwable.printStackTrace(ps);
+            }
+        }
+
+        private void close() {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+
     }
 
     private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {

@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
@@ -33,7 +32,7 @@ public class TestFileContentCacheFactory implements FileContentCacheFactory {
             LoadingCache<File, V> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, V>() {
                 @Override
                 public V load(File file) throws Exception {
-                    return calculator.calculate(file, TestFiles.fileSystem().stat(file).getType());
+                    return calculator.calculate(file, file.isFile());
                 }
             });
 

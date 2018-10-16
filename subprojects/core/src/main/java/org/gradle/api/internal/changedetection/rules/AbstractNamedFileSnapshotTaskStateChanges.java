@@ -17,14 +17,10 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 @NonNullApi
 public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
@@ -38,34 +34,33 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         this.title = title;
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> getPrevious() {
-        return getSnapshot(previous);
+    private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getPrevious() {
+        return getFingerprints(previous);
     }
 
-    private ImmutableSortedMap<String, FileCollectionSnapshot> getCurrent() {
-        return getSnapshot(current);
+    private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getCurrent() {
+        return getFingerprints(current);
     }
 
-    protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
+    protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution);
 
-    protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
-        final List<Iterator<TaskStateChange>> iterators = new ArrayList<Iterator<TaskStateChange>>();
-        SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {
+    protected boolean accept(final TaskStateChangeVisitor visitor, final boolean includeAdded) {
+        return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionFingerprint>() {
             @Override
-            public void removed(String previousProperty) {
+            public boolean removed(String previousProperty) {
+                return true;
             }
 
             @Override
-            public void added(String currentProperty) {
+            public boolean added(String currentProperty) {
+                return true;
             }
 
             @Override
-            public void updated(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
+            public boolean updated(String property, FileCollectionFingerprint previousFingerprint, FileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
-                iterators.add(currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded));
+                return currentFingerprint.visitChangesSince(previousFingerprint, propertyTitle, includeAdded, visitor);
             }
         });
-
-        return Iterators.concat(iterators.iterator());
     }
 }

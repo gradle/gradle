@@ -15,6 +15,7 @@
  */
 package org.gradle.gradlebuild.test.integrationtests
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
@@ -49,26 +50,26 @@ class CrossVersionTestsPlugin : Plugin<Project> {
     private
     fun Project.createAggregateTasks(sourceSet: SourceSet) {
         // Calculate the set of released versions - do this at configuration time because we need this to create various tasks
-        val allVersionsCrossVersionTests by tasks.creating {
+        val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
             group = "verification"
             description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
         }
 
-        val quickFeedbackCrossVersionTests by tasks.creating {
+        val quickFeedbackCrossVersionTests = tasks.register("quickFeedbackCrossVersionTests") {
             group = "verification"
             description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
         }
 
         val quickTestVersions = releasedVersions.getTestedVersions(true)
         releasedVersions.getTestedVersions(false).forEach { targetVersion ->
-            val crossVersionTest = createTestTask("gradle${targetVersion}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION)
-            crossVersionTest.apply {
-                description = "Runs the cross-version tests against Gradle $targetVersion"
-                systemProperties["org.gradle.integtest.versions"] = targetVersion
-            }
-            allVersionsCrossVersionTests.dependsOn(crossVersionTest)
+            val crossVersionTest = createTestTask("gradle${targetVersion}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION, Action {
+                this.description = "Runs the cross-version tests against Gradle $targetVersion"
+                this.systemProperties["org.gradle.integtest.versions"] = targetVersion
+            })
+
+            allVersionsCrossVersionTests.configure { dependsOn(crossVersionTest) }
             if (targetVersion in quickTestVersions) {
-                quickFeedbackCrossVersionTests.dependsOn(crossVersionTest)
+                quickFeedbackCrossVersionTests.configure { dependsOn(crossVersionTest) }
             }
         }
     }

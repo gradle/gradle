@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +28,7 @@ import org.gradle.test.fixtures.file.TestFile
 class JvmLibraryArtifactResolveTestFixture {
     private final TestFile buildFile
     private final String config
-    private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
+    private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("some.group", "some-artifact"), "1.0")
     private artifactTypes = []
     private expectedSources = []
     private expectedJavadoc = []
@@ -39,12 +40,12 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture withComponentVersion(String group, String module, String version) {
-        this.id = DefaultModuleComponentIdentifier.newId(group, module, version)
+        this.id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
         this
     }
 
     JvmLibraryArtifactResolveTestFixture withSnapshotTimestamp(String timestamp) {
-        this.id = new MavenUniqueSnapshotComponentIdentifier(id.group, id.module, id.version, timestamp)
+        this.id = new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(id.group, id.module), id.version, timestamp)
         this
     }
 
@@ -168,7 +169,8 @@ task $taskName {
         buildFile << """
 task verify {
     doLast {
-        def componentId = new org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier("${id.group}", "${id.module}", "${id.version}")
+        def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId("${id.group}", "${id.module}")
+        def componentId = new org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier(mid, "${id.version}")
 
         def result = dependencies.createArtifactResolutionQuery()
             .forComponents(componentId)

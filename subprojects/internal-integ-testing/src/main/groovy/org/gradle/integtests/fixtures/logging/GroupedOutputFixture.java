@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.logging;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.integtests.fixtures.executer.LogContent;
 
 import java.util.HashMap;
@@ -32,21 +33,15 @@ public class GroupedOutputFixture {
      */
     private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
 
-    private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
+    private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
-    private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks:";
+    private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
 
     /**
      * Various patterns to detect the end of the task output
      */
     private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
-
-    private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
-    private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
-    private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
-
-    private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN;
 
     /**
      * Pattern to extract task output.
@@ -73,12 +68,12 @@ public class GroupedOutputFixture {
     private String parse(String output) {
         tasks = new HashMap<String, GroupedTaskFixture>();
 
-        String strippedOutput = LogContent.of(stripWorkInProgressArea(output)).removeAnsiChars().withNormalizedEol();
+        String strippedOutput = LogContent.of(output).removeAnsiChars().withNormalizedEol();
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(strippedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutcome = matcher.group(2);
-            String taskOutput = matcher.group(3).trim();
+            String taskOutput = StringUtils.strip(matcher.group(3), "\n");
 
             GroupedTaskFixture task = tasks.get(taskName);
             if (task == null) {
@@ -91,18 +86,6 @@ public class GroupedOutputFixture {
         }
 
         return strippedOutput;
-    }
-
-    private String stripWorkInProgressArea(String output) {
-        String result = output;
-        for (int i = 1; i <= 10; ++i) {
-            result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
-        }
-        return result.replaceAll(WORK_IN_PROGRESS_AREA_PATTERN, "");
-    }
-
-    private String workInProgressAreaScrollingPattern(int scroll) {
-        return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
     }
 
     public int getTaskCount() {

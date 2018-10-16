@@ -18,65 +18,56 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.objectweb.asm.AnnotationVisitor;
+import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
+import org.objectweb.asm.TypePath;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
 
-    private final static int API = Opcodes.ASM6;
-    private static final MethodVisitor EMPTY_VISITOR = new MethodVisitor(API, null) {
-    };
+    private final static int API = AsmConstants.ASM_LEVEL;
 
-    private final LocalVariableVisitor localVariableVisitor;
+    private final MethodVisitor methodVisitor;
+    private final FieldVisitor fieldVisitor;
     private final IntSet constants;
     private final Set<String> superTypes;
     private final Set<String> types;
     private final Predicate<String> typeFilter;
+    private final StringInterner interner;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
+    private final RetentionPolicyVisitor retentionPolicyVisitor;
+    private final AnnotationVisitor annotationVisitor;
 
-    public ClassDependenciesVisitor(IntSet constantsCollector) {
-        this(constantsCollector, null, null, null);
-    }
-
-    private ClassDependenciesVisitor(IntSet constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
+    private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
-        this.constants = constantsCollector;
-        this.types = types;
-        this.superTypes = types == null ? null : Sets.<String>newHashSet();
-        this.localVariableVisitor = types == null ? null : new LocalVariableVisitor();
+        this.constants = new IntOpenHashSet(2);
+        this.types = Sets.newHashSet();
+        this.superTypes = Sets.newHashSet();
+        this.methodVisitor = new MethodVisitor();
+        this.fieldVisitor = new FieldVisitor();
+        this.retentionPolicyVisitor = new RetentionPolicyVisitor();
+        this.annotationVisitor = new AnnotationVisitor();
         this.typeFilter = typeFilter;
-        if (reader != null) {
-            collectClassDependencies(reader);
-        }
+        this.interner = interner;
+        collectClassDependencies(reader);
     }
 
-    public static ClassAnalysis analyze(String className, ClassReader reader) {
-        IntSet constants = new IntOpenHashSet(2);
-        Set<String> classDependencies = Sets.newHashSet();
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, classDependencies, new ClassRelevancyFilter(className), reader);
+    public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, visitor.getSuperTypes());
-    }
-
-    public static IntSet retrieveConstants(ClassReader reader) {
-        IntSet constants = new IntOpenHashSet(2);
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
-        reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return constants;
+        return new ClassAnalysis(interner.intern(className), visitor.getClassDependencies(), visitor.isDependencyToAll(), visitor.getConstants(), visitor.getSuperTypes());
     }
 
     @Override
@@ -95,6 +86,12 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             maybeAddSuperType(interfaceType);
         }
 
+    }
+
+    @Override
+    public ModuleVisitor visitModule(String name, int access, String version) {
+        dependencyToAll = true;
+        return null;
     }
 
     // performs a fast analysis of classes referenced in bytecode (method bodies)
@@ -121,15 +118,19 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     protected void maybeAddSuperType(String type) {
-        if (superTypes != null && typeFilter.apply(type)) {
-            superTypes.add(type);
+        if (typeFilter.apply(type)) {
+            superTypes.add(intern(type));
         }
     }
 
     protected void maybeAddDependentType(String type) {
-        if (types != null && typeFilter.apply(type)) {
-            types.add(type);
+        if (typeFilter.apply(type)) {
+            types.add(intern(type));
         }
+    }
+
+    private String intern(String type) {
+        return interner.intern(type);
     }
 
     protected String typeOfFromSlashyString(String slashyStyleDesc) {
@@ -140,6 +141,14 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return superTypes;
     }
 
+    public Set<String> getClassDependencies() {
+        return types;
+    }
+
+    public IntSet getConstants() {
+        return constants;
+    }
+
     private boolean isAnnotationType(String[] interfaces) {
         return interfaces.length == 1 && interfaces[0].equals("java/lang/annotation/Annotation");
     }
@@ -147,13 +156,13 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         maybeAddDependentType(descTypeOf(desc));
-        if (isAccessibleConstant(access, value) && constants != null) {
+        if (isAccessibleConstant(access, value)) {
             // we need to compute a hash for a constant, which is based on the name of the constant + its value
             // otherwise we miss the case where a class defines several constants with the same value, or when
             // two values are switched
             constants.add((name + '|' + value).hashCode()); //non-private const
         }
-        return null;
+        return fieldVisitor;
     }
 
     private static boolean isAccessibleConstant(int access, Object value) {
@@ -175,16 +184,19 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         for (Type argType : methodType.getArgumentTypes()) {
             maybeAddDependentType(argType.getClassName());
         }
-        return localVariableVisitor;
+        return methodVisitor;
     }
 
     @Override
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+    public org.objectweb.asm.AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if (isAnnotationType && "Ljava/lang/annotation/Retention;".equals(desc)) {
-            return new RetentionPolicyAnalyzer();
+            return retentionPolicyVisitor;
+        } else {
+            maybeAddDependentType(Type.getType(desc).getClassName());
+            return annotationVisitor;
         }
-        return null;
     }
+
     private static boolean isPrivate(int access) {
         return (access & Opcodes.ACC_PRIVATE) != 0;
     }
@@ -197,10 +209,29 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return dependencyToAll;
     }
 
-    private class LocalVariableVisitor extends InstructionAdapter {
+    private class FieldVisitor extends org.objectweb.asm.FieldVisitor {
 
-        protected LocalVariableVisitor() {
-            super(API, EMPTY_VISITOR);
+        public FieldVisitor() {
+            super(API);
+        }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            maybeAddDependentType(Type.getType(descriptor).getClassName());
+            return annotationVisitor;
+        }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            maybeAddDependentType(Type.getType(descriptor).getClassName());
+            return annotationVisitor;
+        }
+    }
+
+    private class MethodVisitor extends org.objectweb.asm.MethodVisitor {
+
+        protected MethodVisitor() {
+            super(API);
         }
 
         @Override
@@ -208,10 +239,28 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             maybeAddDependentType(descTypeOf(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
         }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            maybeAddDependentType(Type.getType(descriptor).getClassName());
+            return annotationVisitor;
+        }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+            maybeAddDependentType(Type.getType(descriptor).getClassName());
+            return annotationVisitor;
+        }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            maybeAddDependentType(Type.getType(descriptor).getClassName());
+            return annotationVisitor;
+        }
     }
 
-    private class RetentionPolicyAnalyzer extends AnnotationVisitor {
-        public RetentionPolicyAnalyzer() {
+    private class RetentionPolicyVisitor extends org.objectweb.asm.AnnotationVisitor {
+        public RetentionPolicyVisitor() {
             super(ClassDependenciesVisitor.API);
         }
 
@@ -223,6 +272,30 @@ public class ClassDependenciesVisitor extends ClassVisitor {
                     dependencyToAll = true;
                 }
             }
+        }
+    }
+
+    private class AnnotationVisitor extends org.objectweb.asm.AnnotationVisitor {
+        public AnnotationVisitor() {
+            super(ClassDependenciesVisitor.API);
+        }
+
+        @Override
+        public void visit(String name, Object value) {
+            if (value instanceof Type) {
+                maybeAddDependentType(((Type) value).getClassName());
+            }
+        }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitArray(String name) {
+            return this;
+        }
+
+        @Override
+        public org.objectweb.asm.AnnotationVisitor visitAnnotation(String name, String descriptor) {
+            maybeAddDependentType(Type.getType(descriptor).getClassName());
+            return this;
         }
     }
 }

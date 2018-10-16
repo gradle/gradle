@@ -46,18 +46,25 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         }
 
         buildFile << """
+            class CapabilityRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
+                         withCapabilities {
+                             addCapability('cglib', 'cglib', details.id.version)
+                         }
+                     }
+                }
+            }
+
             dependencies {
                conf "cglib:cglib-nodep:3.2.5"
                conf "cglib:cglib:3.2.5"
             
                components {
-                  withModule('cglib:cglib-nodep') { details ->
-                     allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
-                         }
-                     }
-                  }
+                  withModule('cglib:cglib-nodep', CapabilityRule)
                }
             }
             
@@ -95,8 +102,8 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         if (fixConflict) {
             resolve.expectGraph {
                 root(":", ":test:") {
-                    module('cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
-                    edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').byReason('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                    module('cglib:cglib:3.2.5').selectedByRule('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
+                    edge('cglib:cglib-nodep:3.2.5', 'cglib:cglib:3.2.5').selectedByRule('capability cglib is provided by cglib:cglib and cglib:cglib-nodep')
                 }
             }
         } else {
@@ -137,19 +144,26 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         }
 
         buildFile << """
-            dependencies {
-               conf "org:a:1.0"
-               conf "org:b:1.0"
-            
-               components {
-                  withModule('org.apache:groovy-all') { details ->
-                     allVariants {
+            class CapabilityRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
                         withCapabilities {
                             addCapability('org.apache', 'groovy', details.id.version)
                             addCapability('org.apache', 'groovy-json', details.id.version)
                         }
                      }
-                  }
+                }
+            }
+
+            dependencies {
+               conf "org:a:1.0"
+               conf "org:b:1.0"
+            
+               components {
+                  withModule('org.apache:groovy-all', CapabilityRule)
                }               
 
                // solution
@@ -243,19 +257,26 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         }
 
         buildFile << """
+            class CapabilityRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
+                        withCapabilities {
+                            addCapability('org.apache', 'groovy', details.id.version)
+                            addCapability('org.apache', 'groovy-json', details.id.version)
+                        }
+                    }
+                }
+            }
+
             dependencies {
                conf "org:a:1.0"
                conf "org:b:1.0"
             
                components {
-                  withModule('org.apache:groovy-all') { details ->
-                     allVariants {
-                        withCapabilities {
-                            addCapability('org.apache', 'groovy', details.id.version)
-                            addCapability('org.apache', 'groovy-json', details.id.version)
-                        }
-                     }
-                  }
+                  withModule('org.apache:groovy-all', CapabilityRule)
                   
                   // solution
                   configurations.all {
@@ -375,7 +396,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('asm:asm:3.0', 'org.ow2.asm:asm:4.0')
-                        .byReason('latest version of capability asm:asm')
+                        .byConflictResolution('latest version of capability asm:asm')
                     module('org.ow2.asm:asm:4.0')
                 }
             }

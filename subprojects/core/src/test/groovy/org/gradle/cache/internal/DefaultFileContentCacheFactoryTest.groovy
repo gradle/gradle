@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
-import org.gradle.api.internal.changedetection.state.FileSnapshot
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.invocation.Gradle
@@ -27,9 +24,9 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.GradleVersion
@@ -44,12 +41,12 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     def fileSystemSnapshotter = Mock(FileSystemSnapshotter)
     def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())
-    def inMemoryTaskArtifactCache = new InMemoryCacheDecoratorFactory(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())) {
+    def inMemoryTaskArtifactCache = new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
             return new CacheDecorator() {
                 @Override
-                def <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+                <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
                     return persistentCache
                 }
             }
@@ -60,7 +57,6 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates entry value for file when not seen before and reuses result"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -70,10 +66,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        interaction {
+            snapshotRegularFile(file)
+        }
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -86,7 +82,6 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "calculates entry value for directory when not seen before and reuses result"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -96,9 +91,8 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.Directory
-        1 * calculator.calculate(file, FileType.Directory) >> 12
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> null
+        1 * calculator.calculate(file, false) >> 12
         0 * _
 
         when:
@@ -111,7 +105,6 @@ class DefaultFileContentCacheFactoryTest extends Specification {
 
     def "reuses calculated value for file across cache instances"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -121,10 +114,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        interaction {
+            snapshotRegularFile(file)
+        }
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -134,15 +127,42 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        0 * _
+    }
+
+    def "reuses calculated value for file across factory instances"() {
+        def file = new File("thing.txt")
+        def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
+
+        when:
+        def result = cache.get(file)
+
+        then:
+        result == 12
+
+        and:
+        interaction {
+            snapshotRegularFile(file)
+        }
+        1 * calculator.calculate(file, true) >> 12
+        0 * _
+
+        when:
+        def otherFactory = new DefaultFileContentCacheFactory(listenerManager, fileSystemSnapshotter, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
+        result = otherFactory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER).get(file)
+
+        then:
+        result == 12
+
+        and:
+        interaction {
+            snapshotRegularFile(file)
+        }
         0 * _
     }
 
     def "reuses result when file content has not changed after task outputs may have changed"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -152,10 +172,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        interaction {
+            snapshotRegularFile(file)
+        }
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -166,15 +186,14 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        interaction {
+            snapshotRegularFile(file)
+        }
         0 * _
     }
 
     def "calculates result for directory content after task outputs may have changed"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -184,9 +203,8 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.Directory
-        1 * calculator.calculate(file, FileType.Directory) >> 12
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> null
+        1 * calculator.calculate(file, false) >> 12
         0 * _
 
         when:
@@ -197,15 +215,13 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.Directory
-        1 * calculator.calculate(file, FileType.Directory) >> 10
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> null
+        1 * calculator.calculate(file, false) >> 10
         0 * _
     }
 
     def "calculates result when file content has changed"() {
         def file = new File("thing.txt")
-        def fileSnapshot = Stub(FileSnapshot)
         def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
 
         when:
@@ -215,10 +231,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        interaction {
+            snapshotRegularFile(file, HashCode.fromInt(123))
+        }
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -229,10 +245,14 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
-        _ * fileSnapshot.type >> FileType.RegularFile
-        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(321), 123)
-        1 * calculator.calculate(file, FileType.RegularFile) >> 10
+        interaction {
+            snapshotRegularFile(file, HashCode.fromInt(321))
+        }
+        1 * calculator.calculate(file, true) >> 10
         0 * _
+    }
+
+    def snapshotRegularFile(File file, HashCode hashCode = HashCode.fromInt(123)) {
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> hashCode
     }
 }

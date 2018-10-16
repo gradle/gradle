@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.resource.cached.AbstractCachedIndex;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
@@ -42,8 +43,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     private final BuildCommencedTimeProvider timeProvider;
     private final Map<ArtifactAtRepositoryKey, CachedArtifact> inMemoryCache = Maps.newConcurrentMap();
 
-    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, cacheLockingManager);
+    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker) {
+        super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, artifactCacheLockingManager, fileAccessTracker);
         this.timeProvider = timeProvider;
     }
 
@@ -80,6 +81,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
 
     @Override
     public CachedArtifact lookup(ArtifactAtRepositoryKey key) {
+        assertKeyNotNull(key);
+
         CachedArtifact inMemoryCachedArtifact = inMemoryCache.get(key);
         if (inMemoryCachedArtifact != null) {
             return inMemoryCachedArtifact;

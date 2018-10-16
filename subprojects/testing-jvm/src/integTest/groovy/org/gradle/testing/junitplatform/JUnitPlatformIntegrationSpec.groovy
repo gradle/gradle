@@ -25,20 +25,25 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.noExtraLogging()
-        buildFile << """
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+            }
+        """)
+    }
+
+    def buildScriptWithJupiterDependencies(script) {
+        buildScript("""
             apply plugin: 'java'
 
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()} 
             }
             dependencies { 
                 compile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
                 testCompile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
             }
-
-            test {
-                useJUnitPlatform()
-            }
-        """
+            $script
+        """)
     }
 }

@@ -19,18 +19,18 @@ package org.gradle.workers.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 import org.gradle.process.internal.worker.WorkerProcess;
 
 class WorkerDaemonClient implements Worker, Stoppable {
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess;
+    private final WorkerDaemonProcess workerDaemonProcess;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private int uses;
+    private boolean failed;
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess<ActionExecutionSpec> workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel) {
         this.forkOptions = forkOptions;
         this.workerDaemonProcess = workerDaemonProcess;
         this.workerProcess = workerProcess;
@@ -38,7 +38,7 @@ class WorkerDaemonClient implements Worker, Stoppable {
     }
 
     @Override
-    public DefaultWorkResult execute(final ActionExecutionSpec spec, WorkerLease parentWorkerWorkerLease, final BuildOperationRef parentBuildOperation) {
+    public DefaultWorkResult execute(final ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation) {
         return execute(spec);
     }
 
@@ -75,5 +75,17 @@ class WorkerDaemonClient implements Worker, Stoppable {
 
     public LogLevel getLogLevel() {
         return logLevel;
+    }
+
+    public boolean isProcess(WorkerProcess workerProcess) {
+        return this.workerProcess.equals(workerProcess);
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public void setFailed(boolean failed) {
+        this.failed = failed;
     }
 }

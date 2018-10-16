@@ -21,13 +21,16 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.util.ConfigureUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,7 +134,7 @@ public class EclipseClasspath {
 
     private boolean downloadJavadoc;
 
-    private XmlFileContentMerger file;
+    private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
 
     private Map<String, File> pathVariables = new HashMap<String, File>();
 
@@ -141,6 +144,7 @@ public class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
+    @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
     }
@@ -315,7 +319,10 @@ public class EclipseClasspath {
      * Calculates, resolves and returns dependency entries of this classpath.
      */
     public List<ClasspathEntry> resolveDependencies() {
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ((ProjectInternal) project).getServices().get(IdeArtifactRegistry.class));
+        ProjectInternal projectInternal = (ProjectInternal) this.project;
+        IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
+        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry);
         return classpathFactory.createEntries();
     }
 

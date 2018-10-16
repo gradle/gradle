@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 
 /**
  * A {@link ComponentResult} implementation that is detached from the original resolution process.
@@ -31,16 +33,18 @@ public class DetachedComponentResult implements ComponentResult {
     private final ModuleVersionIdentifier id;
     private final ComponentSelectionReason reason;
     private final ComponentIdentifier componentIdentifier;
-    private final String variantName;
+    private final DisplayName variantName;
     private final AttributeContainer variantAttributes;
+    private final String repositoryName;
 
-    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes) {
+    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes, String repositoryName) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;
-        this.variantName = variantName;
+        this.variantName = Describables.of(variantName);
         this.variantAttributes = variantAttributes;
+        this.repositoryName = repositoryName;
     }
 
     @Override
@@ -61,12 +65,17 @@ public class DetachedComponentResult implements ComponentResult {
     }
 
     @Override
-    public String getVariantName() {
+    public DisplayName getVariantName() {
         return variantName;
     }
 
     @Override
     public AttributeContainer getVariantAttributes() {
         return variantAttributes;
+    }
+
+    @Override
+    public String getRepositoryName() {
+        return repositoryName;
     }
 }

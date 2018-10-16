@@ -16,21 +16,20 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 
 import java.lang.annotation.Annotation;
 
-public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
+public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileFingerprintingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Classpath.class;
@@ -42,13 +41,18 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     }
 
     @Override
-    public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
-        return ClasspathSnapshotter.class;
+    public Class<? extends FileCollectionFingerprinter> getFingerprinterImplementationType() {
+        return ClasspathFingerprinter.class;
+    }
+
+    @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return !visitor.visitOutputFilePropertiesOnly();
     }
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(propertyValue, ValidationActions.NO_OP);
+        DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(propertyValue);
         fileSpec
             .withPropertyName(propertyValue.getPropertyName())
             .withNormalizer(ClasspathNormalizer.class)

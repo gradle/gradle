@@ -16,34 +16,36 @@
 
 package org.gradle.api.reporting;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Generates build dashboard report.
  */
-@Incubating
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
-    private Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
+    private final Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 
     private final BuildDashboardReports reports;
 
@@ -71,12 +73,35 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
     }
 
     private Set<Report> getEnabledInputReports() {
-        Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(aggregated, new Transformer<NamedDomainObjectSet<? extends Report>, Reporting<? extends ReportContainer<?>>>() {
+        HashSet<Reporting<? extends ReportContainer<?>>> allAggregatedReports = Sets.newHashSet(aggregated);
+        allAggregatedReports.addAll(getAggregatedTasks());
+
+        Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(allAggregatedReports,
+            new Transformer<NamedDomainObjectSet<? extends Report>, Reporting<? extends ReportContainer<?>>>() {
             public NamedDomainObjectSet<? extends Report> transform(Reporting<? extends ReportContainer<?>> reporting) {
                 return reporting.getReports().getEnabled();
             }
         });
         return new LinkedHashSet<Report>(CollectionUtils.flattenCollections(Report.class, enabledReportSets));
+    }
+
+    private Set<Reporting<? extends ReportContainer<?>>> getAggregatedTasks() {
+        final Set<Reporting<? extends ReportContainer<?>>> reports = Sets.newHashSet();
+        getProject().allprojects(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                project.getTasks().all(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        if (!(task instanceof Reporting)) {
+                            return;
+                        }
+                        reports.add((Reporting) task);
+                    }
+                });
+            }
+        });
+        return reports;
     }
 
     /**

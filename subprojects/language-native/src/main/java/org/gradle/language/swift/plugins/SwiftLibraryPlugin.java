@@ -47,7 +47,6 @@ import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -100,13 +99,13 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                library.getOperatingSystems().lockNow();
+                library.getOperatingSystems().finalizeValue();
                 Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the library.");
                 }
 
-                library.getLinkage().lockNow();
+                library.getLinkage().finalizeValue();
                 Set<Linkage> linkages = library.getLinkage().get();
                 if (linkages.isEmpty()) {
                     throw new IllegalArgumentException("A linkage needs to be specified for the library.");
@@ -195,7 +194,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                         apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
                         apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
                         apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
-                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) sharedLibrary.getTargetPlatform().getOperatingSystem()).toFamilyName()));
+                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetPlatform().getOperatingSystemFamily());
                         apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
                     }
                 });
@@ -214,7 +213,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                         apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
                         apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
                         apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
-                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objectFactory.named(OperatingSystemFamily.class, ((OperatingSystemInternal) staticLibrary.getTargetPlatform().getOperatingSystem()).toFamilyName()));
+                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetPlatform().getOperatingSystemFamily());
                         apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
                     }
                 });

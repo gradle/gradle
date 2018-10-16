@@ -65,7 +65,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
                 def additionalForkOptions = {}
                 def runnableClass = TestRunnable.class
-                def additionalClasspath = project.files()
+                def additionalClasspath = project.layout.files()
                 def foo = new Foo()
                 def displayName = null
                 def isolationMode = IsolationMode.AUTO

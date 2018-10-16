@@ -16,15 +16,19 @@
 package org.gradle.util
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.featurelifecycle.FeatureUsage
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.internal.DefaultFlavorContainer
@@ -37,20 +41,15 @@ import spock.lang.Unroll
 class NameValidatorTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
-    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
+    static invalidNames = forbiddenCharacters.collect { "a${it}b" } + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
 
     @Shared
     def domainObjectContainersWithValidation = [
-        ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, TestUtil.attributesFactory())],
-        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, TestUtil.attributesFactory(), null, null)],
-        ["flavors",  new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
+        ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, AttributeTestUtil.attributesFactory())],
+        ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, null)],
+        ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE)],
+        ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())]
     ]
-
-    def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
-
-    def setup() {
-        SingleMessageLogger.deprecatedFeatureHandler = loggingDeprecatedFeatureHandler
-    }
 
     def cleanup() {
         SingleMessageLogger.reset()
@@ -59,12 +58,18 @@ class NameValidatorTest extends Specification {
     @Unroll
     def "tasks are not allowed to be named '#name'"() {
         when:
-        new TaskFactory(Mock(ClassGenerator), null, Mock(Instantiator)).create(name, DefaultTask)
+        def project = Mock(ProjectInternal) {
+            projectPath(_) >> Path.path(":foo:bar")
+            identityPath(_) >> Path.path("build:foo:bar")
+            getGradle() >> Mock(GradleInternal) {
+                getIdentityPath() >> Path.path(":build:foo:bar")
+            }
+        }
+        new TaskInstantiator(new TaskFactory(Mock(ClassGenerator), project, Mock(Instantiator)), project).create(name, DefaultTask)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
-            assertForbidden(name, usage.message)
-        }
+        def exception = thrown(InvalidUserDataException)
+        assertForbidden(name, exception.getMessage())
 
         where:
         name << invalidNames
@@ -76,20 +81,23 @@ class NameValidatorTest extends Specification {
         domainObjectContainer.create(name)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
-            assertForbidden(name, usage.message)
-        }
+        def exception = thrown(InvalidUserDataException)
+        assertForbidden(name, exception.getMessage())
 
         where:
         [name, objectType, domainObjectContainer] << [invalidNames, domainObjectContainersWithValidation].combinations().collect { [it[0], it[1][0], it[1][1]] }
     }
 
-    def "can handle empty names"() {
+    def "names are not allowed to be empty"() {
+        given:
+        def name= ''
+
         when:
-        NameValidator.validate('', '', '')
+        NameValidator.validate('', 'name', '')
 
         then:
-        noExceptionThrown()
+        def exception = thrown(InvalidUserDataException)
+        assertForbidden(name, exception.getMessage())
     }
 
     private DomainObjectContext domainObjectContext() {
@@ -100,11 +108,11 @@ class NameValidatorTest extends Specification {
 
     void assertForbidden(name, message) {
         if (name == '') {
-            assert message.contains("is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+            assert message.contains("must not be empty.")
         } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message.contains("' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+            assert message.contains("' must not start or end with a '.'.")
         } else {
-            assert message.contains("""' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.""")
+            assert message.contains("""' must not contain any of the following characters: [/, \\, :, <, >, ", ?, *, |].""")
         }
     }
 }

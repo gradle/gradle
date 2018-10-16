@@ -17,14 +17,12 @@
 package org.gradle.api.distribution;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.CopySpec;
 
 /**
  * A distribution allow to bundle an application or a library including dependencies,sources...
  */
-@Incubating
 public interface Distribution extends Named {
 
     /**

@@ -41,7 +41,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         fails TASK_NAME
 
         then:
-        failure.assertHasCause("No value has been specified for property 'pluginClasspath'.")
         failure.assertHasCause("No value has been specified for property 'outputDirectory'.")
     }
 
@@ -49,7 +48,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = files()
                 outputDirectory = file('build/$TASK_NAME')
             }
         """
@@ -67,7 +65,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
+                pluginClasspath.setFrom(sourceSets.main.runtimeClasspath)
                 outputDirectory = file('build/some/other')
             }
         """
@@ -83,7 +81,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task $TASK_NAME(type: ${PluginUnderTestMetadata.class.getName()}) {
-                pluginClasspath = sourceSets.main.runtimeClasspath
+                pluginClasspath.setFrom(sourceSets.main.runtimeClasspath)
                 outputDirectory = file('build/$TASK_NAME')
             }
         """
@@ -97,7 +95,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             sourceSets.create("mainAlt")
 
-            ${TASK_NAME}.pluginClasspath = sourceSets.mainAlt.runtimeClasspath
+            ${TASK_NAME}.pluginClasspath.setFrom(sourceSets.mainAlt.runtimeClasspath)
         """
         succeeds TASK_NAME
 

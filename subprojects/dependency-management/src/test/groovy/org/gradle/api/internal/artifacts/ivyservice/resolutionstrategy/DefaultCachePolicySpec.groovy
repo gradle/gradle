@@ -18,13 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedModuleVersion
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl
 import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -35,7 +34,7 @@ import java.util.concurrent.TimeUnit
 import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
-public class DefaultCachePolicySpec extends Specification {
+class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
     private static final int MINUTE = SECOND * 60;
     private static final int HOUR = MINUTE * 60;
@@ -43,7 +42,7 @@ public class DefaultCachePolicySpec extends Specification {
     private static final int WEEK = DAY * 7;
     private static final int FOREVER = Integer.MAX_VALUE
 
-    DefaultCachePolicy cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
+    DefaultCachePolicy cachePolicy = new DefaultCachePolicy()
 
     def "will cache default"() {
         expect:
@@ -56,7 +55,7 @@ public class DefaultCachePolicySpec extends Specification {
 
     def 'never expires missing module for dynamic versions'() {
         when:
-        def moduleIdentifier = new DefaultModuleIdentifier('org', 'foo')
+        def moduleIdentifier = DefaultModuleIdentifier.newId('org', 'foo')
         def versions = emptySet()
 
         then:
@@ -331,17 +330,17 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def moduleComponent(String group, String name, String version) {
-        new DefaultModuleComponentIdentifier(group, name, version)
+        new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), version)
     }
 
     private def moduleIdentifier(String group, String name, String version) {
-        new DefaultModuleVersionIdentifier(group, name, version)
+        DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version)
     }
 
     private def moduleVersion(String group, String name, String version) {
         return new ResolvedModuleVersion() {
             ModuleVersionIdentifier getId() {
-                return new DefaultModuleVersionIdentifier(group, name, version);
+                return DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version);
             }
         }
     }

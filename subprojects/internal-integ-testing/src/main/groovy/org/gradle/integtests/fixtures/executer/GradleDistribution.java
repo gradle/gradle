@@ -16,12 +16,12 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 
 public interface GradleDistribution {
     /**
@@ -97,12 +97,7 @@ public interface GradleDistribution {
     /**
      * Returns the version of the artifact cache layout
      */
-    VersionNumber getArtifactCacheLayoutVersion();
-
-    /**
-     * Returns true if the open API is supported by this distribution.
-     */
-    boolean isOpenApiSupported();
+    CacheVersion getArtifactCacheLayoutVersion();
 
     /**
      * Returns true if the wrapper from this distribution can execute a build using the specified version.
@@ -125,4 +120,9 @@ public interface GradleDistribution {
      * Returns true if the wrapper for this version honours the --gradle-user-home command-line option.
      */
     boolean isWrapperSupportsGradleUserHomeCommandLineOption();
+
+    /**
+     * Returns true if this version always adds a task execution exception around all failures, such as input fingerprinting or property validation failures, rather than only around task action failures.
+     */
+    boolean isAddsTaskExecutionExceptionAroundAllTaskFailures();
 }

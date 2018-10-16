@@ -44,10 +44,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !FILE_PERMISSIONS.fulfilled
     }),
     SET_ENV_VARIABLE({
-        !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_1_9
+        !UNKNOWN_OS.fulfilled
     }),
     WORKING_DIR({
-        !UNKNOWN_OS.fulfilled
+        !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_11
     }),
     PROCESS_ID({
         !UNKNOWN_OS.fulfilled
@@ -88,6 +88,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NOT_UNKNOWN_OS({
         !UNKNOWN_OS.fulfilled
     }),
+    JDK7({
+        JavaVersion.current() == JavaVersion.VERSION_1_7
+    }),
     JDK7_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_7
     }),
@@ -97,8 +100,20 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK8_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_8
     }),
+    JDK8({
+        JavaVersion.current() == JavaVersion.VERSION_1_8
+    }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8
+    }),
+    JDK9_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_1_9
+    }),
+    JDK10_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_1_10
+    }),
+    OLD_JETTY_COMPATIBLE({
+        JDK9_OR_EARLIER.fulfilled
     }),
     JDK7_POSIX({
         NOT_WINDOWS.fulfilled

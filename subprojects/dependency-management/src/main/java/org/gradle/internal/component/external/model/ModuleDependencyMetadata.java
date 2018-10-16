@@ -30,4 +30,5 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
 
     @Override
     ModuleDependencyMetadata withReason(String reason);
+
 }

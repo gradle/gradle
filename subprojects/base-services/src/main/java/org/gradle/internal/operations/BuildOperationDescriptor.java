@@ -29,8 +29,9 @@ public final class BuildOperationDescriptor {
     private final String progressDisplayName;
     private final Object details;
     private final BuildOperationCategory operationType;
+    private final int totalProgress;
 
-    private BuildOperationDescriptor(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationCategory operationType) {
+    private BuildOperationDescriptor(OperationIdentifier id, OperationIdentifier parentId, String name, String displayName, String progressDisplayName, Object details, BuildOperationCategory operationType, int totalProgress) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -38,6 +39,7 @@ public final class BuildOperationDescriptor {
         this.progressDisplayName = progressDisplayName;
         this.details = details;
         this.operationType = operationType;
+        this.totalProgress = totalProgress;
     }
 
     public OperationIdentifier getId() {
@@ -92,6 +94,10 @@ public final class BuildOperationDescriptor {
         return operationType;
     }
 
+    public int getTotalProgress() {
+        return totalProgress;
+    }
+
     public static Builder displayName(String displayName) {
         return new Builder(displayName);
     }
@@ -103,6 +109,7 @@ public final class BuildOperationDescriptor {
         private Object details;
         private BuildOperationRef parent;
         private BuildOperationCategory operationType = BuildOperationCategory.UNCATEGORIZED;
+        private int totalProgress;
 
         private Builder(String displayName) {
             this.displayName = displayName;
@@ -129,10 +136,16 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
+        public void totalProgress(int totalProgress) {
+            this.totalProgress = totalProgress;
+        }
+
         /**
          * Define the parent of the operation. Needs to be the state of an operations that is running at the same time
          * the described operation will run (see: {@link org.gradle.internal.operations.BuildOperationExecutor#getCurrentOperation()}).
          * If parent ID is not set, The last started operation of the executing thread will be used as parent.
+         *
+         * Note: you should use this <em>only</em> for a build operation that is started in some other thread.
          */
         public Builder parent(BuildOperationRef parent) {
             this.parent = parent;
@@ -148,7 +161,7 @@ public final class BuildOperationDescriptor {
         }
 
         public BuildOperationDescriptor build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
-            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, operationType);
+            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, operationType, totalProgress);
         }
     }
 }

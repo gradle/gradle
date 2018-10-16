@@ -19,7 +19,9 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -29,59 +31,52 @@ import java.util.List;
  */
 public class BuildCacheKeyInputs {
 
-    private final String taskClass;
-    private final HashCode classLoaderHash;
-    private final List<HashCode> actionClassLoaderHashes;
-    private final ImmutableList<String> actionClassNames;
-    private final ImmutableSortedMap<String, HashCode> inputHashes;
-    private final ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader;
+    private final ImplementationSnapshot taskImplementation;
+    private final List<ImplementationSnapshot> actionImplementations;
+    private final ImmutableSortedMap<String, HashCode> inputValueHashes;
+    private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles;
+    private final ImmutableSortedMap<String, String> nonCacheableInputProperties;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
     public BuildCacheKeyInputs(
-        @Nullable String taskClass,
-        @Nullable HashCode classLoaderHash,
-        @Nullable List<HashCode> actionClassLoaderHashes,
-        @Nullable ImmutableList<String> actionClassNames,
-        @Nullable ImmutableSortedMap<String, HashCode> inputHashes,
-        @Nullable ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader,
+        @Nullable ImplementationSnapshot taskImplementation,
+        @Nullable ImmutableList<ImplementationSnapshot> actionImplementations,
+        @Nullable ImmutableSortedMap<String, HashCode> inputValueHashes,
+        @Nullable ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles,
+        @Nullable ImmutableSortedMap<String, String> nonCacheableInputProperties,
         @Nullable ImmutableSortedSet<String> outputPropertyNames
     ) {
-        this.taskClass = taskClass;
-        this.inputHashes = inputHashes;
-        this.inputPropertiesLoadedByUnknownClassLoader = inputPropertiesLoadedByUnknownClassLoader;
-        this.classLoaderHash = classLoaderHash;
-        this.actionClassLoaderHashes = actionClassLoaderHashes;
-        this.actionClassNames = actionClassNames;
+        this.taskImplementation = taskImplementation;
+        this.actionImplementations = actionImplementations;
+        this.inputValueHashes = inputValueHashes;
+        this.inputFiles = inputFiles;
+        this.nonCacheableInputProperties = nonCacheableInputProperties;
         this.outputPropertyNames = outputPropertyNames;
     }
 
     @Nullable
-    public String getTaskClass() {
-        return taskClass;
+    public ImplementationSnapshot getTaskImplementation() {
+        return taskImplementation;
     }
 
     @Nullable
-    public ImmutableSortedMap<String, HashCode> getInputHashes() {
-        return inputHashes;
-    }
-
-    public ImmutableSortedSet<String> getInputPropertiesLoadedByUnknownClassLoader() {
-        return inputPropertiesLoadedByUnknownClassLoader;
+    public List<ImplementationSnapshot> getActionImplementations() {
+        return actionImplementations;
     }
 
     @Nullable
-    public HashCode getClassLoaderHash() {
-        return classLoaderHash;
+    public ImmutableSortedMap<String, HashCode> getInputValueHashes() {
+        return inputValueHashes;
     }
 
     @Nullable
-    public List<HashCode> getActionClassLoaderHashes() {
-        return actionClassLoaderHashes;
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFiles() {
+        return inputFiles;
     }
 
     @Nullable
-    public ImmutableList<String> getActionClassNames() {
-        return actionClassNames;
+    public ImmutableSortedMap<String, String> getNonCacheableInputProperties() {
+        return nonCacheableInputProperties;
     }
 
     @Nullable
@@ -92,11 +87,11 @@ public class BuildCacheKeyInputs {
     @Override
     public String toString() {
         return "BuildCacheKeyInputs{"
-            + "classLoaderHash=" + classLoaderHash
-            + ", actionClassLoaderHashes=" + actionClassLoaderHashes
-            + ", actionClassNames=" + actionClassNames
-            + ", inputHashes=" + inputHashes
-            + ", inputPropertyNamesLoadedByUnknownClassLoader=" + inputPropertiesLoadedByUnknownClassLoader
+            + "taskImplementation=" + taskImplementation
+            + ", actionImplementations=" + actionImplementations
+            + ", inputValueHashes=" + inputValueHashes
+            + ", inputFiles=" + inputFiles
+            + ", nonCacheableInputProperties=" + nonCacheableInputProperties
             + ", outputPropertyNames=" + outputPropertyNames
             + '}';
     }

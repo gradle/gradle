@@ -37,6 +37,11 @@ class PluginUnderTest {
         void suppressCleanup() {
 
         }
+
+        @Override
+        void suppressCleanupErrors() {
+
+        }
     }
 
     private final int num
@@ -88,7 +93,7 @@ class PluginUnderTest {
 
     public <T> T exposeMetadata(Closure<T> closure) {
         def originalClassLoader = Thread.currentThread().contextClassLoader
-        Thread.currentThread().contextClassLoader = new URLClassLoader(new DefaultClassPath(generateMetadataFile().parentFile).asURLArray, originalClassLoader)
+        Thread.currentThread().contextClassLoader = new URLClassLoader(DefaultClassPath.of(generateMetadataFile().parentFile).asURLArray, originalClassLoader)
         try {
             closure.call()
         } finally {

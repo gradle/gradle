@@ -16,9 +16,11 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
@@ -27,7 +29,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "5.1.1"
+                id "nebula.dependency-recommender" version "${TestedVersions.nebulaDependencyRecommender}"
             }
 
             ${jcenterRepository()}
@@ -51,7 +53,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '6.3.0'
+                id 'nebula.plugin-plugin' version '${TestedVersions.nebulaPluginPlugin}'
             }
         """
 
@@ -79,7 +81,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             plugins {
-                id "nebula.lint" version "9.0.0"
+                id "nebula.lint" version "${TestedVersions.nebulaLint}"
             }
 
             apply plugin: 'java'
@@ -117,7 +119,7 @@ testCompile('junit:junit:4.7')""")
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "5.0.4"
+                id "nebula.dependency-lock" version "${TestedVersions.nebulaDependencyLock.latest()}"
             }
         """.stripIndent()
 
@@ -186,7 +188,7 @@ testCompile('junit:junit:4.7')""")
         runner('resolve').build()
 
         where:
-        version << ['4.9.5', '5.0.4']
+        version << TestedVersions.nebulaDependencyLock
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
@@ -208,7 +210,7 @@ testCompile('junit:junit:4.7')""")
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'nebula.resolution-rules' version '5.1.1'
+                id 'nebula.resolution-rules' version '${TestedVersions.nebulaResolutionRules}'
             }
             
             ${jcenterRepository()}                        

@@ -27,12 +27,14 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.ExecFactory
@@ -58,10 +60,11 @@ class DefaultFileOperationsTest extends Specification {
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
     private final ExecFactory execFactory = TestFiles.execFactory()
+    private final TextResourceLoader textResourceLoader = Mock()
     private DefaultFileOperations fileOperations = instance()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader)
     }
 
     @Rule
@@ -93,7 +96,7 @@ class DefaultFileOperationsTest extends Specification {
 
     def resolvesFilesInOrder() {
         when:
-        def fileCollection = fileOperations.files('a', 'b', 'c')
+        def fileCollection = fileOperations.configurableFiles('a', 'b', 'c')
 
         then:
         fileCollection instanceof DefaultConfigurableFileCollection
@@ -112,6 +115,25 @@ class DefaultFileOperationsTest extends Specification {
         then:
         files*.name as List == ['a', 'b', 'c']
         0 * _
+    }
+
+    def resolvesImmutableFilesInOrder() {
+        when:
+        def fileCollection = fileOperations.immutableFiles('a', 'b', 'c')
+
+        then:
+        fileCollection instanceof ImmutableFileCollection
+
+        when:
+        def files = fileCollection.files
+        files*.name as List == ['a', 'b', 'c']
+
+        then:
+        1 * resolver.resolve('a') >> new File('a')
+        then:
+        1 * resolver.resolve('b') >> new File('b')
+        then:
+        1 * resolver.resolve('c') >> new File('c')
     }
 
     def createsFileTree() {

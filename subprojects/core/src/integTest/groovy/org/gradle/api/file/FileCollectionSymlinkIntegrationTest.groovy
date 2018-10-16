@@ -36,17 +36,17 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
 
 
         buildScript << """
-def baseDir = new File("${escapeString(baseDir)}")
-def file = new File(baseDir, "file")
-def symlink = new File(baseDir, "symlink")
-def symlinked = new File(baseDir, "symlinked")
-def fileCollection = $code
+            def baseDir = new File("${escapeString(baseDir)}")
+            def file = new File(baseDir, "file")
+            def symlink = new File(baseDir, "symlink")
+            def symlinked = new File(baseDir, "symlinked")
+            def fileCollection = $code
 
-assert fileCollection.contains(file)
-assert fileCollection.contains(symlink)
-assert fileCollection.contains(symlinked)
-assert fileCollection.files == [file, symlink, symlinked] as Set
-assert (fileCollection - project.files(symlink)).files == [file, symlinked] as Set
+            assert fileCollection.contains(file)
+            assert fileCollection.contains(symlink)
+            assert fileCollection.contains(symlinked)
+            assert fileCollection.files == [file, symlink, symlinked] as Set
+            assert (fileCollection - project.layout.files(symlink)).files == [file, symlinked] as Set
         """
 
         when:
@@ -56,8 +56,10 @@ assert (fileCollection - project.files(symlink)).files == [file, symlinked] as S
         noExceptionThrown()
 
         where:
-        desc                 | code
-        "project.files()"    | "project.files(file, symlink, symlinked)"
-        "project.fileTree()" | "project.fileTree(baseDir)"
+        desc                                  | code
+        "project.files()"                     | "project.files(file, symlink, symlinked)"
+        "project.layout.files()"              | "project.layout.files(file, symlink, symlinked)"
+        "project.layout.configurableFiles()"  | "project.layout.configurableFiles(file, symlink, symlinked)"
+        "project.fileTree()"                  | "project.fileTree(baseDir)"
     }
 }

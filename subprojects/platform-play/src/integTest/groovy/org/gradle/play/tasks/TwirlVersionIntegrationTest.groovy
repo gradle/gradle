@@ -18,8 +18,14 @@ package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.play.internal.DefaultPlayPlatform
-import static org.gradle.play.integtest.fixtures.Repositories.*
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
+
+@Requires(TestPrecondition.JDK8)
+@Issue("Play 2.2/2.3 don't support Java 9+")
 class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     def baseBuildFile = """
         plugins {
@@ -36,8 +42,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "changing between twirl-incompatible versions of play causes Twirl to recompile" () {
-        executer.expectDeprecationWarning()
-        withPlayVersion("2.2.1")
+        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         withTemplateSource(file("app", "views", "index.scala.html"))
 
         when:
@@ -50,7 +55,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
+        withPlayVersion("2.4.1")
         succeeds "playBinary"
 
         then:
@@ -74,7 +79,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
+        withPlayVersion('2.3.10')
         succeeds "playBinary"
 
         then:

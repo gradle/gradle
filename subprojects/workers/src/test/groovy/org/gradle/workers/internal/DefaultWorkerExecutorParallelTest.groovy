@@ -18,49 +18,54 @@ package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.InstantiatorFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
-import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutionException
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder()
     def workerDaemonFactory = Mock(WorkerFactory)
     def workerInProcessFactory = Mock(WorkerFactory)
     def workerNoIsolationFactory = Mock(WorkerFactory)
-    def workerExecutorFactory = Mock(ExecutorFactory)
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
-    def fileResolver = Mock(FileResolver)
-    def stoppableExecutor = Mock(ManagedExecutor)
-    def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
+    def fileResolver = Mock(PathToFileResolver)
+    def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
+        getWorkingDirectory() >> { temporaryFolder.root }
+    }
     def instantiatorFactory = Mock(InstantiatorFactory)
+    def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
+    def executionQueue = Mock(ConditionalExecutionQueue)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
         _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
-        _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider)
+        _ * executionQueueFactory.create() >> executionQueue
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory)
     }
 
     @Unroll
     def "work can be submitted concurrently in IsolationMode.#isolationMode"() {
         when:
         async {
-            5.times {
+            6.times {
                 start {
                     thread.blockUntil.allStarted
                     workerExecutor.submit(TestRunnable.class) { config ->
@@ -73,8 +78,8 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         }
 
         then:
-        5 * buildOperationWorkerRegistry.getCurrentWorkerLease()
-        5 * stoppableExecutor.execute(_ as ListenableFutureTask)
+        6 * buildOperationWorkerRegistry.getCurrentWorkerLease()
+        6 * executionQueue.submit(_)
 
         where:
         isolationMode << IsolationMode.values()

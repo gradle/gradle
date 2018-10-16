@@ -22,6 +22,7 @@ import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.TestConsoleMetadata;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.OutputStream;
@@ -41,23 +42,40 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, boolean verbose) {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
-        configureRichConsole(renderer, consoleMetaData, consoleMetaData == null, verbose);
+        ConsoleMetaData consoleMetaData = getConsoleMetaData();
+        configureRichConsole(renderer, consoleMetaData, shouldForce(consoleMetaData), verbose);
+    }
+
+    private static boolean shouldForce(ConsoleMetaData consoleMetaData) {
+        return consoleMetaData == null || consoleMetaData instanceof TestConsoleMetadata;
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer) {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+        ConsoleMetaData consoleMetaData = getConsoleMetaData();
         if (consoleMetaData != null) {
             configureRichConsole(renderer, consoleMetaData, false, false);
         } else {
-            configurePlainConsole(renderer);
+            configurePlainConsole(renderer, null);
         }
     }
 
     private static void configurePlainConsole(OutputEventRenderer renderer) {
-        renderer.addPlainConsole();
+        ConsoleMetaData consoleMetaData = getConsoleMetaData();
+        configurePlainConsole(renderer, consoleMetaData);
+    }
+
+    private static ConsoleMetaData getConsoleMetaData() {
+        String testConsole = System.getProperty(TestConsoleMetadata.TEST_CONSOLE_PROPERTY);
+        if (testConsole != null) {
+            return TestConsoleMetadata.valueOf(testConsole);
+        }
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+        return consoleDetector.getConsole();
+    }
+
+    private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData) {
+        // Redirect stderr to stdout if a console is attached to both stdout and stderr
+        renderer.addPlainConsole(consoleMetaData != null && consoleMetaData.isStdOut() && consoleMetaData.isStdErr());
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, boolean force, boolean verbose) {
@@ -73,6 +91,8 @@ public class ConsoleConfigureAction {
             OutputStreamWriter errStr = new OutputStreamWriter(force ? originalStdErr : AnsiConsoleUtil.wrapOutputStream(originalStdErr));
             Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, force);
             renderer.addRichConsole(console, false, true, consoleMetaData, verbose);
+        } else {
+            renderer.addRichConsole(null, false, false, consoleMetaData, verbose);
         }
     }
 }

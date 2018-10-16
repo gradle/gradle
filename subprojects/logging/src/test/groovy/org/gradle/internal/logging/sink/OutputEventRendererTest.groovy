@@ -289,7 +289,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.addRichConsole(console, true, true, metaData)
 
         when:
-        renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(event('info', LogLevel.INFO, 1L))
         renderer.onOutput(event('error', LogLevel.ERROR, 1L))
         renderer.onOutput(complete('status'))
@@ -301,10 +301,11 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
         def snapshot = renderer.snapshot()
+        renderer.attachSystemOutAndErr()
         renderer.addRichConsole(console, true, false, metaData)
 
         when:
-        renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(event('info', LogLevel.INFO, 1L))
         renderer.onOutput(event('error', LogLevel.ERROR, 1L))
         renderer.onOutput(complete('status'))
@@ -316,6 +317,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
         def snapshot = renderer.snapshot()
+        renderer.attachSystemOutAndErr()
         renderer.addRichConsole(console, false, true, metaData)
 
         when:
@@ -395,7 +397,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.attachConsole(output, error, ConsoleOutput.Plain)
 
         when:
-        renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(event('info', LogLevel.INFO, 1L))
         renderer.onOutput(event('error', LogLevel.ERROR, 1L))
         renderer.onOutput(event('un-grouped error', LogLevel.ERROR))

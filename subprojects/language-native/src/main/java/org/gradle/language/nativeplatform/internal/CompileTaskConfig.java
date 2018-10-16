@@ -26,12 +26,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
@@ -52,10 +50,10 @@ import java.util.concurrent.Callable;
 
 public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
-    private final LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform;
+    private final NativeLanguageTransform<?> languageTransform;
     private final Class<? extends DefaultTask> taskType;
 
-    public CompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
+    public CompileTaskConfig(NativeLanguageTransform<?> languageTransform, Class<? extends DefaultTask> taskType) {
         this.languageTransform = languageTransform;
         this.taskType = taskType;
     }
@@ -76,7 +74,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         configureCompileTask((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
 
-    private void configureCompileTaskCommon(AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
+    private void configureCompileTaskCommon(final AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         task.getToolChain().set(binary.getToolChain());
         task.getTargetPlatform().set(binary.getTargetPlatform());
         task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
@@ -93,11 +91,11 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
             }
         });
         FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
-        task.includes(fileCollectionFactory.create(new MinimalFileSet() {
+        task.getSystemIncludes().from(fileCollectionFactory.create(new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                ToolType toolType = determineToolType(languageTransform.getLanguageName());
+                ToolType toolType = languageTransform.getToolType();
                 return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(toolType).getIncludeDirs());
             }
 
@@ -115,13 +113,6 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
 
             task.getCompilerArgs().set(tool.getArgs());
         }
-    }
-
-    private ToolType determineToolType(String languageName) {
-        if (languageName.equals("cpp")) {
-            return ToolType.CPP_COMPILER;
-        }
-        return ToolType.C_COMPILER;
     }
 
     abstract void configureCompileTask(AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet);

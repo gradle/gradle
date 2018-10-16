@@ -18,17 +18,16 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskInputs;
-
-import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
+import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
+import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
 @NonNullApi
-public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
+public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
@@ -36,14 +35,13 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
-    private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
-    private Class<? extends FileNormalizer> normalizer = GenericFileNormalizer.class;
+    private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
     private LifecycleAwareTaskProperty lifecycleAware;
 
-    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
-        this.value = paths;
+    public DefaultTaskInputFilePropertySpec(String taskDisplayName, FileResolver resolver, ValidatingValue value, ValidationAction validationAction) {
+        this.value = value;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
+        this.files = new TaskPropertyFileCollection(taskDisplayName, "input", this, resolver, value);
     }
 
     @Override
@@ -62,6 +60,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
         return this;
     }
 
+    @Override
     public boolean isSkipWhenEmpty() {
         return skipWhenEmpty;
     }
@@ -93,19 +92,8 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     }
 
     @Override
-    public PathNormalizationStrategy getPathNormalizationStrategy() {
-        return pathNormalizationStrategy;
-    }
-
-    @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withPathNormalizationStrategy(InputPathNormalizationStrategy.valueOf(sensitivity));
-    }
-
-    @Override
-    public TaskInputFilePropertyBuilderInternal withPathNormalizationStrategy(PathNormalizationStrategy pathNormalizationStrategy) {
-        this.pathNormalizationStrategy = pathNormalizationStrategy;
-        return this;
+        return withNormalizer(determineNormalizerForPathSensitivity(sensitivity));
     }
 
     @Override
@@ -125,13 +113,8 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     }
 
     @Override
-    protected TaskInputs getTaskInputs(String method) {
-        throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 4.0.", method));
-    }
-
-    @Override
     public String toString() {
-        return getPropertyName() + " (" + pathNormalizationStrategy + ")";
+        return getPropertyName() + " (" + normalizer.getSimpleName().replace("Normalizer", "") + ")";
     }
 
     @Override
@@ -141,6 +124,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public void prepareValue() {
+        value.maybeFinalizeValue();
         Object obj = value.call();
         // TODO - move this to ValidatingValue instead
         if (obj instanceof LifecycleAwareTaskProperty) {
@@ -153,6 +137,21 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     public void cleanupValue() {
         if (lifecycleAware != null) {
             lifecycleAware.cleanupValue();
+        }
+    }
+
+    private Class<? extends FileNormalizer> determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
+        switch (pathSensitivity) {
+            case NONE:
+                return IgnoredPathInputNormalizer.class;
+            case NAME_ONLY:
+                return NameOnlyInputNormalizer.class;
+            case RELATIVE:
+                return RelativePathInputNormalizer.class;
+            case ABSOLUTE:
+                return AbsolutePathInputNormalizer.class;
+            default:
+                throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
         }
     }
 }

@@ -21,11 +21,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
@@ -35,14 +35,40 @@ public interface FileOperations {
 
     File file(Object path, PathValidation validation);
 
-    @Nullable
     URI uri(Object path);
 
     FileResolver getFileResolver();
 
     String relativePath(Object path);
 
+    /**
+     * @deprecated Use {@link #immutableFiles(Object...)} to create an immutable file collection,
+     * or {@link #configurableFiles(Object...)} or {@link #configurableFiles()}
+     * to create a mutable file collection.
+     */
+    // Used by Kotlin DSL 0.18.1
+    @Deprecated
     ConfigurableFileCollection files(Object... paths);
+
+    /**
+     * Creates an empty mutable file collection.
+     */
+    ConfigurableFileCollection configurableFiles();
+
+    /**
+     * Creates a mutable file collection and initializes it with the given paths.
+     */
+    ConfigurableFileCollection configurableFiles(Object... paths);
+
+    /**
+     * Creates an immutable file collection with the given paths. The paths are resolved
+     * with the file resolver.
+     *
+     * If no resolution is required, use {@link org.gradle.api.internal.file.collections.ImmutableFileCollection#of(File...)} instead.
+     *
+     * @see #getFileResolver()
+.     */
+    FileCollection immutableFiles(Object... paths);
 
     ConfigurableFileTree fileTree(Object baseDir);
 

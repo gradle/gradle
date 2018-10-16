@@ -32,4 +32,6 @@ public interface TestDirectoryProvider {
 
     void suppressCleanup();
 
+    void suppressCleanupErrors();
+
 }

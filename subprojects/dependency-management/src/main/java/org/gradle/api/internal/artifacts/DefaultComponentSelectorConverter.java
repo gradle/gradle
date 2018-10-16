@@ -29,13 +29,11 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.util.GUtil;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
-    private static final ModuleVersionSelector UNKNOWN_MODULE_VERSION_SELECTOR = DefaultModuleVersionSelector.newSelector("", "unknown", "");
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private static final ModuleVersionSelector UNKNOWN_MODULE_VERSION_SELECTOR = DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId("", "unknown"), "");
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final LocalComponentRegistry localComponentRegistry;
 
-    public DefaultComponentSelectorConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    public DefaultComponentSelectorConverter(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.localComponentRegistry = localComponentRegistry;
     }
@@ -44,10 +42,10 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
     public ModuleIdentifier getModule(ComponentSelector componentSelector) {
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
-            return moduleIdentifierFactory.module(module.getGroup(), module.getModule());
+            return module.getModuleIdentifier();
         }
         ModuleVersionSelector moduleVersionSelector = getSelector(componentSelector);
-        return moduleIdentifierFactory.module(moduleVersionSelector.getGroup(), moduleVersionSelector.getName());
+        return moduleVersionSelector.getModule();
     }
 
     @Override
@@ -61,13 +59,13 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
             LocalComponentMetadata projectComponent = localComponentRegistry.getComponent(projectId);
             if (projectComponent != null) {
                 ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();
-                return DefaultModuleVersionSelector.newSelector(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
+                return DefaultModuleVersionSelector.newSelector(moduleVersionId.getModule(), moduleVersionId.getVersion());
             }
         }
         if (selector instanceof LibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) selector;
             String libraryName = GUtil.elvis(libraryComponentSelector.getLibraryName(), "");
-            return DefaultModuleVersionSelector.newSelector(libraryComponentSelector.getProjectPath(), libraryName, "undefined");
+            return DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId(libraryComponentSelector.getProjectPath(), libraryName), "undefined");
         }
         return UNKNOWN_MODULE_VERSION_SELECTOR;
     }

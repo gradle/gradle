@@ -18,7 +18,8 @@ package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
@@ -27,7 +28,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.testing.Test
-import org.gradle.build.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
@@ -45,13 +45,13 @@ open class DistributionTest : Test() {
     }
 
     @Internal
+    val binaryDistributions = BinaryDistributions(project.objects)
+
+    @Internal
     val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
 
     @Internal
-    val binaryDistributions = BinaryDistributions(project.layout)
-
-    @Internal
-    val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)
+    val libsRepository = LibsRepositoryEnvironmentProvider(project.objects)
 
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
@@ -64,16 +64,16 @@ open class DistributionTest : Test() {
 }
 
 
-class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgumentProvider, Named {
+class LibsRepositoryEnvironmentProvider(objects: ObjectFactory) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val dir = layout.directoryProperty()
+    val dir = objects.directoryProperty()
 
     @Input
     var required = false
 
     override fun asArguments() =
-        if (required) mapOf("integTest.libsRepo" to dir.asFile.get().absolutePath).asSystemPropertyJvmArguments()
+        if (required) mapOf("integTest.libsRepo" to absolutePathOf(dir)).asSystemPropertyJvmArguments()
         else emptyList()
 
     override fun getName() =
@@ -84,30 +84,34 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
 class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val gradleHomeDir = project.layout.directoryProperty()
+    val gradleHomeDir = project.objects.directoryProperty()
 
     @Internal
-    val gradleUserHomeDir = project.layout.directoryProperty()
+    val gradleUserHomeDir = project.objects.directoryProperty()
 
     @Internal
-    val toolingApiShadedJarDir = project.layout.directoryProperty()
+    val gradleGeneratedApiJarCacheDir = project.objects.directoryProperty()
+
+    @Internal
+    val toolingApiShadedJarDir = project.objects.directoryProperty()
 
     /**
      * The user home dir is not wiped out by clean.
      * Move the daemon working space underneath the build dir so they don't pile up on CI.
      */
     @Internal
-    val daemonRegistry = project.layout.directoryProperty()
+    val daemonRegistry = project.objects.directoryProperty()
 
-    @Nested
+    @get:Nested
     val gradleDistribution = GradleDistribution(project, gradleHomeDir)
 
     override fun asArguments() =
         mapOf(
-            "integTest.gradleHomeDir" to gradleHomeDir.asFile.get().absolutePath,
-            "integTest.gradleUserHomeDir" to gradleUserHomeDir.asFile.get().absolutePath,
-            "org.gradle.integtest.daemon.registry" to daemonRegistry.asFile.get().absolutePath,
-            "integTest.toolingApiShadedJarDir" to toolingApiShadedJarDir.asFile.get().absolutePath
+            "integTest.gradleHomeDir" to absolutePathOf(gradleHomeDir),
+            "integTest.gradleUserHomeDir" to absolutePathOf(gradleUserHomeDir),
+            "integTest.gradleGeneratedApiJarCacheDir" to absolutePathOf(gradleGeneratedApiJarCacheDir),
+            "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry),
+            "integTest.toolingApiShadedJarDir" to absolutePathOf(toolingApiShadedJarDir)
         ).asSystemPropertyJvmArguments()
 
     override fun getName() =
@@ -115,7 +119,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
 }
 
 
-class BinaryDistributions(layout: ProjectLayout) {
+class BinaryDistributions(objects: ObjectFactory) {
 
     @Input
     var binZipRequired = false
@@ -125,7 +129,7 @@ class BinaryDistributions(layout: ProjectLayout) {
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    val distsDir = layout.directoryProperty()
+    val distsDir = objects.directoryProperty()
 
     @Internal
     lateinit var distZipVersion: String
@@ -148,7 +152,7 @@ class BinaryDistributionsEnvironmentProvider(private val internalDistributions: 
     override fun asArguments() =
         if (internalDistributions.binZipRequired || internalDistributions.distributionsRequired) {
             mapOf(
-                "integTest.distsDir" to internalDistributions.distsDir.asFile.get().absolutePath,
+                "integTest.distsDir" to absolutePathOf(internalDistributions.distsDir),
                 "integTest.distZipVersion" to internalDistributions.distZipVersion
             ).asSystemPropertyJvmArguments()
         } else {
@@ -159,6 +163,11 @@ class BinaryDistributionsEnvironmentProvider(private val internalDistributions: 
     override fun getName() =
         "binaryDistributions"
 }
+
+
+private
+fun absolutePathOf(property: DirectoryProperty) =
+    property.asFile.get().absolutePath
 
 
 internal

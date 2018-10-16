@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.internal.component.model.ModuleSource;
 
 class MavenUniqueSnapshotModuleSource implements ModuleSource {
+
     private final String timestamp;
 
     MavenUniqueSnapshotModuleSource(String timestamp) {
@@ -27,4 +28,5 @@ class MavenUniqueSnapshotModuleSource implements ModuleSource {
     public String getTimestamp() {
         return timestamp;
     }
+
 }

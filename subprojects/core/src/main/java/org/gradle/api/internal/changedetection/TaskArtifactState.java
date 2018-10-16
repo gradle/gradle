@@ -17,13 +17,12 @@ package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
@@ -40,7 +39,15 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate(Collection<String> messages);
 
-    IncrementalTaskInputs getInputChanges(TaskProperties taskProperties);
+    /**
+     * Returns the incremental task inputs for the current execution.
+     */
+    IncrementalTaskInputs getInputChanges();
+
+    /**
+     * Returns fingerprints of all the current input files.
+     */
+    Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
@@ -70,7 +77,7 @@ public interface TaskArtifactState {
     /**
      * Called on task being loaded from cache.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata);
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata);
 
     /**
      * Returns the history for this task.
@@ -78,9 +85,7 @@ public interface TaskArtifactState {
     TaskExecutionHistory getExecutionHistory();
 
     /**
-     * Returns the current output file content snapshots indexed by property name.
+     * Returns the current output file fingerprints indexed by property name.
      */
-    Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots();
-
-
+    Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints();
 }

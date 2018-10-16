@@ -52,10 +52,10 @@ open class CiReportingPlugin : Plugin<Project> {
     }
 
     private
-    fun failedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.failure != null } }
+    fun failedTasks(projects: Set<Project>) = projects.flatMap { it.gradle.taskGraph.allTasks.filter { it.state.failure != null } }
 
     private
-    fun executedTasks(projects: Set<Project>) = projects.flatMap { it.tasks.matching { it.state.executed } }
+    fun executedTasks(projects: Set<Project>) = projects.flatMap { it.gradle.taskGraph.allTasks.filter { it.state.executed } }
 
     private
     fun Task.failedTaskGenericHtmlReports() = when (this) {
@@ -77,7 +77,7 @@ open class CiReportingPlugin : Plugin<Project> {
     private
     fun Task.attachedReportLocations() = when (this) {
         is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName) to project.name)
-        is DistributedPerformanceTest -> listOf(scenarioReport.parentFile to project.name)
+        is DistributedPerformanceTest -> listOf(reportDir.parentFile to project.name)
         else -> emptyList()
     }
 

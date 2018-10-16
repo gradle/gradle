@@ -83,7 +83,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected List<String> customizeJvmOptions(List<String> jvmOptions) {
-        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptions)
+        PerformanceTestJvmOptions.normalizeJvmOptions(jvmOptions)
     }
 
     abstract R newResult()
@@ -112,12 +112,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     void runAllSpecifications(R results) {
         specs.each {
             def operations = operations(results, it)
-            def invocation = it.invocation
-            def profiler = experimentRunner.profiler
-            if (profiler && invocation instanceof GradleInvocationSpec) {
-                profiler.scenarioUnderTest = "${testId}-${it.projectName}"
-                profiler.versionUnderTest = gradleDistribution.version.version
-            }
             experimentRunner.run(it, operations)
         }
     }

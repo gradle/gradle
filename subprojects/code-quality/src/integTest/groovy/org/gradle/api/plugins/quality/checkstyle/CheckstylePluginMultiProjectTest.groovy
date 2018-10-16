@@ -16,12 +16,14 @@
 package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
-
-    private static final EXPECTED_DEPRECATION_MESSAGE = "Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project has been deprecated and is scheduled to be removed in Gradle 5.0. Use the root project's 'config/checkstyle' directory instead.";
 
     def "configures checkstyle extension to read config from root project in a single project build"() {
         given:
@@ -34,18 +36,16 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(testDirectory).text.contains('Dummy.java')
     }
 
-    def "configures checkstyle extension to read config just from sub project in a multi-project build and renders deprecation warning"() {
+    def "fails when root project does contain config in default location"() {
         given:
-        executer.expectDeprecationWarning()
         settingsFile << "include 'child'"
         file('child/build.gradle') << javaProjectUsingCheckstyle()
         file('child/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
         file('child/config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         expect:
-        succeeds(':child:checkstyleMain')
-        checkStyleReportFile(file('child')).text.contains('Dummy.java')
-        outputContains(EXPECTED_DEPRECATION_MESSAGE)
+        fails(':child:checkstyleMain')
+        checkStyleReportFile(file('child')).assertDoesNotExist()
     }
 
     def "configures checkstyle extension to read config from root project in a flat multi-project build"() {
@@ -72,22 +72,20 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('a/b/c')).text.contains('Dummy.java')
     }
 
-    def "configures checkstyle extension to read config from sub project in a multi-project build even if root project config is available and renders deprecation warning"() {
+    def "configures checkstyle extension to read config from root project in a multi-project build even if sub project config is available"() {
         given:
-        executer.expectDeprecationWarning()
         settingsFile << "include 'child:grand'"
         file('child/grand/build.gradle') << javaProjectUsingCheckstyle()
         file('child/grand/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
-        file('child/grand/config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
-        file('config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
+        file('child/grand/config/checkstyle/checkstyle.xml') << invalidCheckStyleConfig()
+        file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
         expect:
         succeeds(':child:grand:checkstyleMain')
         checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
-        outputContains(EXPECTED_DEPRECATION_MESSAGE)
     }
 
-    def "explicitly configures checkstyle extension to point to config directory and does not render deprecation message"() {
+    def "explicitly configures checkstyle extension to point to config directory"() {
         given:
         settingsFile << "include 'child'"
         file('child/build.gradle') << javaProjectUsingCheckstyle()
@@ -119,8 +117,8 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         'INVALID AND SHOULD NEVER BE READ'
     }
 
-    static File checkStyleReportFile(File projectDir) {
-        new File(projectDir, 'build/reports/checkstyle/main.html')
+    static TestFile checkStyleReportFile(File projectDir) {
+        new TestFile(projectDir, 'build/reports/checkstyle/main.html')
     }
 
     static String javaProjectUsingCheckstyle() {

@@ -34,5 +34,9 @@ class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends Abst
         e.message == 'The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.'
     }
 
-    class TestRepo extends AbstractArtifactRepository {}
+    class TestRepo extends AbstractArtifactRepository {
+        def TestRepo() {
+            super(null)
+        }
+    }
 }

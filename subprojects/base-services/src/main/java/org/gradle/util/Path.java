@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -173,6 +174,7 @@ public class Path implements Comparable<Path> {
      *
      * @return The base name,
      */
+    @Nullable
     public String getName() {
         if (segments.length == 0) {
             return null;

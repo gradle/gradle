@@ -158,6 +158,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             class MyClass {}
         """
 
+        executer.expectDeprecationWarning()
         succeeds 'compileKotlin'
 
         then:
@@ -168,6 +169,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             class FailingClass { < }
         """
 
+        executer.expectDeprecationWarning()
         fails 'compileKotlin'
 
         then:

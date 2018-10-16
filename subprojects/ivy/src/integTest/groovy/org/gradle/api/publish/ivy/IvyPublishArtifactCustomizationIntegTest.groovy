@@ -376,6 +376,23 @@ The following types/formats are supported:
   - Anything that can be converted to a file, as per Project.file()""")
     }
 
+
+    def "artifact coordinates are evaluated lazily"() {
+        given:
+        createBuildScripts("""
+            publications.create("ivyCustom", IvyPublication) {
+                artifact customJar
+            }
+        """, "version = 2.0")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.0")
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.0.xml", "ivyPublish-2.0.jar")
+    }
+
     private createBuildScripts(def publications, def append = "") {
         file("customFile.txt") << "some content"
         settingsFile << "rootProject.name = 'ivyPublish'"
@@ -394,7 +411,8 @@ The following types/formats are supported:
             }
 
             task regularFileTask {
-                ext.outputFile = newOutputFile()
+                ext.outputFile = project.objects.fileProperty()
+                outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
                 doLast {
                     outputFile.get().getAsFile() << 'foo'

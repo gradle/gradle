@@ -18,7 +18,6 @@ package org.gradle.api.artifacts.result;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Set;
@@ -28,7 +27,6 @@ import java.util.Set;
  * in the resolved dependency graph, and the dependencies between them.
  */
 @UsedByScanPlugin
-@Incubating
 public interface ResolutionResult {
 
     /**
@@ -90,4 +88,5 @@ public interface ResolutionResult {
      * @param closure - closure that is applied for each component
      */
     void allComponents(Closure closure);
+
 }

@@ -33,7 +33,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class LogContent {
-    private static final Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
+    private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+?] ");
+    private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT|WAIT)ING( \\[((\\d+h )? \\d+m )?\\d+s\\])?";
+    private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
+    private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
+    private final static Pattern WORK_IN_PROGRESS_AREA_PATTERN = Pattern.compile(PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN);
+    private final static Pattern JAVA_ILLEGAL_ACCESS_WARNING_PATTERN = Pattern.compile("(?ms)WARNING: An illegal reflective access operation has occurred$.+?"
+        + "^WARNING: All illegal access operations will be denied in a future release\r?\n");
+
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
     private final LogContent rawContent;
@@ -48,7 +55,9 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        return new LogContent(toLines(chars), false, null);
+        String stripped = stripWorkInProgressArea(chars);
+        LogContent raw = new LogContent(toLines(stripped), false, null);
+        return new LogContent(toLines(stripJavaIllegalAccessWarnings(stripped)), false, raw);
     }
 
     private static ImmutableList<String> toLines(String chars) {
@@ -214,5 +223,34 @@ public class LogContent {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /**
+     * Remove all empty lines.
+     */
+    public LogContent removeEmptyLines() {
+        List<String> nonEmptyLines = new ArrayList<String>();
+        for (String line : lines) {
+            if (!line.isEmpty()) {
+                nonEmptyLines.add(line);
+            }
+        }
+        return new LogContent(ImmutableList.copyOf(nonEmptyLines), definitelyNoDebugPrefix, rawContent);
+    }
+
+    public static String stripWorkInProgressArea(String output) {
+        String result = output;
+        for (int i = 1; i <= 10; ++i) {
+            result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
+        }
+        return WORK_IN_PROGRESS_AREA_PATTERN.matcher(result).replaceAll("");
+    }
+
+    public static String stripJavaIllegalAccessWarnings(String result) {
+        return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
+    }
+
+    private static String workInProgressAreaScrollingPattern(int scroll) {
+        return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
     }
 }

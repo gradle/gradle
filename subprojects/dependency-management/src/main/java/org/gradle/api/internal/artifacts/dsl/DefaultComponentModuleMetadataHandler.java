@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ComponentModuleMetadata;
+import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.internal.artifacts.ComponentModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -28,7 +28,7 @@ public class DefaultComponentModuleMetadataHandler implements ComponentModuleMet
         this.moduleMetadataContainer = new ComponentModuleMetadataContainer(moduleIdentifierFactory);
     }
 
-    public void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule) {
+    public void module(Object moduleNotation, Action<? super ComponentModuleMetadataDetails> rule) {
         rule.execute(moduleMetadataContainer.module(moduleNotation));
     }
 

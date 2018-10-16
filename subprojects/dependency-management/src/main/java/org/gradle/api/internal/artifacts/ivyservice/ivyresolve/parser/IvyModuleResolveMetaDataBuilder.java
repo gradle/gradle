@@ -20,13 +20,14 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
-import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
+import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -71,7 +72,7 @@ class IvyModuleResolveMetaDataBuilder {
 
     public MutableIvyModuleResolveMetadata build() {
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
-        ModuleComponentIdentifier cid = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        ModuleComponentIdentifier cid = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName()), moduleRevisionId.getRevision());
         List<Configuration> configurations = converter.extractConfigurations(ivyDescriptor);
         List<IvyDependencyDescriptor> dependencies = converter.extractDependencies(ivyDescriptor);
         List<Exclude> excludes = converter.extractExcludes(ivyDescriptor);

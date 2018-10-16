@@ -18,8 +18,13 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.util.VersionNumber
 
 class PlayCompositeBuild extends PlayApp {
+    PlayCompositeBuild(VersionNumber version) {
+        super(version)
+    }
+
     @Override
     List<SourceFile> getAllFiles() {
         return super.getAllFiles() + sourceFiles("javalibrary") + sourceFile("", "settings.gradle")

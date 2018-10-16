@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.ProgressEvent;
  *
  * @since 2.4
  */
-@Incubating
 public interface TestProgressEvent extends ProgressEvent {
     /**
      * Returns the description of the test for which progress is reported. For JVM-based tests,

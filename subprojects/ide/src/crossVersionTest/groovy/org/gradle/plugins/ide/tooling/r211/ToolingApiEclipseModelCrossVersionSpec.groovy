@@ -19,11 +19,9 @@ package org.gradle.plugins.ide.tooling.r211
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=2.11')
 @TargetGradleVersion(">=2.11")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 

@@ -21,19 +21,23 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.external.model.MavenDependencyDescriptor
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -42,9 +46,9 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     final FileResourceRepository fileRepository = TestFiles.fileRepository()
-    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(), moduleIdentifierFactory, fileRepository, mavenMetadataFactory)
+    final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser()), moduleIdentifierFactory, fileRepository, mavenMetadataFactory)
     final parseContext = Mock(DescriptorParseContext)
     TestFile pomFile
     MutableMavenModuleResolveMetadata metadata
@@ -78,11 +82,11 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     }
 
     protected static ModuleComponentIdentifier componentId(String group, String name, String version) {
-        DefaultModuleComponentIdentifier.newId(group, name, version)
+        DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version)
     }
 
     protected static ModuleComponentSelector moduleId(String group, String name, String version) {
-        DefaultModuleComponentSelector.newSelector(group, name, new DefaultMutableVersionConstraint(version))
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), new DefaultMutableVersionConstraint(version))
     }
 
     protected ArtifactRevisionId artifactId(ModuleRevisionId moduleId, String name, String type, String ext) {
@@ -92,5 +96,17 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     static <T> T single(Iterable<T> elements) {
         assert elements.size() == 1
         return elements.first()
+    }
+
+    static <T extends MavenDependencyDescriptor> T firstDependency(Iterable<T> elements) {
+        elements.find { !it.constraint }
+    }
+
+    static <T extends MavenDependencyDescriptor> List<T> dependenciesOnly(Iterable<T> unfiltered) {
+        unfiltered.findAll { !it.constraint }
+    }
+
+    static <T extends MavenDependencyDescriptor> List<T> constraintsOnly(Iterable<T> unfiltered) {
+        unfiltered.findAll { it.constraint }
     }
 }

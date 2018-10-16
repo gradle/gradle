@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.jar.Manifest;
 
+@SuppressWarnings("deprecation")
 public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest {
 
     // Because these properties can be convention mapped we need special handling in here.

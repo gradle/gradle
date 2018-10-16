@@ -32,7 +32,7 @@ trait RichConsoleStyling {
     /**
      * Wraps the text in the proper control characters for styled output in the rich console
      */
-    static String styled(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
+    static String styledText(String plainText, Ansi.Color color, Ansi.Attribute... attributes) {
         String styledString = CONTROL_SEQUENCE_START
         if (color) {
             styledString += color.fg()

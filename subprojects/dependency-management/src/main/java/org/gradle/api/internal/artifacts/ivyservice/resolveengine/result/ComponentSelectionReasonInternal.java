@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -22,7 +23,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 public interface ComponentSelectionReasonInternal extends ComponentSelectionReason {
     ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description);
     ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description);
-    ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, String description);
+    ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, Describable description);
 
     /**
      * Returns true if any of the {@link #getDescriptions() descriptions} contains a custom description instead of the

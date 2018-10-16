@@ -1,5 +1,5 @@
 {
-    "formatVersion": "0.3",
+    "formatVersion": "0.4",
     "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
     "variants": [
         {

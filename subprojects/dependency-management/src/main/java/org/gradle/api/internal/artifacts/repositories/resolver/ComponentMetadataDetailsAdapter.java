@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
@@ -37,14 +38,17 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
+    private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
 
     public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                            NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
-                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
+                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
+                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
+        this.componentIdentifierParser = dependencyNotationParser;
     }
 
     @Override
@@ -92,6 +96,20 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
     @Override
+    public void belongsTo(Object notation) {
+        belongsTo(notation, true);
+    }
+
+    @Override
+    public void belongsTo(Object notation, boolean virtual) {
+        ComponentIdentifier id = componentIdentifierParser.parseNotation(notation);
+        if (virtual) {
+            id = VirtualComponentHelper.makeVirtual(id);
+        }
+        metadata.belongsTo(id);
+    }
+
+    @Override
     public ComponentMetadataDetails attributes(Action<? super AttributeContainer> action) {
         AttributeContainer attributes = metadata.getAttributesFactory().mutable((AttributeContainerInternal) metadata.getAttributes());
         action.execute(attributes);
@@ -108,7 +126,6 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     public String toString() {
         return metadata.getModuleVersionId().toString();
     }
-
 
     private static class VariantNameSpec implements Spec<VariantResolveMetadata> {
         private final String name;

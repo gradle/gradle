@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
@@ -24,7 +23,6 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  *
  * @since 2.14
  */
-@Incubating
 public interface EclipseClasspathEntry {
 
     /**

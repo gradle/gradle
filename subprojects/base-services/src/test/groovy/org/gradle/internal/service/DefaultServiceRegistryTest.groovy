@@ -577,6 +577,24 @@ class DefaultServiceRegistryTest extends Specification {
         decoratorCreator << [ { p -> new RegistryWithDecoratorMethodsWithCreate(p) }, { p -> new RegistryWithDecoratorMethodsWithDecorate(p) } ]
     }
 
+    def "decorator methods can take additional parameters"() {
+        def parent = Mock(ServiceRegistry)
+        def registry = decoratorCreator.call(parent)
+
+        when:
+        def result = registry.get(String)
+
+        then:
+        result == "Foo120"
+
+        and:
+        1 * parent.get(Long) >> 110L
+        1 * parent.get(String) >> "Foo"
+
+        where:
+        decoratorCreator << [ { p -> new RegistryWithDecoratorMethodsWithCreate(p) }, { p -> new RegistryWithDecoratorMethodsWithDecorate(p) } ]
+    }
+
     def decoratorCreateMethodFailsWhenNoParentRegistry() {
         when:
         decoratorCreator.call() /* .call needed in spock 0.7 */
@@ -1562,6 +1580,10 @@ class DefaultServiceRegistryTest extends Specification {
                 }
             };
         }
+
+        protected String createString(String parentValue, Long myValue) {
+            return parentValue + myValue
+        }
     }
 
     private static class RegistryWithDecoratorMethodsWithDecorate extends DefaultServiceRegistry {
@@ -1582,6 +1604,10 @@ class DefaultServiceRegistryTest extends Specification {
                     return factory.create() + 2
                 }
             };
+        }
+
+        protected String decorateString(String parentValue, Long myValue) {
+            return parentValue + myValue
         }
     }
 

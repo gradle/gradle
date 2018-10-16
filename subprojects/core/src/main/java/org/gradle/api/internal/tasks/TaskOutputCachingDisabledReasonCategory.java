@@ -16,16 +16,77 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin("doesn't link against this type, but expects these values - See ExecuteTaskBuildOperationType")
 public enum TaskOutputCachingDisabledReasonCategory {
+    /**
+     * Reason for disabled caching is not known.
+     */
     UNKNOWN,
+
+    /**
+     * Caching has not been enabled for the build.
+     */
     BUILD_CACHE_DISABLED,
+
+    /**
+     * Caching has not been enabled for the task.
+     */
     NOT_ENABLED_FOR_TASK,
+
+    /**
+     * The task has no outputs declared.
+     */
     NO_OUTPUTS_DECLARED,
-    PLURAL_OUTPUTS,
+
+    /**
+     * Task has a {@link org.gradle.api.file.FileTree} or {@link org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
+     *
+     * @since 5.0
+     */
+    NON_CACHEABLE_TREE_OUTPUT,
+
+    /**
+     * Caching is disabled for the task via {@link org.gradle.api.tasks.TaskOutputs#cacheIf(Spec)}.
+     */
     CACHE_IF_SPEC_NOT_SATISFIED,
+
+    /**
+     * Caching is disabled for the task via {@link org.gradle.api.tasks.TaskOutputs#doNotCacheIf(String, Spec)}.
+     */
     DO_NOT_CACHE_IF_SPEC_SATISFIED,
-    OVERLAPPING_OUTPUTS
+
+    /**
+     * Task's outputs overlap with another task. As Gradle cannot safely determine which task each output file belongs to it disables caching.
+     */
+    OVERLAPPING_OUTPUTS,
+
+    /**
+     * The task implementation is not cacheable. Reasons for non-cacheable task implemenations:
+     * <ul>
+     *     <li>the task type is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used to implement the task (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_TASK_IMPLEMENTATION,
+    
+    /**
+     * One of the task actions is not cacheable. Reasons for non-cacheable task action:
+     * <ul>
+     *     <li>a task action is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used as a task action (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_TASK_ACTION,
+
+    /**
+     * One of the task inputs is not cacheable. Reasons for non-cacheable task inputs:
+     * <ul>
+     *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_INPUTS
 }

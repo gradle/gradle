@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,22 +32,11 @@ import java.util.Set;
 public class ClassDependentsAccumulator {
 
     private final Set<String> dependenciesToAll = Sets.newHashSet();
-    private final Set<String> aggregatedTypes = Sets.newHashSet();
-    private final Set<String> dependentsOnAll = Sets.newHashSet();
-    private final Map<String, String> filePathToClassName = new HashMap<String, String>();
     private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
-    private final Map<String, IntSet> classesToConstants = new HashMap<String, IntSet>();
+    private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
     private final Set<String> seenClasses = Sets.newHashSet();
     private final Multimap<String, String> parentToChildren = HashMultimap.create();
     private String fullRebuildCause;
-
-    public ClassDependentsAccumulator() {
-    }
-
-    public void addClass(File classFile, ClassAnalysis classAnalysis) {
-        addClass(classAnalysis);
-        filePathToClassName.put(classFile.getAbsolutePath(), classAnalysis.getClassName());
-    }
 
     public void addClass(ClassAnalysis classAnalysis) {
         addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getSuperTypes());
@@ -61,7 +49,9 @@ public class ClassDependentsAccumulator {
             return;
         }
         seenClasses.add(className);
-        classesToConstants.put(className, constants);
+        if (!constants.isEmpty()) {
+            classesToConstants.put(className, constants);
+        }
         if (dependencyToAll) {
             dependenciesToAll.add(className);
             dependents.remove(className);
@@ -85,7 +75,8 @@ public class ClassDependentsAccumulator {
         return d;
     }
 
-    public Map<String, DependentsSet> getDependentsMap() {
+    @VisibleForTesting
+    Map<String, DependentsSet> getDependentsMap() {
         if (dependenciesToAll.isEmpty() && dependents.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -99,20 +90,9 @@ public class ClassDependentsAccumulator {
         return builder.build();
     }
 
-    public Map<String, IntSet> getClassesToConstants() {
-        return classesToConstants;
-    }
-
-    public void addAnnotationProcessingResult(AnnotationProcessingResult annotationProcessingResult) {
-        for (Map.Entry<String, Set<String>> entry : annotationProcessingResult.getGeneratedTypesWithIsolatedOrigin().entrySet()) {
-            String originatingType = entry.getKey();
-            for (String generatedType : entry.getValue()) {
-                addDependency(originatingType, generatedType);
-                addDependency(generatedType, originatingType);
-            }
-        }
-        aggregatedTypes.addAll(annotationProcessingResult.getAggregatedTypes());
-        dependentsOnAll.addAll(annotationProcessingResult.getGeneratedAggregatingTypes());
+    @VisibleForTesting
+    Map<String, IntSet> getClassesToConstants() {
+        return classesToConstants.build();
     }
 
     private void addDependency(String dependency, String dependent) {
@@ -125,7 +105,7 @@ public class ClassDependentsAccumulator {
     }
 
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), DependentsSet.dependents(aggregatedTypes), DependentsSet.dependents(dependentsOnAll), fullRebuildCause);
+        return new ClassSetAnalysisData(ImmutableSet.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), asMap(parentToChildren), fullRebuildCause);
     }
 
     private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {

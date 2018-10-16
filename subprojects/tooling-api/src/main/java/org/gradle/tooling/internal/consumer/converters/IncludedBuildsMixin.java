@@ -24,7 +24,17 @@ import java.io.Serializable;
 import java.util.Collections;
 
 public class IncludedBuildsMixin implements Serializable {
+    private final GradleBuild gradleBuild;
+
+    public IncludedBuildsMixin(GradleBuild gradleBuild) {
+        this.gradleBuild = gradleBuild;
+    }
+
     public DomainObjectSet<? extends GradleBuild> getIncludedBuilds() {
         return ImmutableDomainObjectSet.of(Collections.<GradleBuild>emptyList());
+    }
+
+    public DomainObjectSet<? extends GradleBuild> getEditableBuilds() {
+        return gradleBuild.getIncludedBuilds();
     }
 }

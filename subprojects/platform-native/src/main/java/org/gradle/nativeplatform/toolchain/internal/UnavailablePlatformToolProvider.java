@@ -22,13 +22,16 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
+import java.io.File;
+
 import static org.gradle.internal.FileUtils.withExtension;
 
-public class UnavailablePlatformToolProvider implements PlatformToolProvider {
+public class UnavailablePlatformToolProvider implements PlatformToolProvider, CommandLineToolSearchResult {
     private final ToolSearchResult failure;
     private final OperatingSystemInternal targetOperatingSystem;
 
@@ -123,8 +126,13 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
-    public ToolSearchResult isToolAvailable(ToolType toolType) {
+    public CommandLineToolSearchResult locateTool(ToolType compilerType) {
         return this;
+    }
+
+    @Override
+    public File getTool() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

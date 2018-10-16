@@ -16,7 +16,7 @@
 
 apply plugin: 'cpp'
 
-// START SNIPPET targetplatforms
+// tag::targetplatforms[]
 model {
     toolChains {
         gcc(Gcc) {
@@ -46,4 +46,4 @@ model {
         }
     }
 }
-// END SNIPPET targetplatforms
+// end::targetplatforms[]

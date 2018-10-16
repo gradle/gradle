@@ -17,6 +17,8 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Nested;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 /**
@@ -26,4 +28,11 @@ import org.gradle.nativeplatform.platform.NativePlatform;
  */
 @Incubating
 public interface CppPlatform extends NativePlatform {
+    /**
+     * The operating system family being targeted.
+     *
+     * @since 4.8
+     */
+    @Nested
+    OperatingSystemFamily getOperatingSystemFamily();
 }

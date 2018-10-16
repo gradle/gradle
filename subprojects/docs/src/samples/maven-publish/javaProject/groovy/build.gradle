@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+dependencies {
+   compile 'commons-collections:commons-collections:3.2.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::publish-custom-artifact[]
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
+// end::publish-custom-artifact[]
+
+// tag::repo-url-from-variable[]
+// tag::repo-url-from-project-property[]
+publishing {
+    repositories {
+        maven {
+            def releasesRepoUrl = "$buildDir/repos/releases"
+            def snapshotsRepoUrl = "$buildDir/repos/snapshots"
+// end::repo-url-from-variable[]
+            url = project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
+// end::repo-url-from-project-property[]
+// tag::repo-url-from-variable[]
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+// tag::repo-url-from-project-property[]
+        }
+    }
+}
+// end::repo-url-from-project-property[]
+// end::repo-url-from-variable[]

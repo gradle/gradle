@@ -33,7 +33,7 @@ class ModuleDependencyBuilder {
     }
 
     private String determineProjectName(ProjectComponentIdentifier id) {
-        IdeaModuleMetadata moduleMetadata = ideArtifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class, id);
+        IdeaModuleMetadata moduleMetadata = ideArtifactRegistry.getIdeProject(IdeaModuleMetadata.class, id);
         return moduleMetadata == null ? id.getProjectName() : moduleMetadata.getName();
     }
 }

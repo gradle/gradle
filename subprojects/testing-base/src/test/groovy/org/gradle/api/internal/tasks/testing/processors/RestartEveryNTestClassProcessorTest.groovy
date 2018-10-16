@@ -192,6 +192,24 @@ class RestartEveryNTestClassProcessorTest extends Specification {
         0 * _._
     }
 
+    def "stopNow does nothing after stop completed"() {
+        when:
+        processor.startProcessing(resultProcessor)
+        processor.processTestClass(test1)
+        processor.stop()
+
+        then:
+        1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        1 * delegate.processTestClass(test1)
+        1 * delegate.stop()
+
+        when:
+        processor.stopNow()
+        then:
+        0 * _._
+    }
+
     def "processTestClass has no effect after stopNow"() {
         when:
         processor.startProcessing(resultProcessor)

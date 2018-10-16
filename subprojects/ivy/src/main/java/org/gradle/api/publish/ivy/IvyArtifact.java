@@ -16,17 +16,14 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
+import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 /**
  * An artifact published as part of a {@link IvyPublication}.
  */
-@Incubating
-public interface IvyArtifact extends Buildable {
+public interface IvyArtifact extends PublicationArtifact {
     /**
      * The name used to publish the artifact file, never <code>null</code>.
      * Defaults to the name of the module that this artifact belongs to.
@@ -90,16 +87,4 @@ public interface IvyArtifact extends Buildable {
      * @param conf The value of 'conf' for this artifact.
      */
     void setConf(@Nullable String conf);
-
-    /**
-     * The actual file contents to publish.
-     */
-    File getFile();
-
-    /**
-     * Registers some tasks which build this artifact.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     */
-    void builtBy(Object... tasks);
 }

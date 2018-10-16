@@ -22,7 +22,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
-public class DefaultRuleActionValidator<T> implements RuleActionValidator<T> {
+public class DefaultRuleActionValidator implements RuleActionValidator {
     private static final String VALID_SINGLE_TYPES = "Rule may not have an input parameter of type: %s. Second parameter must be of type: %s.";
     private static final String VALID_MULTIPLE_TYPES = "Rule may not have an input parameter of type: %s. Valid types (for the second and subsequent parameters) are: %s.";
 
@@ -32,12 +32,12 @@ public class DefaultRuleActionValidator<T> implements RuleActionValidator<T> {
         this.validInputTypes = validInputTypes;
     }
 
-    public RuleAction<? super T> validate(RuleAction<? super T> ruleAction) {
+    public <T> RuleAction<? super T> validate(RuleAction<? super T> ruleAction) {
         validateInputTypes(ruleAction);
         return ruleAction;
     }
 
-    private void validateInputTypes(RuleAction<? super T> ruleAction) {
+    private void validateInputTypes(RuleAction<?> ruleAction) {
         for (Class<?> inputType : ruleAction.getInputTypes()) {
             if (!validInputTypes.contains(inputType)) {
                 throw new RuleActionValidationException(invalidParameterMessage(inputType));

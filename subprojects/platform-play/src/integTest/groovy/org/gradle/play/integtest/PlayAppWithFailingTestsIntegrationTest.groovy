@@ -55,7 +55,7 @@ FailingApplicationSpec > failingTest FAILED
 FailingIntegrationSpec > failingTest FAILED
     java.lang.AssertionError at FailingIntegrationSpec.scala:23
 """
-        output.contains("6 tests completed, 2 failed")
+        failure.assertHasErrorOutput("6 tests completed, 2 failed")
         failure.assertHasCause("There were failing tests.")
 
         def result = new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test/xml")

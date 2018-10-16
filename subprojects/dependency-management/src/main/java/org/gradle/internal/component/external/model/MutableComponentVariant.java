@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.List;
@@ -24,9 +25,9 @@ import java.util.List;
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
 
-    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason);
+    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes);
 
-    void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason);
+    void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes);
 
     void addCapability(String group, String name, String version);
 }

@@ -25,7 +25,9 @@ import org.gradle.api.tasks.Internal;
  *
  * Exactly one of the XML or HTML reports can be enabled when the task executes. If more than one or none is enabled, an {@link org.gradle.api.InvalidUserDataException}
  * will be thrown.
+ * @deprecated JDepend is unmaintained and does not support bytecode compiled for Java 8 and above.
  */
+@Deprecated
 public interface JDependReports extends ReportContainer<SingleFileReport> {
 
     /**

@@ -32,10 +32,12 @@ import java.util.List;
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
     private final Dependency source;
+    private final boolean isTransitive;
 
     public DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, Dependency source) {
         this.delegate = delegate;
         this.source = source;
+        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -75,7 +77,7 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
 
     @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return isTransitive;
     }
 
     @Override
@@ -84,8 +86,13 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public boolean isPending() {
-        return delegate.isPending();
+    public boolean isConstraint() {
+        return delegate.isConstraint();
+    }
+
+    @Override
+    public boolean isFromLock() {
+        return delegate.isFromLock();
     }
 
     @Override
@@ -111,5 +118,10 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public ComponentSelector getSelector() {
         return delegate.getSelector();
+    }
+
+    @Override
+    public LocalOriginDependencyMetadata forced() {
+        return new DslOriginDependencyMetadataWrapper(delegate.forced(), source);
     }
 }

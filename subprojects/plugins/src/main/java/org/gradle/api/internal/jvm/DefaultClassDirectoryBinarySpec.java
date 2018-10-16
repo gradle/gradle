@@ -16,12 +16,11 @@
 package org.gradle.api.internal.jvm;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -29,6 +28,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentSpec;
@@ -38,7 +38,6 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -51,12 +50,12 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
     private final BinaryTasksCollection tasks;
     private boolean buildable = true;
 
-    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
+    public DefaultClassDirectoryBinarySpec(ComponentSpecIdentifier componentIdentifier, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator) {
         super(componentIdentifier, ClassDirectoryBinarySpec.class);
         this.sourceSet = sourceSet;
         this.toolChain = toolChain;
         this.platform = platform;
-        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskFactory);
+        this.tasks = instantiator.newInstance(DefaultBinaryTasksCollection.class, this, taskInstantiator);
     }
 
     @Override
@@ -113,21 +112,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
     }
 
     public File getClassesDir() {
-        return SingleMessageLogger.whileDisabled(new Factory<File>() {
-            @Override
-            public File create() {
-                return sourceSet.getOutput().getClassesDir();
-            }
-        });
+        return sourceSet.getJava().getOutputDir();
     }
 
     public void setClassesDir(final File classesDir) {
-        SingleMessageLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                sourceSet.getOutput().setClassesDir(classesDir);
-            }
-        });
+        sourceSet.getJava().setOutputDir(classesDir);
     }
 
     public File getResourcesDir() {

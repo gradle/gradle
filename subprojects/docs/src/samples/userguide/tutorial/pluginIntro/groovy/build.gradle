@@ -1,0 +1,17 @@
+// tag::apply-by-id[]
+apply plugin: 'java'
+
+task show {
+    doLast {
+        println relativePath(compileJava.destinationDir)
+        println relativePath(processResources.destinationDir)
+    }
+}
+// end::apply-by-id[]
+// tag::apply-by-type[]
+apply plugin: JavaPlugin
+// end::apply-by-type[]
+// tag::explicit-apply[]
+apply plugin: 'java'
+apply plugin: 'groovy'
+// end::explicit-apply[]

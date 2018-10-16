@@ -17,11 +17,10 @@ package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.Factory;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 public class GradleBuildController implements BuildController {
     private enum State {Created, Completed}
@@ -72,18 +71,20 @@ public class GradleBuildController implements BuildController {
     }
 
     public GradleInternal run() {
-        return doBuild(new Callable<GradleInternal>() {
+        return doBuild(new Factory<GradleInternal>() {
             @Override
-            public GradleInternal call() throws Exception {
-                return getLauncher().executeTasks();
+            public GradleInternal create() {
+                GradleInternal gradle = getLauncher().executeTasks();
+                getLauncher().finishBuild();
+                return gradle;
             }
         });
     }
 
     public GradleInternal configure() {
-        return doBuild(new Callable<GradleInternal>() {
+        return doBuild(new Factory<GradleInternal>() {
             @Override
-            public GradleInternal call() throws Exception {
+            public GradleInternal create() {
                 GradleInternal gradle = getLauncher().getConfiguredBuild();
                 getLauncher().finishBuild();
                 return gradle;
@@ -91,15 +92,11 @@ public class GradleBuildController implements BuildController {
         });
     }
 
-    private GradleInternal doBuild(final Callable<GradleInternal> build) {
-        GradleInternal gradle = getGradle();
-        BuildOperationExecutor buildOperationExecutor = gradle.getServices().get(BuildOperationExecutor.class);
-        gradle.setBuildOperation(buildOperationExecutor.getCurrentOperation());
+    private GradleInternal doBuild(final Factory<GradleInternal> build) {
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
             return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), build);
         } finally {
-            gradle.setBuildOperation(null);
             state = State.Completed;
         }
     }

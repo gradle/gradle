@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
@@ -93,16 +94,25 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             getStore().addComposited(collection);
-            collection.all(backingSet.getEventRegister().getAddAction());
-            collection.whenObjectRemoved(backingSet.getEventRegister().getRemoveAction());
+            collection.all(new Action<T>() {
+                @Override
+                public void execute(T t) {
+                    backingSet.getEventRegister().fireObjectAdded(t);
+                }
+            });
+            collection.whenObjectRemoved(new Action<T>() {
+                @Override
+                public void execute(T t) {
+                    backingSet.getEventRegister().fireObjectRemoved(t);
+                }
+            });
         }
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
         getStore().removeComposited(collection);
-        Action<? super T> action = this.backingSet.getEventRegister().getRemoveAction();
         for (T item : collection) {
-            action.execute(item);
+            backingSet.getEventRegister().fireObjectRemoved(item);
         }
     }
 
@@ -135,6 +145,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
     }
 
+    // TODO Make this work with pending elements
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
         private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
@@ -188,7 +199,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @SuppressWarnings("unchecked")
         public Iterator<T> iterator() {
             if (store.isEmpty()) {
-                return Iterators.emptyIterator();
+                return Collections.emptyIterator();
             }
             if (store.size() == 1) {
                 return (Iterator<T>) store.get(0).iterator();
@@ -198,6 +209,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
         @Override
         public boolean add(T t) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addRealized(T element) {
             throw new UnsupportedOperationException();
         }
 
@@ -243,6 +259,56 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
                 size += Estimates.estimateSizeOf(ts);
             }
             return size;
+        }
+
+        @Override
+        public Iterator<T> iteratorNoFlush() {
+            return iterator();
+        }
+
+        @Override
+        public void realizePending() {
+
+        }
+
+        @Override
+        public void realizePending(Class<?> type) {
+
+        }
+
+        @Override
+        public boolean addPending(ProviderInternal<? extends T> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removePending(ProviderInternal<? extends T> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void onRealize(Action<T> action) {
+
+        }
+
+        @Override
+        public void realizeExternal(ProviderInternal<? extends T> provider) {
+
+        }
+
+        @Override
+        public MutationGuard getMutationGuard() {
+            return MutationGuards.identity();
         }
     }
 }

@@ -15,10 +15,12 @@
  */
 
 package org.gradle.api.publish.maven.internal.publisher
+
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
@@ -43,7 +45,7 @@ class ValidatingMavenPublisherTest extends Specification {
     def "delegates when publication is valid"() {
         when:
         def projectIdentity = makeProjectIdentity("the-group", "the-artifact", "the-version")
-        def publication = new MavenNormalizedPublication("pub-name", createPomFile(projectIdentity), null, projectIdentity, emptySet(), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", createPomFile(projectIdentity), projectIdentity, emptySet(), null)
 
         and:
         publisher.publish(publication, repository)
@@ -55,7 +57,7 @@ class ValidatingMavenPublisherTest extends Specification {
     def "validates project coordinates"() {
         given:
         def projectIdentity = makeProjectIdentity(groupId, artifactId, version)
-        def publication = new MavenNormalizedPublication("pub-name", createPomFile(projectIdentity), null, projectIdentity, emptySet(), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", createPomFile(projectIdentity), projectIdentity, emptySet(), null)
 
         when:
         publisher.publish(publication, repository)
@@ -82,7 +84,7 @@ class ValidatingMavenPublisherTest extends Specification {
         given:
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(makeProjectIdentity(groupId, artifactId, version))
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, emptySet(), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", pomFile, projectIdentity, emptySet(), null)
 
         when:
         publisher.publish(publication, repository)
@@ -105,7 +107,7 @@ class ValidatingMavenPublisherTest extends Specification {
             getExtension() >> extension
             getClassifier() >> classifier
         }
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, toSet([mavenArtifact]), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", pomFile, projectIdentity, toSet([mavenArtifact]), null)
 
         when:
         publisher.publish(publication, repository)
@@ -129,7 +131,7 @@ class ValidatingMavenPublisherTest extends Specification {
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)
         def mavenArtifact = Mock(MavenArtifact)
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, toSet([mavenArtifact]), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", pomFile, projectIdentity, toSet([mavenArtifact]), null)
 
         File theFile = new TestFile(testDir.testDirectory, "testFile")
         if (createDir) {
@@ -167,7 +169,7 @@ class ValidatingMavenPublisherTest extends Specification {
         }
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, toSet([artifact1, artifact2]), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", pomFile, projectIdentity, toSet([artifact1, artifact2]), null)
 
         when:
         publisher.publish(publication, repository)
@@ -186,7 +188,7 @@ class ValidatingMavenPublisherTest extends Specification {
         }
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, toSet([artifact1]), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", pomFile, projectIdentity, toSet([artifact1, pomFile]), null)
 
         when:
         publisher.publish(publication, repository)
@@ -204,7 +206,7 @@ class ValidatingMavenPublisherTest extends Specification {
                 xml.asNode().appendNode("invalid", "This is not a valid pomFile element")
             }
         })
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, emptySet(), null)
+        def publication = new MavenNormalizedPublication("pub-name", "pom", pomFile, projectIdentity, emptySet(), null)
 
         when:
         publisher.publish(publication, repository)
@@ -218,9 +220,9 @@ class ValidatingMavenPublisherTest extends Specification {
 
     private def makeProjectIdentity(def groupId, def artifactId, def version) {
         return Stub(MavenProjectIdentity) {
-            getGroupId() >> groupId
-            getArtifactId() >> artifactId
-            getVersion() >> version
+            getGroupId() >> Providers.of(groupId)
+            getArtifactId() >> Providers.of(artifactId)
+            getVersion() >> Providers.of(version)
         }
     }
 
@@ -232,6 +234,13 @@ class ValidatingMavenPublisherTest extends Specification {
             pomFileGenerator.withXml(withXmlAction)
         }
         pomFileGenerator.writeTo(pomFile)
-        return pomFile
+        return createArtifact(pomFile, "pom")
+    }
+
+    private def createArtifact(File file, String extension) {
+        return Mock(MavenArtifact) {
+            getFile() >> file
+            getExtension() >> extension
+        }
     }
 }

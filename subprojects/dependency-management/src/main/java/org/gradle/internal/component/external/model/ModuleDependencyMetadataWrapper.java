@@ -30,9 +30,11 @@ import java.util.List;
 
 public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata {
     private final DependencyMetadata delegate;
+    private final boolean isTransitive;
 
     public ModuleDependencyMetadataWrapper(DependencyMetadata delegate) {
         this.delegate = delegate;
+        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -43,7 +45,7 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
         ModuleComponentSelector selector = getSelector();
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes());
         return new ModuleDependencyMetadataWrapper(delegate.withTarget(newSelector));
     }
 
@@ -79,12 +81,12 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
 
     @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return isTransitive;
     }
 
     @Override
-    public boolean isPending() {
-        return delegate.isPending();
+    public boolean isConstraint() {
+        return delegate.isConstraint();
     }
 
     @Override

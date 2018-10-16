@@ -31,6 +31,7 @@ dependencies {
     api libraries.commons_httpclient.coordinates
 
     implementation libraries.slf4j_api.coordinates
+    implementation libraries.jcl_to_slf4j.coordinates
     implementation libraries.jcifs.coordinates
     implementation libraries.guava.coordinates
     implementation libraries.commons_lang.coordinates
@@ -39,10 +40,12 @@ dependencies {
     implementation libraries.nekohtml.coordinates
 
     testImplementation testLibraries.jetty
+
+    testFixturesImplementation project(":internalIntegTesting")
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

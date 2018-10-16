@@ -16,8 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,7 +38,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def resolver = new DefaultSourceIncludesResolver([includeDir], fileSystemSnapshotter)
     def parser = new RegexBackedCSourceParser()
-    def serializer = new IncludeDirectivesSerializer()
+    def serializer = IncludeDirectivesSerializer.INSTANCE
 
     def "resolves macro with value that is a string constant"() {
         given:

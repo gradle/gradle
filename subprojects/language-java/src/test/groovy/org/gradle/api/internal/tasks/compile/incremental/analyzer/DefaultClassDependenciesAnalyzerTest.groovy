@@ -17,6 +17,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeClassAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeSourceAnnotation
@@ -38,7 +39,7 @@ import spock.lang.Subject
 class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     @Subject
-    analyzer = new DefaultClassDependenciesAnalyzer()
+    analyzer = new DefaultClassDependenciesAnalyzer(new StringInterner())
 
     private ClassAnalysis analyze(Class foo) {
         analyzer.getClassAnalysis(classStream(foo))
@@ -90,11 +91,11 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     def "knows if a class uses annotations with source retention"() {
         expect:
-        analyze(UsesRuntimeAnnotation).classDependencies.isEmpty()
+        analyze(UsesRuntimeAnnotation).classDependencies  == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation"] as Set
         analyze(SomeRuntimeAnnotation).classDependencies.isEmpty()
         !analyze(SomeRuntimeAnnotation).dependencyToAll
 
-        analyze(UsesClassAnnotation).classDependencies.isEmpty()
+        analyze(UsesClassAnnotation).classDependencies == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeClassAnnotation"] as Set
         analyze(SomeClassAnnotation).classDependencies.isEmpty()
         !analyze(SomeClassAnnotation).dependencyToAll
 

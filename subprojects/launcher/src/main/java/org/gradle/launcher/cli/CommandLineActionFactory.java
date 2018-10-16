@@ -15,9 +15,12 @@
  */
 package org.gradle.launcher.cli;
 
-import groovy.lang.GroovySystem;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
+import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -33,6 +36,7 @@ import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.ParallelismConfigurationCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
@@ -54,6 +58,7 @@ import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,37 +122,49 @@ public class CommandLineActionFactory {
         out.println();
     }
 
-    private static class WelcomeMessageAction implements Action<PrintStream> {
+    static class WelcomeMessageAction implements Action<PrintStream> {
         private final BuildLayoutParameters buildLayoutParameters;
+        private final GradleVersion gradleVersion;
+        private final Function<String, InputStream> inputStreamProvider;
 
-        public WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
+        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
+            this(buildLayoutParameters, GradleVersion.current(), new Function<String, InputStream>() {
+                @Nullable
+                @Override
+                public InputStream apply(@Nullable String input) {
+                    return getClass().getClassLoader().getResourceAsStream(input);
+                }
+            });
+        }
+
+        @VisibleForTesting
+        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider) {
             this.buildLayoutParameters = buildLayoutParameters;
+            this.gradleVersion = gradleVersion;
+            this.inputStreamProvider = inputStreamProvider;
         }
 
         @Override
         public void execute(PrintStream out) {
             if (isWelcomeMessageEnabled()) {
-                GradleVersion currentVersion = GradleVersion.current();
-                File markerFile = getMarkerFile(currentVersion);
+                File markerFile = getMarkerFile();
 
                 if (!markerFile.exists()) {
                     out.println();
-                    out.print("Welcome to Gradle " + currentVersion.getVersion() + "!");
+                    out.print("Welcome to Gradle " + gradleVersion.getVersion() + "!");
 
                     String featureList = readReleaseFeatures();
 
-                    if (featureList != null) {
+                    if (StringUtils.isNotBlank(featureList)) {
                         out.println();
                         out.println();
-                        out.print("Here are the highlights of this release:");
-                        out.println();
+                        out.println("Here are the highlights of this release:");
                         out.print(featureList);
                     }
 
-                    if (!currentVersion.isSnapshot()) {
+                    if (!gradleVersion.isSnapshot()) {
                         out.println();
-                        out.print("For more details see https://docs.gradle.org/" + currentVersion.getVersion() + "/release-notes.html");
-                        out.println();
+                        out.println("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
                     }
 
                     out.println();
@@ -171,15 +188,15 @@ public class CommandLineActionFactory {
             return Boolean.parseBoolean(messageEnabled);
         }
 
-        private File getMarkerFile(GradleVersion currentVersion) {
+        private File getMarkerFile() {
             File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
             File notificationsDir = new File(gradleUserHomeDir, "notifications");
-            File versionedNotificationsDir = new File(notificationsDir, currentVersion.getVersion());
+            File versionedNotificationsDir = new File(notificationsDir, gradleVersion.getVersion());
             return new File(versionedNotificationsDir, "release-features.rendered");
         }
 
         private String readReleaseFeatures() {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("release-features.txt");
+            InputStream inputStream = inputStreamProvider.apply("release-features.txt");
 
             if (inputStream != null) {
                 StringWriter writer = new StringWriter();
@@ -189,6 +206,8 @@ public class CommandLineActionFactory {
                     return writer.toString();
                 } catch (IOException e) {
                     // do not fail the build as feature is non-critical
+                } finally {
+                    IoActions.closeQuietly(inputStream);
                 }
             }
 
@@ -250,6 +269,7 @@ public class CommandLineActionFactory {
     private static class ShowVersionAction implements Runnable {
         public void run() {
             GradleVersion currentVersion = GradleVersion.current();
+            KotlinDslVersion currentKotlinDslVersion = KotlinDslVersion.current();
 
             final StringBuilder sb = new StringBuilder();
             sb.append("%n------------------------------------------------------------%nGradle ");
@@ -258,8 +278,12 @@ public class CommandLineActionFactory {
             sb.append(currentVersion.getBuildTime());
             sb.append("%nRevision:     ");
             sb.append(currentVersion.getRevision());
-            sb.append("%n%nGroovy:       ");
-            sb.append(GroovySystem.getVersion());
+            sb.append("%n%nKotlin DSL:   ");
+            sb.append(currentKotlinDslVersion.getProviderVersion());
+            sb.append("%nKotlin:       ");
+            sb.append(currentKotlinDslVersion.getKotlinVersion());
+            sb.append("%nGroovy:       ");
+            sb.append(ReleaseInfo.getVersion());
             sb.append("%nAnt:          ");
             sb.append(Main.getAntVersion());
             sb.append("%nJVM:          ");

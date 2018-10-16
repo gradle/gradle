@@ -1,0 +1,45 @@
+// A project extension
+class MessageExtension {
+    // A configurable greeting
+    final Property<String> greeting
+
+    @javax.inject.Inject
+    MessageExtension(ObjectFactory objects) {
+        greeting = objects.property(String)
+    }
+}
+
+// A task that displays a greeting
+class Greeting extends DefaultTask {
+    // A configurable greeting
+    @Input
+    final Property<String> greeting = project.objects.property(String)
+
+    // Read-only property calculated from the greeting
+    @Internal
+    final Provider<String> message = greeting.map { it + ' from Gradle' }
+
+    @TaskAction
+    void printMessage() {
+        logger.quiet(message.get())
+    }
+}
+
+// Create the project extension
+project.extensions.create('messages', MessageExtension, project.objects)
+
+// Create the greeting task
+task greeting(type: Greeting) {
+    // Attach the greeting from the project extension
+    // Note that the values of the project extension have not been configured yet
+    greeting.set(project.messages.greeting)
+
+    // Note that an assignment statement can be used instead of calling Property.set()
+    greeting = project.messages.greeting
+}
+
+messages {
+    // Configure the greeting on the extension
+    // Note that there is no need to reconfigure the task's `greeting` property. This is automatically updated as the extension property changes
+    greeting = 'Hi'
+}

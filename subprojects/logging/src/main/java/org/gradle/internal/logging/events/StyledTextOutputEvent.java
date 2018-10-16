@@ -65,6 +65,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
         return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getBuildOperationId(), spans);
     }
 
+    @Override
+    public StyledTextOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), getLogLevel(), buildOperationId, spans);
+    }
+
     public List<Span> getSpans() {
         return spans;
     }

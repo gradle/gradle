@@ -19,7 +19,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.TestIncludeParser
 import spock.lang.Specification
 
 class DefaultSourceIncludesParserTest extends Specification {
@@ -63,6 +63,6 @@ class DefaultSourceIncludesParserTest extends Specification {
     }
 
     Include include(String value, boolean isImport = false) {
-        return IncludeWithSimpleExpression.parse(value, isImport)
+        return TestIncludeParser.parse(value, isImport)
     }
 }

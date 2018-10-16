@@ -19,13 +19,10 @@ package org.gradle.api.internal.tasks.compile.processing
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 import spock.lang.Specification
 
-import javax.annotation.processing.Messager
-import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Name
 import javax.lang.model.element.TypeElement
-import javax.tools.Diagnostic
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
@@ -49,14 +46,7 @@ class AggregatingProcessorTest extends Specification {
 
     AnnotationProcessingResult result = new AnnotationProcessingResult()
     Processor delegate = Stub(Processor)
-    Messager messager = Mock(Messager)
     AggregatingProcessor processor = new AggregatingProcessor(delegate, result)
-
-    def setup() {
-        processor.init(Stub(ProcessingEnvironment) {
-            getMessager() >> messager
-        })
-    }
 
     def "when delegate reacts to any class, all root elements are aggregated"() {
         given:
@@ -88,7 +78,7 @@ class AggregatingProcessorTest extends Specification {
         processor.process([sourceRetentionAnnotation] as Set, roundEnvironment)
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, { CharSequence message -> message.contains("'@Broken' has source retention.") })
+        result.fullRebuildCause.contains("'@Broken' has source retention.")
     }
 
 

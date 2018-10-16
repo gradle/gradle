@@ -23,6 +23,11 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertHasFileName(String filename);
 
     /**
+     * Asserts that the given number of failures are present.
+     */
+    ExecutionFailure assertHasFailures(int count);
+
+    /**
      * Asserts that the reported failure has the given cause (ie the bit after the description).
      *
      * <p>Error messages are normalized to use new-line char as line separator.

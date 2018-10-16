@@ -19,9 +19,12 @@ package org.gradle.integtests.resource.s3.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
+import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
+import spock.lang.Requires
 
+@Requires({ S3IntegrationTestPrecondition.fulfilled })
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)

@@ -29,4 +29,6 @@ public interface TaskHistoryStore {
      * @param cacheInMemoryForShortLivedProcesses When true, entries are cached in memory. When false, entries are cached in memory only when it possible that another build will be run in this process.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses);
+
+    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses);
 }

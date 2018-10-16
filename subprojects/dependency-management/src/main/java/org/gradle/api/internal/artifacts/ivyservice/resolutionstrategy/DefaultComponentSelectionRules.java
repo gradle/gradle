@@ -32,7 +32,6 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
-import org.gradle.internal.rules.DefaultRuleActionValidator;
 import org.gradle.internal.rules.RuleAction;
 import org.gradle.internal.rules.RuleActionAdapter;
 import org.gradle.internal.rules.RuleActionValidator;
@@ -43,29 +42,33 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
+    public static final List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private Set<SpecRuleAction<? super ComponentSelection>> rules;
 
-    private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
+    private final RuleActionAdapter allRuleActionAdapter;
+    private final RuleActionAdapter withModuleRuleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
 
     public DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this(moduleIdentifierFactory, createAdapter());
+        this(moduleIdentifierFactory, createAdapter("all("), createAdapter("withModule(Object,"));
     }
 
-    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter<ComponentSelection> ruleActionAdapter) {
-        this.ruleActionAdapter = ruleActionAdapter;
+    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter allRuleActionAdapter, RuleActionAdapter withModuleRuleActionAdapter) {
+        this.allRuleActionAdapter = allRuleActionAdapter;
+        this.withModuleRuleActionAdapter = withModuleRuleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
             .toType(ModuleIdentifier.class)
-            .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+            .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
             .toComposite();
     }
 
@@ -76,9 +79,9 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         this.mutationValidator = mutationValidator;
     }
 
-    private static RuleActionAdapter<ComponentSelection> createAdapter() {
-        RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
-        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, "ComponentSelectionRules");
+    private static RuleActionAdapter createAdapter(String deprecationPrefix) {
+        RuleActionValidator ruleActionValidator = new ComponentSelectionRulesActionValidator(VALID_INPUT_TYPES, deprecationPrefix);
+        return new DefaultRuleActionAdapter(ruleActionValidator, "ComponentSelectionRules");
     }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
@@ -86,33 +89,33 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromAction(selectionAction)));
+        return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromAction(selectionAction)));
     }
 
     public ComponentSelectionRules all(Closure<?> closure) {
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
+        return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     public ComponentSelectionRules all(Object ruleSource) {
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
+        return addRule(createAllSpecRulesAction(allRuleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
+        return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromAction(selectionAction)));
     }
 
     public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
+        return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     public ComponentSelectionRules withModule(Object id, Object ruleSource) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
+        return addRule(createSpecRuleActionFromId(id, withModuleRuleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
         if (rules == null) {
-            rules = new HashSet<SpecRuleAction<? super ComponentSelection>>();
+            rules = new LinkedHashSet<SpecRuleAction<? super ComponentSelection>>();
         }
         rules.add(specRuleAction);
         return this;

@@ -19,10 +19,10 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -50,13 +50,13 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return buildHierarchy(project.getRootProject());
     }
 
-    private DefaultGradleProject<LaunchableGradleTask> buildHierarchy(Project project) {
-        List<DefaultGradleProject<LaunchableGradleTask>> children = new ArrayList<DefaultGradleProject<LaunchableGradleTask>>();
+    private DefaultGradleProject buildHierarchy(Project project) {
+        List<DefaultGradleProject> children = new ArrayList<DefaultGradleProject>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
 
-        DefaultGradleProject<LaunchableGradleTask> gradleProject = new DefaultGradleProject<LaunchableGradleTask>()
+        DefaultGradleProject gradleProject = new DefaultGradleProject()
                 .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
                 .setName(project.getName())
                 .setDescription(project.getDescription())
@@ -81,7 +81,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
-                out.add(buildFromTask(new LaunchableGradleProjectTask(), t).setProject(owner).setProjectIdentifier(owner.getProjectIdentifier()));
+                out.add(buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), t).setProject(owner));
             }
         }
 

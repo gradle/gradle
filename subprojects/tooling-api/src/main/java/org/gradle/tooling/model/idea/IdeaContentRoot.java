@@ -45,7 +45,6 @@ public interface IdeaContentRoot {
      * @deprecated Use {@link IdeaContentRoot#getSourceDirectories()} in combination with  {@link IdeaSourceDirectory#isGenerated()} instead.
      */
     @Deprecated
-    @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories();
 
     /**
@@ -60,7 +59,6 @@ public interface IdeaContentRoot {
      * @deprecated Use {@link IdeaContentRoot#getTestDirectories()} in combination with  {@link IdeaSourceDirectory#isGenerated()} instead.
      */
     @Deprecated
-    @Incubating
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories();
 
     /**

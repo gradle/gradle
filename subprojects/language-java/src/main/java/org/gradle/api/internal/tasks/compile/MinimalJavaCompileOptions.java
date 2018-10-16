@@ -18,12 +18,11 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.internal.Factory;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -45,20 +44,14 @@ public class MinimalJavaCompileOptions implements Serializable {
     private boolean verbose;
     private boolean warnings;
     private File annotationProcessorGeneratedSourcesDirectory;
+    private final File headerOutputDirectory;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
         this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
         this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
         this.encoding = compileOptions.getEncoding();
-        this.bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
-            @Nullable
-            @Override
-            @SuppressWarnings("deprecation")
-            public String create() {
-                return compileOptions.getBootClasspath();
-            }
-        });
+        this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs();
         this.forkOptions = compileOptions.getForkOptions();
         this.debugOptions = compileOptions.getDebugOptions();
@@ -69,6 +62,13 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.verbose = compileOptions.isVerbose();
         this.warnings = compileOptions.isWarnings();
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
+        DirectoryProperty headerOutputDirectory = compileOptions.getHeaderOutputDirectory();
+        this.headerOutputDirectory = headerOutputDirectory.isPresent() ? headerOutputDirectory.get().getAsFile() : null;
+    }
+
+    @Nullable
+    private static String getAsPath(@Nullable FileCollection files) {
+        return files == null ? null : files.getAsPath();
     }
 
     public List<File> getSourcepath() {
@@ -181,5 +181,9 @@ public class MinimalJavaCompileOptions implements Serializable {
 
     public void setAnnotationProcessorGeneratedSourcesDirectory(File annotationProcessorGeneratedSourcesDirectory) {
         this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
+    }
+
+    public File getHeaderOutputDirectory() {
+        return headerOutputDirectory;
     }
 }

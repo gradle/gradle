@@ -24,13 +24,110 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 abstract class AbstractSmokeTest extends Specification {
+
+    static class TestedVersions {
+        /**
+         * May also need to update
+         * @see BuildScanPluginSmokeTest
+         */
+
+        // https://plugins.gradle.org/plugin/nebula.dependency-recommender
+        static nebulaDependencyRecommender = "7.0.1"
+
+        // https://plugins.gradle.org/plugin/nebula.plugin-plugin
+        static nebulaPluginPlugin = "8.1.3"
+
+        // https://plugins.gradle.org/plugin/nebula.lint
+        static nebulaLint = "10.1.2"
+
+        // https://plugins.gradle.org/plugin/nebula.dependency-lock
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1")
+
+        // https://plugins.gradle.org/plugin/nebula.resolution-rules
+        static nebulaResolutionRules = "7.0.4"
+
+        // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
+        static shadow = Versions.of("4.0.1")
+
+        // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
+        static asciidoctor = "1.5.8.1"
+
+        // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
+        static docker = "3.6.1"
+
+        // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
+        static tomcat = "2.5"
+
+        // https://plugins.gradle.org/plugin/io.spring.dependency-management
+        static springDependencyManagement = "1.0.6.RELEASE"
+
+        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
+        static springBoot = "2.0.5.RELEASE"
+
+        // https://developer.android.com/studio/releases/build-tools
+        static androidTools = "28.0.3"
+        // https://developer.android.com/studio/releases/gradle-plugin
+        static androidGradle3x = "3.2.0"
+        static androidGradle = Versions.of(androidGradle3x)
+
+        // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
+        static kotlin = Versions.of('1.2.21', '1.2.31', '1.2.41', '1.2.51', '1.2.61', '1.2.71')
+
+        // https://plugins.gradle.org/plugin/org.gretty
+        static gretty = "2.2.0"
+
+        // https://plugins.gradle.org/plugin/com.eriwen.gradle.js
+        static gradleJs = "2.14.1"
+
+        // https://plugins.gradle.org/plugin/com.eriwen.gradle.css
+        static gradleCss = "2.14.0"
+
+        // https://plugins.gradle.org/plugin/org.gosu-lang.gosu
+        static gosu = "0.3.10"
+
+        // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
+        static grgit = "3.0.0-beta.1"
+
+        // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
+        static gradleVersions = "0.20.0"
+    }
+
+    static class Versions implements Iterable<String> {
+        static Versions of(String... versions) {
+            new Versions(versions)
+        }
+
+        final List<String> versions
+
+        String latest() {
+            versions.last()
+        }
+
+        private Versions(String... given) {
+            versions = Arrays.asList(given)
+        }
+
+        @Override
+        Iterator<String> iterator() {
+            return versions.iterator()
+        }
+    }
+
+    private static final String INIT_SCRIPT_LOCATION = "org.gradle.smoketests.init.script"
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
+    File settingsFile
+
     def setup() {
         buildFile = new File(testProjectDir.root, defaultBuildFileName)
+        settingsFile = new File(testProjectDir.root, "settings.gradle")
     }
 
     protected String getDefaultBuildFileName() {
@@ -50,7 +147,12 @@ abstract class AbstractSmokeTest extends Specification {
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(tasks.toList() + ['-s'])
+            .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters())
+    }
+
+    private static List<String> repoMirrorParameters() {
+        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+        return ['-I', mirrorInitScriptPath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString(), "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}".toString()]
     }
 
     protected void useSample(String sampleDirectory) {

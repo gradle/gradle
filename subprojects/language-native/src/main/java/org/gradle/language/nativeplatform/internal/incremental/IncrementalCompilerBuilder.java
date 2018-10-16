@@ -22,8 +22,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
+import java.util.Map;
+
 public interface IncrementalCompilerBuilder {
-    IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Provider<Boolean> importAware);
+    IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Map<String, String> macros, Provider<Boolean> importAware);
 
     interface IncrementalCompiler {
         <T extends NativeCompileSpec> Compiler<T> createCompiler(Compiler<T> compiler);

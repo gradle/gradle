@@ -16,6 +16,7 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import spock.lang.Issue
 import spock.lang.Unroll
 
 /**
@@ -29,6 +30,7 @@ import spock.lang.Unroll
  * Reasons for breaking:
  *   - e.g. change in Gradle that breaks the Gradle build
  */
+@Issue('https://github.com/gradle/gradle-private/issues/1313')
 class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
@@ -36,7 +38,8 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
-        runner.targetVersions = ["4.7-20180330212523+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.args = ["-Djava9Home=${System.getProperty('java9Home')}"]
 
         when:
         def result = runner.run()

@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.BuildOperationTypes
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -48,10 +49,14 @@ class BuildOperationsFixture {
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> roots() {
-        return operations.roots
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        def roots = operations.roots.findAll {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
+        assert roots.size() == 1
+        return roots[0]
     }
-
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
@@ -59,6 +64,12 @@ class BuildOperationsFixture {
         operations.records.values().find {
             it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
         }
+    }
+
+    static <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type) {
+        assert record.detailsType
+        def detailsType = BuildOperationTypes.detailsType(type)
+        detailsType.isAssignableFrom(record.detailsType)
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
@@ -292,5 +303,40 @@ class BuildOperationsFixture {
             }
         }
         return concurrentOperations
+    }
+
+    void debugTree(
+        Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL,
+        Spec<? super BuildOperationRecord> progressPredicate = Specs.SATISFIES_ALL
+    ) {
+        operations.roots.each { debugOpTree(it, 0, predicate, progressPredicate) }
+    }
+
+    private void debugOpTree(
+        BuildOperationRecord op,
+        int level,
+        Spec<? super BuildOperationRecord> predicate,
+        Spec<? super BuildOperationRecord> progressPredicate
+    ) {
+        if (predicate.isSatisfiedBy(op)) {
+            println "${'  ' * level}(${op.displayName}, id: $op.id${op.detailsType ? ", details type: ${simpleClassName(op.detailsType)}" : ''})${op.details ? " $op.details" : ''}"
+            if (progressPredicate.isSatisfiedBy(op)) {
+                op.progress.each { p ->
+                    def repr = p.hasDetailsOfType(StyledTextOutputEvent) ? p.details.spans*.text.join('') : "$p.detailsType.simpleName ${p.details?.toString() ?: ''}\n"
+                    print "${'  ' * (level + 1)} $repr"
+                }
+            }
+            op.children.each { debugOpTree(it, level + 1, predicate, progressPredicate) }
+        }
+    }
+
+    private static String simpleClassName(Class<?> detailsType) {
+        if (!detailsType) {
+            return null
+        } else {
+            // Class.simpleName returns "" for certain anonymous classes and unhelpful things like "Details" for our op interfaces
+            String clsName = detailsType.interfaces.first().name
+            clsName.substring(clsName.lastIndexOf('.') + 1)
+        }
     }
 }

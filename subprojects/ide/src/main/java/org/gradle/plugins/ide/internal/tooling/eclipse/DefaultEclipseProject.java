@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import com.google.common.collect.Lists;
-import org.gradle.tooling.internal.gradle.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
@@ -135,7 +135,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.linkedResources = linkedResources;
     }
 
-    public DefaultGradleProject<?> getGradleProject() {
+    public DefaultGradleProject getGradleProject() {
         return gradleProject;
     }
 

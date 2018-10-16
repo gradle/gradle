@@ -22,6 +22,8 @@ import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.event.ListenerBroadcast
 import spock.lang.Specification
+import org.openmbee.junit.JUnitMarshalling
+import org.openmbee.junit.model.JUnitTestSuite
 
 class JUnitXmlTestEventsGeneratorTest extends Specification {
     def "uses correct failure message"() {
@@ -53,17 +55,25 @@ class JUnitXmlTestEventsGeneratorTest extends Specification {
                 </failure>
                 </testcase>
             </testsuite>""".stripIndent()
-        def gpath = new XmlSlurper().parseText(xml)
+        JUnitTestSuite testSuite = JUnitMarshalling.unmarshalTestSuite(new ByteArrayInputStream(xml.bytes))
         ListenerBroadcast<TestListener> testListenerBroadcast = Mock()
         TestListener testListener = Mock()
         ListenerBroadcast<TestOutputListener> testOutputListenerBroadcast = Mock()
         TestOutputListener testOutputListener = Mock()
         TestDescriptorInternal testDescriptor = null
         TestResult testResult = null
-        Object build = new XmlSlurper().parseText("""<build webUrl="http://some.url"><properties><property name="scenario" value="configuration of ktsManyProjects (--recompile-scripts)" inherited="false"/></properties></build>""")
+        Map build = [
+            webUrl: "http://some.url",
+            properties: [
+                count: 1,
+                property: [[name: 'scenario',
+                           value: 'configuration of ktsManyProjects (--recompile-scripts)',
+                           inherited: 'false']]
+            ]
+        ]
 
         when:
-        new JUnitXmlTestEventsGenerator(testListenerBroadcast, testOutputListenerBroadcast).processXml(gpath, build)
+        new JUnitXmlTestEventsGenerator(testListenerBroadcast, testOutputListenerBroadcast).processTestSuite(testSuite, build)
 
         then:
         _ * testListenerBroadcast.getSource() >> testListener

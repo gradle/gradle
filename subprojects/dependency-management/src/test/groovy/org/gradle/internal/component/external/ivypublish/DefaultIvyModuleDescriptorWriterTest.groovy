@@ -18,8 +18,10 @@ package org.gradle.internal.component.external.ivypublish
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata
@@ -34,7 +36,7 @@ import java.text.SimpleDateFormat
 class DefaultIvyModuleDescriptorWriterTest extends Specification {
 
     private @Rule TestNameTestDirectoryProvider temporaryFolder;
-    ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("org.test", "projectA", "1.0")
+    ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "projectA"), "1.0")
     ComponentSelectorConverter componentSelectorConverter = Mock(ComponentSelectorConverter)
     def ivyXmlModuleDescriptorWriter = new DefaultIvyModuleDescriptorWriter(componentSelectorConverter)
 
@@ -48,8 +50,8 @@ class DefaultIvyModuleDescriptorWriterTest extends Specification {
         addDependencyDescriptor(conf, "Dep2")
         metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
 
-        1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector("org.test", "Dep1", "1.0")
-        1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector("org.test", "Dep2", "1.0")
+        1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId("org.test", "Dep1"), "1.0")
+        1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId("org.test", "Dep2"), "1.0")
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
         ivyXmlModuleDescriptorWriter.write(metadata, ivyFile);
 
@@ -73,8 +75,8 @@ class DefaultIvyModuleDescriptorWriterTest extends Specification {
 
     def addDependencyDescriptor(BuildableLocalConfigurationMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
         def dep = new LocalComponentDependencyMetadata(metadata.getComponentId(),
-            DefaultModuleComponentSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
-            "runtime", null, "default", [] as List, [], false, false, true, false, null)
+            DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(organisation, moduleName), new DefaultMutableVersionConstraint(revision)),
+            "runtime", null, ImmutableAttributes.EMPTY, "default", [] as List, [], false, false, true, false, null)
         metadata.addDependency(dep)
     }
 

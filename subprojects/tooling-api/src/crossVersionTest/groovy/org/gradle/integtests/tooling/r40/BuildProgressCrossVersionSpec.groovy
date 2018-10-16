@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.r40
 
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -31,7 +31,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@ToolingApiVersion(">=2.5")
+@IntegrationTestTimeout(300)
 @TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule
@@ -42,15 +42,31 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
         import org.gradle.workers.*
+        import java.net.URLClassLoader
+        import java.net.URL
+        import org.gradle.internal.classloader.ClasspathUtil
+        
         class TestRunnable implements Runnable {
             @Override public void run() {
                 // Do nothing
             }
         }
+        
+        // Set up a simpler classloader that only contains what TestRunnable needs.
+        // This can be removed when the issues with long classpaths have been resolved.
+        // See https://github.com/gradle/gradle-private/issues/1486
+        ClassLoader cl = new URLClassLoader(
+            ClasspathUtil.getClasspath(TestRunnable.class.classLoader).asURLs.findAll { url ->
+                ["scripts-remapped", "groovy-all"].any { url.toString().contains(it) }
+            } as URL[]
+        )
+        
+        def testRunnable = cl.loadClass("TestRunnable")
+        
         task runInProcess {
             doLast {
                 def workerExecutor = services.get(WorkerExecutor)
-                workerExecutor.submit(TestRunnable) { config ->
+                workerExecutor.submit(testRunnable) { config ->
                     config.isolationMode = IsolationMode.NONE
                     config.displayName = 'My in-process worker action'
                 }
@@ -59,7 +75,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         task runForked {
             doLast {
                 def workerExecutor = services.get(WorkerExecutor)
-                workerExecutor.submit(TestRunnable) { config ->
+                workerExecutor.submit(testRunnable) { config ->
                     config.isolationMode = IsolationMode.PROCESS
                     config.displayName = 'My forked worker action'
                 }
@@ -72,6 +88,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
+                    .setStandardOutput(System.out)
                     .forTasks('runInProcess', 'runForked')
                     .addProgressListener(events)
                     .run()
@@ -275,7 +292,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        events.operation('Configure project :').children.size() == 1 //only 'Apply plugin org.gradle.help-tasks'
+        events.operation('Configure project :').children.size() <= 5 //only 'Apply plugin org.gradle.help-tasks', maybe before/afterEvaluated and 2 delayed task registrations
     }
 
     def "generates events for applied script plugins"() {

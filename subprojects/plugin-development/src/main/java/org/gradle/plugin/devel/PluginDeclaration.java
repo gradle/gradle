@@ -20,22 +20,23 @@ import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
 
 //TODO version - could be different from main artifact's version
-//TODO description - could be put in the Pom/Ivy file for clarity
 /**
  * Describes a Gradle plugin under development.
  *
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-@Incubating
 public class PluginDeclaration implements Named, Serializable {
     private final String name;
     private String id;
     private String implementationClass;
+    private String displayName;
+    private String description;
 
     public PluginDeclaration(String name) {
         this.name = name;
@@ -60,6 +61,60 @@ public class PluginDeclaration implements Named, Serializable {
 
     public void setImplementationClass(String implementationClass) {
         this.implementationClass = implementationClass;
+    }
+
+    /**
+     * Returns the display name for this plugin declaration.
+     *
+     * <p>The display name is used when publishing this plugin to repositories
+     * that support human-readable artifact names.
+     *
+     * @since 4.10
+     */
+    @Incubating
+    @Nullable
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    /**
+     * Sets the display name for this plugin declaration.
+     *
+     * <p>The display name is used when publishing this plugin to repositories
+     * that support human-readable artifact names.
+     *
+     * @since 4.10
+     */
+    @Incubating
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /**
+     * Returns the description for this plugin declaration.
+     *
+     * <p>The description is used when publishing this plugin to repositories
+     * that support providing descriptions for artifacts.
+     *
+     * @since 4.10
+     */
+    @Incubating
+    @Nullable
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description for this plugin declaration.
+     *
+     * <p>The description is used when publishing this plugin to repositories
+     * that support providing descriptions for artifacts.
+     *
+     * @since 4.10
+     */
+    @Incubating
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

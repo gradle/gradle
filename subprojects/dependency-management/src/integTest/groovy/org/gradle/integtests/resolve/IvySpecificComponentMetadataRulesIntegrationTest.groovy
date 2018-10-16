@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
@@ -47,9 +48,10 @@ task resolve {
     }
 }
 """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
-    def "can access Ivy metadata by accepting parameter of type IvyModuleDescriptor"() {
+    def "can access Ivy metadata"() {
         given:
         repository {
             'org.test:projectA:1.0' {
@@ -63,22 +65,28 @@ task resolve {
 
         buildFile <<
             """
-def ruleInvoked = false
+class IvyRule implements ComponentMetadataRule {
+    static boolean ruleInvoked
 
-dependencies {
-    components {
-        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
+    @Override
+    void execute(ComponentMetadataContext context) {
             ruleInvoked = true
+            def descriptor = context.getDescriptor(IvyModuleDescriptor)
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.extraInfo.get('foo') == 'fooValue'
             assert descriptor.extraInfo.get('${ns('foo').namespace}', 'foo') == 'fooValue'
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
-        }
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+dependencies {
+    components {
+        all(IvyRule)
+    }
+}
+
+resolve.doLast { assert IvyRule.ruleInvoked }
 """
         when:
         repositoryInteractions {
@@ -103,20 +111,21 @@ resolve.doLast { assert ruleInvoked }
             }
         }
 
-        buildFile <<
-            """
-def ruleInvoked = false
+        buildFile << """
+class IvyRule implements ComponentMetadataRule {
 
-dependencies {
-    components {
-        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
-            ruleInvoked = true
+    @Override
+    void execute(ComponentMetadataContext context) {
+            def descriptor = context.getDescriptor(IvyModuleDescriptor)
             descriptor.extraInfo.get('foo')
-        }
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+dependencies {
+    components {
+        all(IvyRule)
+    }
+}
 """
 
         and:
@@ -131,7 +140,7 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(48)
+        failure.assertHasLineNumber(51)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
@@ -153,20 +162,26 @@ resolve.doLast { assert ruleInvoked }
 
         buildFile <<
             """
-def ruleInvoked = false
+class IvyRule implements ComponentMetadataRule {
+    static boolean ruleInvoked
 
-dependencies {
-    components {
-        all { details, IvyModuleDescriptor descriptor ->
+    @Override
+    void execute(ComponentMetadataContext context) {
             ruleInvoked = true
+            def descriptor = context.getDescriptor(IvyModuleDescriptor)
             assert descriptor.branch == '${sq(branch)}'
-            details.statusScheme = [ '${sq(status)}' ]
+            context.details.statusScheme = [ '${sq(status)}' ]
             assert descriptor.ivyStatus == '${sq(status)}'
-        }
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+dependencies {
+    components {
+        all(IvyRule)
+    }
+}
+
+resolve.doLast { assert IvyRule.ruleInvoked }
 """
 
         when:

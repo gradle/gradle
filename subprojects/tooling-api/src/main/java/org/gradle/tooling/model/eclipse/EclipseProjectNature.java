@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.Incubating;
-
 /**
  * An Eclipse project nature definition.
  *
  * @since 2.9
  */
-@Incubating
 public interface EclipseProjectNature {
 
     /**

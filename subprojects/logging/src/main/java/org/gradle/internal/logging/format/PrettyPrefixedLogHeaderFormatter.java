@@ -19,19 +19,17 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     @Override
-    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, String status, boolean failed) {
-        final String message = header != null ? header : description;
+    public List<StyledTextOutputEvent.Span> format(String description, String status, boolean failed) {
         if (status.isEmpty()) {
-            return Lists.newArrayList(header(message, failed), EOL);
+            return Lists.newArrayList(header(description, failed), EOL);
         } else {
-            return Lists.newArrayList(header(message, failed), status(status, failed), EOL);
+            return Lists.newArrayList(header(description, failed), status(status, failed), EOL);
         }
     }
 

@@ -42,6 +42,7 @@ import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.process.internal.ExecActionFactory;
 
+import java.util.Collection;
 import java.util.List;
 
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
@@ -68,35 +69,32 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         }
     }
 
-    public static class LocalLibraryDependencyResolverFactory implements ResolverProviderFactory {
+    private static class LocalLibraryDependencyResolverFactory implements ResolverProviderFactory {
         private final ProjectModelResolver projectModelResolver;
         private final ModelSchemaStore schemaStore;
         private final List<VariantAxisCompatibilityFactory> factories;
 
-        public LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
+        LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
             this.projectModelResolver = projectModelResolver;
             this.schemaStore = schemaStore;
             this.factories = factories;
         }
 
         @Override
-        public boolean canCreate(ResolveContext context) {
-            return context instanceof JvmLibraryResolveContext;
-        }
-
-        @Override
-        public ComponentResolvers create(ResolveContext context) {
-            VariantsMetaData variants = ((JvmLibraryResolveContext) context).getVariants();
-            VariantBinarySelector variantSelector = new JvmVariantSelector(factories, JvmBinarySpec.class, schemaStore, variants);
-            JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
-            return new LocalLibraryDependencyResolver(
+        public void create(ResolveContext context, Collection<ComponentResolvers> resolvers) {
+            if (context instanceof JvmLibraryResolveContext) {
+                VariantsMetaData variants = ((JvmLibraryResolveContext) context).getVariants();
+                VariantBinarySelector variantSelector = new JvmVariantSelector(factories, JvmBinarySpec.class, schemaStore, variants);
+                JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
+                resolvers.add(new LocalLibraryDependencyResolver(
                     JvmBinarySpec.class,
                     projectModelResolver,
                     new DefaultLocalLibraryResolver(),
                     variantSelector,
                     libraryMetaDataAdapter,
                     new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
-            );
+                ));
+            }
         }
     }
 }

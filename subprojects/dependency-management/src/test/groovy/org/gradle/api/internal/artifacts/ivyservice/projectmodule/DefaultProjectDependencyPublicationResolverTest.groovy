@@ -178,6 +178,26 @@ Found the following publications in <project>:
   - Publication 'pub3' with coordinates other-group:other-name2:other-version""")
     }
 
+    def "When target project has multiple publications with different coordinates, but only one has a component, that one is resolved"() {
+        given:
+        def component1 = Stub(SoftwareComponentInternal)
+
+        when:
+        def publication = pub('mock', "pub-group", "pub-name", "pub-version")
+        publication.component >> component1
+        def publication2 = pub('pub2', "other-group", "other-name1", "other-version")
+        def publication3 = pub('pub3', "other-group", "other-name2", "other-version")
+
+        dependentProjectHasPublications(publication, publication2, publication3)
+
+        then:
+        with (resolve()) {
+            group == "pub-group"
+            name == "pub-name"
+            version == "pub-version"
+        }
+    }
+
     def "resolve fails when target project has no publications with coordinate of requested type and no default available"() {
         when:
         dependentProjectHasPublications()

@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 
 import java.util.Set;
 
@@ -32,10 +34,10 @@ public class ClassAnalysis {
 
     public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, IntSet constants, Set<String> superTypes) {
         this.className = className;
-        this.classDependencies = classDependencies;
+        this.classDependencies = ImmutableSet.copyOf(classDependencies);
         this.dependencyToAll = dependencyToAll;
-        this.constants = constants;
-        this.superTypes = superTypes;
+        this.constants = constants.isEmpty() ? IntSets.EMPTY_SET : constants;
+        this.superTypes = ImmutableSet.copyOf(superTypes);
     }
 
     public String getClassName() {

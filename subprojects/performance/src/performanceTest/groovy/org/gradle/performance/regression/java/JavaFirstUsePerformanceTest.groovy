@@ -17,16 +17,20 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.util.GFileUtils
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
+@Category(PerformanceExperiment)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
@@ -35,13 +39,15 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
+        runner.runs = runs
         runner.useDaemon = false
-        runner.targetVersions = ["4.7-20180330212523+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
                 runner.workingDir.eachDir {
                     GFileUtils.deleteDirectory(new File(it, '.gradle'))
+                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
                     GFileUtils.deleteDirectory(new File(it, 'gradle-user-home'))
                 }
             }
@@ -54,9 +60,41 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                         | runs
+        LARGE_MONOLITHIC_JAVA_PROJECT       | 10
+        LARGE_JAVA_MULTI_PROJECT            | 10
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | 5
+    }
+
+    @Unroll
+    def "clean checkout of #testProject"() {
+        given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = ['tasks']
+        runner.useDaemon = false
+        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                runner.workingDir.eachDir {
+                    GFileUtils.deleteDirectory(new File(it, '.gradle'))
+                    GFileUtils.deleteDirectory(new File(it, 'buildSrc/.gradle'))
+                }
+            }
+        })
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                              | _
+        LARGE_MONOLITHIC_JAVA_PROJECT            | _
+        LARGE_JAVA_MULTI_PROJECT                 | _
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 
     @Unroll
@@ -66,7 +104,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["4.7-20180330212523+0000"]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
 
         when:
         def result = runner.run()
@@ -75,8 +113,9 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                              | _
+        LARGE_MONOLITHIC_JAVA_PROJECT            | _
+        LARGE_JAVA_MULTI_PROJECT                 | _
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 }

@@ -23,8 +23,10 @@ import org.gradle.api.Action;
  * This type is not thread-safe.
  *
  * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
+ *
+ * Implements {@link InternalListener} as components themselves should be decorated if appropriate.
  */
-public class MutableActionSet<T> implements Action<T> {
+public class MutableActionSet<T> implements Action<T>, InternalListener {
     private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
 
     public void add(Action<? super T> action) {

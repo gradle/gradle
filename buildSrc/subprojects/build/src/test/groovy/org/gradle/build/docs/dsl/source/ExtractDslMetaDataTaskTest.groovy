@@ -111,6 +111,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def readOnly = groovyClass.findDeclaredProperty('readOnly')
         readOnly.type.signature == 'java.lang.Object'
         readOnly.rawCommentText.contains('A read-only property.')
+        readOnly.readable
         !readOnly.writeable
         readOnly.getter.rawCommentText.contains('A read-only property.')
         !readOnly.setter
@@ -118,6 +119,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def writeOnly = groovyClass.findDeclaredProperty('writeOnly')
         writeOnly.type.signature == 'org.gradle.test.JavaInterface'
         writeOnly.rawCommentText.contains('A write-only property.')
+        !writeOnly.readable
         writeOnly.writeable
         !writeOnly.getter
         writeOnly.setter.rawCommentText.contains('A write-only property.')
@@ -125,6 +127,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def someProp = groovyClass.findDeclaredProperty('someProp')
         someProp.type.signature == 'org.gradle.test.GroovyInterface'
         someProp.rawCommentText.contains('A property.')
+        someProp.readable
         someProp.writeable
         someProp.getter.rawCommentText.contains('A property.')
         someProp.setter.rawCommentText == ''
@@ -132,6 +135,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def groovyProp = groovyClass.findDeclaredProperty('groovyProp')
         groovyProp.type.signature == 'org.gradle.test.GroovyInterface'
         groovyProp.rawCommentText.contains('A groovy property.')
+        groovyProp.readable
         groovyProp.writeable
         groovyProp.getter.rawCommentText == ''
         groovyProp.setter.rawCommentText == ''
@@ -139,6 +143,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def readOnlyGroovyProp = groovyClass.findDeclaredProperty('readOnlyGroovyProp')
         readOnlyGroovyProp.type.signature == 'java.lang.String'
         readOnlyGroovyProp.rawCommentText.contains('A read-only groovy property.')
+        readOnlyGroovyProp.readable
         !readOnlyGroovyProp.writeable
         readOnlyGroovyProp.getter.rawCommentText == ''
         !readOnlyGroovyProp.setter
@@ -146,6 +151,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def arrayProp = groovyClass.findDeclaredProperty('arrayProp')
         arrayProp.type.signature == 'java.lang.String[]'
         arrayProp.rawCommentText.contains('An array property.')
+        arrayProp.readable
         arrayProp.writeable
         arrayProp.getter.rawCommentText == ''
         arrayProp.setter.rawCommentText == ''
@@ -166,6 +172,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def readOnly = javaClass.findDeclaredProperty('readOnly')
         readOnly.type.signature == 'java.lang.String'
         readOnly.rawCommentText.contains('A read-only property.')
+        readOnly.readable
         !readOnly.writeable
         readOnly.getter.rawCommentText.contains('A read-only property.')
         !readOnly.setter
@@ -173,6 +180,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def writeOnly = javaClass.findDeclaredProperty('writeOnly')
         writeOnly.type.signature == 'org.gradle.test.JavaInterface'
         writeOnly.rawCommentText.contains('A write-only property.')
+        !writeOnly.readable
         writeOnly.writeable
         !writeOnly.getter
         writeOnly.setter.rawCommentText.contains('A write-only property.')
@@ -180,6 +188,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def someProp = javaClass.findDeclaredProperty('someProp')
         someProp.type.signature == 'org.gradle.test.JavaInterface'
         someProp.rawCommentText.contains('A property.')
+        someProp.readable
         someProp.writeable
         someProp.getter.rawCommentText.contains('A property.')
         someProp.setter.rawCommentText.contains('The setter for a property.')
@@ -187,6 +196,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def flag = javaClass.findDeclaredProperty('flag')
         flag.type.signature == 'boolean'
         flag.rawCommentText.contains('A boolean property.')
+        flag.readable
         !flag.writeable
         flag.getter.rawCommentText.contains('A boolean property.')
         !flag.setter
@@ -194,6 +204,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def arrayProp = javaClass.findDeclaredProperty('arrayProp')
         arrayProp.type.signature == 'org.gradle.test.JavaInterface[][][]'
         arrayProp.rawCommentText.contains('An array property.')
+        arrayProp.readable
         !arrayProp.writeable
         arrayProp.getter.rawCommentText.contains('An array property.')
         !arrayProp.setter

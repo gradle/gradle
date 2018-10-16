@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.FeaturePreviews;
@@ -23,21 +24,14 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.DefaultClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultCompileClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.SplitFileHasher;
+import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
@@ -47,12 +41,11 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
-import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
@@ -61,14 +54,25 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.filewatch.PendingChangesManager;
-import org.gradle.internal.hash.ContentHasherFactory;
+import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
+import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -78,11 +82,16 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
-import org.gradle.util.GradleVersion;
+import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
 
@@ -91,7 +100,7 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken) {
         super(parent);
         addProvider(crossBuildSessionScopeServices);
         register(new Action<ServiceRegistration>() {
@@ -103,6 +112,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+        add(BuildCancellationToken.class, buildCancellationToken);
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
         add(BuildRequestMetaData.class, buildRequestMetaData);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
@@ -123,19 +133,14 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return parent.createChild();
     }
 
-    GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
-        String gradleVersion = GradleVersion.current().getVersion();
-        return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
-    }
-
     CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
     }
 
-    ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory) {
+    ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory, ProgressLoggerFactory progressLoggerFactory) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
-        return new ProjectCacheDir(cacheDir);
+        return new ProjectCacheDir(cacheDir, progressLoggerFactory);
     }
 
     BuildScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
@@ -150,33 +155,47 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileHasher createFileSnapshotter(TaskHistoryStore cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
-        return new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+    FileHasher createFileSnapshotter(FileHasher globalHasher, TaskHistoryStore cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher, WellKnownFileLocations wellKnownFileLocations) {
+        CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+        return new SplitFileHasher(globalHasher, localHasher, wellKnownFileLocations);
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, ContentHasherFactory contentHasherFactory) {
-        return new DefaultScriptSourceHasher(fileHasher, contentHasherFactory);
+    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
+        return new DefaultScriptSourceHasher(fileHasher);
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror);
+    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    GenericFileCollectionSnapshotter createGenericFileCollectionSnapshotter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
     }
 
-    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(TaskHistoryStore store) {
+    RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new RelativePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    }
+
+    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new NameOnlyFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    }
+
+    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new IgnoredPathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    }
+
+    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
+        return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    }
+
+    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, TaskHistoryStore store, WellKnownFileLocations wellKnownFileLocations) {
         PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache("resourceHashesCache", HashCode.class, new HashCodeSerializer(), 800000, true);
-        return new ResourceSnapshotterCacheService(resourceHashesCache);
+        DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
+        return new SplitResourceSnapshotterCacheService(globalCache, localCache, wellKnownFileLocations);
     }
 
-    CompileClasspathSnapshotter createCompileClasspathSnapshotter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
-        return new DefaultCompileClasspathSnapshotter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
-    }
-
-    protected ClasspathSnapshotter createClasspathSnapshotter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, DirectoryFileTreeFactory directoryFileTreeFactory, StringInterner stringInterner) {
-        return new DefaultClasspathSnapshotter(resourceSnapshotterCacheService, directoryFileTreeFactory, fileSystemSnapshotter, stringInterner);
+    CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileSystemSnapshotter, stringInterner);
     }
 
     DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
@@ -206,5 +225,21 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
         return new CleanupActionFactory(buildOperationExecutor);
+    }
+
+    protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
+        return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
+    }
+
+    DeprecatedUsageBuildOperationProgressBroadaster createDeprecatedUsageBuildOperationProgressBroadaster(
+        Clock clock,
+        BuildOperationListenerManager buildOperationListenerManager,
+        CurrentBuildOperationRef currentBuildOperationRef
+    ) {
+        return new DeprecatedUsageBuildOperationProgressBroadaster(
+            clock,
+            buildOperationListenerManager.getBroadcaster(),
+            currentBuildOperationRef
+        );
     }
 }

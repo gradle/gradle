@@ -116,6 +116,24 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
         created.value == "changed"
     }
 
+    def "register methods delegated to parent"() {
+        given:
+        def container = parent.containerWithType(CreatedSubType)
+        container.register("createdOne")
+        container.register("createdTwo") {
+            it.value = "changed"
+        }
+
+        when:
+        def namedOne = container.named("createdOne")
+        def namedTwo = container.named("createdTwo")
+        then:
+        namedOne.present
+        namedOne.get().value == "original"
+        namedTwo.present
+        namedTwo.get().value == "changed"
+    }
+
     def containerHas(def container, String... names) {
         assert container.toList().collect {it.name} == names as List
         true

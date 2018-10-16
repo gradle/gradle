@@ -23,11 +23,13 @@ dependencies {
     compile project(':plugins')
     compile project(':maven')
 
+    testCompile project(':ivy')
+
     compile libraries.bouncycastle_pgp.coordinates
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

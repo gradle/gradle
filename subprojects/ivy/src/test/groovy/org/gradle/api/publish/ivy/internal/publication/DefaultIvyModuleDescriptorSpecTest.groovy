@@ -16,14 +16,18 @@
 
 package org.gradle.api.publish.ivy.internal.publication
 
-import javax.xml.namespace.QName
 import org.gradle.api.InvalidUserDataException
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
-class DefaultIvyModuleDescriptorSpecTest extends Specification {
-    def "getExtraInfo returns IvyExtraInfo with immutable map" () {
-        def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal))
+import javax.xml.namespace.QName
 
+import static org.gradle.util.TestUtil.objectFactory
+
+class DefaultIvyModuleDescriptorSpecTest extends Specification {
+    def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal), DirectInstantiator.INSTANCE, objectFactory())
+
+    def "getExtraInfo returns IvyExtraInfo with immutable map" () {
         when:
         spec.getExtraInfo().asMap().put(new QName('http://some.namespace', 'foo'), 'fooValue')
 
@@ -32,8 +36,6 @@ class DefaultIvyModuleDescriptorSpecTest extends Specification {
     }
 
     def "can add extra info elements" () {
-        def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal))
-
         when:
         spec.extraInfo 'http://some.namespace', 'foo', 'fooValue'
 
@@ -42,8 +44,6 @@ class DefaultIvyModuleDescriptorSpecTest extends Specification {
     }
 
     def "cannot add extra info elements with null values" () {
-        def spec = new DefaultIvyModuleDescriptorSpec(Stub(IvyPublicationInternal))
-
         when:
         spec.extraInfo namespace, name, 'fooValue'
 

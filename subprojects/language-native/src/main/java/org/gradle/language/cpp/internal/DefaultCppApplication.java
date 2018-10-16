@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
@@ -50,7 +49,7 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     }
 
     public DefaultCppExecutable addExecutable(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(identity.getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }

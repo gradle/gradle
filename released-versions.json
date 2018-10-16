@@ -1,13 +1,41 @@
 {
     "latestReleaseSnapshot": {
-        "version": "4.7-20180330212523+0000",
-        "buildTime": "20180330212523+0000"
+        "version": "5.0-20181016071031+0000",
+        "buildTime": "20181016071031+0000"
     },
     "latestRc": {
-        "version": "4.7-rc-1",
-        "buildTime": "20180403113602+0000"
+        "version": "5.0-milestone-1",
+        "buildTime": "20181002224615+0000"
     },
     "finalReleases": [
+        {
+            "version": "4.10.2",
+            "buildTime": "20180919181015+0000"
+        },
+        {
+            "version": "4.10.1",
+            "buildTime": "20180912113327+0000"
+        },
+        {
+            "version": "4.10",
+            "buildTime": "20180827183506+0000"
+        },
+        {
+            "version": "4.9",
+            "buildTime": "20180716081403+0000"
+        },
+        {
+            "version": "4.8.1",
+            "buildTime": "20180621075306+0000"
+        },
+        {
+            "version": "4.8",
+            "buildTime": "20180604103958+0000"
+        },
+        {
+            "version": "4.7",
+            "buildTime": "20180418090912+0000"
+        },
         {
             "version": "4.6",
             "buildTime": "20180228133636+0000"

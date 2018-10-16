@@ -21,6 +21,10 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def setup() {
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+    }
+
     def "can resolve unique and non-unique snapshots"() {
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -51,6 +55,7 @@ dependencies {
         run 'checkDeps'
 
         then:
+        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
@@ -735,9 +740,9 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasCause("""Could not find group:projectA:1.0-SNAPSHOT.
 Searched in the following locations:
-    ${projectA.metaData.uri}
-    ${projectA.pom.uri}
-    ${projectA.artifact.uri}
+  - ${projectA.metaData.uri}
+  - ${projectA.pom.uri}
+  - ${projectA.artifact.uri}
 Required by:
 """)
 
@@ -1030,8 +1035,8 @@ task retrieve(type: Sync) {
         then:
         failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
 Searched in the following locations:
-    ${projectA.pom.uri}
-    ${projectA.artifact.uri}
+  - ${projectA.pom.uri}
+  - ${projectA.artifact.uri}
 Required by:
 """)
     }

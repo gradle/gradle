@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
@@ -38,11 +40,15 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -105,7 +111,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputCachingState getCachingState(TaskProperties taskProperties) {
+    public TaskOutputCachingState getCachingState(TaskProperties taskProperties, TaskOutputCachingBuildCacheKey buildCacheKey) {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
@@ -122,13 +128,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     relativePath, overlappingOutputs.getPropertyName()));
         }
 
-        for (TaskPropertySpec spec : taskProperties.getOutputFileProperties()) {
-            if (spec instanceof NonCacheableTaskOutputPropertySpec) {
+        for (TaskOutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
+            if (!(spec instanceof CacheableTaskOutputFilePropertySpec)) {
                 return DefaultTaskOutputCachingState.disabled(
-                    PLURAL_OUTPUTS,
-                    "Declares multiple output files for the single output property '"
-                        + ((NonCacheableTaskOutputPropertySpec) spec).getOriginalPropertyName()
-                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+                    NON_CACHEABLE_TREE_OUTPUT,
+                    "Output property '"
+                        + spec.getPropertyName()
+                        + "' contains a file tree"
                 );
             }
         }
@@ -150,7 +156,51 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 );
             }
         }
+
+        if (!buildCacheKey.isValid()) {
+            return getCachingStateForInvalidCacheKey(buildCacheKey);
+        }
         return ENABLED;
+    }
+
+    private TaskOutputCachingState getCachingStateForInvalidCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
+        BuildCacheKeyInputs buildCacheKeyInputs = buildCacheKey.getInputs();
+        ImplementationSnapshot taskImplementation = buildCacheKeyInputs.getTaskImplementation();
+        if (taskImplementation != null && taskImplementation.isUnknown()) {
+            return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_IMPLEMENTATION, "Task class " + taskImplementation.getUnknownReason());
+        }
+
+        List<ImplementationSnapshot> actionImplementations = buildCacheKeyInputs.getActionImplementations();
+        if (actionImplementations != null && !actionImplementations.isEmpty()) {
+            for (ImplementationSnapshot actionImplementation : actionImplementations) {
+                if (actionImplementation.isUnknown()) {
+                    return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_ACTION, "Task action " + actionImplementation.getUnknownReason());
+                }
+            }
+        }
+
+        ImmutableSortedMap<String, String> invalidInputProperties = buildCacheKeyInputs.getNonCacheableInputProperties();
+        if (invalidInputProperties != null && !invalidInputProperties.isEmpty()) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("Non-cacheable inputs: ");
+            boolean first = true;
+            for (Map.Entry<String, String> entry : Preconditions.checkNotNull(invalidInputProperties).entrySet()) {
+                if (!first) {
+                    builder.append(", ");
+                }
+                first = false;
+                builder
+                    .append("property '")
+                    .append(entry.getKey())
+                    .append("' ")
+                    .append(entry.getValue());
+            }
+            return DefaultTaskOutputCachingState.disabled(
+                NON_CACHEABLE_INPUTS,
+                builder.toString()
+            );
+        }
+        throw new IllegalStateException("Cache key is invalid without a known reason: " + buildCacheKey);
     }
 
     @Nullable
@@ -208,6 +258,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
+                value.attachProducer(task);
                 DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
                 registeredFileProperties.add(outputFileSpec);
                 return outputFileSpec;
@@ -221,6 +272,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
+                value.attachProducer(task);
                 DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
                 registeredFileProperties.add(outputDirSpec);
                 return outputDirSpec;
@@ -310,5 +362,4 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             super.visitDependencies(context);
         }
     }
-
 }

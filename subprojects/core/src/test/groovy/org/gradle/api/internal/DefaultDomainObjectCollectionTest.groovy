@@ -18,16 +18,18 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
 
 import static org.gradle.util.WrapUtil.toList
 
 class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
     DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new IterationOrderRetainingSetElementSource<CharSequence>())
-    String a = "a"
-    String b = "b"
-    String c = "c"
+    StringBuffer a = new StringBuffer("a")
+    StringBuffer b = new StringBuffer("b")
+    StringBuffer c = new StringBuffer("c")
     StringBuilder d = new StringBuilder("d")
+    boolean externalProviderAllowed = true
 
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {
@@ -286,6 +288,33 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         then:
         1 * action.execute("b")
         0 * action._
+
+        and:
+        toList(container) == ["a"]
+    }
+
+    def callsRemoveActionWhenObjectRemovedUsingIteratorNoFlushAndLastElementIsUnrealized() {
+        def action = Mock(Action)
+        def provider = Mock(ProviderInternal)
+        _ * provider.get() >> "c"
+
+        container.whenObjectRemoved(action)
+        container.add("a")
+        container.add("b")
+        container.addLater(provider)
+
+        def iterator = container.iteratorNoFlush()
+        while(iterator.hasNext()) { iterator.next() }
+
+        when:
+        iterator.remove()
+
+        then:
+        1 * action.execute("b")
+        0 * action._
+
+        and:
+        toList(container) == ["a", "c"]
     }
 
     def allCallsActionForEachExistingObject() {
@@ -347,137 +376,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         expect:
         container.all { assert delegate == 'a' }
         container.add("a")
-    }
-
-    def callsVetoActionBeforeObjectIsAdded() {
-        def action = Mock(Action)
-        container.beforeChange(action)
-
-        when:
-        container.add("a")
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def objectIsNotAddedWhenVetoActionThrowsAnException() {
-        def action = Mock(Action)
-        def failure = new RuntimeException()
-        container.beforeChange(action)
-
-        when:
-        container.add("a")
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        1 * action.execute(null) >> { throw failure }
-
-        and:
-        !toList(container).contains("a")
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsAdded() {
-        def action = Mock(Action)
-        container.beforeChange(action)
-
-        when:
-        container.addAll(["a", "b"])
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionBeforeObjectIsRemoved() {
-        def action = Mock(Action)
-        container.beforeChange(action)
-
-        when:
-        container.remove("a")
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionBeforeObjectIsRemovedUsingIterator() {
-        def action = Mock(Action)
-
-        container.add("a")
-        container.beforeChange(action)
-
-        def iterator = container.iterator()
-        iterator.next()
-
-        when:
-        iterator.remove()
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def objectIsNotRemovedWhenVetoActionThrowsAnException() {
-        def action = Mock(Action)
-        def failure = new RuntimeException()
-
-        container.add("a")
-        container.beforeChange(action)
-
-        when:
-        container.remove("a")
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        1 * action.execute(null) >> { throw failure }
-
-        and:
-        toList(container).contains("a")
-    }
-
-    def callsVetoActionBeforeCollectionIsCleared() {
-        def action = Mock(Action)
-        container.beforeChange(action)
-
-        when:
-        container.clear()
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsRemoved() {
-        def action = Mock(Action)
-        container.beforeChange(action)
-
-        when:
-        container.removeAll(["a", "b"])
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsIntersected() {
-        def action = Mock(Action)
-        container.add("a")
-        container.add("b")
-        container.beforeChange(action)
-
-        when:
-        container.retainAll(toList())
-
-        then:
-        1 * action.execute(null)
-        0 * _
     }
 
     def canRemoveAndMaintainOrder() {

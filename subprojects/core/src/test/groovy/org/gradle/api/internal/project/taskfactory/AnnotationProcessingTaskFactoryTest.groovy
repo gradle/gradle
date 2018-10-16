@@ -29,6 +29,8 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -36,13 +38,54 @@ import spock.lang.Unroll
 import java.util.concurrent.Callable
 
 import static org.apache.commons.io.FileUtils.touch
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.*
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.Bean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.Bean2
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.NamedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBooleanInput
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBridgeMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithDestroyable
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithIncrementalAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInheritedMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInput
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithJavaBeanCornerCaseProperties
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithLocalState
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultiParamAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleIncrementalActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleMethods
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleProperties
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedBeanWithPrivateClass
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedIterable
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedObject
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalInputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalNestedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalNestedBeanWithPrivateType
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputDirs
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOptionalOutputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputDir
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputDirs
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFile
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFiles
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenIncrementalAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithProtectedMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithSingleParamAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithStaticMethod
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TestTask
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
-    private TaskClassInfoStore taskClassInfoStore
-    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -55,7 +98,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        taskClassInfoStore = new DefaultTaskClassInfoStore()
         factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
@@ -131,9 +173,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         expectTaskCreated(type)
 
         then:
-        def e = thrown Exception
-        e.cause instanceof GradleException
-        e.cause.message == failureMessage
+        def e = thrown GradleException
+        e.message == failureMessage
 
         where:
         type                               | failureMessage
@@ -743,12 +784,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
         final Class decorated = project.getServices().get(ClassGenerator).generate(type)
         final String name = "task"
-        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, name, type, new Callable<TaskInternal>() {
+        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<TaskInternal>() {
             TaskInternal call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
                 } else {
-                    return decorated.newInstance()
+                    return JavaReflectionUtil.newInstance(decorated)
                 }
             }
         })
@@ -757,8 +798,10 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private TaskInternal expectTaskCreated(final String name, final Class<? extends Task> type, final TaskInternal task) {
         // We cannot just stub here as we want to return a different task each time.
-        1 * delegate.create(name, type) >> task
-        assert factory.create(name, type).is(task)
+        def id = new TaskIdentity(type, name, null, null, null, 12)
+        1 * delegate.create(id) >> task
+        def createdTask = factory.create(id)
+        assert createdTask.is(task)
         return task
     }
 

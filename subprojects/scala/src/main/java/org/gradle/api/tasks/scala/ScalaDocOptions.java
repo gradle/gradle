@@ -16,16 +16,11 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -40,7 +35,6 @@ public class ScalaDocOptions extends AbstractOptions {
     private String footer;
     private String top;
     private String bottom;
-    private File styleSheet;
     private List<String> additionalParameters;
 
     /**
@@ -161,31 +155,6 @@ public class ScalaDocOptions extends AbstractOptions {
      */
     public void setBottom(@Nullable String bottom) {
         this.bottom = bottom;
-    }
-
-    /**
-     * Returns the style sheet to override default style.
-     *
-     * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
-     */
-    @Deprecated
-    @Nullable @Optional
-    @PathSensitive(PathSensitivity.ABSOLUTE)
-    @InputFile
-    public File getStyleSheet() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.getStyleSheet");
-        return styleSheet;
-    }
-
-    /**
-     * Sets the style sheet to override default style.
-     *
-     * @deprecated Scaladoc does not support to set a stylesheet any more (Scala 2.11).
-     */
-    @Deprecated
-    public void setStyleSheet(@Nullable File styleSheet) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ScalaDocOptions.setStyleSheet");
-        this.styleSheet = styleSheet;
     }
 
     /**

@@ -16,70 +16,60 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
+import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.PersistentCache;
-import org.gradle.util.GFileUtils;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.util.List;
 
 public abstract class AbstractCacheCleanup implements CleanupAction {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCacheCleanup.class);
 
+    private final FilesFinder eligibleFilesFinder;
+
+    public AbstractCacheCleanup(FilesFinder eligibleFilesFinder) {
+        this.eligibleFilesFinder = eligibleFilesFinder;
+    }
+
     @Override
-    public void clean(PersistentCache persistentCache) {
-        File[] filesEligibleForCleanup = findEligibleFiles(persistentCache);
-
-        if (filesEligibleForCleanup.length > 0) {
-            List<File> filesForDeletion = findFilesToDelete(persistentCache, filesEligibleForCleanup);
-
-            if (!filesForDeletion.isEmpty()) {
-                cleanupFiles(persistentCache, filesForDeletion);
-            }
-        }
-    }
-
-    protected abstract List<File> findFilesToDelete(PersistentCache persistentCache, File[] filesEligibleForCleanup);
-
-    private static File[] findEligibleFiles(final PersistentCache persistentCache) {
-        // TODO: This doesn't descend subdirectories.
-        return persistentCache.getBaseDir().listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return !isReserved(persistentCache, file);
-            }
-        });
-    }
-
-    @VisibleForTesting
-    static boolean isReserved(PersistentCache persistentCache, File file) {
-        return persistentCache.getReservedCacheFiles().contains(file);
-    }
-
-    @VisibleForTesting
-    static void cleanupFiles(PersistentCache persistentCache, List<File> filesForDeletion) {
-        // Need to remove some files
-        long removedSize = deleteFiles(filesForDeletion);
-        LOGGER.info("{} removing {} cache entries ({} reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
-    }
-
-    private static long deleteFiles(List<File> files) {
-        long removedSize = 0;
-        for (File file : files) {
-            try {
-                long size = file.length();
-                if (GFileUtils.deleteQuietly(file)) {
-                    removedSize += size;
+    public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
+        int filesDeleted = 0;
+        for (File file : findEligibleFiles(cleanableStore)) {
+            if (shouldDelete(file)) {
+                progressMonitor.incrementDeleted();
+                if (FileUtils.deleteQuietly(file)) {
+                    handleDeletion(file);
+                    filesDeleted += 1 + deleteEmptyParentDirectories(cleanableStore.getBaseDir(), file.getParentFile());
                 }
-            } catch (Exception e) {
-                LOGGER.debug("Could not clean up cache " + file, e);
+            } else {
+                progressMonitor.incrementSkipped();
             }
         }
-        return removedSize;
+        LOGGER.debug("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);
     }
+
+    protected int deleteEmptyParentDirectories(File baseDir, File dir) {
+        if (dir.equals(baseDir)) {
+            return 0;
+        }
+        File[] files = dir.listFiles();
+        if (files != null && files.length == 0 && dir.delete()) {
+            handleDeletion(dir);
+            return 1 + deleteEmptyParentDirectories(baseDir, dir.getParentFile());
+        }
+        return 0;
+    }
+
+    protected abstract boolean shouldDelete(File file);
+
+    protected abstract void handleDeletion(File file);
+
+    private Iterable<File> findEligibleFiles(CleanableStore cleanableStore) {
+        return eligibleFilesFinder.find(cleanableStore.getBaseDir(), new NonReservedFileFilter(cleanableStore.getReservedCacheFiles()));
+    }
+
 }

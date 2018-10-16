@@ -37,12 +37,17 @@ $repoDeclaration
 configurations {
     modules
 }
+
+class VerifyingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert !context.details.changing
+    }
+}
+
 dependencies {
     modules("org.test:moduleA:1.0") { changing = true }
     components {
-        all { details ->
-            assert !details.changing
-        }
+        all(VerifyingRule)
     }
 }
 task resolve {
@@ -63,12 +68,17 @@ $repoDeclaration
 configurations {
     modules
 }
+
+class VerifyingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert !context.details.changing
+    }
+}
+
 dependencies {
     modules "org.test:moduleA:$version"
     components {
-        all { details ->
-            assert !details.changing
-        }
+        all(VerifyingRule)
     }
 }
 task resolve {
@@ -95,10 +105,17 @@ configurations {
         resolutionStrategy.cacheChangingModulesFor 0, "seconds"
     }
 }
+
+class ChangingTrueRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        context.details.changing = true
+    }
+}
+
 dependencies {
     modules("org.test:moduleA:1.0")
     components {
-        all { details -> details.changing = true }
+        all(ChangingTrueRule)
     }
 }
 task resolve {
@@ -125,7 +142,13 @@ task resolve {
 
         when:
         buildFile << """
-dependencies.components.all { details -> details.changing = false }
+class ChangingFalseRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        context.details.changing = false
+    }
+}
+
+dependencies.components.all(ChangingFalseRule)
 """
         snapshot = artifact.snapshot()
         server.resetExpectations()
@@ -146,10 +169,17 @@ configurations {
         resolutionStrategy.cacheChangingModulesFor 0, "seconds"
     }
 }
+
+class UpdatingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        context.details.changing = false
+    }
+}
+
 dependencies {
     modules("org.test:moduleA:1.0") { changing = true }
     components {
-        all { details -> details.changing = false }
+        all(UpdatingRule)
     }
 }
 task resolve {

@@ -16,32 +16,77 @@
 
 package org.gradle.api.internal.model
 
+import org.gradle.api.internal.file.FilePropertyFactory
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
+import spock.lang.Unroll
 
 
 class DefaultObjectFactoryTest extends Specification {
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator))
+    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory), Stub(FilePropertyFactory))
 
     def "can create a property"() {
         expect:
         def property = factory.property(Boolean)
-        property.present
-        !property.get()
+        !property.present
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
+    }
+
+    def "cannot create property for null value"() {
+        when:
+        factory.property(null)
+
+        then:
+        def t = thrown(IllegalArgumentException)
+        t.message == 'Class cannot be null'
+    }
+
+    @Unroll
+    def "can create property with primitive type"() {
+        given:
+        def property = factory.property(type)
+
+        expect:
+        property.type == boxedType
+        !property.present
+
+        where:
+        type           | boxedType
+        Boolean.TYPE   | Boolean
+        Byte.TYPE      | Byte
+        Short.TYPE     | Short
+        Integer.TYPE   | Integer
+        Long.TYPE      | Long
+        Float.TYPE     | Float
+        Double.TYPE    | Double
+        Character.TYPE | Character
+    }
+
+    def "can create SourceDirectorySet"() {
+        expect:
+        factory.sourceDirectorySet("name", "display") != null
     }
 
     def "can create a List property"() {
         expect:
         def property = factory.listProperty(String)
-        property.present
-        property.get() == []
+        !property.present
+        property.getOrNull() == null
     }
 
     def "can create a Set property"() {
         expect:
         def property = factory.setProperty(String)
-        property.present
-        property.get() == [] as Set
+        !property.present
+        property.getOrNull() == null
     }
 
 }

@@ -20,7 +20,6 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -123,7 +122,9 @@ compileJava.options.debug = false
         !noDebug.debugIncludesLocalVariables
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    // JavaFx was removed in JDK 10
+    // Only oracle distribution contains JavaFx
+    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''
@@ -263,7 +264,6 @@ class Main {
         return new ClassFile(javaClassFile(path))
     }
 
-    @LeaksFileHandles("holds processor.jar open for in process compiler")
     def "can use annotation processor"() {
         when:
         buildFile << """
@@ -322,8 +322,8 @@ class Main {
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -384,10 +384,6 @@ class Main {
         then:
         fails("compileJava")
         failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
-    }
-
-    protected boolean gradleLeaksIntoAnnotationProcessor() {
-        return false;
     }
 
 }

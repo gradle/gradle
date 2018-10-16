@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-apply {
-    from("../gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+pluginManagement {
+    repositories {
+        maven {
+            name = "kotlin-eap"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
+        gradlePluginPortal()
+    }
 }
+
+apply(from = "../gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -41,6 +54,7 @@ include("plugins")
 include("profiling")
 include("performance")
 include("versioning")
+include("buildPlatform")
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName.gradle.kts"

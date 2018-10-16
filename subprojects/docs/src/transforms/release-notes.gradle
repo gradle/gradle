@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath('com.uwyn:jhighlight:1.0') {
-            exclude module: "servlet-api"
-        }
-    }
-}
-
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.jsoup.select.Elements

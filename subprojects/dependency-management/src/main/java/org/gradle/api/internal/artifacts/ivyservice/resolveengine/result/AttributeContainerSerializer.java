@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,66 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-/**
- * A lossy attribute container serializer. It's lossy because it doesn't preserve the attribute
- * types: it will serialize the contents as strings, and read them as strings, only for reporting
- * purposes.
- */
-public class AttributeContainerSerializer extends AbstractSerializer<AttributeContainer> {
-    private final ImmutableAttributesFactory attributesFactory;
-    private final NamedObjectInstantiator instantiator;
-    private static final byte STRING_ATTRIBUTE = 1;
-    private static final byte BOOLEAN_ATTRIBUTE = 2;
-
-    public AttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
-        this.attributesFactory = attributesFactory;
-        this.instantiator = instantiator;
-    }
+public interface AttributeContainerSerializer extends Serializer<AttributeContainer> {
+    @Override
+    ImmutableAttributes read(Decoder decoder) throws IOException;
 
     @Override
-    public ImmutableAttributes read(Decoder decoder) throws IOException {
-        ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
-        int count = decoder.readSmallInt();
-        for (int i = 0; i < count; i++) {
-            String name = decoder.readString();
-            byte type = decoder.readByte();
-            if (type == BOOLEAN_ATTRIBUTE) {
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, Boolean.class), decoder.readBoolean());
-            } else {
-                String value = decoder.readString();
-                attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, instantiator));
-            }
-        }
-        return attributes;
-    }
-
-    @Override
-    public void write(Encoder encoder, AttributeContainer container) throws IOException {
-        encoder.writeSmallInt(container.keySet().size());
-        for (Attribute<?> attribute : container.keySet()) {
-            encoder.writeString(attribute.getName());
-            if (attribute.getType().equals(Boolean.class)) {
-                encoder.writeByte(BOOLEAN_ATTRIBUTE);
-                encoder.writeBoolean((Boolean) container.getAttribute(attribute));
-            } else {
-                assert attribute.getType().equals(String.class);
-                encoder.writeByte(STRING_ATTRIBUTE);
-                encoder.writeString((String) container.getAttribute(attribute));
-            }
-        }
-    }
+    void write(Encoder encoder, AttributeContainer container) throws IOException;
 }

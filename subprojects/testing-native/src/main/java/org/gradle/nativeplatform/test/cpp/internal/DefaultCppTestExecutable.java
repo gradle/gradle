@@ -21,10 +21,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -34,6 +34,7 @@ import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
@@ -55,17 +56,16 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppTestExecutable(String name, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation,
-                                    Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity,
-                                    ConfigurationContainer configurations, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations) {
-        super(name, projectLayout, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultCppTestExecutable(Names names, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation,
+                                    Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, ConfigurationContainer configurations, ObjectFactory objects, FileOperations fileOperations) {
+        super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.testedComponent = testedComponent;
-        this.executableFile = projectLayout.fileProperty();
-        this.debuggerExecutableFile = projectLayout.fileProperty();
-        this.installationDirectory = projectLayout.directoryProperty();
+        this.executableFile = objects.fileProperty();
+        this.debuggerExecutableFile = objects.fileProperty();
+        this.installationDirectory = objects.directoryProperty();
         this.linkTaskProperty = objects.property(LinkExecutable.class);
         this.installTaskProperty = objects.property(InstallExecutable.class);
-        this.outputs = fileOperations.files();
+        this.outputs = fileOperations.configurableFiles();
         this.runTask = objects.property(RunTestExecutable.class);
     }
 
@@ -107,12 +107,12 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     @Override
     public FileCollection getCompileIncludePath() {
         // TODO: This should be modeled differently, perhaps as a dependency on the implementation configuration
-        return super.getCompileIncludePath().plus(getFileOperations().files(new Callable<FileCollection>() {
+        return super.getCompileIncludePath().plus(getFileOperations().immutableFiles(new Callable<FileCollection>() {
             @Override
             public FileCollection call() throws Exception {
                 CppComponent tested = testedComponent.getOrNull();
                 if (tested == null) {
-                    return getFileOperations().files();
+                    return ImmutableFileCollection.of();
                 }
                 return ((DefaultCppComponent) tested).getAllHeaderDirs();
             }

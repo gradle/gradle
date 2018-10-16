@@ -114,7 +114,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         fails 'configureNormalization'
 
         then:
-        failureHasCause 'Cannot configure input normalization after execution started.'
+        failureHasCause 'Cannot configure runtime classpath normalization after execution started.'
 
         where:
         useRuntimeApi << [true, false]
@@ -174,7 +174,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 return """
                     class CustomTask extends DefaultTask {
                         @OutputFile File outputFile = new File(temporaryDir, "output.txt")
-                        @Classpath FileCollection classpath = project.files("classpath/dirEntry", "library.jar")
+                        @Classpath FileCollection classpath = project.layout.files("classpath/dirEntry", "library.jar")
     
                         @TaskAction void generate() {
                             outputFile.text = "done"

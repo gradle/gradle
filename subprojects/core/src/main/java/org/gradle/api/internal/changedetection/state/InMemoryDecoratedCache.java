@@ -26,6 +26,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -54,7 +55,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
 
     @Override
     public V get(final K key) {
-        assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode : "Unsupported key type: " + key;
+        validateKeyType(key);
         Object value;
         try {
             value = inMemoryCache.get(key, new Callable<Object>() {
@@ -76,9 +77,13 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         }
     }
 
+    private void validateKeyType(K key) {
+        assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode || key instanceof ValueSnapshot : "Unsupported key type: " + key;
+    }
+
     @Override
     public V get(final K key, final Transformer<? extends V, ? super K> producer, final Runnable completion) {
-        assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode : "Unsupported key type: " + key;
+        validateKeyType(key);
         final AtomicReference<Runnable> completionRef = new AtomicReference<Runnable>(completion);
         Object value;
         try {

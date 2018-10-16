@@ -84,7 +84,7 @@ class IvyResourcePatternTest extends Specification {
 
     def "computes module version path"() {
         def ivyPattern = new IvyResourcePattern(pattern)
-        def moduleId = DefaultModuleComponentIdentifier.newId(group, module, version)
+        def moduleId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
 
         expect:
         ivyPattern.toModuleVersionPath(moduleId).path == expectedPath
@@ -98,7 +98,7 @@ class IvyResourcePatternTest extends Specification {
 
     def "cannot compute module version path if pattern doesn't end with /[artifact]"() {
         def ivyPattern = new IvyResourcePattern(pattern)
-        def moduleId = DefaultModuleComponentIdentifier.newId(group, module, version)
+        def moduleId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
 
         when:
         ivyPattern.toModuleVersionPath(moduleId).path
@@ -115,7 +115,7 @@ class IvyResourcePatternTest extends Specification {
     }
 
     private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {
-        final componentIdentifier = DefaultModuleComponentIdentifier.newId(group, name, version)
+        final componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, name), version)
         return new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, "ivy", "ivy", "xml"))
     }
 }

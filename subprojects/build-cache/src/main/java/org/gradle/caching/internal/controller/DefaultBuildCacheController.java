@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
@@ -44,14 +43,13 @@ import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,6 +67,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private final BuildCacheTempFileStore tmp;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean emitDebugLogging;
 
     private boolean closed;
 
@@ -76,9 +75,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
         BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
         File gradleUserHomeDir,
-        boolean logStackTraces
+        boolean logStackTraces,
+        boolean emitDebugLogging
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.emitDebugLogging = emitDebugLogging;
 
         if (config.local instanceof LocalBuildCacheService) {
             LocalBuildCacheService castLocal = (LocalBuildCacheService) config.local;
@@ -92,6 +93,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean isEmitDebugLogging() {
+        return emitDebugLogging;
     }
 
     @Nullable
@@ -164,21 +175,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    InputStream input;
-                    try {
-                        input = new FileInputStream(file);
-                    } catch (FileNotFoundException e) {
-                        throw new UncheckedIOException(e);
-                    }
-
-                    try {
+                    try (InputStream input = new FileInputStream(file)) {
                         result = command.load(input);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
-                    } finally {
-                        IOUtils.closeQuietly(input);
                     }
-
                     context.setResult(new UnpackOperationResult(
                         result.getArtifactEntryCount()
                     ));

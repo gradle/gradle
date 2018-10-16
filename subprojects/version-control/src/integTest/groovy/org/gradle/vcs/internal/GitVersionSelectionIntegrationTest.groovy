@@ -26,15 +26,15 @@ import spock.lang.Unroll
 
 class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    BlockingHttpServer httpsServer = new BlockingHttpServer()
+    BlockingHttpServer httpServer = new BlockingHttpServer()
     @Rule
-    GitHttpRepository repo = new GitHttpRepository(httpsServer, 'dep', temporaryFolder.getTestDirectory())
+    GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     TestFile repoSettingsFile
     def fixture = new ResolveTestFixture(buildFile)
 
     def setup() {
-        httpsServer.start()
+        httpServer.start()
         settingsFile << """
             rootProject.name = 'consumer'
             gradle.rootProject {
@@ -60,6 +60,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 version = '1.0'
                 def jar = tasks.create("jar_$version", Jar) {
                     baseName = "test"
+                    destinationDir = buildDir
                     version = project.version
                 }
                 configurations['default'].outgoing.artifact(jar)
@@ -114,8 +115,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.commit("v4")
         repo.checkout("master")
         repo.expectListVersions()
-        // TODO - should not need this
-        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -157,8 +156,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
 
         when:
-        // TODO - shouldn't require either of these
-        repo.expectListVersions()
         repo.expectListVersions()
         run('checkDeps')
 
@@ -190,8 +187,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:2.0.
-Searched in the following locations:
-    Git Repository at ${repo.url}
+Searched in the following locations: Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -213,8 +209,6 @@ Required by:
         result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
 
         when:
-        // TODO - shouldn't require either of these
-        repo.expectListVersions()
         repo.expectListVersions()
         run('checkDeps')
 
@@ -295,8 +289,7 @@ Required by:
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:${selector}.
-Searched in the following locations:
-    Git Repository at ${repo.url}
+Searched in the following locations: Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -321,8 +314,6 @@ Required by:
         result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
 
         when:
-        repo.expectListVersions()
-        // TODO - shouldn't require this
         repo.expectListVersions()
         run('checkDeps')
 
@@ -357,8 +348,7 @@ Required by:
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test:${selector}.
-Searched in the following locations:
-    Git Repository at ${repo.url}
+Searched in the following locations: Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -415,8 +405,6 @@ Required by:
         result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
 
         when:
-        // TODO - should not do this
-        repo.expectListVersions()
         repo.expectListVersions()
         run('checkDeps')
 
@@ -448,8 +436,7 @@ Required by:
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find any version that matches test:test (branch: release).
-Searched in the following locations:
-    Git Repository at ${repo.url}
+Searched in the following locations: Git repository at ${repo.url}
 Required by:
     project :""")
 
@@ -472,8 +459,6 @@ Required by:
         result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
 
         when:
-        repo.expectListVersions()
-        // TODO - should not require this
         repo.expectListVersions()
         run('checkDeps')
 

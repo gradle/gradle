@@ -20,7 +20,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
     Provides generally useful test utilities, used for unit and integration testing.
 */
 plugins {
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {
@@ -36,15 +36,10 @@ dependencies {
     compile(library("asm"))
     compile(library("asm_tree"))
     compile(library("junit"))
-    testLibraries("jmock").forEach { compile(it) }
+    compile(testLibrary("hamcrest"))
     compile(testLibrary("spock"))
+    runtime(testLibrary("bytebuddy"))
     compile(testLibrary("jsoup"))
-
-    constraints {
-        add(configurations.compile.name, "cglib:cglib-nodep:3.2.6") {
-            because("required to work with Java 9")
-        }
-    }
 }
 
 gradlebuildJava {

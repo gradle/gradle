@@ -27,6 +27,8 @@ import static org.gradle.internal.FileUtils.withExtension
 
 class FileUtilsTest extends Specification {
 
+    private static final String SEP = File.separator
+
     def "toSafeFileName encodes unsupported characters"() {
         expect:
         toSafeFileName(input) == output
@@ -68,6 +70,8 @@ class FileUtilsTest extends Specification {
         toRoots(files("a/a", "a/a")) == files("a/a")
         toRoots(files("a", "b", "c")) == files("a", "b", "c")
         toRoots(files("a/a", "a/a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(files("a/a/a", "a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(files("a/a", "a/a-1", "a/a/a")) == files("a/a", "a/a-1")
         toRoots(files("a/a", "a/a/a", "b/a/a")) == files("a/a", "b/a/a")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b")) == files("a/a/a/a/a/a/a/a/a", "a/b")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")
@@ -83,5 +87,18 @@ class FileUtilsTest extends Specification {
         withExtension("\\some\\path\\to\\foo.baz", ".bar") == "\\some\\path\\to\\foo.bar"
         withExtension("/some/path/to/foo.boo.baz", ".bar") == "/some/path/to/foo.boo.bar"
         withExtension("/some/path/to/foo.bar", ".bar") == "/some/path/to/foo.bar"
+    }
+
+    def "can determine if one path start with another"(String path, String startsWithPath, boolean result) {
+        expect:
+        FileUtils.doesPathStartWith(path, startsWithPath) == result
+
+        where:
+        path              | startsWithPath || result
+        ""                | ""             || true
+        "a${SEP}a${SEP}a" | "a${SEP}b"     || false
+        "a${SEP}a"        | "a${SEP}a"     || true
+        "a${SEP}a${SEP}a" | "a${SEP}a"     || true
+        "a${SEP}ab"       | "a${SEP}a"     || false
     }
 }

@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.buildinit.plugins.internal.maven
 
 import groovy.util.slurpersupport.GPathResult
@@ -24,31 +23,34 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.util.RelativePathUtil
 
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
- * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
+ * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br/>
  *
- * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
+ * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */
 class Maven2Gradle {
+    private final BuildScriptBuilderFactory scriptBuilderFactory
 
     def dependentWars = []
-    def qualifiedNames
     def workingDir
     def effectivePom
 
     Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
 
-    Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir) {
+    Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir, BuildScriptBuilderFactory scriptBuilderFactory) {
         assert !mavenProjects.empty: "No Maven projects provided."
         this.mavenProjects = mavenProjects
-        this.workingDir = workingDir.canonicalFile;
+        this.workingDir = workingDir.canonicalFile
+        this.scriptBuilderFactory = scriptBuilderFactory
     }
 
-    def convert() {
+    void convert() {
         //For now we're building the effective POM XML from the model
         //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
@@ -57,146 +59,123 @@ class Maven2Gradle {
         //use the Groovy XmlSlurper library to parse the text string
         this.effectivePom = new XmlSlurper().parseText(effectivePom)
 
-        String build
+        def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build")
+
         def multimodule = this.effectivePom.name() == "projects"
 
         if (multimodule) {
             def allProjects = this.effectivePom.project
-            qualifiedNames = generateSettings(workingDir.getName(), allProjects[0].artifactId, allProjects);
+            def rootProject = allProjects[0]
+            generateSettings(rootProject.artifactId, allProjects)
+
             def dependencies = [:];
             allProjects.each { project ->
                 dependencies[project.artifactId.text()] = getDependencies(project, allProjects)
             }
 
-            def commonDeps = dependencies.get(allProjects[0].artifactId.text())
-            build = """allprojects  {
-  apply plugin: 'maven'
+            def allprojectsBuilder = scriptBuilder.allprojects()
+            allprojectsBuilder.plugin(null, "maven")
+            coordinatesForProject(rootProject, allprojectsBuilder)
 
-  ${getArtifactData(allProjects[0])}
-}
+            def subprojectsBuilder = scriptBuilder.subprojects()
+            subprojectsBuilder.plugin(null, "java")
+            compilerSettings(rootProject, subprojectsBuilder)
+            packageSources(rootProject, subprojectsBuilder)
 
-subprojects {
-  apply plugin: 'java'
-  ${compilerSettings(allProjects[0], "  ")}
-  ${packageSources(allProjects[0])}
-  ${getRepositoriesForProjects(allProjects)}
-  ${globalExclusions(allProjects[0])}
-  ${commonDeps}
-  ${testNg(commonDeps)}
-}
-"""
+            repositoriesForProjects(allProjects, subprojectsBuilder)
+            globalExclusions(rootProject, subprojectsBuilder)
+
+            def commonDeps = dependencies.get(rootProject.artifactId.text())
+            declareDependencies(commonDeps, subprojectsBuilder)
+            testNg(commonDeps, subprojectsBuilder)
+
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
-                String moduleDependencies = dependencies.get(id)
+                def moduleDependencies = dependencies.get(id)
                 boolean warPack = module.packaging.text().equals("war")
-                def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
-                File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
+                def moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).path + "/build")
 
-                def group = ''
-                if (module.groupId != allProjects[0].groupId) {
-                    group = "group = '${module.groupId}'"
+                if (module.groupId.text() != rootProject.groupId.text()) {
+                    moduleScriptBuilder.propertyAssignment(null, "group", module.groupId.text())
                 }
-                String moduleBuild = "${group}\n"
-                if (warPack) {
-                    moduleBuild += """apply plugin: 'war'
 
-"""
+                if (warPack) {
+                    moduleScriptBuilder.plugin(null, "war")
                     if (dependentWars.any { project ->
                         project.groupId.text() == module.groupId.text() &&
-                                project.artifactId.text() == id
+                            project.artifactId.text() == id
                     }) {
-                        moduleBuild += """jar.enabled = true
-"""
+                        moduleScriptBuilder.taskPropertyAssignment(null, "jar", "Jar", "enabled", true)
                     }
                 }
-                if (module.name) {
-                    moduleBuild += "description = '${module.name}'\n"
-                }
 
+                descriptionForProject(module, moduleScriptBuilder)
+                declareDependencies(moduleDependencies, moduleScriptBuilder)
+                testNg(moduleDependencies, moduleScriptBuilder)
 
-                if (hasDependencies) {
-                    moduleBuild += moduleDependencies
-                }
+                packageTests(module, moduleScriptBuilder);
 
-                moduleBuild += testNg(moduleDependencies)
-
-                if (submoduleBuildFile.exists()) {
-                    submoduleBuildFile.renameTo(new File(projectDir(module), "build.gradle.bak"))
-                }
-                def packageTests = packageTests(module);
-                if (packageTests) {
-                    moduleBuild += packageTests;
-                }
-
-                logger.debug("writing build.gradle file at ${submoduleBuildFile.absolutePath}");
-                submoduleBuildFile.text = moduleBuild
+                moduleScriptBuilder.create().generate()
             }
             //TODO deployment
         } else {//simple
-            build = """apply plugin: 'java'
-apply plugin: 'maven'
+            generateSettings(this.effectivePom.artifactId, null);
 
-${getArtifactData(this.effectivePom)}
+            scriptBuilder.plugin(null, 'java')
+            scriptBuilder.plugin(null, 'maven')
+            coordinatesForProject(this.effectivePom, scriptBuilder)
+            descriptionForProject(this.effectivePom, scriptBuilder)
+            compilerSettings(this.effectivePom, scriptBuilder)
+            globalExclusions(this.effectivePom, scriptBuilder)
 
-description = \"""${this.effectivePom.name}\"""
-
-${compilerSettings(this.effectivePom, "")}
-${globalExclusions(this.effectivePom)}
-
-"""
-
+            scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
             getRepositoriesForModule(this.effectivePom, repoSet)
-            String repos = """repositories {
-        $localRepoUri
-"""
             repoSet.each {
-                repos = "${repos} ${it}\n"
+                scriptBuilder.repositories().maven(null, it)
             }
-            build += "${repos}}\n"
-            String dependencies = getDependencies(this.effectivePom, null)
-            build += dependencies
 
-            String packageTests = packageTests(this.effectivePom);
-            if (packageTests) {
-                build += '//packaging tests'
-                build += packageTests;
-            }
-            generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
+            def dependencies = getDependencies(this.effectivePom, null)
+            declareDependencies(dependencies, scriptBuilder)
+            testNg(dependencies, scriptBuilder)
+
+            packageTests(this.effectivePom, scriptBuilder)
         }
-        def buildFile = new File(workingDir, "build.gradle")
-        if (buildFile.exists()) {
-            buildFile.renameTo(new File(workingDir, "build.gradle.bak"))
-        }
-        logger.debug("writing build.gradle file at ${buildFile.absolutePath}");
-        buildFile.text = build
+
+        scriptBuilder.create().generate()
     }
 
-    def globalExclusions = { project ->
-        def exclusions = ''
+    void declareDependencies(List<Dependency> dependencies, builder) {
+        def dependenciesBuilder = builder.dependencies()
+        dependencies.each { dep ->
+            if (dep instanceof ProjectDependency) {
+                dependenciesBuilder.projectDependency(dep.configuration, null, dep.projectPath)
+            } else {
+                dependenciesBuilder.dependency(dep.configuration, null, "$dep.group:$dep.module:$dep.version")
+            }
+        }
+    }
+
+    void globalExclusions(project, builder) {
         def enforcerPlugin = plugin('maven-enforcer-plugin', project)
         def enforceGoal = pluginGoal('enforce', enforcerPlugin)
         if (enforceGoal) {
-            exclusions += 'configurations.all {\n'
+            def block = builder.block(null, "configurations.all")
             enforceGoal.configuration.rules.bannedDependencies.excludes.childNodes().each {
                 def tokens = it.text().tokenize(':')
-                exclusions += "it.exclude group: '${tokens[0]}'"
+                def params = [group: tokens[0]]
                 if (tokens.size() > 1 && tokens[1] != '*') {
-                    exclusions += ", module: '${tokens[1]}'"
+                    params.module = tokens[1]
                 }
-                exclusions += '\n'
+                block.methodInvocation(null, "exclude", params)
             }
         }
-        exclusions = exclusions ? exclusions += '}' : exclusions
-        exclusions
     }
 
-    def testNg = { moduleDependencies ->
-        if (moduleDependencies.contains('testng')) {
-            """test.useTestNG()
-"""
-        } else {
-            ''
+    void testNg(List<Dependency> moduleDependencies, builder) {
+        boolean testng = moduleDependencies.find { it instanceof ExternalDependency && it.groupId == 'org.testng' && it.module == 'testng' }
+        if (testng) {
+            builder.taskMethodInvocation(null, "test", "Test", "useTestNG")
         }
     }
 
@@ -235,39 +214,36 @@ ${globalExclusions(this.effectivePom)}
         return new DefaultModuleIdentifier(groupId, artifactId)
     }
 
-    def localRepoUri = {
-        """mavenLocal()
-    """
+    private void coordinatesForProject(project, builder) {
+        builder.propertyAssignment(null, "group", project.groupId.text())
+        builder.propertyAssignment(null, "version", project.version.text())
     }
 
-    private String getArtifactData(project) {
-        return """group = '$project.groupId'
-version = '$project.version'""";
+    private void descriptionForProject(project, builder) {
+        if (project.name.text()) {
+            builder.propertyAssignment(null, "description", project.name.text())
+        }
     }
 
-    private String getRepositoriesForProjects(projects) {
-        String repos = """repositories {
-    ${localRepoUri()}
-"""
+    private void repositoriesForProjects(projects, builder) {
+        builder.repositories().mavenLocal(null)
         def repoSet = new LinkedHashSet<String>();
         projects.each {
             getRepositoriesForModule(it, repoSet)
         }
         repoSet.each {
-            repos = "${repos}${it}\n"
+            builder.repositories().maven(null, it)
         }
-        repos = "${repos}  }\n"
-        return repos
     }
 
     private void getRepositoriesForModule(module, repoSet) {
         module.repositories.repository.each {
-            repoSet.add("    maven { url \"${it.url}\" }")
+            repoSet.add(it.url.text())
         }
-        //No need to include plugin repos - who cares about maven plugins?
+        // No need to include plugin repos, as they won't be used by Gradle
     }
 
-    private String getDependencies(project, allProjects) {
+    private List<Dependency> getDependencies(project, allProjects) {
         // use GPath to navigate the object hierarchy and retrieve the collection of dependency nodes.
         def dependencies = project.dependencies.dependency
         def war = project.packaging == "war"
@@ -308,63 +284,57 @@ version = '$project.version'""";
          * print function then checks the exclusions node to see if it exists, if
          * so it branches off, otherwise we call our simple print function
          */
-        def createGradleDep = { String scope, StringBuilder sb, mavenDependency ->
+        def createGradleDep = { String scope, List<Dependency> result, mavenDependency ->
             def projectDep = allProjects.find { prj ->
                 return prj.artifactId.text() == mavenDependency.artifactId.text() && prj.groupId.text() == mavenDependency.groupId.text()
             }
 
             if (projectDep) {
-                createProjectDependency(projectDep, sb, scope, allProjects)
+                createProjectDependency(projectDep, result, scope, allProjects)
             } else {
                 if (!war && scope == 'providedCompile') {
                     scope = 'compileOnly'
                 }
-                def exclusions = mavenDependency.exclusions.exclusion
-                if (exclusions.size() > 0) {
-                    createComplexDependency(mavenDependency, sb, scope)
-                } else {
-                    createBasicDependency(mavenDependency, sb, scope)
-                }
+                createExternalDependency(mavenDependency, result, scope)
             }
         }
 
-
-        StringBuilder build = new StringBuilder()
+        def result = []
         if (!compileTimeScope.isEmpty() || !runTimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
-            build.append("dependencies {").append("\n")
 // for each collection, one at a time, we take each element and call our print function
             if (!compileTimeScope.isEmpty()) {
-                compileTimeScope.each() { createGradleDep("compile", build, it) }
+                compileTimeScope.each() { createGradleDep("compile", result, it) }
             }
             if (!runTimeScope.isEmpty()) {
-                runTimeScope.each() { createGradleDep("runtime", build, it) }
+                runTimeScope.each() { createGradleDep("runtime", result, it) }
             }
             if (!testScope.isEmpty()) {
-                testScope.each() { createGradleDep("testCompile", build, it) }
+                testScope.each() { createGradleDep("testCompile", result, it) }
             }
             if (!providedScope.isEmpty()) {
-                providedScope.each() { createGradleDep("providedCompile", build, it) }
+                providedScope.each() { createGradleDep("providedCompile", result, it) }
             }
             if (!systemScope.isEmpty()) {
-                systemScope.each() { createGradleDep("system", build, it) }
+                systemScope.each() { createGradleDep("system", result, it) }
             }
-            build.append("}\n")
         }
-        return build.toString();
+        return result
     }
 
-    def compilerSettings = { project, indent ->
+    private void compilerSettings(project, builder) {
         def configuration = plugin('maven-compiler-plugin', project).configuration
-        def settings = new StringBuilder()
-        settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
-        settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
+        def source = configuration.source.text() ?: '1.8'
+        builder.propertyAssignment(null, "sourceCompatibility", source)
+
+        def target = configuration.target.text() ?: '1.8'
+        if (target != source) {
+            builder.propertyAssignment(null, "targetCompatibility", target)
+        }
+
         def encoding = project.properties.'project.build.sourceEncoding'.text()
         if (encoding) {
-            settings.append "${indent}tasks.withType(JavaCompile) {\n"
-            settings.append "${indent}\toptions.encoding = '${encoding}'\n"
-            settings.append "${indent}}\n"
+            builder.taskPropertyAssignment(null, "JavaCompile", "options.encoding", encoding)
         }
-        return settings
     }
 
     def plugin = { artifactId, project ->
@@ -381,36 +351,17 @@ version = '$project.version'""";
         }
     }
 
-    def packSources = { sourceSets ->
-        def sourceSetStr = ''
-        if (!sourceSets.empty) {
-            sourceSetStr = """task packageSources(type: Jar) {
-classifier = 'sources'
-"""
-            sourceSets.each { sourceSet ->
-                sourceSetStr += """from sourceSets.${sourceSet}.allSource
-"""
-            }
-            sourceSetStr += """
-}
-artifacts.archives packageSources"""
-        }
-        sourceSetStr
-    }
-
-
-    def packageTests = { project ->
+    void packageTests(project, builder) {
         def jarPlugin = plugin('maven-jar-plugin', project)
-        pluginGoal('test-jar', jarPlugin) ? """
-task packageTests(type: Jar) {
-  from sourceSets.test.output
-  classifier = 'tests'
-}
-artifacts.archives packageTests
-""" : ''
+        if (pluginGoal('test-jar', jarPlugin)) {
+            def taskConfigBuilder = builder.taskRegistration(null, "packageTests", "Jar")
+            taskConfigBuilder.propertyAssignment(null, "classifier", "tests")
+            taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
+            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageTests"))
+        }
     }
 
-    def packageSources = { project ->
+    void packageSources(project, builder) {
         def sourcePlugin = plugin('maven-source-plugin', project)
         def sourceSets = []
         if (sourcePlugin) {
@@ -420,7 +371,14 @@ artifacts.archives packageTests
                 sourceSets += 'test'
             }
         }
-        packSources(sourceSets)
+        if (!sourceSets.empty) {
+            def taskConfigBuilder = builder.taskRegistration(null, "packageSources", "Jar")
+            taskConfigBuilder.propertyAssignment(null, "classifier", "sources")
+            sourceSets.each { sourceSet ->
+                taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allSource"))
+            }
+            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageSources"))
+        }
     }
 
     private boolean duplicateDependency(dependency, project, allProjects) {
@@ -450,13 +408,11 @@ artifacts.archives packageTests
         return new File(project.build.directory.text()).parentFile
     }
 
-    private def generateSettings(def dirName, def mvnProjectName, def projects) {
-        def qualifiedNames = [:]
-        def projectName = "";
-        if (dirName != mvnProjectName) {
-            projectName = """rootProject.name = '${mvnProjectName}'
-"""
-        }
+    private void generateSettings(def mvnProjectName, def projects) {
+        def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "settings")
+
+        scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName as String)
+
         def modulePoms = modules(projects, true)
 
         List<String> moduleNames = new ArrayList<String>();
@@ -467,73 +423,43 @@ artifacts.archives packageTests
                 File projectDirectory = projectDir(project)
                 // don't add project if it's the rootproject
                 if (!workingDir.equals(projectDirectory)) {
-                    artifactIdToDir[fqn] = RelativePathUtil.relativePath(workingDir, projectDirectory)
                     moduleNames.add(fqn)
+
+                    // Calculate the path to the project, ignore this path if it's the default value
+                    def relativePath = RelativePathUtil.relativePath(workingDir, projectDirectory)
+                    if (fqn != ":${relativePath}") {
+                        artifactIdToDir[fqn] = relativePath
+                    }
                 }
             }
         }
-        File settingsFile = new File(workingDir, "settings.gradle")
-        if (settingsFile.exists()) {
-            settingsFile.renameTo(new File(workingDir, "settings.gradle.bak"))
-        }
-        StringBuffer settingsText = new StringBuffer(projectName)
-        if (moduleNames.size() > 0) {
-            moduleNames.each {
-                settingsText.append("include '$it'\n")
-            }
-        }
 
+        moduleNames.each {
+            scriptBuilder.methodInvocation(null, "include", it)
+        }
         artifactIdToDir.each { entry ->
-            settingsText.append("""
-project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as File')
+            def dirExpression = scriptBuilder.methodInvocationExpression("file", entry.value)
+            scriptBuilder.propertyAssignment(null, "project('$entry.key').projectDir", dirExpression)
         }
-        settingsFile.text = settingsText.toString()
-        return qualifiedNames
+        scriptBuilder.create().generate()
     }
 
-/**
- * complex print statement does one extra task which is
- * iterate over each <exclusion> node and print out the artifact id.
- * It also provides review comments for the user.
- */
-    private def createComplexDependency(it, build, scope) {
-        build.append("    ${scope}(${contructSignature(it)}) {\n")
-        it.exclusions.exclusion.each() {
-            build.append("exclude(module: '${it.artifactId}')\n")
-        }
-        build.append("    }\n")
+    private def createExternalDependency(mavenDependency, List<Dependency> result, scope) {
+        def classifier = mavenDependency.classifier ? mavenDependency.classifier.text() : null
+        def exclusions = mavenDependency.exclusions.exclusion.collect { it.artifactId.text() }
+        result.add(new ExternalDependency(scope, mavenDependency.groupId.text(), mavenDependency.artifactId.text(), mavenDependency.version.text(), classifier, exclusions))
     }
 
-/**
- * Print out the basic form og gradle dependency
- */
-    private def createBasicDependency(mavenDependency, build, String scope) {
-        def classifier = contructSignature(mavenDependency)
-        build.append("    ${scope} ${classifier}\n")
-    }
-/**
- * Print out the basic form of gradle dependency
- */
-    private def createProjectDependency(projectDep, build, String scope, allProjects) {
+    private def createProjectDependency(projectDep, List<Dependency> result, String scope, allProjects) {
         if (projectDep.packaging.text() == 'war') {
             dependentWars += projectDep
         }
-        build.append("  ${scope} project('${fqn(projectDep, allProjects)}')\n")
+        result.add(new ProjectDependency(scope, fqn(projectDep, allProjects)))
     }
 
-/**
- * Construct and return the signature of a dependency, including its version and
- * classifier if it exists
- */
-    private def contructSignature(mavenDependency) {
-        def gradelDep = "group: '${mavenDependency.groupId.text()}', name: '${mavenDependency.artifactId.text()}', version:'${mavenDependency?.version?.text()}'"
-        def classifier = elementHasText(mavenDependency.classifier) ? gradelDep + ", classifier:'" + mavenDependency.classifier.text().trim() + "'" : gradelDep
-        return classifier
-    }
-
-/**
- * Check to see if the selected node has content
- */
+    /**
+     * Check to see if the selected node has content
+     */
     private boolean elementHasText(it) {
         return it.text().length() != 0
     }

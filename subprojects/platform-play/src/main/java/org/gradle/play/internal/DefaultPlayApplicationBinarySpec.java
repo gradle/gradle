@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.language.base.LanguageSourceSet;
@@ -42,10 +42,10 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 import static org.gradle.util.CollectionUtils.single;
 
@@ -133,10 +133,10 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
     }
 
     @Override
-    public void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public void addGeneratedScala(LanguageSourceSet input, ObjectFactory objectFactory) {
         String lssName = input.getName() + "ScalaSources";
         // TODO: To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
-        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, getIdentifier().child(lssName), sourceDirectorySetFactory);
+        ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, getIdentifier().child(lssName), objectFactory);
         generatedScalaSources.builtBy();
         generatedScala.put(input, generatedScalaSources);
     }
@@ -147,9 +147,9 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
     }
 
     @Override
-    public void addGeneratedJavaScript(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public void addGeneratedJavaScript(LanguageSourceSet input, ObjectFactory objectFactory) {
         String lssName = input.getName() + "JavaScript";
-        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, getIdentifier().child(lssName), sourceDirectorySetFactory);
+        JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, getIdentifier().child(lssName), objectFactory);
         javaScript.builtBy();
         generatedJavaScript.put(input, javaScript);
     }
@@ -229,7 +229,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
         }
 
         @Override
-        public void setBuildTask(Task lifecycleTask) {
+        public void setBuildTask(@Nullable Task lifecycleTask) {
             jvmAssembly.setBuildTask(lifecycleTask);
         }
 

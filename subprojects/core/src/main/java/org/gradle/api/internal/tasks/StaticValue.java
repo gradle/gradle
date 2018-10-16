@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProducerAwareProperty;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.util.DeferredUtil;
 
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.WARNING;
+import javax.annotation.Nullable;
 
 public class StaticValue implements ValidatingValue {
     private final Object value;
@@ -27,6 +30,21 @@ public class StaticValue implements ValidatingValue {
         this.value = value;
     }
 
+    @Override
+    public void attachProducer(Task producer) {
+        if (value instanceof ProducerAwareProperty) {
+            ((ProducerAwareProperty)value).attachProducer(producer);
+        }
+    }
+
+    @Override
+    public void maybeFinalizeValue() {
+        if (value instanceof PropertyInternal) {
+            ((PropertyInternal)value).finalizeValueOnReadAndWarnAboutChanges();
+        }
+    }
+
+    @Nullable
     @Override
     public Object call() {
         return value;
@@ -37,10 +55,10 @@ public class StaticValue implements ValidatingValue {
         Object unpacked = DeferredUtil.unpack(value);
         if (unpacked == null) {
             if (!optional) {
-                context.recordValidationMessage(WARNING, String.format("No value has been specified for property '%s'.", propertyName));
+                context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
             }
         } else {
-            valueValidator.validate(propertyName, unpacked, context, WARNING);
+            valueValidator.validate(propertyName, unpacked, context);
         }
     }
 }

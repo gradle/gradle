@@ -16,14 +16,11 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * An event that informs about an operation having finished its execution.
  *
  * @since 2.4
  */
-@Incubating
 public interface FinishEvent extends ProgressEvent {
 
     /**

@@ -35,6 +35,7 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Creates start scripts for launching JVM applications.
@@ -169,11 +170,12 @@ public class CreateStartScripts extends ConventionTask {
      * The directory to write the scripts into.
      */
     @OutputDirectory
+    @Nullable
     public File getOutputDir() {
         return outputDir;
     }
 
-    public void setOutputDir(File outputDir) {
+    public void setOutputDir(@Nullable File outputDir) {
         this.outputDir = outputDir;
     }
 
@@ -200,11 +202,12 @@ public class CreateStartScripts extends ConventionTask {
      * The main classname used to start the Java application.
      */
     @Input
+    @Nullable
     public String getMainClassName() {
         return mainClassName;
     }
 
-    public void setMainClassName(String mainClassName) {
+    public void setMainClassName(@Nullable String mainClassName) {
         this.mainClassName = mainClassName;
     }
 
@@ -225,12 +228,13 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The application's name.
      */
+    @Nullable
     @Input
     public String getApplicationName() {
         return applicationName;
     }
 
-    public void setApplicationName(String applicationName) {
+    public void setApplicationName(@Nullable String applicationName) {
         this.applicationName = applicationName;
     }
 
@@ -246,11 +250,12 @@ public class CreateStartScripts extends ConventionTask {
      * The class path for the application.
      */
     @Internal
+    @Nullable
     public FileCollection getClasspath() {
         return classpath;
     }
 
-    public void setClasspath(FileCollection classpath) {
+    public void setClasspath(@Nullable FileCollection classpath) {
         this.classpath = classpath;
     }
 
@@ -259,7 +264,6 @@ public class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
-    @Incubating
     @Internal
     public ScriptGenerator getUnixStartScriptGenerator() {
         return unixStartScriptGenerator;
@@ -274,7 +278,6 @@ public class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
-    @Incubating
     @Internal
     public ScriptGenerator getWindowsStartScriptGenerator() {
         return windowsStartScriptGenerator;
@@ -300,9 +303,13 @@ public class CreateStartScripts extends ConventionTask {
 
     @Input
     protected Iterable<String> getRelativeClasspath() {
-        //a list instance is needed here, as org.gradle.api.internal.changedetection.state.ValueSnapshotter.processValue() does not support
+        //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
         //serializing Iterators directly
-        return Lists.newArrayList(Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
+        final FileCollection classpathNullable = getClasspath();
+        if (classpathNullable == null) {
+            return Collections.emptyList();
+        }
+        return Lists.newArrayList(Iterables.transform(classpathNullable.getFiles(), new Function<File, String>() {
             @Override
             public String apply(File input) {
                 return "lib/" + input.getName();

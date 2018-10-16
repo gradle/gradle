@@ -21,26 +21,40 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-
+import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.MutableActionSet;
+import org.gradle.internal.reflect.Instantiator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecInternal {
 
     private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
+    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private String status = Module.DEFAULT_STATUS;
     private String branch;
     private IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
+    private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
+    private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
+    private IvyModuleDescriptorDescription description;
 
-    public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication) {
+    public DefaultIvyModuleDescriptorSpec(IvyPublicationInternal ivyPublication, Instantiator instantiator, ObjectFactory objectFactory) {
         this.ivyPublication = ivyPublication;
+        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
     }
 
     public String getStatus() {
@@ -95,5 +109,49 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
 
     public Set<IvyDependencyInternal> getDependencies() {
         return ivyPublication.getDependencies();
+    }
+
+    @Override
+    public Set<IvyExcludeRule> getGlobalExcludes() {
+        return ivyPublication.getGlobalExcludes();
+    }
+
+    @Override
+    public void license(Action<? super IvyModuleDescriptorLicense> action) {
+        configureAndAdd(DefaultIvyModuleDescriptorLicense.class, action, licenses);
+    }
+
+    @Override
+    public List<IvyModuleDescriptorLicense> getLicenses() {
+        return licenses;
+    }
+
+    @Override
+    public void author(Action<? super IvyModuleDescriptorAuthor> action) {
+        configureAndAdd(DefaultIvyModuleDescriptorAuthor.class, action, authors);
+    }
+
+    @Override
+    public List<IvyModuleDescriptorAuthor> getAuthors() {
+        return authors;
+    }
+
+    @Override
+    public void description(Action<? super IvyModuleDescriptorDescription> action) {
+        if (description == null) {
+            description = instantiator.newInstance(DefaultIvyModuleDescriptorDescription.class, objectFactory);
+        }
+        action.execute(description);
+    }
+
+    @Override
+    public IvyModuleDescriptorDescription getDescription() {
+        return description;
+    }
+
+    private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
+        T item = instantiator.newInstance(clazz, objectFactory);
+        action.execute(item);
+        items.add(item);
     }
 }

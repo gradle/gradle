@@ -19,14 +19,18 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.MavenScope
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyType
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRulesTest {
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews(true))
+    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     @Override
     boolean addAllDependenciesAsConstraints() {
@@ -40,14 +44,15 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
             variantAction(variantName, action))
     }
 
-    def "maven optional dependencies are accessible as dependency constraints"() {
+    def "maven optional dependencies are not accessible as dependency constraints"() {
         given:
         def mavenMetadata = mavenMetadataFactory.create(componentIdentifier, [
-            new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector("org", "notOptional", "1.0"), null, []),
-            new MavenDependencyDescriptor(MavenScope.Compile, true, newSelector("org", "optional", "1.0"), null, [])
+            new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "notOptional"), "1.0"), null, []),
+            new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.OPTIONAL_DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "optional"), "1.0"), null, [])
         ])
 
         when:
+        mavenMetadata.variantMetadataRules.setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy())
         mavenMetadata.variantMetadataRules.addDependencyAction(instantiator, notationParser, constraintNotationParser, variantAction("default", {
             assert it.size() == 1
             assert it[0].name == "notOptional"
@@ -59,8 +64,7 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
 
         then:
         def dependencies = selectTargetConfigurationMetadata(mavenMetadata).dependencies
-        dependencies.size() == 2
-        !dependencies[0].pending
-        dependencies[1].pending
+        dependencies.size() == 1
+        !dependencies[0].constraint
     }
 }

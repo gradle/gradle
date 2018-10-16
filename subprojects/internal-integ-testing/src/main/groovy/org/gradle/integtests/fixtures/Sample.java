@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.fixtures;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
+import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.junit.rules.MethodRule;
-import org.junit.runners.model.FrameworkMethod;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ import javax.annotation.Nullable;
  * {@link org.gradle.integtests.fixtures.UsesSample} annotation on the test method to determine which sample the
  * test requires. If not found, uses the default sample provided in the constructor.
  */
-public class Sample implements MethodRule {
+public class Sample implements TestRule {
     private final Logger logger = LoggerFactory.getLogger(Sample.class);
     private final String defaultSampleName;
     private final String testSampleDirName;
@@ -55,8 +57,9 @@ public class Sample implements MethodRule {
         this.testSampleDirName = testSampleDirName;
     }
 
-    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
-        sampleName = getSampleName(method);
+    @Override
+    public Statement apply(final Statement base, Description description) {
+        sampleName = getSampleName(description);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -73,8 +76,8 @@ public class Sample implements MethodRule {
         };
     }
 
-    private String getSampleName(FrameworkMethod method) {
-        UsesSample annotation = method.getAnnotation(UsesSample.class);
+    private String getSampleName(Description description) {
+        UsesSample annotation = description.getAnnotation(UsesSample.class);
         return annotation != null
             ? annotation.value()
             : defaultSampleName;
@@ -93,9 +96,25 @@ public class Sample implements MethodRule {
             return testFile(testSampleDirName);
         }
         if (sampleName != null) {
-            return testFile(sampleName);
+            return testFile(dirNameFor(sampleName));
         }
         return null;
+    }
+
+    /**
+     * Shortens path as much as possible to prevent long path issues on Windows
+     * by keeping the last segment only, ignoring /groovy or /kotlin suffix.
+     */
+    @VisibleForTesting
+    static String dirNameFor(String sampleName) {
+        String dirName = sampleName.endsWith("/") ? sampleName.substring(0, sampleName.length() - 1) : sampleName;
+        for (String dslLanguageCodeName : GradleDsl.languageCodeNames()) {
+            String dslPathFragment = '/' + dslLanguageCodeName;
+            if (dirName.endsWith(dslPathFragment)) {
+                dirName = dirName.substring(0, dirName.lastIndexOf(dslPathFragment));
+            }
+        }
+        return dirName.substring(dirName.lastIndexOf('/') + 1);
     }
 
     private TestFile testFile(String testSampleDirName) {

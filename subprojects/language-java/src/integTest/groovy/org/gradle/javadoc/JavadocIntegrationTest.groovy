@@ -40,7 +40,8 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)Custom Taglet.*custom taglet value/
     }
 
-    @Issue("GRADLE-2520")
+    @Issue(["GRADLE-2520", "https://github.com/gradle/gradle/issues/4993"])
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def canCombineLocalOptionWithOtherOptions() {
         when:
         run("javadoc")
@@ -175,16 +176,6 @@ Joe!""")
 
         then:
         nonSkippedTasks == [":javadoc"]
-    }
-
-    def "ensure javadoc task does not change its inputs"() {
-        executer.withArgument("-Dorg.gradle.tasks.verifyinputs=true")
-        buildFile << """
-            apply plugin: 'java'
-        """
-        writeSourceFile()
-        expect:
-        succeeds("javadoc")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1456")

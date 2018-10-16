@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'assembler'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 apply plugin: 'c'
 
 model {
@@ -27,7 +27,7 @@ model {
     }
 }
 
-// START SNIPPET assembler-args
+// tag::assembler-args[]
 model {
     components {
         main(NativeExecutableSpec) {
@@ -52,5 +52,5 @@ model {
         }
     }
 }
-// END SNIPPET assembler-args
+// end::assembler-args[]
 

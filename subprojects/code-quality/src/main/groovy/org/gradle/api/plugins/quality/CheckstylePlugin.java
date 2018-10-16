@@ -26,7 +26,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.concurrent.Callable;
  */
 public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
-    public static final String DEFAULT_CHECKSTYLE_VERSION = "6.19";
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "8.12";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
     private CheckstyleExtension extension;
 
@@ -69,28 +68,19 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         return project.provider(new Callable<Directory>() {
             @Override
             public Directory call() {
-                if (usesSubprojectCheckstyleConfiguration()) {
-                    DeprecationLogger.nagUserOfDeprecated("Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project", "Use the root project's 'config/checkstyle' directory instead");
-                    return project.getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
-                }
-
                 return project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
             }
         });
     }
 
-    private boolean usesSubprojectCheckstyleConfiguration() {
-        return !isRootProject() && project.file(CONFIG_DIR_NAME).isDirectory();
-    }
-
-    private boolean isRootProject() {
-        return project.equals(project.getRootProject());
+    @Override
+    protected void configureConfiguration(Configuration configuration) {
+        configureDefaultDependencies(configuration);
     }
 
     @Override
     protected void configureTaskDefaults(Checkstyle task, final String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("checkstyle");
-        configureDefaultDependencies(configuration);
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

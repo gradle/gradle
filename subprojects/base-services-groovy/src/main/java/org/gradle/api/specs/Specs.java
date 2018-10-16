@@ -56,7 +56,6 @@ public class Specs {
     /**
      * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
      */
-    @SuppressWarnings("Since15") //Only here for @SafeVarargs which is just a compiler hint
     @SafeVarargs
     public static <T> Spec<T> intersect(Spec<? super T>... specs) {
         if (specs.length == 0) {
@@ -65,7 +64,7 @@ public class Specs {
         if (specs.length == 1) {
             return Cast.uncheckedCast(specs[0]);
         }
-        return doIntersect(Arrays.asList(specs));
+        return doIntersect(Arrays.<Spec<? super T>>asList(specs));
     }
 
     /**
@@ -100,7 +99,6 @@ public class Specs {
     /**
      * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
      */
-    @SuppressWarnings("Since15") //Only here for @SafeVarargs which is just a compiler hint
     @SafeVarargs
     public static <T> Spec<T> union(Spec<? super T>... specs) {
         if (specs.length == 0) {
@@ -109,7 +107,7 @@ public class Specs {
         if (specs.length == 1) {
             return Cast.uncheckedCast(specs[0]);
         }
-        return doUnion(Arrays.asList(specs));
+        return doUnion(Arrays.<Spec<? super T>>asList(specs));
     }
 
     /**

@@ -48,6 +48,9 @@ class BuildCacheControllerFactoryTest extends Specification {
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
     ])
 
+    boolean logStacktraces
+    boolean emitDebugLogging
+
     private DefaultBuildCacheController createController() {
         createController(DefaultBuildCacheController)
     }
@@ -60,7 +63,8 @@ class BuildCacheControllerFactoryTest extends Specification {
             config,
             buildCacheEnabled ? ENABLED : DISABLED,
             ONLINE,
-            false,
+            logStacktraces,
+            emitDebugLogging,
             DirectInstantiator.INSTANCE
         )
         assert controllerType.isInstance(controller)
@@ -136,6 +140,19 @@ class BuildCacheControllerFactoryTest extends Specification {
             local.type == "directory"
             remote.type == "remote"
         }
+    }
+
+    def "respects debug logging setting - #setting"() {
+        when:
+        emitDebugLogging = setting
+        config.remote(TestRemoteBuildCache)
+        def c = createController()
+
+        then:
+        c.emitDebugLogging == setting
+
+        where:
+        setting << [true, false]
     }
 
     def 'when caching is disabled no services are created'() {

@@ -16,61 +16,101 @@
 
 package org.gradle.api.internal.collections;
 
-import java.util.Collection;
+import com.google.common.base.Objects;
+import com.google.common.collect.Iterators;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
+
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
-public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
-    private final Set<T> values = new LinkedHashSet<T>();
-
-    @Override
-    public boolean isEmpty() {
-        return values.isEmpty();
-    }
-
-    @Override
-    public boolean constantTimeIsEmpty() {
-        return values.isEmpty();
-    }
-
-    @Override
-    public int size() {
-        return values.size();
-    }
-
-    @Override
-    public int estimatedSize() {
-        return values.size();
-    }
+public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
+    private final Spec<ValuePointer<T>> noDuplicates = new Spec<ValuePointer<T>>() {
+        @Override
+        public boolean isSatisfiedBy(ValuePointer<T> pointer) {
+            return !pointer.getElement().isDuplicate(pointer.getIndex());
+        }
+    };
 
     @Override
     public Iterator<T> iterator() {
-        return values.iterator();
+        realizePending();
+        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
     }
 
     @Override
-    public boolean contains(Object element) {
-        return values.contains(element);
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> elements) {
-        return values.containsAll(elements);
+    public Iterator<T> iteratorNoFlush() {
+        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
     }
 
     @Override
     public boolean add(T element) {
-        return values.add(element);
+        modCount++;
+        if (!Iterators.contains(iteratorNoFlush(), element)) {
+            getInserted().add(new Element<T>(element));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
-    public boolean remove(Object o) {
-        return values.remove(o);
+    public boolean addRealized(T value) {
+        markDuplicates(value);
+        return true;
     }
 
     @Override
-    public void clear() {
-        values.clear();
+    protected void clearCachedElement(Element<T> element) {
+        boolean wasRealized = element.isRealized();
+        super.clearCachedElement(element);
+        if (wasRealized) {
+            for (T value : element.getValues()) {
+                markDuplicates(value);
+            }
+        }
+    }
+
+    private void markDuplicates(T value) {
+        boolean seen = false;
+        for (Element<T> element : getInserted()) {
+            if (element.isRealized()) {
+                List<T> collected = element.getValues();
+                for (int index = 0; index < collected.size(); index++) {
+                    if (Objects.equal(collected.get(index), value)) {
+                        if (seen) {
+                            element.setDuplicate(index);
+                        } else {
+                            seen = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        modCount++;
+        Element<T> element = cachingElement(provider);
+        if (!getInserted().contains(element)) {
+            getInserted().add(element);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        modCount++;
+        Element<T> element = cachingElement(provider);
+        if (!getInserted().contains(element)) {
+            getInserted().add(element);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -27,7 +27,7 @@ public interface AsyncWorkTracker {
      *
      * @param operation - The build operation to associate the asynchronous work with
      * @param completion - The completion of the asynchronous work
-     * @throws IllegalStateException when new work is submitted for an operation while another thread is waiting in {@link #waitForCompletion(Operation)} for the same operation.
+     * @throws IllegalStateException when new work is submitted for an operation while another thread is waiting in {@link #waitForCompletion(BuildOperationRef, boolean)} for the same operation.
      */
     void registerWork(BuildOperationRef operation, AsyncWorkCompletion completion);
 
@@ -41,4 +41,9 @@ public interface AsyncWorkTracker {
      * @param releaseLocks - Whether or not project locks should be released while waiting on work
      */
     void waitForCompletion(BuildOperationRef operation, boolean releaseLocks);
+
+    /**
+     * Returns true if the given operation has work registered that has not completed.
+     */
+    boolean hasUncompletedWork(BuildOperationRef operation);
 }

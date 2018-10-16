@@ -22,11 +22,11 @@ class BuildType(val name: String) {
         this.tasks = tasks.asList()
     }
 
-    fun projectProperties(projectProperties: ProjectProperties) {
+    fun projectProperties(vararg pairs: Pair<String, Any>) {
         // this is so that when we configure the active buildType,
         // the project properties set for that buildType immediately
         // become active in the build
-        if (active) onProjectProperties(projectProperties)
+        if (active) onProjectProperties(pairs.toMap())
     }
 }
 

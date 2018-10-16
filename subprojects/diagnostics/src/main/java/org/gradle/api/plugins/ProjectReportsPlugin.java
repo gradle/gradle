@@ -19,6 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
@@ -38,9 +39,9 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String PROJECT_REPORT = "projectReport";
 
     @Override
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        final ProjectReportsPluginConvention convention = new ProjectReportsPluginConvention(project);
+        final ProjectReportsPluginConvention convention = new DefaultProjectReportsPluginConvention(project);
         project.getConvention().getPlugins().put("projectReports", convention);
 
         TaskReportTask taskReportTask = project.getTasks().create(TASK_REPORT, TaskReportTask.class);

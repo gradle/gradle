@@ -15,24 +15,36 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
+import static org.gradle.util.TestPrecondition.JDK10_OR_EARLIER
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'codeQuality')
+@Requires([KOTLIN_SCRIPT, JDK10_OR_EARLIER]) // FindBugs does not work on JDK 11
+class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Requires(JDK8_OR_EARLIER)
-    def checkReportsGenerated() {
-        TestFile projectDir = sample.dir
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
+
+    @Unroll
+    @UsesSample('codeQuality')
+    def "can generate reports with #dsl dsl"() {
+        TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')
 
         when:
-        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('check').run()
+        executer
+            .inDirectory(projectDir)
+            .requireGradleDistribution()
+            .withTasks('check')
+            .expectDeprecationWarnings(2) // jdepend and findbugs are deprecated
+            .run()
 
         then:
         buildDir.file('reports/checkstyle/main.xml').assertDoesNotExist()
@@ -44,5 +56,8 @@ class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         buildDir.file('reports/jdepend/test.xml').assertIsFile()
         buildDir.file('reports/pmd/main.html').assertIsFile()
         buildDir.file('reports/pmd/main.xml').assertIsFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

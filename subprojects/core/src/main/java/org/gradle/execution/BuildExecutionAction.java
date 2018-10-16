@@ -15,6 +15,8 @@
  */
 package org.gradle.execution;
 
+import java.util.Collection;
+
 public interface BuildExecutionAction {
-    void execute(BuildExecutionContext context);
+    void execute(BuildExecutionContext context, final Collection<? super Throwable> taskFailures);
 }

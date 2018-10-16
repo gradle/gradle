@@ -20,7 +20,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.AbstractRenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
@@ -35,7 +35,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
 
-public class DependentComponentsRenderableDependency implements RenderableDependency {
+public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         return of(componentSpec, internalProtocol, null);
@@ -105,12 +105,6 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
     public String getDescription() {
         return description;
     }
-
-    @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return null;
-    }
-
 
     @Override
     public ResolutionState getResolutionState() {

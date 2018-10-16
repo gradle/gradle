@@ -45,6 +45,7 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
     @Unroll
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
+        assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)
         fixture.writeToProject(testDirectory)
         makeSingleProject()
         settingsFile << "rootProject.name = '${fixture.projectName}'"

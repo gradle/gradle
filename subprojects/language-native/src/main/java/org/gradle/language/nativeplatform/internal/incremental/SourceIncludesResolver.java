@@ -15,9 +15,10 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -34,12 +35,20 @@ public interface SourceIncludesResolver {
     }
 
     interface IncludeFile {
+        boolean isQuotedInclude();
+        String getPath();
         File getFile();
-        FileSnapshot getSnapshot();
+        HashCode getContentHash();
     }
 
     /**
      * Resolves the given include directive to zero or more include files.
      */
     IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros);
+
+    /**
+     * Resolves the given include path to zero or one include file.
+     */
+    @Nullable
+    IncludeFile resolveInclude(@Nullable File sourceFile, String includePath);
 }

@@ -21,26 +21,33 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestExecutable;
@@ -94,7 +101,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                testComponent.getOperatingSystems().lockNow();
+                testComponent.getOperatingSystems().finalizeValue();
                 Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
                 if (operatingSystemFamilies.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the unit test.");
@@ -136,7 +143,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         new DefaultUsageContext("debug" + operatingSystemSuffix + "Runtime", runtimeUsage, attributesDebug));
 
                     ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                    testComponent.addExecutable("executable", debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    testComponent.addExecutable(debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                     // TODO: Publishing for test executable?
 
                     final TaskContainer tasks = project.getTasks();
@@ -149,34 +156,68 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         @Override
                         public void execute(final DefaultCppTestExecutable executable) {
                             if (mainComponent != null) {
-                                // TODO: This should be modeled as a kind of dependency vs wiring binaries together directly.
                                 mainComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                                     @Override
-                                    public void execute(CppBinary cppBinary) {
-                                        if (cppBinary == mainComponent.getDevelopmentBinary().get()) {
-                                            AbstractLinkTask linkTest = executable.getLinkTask().get();
-                                            linkTest.source(cppBinary.getObjects());
+                                    public void execute(final CppBinary testedBinary) {
+                                        if (testedBinary != mainComponent.getDevelopmentBinary().get()) {
+                                            return;
                                         }
+
+                                        // TODO - move this to a base plugin
+                                        // Setup the dependency on the main binary
+                                        // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
+
+                                        // Inherit implementation dependencies
+                                        executable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
+
+                                        // Configure test binary to link against tested component compiled objects
+                                        ConfigurableFileCollection testableObjects = project.files();
+                                        if (mainComponent instanceof CppApplication) {
+                                            TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register("relocateMainForTest", UnexportMainSymbol.class, new Action<UnexportMainSymbol>() {
+                                                @Override
+                                                public void execute(UnexportMainSymbol unexportMainSymbol) {
+                                                    unexportMainSymbol.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                                                    unexportMainSymbol.getObjects().from(testedBinary.getObjects());
+                                                }
+                                            });
+                                            // TODO: builtBy unnecessary?
+                                            testableObjects.builtBy(unexportMainSymbol);
+                                            testableObjects.from(unexportMainSymbol.map(new Transformer<FileCollection, UnexportMainSymbol>() {
+                                                @Override
+                                                public FileCollection transform(UnexportMainSymbol unexportMainSymbol) {
+                                                    return unexportMainSymbol.getRelocatedObjects();
+                                                }
+                                            }));
+                                        } else {
+                                            testableObjects.from(testedBinary.getObjects());
+                                        }
+                                        Dependency linkDependency = project.getDependencies().create(testableObjects);
+                                        executable.getLinkConfiguration().getDependencies().add(linkDependency);
                                     }
                                 });
                             }
 
                             // TODO: Replace with native test task
-                            final RunTestExecutable testTask = tasks.create(executable.getNames().getTaskName("run"), RunTestExecutable.class);
-                            testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                            testTask.setDescription("Executes C++ unit tests.");
-
-                            final InstallExecutable installTask = executable.getInstallTask().get();
-                            testTask.onlyIf(new Spec<Task>() {
+                            final TaskProvider<RunTestExecutable> testTask = tasks.register(executable.getNames().getTaskName("run"), RunTestExecutable.class, new Action<RunTestExecutable>() {
                                 @Override
-                                public boolean isSatisfiedBy(Task element) {
-                                    return executable.getInstallDirectory().get().getAsFile().exists();
+                                public void execute(RunTestExecutable testTask) {
+                                    testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                                    testTask.setDescription("Executes C++ unit tests.");
+
+                                    final InstallExecutable installTask = executable.getInstallTask().get();
+                                    testTask.onlyIf(new Spec<Task>() {
+                                        @Override
+                                        public boolean isSatisfiedBy(Task element) {
+                                            return executable.getInstallDirectory().get().getAsFile().exists();
+                                        }
+                                    });
+                                    testTask.getInputs().dir(executable.getInstallDirectory());
+                                    testTask.setExecutable(installTask.getRunScriptFile().get().getAsFile());
+                                    testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
+                                    // TODO: Honor changes to build directory
+                                    testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + executable.getNames().getDirName()).get().getAsFile());
                                 }
                             });
-                            testTask.setExecutable(installTask.getRunScriptFile().get().getAsFile());
-                            testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
-                            // TODO: Honor changes to build directory
-                            testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + executable.getNames().getDirName()).get().getAsFile());
                             executable.getRunTask().set(testTask);
                         }
                     });

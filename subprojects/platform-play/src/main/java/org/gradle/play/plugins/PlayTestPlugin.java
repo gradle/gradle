@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
@@ -35,7 +35,6 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
 
@@ -49,12 +48,11 @@ public class PlayTestPlugin extends RuleSource {
     void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
-            final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
-            final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
+            final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
 
             final String testCompileTaskName = binary.getTasks().taskName("compile", "tests");
             final File testSourceDir = fileResolver.resolve("test");
-            final FileCollection testSources = new SimpleFileCollection(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
+            final FileCollection testSources = ImmutableFileCollection.of(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
             final File testClassesDir = new File(buildDir, binary.getProjectScopedName() + "/testClasses");
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
@@ -71,7 +69,8 @@ public class PlayTestPlugin extends RuleSource {
                     scalaCompile.setTargetCompatibility(targetCompatibility);
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                    incrementalOptions.setAnalysisFile(new File(buildDir, "tmp/scala/compilerAnalysis/" + testCompileTaskName + ".analysis"));
+                    incrementalOptions.getAnalysisFile().set(new File(buildDir, "tmp/scala/compilerAnalysis/" + testCompileTaskName + ".analysis"));
+
                 }
             });
 
@@ -83,7 +82,7 @@ public class PlayTestPlugin extends RuleSource {
 
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 
-                    test.setTestClassesDirs(new SimpleFileCollection(testClassesDir));
+                    test.setTestClassesDirs(ImmutableFileCollection.of(testClassesDir));
                     test.setBinResultsDir(new File(binaryBuildDir, "results/" + testTaskName + "/bin"));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
@@ -95,12 +94,12 @@ public class PlayTestPlugin extends RuleSource {
         }
     }
 
-    private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayToolProvider playToolProvider, PlayPluginConfigurations configurations) {
-        return new SimpleFileCollection(binary.getJarFile()).plus(configurations.getPlayTest().getAllArtifacts());
+    private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayPluginConfigurations configurations) {
+        return ImmutableFileCollection.of(binary.getJarFile()).plus(configurations.getPlayTest().getAllArtifacts());
     }
 
     private FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {
-        return new SimpleFileCollection(testClassesDir).plus(testCompileClasspath);
+        return ImmutableFileCollection.of(testClassesDir).plus(testCompileClasspath);
     }
 
     @Mutate

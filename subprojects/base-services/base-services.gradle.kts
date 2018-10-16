@@ -10,7 +10,7 @@ import java.util.concurrent.Callable
 
 plugins {
     `java-library`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 java {
@@ -30,6 +30,7 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("jcip"))
+    implementation(library("asm"))
 
     jmh(library("bouncycastle_provider")) {
         version {
@@ -52,13 +53,9 @@ val buildReceiptPackage: String by rootProject.extra
 
 
 
-val buildReceiptResource by tasks.creating(Copy::class) {
+val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
     destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
 }
 
-java.sourceSets {
-    "main" {
-        output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)
-    }
-}
+sourceSets["main"].output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)

@@ -16,14 +16,11 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
-
 /**
  * Thrown when a {@link BuildAction} fails.
  *
  * @since 1.8
  */
-@Incubating
 public class BuildActionFailureException extends GradleConnectionException {
     public BuildActionFailureException(String message, Throwable throwable) {
         super(message, throwable);

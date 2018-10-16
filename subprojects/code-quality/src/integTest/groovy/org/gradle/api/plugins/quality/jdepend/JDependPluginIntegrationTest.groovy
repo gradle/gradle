@@ -24,6 +24,9 @@ import static org.hamcrest.Matchers.containsString
 class JDependPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         writeBuildFile()
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
     }
 
     @Override
@@ -34,6 +37,14 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
         return "check"
+    }
+
+    def "emits deprecating warning"() {
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The jdepend plugin has been deprecated")
     }
 
     def "analyze code"() {

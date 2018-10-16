@@ -27,9 +27,6 @@ import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
-import org.gradle.play.internal.toolchain.PlayToolChainInternal
-import org.gradle.play.internal.toolchain.PlayToolProvider
-import org.gradle.play.platform.PlayPlatform
 import spock.lang.Specification
 
 class PlayTestPluginTest extends Specification {
@@ -38,15 +35,13 @@ class PlayTestPluginTest extends Specification {
     def binaryContainer = Mock(ModelMap)
     def projectIdentifier = Mock(ProjectIdentifier)
     def binary = Mock(PlayApplicationBinarySpecInternal)
-    def playPlatform = Mock(PlayPlatform)
-    def playToolChain = Mock(PlayToolChainInternal)
-    def playToolProvider = Mock(PlayToolProvider)
 
     def configuration = Stub(Configuration)
     def configurations = Mock(ConfigurationContainer)
     def dependencyHandler = Mock(DependencyHandler)
 
     File buildDir = new File("tmp")
+    File jarFile = new File("file.jar")
 
     PlayTestPlugin plugin = new PlayTestPlugin()
 
@@ -57,20 +52,19 @@ class PlayTestPluginTest extends Specification {
             taskName(_, _) >> { String verb, String object -> "${verb}SomeBinary${object.capitalize()}"}
             taskName(_) >> { String verb -> "${verb}SomeBinary"}
         }
+        1 * binary.jarFile >> jarFile
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration
+        _ * configurations.getByName(_) >> configuration
+        0 * _
     }
 
     def "adds test related tasks per binary"() {
         given:
         def fileResolver = Mock(FileResolver)
         1 * fileResolver.resolve('test') >> new File('test')
-
-        1 * binary.getTargetPlatform() >> playPlatform
-        1 * binary.getToolChain() >> playToolChain
-        1 * playToolChain.select(playPlatform) >> playToolProvider
-
+        
         when:
         plugin.createTestTasks(taskModelMap, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), fileResolver, projectIdentifier, buildDir)
 
@@ -79,5 +73,6 @@ class PlayTestPluginTest extends Specification {
         1 * taskModelMap.create("testSomeBinary", Test, _)
         0 * taskModelMap.create(_)
         0 * taskModelMap.create(_, _, _)
+        1 * taskModelMap.get('testSomeBinary')
     }
 }

@@ -58,16 +58,12 @@ class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
 
         String getLoggingHeader() { loggingHeader }
 
-        ProgressLogger setLoggingHeader(String header) {
-            this.loggingHeader = header
+        ProgressLogger setLoggingHeader(String loggingHeader) {
+            this.loggingHeader = loggingHeader
             this
         }
 
-        ProgressLogger start(String description, String shortDescription) {
-            start(description, shortDescription, 0)
-        }
-
-        ProgressLogger start(String description, String shortDescription, int totalProgress) {
+        ProgressLogger start(String description, String status) {
             setDescription(description)
             setShortDescription(shortDescription)
             started()
@@ -76,7 +72,6 @@ class NoOpProgressLoggerFactory implements ProgressLoggerFactory {
 
         void started() {}
         void started(String status) {}
-        void started(String status, int totalProgress) {}
         void progress(String status) {}
         void progress(String status, boolean failing) {}
         void completed() {}

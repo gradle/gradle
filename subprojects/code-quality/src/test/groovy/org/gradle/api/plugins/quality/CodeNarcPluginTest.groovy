@@ -101,8 +101,8 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         CodeNarc task = project.tasks.create("codenarcCustom", CodeNarc)
 
         task.reports.xml {
-            enabled true
-            destination "build/foo.xml"
+            enabled = true
+            destination = project.file("build/foo.xml")
         }
 
         expect:

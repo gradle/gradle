@@ -322,4 +322,44 @@ public class StaticInnerTest {
         result.testClass('org.gradle.StaticInnerTest$Nested$Nested2').assertTestCount(1, 0, 0)
             .assertTestPassed('inside')
     }
+
+    @Unroll
+    @Issue('https://github.com/gradle/gradle/issues/4924')
+    def "re-executes test when #key is changed"() {
+        given:
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform {
+                    ${key} ${value}
+                }
+            }
+        """)
+        createSimpleJupiterTest()
+
+        when:
+        succeeds ':test'
+
+        then:
+        executedAndNotSkipped ':test'
+
+        when:
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+            }
+        """)
+
+        and:
+        succeeds ':test'
+
+        then:
+        executedAndNotSkipped ':test'
+
+        where:
+        key              | value
+        'includeTags'    | '"ok"'
+        'excludeTags'    | '"ok"'
+        'includeEngines' | '"junit-jupiter"'
+        'excludeEngines' | '"junit-jupiter"'
+    }
 }

@@ -30,7 +30,7 @@ import org.gradle.platform.base.internal.PlatformRequirement;
 
 public class PlayPlatformNotationParser {
 
-    private static final NotationParserBuilder<PlatformRequirement> BUILDER = NotationParserBuilder
+    private static final NotationParserBuilder<Object, PlatformRequirement> BUILDER = NotationParserBuilder
             .toType(PlatformRequirement.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter());
@@ -40,14 +40,14 @@ public class PlayPlatformNotationParser {
         return builder().toComposite();
     }
 
-    private static NotationParserBuilder<PlatformRequirement> builder() {
+    private static NotationParserBuilder<Object, PlatformRequirement> builder() {
         return BUILDER;
     }
 
     static class MapConverter extends MapNotationConverter<PlatformRequirement> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Map defining the platform versions").example("[play: '" + DefaultPlayPlatform.DEFAULT_PLAY_VERSION + "', scala:'2.11.8', java: '1.6']");
+            visitor.candidate("Map defining the platform versions").example("[play: '" + DefaultPlayPlatform.DEFAULT_PLAY_VERSION + "', scala:'2.11.12', java: '1.6']");
         }
 
         protected PlatformRequirement parseMap(@MapKey("play") String playVersion,

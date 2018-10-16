@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class IvyPublishPluginIntegTest extends WellBehavedPluginTest {
+
     @Override
     String getMainTask() {
         "publish"

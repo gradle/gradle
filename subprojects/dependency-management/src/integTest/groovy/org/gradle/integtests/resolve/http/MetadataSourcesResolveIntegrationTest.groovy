@@ -100,7 +100,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         succeeds ":checkDeps"
 
         // We are resolving with "legacy" metadata: always gives default configuration, unless we derive Java library variants for maven repositories
-        resolve.expectDefaultConfiguration(isExperimentalEnabled() && useMaven() ? "runtime" : "default")
+        resolve.expectDefaultConfiguration(useMaven() ? "runtime" : "default")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:1.+", "org.test:projectA:1.2")
@@ -142,7 +142,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         succeeds ":checkDeps"
 
         // We are resolving with `artifact()` metadata: always gives default configuration, unless we derive Java library variants for maven repositories
-        resolve.expectDefaultConfiguration(isExperimentalEnabled() && useMaven() ? "runtime" : "default")
+        resolve.expectDefaultConfiguration(useMaven() ? "runtime" : "default")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:1.+", "org.test:projectA:1.2")
@@ -177,8 +177,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
 
         and:
         failure.assertHasCause("""Could not find org.test:projectA:1.1.
-Searched in the following locations:
-    ${metadataUri}
+Searched in the following locations: ${metadataUri}
 Required by:""")
     }
 }

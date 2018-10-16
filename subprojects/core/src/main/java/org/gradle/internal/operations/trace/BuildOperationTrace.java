@@ -22,10 +22,13 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -360,9 +363,9 @@ public class BuildOperationTrace implements Stoppable {
     }
 
 
-    private class LoggingListener extends BuildAdapter implements BuildOperationListener {
+    private class LoggingListener extends InternalBuildAdapter implements BuildOperationListener {
 
-        // This is a workaround for https://github.com/gradle/gradle/issues/3873
+        // This is a workaround for https://github.com/gradle/gradle/issues/4241
         // Several early typed operations have `buildPath` property,
         // the value of which can only be determined after the settings file for the build has loaded.
         //
@@ -378,21 +381,30 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
-                stopBuffering();
+                gradle.getRootProject().beforeEvaluate(new InternalAction<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        stopBuffering();
+                    }
+                });
             }
         }
 
-        // Build may have failed before getting to projectsLoaded
         @Override
-        public void buildFinished(@SuppressWarnings("NullableProblems") BuildResult result) {
-            stopBuffering();
+        public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
+            if (gradle.getParent() == null) {
+                gradle.buildFinished(new Action<BuildResult>() {
+                    @Override
+                    public void execute(BuildResult buildResult) {
+                        // Build may have failed before getting to projectsLoaded
+                        stopBuffering();
+                    }
+                });
+            }
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            if (buildOperation.getId().getId() == 11) {
-                int i = 1;
-            }
             new Entry(new SerializedOperationStart(buildOperation, startEvent), false).add();
         }
 
@@ -473,5 +485,13 @@ public class BuildOperationTrace implements Stoppable {
 
         }
 
+    }
+
+    static Object toSerializableModel(Object object) {
+        if (object instanceof CustomOperationTraceSerialization) {
+            return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
+        } else {
+            return object;
+        }
     }
 }

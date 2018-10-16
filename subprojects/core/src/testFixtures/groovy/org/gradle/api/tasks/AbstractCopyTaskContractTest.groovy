@@ -18,10 +18,8 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static junit.framework.TestCase.fail
 /**
@@ -31,20 +29,27 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
     @Override
     abstract AbstractCopyTask getTask()
 
-    @Unroll
-    def rootLevelFileCopyDetailsIsDslEnhanced() {
-        task.eachFile {
-            assert delegate instanceof DynamicObject
-        }
+    def "root level FileCopyDetails are DSL-enhanced"() {
+        given:
+        File srcDir = createDir(project.projectDir, 'src')
+        createFile(srcDir, 'file.properties')
+
+        and:
+        task.from srcDir
+        task.into project.buildDir
         task.eachFile(new Action<FileCopyDetails>() {
             void execute(FileCopyDetails fcd) {
-                assert fcd instanceof DynamicObject
+                assert fcd.class.name.endsWith("_Decorated")
             }
         })
+
+        expect:
+        execute(task)
     }
 
     @Issue("GRADLE-2906")
     def "each file does not execute action for directories"() {
+        given:
         File fromSrcDir = createDir(project.projectDir, 'src')
         File fromConfDir = createDir(fromSrcDir, 'conf')
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
@@ -52,17 +57,20 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         File intoBuildDir = createDir(project.projectDir, 'build')
         EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation()
 
+        when:
         task.from fromSrcDir
         task.into intoBuildDir
         task.eachFile closureInvocation.closure
         execute(task)
 
-        assert closureInvocation.wasCalled(1)
-        assert closureInvocation.files.containsAll(fromPropertiesFile)
+        then:
+        closureInvocation.wasCalled(1)
+        closureInvocation.files.containsAll(fromPropertiesFile)
     }
 
     @Issue("GRADLE-2900")
     def "each file does not execute action for directories after filtering file tree"() {
+        given:
         File fromSrcDir = createDir(project.projectDir, 'src')
         File fromConfDir = createDir(fromSrcDir, 'conf')
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
@@ -70,12 +78,14 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         File intoBuildDir = createDir(project.projectDir, 'build')
         EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation()
 
+        when:
         task.from(project.fileTree(dir: fromSrcDir).matching { include 'conf/file.properties' }) { eachFile closureInvocation.closure }
         task.into intoBuildDir
         execute(task)
 
-        assert closureInvocation.wasCalled(1)
-        assert closureInvocation.files.contains(fromPropertiesFile)
+        then:
+        closureInvocation.wasCalled(1)
+        closureInvocation.files.contains(fromPropertiesFile)
     }
 
     private static File createDir(File parentDir, String path) {

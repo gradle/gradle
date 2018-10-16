@@ -19,11 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.Describables;
 
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.REQUESTED;
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
@@ -37,7 +38,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
         this.requested = requested;
         this.target = requested;
         if (reason != null) {
-            this.selectionDescription = VersionSelectionReasons.REQUESTED.withReason(reason);
+            this.selectionDescription = VersionSelectionReasons.REQUESTED.withReason(Describables.of(reason));
         } else {
             this.selectionDescription = VersionSelectionReasons.REQUESTED;
         }
@@ -55,7 +56,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public void useTarget(Object notation, String reason) {
-        useTarget(notation, new DefaultComponentSelectionDescriptor(SELECTED_BY_RULE, reason));
+        useTarget(notation, new DefaultComponentSelectionDescriptor(SELECTED_BY_RULE, Describables.of(reason)));
     }
 
     @Override

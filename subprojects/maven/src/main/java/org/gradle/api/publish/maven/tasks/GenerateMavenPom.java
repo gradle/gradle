@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -38,7 +37,6 @@ import java.io.File;
  *
  * @since 1.4
  */
-@Incubating
 public class GenerateMavenPom extends DefaultTask {
 
     private MavenPom pom;
@@ -109,7 +107,7 @@ public class GenerateMavenPom extends DefaultTask {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
         MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity(), getVersionRangeMapper());
-        pomGenerator.setPackaging(pomInternal.getPackaging());
+        pomGenerator.configureFrom(pomInternal);
 
         for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {
             pomGenerator.addApiDependencyManagement(mavenDependency);
@@ -117,6 +115,10 @@ public class GenerateMavenPom extends DefaultTask {
 
         for (MavenDependency mavenDependency : pomInternal.getRuntimeDependencyManagement()) {
             pomGenerator.addRuntimeDependencyManagement(mavenDependency);
+        }
+
+        for (MavenDependency mavenDependency : pomInternal.getImportDependencyManagement()) {
+            pomGenerator.addImportDependencyManagement(mavenDependency);
         }
 
         for (MavenDependencyInternal runtimeDependency : pomInternal.getApiDependencies()) {

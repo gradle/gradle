@@ -18,10 +18,10 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,14 +102,47 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
+        if (attributes1 == ImmutableAttributes.EMPTY) {
+            return attributes2;
+        }
+        if (attributes2 == ImmutableAttributes.EMPTY) {
+            return attributes1;
+        }
         ImmutableAttributes current = attributes2;
         for (Attribute attribute : attributes1.keySet()) {
-            if (!current.contains(attribute)) {
+            if (!current.findEntry(attribute.getName()).isPresent()) {
                 if (attributes1 instanceof DefaultImmutableAttributes) {
                     current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
                 } else {
                     current = concat(current, attribute, attributes1.getAttribute(attribute));
                 }
+            }
+        }
+        return current;
+    }
+
+    @Override
+    public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
+        if (attributes1 == ImmutableAttributes.EMPTY) {
+            return attributes2;
+        }
+        if (attributes2 == ImmutableAttributes.EMPTY) {
+            return attributes1;
+        }
+        ImmutableAttributes current = attributes2;
+        for (Attribute attribute : attributes1.keySet()) {
+            AttributeValue<?> entry = current.findEntry(attribute.getName());
+            if (entry.isPresent()) {
+                Object currentAttribute = entry.get();
+                Object existingAttribute = attributes1.getAttribute(attribute);
+                if (!currentAttribute.equals(existingAttribute)) {
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
+                }
+            }
+            if (attributes1 instanceof DefaultImmutableAttributes) {
+                current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+            } else {
+                current = concat(current, attribute, attributes1.getAttribute(attribute));
             }
         }
         return current;

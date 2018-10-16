@@ -64,7 +64,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleA)
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
+    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
         def sysPropRepo = mavenLocal("artifactrepo")
@@ -173,8 +173,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         then:
         failure.assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
-    ${module.pomFile.toURL()}
-    ${module.artifactFile.toURL()}
+  - ${module.pomFile.toURL()}
+  - ${module.artifactFile.toURL()}
 Required by:
 """)
 

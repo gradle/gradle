@@ -16,30 +16,37 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 import java.util.Set;
 
-public interface IvyPublicationInternal extends IvyPublication, PublicationInternal {
+public interface IvyPublicationInternal extends IvyPublication, PublicationInternal<IvyArtifact> {
 
     IvyPublicationIdentity getIdentity();
 
     IvyModuleDescriptorSpecInternal getDescriptor();
 
-    void setIvyDescriptorFile(FileCollection descriptorFile);
+    void setIvyDescriptorGenerator(Task descriptorGenerator);
 
-    void setGradleModuleDescriptorFile(FileCollection descriptorFile);
+    void setModuleDescriptorGenerator(Task descriptorGenerator);
 
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
     FileCollection getPublishableFiles();
 
     Set<IvyDependencyInternal> getDependencies();
 
-    IvyNormalizedPublication asNormalisedPublication();
+    Set<IvyExcludeRule> getGlobalExcludes();
 
-    boolean canPublishModuleMetadata();
+    IvyNormalizedPublication asNormalisedPublication();
 }

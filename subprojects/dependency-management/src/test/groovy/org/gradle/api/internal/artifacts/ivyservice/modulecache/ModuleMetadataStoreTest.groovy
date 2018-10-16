@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -24,23 +23,26 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.SimpleMapInterner
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 class ModuleMetadataStoreTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder
-    PathKeyFileStore pathKeyFileStore = Mock()
-    String repository = "repositoryId"
-    LocallyAvailableResource fileStoreEntry = Mock()
-    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
+    def pathKeyFileStore = Mock(PathKeyFileStore)
+    def repository = "repositoryId"
+    def fileStoreEntry = Mock(LocallyAvailableResource)
+    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
         module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
     }
-    ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
-    ModuleMetadataSerializer serializer = Mock()
-    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory)
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    def moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
+    def serializer = Mock(ModuleMetadataSerializer)
+    @Subject ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
+    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
@@ -53,7 +55,7 @@ class ModuleMetadataStoreTest extends Specification {
         when:
         store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier));
         then:
-        1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
+        1 * pathKeyFileStore.get("org.test", "testArtifact", "1.0", "repositoryId", "descriptor.bin") >> null
     }
 
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {

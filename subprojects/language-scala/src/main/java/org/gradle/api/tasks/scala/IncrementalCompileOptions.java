@@ -16,36 +16,34 @@
 
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 
-import java.io.File;
-import java.io.Serializable;
+import javax.inject.Inject;
 
 /**
  * Options for incremental compilation of Scala code. Only used for compilation with Zinc.
+ *
+ * This is not sent to the compiler daemon as options.
  */
-@Incubating
-public class IncrementalCompileOptions implements Serializable {
-    private static final long serialVersionUID = 0;
+public class IncrementalCompileOptions {
+    private final RegularFileProperty analysisFile;
+    private final RegularFileProperty publishedCode;
 
-    private File analysisFile;
-    private File publishedCode;
+    @Inject
+    public IncrementalCompileOptions(ObjectFactory objectFactory) {
+        this.analysisFile = objectFactory.fileProperty();
+        this.publishedCode = objectFactory.fileProperty();
+    }
 
     /**
      * Returns the file path where results of code analysis are to be stored.
      */
     @LocalState
-    public File getAnalysisFile() {
+    public RegularFileProperty getAnalysisFile() {
         return analysisFile;
-    }
-
-    /**
-     * Sets the file path where results of code analysis are to be stored.
-     */
-    public void setAnalysisFile(File analysisFile) {
-        this.analysisFile = analysisFile;
     }
 
     /**
@@ -54,15 +52,7 @@ public class IncrementalCompileOptions implements Serializable {
      */
     // only an input for other task instances
     @Internal
-    public File getPublishedCode() {
+    public RegularFileProperty getPublishedCode() {
         return publishedCode;
-    }
-
-    /**
-     * Sets the directory or archive path by which the code produced by this task
-     * is published to other {@code ScalaCompile} tasks.
-     */
-    public void setPublishedCode(File publishedCode) {
-        this.publishedCode = publishedCode;
     }
 }

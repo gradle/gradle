@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -27,12 +26,20 @@ import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.Expression;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.MacroWithSimpleExpression;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBuilder {
@@ -53,11 +60,12 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
     }
 
     @Override
-    public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Provider<Boolean> importAware) {
-        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware);
+    public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Map<String, String> macros, Provider<Boolean> importAware) {
+        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, macros, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory, buildOperationExecutor, importAware);
     }
 
     private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareTaskProperty {
+        private final Map<String, String> macros;
         private final FileSystemSnapshotter fileSystemSnapshotter;
         private final CompilationStateCacheFactory compilationStateCacheFactory;
         private final CSourceParser sourceParser;
@@ -72,11 +80,12 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
 
-        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
+        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, Map<String, String> macros, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory, BuildOperationExecutor buildOperationExecutor, Provider<Boolean> importAware) {
             this.taskOutputs = task.getOutputs();
             this.taskPath = task.getPath();
             this.includeDirs = includeDirs;
             this.sourceFiles = sourceFiles;
+            this.macros = macros;
             this.fileSystemSnapshotter = fileSystemSnapshotter;
             this.compilationStateCacheFactory = compilationStateCacheFactory;
             this.sourceParser = sourceParser;
@@ -100,12 +109,22 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             compileStateCache = compilationStateCacheFactory.create(taskPath);
             DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importAware.get());
             DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);
-            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
+            IncludeDirectives includeDirectives = directivesForMacros(macros);
+            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(includeDirectives, sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
             IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory, buildOperationExecutor);
 
             incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());
             DefaultHeaderDependenciesCollector headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
             return headerDependenciesCollector.collectExistingHeaderDependencies(taskPath, includeRoots, incrementalCompilation);
+        }
+
+        private IncludeDirectives directivesForMacros(Map<String, String> macros) {
+            ImmutableList.Builder<Macro> builder = ImmutableList.builder();
+            for (Map.Entry<String, String> entry : macros.entrySet()) {
+                Expression expression = RegexBackedCSourceParser.parseExpression(entry.getValue());
+                builder.add(new MacroWithSimpleExpression(entry.getKey(), expression.getType(), expression.getValue()));
+            }
+            return DefaultIncludeDirectives.of(ImmutableList.of(), builder.build(), ImmutableList.of());
         }
 
         @Override

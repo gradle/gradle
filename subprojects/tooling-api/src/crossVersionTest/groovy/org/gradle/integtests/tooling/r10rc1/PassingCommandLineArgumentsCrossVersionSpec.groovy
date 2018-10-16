@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.r10rc1
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
@@ -129,16 +130,18 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         given:
         file('.myGradle').createDir()
         file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
+        toolingApi.requireIsolatedDaemons()
 
         when:
         withConnection {
-            it.newBuild().withArguments('-p', '.myGradle').run()
+            it.newBuild().withArguments('-g', '.myGradle').run()
         }
 
         then:
         noExceptionThrown()
     }
 
+    @TargetGradleVersion(">=2.6 <5.0")
     def "can configure searchUpwards via build arguments"() {
         given:
         file('build.gradle') << "assert !gradle.startParameter.searchUpwards"

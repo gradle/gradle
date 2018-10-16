@@ -18,7 +18,7 @@ package org.gradle.language
 
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer

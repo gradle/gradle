@@ -22,6 +22,23 @@ import org.gradle.api.Named
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.internal.snapshot.impl.ArrayValueSnapshot
+import org.gradle.internal.snapshot.impl.BooleanValueSnapshot
+import org.gradle.internal.snapshot.impl.EnumValueSnapshot
+import org.gradle.internal.snapshot.impl.FileValueSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.internal.snapshot.impl.IntegerValueSnapshot
+import org.gradle.internal.snapshot.impl.ListValueSnapshot
+import org.gradle.internal.snapshot.impl.LongValueSnapshot
+import org.gradle.internal.snapshot.impl.ManagedNamedTypeSnapshot
+import org.gradle.internal.snapshot.impl.MapValueSnapshot
+import org.gradle.internal.snapshot.impl.NullValueSnapshot
+import org.gradle.internal.snapshot.impl.ProviderSnapshot
+import org.gradle.internal.snapshot.impl.SerializedValueSnapshot
+import org.gradle.internal.snapshot.impl.SetValueSnapshot
+import org.gradle.internal.snapshot.impl.ShortValueSnapshot
+import org.gradle.internal.snapshot.impl.StringValueSnapshot
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -177,7 +194,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes implementation properties"() {
-        def original = [a: new ImplementationSnapshot("someClassName", HashCode.fromString("0123456789"))]
+        def original = [a: ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))]
         write(original)
 
         expect:
@@ -185,14 +202,29 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with unknown classloader"() {
-        def original = new ImplementationSnapshot("someClassName", null)
+        def original = ImplementationSnapshot.of("someClassName", null)
         def originalMap = [a: original]
         write(originalMap)
 
         expect:
         ImplementationSnapshot copy = written.a
-        original.typeName == copy.typeName
-        copy.hasUnknownClassLoader()
+        copy.typeName == original.typeName
+        copy.classLoaderHash == null
+        copy.unknown
+        copy.unknownReason.contains("unknown classloader")
+    }
+
+    def "serializes implementation properties with lambda"() {
+        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', HashCode.fromInt(1234))
+        def originalMap = [a: original]
+        write(originalMap)
+
+        expect:
+        ImplementationSnapshot copy = written.a
+        copy.typeName == original.typeName
+        copy.classLoaderHash == null
+        copy.isUnknown()
+        copy.unknownReason.contains("lambda")
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {

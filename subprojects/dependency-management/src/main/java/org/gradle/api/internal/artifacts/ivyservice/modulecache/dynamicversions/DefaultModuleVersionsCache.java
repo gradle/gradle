@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -28,14 +28,14 @@ import java.util.Set;
 
 public class DefaultModuleVersionsCache extends InMemoryModuleVersionsCache {
 
-    private final CacheLockingManager cacheLockingManager;
+    private final ArtifactCacheLockingManager artifactCacheLockingManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
     private PersistentIndexedCache<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> cache;
 
-    public DefaultModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultModuleVersionsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(timeProvider);
-        this.cacheLockingManager = cacheLockingManager;
+        this.artifactCacheLockingManager = artifactCacheLockingManager;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
@@ -47,7 +47,7 @@ public class DefaultModuleVersionsCache extends InMemoryModuleVersionsCache {
     }
 
     private PersistentIndexedCache<ModuleAtRepositoryKey, ModuleVersionsCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-versions", new ModuleKeySerializer(moduleIdentifierFactory), new ModuleVersionsCacheEntrySerializer());
+        return artifactCacheLockingManager.createCache("module-versions", new ModuleKeySerializer(moduleIdentifierFactory), new ModuleVersionsCacheEntrySerializer());
     }
 
     @Override

@@ -34,25 +34,23 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Deprecated methods on `FileCollection`
-
-- `FileCollection.add()` is now deprecated. Use `ConfigurableFileCollection.from()` instead. You can create a `ConfigurableFileCollection` via `Project.files()`.
-
 ## Potential breaking changes
 
 <!--
 ### Example breaking change
 -->
 
-### TaskContainer.remove() now actually removes the task
+### Worker API: working directory of a worker can no longer be set 
 
-TBD - previously this was broken, and plugins may accidentally rely on this behaviour.
+Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
+All workers now use the same working directory to enable reuse.
+Please pass files and directories as arguments instead.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
+ - [Mike Kobit](https://github.com/mkobit) - Add missing `@Deprecated` annotations to `ProjectLayout` methods (gradle/gradle#7344)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)

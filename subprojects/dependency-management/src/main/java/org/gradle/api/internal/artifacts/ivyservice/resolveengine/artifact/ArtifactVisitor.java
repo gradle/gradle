@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.DisplayName;
 
 import java.io.File;
 
@@ -28,24 +29,24 @@ public interface ArtifactVisitor {
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
      */
-    void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact);
+    void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(String, AttributeContainer, ResolvableArtifact)}?
+     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to pre-emptively resolve the files in parallel.
      */
     boolean requireArtifactFiles();
 
     /**
-     * Should {@link #visitFile(ComponentArtifactIdentifier, String, AttributeContainer, File)} be called?
+     * Should {@link #visitFile(ComponentArtifactIdentifier, DisplayName, AttributeContainer, File)} be called?
      */
     boolean includeFiles();
 
     /**
      * Visits a file. Should be considered an artifact but is separate as a migration step.
      */
-    void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file);
+    void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file);
 
     /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.

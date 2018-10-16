@@ -32,17 +32,17 @@ package org.gradle.api.internal.tasks.scala;
  * limitations under the License.
  */
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.DaemonForkOptions;
-import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Arrays;
@@ -51,10 +51,10 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     private static final Iterable<String> SHARED_PACKAGES =
             Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac", "sbt");
     private final Iterable<File> zincClasspath;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final File daemonWorkingDir;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, FileResolver fileResolver) {
+    public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, PathToFileResolver fileResolver) {
         super(delegate, workerDaemonFactory);
         this.zincClasspath = zincClasspath;
         this.fileResolver = fileResolver;
@@ -62,21 +62,18 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     }
 
     @Override
-    protected InvocationContext toInvocationContext(T spec) {
+    protected DaemonForkOptions toDaemonForkOptions(T spec) {
         ForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
         ScalaForkOptions scalaOptions = spec.getScalaCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(mergeForkOptions(javaOptions, scalaOptions));
-        File invocationWorkingDir = javaForkOptions.getWorkingDir();
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
+        return new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .classpath(zincClasspath)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
-
-        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }
 

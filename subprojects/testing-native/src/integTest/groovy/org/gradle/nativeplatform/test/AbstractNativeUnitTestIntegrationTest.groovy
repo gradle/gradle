@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import spock.lang.Unroll
 
 abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "does nothing when no source files are present"() {
@@ -27,11 +28,73 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         run("check")
 
         then:
-        result.assertTasksExecuted(tasksToBuildAndRunUnitTest, ":test", ":check")
-        result.assertTasksSkipped(tasksToBuildAndRunUnitTest, ":test", ":check")
+        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
+        result.assertTasksSkipped(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
     }
 
-    protected abstract void makeSingleProject();
+    @Unroll
+    def "runs tests when #task lifecycle task executes"() {
+        given:
+        makeSingleProject()
+        writeTests()
 
-    abstract String[] getTasksToBuildAndRunUnitTest()
+        when:
+        succeeds(task)
+
+        then:
+        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
+        assertTestCasesRan()
+
+        where:
+        task    | expectedLifecycleTasks
+        "test"  | [":test"]
+        "check" | [":test", ":check"]
+        "build" | [":test", ":check", ":build", tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, tasksToAssembleComponentUnderTest, ":assemble"]
+    }
+
+    def "skips test tasks as up-to-date when nothing changes between invocation"() {
+        given:
+        makeSingleProject()
+        writeTests()
+
+        succeeds("test")
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksSkipped(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
+
+        when:
+        changeTestImplementation()
+        succeeds("test")
+
+        then:
+        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksSkipped(tasksToCompileComponentUnderTest)
+        result.assertTasksNotSkipped(tasksToBuildAndRunUnitTest, ":test")
+    }
+
+    // Creates a single project build with no source
+    protected abstract void makeSingleProject()
+
+    // Writes test source for tests that all pass and main component, if any
+    protected abstract void writeTests()
+
+    // Updates the test implementation
+    protected abstract void changeTestImplementation()
+
+    // Asserts expected tests ran
+    protected abstract void assertTestCasesRan()
+
+    protected abstract String[] getTasksToBuildAndRunUnitTest()
+
+    protected String[] getTasksToCompileComponentUnderTest() {
+        return []
+    }
+
+    protected String[] getTasksToAssembleComponentUnderTest() {
+        return []
+    }
 }

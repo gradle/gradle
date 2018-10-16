@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Requires
@@ -26,11 +27,18 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
 
+    def setup() {
+        //  customModel/languageType sample contains buildSrc, which needs global init script to make mirror work
+        executer.withGlobalRepositoryMirrors()
+    }
+
     def "shows custom language sourcesets in component"() {
         given:
         sample languageTypeSample
+
         when:
         succeeds "components"
+
         then:
         output.contains """
 DocumentationComponent 'docs'
@@ -51,10 +59,13 @@ Binaries
     def "can build binary"() {
         given:
         sample languageTypeSample
+
         when:
         succeeds "assemble"
+
         then:
         executedTasks == [":compileDocsExplodedReference", ":compileDocsExplodedUserguide", ":docsExploded", ":assemble"]
+
         and:
         languageTypeSample.dir.file("build/docs/exploded").assertHasDescendants(
                 "reference/README.txt",

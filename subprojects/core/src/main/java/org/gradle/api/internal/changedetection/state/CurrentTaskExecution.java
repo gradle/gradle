@@ -16,23 +16,35 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution {
 
-    private final ImmutableSet<String> declaredOutputFilePaths;
-    private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
-    private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
-    private FileCollectionSnapshot discoveredInputFilesSnapshot;
+    private static final Function<FileCollectionFingerprint, HistoricalFileCollectionFingerprint> ARCHIVE_FINGERPRINT = new Function<FileCollectionFingerprint, HistoricalFileCollectionFingerprint>() {
+        @Override
+        @SuppressWarnings("NullableProblems")
+        public HistoricalFileCollectionFingerprint apply(FileCollectionFingerprint value) {
+            return value.archive();
+        }
+    };
+
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
+    private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private Boolean successful;
     private OriginTaskExecutionMetadata originExecutionMetadata;
@@ -42,27 +54,14 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths,
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
-        FileCollectionSnapshot discoveredInputFilesSnapshot,
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprintsBeforeExecution,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
         super(taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
-        this.declaredOutputFilePaths = declaredOutputFilePaths;
-        this.outputFilesSnapshot = outputFilesSnapshot;
-        this.inputFilesSnapshot = inputFilesSnapshot;
-        this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
+        this.outputFingerprints = outputFingerprintsBeforeExecution;
+        this.inputFingerprints = inputFingerprints;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
-    }
-
-    /**
-     * Returns the absolute path of every declared output file and directory.
-     * The returned set includes potentially missing files as well, and does
-     * not include the resolved contents of directories.
-     */
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
-        return declaredOutputFilePaths;
     }
 
     @Override
@@ -74,28 +73,23 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         this.successful = successful;
     }
 
+    /**
+     * The fingerprints of the output files for the current execution.
+     *
+     * @return The fingerprint of the output files before or after the task executed, depending on which one is available.
+     */
+    @Override
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
+        return outputFingerprints;
+    }
+
+    public void setOutputFingerprintsAfterExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesSnapshot) {
+        this.outputFingerprints = outputFilesSnapshot;
+    }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
-        return outputFilesSnapshot;
-    }
-
-    public void setOutputFilesSnapshot(ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot) {
-        this.outputFilesSnapshot = outputFilesSnapshot;
-    }
-
-    @Override
-    public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
-        return inputFilesSnapshot;
-    }
-
-    @Override
-    public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
-        return discoveredInputFilesSnapshot;
-    }
-
-    public void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot discoveredInputFilesSnapshot) {
-        this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFingerprints() {
+        return inputFingerprints;
     }
 
     @Nullable
@@ -104,14 +98,15 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     }
 
     public HistoricalTaskExecution archive() {
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalInputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(inputFingerprints, ARCHIVE_FINGERPRINT));
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(outputFingerprints, ARCHIVE_FINGERPRINT));
         return new HistoricalTaskExecution(
             getTaskImplementation(),
             getTaskActionImplementations(),
             getInputProperties(),
             getOutputPropertyNamesForCacheKey(),
-            inputFilesSnapshot,
-            discoveredInputFilesSnapshot,
-            outputFilesSnapshot,
+            historicalInputFingerprints,
+            historicalOutputFingerprints,
             successful,
             originExecutionMetadata
         );

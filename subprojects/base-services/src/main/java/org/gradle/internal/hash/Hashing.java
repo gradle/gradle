@@ -17,7 +17,11 @@
 package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
+import org.gradle.internal.io.BufferCaster;
+import org.gradle.internal.io.NullOutputStream;
 
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -34,10 +38,84 @@ public class Hashing {
 
     private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
 
+    private static final HashFunction DEFAULT = MD5;
+
+    /**
+     * Returns a new {@link Hasher} based on the default hashing implementation.
+     */
+    public static Hasher newHasher() {
+        return DEFAULT.newHasher();
+    }
+
+    /**
+     * Returns a new {@link PrimitiveHasher} based on the default hashing implementation.
+     */
+    public static PrimitiveHasher newPrimitiveHasher() {
+        return DEFAULT.newPrimitiveHasher();
+    }
+
+    /**
+     * Returns a hash code to use as a signature for a given type.
+     */
+    public static HashCode signature(Class<?> type) {
+        return signature("CLASS:" + type.getName());
+    }
+
+    /**
+     * Returns a hash code to use as a signature for a given thing.
+     */
+    public static HashCode signature(String thing) {
+        Hasher hasher = DEFAULT.newHasher();
+        hasher.putString("SIGNATURE");
+        hasher.putString(thing);
+        return hasher.hash();
+    }
+
+    /**
+     * Hash the given bytes with the default hash function.
+     */
+    public static HashCode hashBytes(byte[] bytes) {
+        return DEFAULT.hashBytes(bytes);
+    }
+
+    /**
+     * Hash the given string with the default hash function.
+     */
+    public static HashCode hashString(CharSequence string) {
+        return DEFAULT.hashString(string);
+    }
+
+    /**
+     * Creates a {@link HashingOutputStream} with the default hash function.
+     */
+    public static HashingOutputStream primitiveStreamHasher() {
+        return primitiveStreamHasher(NullOutputStream.INSTANCE);
+    }
+
+    /**
+     * Creates a {@link HashingOutputStream} with the default hash function.
+     */
+    public static HashingOutputStream primitiveStreamHasher(OutputStream output) {
+        return new HashingOutputStream(DEFAULT, output);
+    }
+
+    /**
+     * The default hashing function.
+     */
+    public static HashFunction defaultFunction() {
+        return DEFAULT;
+    }
+
+    /**
+     * MD5 hashing function.
+     */
     public static HashFunction md5() {
         return MD5;
     }
 
+    /**
+     * SHA1 hashing function.
+     */
     public static HashFunction sha1() {
         return SHA1;
     }
@@ -59,21 +137,26 @@ public class Hashing {
         }
 
         @Override
-        public Hasher newHasher() {
+        public PrimitiveHasher newPrimitiveHasher() {
             MessageDigest digest = createDigest();
             return new MessageDigestHasher(digest);
         }
 
         @Override
+        public Hasher newHasher() {
+            return new DefaultHasher(newPrimitiveHasher());
+        }
+
+        @Override
         public HashCode hashBytes(byte[] bytes) {
-            Hasher hasher = newHasher();
+            PrimitiveHasher hasher = newPrimitiveHasher();
             hasher.putBytes(bytes);
             return hasher.hash();
         }
 
         @Override
         public HashCode hashString(CharSequence string) {
-            Hasher hasher = newHasher();
+            PrimitiveHasher hasher = newPrimitiveHasher();
             hasher.putString(string);
             return hasher.hash();
         }
@@ -115,7 +198,7 @@ public class Hashing {
         }
     }
 
-    private static class MessageDigestHasher implements Hasher {
+    private static class MessageDigestHasher implements PrimitiveHasher {
         private final MessageDigest digest;
         private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
         private boolean done;
@@ -158,7 +241,7 @@ public class Hashing {
         private void update(int length) {
             checkNotDone();
             digest.update(buffer.array(), 0, length);
-            buffer.clear();
+            BufferCaster.cast(buffer).clear();
         }
 
         @Override
@@ -193,6 +276,97 @@ public class Hashing {
         @Override
         public void putHash(HashCode hashCode) {
             putBytes(hashCode.getBytes());
+        }
+    }
+
+    private static class DefaultHasher implements Hasher {
+        private final PrimitiveHasher hasher;
+        private String invalidReason;
+
+        public DefaultHasher(PrimitiveHasher unsafeHasher) {
+            this.hasher = unsafeHasher;
+        }
+
+        @Override
+        public void putByte(byte value) {
+            hasher.putInt(1);
+            hasher.putByte(value);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes) {
+            hasher.putInt(bytes.length);
+            hasher.putBytes(bytes);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes, int off, int len) {
+            hasher.putInt(len);
+            hasher.putBytes(bytes, off, len);
+        }
+
+        @Override
+        public void putHash(HashCode hashCode) {
+            hasher.putInt(hashCode.length());
+            hasher.putHash(hashCode);
+        }
+
+        @Override
+        public void putInt(int value) {
+            hasher.putInt(4);
+            hasher.putInt(value);
+        }
+
+        @Override
+        public void putLong(long value) {
+            hasher.putInt(8);
+            hasher.putLong(value);
+        }
+
+        @Override
+        public void putDouble(double value) {
+            hasher.putInt(8);
+            hasher.putDouble(value);
+        }
+
+        @Override
+        public void putBoolean(boolean value) {
+            hasher.putInt(1);
+            hasher.putBoolean(value);
+        }
+
+        @Override
+        public void putString(CharSequence value) {
+            hasher.putInt(value.length());
+            hasher.putString(value);
+        }
+
+        @Override
+        public void putNull() {
+            this.putInt(0);
+        }
+
+        @Override
+        public void markAsInvalid(String invalidReason) {
+            this.invalidReason = invalidReason;
+        }
+
+        @Override
+        public boolean isValid() {
+            return invalidReason == null;
+        }
+
+        @Override
+        public String getInvalidReason() {
+            return Preconditions.checkNotNull(invalidReason);
+        }
+
+        @Override
+        public HashCode hash() {
+            if (!isValid()) {
+                throw new IllegalStateException("Hash is invalid: " + getInvalidReason());
+            }
+            return hasher.hash();
         }
     }
 }

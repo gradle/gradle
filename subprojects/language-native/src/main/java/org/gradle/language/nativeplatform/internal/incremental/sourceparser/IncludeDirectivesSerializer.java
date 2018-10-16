@@ -35,15 +35,20 @@ import java.util.Collection;
 import java.util.List;
 
 public class IncludeDirectivesSerializer implements Serializer<IncludeDirectives> {
+    public static final IncludeDirectivesSerializer INSTANCE = new IncludeDirectivesSerializer();
+
     private final Serializer<IncludeType> enumSerializer = new BaseSerializerFactory().getSerializerFor(IncludeType.class);
     private final Serializer<Expression> expressionSerializer = new ExpressionSerializer(enumSerializer);
     private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(new IncludeSerializer(enumSerializer, expressionSerializer));
     private final CollectionSerializer<Macro> macroListSerializer = new CollectionSerializer<Macro>(new MacroSerializer(enumSerializer, expressionSerializer));
     private final CollectionSerializer<MacroFunction> macroFunctionListSerializer = new CollectionSerializer<MacroFunction>(new MacroFunctionSerializer(enumSerializer, expressionSerializer));
 
+    private IncludeDirectivesSerializer() {
+    }
+
     @Override
     public IncludeDirectives read(Decoder decoder) throws Exception {
-        return new DefaultIncludeDirectives(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)), ImmutableList.copyOf(macroFunctionListSerializer.read(decoder)));
+        return DefaultIncludeDirectives.of(ImmutableList.copyOf(includeListSerializer.read(decoder)), ImmutableList.copyOf(macroListSerializer.read(decoder)), ImmutableList.copyOf(macroFunctionListSerializer.read(decoder)));
     }
 
     @Override

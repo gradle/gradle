@@ -20,7 +20,7 @@ dependencies {
     playTest "com.google.guava:guava:17.0"
 }
 
-// START SNIPPET play-custom-distribution
+// tag::play-custom-distribution[]
 model {
     distributions {
         playBinary {
@@ -33,4 +33,4 @@ model {
         }
     }
 }
-// END SNIPPET play-custom-distribution
+// end::play-custom-distribution[]

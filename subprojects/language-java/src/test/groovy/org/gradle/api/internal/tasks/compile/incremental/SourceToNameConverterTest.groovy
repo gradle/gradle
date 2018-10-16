@@ -18,6 +18,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental
 
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs
+import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceToNameConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,7 +29,7 @@ class SourceToNameConverterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def srcDirs = Stub(CompilationSourceDirs) {
-        getSourceRoots() >> [temp.file("src/main/java"), temp.file("src/main/java2")]
+        getSourceRoots() >> ["src/main/java", "src/main/java2"].collect { temp.file(it) }
     }
     @Subject converter = new SourceToNameConverter(srcDirs)
 

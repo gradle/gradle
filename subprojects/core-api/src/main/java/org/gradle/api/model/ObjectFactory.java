@@ -18,6 +18,9 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -29,7 +32,7 @@ import java.util.Set;
 /**
  * A factory for creating various kinds of model objects.
  * <p>
- * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
+ * An instance of the factory can be injected into a task or plugin by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
  *
  * @since 4.0
  */
@@ -76,12 +79,24 @@ public interface ObjectFactory {
     <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException;
 
     /**
-     * Creates a {@link Property} implementation to hold values of the given type.
+     * Creates a {@link SourceDirectorySet}.
      *
-     * <p>The property will have a value equal to the default value of that type as defined by the Java language specification.
-     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
-     * <p>
-     * Any other data type than the standard Java data types returns a property with no value defined.
+     * @param name A short name for the set.
+     * @param displayName A human consumable display name for the set.
+     * @since 5.0
+     */
+    SourceDirectorySet sourceDirectorySet(String name, String displayName);
+
+    /**
+     * Creates a {@link Property} implementation to hold values of the given type. The property has no initial value.
+     *
+     * <p>For certain types, there are more specialized property factory methods available:</p>
+     * <ul>
+     * <li>For {@link List} properties, you should use {@link #listProperty(Class)}.</li>
+     * <li>For {@link Set} properties, you should use {@link #setProperty(Class)}.</li>
+     * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
+     * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
+     * </ul>
      *
      * @param valueType The type of the property.
      * @return The property. Never returns null.
@@ -90,7 +105,7 @@ public interface ObjectFactory {
     <T> Property<T> property(Class<T> valueType);
 
     /**
-     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type. The property with have an empty list as its initial value.
+     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has no initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>
      *
@@ -102,7 +117,7 @@ public interface ObjectFactory {
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
-     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type. The property with have an empty set as its initial value.
+     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property has no initial value.
      *
      * <p>The implementation will return immutable {@link Set} values from its query methods.</p>
      *
@@ -112,4 +127,18 @@ public interface ObjectFactory {
      * @since 4.5
      */
     <T> SetProperty<T> setProperty(Class<T> elementType);
+
+    /**
+     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
+     *
+     * @since 5.0
+     */
+    DirectoryProperty directoryProperty();
+
+    /**
+     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
+     *
+     * @since 5.0
+     */
+    RegularFileProperty fileProperty();
 }

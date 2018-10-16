@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -119,7 +120,7 @@ class BaseDirFileResolverSpec extends Specification {
     def "does not normalize windows 8.3 names"() {
         createFile(new File(tmpDir.testDirectory, 'dir/file-with-long-name.txt'))
         def path = new File(tmpDir.testDirectory, 'dir/FILE-W~1.TXT')
-        assert path.exists() && path.file
+        Assume.assumeTrue(path.exists() && path.file)
 
         expect:
         normalize(path) == path
@@ -127,10 +128,10 @@ class BaseDirFileResolverSpec extends Specification {
 
     def "normalizes file system roots"() {
         expect:
-        normalize(root) == root
+        normalize(root) == new File(root)
 
         where:
-        root << getFsRoots()
+        root << getFsRoots().collect { it.absolutePath }
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -199,6 +200,14 @@ The following types/formats are supported:
         expect:
         normalize(provider1, baseDir) == file
         normalize(provider2, baseDir) == baseDir.file("value")
+    }
+
+    def "does not allow resolving null URI"() {
+        when:
+        resolver(tmpDir.testDirectory).resolveUri(null)
+        then:
+        def ex = thrown UnsupportedNotationException
+        ex.message.contains "Cannot convert a null value to a File or URI."
     }
 
     def createLink(File link, File target) {

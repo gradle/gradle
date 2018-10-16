@@ -17,5 +17,4 @@
 /**
  * Tasks to work with the JaCoCo code coverage library.
  */
-@org.gradle.api.Incubating
 package org.gradle.testing.jacoco.tasks;

@@ -42,12 +42,15 @@ repositories {
     def "module with custom status can be resolved by adapting status scheme"() {
         buildFile <<
                 """
+class StatusRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert context.details.status == "silver"
+        context.details.statusScheme = ["gold", "silver", "bronze"]
+    }
+}
 dependencies {
     components {
-        all { details ->
-            assert details.status == "silver"
-            details.statusScheme = ["gold", "silver", "bronze"]
-        }
+        all(StatusRule)
     }
 }
 """
@@ -66,11 +69,15 @@ dependencies {
     def "resolve fails if status doesn't match custom status scheme"() {
         buildFile <<
                 """
+class StatusRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert context.details.status == "silver"
+        context.details.statusScheme = ["gold", "bronze"]
+    }
+}
 dependencies {
     components {
-        all { details ->
-            details.statusScheme = ["gold", "bronze"]
-        }
+        all(StatusRule)
     }
 }
 """
@@ -83,11 +90,14 @@ dependencies {
     def "rule can change status"() {
         buildFile <<
                 """
+class StatusRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        context.details.status = "milestone"
+    }
+}
 dependencies {
     components {
-        all { details ->
-            details.status = "milestone"
-        }
+        all(StatusRule)
     }
 }
 """

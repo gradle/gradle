@@ -22,7 +22,7 @@ import spock.lang.Unroll
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = [NativeBuildPerformanceTest.TARGET_VERSION]
+        runner.targetVersions = ["5.0-20181010183641+0000"]
         runner.minimumVersion = "4.0"
     }
 

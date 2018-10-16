@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -39,6 +42,10 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     def configurationsProvider = Stub(ConfigurationsProvider) {
         getAll() >> ([] as Set)
     }
+    ProjectStateRegistry projectStateRegistry = Mock()
+    DependencyLockingProvider dependencyLockingProvider = Mock()
+
+    def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
     def builder = new DefaultRootComponentMetadataBuilder(
         metaDataProvider,
@@ -46,11 +53,13 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         moduleIdentifierFactory,
         projectFinder,
         configurationComponentMetaDataBuilder,
-        configurationsProvider)
+        configurationsProvider,
+        projectStateRegistry,
+        dependencyLockingProvider)
 
     def "caches root component metadata"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'bar', '1.0')
+            new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
 
@@ -63,13 +72,13 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
 
     def "doesn't cache root component metadata when module identifier changes"() {
         1 * componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'bar', '1.0')
+            new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
 
         when:
         componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'baz', '1.0')
+            new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('foo', 'baz'), '1.0')
         }
 
         def otherRoot = builder.toRootComponentMetaData()
@@ -81,7 +90,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     @Unroll
     def "caching of component metadata when #mutationType change"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
-            new DefaultModuleComponentIdentifier('foo', 'bar', '1.0')
+            new DefaultModuleComponentIdentifier(mid, '1.0')
         }
         def root = builder.toRootComponentMetaData()
 

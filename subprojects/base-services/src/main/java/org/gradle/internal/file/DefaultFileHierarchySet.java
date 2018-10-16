@@ -171,41 +171,28 @@ public class DefaultFileHierarchySet {
             return new Node(commonPrefix, ImmutableList.of(newThis, sibling));
         }
 
-        /**
-         * Does not include the file separator.
-         */
         int sizeOfCommonPrefix(String path, int offset) {
-            int pos = 0;
-            int lastSeparator = 0;
-            int maxPos = Math.min(prefix.length(), path.length() - offset);
-            for (; pos < maxPos; pos++) {
-                if (prefix.charAt(pos) != path.charAt(pos + offset)) {
-                    break;
-                }
-                if (prefix.charAt(pos) == File.separatorChar) {
-                    lastSeparator = pos;
-                }
-            }
-            if (pos == maxPos) {
-                if (prefix.length() == path.length() - offset) {
-                    return pos;
-                }
-                if (pos < prefix.length() && prefix.charAt(pos) == File.separatorChar) {
-                    return pos;
-                }
-                if (pos < path.length() - offset && path.charAt(pos + offset) == File.separatorChar) {
-                    return pos;
-                }
-            }
-            return lastSeparator;
+            return FilePathUtil.sizeOfCommonPrefix(prefix, path, offset);
         }
 
+
+        /**
+         * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
+         * which does not check for negative indices or integer overflow.
+         */
         boolean isChildOfOrThis(String filePath, int offset) {
-            if (!filePath.regionMatches(offset, prefix, 0, prefix.length())) {
+            int pathLength = filePath.length();
+            int prefixLength = prefix.length();
+            int endOfThisSegment = prefixLength + offset;
+            if (pathLength < endOfThisSegment) {
                 return false;
             }
-            int endThisSegment = offset + prefix.length();
-            return endThisSegment == filePath.length() || filePath.charAt(endThisSegment) == File.separatorChar;
+            for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
+                if (prefix.charAt(i) != filePath.charAt(j)) {
+                    return false;
+                }
+            }
+            return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
         }
 
         boolean contains(String filePath, int offset) {

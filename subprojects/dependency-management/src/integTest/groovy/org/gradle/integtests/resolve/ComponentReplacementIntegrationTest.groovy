@@ -18,8 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -41,10 +43,11 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     //publishes and declares the dependencies
-    void declaredDependencies(String ... deps) {
+    void declaredDependencies(String... deps) {
         publishedMavenModules(deps)
         def content = ''
         deps.each {
@@ -55,11 +58,11 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void declaredReplacements(String ... reps) {
+    void declaredReplacements(String... reps) {
         def content = ''
         reps.each {
             def d = new TestDependency(it)
-            content +=  "dependencies.modules.module('${d.group}:${d.name}') { replacedBy '${d.pointsTo.group}:${d.pointsTo.name}' }\n"
+            content += "dependencies.modules.module('${d.group}:${d.name}') { replacedBy '${d.pointsTo.group}:${d.pointsTo.name}' }\n"
         }
         buildFile << """
             $content
@@ -68,72 +71,81 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
     void declaredReplacementWithReason(String rep, String reason) {
         def d = new TestDependency(rep)
-        buildFile <<  """
+        buildFile << """
             dependencies.modules.module('${d.group}:${d.name}') { replacedBy '${d.pointsTo.group}:${d.pointsTo.name}', '$reason' }
         """
     }
 
-    void resolvedFiles(String ... files) {
+    void resolvedFiles(String... files) {
         run("resolvedFiles")
         assert file('resolved-files').listFiles()*.name as Set == files as Set
     }
 
-    void resolvedModules(String ... modules) {
+    void resolvedModules(String... modules) {
         resolvedFiles(modules.collect { new TestDependency(it).jarName } as String[])
     }
 
     def "ignores replacement if not in graph"() {
         declaredDependencies 'a'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'a'
+        expect:
+        resolvedModules 'a'
     }
 
     def "ignores replacement if org does not match"() {
         declaredDependencies 'a', 'com:b'
         declaredReplacements 'a->org:b'
-        expect: resolvedModules 'a', 'com:b'
+        expect:
+        resolvedModules 'a', 'com:b'
     }
 
     def "just uses replacement if source not in graph"() {
         declaredDependencies 'b'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b'
+        expect:
+        resolvedModules 'b'
     }
 
     def "replaces already resolved module"() {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b'
+        expect:
+        resolvedModules 'b'
     }
 
     def "replaces not yet resolved module"() {
         declaredDependencies 'b', 'a'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b'
+        expect:
+        resolvedModules 'b'
     }
 
     def "uses highest when it is last"() {
         declaredDependencies 'b', 'a', 'b:2'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b:2'
+        expect:
+        resolvedModules 'b:2'
     }
 
     def "uses highest when it is last following replacedBy"() {
         declaredDependencies 'a', 'b', 'b:2'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b:2'
+        expect:
+        resolvedModules 'b:2'
     }
 
     def "uses highest when it is first"() {
         declaredDependencies 'b:2', 'b', 'a'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b:2'
+        expect:
+        resolvedModules 'b:2'
     }
 
     def "uses highest when it is first followed by replacedBy"() {
         declaredDependencies 'b:2', 'b', 'a'
         declaredReplacements 'a->b'
-        expect: resolvedModules 'b:2'
+        expect:
+        resolvedModules 'b:2'
     }
 
     def "evicts transitive dependencies of replaced module"() {
@@ -141,14 +153,16 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->e'
         //resolution sequence: a,c,b,d,e!
         publishedMavenModules 'a->b', 'c->d', 'd->e'
-        expect: resolvedModules 'c', 'd', 'e' //'b' is evicted
+        expect:
+        resolvedModules 'c', 'd', 'e' //'b' is evicted
     }
 
     def "replaces transitive module"() {
         declaredDependencies 'a', 'c'
         declaredReplacements 'b->d'
         publishedMavenModules 'a->b', 'c->d'
-        expect: resolvedModules 'a', 'd', 'c'
+        expect:
+        resolvedModules 'a', 'd', 'c'
     }
 
     def "replaces module even if it was already conflict-resolved"() {
@@ -156,7 +170,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->c'
         //resolution sequence: a1,a2,!,b,c,!
         publishedMavenModules 'a:2->b', 'b->c'
-        expect: resolvedModules 'c'
+        expect:
+        resolvedModules 'c'
     }
 
     def "uses already resolved highest version"() {
@@ -164,19 +179,22 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'c->a'
         //resolution sequence: a1,a2,!,b,c,!
         publishedMavenModules 'a:2->b', 'b->c'
-        expect: resolvedModules 'a:2', 'b'
+        expect:
+        resolvedModules 'a:2', 'b'
     }
 
     def "latest replacement wins"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c' //2 replacements for the same source module
-        expect: resolvedModules 'c', 'b'
+        expect:
+        resolvedModules 'c', 'b'
     }
 
     def "supports consecutive replacements"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'b->c'
-        expect: resolvedModules 'c'
+        expect:
+        resolvedModules 'c'
     }
 
     def "reports replacement cycles early"() {
@@ -231,14 +249,16 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b->c'
         declaredReplacements 'a->c'
         buildFile << "configurations.all { exclude module: 'c' }"
-        expect: resolvedModules 'a', 'b'
+        expect:
+        resolvedModules 'a', 'b'
     }
 
     def "replacement target is used if replacement source is excluded"() {
         declaredDependencies 'a', 'b->c'
         declaredReplacements 'a->c'
         buildFile << "configurations.all { exclude module: 'a' }"
-        expect: resolvedModules 'c', 'b'
+        expect:
+        resolvedModules 'c', 'b'
     }
 
     def "replacement is not used when it replaced by resolve rule"() {
@@ -252,7 +272,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }}
         """
-        expect: resolvedModules 'a', 'd'
+        expect:
+        resolvedModules 'a', 'd'
     }
 
     def "replacement and resolve rule have exactly the same target"() {
@@ -265,7 +286,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }}
         """
-        expect: resolvedModules 'b'
+        expect:
+        resolvedModules 'b'
     }
 
     def "replacement is used when it is pulled to the graph via resolve rule"() {
@@ -279,7 +301,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }}
         """
-        expect: resolvedModules 'd'
+        expect:
+        resolvedModules 'd'
     }
 
     def "both source and replacement target are pulled to the graph via resolve rule"() {
@@ -292,7 +315,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 if (dep.requested.name == 'd') { dep.useTarget 'org:b:1' }
             }}
         """
-        expect: resolvedModules 'b'
+        expect:
+        resolvedModules 'b'
     }
 
     def "replacement target is manipulated by resolve rule and then replaced again by different module replacement declaration"() {
@@ -304,7 +328,8 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 if (dep.requested.name == 'b') { dep.useTarget 'org:d:1' }
             }}
         """
-        expect: resolvedModules 'a', 'd'
+        expect:
+        resolvedModules 'a', 'd'
     }
 
     def "replacement target forms a legal cycle with resolve rule"() {
@@ -317,39 +342,46 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
             }}
         """
         //a->b->d->a
-        expect: resolvedModules 'a'
+        expect:
+        resolvedModules 'a'
     }
 
     def "supports multiple replacement targets"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c'
-        expect: resolvedModules 'b', 'c'
+        expect:
+        resolvedModules 'b', 'c'
     }
 
     def "multiple source modules have the same replacement target"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->c', 'b->c'
-        expect: resolvedModules 'c'
+        expect:
+        resolvedModules 'c'
     }
 
     def "multiple source modules but only some are included in graph"() {
         declaredDependencies 'a', 'c'
         declaredReplacements 'a->c', 'b->c'
-        expect: resolvedModules 'c'
+        expect:
+        resolvedModules 'c'
     }
 
     def "declared modules coexist with forced versions"() {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
         buildFile << "configurations.all { resolutionStrategy.force 'org:a:1', 'org:b:1'} "
-        expect: resolvedModules 'b'
+        expect:
+        resolvedModules 'b'
     }
 
-    @Ignore //maybe, as a way to 'clear' any replacements
+    @Ignore
+    //maybe, as a way to 'clear' any replacements
     def "allow replacing with self"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->c', 'a->b', 'a->a'
-        expect: resolvedModules 'a', 'b', 'c'
+        expect:
+        resolvedModules 'a', 'b', 'c'
     }
 
     @Ignore
@@ -357,26 +389,33 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         publishedMavenModules 'c'
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b', 'a->c'
-        expect: resolvedModules 'b', 'c'
+        expect:
+        resolvedModules 'b', 'c'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1472")
     def "handles '+' suffix in module name"() {
         declaredDependencies 'org:foo+', 'org:bar'
         declaredReplacements 'org:foo+->org:bar'
-        expect: resolvedModules 'org:bar'
+        expect:
+        resolvedModules 'org:bar'
     }
 
+    @Unroll
     def "can provide custom replacement reason"() {
         declaredDependencies 'a', 'b'
-        declaredReplacementWithReason('a->b', 'A replaced with B')
+        if (custom) {
+            declaredReplacementWithReason('a->b', 'A replaced with B')
+        } else {
+            declaredReplacements('a->b')
+        }
 
         when:
         buildFile << """
             task check {
                 doLast {
                     def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert modules.find { it.id.module == 'b' }.selectionReason.description == "A replaced with B"
+                    assert modules.find { it.id.module == 'b' }.selectionReason.description == "$expected"
                 }
             }
         """
@@ -388,18 +427,27 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         run 'dependencyInsight', '--configuration=conf', '--dependency=a'
 
         then:
-        result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1 (A replaced with B)
-   variant "default"
+        result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+   Selection reasons:
+      - Selected by rule : $expected
 
-org:a:1 -> org:b:1
-   variant "default"
-\\--- conf""")
+org:a:1 -> org:b:1""")
 
         when:
         run 'check'
 
         then:
         noExceptionThrown()
+
+        where:
+        custom | expected
+        false  | "org:a replaced with org:b"
+        true   | "A replaced with B"
     }
 
 }

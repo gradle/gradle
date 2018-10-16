@@ -162,6 +162,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                     Set<PublishArtifact> artifacts = [ publishedArtifact ]
                     Set<ModuleDependency> dependencies = [ publishedDependency ]
                     Set<DependencyConstraint> dependencyConstraints = []
+                    Set<ExcludeRule> globalExcludes = []
                     Set<Capability> capabilities = []
                 }
             }

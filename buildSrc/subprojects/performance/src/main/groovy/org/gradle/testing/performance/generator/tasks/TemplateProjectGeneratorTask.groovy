@@ -19,16 +19,22 @@ package org.gradle.testing.performance.generator.tasks
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 abstract class TemplateProjectGeneratorTask extends ProjectGeneratorTask {
+
     @OutputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     File destDir
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     File templateDirectory
 
     @InputDirectory
     @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
     File sharedTemplateDirectory
 
     TemplateProjectGeneratorTask() {

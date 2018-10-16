@@ -79,11 +79,11 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "sub"
-        val taskContainer = mock<TaskContainer> {
+        val taskContainer = mock<TaskContainer>(name = "tasks") {
             on { findByPath("sub:BT0") } doReturn mock<Task>()
             on { findByPath("sub:my:BT1") } doReturn mock<Task>()
         }
-        val project = mock<Project> {
+        val project = mock<Project>(name = "project") {
             on { findProject(subproject) } doReturn mock<Project>()
             on { tasks } doReturn taskContainer
         }
@@ -107,10 +107,10 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "sub"
-        val taskContainer = mock<TaskContainer> {
+        val taskContainer = mock<TaskContainer>(name = "tasks") {
             on { findByPath("sub:my:BT1") } doReturn mock<Task>()
         }
-        val project = mock<Project> {
+        val project = mock<Project>(name = "project") {
             on { findProject(subproject) } doReturn mock<Project>()
             on { tasks } doReturn taskContainer
         }

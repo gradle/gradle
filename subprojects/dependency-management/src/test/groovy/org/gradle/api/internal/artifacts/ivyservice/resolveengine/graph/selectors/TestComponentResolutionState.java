@@ -21,14 +21,24 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
+import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
+    private ComponentIdentifier componentIdentifier;
     private ModuleVersionIdentifier id;
     private boolean rejected;
 
+    public TestComponentResolutionState(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id) {
+        this.componentIdentifier = componentIdentifier;
+        this.id = id;
+    }
+
     public TestComponentResolutionState(ModuleVersionIdentifier id) {
+        this.componentIdentifier = DefaultModuleComponentIdentifier.newId(id);
         this.id = id;
     }
 
@@ -39,7 +49,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
 
     @Override
     public ComponentIdentifier getComponentId() {
-        return DefaultModuleComponentIdentifier.newId(id);
+        return componentIdentifier;
     }
 
     @Override
@@ -70,5 +80,15 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     @Override
     public boolean isRejected() {
         return rejected;
+    }
+
+    @Override
+    public void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
+
+    }
+
+    @Override
+    public void rejected(Collection<RejectedVersion> rejectedVersions) {
+
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.model.idea;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
@@ -39,7 +38,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * @throws UnsupportedMethodException For Gradle versions older than 2.11, where this method is not supported.
      * @since 2.11
      */
-    @Nullable @Incubating
+    @Nullable
     IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException;
 
     /**
@@ -48,7 +47,6 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * @return The name of the JDK.
      * @since 3.4
      */
-    @Incubating
     String getJdkName() throws UnsupportedMethodException;
 
     /**

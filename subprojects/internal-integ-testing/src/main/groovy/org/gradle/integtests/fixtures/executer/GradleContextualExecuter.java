@@ -15,7 +15,11 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.Action;
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeoutInterceptor;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+
+import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS;
 
 /**
  * Selects a different executer implementation based on the value of a system property.
@@ -120,10 +124,16 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     @Override
     public void cleanup() {
-        if (gradleExecuter != null) {
-            gradleExecuter.stop();
-        }
-        super.cleanup();
+        new IntegrationTestTimeoutInterceptor(DEFAULT_TIMEOUT_SECONDS).intercept(new Action<Void>() {
+            @Override
+            public void execute(Void ignored) {
+                if (gradleExecuter != null) {
+                    gradleExecuter.stop();
+                }
+                GradleContextualExecuter.super.cleanup();
+            }
+        });
+
     }
 
     @Override

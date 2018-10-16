@@ -33,7 +33,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "registering gets retried"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
         def rootDirPath = Mock(Path)
         def watchKey = Mock(WatchKey)
 
@@ -51,7 +51,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "exception gets thrown after retrying once"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
         def rootDirPath = Mock(Path)
 
         when:
@@ -69,7 +69,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "silently ignore exception for deleted files"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
         def rootDirPath = Mock(Path)
         def fileSystem = Mock(FileSystem)
         def fileSystemProvider = Mock(FileSystemProvider)
@@ -90,7 +90,7 @@ class WatchServiceRegistrarTest extends Specification {
     def "rethrow without retrying"() {
         given:
         WatchService watchService = Mock()
-        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener), fileSystem)
+        WatchServiceRegistrar registrar = new WatchServiceRegistrar(watchService, Mock(FileWatcherListener))
         def rootDirPath = Mock(Path)
         def fileSystem = Mock(FileSystem)
         def fileSystemProvider = Mock(FileSystemProvider)

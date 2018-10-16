@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.ExecResult;
 
 import java.util.concurrent.Executor;
@@ -25,8 +26,8 @@ import java.util.concurrent.Executor;
  * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
  */
 public class DefaultJavaExecAction extends JavaExecHandleBuilder implements JavaExecAction {
-    public DefaultJavaExecAction(FileResolver fileResolver, Executor executor) {
-        super(fileResolver, executor);
+    public DefaultJavaExecAction(FileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        super(fileResolver, executor, buildCancellationToken);
     }
 
     public ExecResult execute() {

@@ -67,6 +67,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private boolean optimize;
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection includes;
+    private final ConfigurableFileCollection systemIncludes;
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
@@ -75,14 +76,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public AbstractNativeCompileTask() {
         ObjectFactory objectFactory = getProject().getObjects();
         this.includes = getProject().files();
+        this.systemIncludes = getProject().files();
         dependsOn(includes);
+        dependsOn(systemIncludes);
 
         this.source = getTaskFileVarFactory().newInputFileCollection(this);
-        this.objectFileDir = newOutputDirectory();
-        this.compilerArgs = getProject().getObjects().listProperty(String.class);
+        this.objectFileDir = objectFactory.directoryProperty();
+        this.compilerArgs = getProject().getObjects().listProperty(String.class).empty();
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
-        this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
+        this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
             @Override
             public Boolean transform(NativeToolChain nativeToolChain) {
                 return nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang;
@@ -118,6 +121,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setTempDir(getTemporaryDir());
         spec.setObjectFileDir(objectFileDir.get().getAsFile());
         spec.include(includes);
+        spec.systemInclude(systemIncludes);
         spec.source(getSource());
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs().get());
@@ -241,6 +245,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      */
     public void includes(Object includeRoots) {
         includes.from(includeRoots);
+    }
+
+    /**
+     * Returns the system include directories to be used for compilation.
+     *
+     * @since 4.8
+     */
+    @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
+    public ConfigurableFileCollection getSystemIncludes() {
+        return systemIncludes;
     }
 
     /**

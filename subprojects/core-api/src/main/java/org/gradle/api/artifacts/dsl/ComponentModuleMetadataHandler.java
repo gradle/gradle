@@ -16,8 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ComponentModuleMetadata;
+import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 
 /**
  * Allows to modify the metadata of depended-on software components.
@@ -39,7 +38,6 @@ import org.gradle.api.artifacts.ComponentModuleMetadata;
  *
  * @since 2.2
  */
-@Incubating
 public interface ComponentModuleMetadataHandler {
     /**
      * Enables configuring component module metadata.
@@ -56,5 +54,5 @@ public interface ComponentModuleMetadataHandler {
      * @param rule a rule that applies to the components of the specified module
      * @since 2.2
      */
-    void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule);
+    void module(Object moduleNotation, Action<? super ComponentModuleMetadataDetails> rule);
 }

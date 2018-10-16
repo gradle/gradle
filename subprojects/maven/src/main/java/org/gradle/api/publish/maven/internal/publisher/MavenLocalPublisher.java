@@ -22,16 +22,14 @@ import org.gradle.api.publication.maven.internal.action.MavenInstallAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
-import java.io.File;
-
 public class MavenLocalPublisher extends AbstractMavenPublisher {
     public MavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(loggingManagerFactory, mavenRepositoryLocator);
     }
 
     @Override
-    protected MavenInstallAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenInstallAction mavenInstallTask = new MavenInstallAction(pomFile, metadataFile);
+    protected MavenInstallAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        MavenInstallAction mavenInstallTask = new MavenInstallAction(packaging, projectIdentity);
         mavenInstallTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         return mavenInstallTask;
     }

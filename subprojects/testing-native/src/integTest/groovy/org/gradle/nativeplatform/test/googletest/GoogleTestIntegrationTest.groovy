@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.test.googletest
 
-import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
@@ -335,9 +334,6 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    // RunTestExecutable is not incremental yet
-    @Issue("GRADLE-3528")
-    @NotYetImplemented
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()

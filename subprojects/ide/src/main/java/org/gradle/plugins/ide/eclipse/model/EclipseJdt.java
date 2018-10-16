@@ -18,10 +18,11 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.util.ConfigureUtil;
+
+import javax.inject.Inject;
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
@@ -68,6 +69,7 @@ public class EclipseJdt {
 
     private final PropertiesFileContentMerger file;
 
+    @Inject
     public EclipseJdt(PropertiesFileContentMerger file) {
         this.file = file;
     }
@@ -127,12 +129,10 @@ public class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    @Incubating
     public String getJavaRuntimeName() {
         return javaRuntimeName;
     }
 
-    @Incubating
     public void setJavaRuntimeName(String javaRuntimeName) {
         this.javaRuntimeName = javaRuntimeName;
     }

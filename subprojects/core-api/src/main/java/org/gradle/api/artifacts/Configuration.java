@@ -43,7 +43,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * please use {@link #getArtifacts()} or {@link #getAllArtifacts()}.
  * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
  *
- * Please see <a href="https://docs.gradle.org/current/userguide/defining_and_using_configurations.html" target="_top">the Defining and Using Configurations User Guide chapter</a> for more information.
+ * Please see the <a href="https://docs.gradle.org/current/userguide/managing_dependency_configurations.html" target="_top">Managing Dependency Configurations User Guide chapter</a> for more information.
  */
 @HasInternalProtocol
 public interface Configuration extends FileCollection, HasConfigurableAttributes<Configuration> {
@@ -397,7 +397,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param action the action to execute when the configuration has no defined dependencies.
      * @return this
      */
-    @Incubating
     Configuration defaultDependencies(Action<? super DependencySet> action);
 
     /**
@@ -416,7 +415,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * configurations['conf'].withDependencies { dependencies -&gt;
      *      dependencies.each { dependency -&gt;
      *          if (dependency.version == null) {
-     *              dependency.version { prefer '1.0' }
+     *              dependency.version { require '1.0' }
      *          }
      *      }
      * }
@@ -452,7 +451,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return The outgoing artifacts of this configuration.
      * @since 3.4
      */
-    @Incubating
     ConfigurationPublications getOutgoing();
 
     /**
@@ -461,7 +459,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param action The action to perform the configuration.
      * @since 3.4
      */
-    @Incubating
     void outgoing(Action<? super ConfigurationPublications> action);
 
     /**
@@ -521,7 +518,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @since 3.3
      */
-    @Incubating
     void setCanBeConsumed(boolean allowed);
 
     /**
@@ -529,7 +525,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return true if this configuration can be consumed or published.
      * @since 3.3
      */
-    @Incubating
     boolean isCanBeConsumed();
 
     /**
@@ -537,7 +532,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @since 3.3
      */
-    @Incubating
     void setCanBeResolved(boolean allowed);
 
     /**
@@ -545,7 +539,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return true if this configuration can be queried or resolved.
      * @since 3.3
      */
-    @Incubating
     boolean isCanBeResolved();
 
 }

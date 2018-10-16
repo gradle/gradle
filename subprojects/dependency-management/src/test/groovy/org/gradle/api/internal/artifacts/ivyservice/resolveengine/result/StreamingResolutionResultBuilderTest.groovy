@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -25,33 +26,35 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
+import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
+    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "result can be read multiple times"() {
-        def rootNode = node(1, "org", "root", "1.0", root())
+        def rootNode = rootNode(1, "org", "root", "1.0")
         builder.start(rootNode)
         builder.visitNode(rootNode)
         builder.finish(rootNode)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         with(result) {
-            root.id == DefaultModuleComponentIdentifier.newId("org", "root", "1.0")
+            root.id == DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "root"), "1.0")
             root.selectionReason == root()
         }
         printGraph(result.root) == """org:root:1.0
@@ -59,7 +62,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "maintains graph in byte stream"() {
-        def root = node(1, "org", "root", "1.0", root())
+        def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(1, "org", "dep1", "2.0")
         def selector2 = selector(2, "org", "dep2", "3.0")
         def dep1 = node(2, "org", "dep1", "2.0", of([CONFLICT_RESOLUTION]))
@@ -79,7 +82,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -89,7 +92,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved module version again has no effect"() {
-        def root = node(1, "org", "root", "1.0")
+        def root = rootNode(1, "org", "root", "1.0")
         def selector = selector(7, "org", "dep1", "2.0")
         root.outgoingEdges >> [dep(selector, 2)]
 
@@ -108,7 +111,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -117,7 +120,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "accumulates dependencies for all configurations of same component"() {
-        def root = node(1, "org", "root", "1.0")
+        def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(10, "org", "dep1", "1.0")
         root.outgoingEdges >> [dep(selector1, 2)]
 
@@ -148,7 +151,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -159,7 +162,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "dependency failures are remembered"() {
-        def root = node(1, "org", "root", "1.0")
+        def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(10, "org", "dep1", "1.0")
         def selector2 = selector(11, "org", "dep2", "2.0")
         root.outgoingEdges >> [
@@ -187,7 +190,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -217,8 +220,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
-        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)
-        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(org, name, ver)
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
         _ * component.selectionReason >> reason
 
         def node = Stub(DependencyGraphNode)
@@ -226,10 +229,22 @@ class StreamingResolutionResultBuilderTest extends Specification {
         return node
     }
 
+    private RootGraphNode rootNode(Long resultId, String org, String name, String ver) {
+        def component = Stub(DependencyGraphComponent)
+        _ * component.resultId >> resultId
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+        _ * component.selectionReason >> root()
+
+        def node = Stub(RootGraphNode)
+        _ * node.owner >> component
+        return node
+    }
+
     private DependencyGraphSelector selector(Long resultId, String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
         selector.resultId >> resultId
-        selector.requested >> DefaultModuleComponentSelector.newSelector(org, name, new DefaultMutableVersionConstraint(ver))
+        selector.requested >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(org, name), new DefaultMutableVersionConstraint(ver))
         return selector
     }
 }

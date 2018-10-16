@@ -25,21 +25,24 @@ import spock.lang.Unroll
 class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "clean assemble on #testProject with parallel workers" () {
-        when:
+        given:
         runner.testGroup = 'parallel builds'
         runner.buildSpec {
             projectName(testProject).displayName("parallel").invocation {
-                tasksToRun("clean", "assemble")
+                useDaemon().tasksToRun("clean", "assemble")
             }
         }
         runner.baseline {
             projectName(testProject).displayName("serial").invocation {
-                tasksToRun("clean", "assemble").disableParallelWorkers()
+                useDaemon().tasksToRun("clean", "assemble").disableParallelWorkers()
             }
         }
 
+        when:
+        def results = runner.run()
+
         then:
-        runner.run()
+        results
 
         where:
         testProject << [ "smallNative", "mediumNative", "bigNative", "multiNative" ]

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -23,14 +24,18 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
+import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -44,11 +49,15 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
 
     private final DefaultAttributeMatcher matcher;
+    private final IsolatableFactory isolatableFactory;
+    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
 
-    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
+    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
+        this.isolatableFactory = isolatableFactory;
+        PlatformSupport.configureSchema(this);
     }
 
     @Override
@@ -69,7 +78,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory));
+            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
             strategies.put(attribute, strategy);
             attributesByName.put(attribute.getName(), attribute);
         }
@@ -148,6 +157,10 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         @Override
         public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
+        }
+
+        public List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+            return componentAttributeMatcher.describeMatching(effectiveSchema, candidate, requested);
         }
     }
 
@@ -241,5 +254,83 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             }
             return null;
         }
+
+        @Override
+        public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
+            // It's almost always the same attribute sets which are compared, so in order to avoid a lot of memory allocation
+            // during computation of the intersection, we cache the result here.
+            ExtraAttributesEntry entry = new ExtraAttributesEntry(candidateAttributeSets, requested);
+            Attribute<?>[] attributes = extraAttributesCache.get(entry);
+            if (attributes == null) {
+                attributes = AttributeSelectionUtils.collectExtraAttributes(this, candidateAttributeSets, requested);
+                extraAttributesCache.put(entry, attributes);
+            }
+            return attributes;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            MergedSchema that = (MergedSchema) o;
+            return producerSchema.equals(that.producerSchema);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(producerSchema);
+        }
     }
+
+    /**
+     * A cache entry key, leveraging _identity_ as the key, because we do interning.
+     * This is a performance optimization.
+     */
+    private static class ExtraAttributesEntry {
+        private final ImmutableAttributes[] candidateAttributeSets;
+        private final ImmutableAttributes requestedAttributes;
+        private final int hashCode;
+
+        private ExtraAttributesEntry(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requestedAttributes) {
+            this.candidateAttributeSets = candidateAttributeSets;
+            this.requestedAttributes = requestedAttributes;
+            int hash = Arrays.hashCode(candidateAttributeSets);
+            hash = 31 * hash + requestedAttributes.hashCode();
+            this.hashCode = hash;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ExtraAttributesEntry that = (ExtraAttributesEntry) o;
+            if (requestedAttributes != that.requestedAttributes) {
+                return false;
+            }
+            if (candidateAttributeSets.length != that.candidateAttributeSets.length) {
+                return false;
+            }
+            for (int i = 0; i < candidateAttributeSets.length; i++) {
+                if (candidateAttributeSets[i] != that.candidateAttributeSets[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+    }
+
 }

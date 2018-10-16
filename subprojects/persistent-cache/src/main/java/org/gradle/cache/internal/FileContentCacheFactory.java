@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
@@ -36,6 +35,6 @@ public interface FileContentCacheFactory {
     <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer);
 
     interface Calculator<V> {
-        V calculate(File file, FileType fileType);
+        V calculate(File file, boolean isRegularFile);
     }
 }

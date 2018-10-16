@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import groovy.transform.InheritConstructors
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.util.TestUtil
@@ -31,9 +30,9 @@ class NormalizingGroovyCompilerTest extends Specification {
     def setup() {
         spec.compileClasspath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
         spec.groovyClasspath = spec.compileClasspath
-        spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
         spec.groovyCompileOptions = new GroovyCompileOptions()
     }
 
@@ -43,7 +42,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.files == files('Person1.java', 'Person2.groovy').files
+            assert spec.sourceFiles == files('Person1.java', 'Person2.groovy')
         }
     }
 
@@ -55,7 +54,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.files == files('package.html').files
+            assert spec.sourceFiles == files('package.html')
         }
     }
 
@@ -92,10 +91,6 @@ class NormalizingGroovyCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        new TestFileCollection(paths.collect { new File(it) })
+        paths.collect { new File(it) } as Set
     }
-
-    // file collection whose type is distinguishable from SimpleFileCollection
-    @InheritConstructors
-    static class TestFileCollection extends SimpleFileCollection {}
 }

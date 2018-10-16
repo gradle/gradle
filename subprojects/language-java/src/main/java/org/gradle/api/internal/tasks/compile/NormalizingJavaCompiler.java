@@ -16,16 +16,17 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -54,13 +55,14 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     private void resolveAndFilterSourceFiles(JavaCompileSpec spec) {
         // this mimics the behavior of the Ant javac task (and therefore AntJavaCompiler),
         // which silently excludes files not ending in .java
-        FileCollection javaOnly = spec.getSource().filter(new Spec<File>() {
-            public boolean isSatisfiedBy(File element) {
-                return hasExtension(element, ".java");
+        Iterable<File> javaOnly = Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
+            @Override
+            public boolean apply(@Nullable File input) {
+                return hasExtension(input, ".java");
             }
         });
 
-        spec.setSource(new SimpleFileCollection(javaOnly.getFiles()));
+        spec.setSourceFiles(ImmutableSet.copyOf(javaOnly));
     }
 
     private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {
@@ -75,7 +77,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             builder.append('\n');
             builder.append(file);
         }

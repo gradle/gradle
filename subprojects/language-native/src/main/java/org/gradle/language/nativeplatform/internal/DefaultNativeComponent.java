@@ -35,7 +35,7 @@ public abstract class DefaultNativeComponent {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
         this.fileOperations = fileOperations;
 
-        source = fileOperations.files();
+        source = fileOperations.configurableFiles();
     }
 
     public abstract DisplayName getDisplayName();
@@ -58,9 +58,9 @@ public abstract class DefaultNativeComponent {
         for (String sourceExtension : sourceExtensions) {
             patternSet.include("**/*." + sourceExtension);
         }
-        return fileOperations.files(new Callable<Object>() {
+        return fileOperations.immutableFiles(new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
+            public Object call() {
                 FileTree tree;
                 if (source.getFrom().isEmpty()) {
                     tree = fileOperations.fileTree(defaultLocation);

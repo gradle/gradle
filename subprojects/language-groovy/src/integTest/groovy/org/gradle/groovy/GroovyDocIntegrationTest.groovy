@@ -19,25 +19,29 @@ package org.gradle.groovy
 import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
 @TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-3116")
-    def "can run groovydoc"() {
-        when:
+    def setup() {
         buildFile << """
             apply plugin: "groovy"
 
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "org.codehaus.groovy:${module}:${version}"
+                compile "org.codehaus.groovy:groovy:${version}"
             }
         """
 
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3116")
+    def "can run groovydoc"() {
+        when:
         file("src/main/groovy/pkg/Thing.groovy") << """
             package pkg
 
@@ -53,9 +57,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         generatedBy // did match
         generatedBy[0][1] == version
-
-        where:
-        module << ['groovy']
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3349")
@@ -65,14 +66,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
         when:
         buildFile << """
-            apply plugin: "groovy"
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile "org.codehaus.groovy:${module}:${version}"
-            }
-
             groovydoc {
                 overviewText = resources.text.fromFile("${escapedOverviewPath}")
             }
@@ -104,24 +97,11 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         result.assertTaskNotSkipped(":groovydoc")
         overviewSummary.text.contains("Goodbye World")
-
-        where:
-        module << ['groovy']
     }
 
     @Issue(["GRADLE-3174", "GRADLE-3463"])
     def "output from Groovydoc generation is logged"() {
         when:
-        buildScript """
-            apply plugin: "groovy"
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile "org.codehaus.groovy:groovy:${version}"
-            }
-        """
-
         file("src/main/groovy/pkg/Thing.java") << """
             package pkg;
 
@@ -136,5 +116,36 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         succeeds 'groovydoc'
         outputContains '[ant:groovydoc]'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6168")
+    def "removes stale outputs from last execution"() {
+        groovySource(file("src/main/groovy"), "pkg", "A")
+        def bSource = groovySource(file("src/main/groovy"), "pkg", "B")
+
+        when:
+        succeeds("groovydoc")
+        then:
+        executedAndNotSkipped(":groovydoc")
+        file("build/docs/groovydoc/pkg/A.html").isFile()
+        file("build/docs/groovydoc/pkg/B.html").isFile()
+
+        when:
+        assert bSource.delete()
+        succeeds("groovydoc")
+        then:
+        executedAndNotSkipped(":groovydoc")
+        file("build/docs/groovydoc/pkg/A.html").isFile()
+        !file("build/docs/groovydoc/pkg/B.html").isFile()
+    }
+
+    private static TestFile groovySource(TestFile srcDir, String packageName, String className) {
+        def srcFile = srcDir.file("${packageName.replace('.', '/')}/${className}.groovy")
+        srcFile << """
+            ${packageName == null ? "" : "package ${packageName}"}
+
+            class ${className} {}
+        """
+        return srcFile
     }
 }

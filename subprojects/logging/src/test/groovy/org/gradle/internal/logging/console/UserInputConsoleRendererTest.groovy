@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import spock.lang.Specification
@@ -34,8 +35,8 @@ class UserInputConsoleRendererTest extends Specification {
 
     def "can handle user input request and resume events"() {
         given:
-        def prompt = 'Please enter:'
-        def userInputRequestEvent = new UserInputRequestEvent(prompt)
+        def prompt = new PromptOutputEvent(123, 'Please enter:')
+        def userInputRequestEvent = new UserInputRequestEvent()
         def userInputResumeEvent = new UserInputResumeEvent()
 
         when:
@@ -44,8 +45,17 @@ class UserInputConsoleRendererTest extends Specification {
         then:
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(false)
+        1 * console.flush()
+        0 * console._
+        0 * listener.onOutput(_)
+        renderer.eventQueue.empty
+
+        when:
+        renderer.onOutput(prompt)
+
+        then:
         1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println(prompt)
+        1 * textArea.text(prompt.prompt)
         1 * console.flush()
         0 * console._
         0 * listener.onOutput(_)
@@ -80,8 +90,7 @@ class UserInputConsoleRendererTest extends Specification {
 
     def "can replay queued events if event handling is paused"() {
         given:
-        def prompt = 'Please enter:'
-        def userInputRequestEvent = new UserInputRequestEvent(prompt)
+        def userInputRequestEvent = new UserInputRequestEvent()
         def userInputResumeEvent = new UserInputResumeEvent()
 
         when:
@@ -90,8 +99,6 @@ class UserInputConsoleRendererTest extends Specification {
         then:
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(false)
-        1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println(prompt)
         1 * console.flush()
         0 * console._
         0 * listener.onOutput(_)

@@ -1,0 +1,28 @@
+// tag::zip-task[]
+plugins {
+    id 'base'
+}
+
+version = 1.0
+
+task myZip(type: Zip) {
+    from 'somedir'
+
+    doLast {
+        println archiveName
+        println relativePath(destinationDir)
+        println relativePath(archivePath)
+    }
+}
+// end::zip-task[]
+
+// tag::zip-task-with-custom-base-name[]
+task myCustomZip(type: Zip) {
+    baseName = 'customName'
+    from 'somedir'
+
+    doLast {
+        println archiveName
+    }
+}
+// end::zip-task-with-custom-base-name[]

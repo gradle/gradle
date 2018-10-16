@@ -35,7 +35,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -75,7 +75,7 @@ class CppBasePluginTest extends Specification {
         def baseName = project.objects.property(String)
         baseName.set("test_app")
         def executable = Stub(DefaultCppExecutable)
-        def executableFile = project.layout.fileProperty()
+        def executableFile = project.objects.fileProperty()
         executable.name >> name
         executable.names >> Names.of(name)
         executable.baseName >> baseName
@@ -114,6 +114,7 @@ class CppBasePluginTest extends Specification {
         library.baseName >> baseName
         library.targetPlatform >> Stub(CppPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.linkFile >> project.objects.fileProperty()
         library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
@@ -163,7 +164,7 @@ class CppBasePluginTest extends Specification {
         }
 
         @Override
-        ToolSearchResult isToolAvailable(ToolType toolType) {
+        CommandLineToolSearchResult locateTool(ToolType compilerType) {
             throw new UnsupportedOperationException()
         }
     }

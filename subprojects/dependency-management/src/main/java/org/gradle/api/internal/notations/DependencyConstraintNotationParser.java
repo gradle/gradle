@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.notations;
 
+import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.internal.reflect.Instantiator;
@@ -23,10 +24,10 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class DependencyConstraintNotationParser {
-    public static NotationParser<Object, DependencyConstraint> parser(Instantiator instantiator) {
+    public static NotationParser<Object, DependencyConstraint> parser(Instantiator instantiator, Interner<String> stringInterner) {
         return NotationParserBuilder
             .toType(DependencyConstraint.class)
-            .fromCharSequence(new DependencyStringNotationConverter<DefaultDependencyConstraint>(instantiator, DefaultDependencyConstraint.class))
+            .fromCharSequence(new DependencyStringNotationConverter<DefaultDependencyConstraint>(instantiator, DefaultDependencyConstraint.class, stringInterner))
             .converter(new DependencyMapNotationConverter<DefaultDependencyConstraint>(instantiator, DefaultDependencyConstraint.class))
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();

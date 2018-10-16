@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
@@ -48,6 +47,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.Cast;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
@@ -104,21 +104,20 @@ import java.util.Map;
  *
  * @since 3.0
  */
-@Incubating
 @CacheableTask
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
     private FileCollection classes;
     private FileCollection classpath;
-    private RegularFileProperty outputFile = newOutputFile();
+    private RegularFileProperty outputFile = getProject().getObjects().fileProperty();
     private boolean ignoreFailures;
     private boolean failOnWarning;
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
         ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
-        ClassPath classPath = new DefaultClassPath(Iterables.concat(getClasses(), getClasspath()));
-        ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(classPath);
+        ClassPath classPath = DefaultClassPath.of(Iterables.concat(getClasses(), getClasspath()));
+        ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader("task-loader", classPath);
         Thread.currentThread().setContextClassLoader(classLoader);
         try {
             validateTaskClasses(classLoader);
@@ -197,7 +196,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             File output = outputFile.get().getAsFile();
             //noinspection ResultOfMethodCallIgnored
             output.createNewFile();
-            Files.write(Joiner.on('\n').join(problemMessages), output, Charsets.UTF_8);
+            Files.asCharSink(output, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
         }
     }
 
@@ -343,7 +342,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         private final Collection<String> classNames;
 
         public TaskNameCollectorVisitor(Collection<String> classNames) {
-            super(Opcodes.ASM6);
+            super(AsmConstants.ASM_LEVEL);
             this.classNames = classNames;
         }
 

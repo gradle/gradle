@@ -17,18 +17,18 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
-import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
+import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.Requires
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires([KOTLIN_SCRIPT])
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)
+    private final BuildScanPluginFixture fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
 
     def "can automatically apply build scan plugin when --scan is provided on command-line"() {
         given:
@@ -40,7 +40,7 @@ class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTes
             ${fixture.pluginManagement()}
         """ + settingsFile.text
 
-        fixture.publishDummyBuildScanPlugin(AutoAppliedBuildScanPlugin.VERSION, executer)
+        fixture.publishDummyBuildScanPlugin(executer)
 
         when:
         args("--${BuildScanOption.LONG_OPTION}")

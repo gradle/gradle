@@ -20,6 +20,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.DisplayName;
+
+import javax.annotation.Nullable;
 
 /**
  * The final representation of a component in the resolved dependency graph.
@@ -52,7 +55,7 @@ public interface ComponentResult {
      * it's going to be the name of a "configuration" (either a project configuration, an Ivy configuration name or a Maven "scope").
      * For components with variants, it's going to be the name of the variant. This name is going to be used for reporting purposes.
      */
-    String getVariantName();
+    DisplayName getVariantName();
 
     /**
      * Returns the attributes of the resolved variant. This is going to be used for reporting purposes. In practice, variant attributes
@@ -60,4 +63,10 @@ public interface ComponentResult {
      * not necessarily the case.
      */
     AttributeContainer getVariantAttributes();
+
+    /**
+     * Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
+     */
+    @Nullable
+    String getRepositoryName();
 }

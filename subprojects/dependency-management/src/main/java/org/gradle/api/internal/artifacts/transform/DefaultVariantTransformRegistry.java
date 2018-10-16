@@ -28,26 +28,27 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.isolation.IsolatableFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private static final Object[] NO_PARAMETERS = new Object[0];
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final TransformedFileCache transformedFileCache;
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final InstantiatorFactory instantiatorFactory;
+    private final TransformerInvoker transformerInvoker;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
-        this.transformedFileCache = transformedFileCache;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.transformerInvoker = transformerInvoker;
     }
 
     @Override
@@ -70,7 +71,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         // TODO - should calculate this lazily
         Object[] parameters = getTransformParameters(reg.config);
 
-        Registration registration = UserCodeBackedTransformer.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters,  transformedFileCache, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject());
+        Registration registration = DefaultTransformationRegistration.create(reg.from.asImmutable(), reg.to.asImmutable(), reg.type, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory.inject(), transformerInvoker);
         transforms.add(registration);
     }
 
@@ -78,7 +79,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    private Object[] getTransformParameters(Action<? super ActionConfiguration> configAction) {
+    private Object[] getTransformParameters(@Nullable Action<? super ActionConfiguration> configAction) {
         if (configAction == null) {
             return NO_PARAMETERS;
         }
@@ -114,7 +115,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public void artifactTransform(Class<? extends ArtifactTransform> type, Action<? super ActionConfiguration> config) {
+        public void artifactTransform(Class<? extends ArtifactTransform> type, @Nullable Action<? super ActionConfiguration> config) {
             if (this.type != null) {
                 throw new VariantTransformConfigurationException("Could not register transform: only one ArtifactTransform may be provided for registration.");
             }

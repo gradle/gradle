@@ -25,7 +25,7 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.GUtil;
 
-import static org.gradle.api.internal.notations.ModuleIdentifierNotationConverter.validate;
+import static org.gradle.api.internal.notations.ModuleNotationValidation.*;
 
 class ModuleSelectorStringNotationConverter extends TypedNotationConverter<String, ComponentSelector> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -55,7 +55,7 @@ class ModuleSelectorStringNotationConverter extends TypedNotationConverter<Strin
         if (!GUtil.isTrue(version)) {
             throw new UnsupportedNotationException(notation);
         }
-        return DefaultModuleComponentSelector.newSelector(group, name, DefaultImmutableVersionConstraint.of(version));
+        return DefaultModuleComponentSelector.newSelector(moduleIdentifierFactory.module(group, name), DefaultImmutableVersionConstraint.of(version));
     }
 
     @Override

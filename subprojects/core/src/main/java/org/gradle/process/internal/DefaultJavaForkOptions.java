@@ -18,8 +18,8 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
@@ -30,18 +30,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.process.internal.util.MergeOptionsUtil.*;
+import static org.gradle.process.internal.util.MergeOptionsUtil.canBeMerged;
+import static org.gradle.process.internal.util.MergeOptionsUtil.containsAll;
+import static org.gradle.process.internal.util.MergeOptionsUtil.getHeapSizeMb;
+import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
+import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
-    private final FileResolver resolver;
+    private final PathToFileResolver resolver;
     private final JvmOptions options;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
-    public DefaultJavaForkOptions(FileResolver resolver) {
+    public DefaultJavaForkOptions(PathToFileResolver resolver) {
         this(resolver, Jvm.current());
     }
 
-    public DefaultJavaForkOptions(FileResolver resolver, Jvm jvm) {
+    public DefaultJavaForkOptions(PathToFileResolver resolver, Jvm jvm) {
         super(resolver);
         this.resolver = resolver;
         options = new JvmOptions(resolver);

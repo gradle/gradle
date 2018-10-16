@@ -411,7 +411,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert a.selectionReason.conflictResolution
                     assert a.selectionReason.selectedByRule
                     assert !a.selectionReason.forced
-                    assert a.selectionReason.descriptions*.description.containsAll(['selected by rule', 'conflict resolution'])
+                    assert a.selectionReason.descriptions*.description.containsAll(['selected by rule', 'between versions 1.4 and 1.3'])
                 }
             }
 """
@@ -687,7 +687,7 @@ Required by:
                     assert b.selectionReason.conflictResolution
                     assert b.selectionReason.selectedByRule
                     assert !b.selectionReason.forced
-                    assert b.selectionReason.descriptions*.description.containsAll(['selected by rule', 'conflict resolution'])
+                    assert b.selectionReason.descriptions*.description.containsAll(['selected by rule', 'between versions 2.1 and 2.0'])
                 }
             }
 """

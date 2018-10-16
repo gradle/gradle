@@ -18,6 +18,7 @@ package org.gradle.api.internal.component;
 
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.HasAttributes;
@@ -26,11 +27,11 @@ import org.gradle.api.capabilities.Capability;
 
 import java.util.Set;
 
-
 public interface UsageContext extends HasAttributes, Named {
     Usage getUsage();
     Set<? extends PublishArtifact> getArtifacts();
     Set<? extends ModuleDependency> getDependencies();
     Set<? extends DependencyConstraint> getDependencyConstraints();
     Set<? extends Capability> getCapabilities();
+    Set<ExcludeRule> getGlobalExcludes();
 }

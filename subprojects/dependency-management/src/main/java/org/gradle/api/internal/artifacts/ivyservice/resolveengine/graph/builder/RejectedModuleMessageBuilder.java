@@ -16,19 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CompositeVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.InverseVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +33,7 @@ public class RejectedModuleMessageBuilder {
     public String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
-            hasRejectAll |= isRejectAll(candidate.getVersionConstraint());
+            hasRejectAll |= candidate.getVersionConstraint().isRejectAll();
         }
         StringBuilder sb = new StringBuilder();
         if (hasRejectAll) {
@@ -44,48 +41,73 @@ public class RejectedModuleMessageBuilder {
         } else {
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints: \n");
         }
-        for (EdgeState incomingEdge : getIncomingEdges(module)) {
+        renderEdges(sb, module.getIncomingEdges());
+        return sb.toString();
+    }
+
+    private void renderEdges(StringBuilder sb, Set<EdgeState> incomingEdges) {
+        for (EdgeState incomingEdge : incomingEdges) {
             SelectorState selector = incomingEdge.getSelector();
-            for (String path : pathTo(incomingEdge)) {
+            for (String path : MessageBuilderHelper.pathTo(incomingEdge, false)) {
                 sb.append("   ").append(path);
-                sb.append(" ").append(renderVersionConstraint(selector.getVersionConstraint()));
+                sb.append(" --> ");
+                renderSelector(sb, selector);
                 renderReason(sb, selector);
                 sb.append("\n");
             }
         }
-        return sb.toString();
     }
 
-    private Collection<EdgeState> getIncomingEdges(ModuleResolveState module) {
-        Set<EdgeState> incoming = Sets.newLinkedHashSet();
-        for (NodeState nodeState : module.getSelected().getNodes()) {
-            incoming.addAll(nodeState.getIncomingEdges());
-        }
-        return incoming;
-    }
+    static void renderSelector(StringBuilder sb, SelectorState selectorState) {
+        ResolvedVersionConstraint constraint = selectorState.getVersionConstraint();
+        ModuleIdentifier moduleId = selectorState.getTargetModule().getId();
 
-    private static Collection<String> pathTo(EdgeState edge) {
-        List<List<EdgeState>> acc = Lists.newArrayListWithExpectedSize(1);
-        pathTo(edge, Lists.<EdgeState>newArrayList(), acc, Sets.<NodeState>newHashSet());
-        List<String> result = Lists.newArrayListWithCapacity(acc.size());
-        for (List<EdgeState> path : acc) {
-            EdgeState target = Iterators.getLast(path.iterator());
-            StringBuilder sb = new StringBuilder();
-            if (target.getSelector().getDependencyMetadata().isPending()) {
-                sb.append("Constraint path ");
-            } else {
-                sb.append("Dependency path ");
-            }
-            for (EdgeState e : path) {
-                ModuleVersionIdentifier id = e.getFrom().getResolvedConfigurationId().getId();
-                sb.append('\'').append(id).append('\'');
-                sb.append(" --> ");
-            }
-            ModuleIdentifier moduleId = edge.getSelector().getTargetModule().getId();
-            sb.append('\'').append(moduleId.getGroup()).append(':').append(moduleId.getName()).append('\'');
-            result.add(sb.toString());
+        sb.append('\'').append(moduleId.getGroup()).append(':').append(moduleId.getName());
+
+        if (constraint.isRejectAll()) {
+            sb.append("' rejects all versions");
+            return;
         }
-        return result;
+
+        VersionSelector requiredSelector = constraint.getRequiredSelector();
+        VersionSelector rejectedSelector = constraint.getRejectedSelector();
+
+        if (rejectedSelector instanceof InverseVersionSelector) {
+            sb.append("' strictly '").append(requiredSelector.getSelector()).append("'");
+            return;
+        }
+
+        if (requiredSelector != null) {
+            sb.append(':').append(requiredSelector.getSelector());
+        }
+        sb.append("'");
+
+        if (constraint.getPreferredSelector() != null) {
+            sb.append(" prefers '").append(constraint.getPreferredSelector().getSelector()).append("'");
+        }
+
+        if (rejectedSelector == null) {
+            return;
+        }
+
+        sb.append(" rejects ");
+        if (rejectedSelector instanceof CompositeVersionSelector) {
+            sb.append("any of \"");
+            int i = 0;
+            for (VersionSelector selector : ((CompositeVersionSelector) rejectedSelector).getSelectors()) {
+                if (i++ > 0) {
+                    sb.append(", ");
+                }
+                sb.append('\'');
+                sb.append(selector.getSelector());
+                sb.append('\'');
+            }
+            sb.append("\"");
+        } else {
+            sb.append('\'');
+            sb.append(rejectedSelector.getSelector());
+            sb.append('\'');
+        }
     }
 
     private static void renderReason(StringBuilder sb, SelectorState selector) {
@@ -108,63 +130,4 @@ public class RejectedModuleMessageBuilder {
         }
     }
 
-    private static void pathTo(EdgeState component, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
-        if (alreadySeen.add(component.getFrom())) {
-            currentPath.add(0, component);
-            for (EdgeState dependent : component.getFrom().getIncomingEdges()) {
-                List<EdgeState> otherPath = Lists.newArrayList(currentPath);
-                pathTo(dependent, otherPath, accumulator, alreadySeen);
-            }
-            if (component.getFrom().isRoot()) {
-                accumulator.add(currentPath);
-            }
-        }
-    }
-
-    private static String renderVersionConstraint(ResolvedVersionConstraint constraint) {
-        if (isRejectAll(constraint)) {
-            return "rejects all versions";
-        }
-        VersionSelector preferredSelector = constraint.getPreferredSelector();
-        VersionSelector rejectedSelector = constraint.getRejectedSelector();
-        StringBuilder sb = new StringBuilder("prefers ");
-        sb.append('\'');
-        sb.append(preferredSelector.getSelector());
-        sb.append('\'');
-        if (rejectedSelector != null) {
-            sb.append(", rejects ");
-            if (rejectedSelector instanceof CompositeVersionSelector) {
-                sb.append("any of \"");
-                int i = 0;
-                for (VersionSelector selector : ((CompositeVersionSelector) rejectedSelector).getSelectors()) {
-                    if (i++ > 0) {
-                        sb.append(", ");
-                    }
-                    sb.append('\'');
-                    sb.append(selector.getSelector());
-                    sb.append('\'');
-                }
-                sb.append("\"");
-            } else {
-                sb.append('\'');
-                sb.append(rejectedSelector.getSelector());
-                sb.append('\'');
-            }
-        }
-        return sb.toString();
-    }
-
-    private static boolean isRejectAll(ResolvedVersionConstraint constraint) {
-        return "".equals(constraint.getPreferredVersion())
-            && hasMatchAllSelector(constraint.getRejectedVersions());
-    }
-
-    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
-        for (String version : rejectedVersions) {
-            if ("+".equals(version)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

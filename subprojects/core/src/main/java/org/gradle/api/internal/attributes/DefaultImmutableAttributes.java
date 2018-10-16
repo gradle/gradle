@@ -21,7 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.internal.Cast;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -35,6 +36,10 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
             return o1.getName().compareTo(o2.getName());
         }
     };
+    // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
+    // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
+    // exceed a build
+    private final Map<Attribute<?>, Object> coercionCache = Maps.newConcurrentMap();
 
     final Attribute<?> attribute;
     final Isolatable<?> value;
@@ -42,6 +47,9 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     private final ImmutableMap<String, DefaultImmutableAttributes> hierarchyByName;
     private final int hashCode;
 
+    // Optimize for the single entry case, makes findEntry faster
+    private final String singleEntryName;
+    private final DefaultImmutableAttributes singleEntryValue;
 
     DefaultImmutableAttributes() {
         this.attribute = null;
@@ -49,6 +57,8 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         this.hashCode = 0;
         this.hierarchy = ImmutableMap.of();
         this.hierarchyByName = ImmutableMap.of();
+        this.singleEntryName = null;
+        this.singleEntryValue = null;
     }
 
     DefaultImmutableAttributes(DefaultImmutableAttributes parent, Attribute<?> key, Isolatable<?> value) {
@@ -66,6 +76,14 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         hashCode = 31 * hashCode + attribute.hashCode();
         hashCode = 31 * hashCode + value.hashCode();
         this.hashCode = hashCode;
+        if (hierarchyByName.size() == 1) {
+            Map.Entry<String, DefaultImmutableAttributes> entry = hierarchyByName.entrySet().iterator().next();
+            singleEntryName = entry.getKey();
+            singleEntryValue = entry.getValue();
+        } else {
+            singleEntryName = null;
+            singleEntryValue = null;
+        }
     }
 
     @Override
@@ -129,6 +147,10 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
      * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
      */
     public AttributeValue<?> findEntry(String key) {
+        if (singleEntryName == key) {
+            // The identity check is intentional here, do not replace with .equals()
+            return singleEntryValue;
+        }
         DefaultImmutableAttributes attributes = hierarchyByName.get(key);
         return attributes == null ? MISSING : attributes;
     }
@@ -151,6 +173,15 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public <S> S coerce(Attribute<S> otherAttribute) {
+        S s = Cast.uncheckedCast(coercionCache.get(otherAttribute));
+        if (s == null) {
+            s = uncachedCoerce(otherAttribute);
+            coercionCache.put(otherAttribute, s);
+        }
+        return s;
+    }
+
+    private <S> S uncachedCoerce(Attribute<S> otherAttribute) {
         Class<S> attributeType = otherAttribute.getType();
         if (attributeType.isAssignableFrom(attribute.getType())) {
             return (S) get();

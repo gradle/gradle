@@ -32,8 +32,6 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import java.util.Collections;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
-
-
     private final BuildOperationListenerManager buildOperationListenerManager;
 
     public TestExecutionRequestActionRunner(BuildOperationListenerManager buildOperationListenerManager) {

@@ -23,10 +23,12 @@ import spock.lang.Unroll
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
+    public static final String MIN_MEMORY = "-Xms800m"
+    public static final String MAX_MEMORY = "-Xmx800m"
 
     def setup() {
-        runner.minimumVersion = '4.0'
-        runner.targetVersions = ["4.7-20180320095059+0000"]
+        runner.minimumVersion = '4.6'
+        runner.targetVersions = ["5.0-20181010183641+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
@@ -34,7 +36,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ["-PnoExcludes"]
 
         when:
@@ -45,19 +47,16 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @Unroll
-    def "resolve large dependency graph (improvedPomSupport = #improvedPomSupport, parallel = #parallel)"() {
+    def "resolve large dependency graph (parallel = #parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'
-        }
-        if (improvedPomSupport) {
-            runner.args += '-Porg.gradle.advancedpomsupport=true -PimprovedPomSupport=true'
         }
 
         when:
@@ -70,11 +69,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         stopServer()
 
         where:
-        parallel | improvedPomSupport
-        true     | true
-        true     | false
-        false    | true
-        false    | false
+        parallel << [false, true]
     }
 
 }

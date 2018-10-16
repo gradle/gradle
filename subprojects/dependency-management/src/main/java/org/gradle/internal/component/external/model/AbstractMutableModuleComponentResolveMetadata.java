@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -45,10 +47,11 @@ import org.gradle.internal.hash.HashValue;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
+public abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private static final String DEFAULT_STATUS = "integration";
 
@@ -63,29 +66,33 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private HashValue contentHash = EMPTY_CONTENT;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
 
-    private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules();
+    private final VariantMetadataRules variantMetadataRules;
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
+    private Set<ComponentIdentifier> owners;
 
-    AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
+    protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
         this.componentLevelAttributes = defaultAttributes(attributesFactory);
+        this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
     }
 
-    AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
         this.componentId = metadata.getId();
         this.moduleVersionId = metadata.getModuleVersionId();
         this.changing = metadata.isChanging();
         this.missing = metadata.isMissing();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
-        this.contentHash = metadata.getContentHash();
+        this.contentHash = metadata.getOriginalContentHash();
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+        this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
+        this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
@@ -257,6 +264,18 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         return attributesFactory;
     }
 
+    @Override
+    public void belongsTo(ComponentIdentifier platform) {
+        if (owners == null) {
+            owners = Sets.newLinkedHashSet();
+        }
+        owners.add(platform);
+    }
+
+    @Override
+    public Set<? extends ComponentIdentifier> getPlatformOwners() {
+        return owners;
+    }
 
     protected static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;
@@ -272,13 +291,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes));
         }
 
         @Override
-        public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason) {
-            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason));
+        public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
+            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason, attributes));
         }
 
         @Override
@@ -341,13 +360,15 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final VersionConstraint versionConstraint;
         private final ImmutableList<ExcludeMetadata> excludes;
         private final String reason;
+        private final ImmutableAttributes attributes;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = ImmutableList.copyOf(excludes);
             this.reason = reason;
+            this.attributes = attributes;
         }
 
         @Override
@@ -376,6 +397,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
+        public ImmutableAttributes getAttributes() {
+            return attributes;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -389,12 +415,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
                 && Objects.equal(module, that.module)
                 && Objects.equal(versionConstraint, that.versionConstraint)
                 && Objects.equal(excludes, that.excludes)
-                && Objects.equal(reason, that.reason);
+                && Objects.equal(reason, that.reason)
+                && Objects.equal(attributes, that.attributes);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes);
         }
     }
 
@@ -403,12 +430,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final String module;
         private final VersionConstraint versionConstraint;
         private final String reason;
+        private final ImmutableAttributes attributes;
 
-        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint, String reason) {
+        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.reason = reason;
+            this.attributes = attributes;
         }
 
         @Override
@@ -432,6 +461,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
+        public ImmutableAttributes getAttributes() {
+            return attributes;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -444,12 +478,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             return Objects.equal(group, that.group)
                 && Objects.equal(module, that.module)
                 && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(reason, that.reason);
+                && Objects.equal(reason, that.reason)
+                && Objects.equal(attributes, that.attributes);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, reason);
+            return Objects.hashCode(group, module, versionConstraint, reason, attributes);
         }
     }
 
@@ -457,12 +492,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;
-        private final ImmutableList<DependencyImpl> dependencies;
-        private final ImmutableList<DependencyConstraintImpl> dependencyConstraints;
-        private final ImmutableList<FileImpl> files;
+        private final ImmutableList<? extends Dependency> dependencies;
+        private final ImmutableList<? extends DependencyConstraint> dependencyConstraints;
+        private final ImmutableList<? extends File> files;
         private final ImmutableCapabilities capabilities;
 
-        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<DependencyImpl> dependencies, ImmutableList<DependencyConstraintImpl> dependencyConstraints, ImmutableList<FileImpl> files, ImmutableCapabilities capabilities) {
+        ImmutableVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes, ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints, ImmutableList<? extends File> files, ImmutableCapabilities capabilities) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;

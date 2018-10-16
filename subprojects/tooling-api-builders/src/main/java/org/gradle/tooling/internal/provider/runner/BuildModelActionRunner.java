@@ -16,12 +16,14 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -56,7 +58,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    private static class BuildResultAdapter extends BuildAdapter {
+    private static class BuildResultAdapter extends InternalBuildAdapter {
         private final GradleInternal gradle;
         private final BuildController buildController;
         private final BuildModelAction buildModelAction;
@@ -67,6 +69,12 @@ public class BuildModelActionRunner implements BuildActionRunner {
             this.buildModelAction = buildModelAction;
         }
 
+        @Override
+        public void projectsEvaluated(Gradle gradle) {
+            if (buildModelAction.isModelRequest()) {
+                forceFullConfiguration((GradleInternal) gradle);
+            }
+        }
 
         @Override
         public void buildFinished(BuildResult result) {
@@ -76,9 +84,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         private static BuildActionResult buildResult(GradleInternal gradle, BuildModelAction buildModelAction) {
-            if (buildModelAction.isModelRequest()) {
-                forceFullConfiguration(gradle);
-            }
             PayloadSerializer serializer = gradle.getServices().get(PayloadSerializer.class);
             try {
                 Object model = buildModel(gradle, buildModelAction);
@@ -97,17 +102,16 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         private static void forceFullConfiguration(GradleInternal gradle) {
             try {
-                ProjectInternal rootProject = gradle.getRootProject();
-                getProjectConfigurer(gradle).configureHierarchyFully(rootProject);
+                gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
+                for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+                    GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+                    forceFullConfiguration(build);
+                }
             } catch (BuildCancelledException e) {
                 throw new InternalBuildCancelledException(e);
             } catch (RuntimeException e) {
                 throw new BuildExceptionVersion1(e);
             }
-        }
-
-        private static ProjectConfigurer getProjectConfigurer(GradleInternal gradle) {
-            return gradle.getServices().get(ProjectConfigurer.class);
         }
 
         private static ToolingModelBuilder getModelBuilder(GradleInternal gradle, String modelName) {

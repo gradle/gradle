@@ -238,6 +238,9 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         operations = operationsForExecution.executeQuery();
                         while (operations.next()) {
                             CrossVersionPerformanceResults result = results.get(operations.getLong(2));
+                            if (result == null) {
+                                continue;
+                            }
                             String version = operations.getString(1);
                             if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
                                 // Ignore some broken samples

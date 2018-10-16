@@ -75,7 +75,7 @@ class DefaultDependencyDescriptorFactoryTest extends Specification {
         def selector = created.selector as ModuleComponentSelector
 
         then:
-        created.pending
+        created.constraint
         selector.group == "g"
         selector.module == "m"
         selector.version == "1"
@@ -85,7 +85,7 @@ class DefaultDependencyDescriptorFactoryTest extends Specification {
         created.artifacts.empty
         created.excludes.empty
         !created.force
-        created.transitive
+        !created.transitive
         !created.changing
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.ide.xcode.XcodeWorkspace;
 
 import javax.inject.Inject;
@@ -26,8 +26,8 @@ public class DefaultXcodeWorkspace implements XcodeWorkspace {
     private final DirectoryProperty workspaceDir;
 
     @Inject
-    public DefaultXcodeWorkspace(ProjectLayout projectLayout) {
-        workspaceDir = projectLayout.directoryProperty();
+    public DefaultXcodeWorkspace(ObjectFactory objectFactory) {
+        workspaceDir = objectFactory.directoryProperty();
     }
 
     @Override

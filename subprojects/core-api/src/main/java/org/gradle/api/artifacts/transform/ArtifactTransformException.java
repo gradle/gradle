@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.model.internal.type.ModelType;
@@ -30,7 +29,6 @@ import java.io.File;
  * @since 3.4
  */
 @Contextual
-@Incubating
 public class ArtifactTransformException extends GradleException {
 
     public ArtifactTransformException(File input, AttributeContainer expectedAttributes, Class<? extends ArtifactTransform> transform, Throwable cause) {

@@ -18,20 +18,20 @@ package org.gradle.jvm.plugins;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
@@ -70,7 +70,6 @@ import java.util.List;
  *
  * @since 2.12
  */
-@Incubating
 @SuppressWarnings("UnusedDeclaration")
 public class JvmTestSuiteBasePlugin extends RuleSource {
     @BinaryTasks
@@ -84,7 +83,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
                 test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                 test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
                 test.dependsOn(jvmAssembly);
-                test.setTestClassesDirs(new SimpleFileCollection(binary.getClassesDir()));
+                test.setTestClassesDirs(ImmutableFileCollection.of(binary.getClassesDir()));
                 test.setClasspath(binary.getRuntimeClasspath());
                 configureReports(binary, test);
             }
@@ -118,12 +117,12 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
         AttributesSchemaInternal attributesSchema = serviceRegistry.get(AttributesSchemaInternal.class);
         ImmutableModuleIdentifierFactory moduleIdentifierFactory = serviceRegistry.get(ImmutableModuleIdentifierFactory.class);
         BuildOperationExecutor buildOperationExecutor = serviceRegistry.get(BuildOperationExecutor.class);
-        BuildIdentity buildIdentity = serviceRegistry.get(BuildIdentity.class);
-        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema, moduleIdentifierFactory, buildOperationExecutor, buildIdentity));
+        BuildIdentifier currentBuild = serviceRegistry.get(BuildState.class).getBuildIdentifier();
+        testBinary.setRuntimeClasspath(configureRuntimeClasspath(testBinary, dependencyResolver, resolutionAwareRepositories, schema, attributesSchema, moduleIdentifierFactory, buildOperationExecutor, currentBuild));
     }
 
-    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, AttributesSchemaInternal attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationExecutor buildOperationExecutor, BuildIdentity buildIdentity) {
-        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, buildOperationExecutor, buildIdentity);
+    private static DependencyResolvingClasspath configureRuntimeClasspath(JvmTestSuiteBinarySpecInternal testBinary, ArtifactDependencyResolver dependencyResolver, List<ResolutionAwareRepository> resolutionAwareRepositories, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, AttributesSchemaInternal attributesSchema, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationExecutor buildOperationExecutor, BuildIdentifier currentBuild) {
+        return new DependencyResolvingClasspath(testBinary, testBinary.getDisplayName(), dependencyResolver, resolutionAwareRepositories, createResolveContext(testBinary, schema, moduleIdentifierFactory), attributesSchema, buildOperationExecutor, currentBuild);
     }
 
     private static JvmLibraryResolveContext createResolveContext(JvmTestSuiteBinarySpecInternal testBinary, ModelSchema<? extends JvmTestSuiteBinarySpec> schema, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

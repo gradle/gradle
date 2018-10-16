@@ -16,10 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -28,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 3.0
  */
 @HasInternalProtocol
-public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskOutputs {
+public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder {
     /**
      * {@inheritDoc}
      */
@@ -46,67 +42,4 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
     TaskOutputFilePropertyBuilder optional(boolean optional);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#upToDateWhen(Closure)} instead.
-     */
-    @Deprecated
-    @Override
-    void upToDateWhen(Closure upToDateClosure);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#upToDateWhen(Spec)} instead.
-     */
-    @Deprecated
-    @Override
-    void upToDateWhen(Spec<? super Task> upToDateSpec);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#getHasOutput()} instead.
-     */
-    @Deprecated
-    @Override
-    boolean getHasOutput();
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#getFiles()} instead.
-     */
-    @Deprecated
-    @Override
-    FileCollection getFiles();
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#files(Object...)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder files(Object... paths);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#file(Object)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder file(Object path);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskOutputs#dir(Object)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputFilePropertyBuilder dir(Object path);
 }

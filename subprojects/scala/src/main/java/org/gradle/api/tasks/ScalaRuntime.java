@@ -17,7 +17,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
@@ -51,7 +50,6 @@ import java.util.regex.Pattern;
  *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
  * </pre>
  */
-@Incubating
 public class ScalaRuntime {
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar");
 
@@ -71,7 +69,7 @@ public class ScalaRuntime {
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
-        // alternatively, we could return project.files(Runnable)
+        // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override

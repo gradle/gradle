@@ -16,27 +16,13 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
-import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
-import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -48,27 +34,28 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
-
 public class TaskOutputCacheCommandFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TaskOutputCacheCommandFactory.class);
-    private static final Predicate<? super FileSnapshot> EXCLUDE_ROOT_SNAPSHOTS = new Predicate<FileSnapshot>() {
-        @Override
-        public boolean apply(FileSnapshot snapshot) {
-            return !snapshot.isRoot();
-        }
-    };
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
@@ -86,8 +73,8 @@ public class TaskOutputCacheCommandFactory {
         return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputChangesListener, taskArtifactState);
     }
 
-    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
-        return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, taskExecutionTime);
+    public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, TaskInternal task, long taskExecutionTime) {
+        return new StoreCommand(cacheKey, outputProperties, outputFingerprints, task, taskExecutionTime);
     }
 
     private class LoadCommand implements BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
@@ -148,44 +135,46 @@ public class TaskOutputCacheCommandFactory {
             };
         }
 
-        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
-            ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
+        private void updateSnapshots(Map<String, ? extends FileSystemLocationSnapshot> propertySnapshots, OriginTaskExecutionMetadata originMetadata) {
+            ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> propertyFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+            FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
                 if (outputFile == null) {
-                    propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getEmptyFingerprint());
                     continue;
                 }
-                List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
+                FileSystemLocationSnapshot snapshot = propertySnapshots.get(propertyName);
+                String absolutePath = internedAbsolutePath(outputFile);
+                List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
-                CollectingFileCollectionSnapshotBuilder builder = new CollectingFileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
-                for (FileSnapshot fileSnapshot : fileSnapshots) {
-                    builder.collectFileSnapshot(fileSnapshot);
+                if (snapshot == null) {
+                    fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.missing());
+                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(absolutePath, property.getOutputFile().getName()));
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getEmptyFingerprint());
+                    continue;
                 }
-                propertySnapshotsBuilder.put(propertyName, builder.build());
 
                 switch (property.getOutputType()) {
                     case FILE:
-                        FileSnapshot singleSnapshot = Iterables.getOnlyElement(fileSnapshots, null);
-                        if (singleSnapshot != null) {
-                            if (singleSnapshot.getType() != FileType.RegularFile) {
-                                throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, singleSnapshot.getType()));
-                            }
-                            fileSystemMirror.putFile(singleSnapshot);
-                        } else {
-                            fileSystemMirror.putFile(new MissingFileSnapshot(internedAbsolutePath(outputFile), RelativePath.EMPTY_ROOT));
+                        if (snapshot.getType() != FileType.RegularFile) {
+                            throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
+                        roots.add(snapshot);
+                        fileSystemMirror.putSnapshot(snapshot);
                         break;
                     case DIRECTORY:
-                        Collection<FileSnapshot> descendants = Collections2.filter(fileSnapshots, EXCLUDE_ROOT_SNAPSHOTS);
-                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(internedAbsolutePath(outputFile), descendants));
+                        roots.add(snapshot);
+                        fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.directory());
+                        fileSystemMirror.putSnapshot(snapshot);
                         break;
                     default:
                         throw new AssertionError();
                 }
+                propertyFingerprintsBuilder.put(propertyName, DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy));
             }
-            taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
+            taskArtifactState.snapshotAfterLoadedFromCache(propertyFingerprintsBuilder.build(), originMetadata);
         }
 
         private void cleanLocalState() {
@@ -228,14 +217,14 @@ public class TaskOutputCacheCommandFactory {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
-        private final Map<String, Map<String, FileContentSnapshot>> outputSnapshots;
+        private final Map<String, CurrentFileCollectionFingerprint> outputFingerprints;
         private final TaskInternal task;
         private final long taskExecutionTime;
 
-        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
+        private StoreCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, TaskInternal task, long taskExecutionTime) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
-            this.outputSnapshots = outputSnapshots;
+            this.outputFingerprints = outputFingerprints;
             this.task = task;
             this.taskExecutionTime = taskExecutionTime;
         }
@@ -248,7 +237,7 @@ public class TaskOutputCacheCommandFactory {
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             LOGGER.info("Packing {}", task);
-            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, outputSnapshots, output, taskOutputOriginFactory.createWriter(task, taskExecutionTime));
+            final TaskOutputPacker.PackResult packResult = packer.pack(outputProperties, outputFingerprints, output, taskOutputOriginFactory.createWriter(task, taskExecutionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override
                 public long getArtifactEntryCount() {

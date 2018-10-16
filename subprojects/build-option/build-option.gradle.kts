@@ -2,13 +2,13 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {
     api(project(":cli"))
     api(library("jsr305"))
-    implementation("commons-lang:commons-lang:2.6")
+    implementation(library("commons_lang"))
 }
 
 gradlebuildJava {

@@ -18,7 +18,6 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
@@ -127,12 +126,6 @@ public class Ear extends Jar {
         });
     }
 
-    /**
-     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
-     *
-     * @since 4.2
-     */
-    @Incubating
     @Inject
     protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();

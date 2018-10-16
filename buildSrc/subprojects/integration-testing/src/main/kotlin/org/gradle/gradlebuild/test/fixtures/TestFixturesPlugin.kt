@@ -17,21 +17,16 @@ package org.gradle.gradlebuild.test.fixtures
 
 import accessors.groovy
 import accessors.java
-
 import library
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.*
-
-import org.gradle.plugins.ide.eclipse.EclipsePlugin
-import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
-
-import testLibraries
 import testLibrary
+import java.util.Locale
 
 
 /**
@@ -44,12 +39,13 @@ import testLibrary
  *
  * Configures the Project as a test fixtures consumer according to the `testFixtures` extension configuration.
  */
+//TODO convert this to use variant aware dependency management
 @Suppress("unused")
 open class TestFixturesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        apply { plugin("java") }
+        apply(plugin = "java")
 
         extensions.create<TestFixturesExtension>("testFixtures")
 
@@ -60,89 +56,128 @@ open class TestFixturesPlugin : Plugin<Project> {
         configureAsConsumer()
     }
 
+    /**
+     * This mimics what the java-library plugin does, but creating a library of test fixtures instead.
+     */
     private
     fun Project.configureAsProducer() {
-
-        configurations {
-            "outputDirs" {}
-
-            "testFixturesCompile" { extendsFrom(configurations["compile"]) }
-            "testFixturesImplementation" { extendsFrom(configurations["implementation"]) }
-            "testFixturesRuntime" { extendsFrom(configurations["runtime"]) }
-
-            // Expose configurations that include the test fixture classes for clients to use
-            "testFixturesUsageCompile" {
-                extendsFrom(configurations["testFixturesCompile"], configurations["outputDirs"])
-            }
-            "testFixturesUsageRuntime" {
-                extendsFrom(configurations["testFixturesRuntime"], configurations["testFixturesUsageCompile"])
-            }
-
-            // Assume that the project wants to use the fixtures for its tests
-            "testCompile" { extendsFrom(configurations["testFixturesUsageCompile"]) }
-            "testRuntime" { extendsFrom(configurations["testFixturesUsageRuntime"]) }
-        }
-
-        val outputDirs by configurations.getting
-        val testFixturesCompile by configurations.getting
-        val testFixturesRuntime by configurations.getting
-        val testFixturesUsageCompile by configurations.getting
-
         val main by java.sourceSets
         val testFixtures by java.sourceSets.creating {
-            compileClasspath = main.output + configurations["testFixturesCompileClasspath"]
-            runtimeClasspath = output + compileClasspath + configurations["testFixturesRuntimeClasspath"]
+            extendsFrom(main, configurations)
+        }
+        java.sourceSets.named("test", SourceSet::class) {
+            extendsFrom(testFixtures, configurations)
         }
 
-        dependencies {
-            outputDirs(testFixtures.output)
-            testFixturesUsageCompile(project(path))
-            testFixturesCompile(library("junit"))
-            testFixturesCompile(testLibrary("spock"))
-            testLibraries("jmock").forEach { testFixturesCompile(it) }
+        java.sourceSets.matching { it.name.toLowerCase(Locale.ROOT).endsWith("test") }.all {
+            compileClasspath += testFixtures.output
+            runtimeClasspath += testFixtures.output
+        }
 
-            constraints {
-                testFixturesCompile("cglib:cglib-nodep") {
-                    version { prefer("3.2.5") }
-                    because("We need to upgrade to a Java8 compatible version")
+        configurations {
+            val testFixturesApi by creating {
+                extendsFrom(configurations[testFixtures.compileConfigurationName])
+            }
+
+            val testFixturesImplementation by getting {
+                extendsFrom(testFixturesApi)
+            }
+
+            val testFixturesRuntime by getting
+            val testFixturesRuntimeOnly by getting
+
+            create(testFixtures.apiElementsConfigurationName) {
+                extendsFrom(testFixturesApi, testFixturesRuntime)
+                /*
+                 * FIXME only the classes would be more appropriate here, but the Groovy compiler
+                 * needs resources too because we make use of extension methods registred through
+                 * a META-INF file.
+                 */
+                afterEvaluate {
+                    testFixtures.output.forEach {
+                        outgoing.artifact(it) {
+                            builtBy(testFixtures.output)
+                        }
+                    }
                 }
             }
+
+            create(testFixtures.runtimeElementsConfigurationName) {
+                extendsFrom(testFixturesImplementation, testFixturesRuntime, testFixturesRuntimeOnly)
+                /*
+                 * FIXME a JAR would be more appropriate here, but the PlayApp fixture assumes that
+                 * its class is loaded from a directory.
+                 */
+                afterEvaluate {
+                    testFixtures.output.forEach {
+                        outgoing.artifact(it) {
+                            builtBy(testFixtures.output)
+                        }
+                    }
+                }
+            }
+        }
+
+        removeTestFixturesFromArchivesConfiguration()
+
+        dependencies {
+            val testFixturesApi by configurations
+            val testFixturesRuntimeOnly by configurations
+
+            testFixturesApi(project(path))
+            testFixturesApi(library("junit"))
+            testFixturesApi(testLibrary("spock"))
+            testFixturesRuntimeOnly(testLibrary("bytebuddy"))
+            testFixturesRuntimeOnly(testLibrary("cglib"))
         }
 
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs + testFixtures.resources.srcDirs
-                }
-            }
-        }
-
-        plugins.withType<EclipsePlugin> {
-            configure<EclipseModel> {
-                classpath {
-                    plusConfigurations.add(testFixturesCompile)
-                    plusConfigurations.add(testFixturesRuntime)
-
-                    //avoiding the certain output directories from the classpath in Eclipse
-                    minusConfigurations.add(outputDirs)
+                    testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs
+                    testResourceDirs = testResourceDirs + testFixtures.resources.srcDirs
                 }
             }
         }
     }
 
     private
-    fun Project.configureAsConsumer() = afterEvaluate {
-
-        the<TestFixturesExtension>().origins.forEach { (projectPath, sourceSetName) ->
-
-            val compileConfig = if (sourceSetName == "main") "compile" else "${sourceSetName}Compile"
-            val runtimeConfig = if (sourceSetName == "main") "runtime" else "${sourceSetName}Runtime"
-
-            dependencies {
-                compileConfig(project(path = projectPath, configuration = "testFixturesUsageCompile"))
-                compileConfig(project(":internalTesting"))
-                runtimeConfig(project(path = projectPath, configuration = "testFixturesUsageRuntime"))
+    fun SourceSet.extendsFrom(other: SourceSet, configurations: ConfigurationContainer) {
+        configurations {
+            compileConfigurationName {
+                extendsFrom(configurations[other.compileConfigurationName])
+            }
+            implementationConfigurationName {
+                extendsFrom(configurations[other.implementationConfigurationName])
+            }
+            runtimeConfigurationName {
+                extendsFrom(configurations[other.runtimeConfigurationName])
+            }
+            runtimeOnlyConfigurationName {
+                extendsFrom(configurations[other.runtimeOnlyConfigurationName])
             }
         }
+    }
+
+    private
+    fun Project.configureAsConsumer() = afterEvaluate {
+        the<TestFixturesExtension>().origins.forEach { (projectPath, sourceSetName) ->
+            val sourceSet = java.sourceSets[sourceSetName]
+            val compileConfig = sourceSet.compileConfigurationName
+            val runtimeConfig = sourceSet.runtimeConfigurationName
+
+            dependencies {
+                compileConfig(project(path = projectPath, configuration = "testFixturesApiElements"))
+                compileConfig(project(":internalTesting"))
+                runtimeConfig(project(path = projectPath, configuration = "testFixturesRuntimeElements"))
+            }
+        }
+    }
+
+    // This is a hack to get rid of `Cannot publish artifact 'testFixtures' as it does not exist.`
+    // https://builds.gradle.org/viewLog.html?buildId=15853642&buildTypeId=bt39
+    private
+    fun Project.removeTestFixturesFromArchivesConfiguration() = afterEvaluate {
+        configurations["archives"]?.artifacts?.removeIf { it.name == "testFixtures" }
     }
 }

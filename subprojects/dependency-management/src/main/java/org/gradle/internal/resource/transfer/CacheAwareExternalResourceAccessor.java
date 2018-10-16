@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
@@ -43,5 +44,21 @@ public interface CacheAwareExternalResourceAccessor {
          * Called when a resource is to be cached. Should *move* the given file into the appropriate location and return a handle to the file.
          */
         LocallyAvailableResource moveIntoCache(File downloadedResource);
+    }
+
+    abstract class DefaultResourceFileStore<K> implements ResourceFileStore {
+
+        private final FileStore<K> delegate;
+
+        public DefaultResourceFileStore(FileStore<K> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public final LocallyAvailableResource moveIntoCache(File downloadedResource) {
+            return delegate.move(computeKey(), downloadedResource);
+        }
+
+        protected abstract K computeKey();
     }
 }

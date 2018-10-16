@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-apply {
-    from("gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
-}
+apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-try {
-    settings.withGroovyBuilder {
-        "enableFeaturePreview"("IMPROVED_POM_SUPPORT")
-    }
-} catch (e: Exception ){
-    // Ignore - indicates this is run with Gradle < 4.6
-}
-
+include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
@@ -83,6 +75,7 @@ include("languageJvm")
 include("languageJava")
 include("languageGroovy")
 include("languageNative")
+include("toolingNative")
 include("languageScala")
 include("pluginUse")
 include("pluginDevelopment")
@@ -105,6 +98,9 @@ include("persistentCache")
 include("buildCache")
 include("coreApi")
 include("versionControl")
+include("files")
+include("snapshots")
+include("architectureTest")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -117,12 +113,8 @@ rootProject.name = "gradle"
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = listOf(
     "distributions",
-    "logging",
     "process-services",
-    "core",
     "wrapper",
-    "cli",
-    "launcher",
     "resources",
     "resources-http",
     "resources-gcs",
@@ -130,38 +122,17 @@ val groovyBuildScriptProjects = listOf(
     "resources-sftp",
     "plugins",
     "scala",
-    "ide",
-    "ide-native",
-    "ide-play",
     "osgi",
-    "code-quality",
     "docs",
-    "integ-test",
     "signing",
-    "ear",
     "native",
     "performance",
-    "build-scan-performance",
-    "javascript",
     "reporting",
-    "diagnostics",
     "publish",
-    "jacoco",
-    "build-init",
     "platform-base",
-    "platform-native",
     "platform-jvm",
-    "language-jvm",
-    "language-java",
-    "language-groovy",
-    "language-native",
-    "language-scala",
     "plugin-use",
-    "model-core",
-    "model-groovy",
-    "build-cache-http",
     "testing-base",
-    "testing-native",
     "testing-jvm",
     "testing-junit-platform",
     "platform-play",
@@ -169,7 +140,6 @@ val groovyBuildScriptProjects = listOf(
     "soak",
     "smoke-test",
     "persistent-cache",
-    "core-api",
     "version-control")
 
 fun buildFileNameFor(projectDirName: String) =
@@ -182,6 +152,26 @@ for (project in rootProject.children) {
     val projectDirName = project.name.toKebabCase()
     project.projectDir = file("subprojects/$projectDirName")
     project.buildFileName = buildFileNameFor(projectDirName)
-    assert(project.projectDir.isDirectory)
-    assert(project.buildFile.isFile)
+    if (!project.projectDir.isDirectory) {
+        throw IllegalArgumentException("Project directory ${project.projectDir} for project ${project.name} does not exist.")
+    }
+    if (!project.buildFile.isFile) {
+        throw IllegalArgumentException("Build file ${project.buildFile} for project ${project.name} does not exist.")
+    }
 }
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            when (requested.id.id) {
+                // FIXME: Publish plugin marker artifacts for the ci tagging plugin
+                "org.gradle.ci.tag-single-build" -> useModule("org.gradle.ci.health:gradle-build-tag-plugin:0.43")
+            }
+        }
+    }
+}
+

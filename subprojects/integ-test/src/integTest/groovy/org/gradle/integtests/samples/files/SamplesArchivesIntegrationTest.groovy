@@ -16,21 +16,28 @@
 
 package org.gradle.integtests.samples.files
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
-class SamplesArchivesIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
+class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/files/copy")
-    def "can archive a directory"() {
+    def "can archive a directory with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def archivesDir = sample.dir.file("build/toArchive")
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def archivesDir = dslDir.file("build/toArchive")
         archivesDir.createDir().file("my-report.pdf").touch()
         archivesDir.createDir().file("numbers.csv").touch()
 
@@ -41,20 +48,25 @@ class SamplesArchivesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("packageDistribution")
 
         then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file("build/dist/my-distribution.zip")
+        def tmpOutDir = dslDir.file("tmp")
+        def zipFile = dslDir.file("build/dist/my-distribution.zip")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file("my-report.pdf").isFile()
         tmpOutDir.file("numbers.csv").isFile()
         tmpOutDir.file("metrics/scatterPlot.pdf").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/archivesWithBasePlugin")
-    def "can create an archive with a convention-based name"() {
+    def "can create an archive with a convention-based name with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def archivesDir = sample.dir.file("build/toArchive")
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def archivesDir = dslDir.file("build/toArchive")
         archivesDir.createDir().file("my-report.pdf").touch()
         archivesDir.createDir().file("numbers.csv").touch()
 
@@ -65,61 +77,79 @@ class SamplesArchivesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("packageDistribution")
 
         then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file("build/distributions/archives-example-1.0.0.zip")
+        def tmpOutDir = dslDir.file("tmp")
+        def zipFile = dslDir.file("build/distributions/archives-example-1.0.0.zip")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file("docs/my-report.pdf").isFile()
         tmpOutDir.file("docs/metrics/scatterPlot.pdf").isFile()
         tmpOutDir.file("numbers.csv").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/archives")
-    def "can unpack a ZIP file"() {
+    def "can unpack a ZIP file with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds("unpackFiles")
 
         then:
-        def outputDir = sample.dir.file("build/resources")
+        def outputDir = dslDir.file("build/resources")
         outputDir.file("libs/first.txt").isFile()
         outputDir.file("libs/other.txt").isFile()
         outputDir.file("docs.txt").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/archivesWithJavaPlugin")
-    def "can create an uber JAR"() {
+    def "can create an uber JAR with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds("uberJar")
 
         then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file("build/libs/archives-example-uber-1.0.0.jar")
+        def tmpOutDir = dslDir.file("tmp")
+        def zipFile = dslDir.file("build/libs/archives-example-uber-1.0.0.jar")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file("META-INF/MANIFEST.MF").isFile()
         tmpOutDir.file("Hello.class").isFile()
         tmpOutDir.file("org/apache/commons/io/IOUtils.class").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/sampleJavaProject")
-    def "can link tasks via their properties"() {
+    def "can link tasks via their properties with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds("packageClasses")
 
         then:
-        def tmpOutDir = sample.dir.file("tmp")
-        def zipFile = sample.dir.file("build/archives/my-java-project-classes-1.0.0.zip")
+        def tmpOutDir = dslDir.file("tmp")
+        def zipFile = dslDir.file("build/archives/my-java-project-classes-1.0.0.zip")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file("Hello.class").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

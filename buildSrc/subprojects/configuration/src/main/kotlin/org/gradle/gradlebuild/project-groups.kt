@@ -36,9 +36,9 @@ object ProjectGroups {
             "ide", "scala", "signing", "ear", "javascript", "buildComparison",
             "diagnostics", "reporting", "publish", "ivy", "jacoco", "buildInit", "platformBase",
             "platformJvm", "languageJvm", "languageJava", "languageGroovy", "languageScala",
-            "platformNative", "platformPlay", "idePlay", "languageNative", "ideNative", "testingBase",
-            "testingNative", "testingJvm", "testingJunitPlatform", "pluginDevelopment", "pluginUse", "resourcesHttp",
-            "resourcesSftp", "resourcesS3", "resourcesGcs", "compositeBuilds", "buildCacheHttp").map { rootProject.project(it) }.toSet()
+            "platformNative", "platformPlay", "idePlay", "languageNative", "toolingNative", "ideNative",
+            "testingBase", "testingNative", "testingJvm", "testingJunitPlatform", "pluginDevelopment", "pluginUse",
+            "resourcesHttp", "resourcesSftp", "resourcesS3", "resourcesGcs", "compositeBuilds", "buildCacheHttp").map { rootProject.project(it) }.toSet()
 
     val Project.implementationPluginProjects
         get() = setOf(rootProject.project("toolingApiBuilders"))
@@ -57,9 +57,6 @@ object ProjectGroups {
             rootProject.project(":messaging"),
             rootProject.project(":processServices"),
             rootProject.project(":resources"))
-
-    val Project.projectsRequiringJava8
-        get() = setOf(rootProject.project(":testingJunitPlatform"))
 
     val Project.publicProjects
         get() = pluginProjects +

@@ -233,8 +233,8 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         succeeds("helloWorld")
     }
 
-    @Requires(TestPrecondition.ONLINE)
     @Issue("GRADLE-3502")
+    @Requires(TestPrecondition.ONLINE)
     def "Plugin Portal provides transitive dependencies for other plugins"() {
         given:
         publishPlugins(MAVEN)

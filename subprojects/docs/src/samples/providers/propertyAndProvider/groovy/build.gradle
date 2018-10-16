@@ -1,0 +1,23 @@
+// A task that displays a greeting
+class Greeting extends DefaultTask {
+    // A configurable greeting
+    @Input
+    final Property<String> greeting = project.objects.property(String)
+
+    // Read-only property calculated from the greeting
+    @Internal
+    final Provider<String> message = greeting.map { it + ' from Gradle' }
+
+    @TaskAction
+    void printMessage() {
+        logger.quiet(message.get())
+    }
+}
+
+task greeting(type: Greeting) {
+    // Configure the greeting
+    greeting.set('Hi')
+
+    // Note that an assignment statement can be used instead of calling Property.set()
+    greeting = 'Hi'
+}

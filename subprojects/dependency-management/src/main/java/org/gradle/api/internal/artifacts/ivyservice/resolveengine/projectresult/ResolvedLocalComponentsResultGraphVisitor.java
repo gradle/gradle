@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
     }
 
     @Override
-    public void start(DependencyGraphNode root) {
+    public void start(RootGraphNode root) {
         this.rootId = root.getOwner().getComponentId();
     }
 

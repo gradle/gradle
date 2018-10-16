@@ -16,27 +16,34 @@
 
 package org.gradle.initialization.buildsrc
 
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
-import org.gradle.util.CollectionUtils
+import org.gradle.launcher.exec.RunBuildBuildOperationType
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
-    def "includes build identifier in build operations"() {
-        given:
-        def ops = new BuildOperationsFixture(executer, temporaryFolder)
+    BuildOperationsFixture ops
+    def setup() {
+        ops = new BuildOperationsFixture(executer, temporaryFolder)
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
+    }
 
+    @Unroll
+    def "includes build identifier in build operations with #display"() {
         when:
+        file("buildSrc/settings.gradle") << settings << "\n"
         succeeds()
 
         then:
-        def root = CollectionUtils.single(ops.roots())
+        def root = ops.root(RunBuildBuildOperationType)
 
         def buildSrcOps = ops.all(BuildBuildSrcBuildOperationType)
         buildSrcOps.size() == 1
@@ -48,13 +55,13 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ':'
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildSrc)"
+        loadOps[1].displayName == "Load build (:buildSrc)"
         loadOps[1].details.buildPath == ':buildSrc'
         loadOps[1].parentId == buildSrcOps[0].id
 
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build (buildSrc)"
+        configureOps[0].displayName == "Configure build (:buildSrc)"
         configureOps[0].details.buildPath == ":buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
         configureOps[1].displayName == "Configure build"
@@ -77,11 +84,35 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         runTasksOps[1].displayName == "Run tasks"
         runTasksOps[1].parentId == root.id
 
+        def graphNotifyOps = ops.all(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps.size() == 2
+        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
+        graphNotifyOps[0].details.buildPath == ':buildSrc'
+        graphNotifyOps[0].parentId == runTasksOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[1].details.buildPath == ":"
+        graphNotifyOps[1].parentId == runTasksOps[1].id
+
         def taskOps = ops.all(ExecuteTaskBuildOperationType)
         taskOps.size() > 1
         taskOps[0].details.buildPath == ':buildSrc'
         taskOps[0].parentId == runTasksOps[0].id
         taskOps.last().details.buildPath == ':'
         taskOps.last().parentId == runTasksOps[1].id
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
+    }
+
+    @Unroll
+    def "does not resolve configurations when configuring buildSrc build"() {
+        when:
+        succeeds()
+
+        then:
+        def buildSrcConfigure = ops.first("Configure build (:buildSrc)")
+        ops.children(buildSrcConfigure, ResolveConfigurationDependenciesBuildOperationType).empty
     }
 }

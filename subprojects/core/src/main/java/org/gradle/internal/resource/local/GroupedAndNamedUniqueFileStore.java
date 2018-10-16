@@ -16,7 +16,7 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
+import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.hash.HashUtil;
 
@@ -28,29 +28,37 @@ import java.util.Set;
  */
 public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
+    protected static final int NUMBER_OF_CHECKSUM_DIRS = 1;
+
     private final PathKeyFileStore delegate;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final Transformer<String, K> grouper;
-    private final Transformer<String, K> namer;
+    private final Grouper<K> grouper;
+    private final Namer<K> namer;
+    private final FileAccessTracker checksumDirAccessTracker;
 
-    public GroupedAndNamedUniqueFileStore(PathKeyFileStore delegate, TemporaryFileProvider temporaryFileProvider, Transformer<String, K> grouper, Transformer<String, K> namer) {
-        this.delegate = delegate;
+    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, Grouper<K> grouper, Namer<K> namer) {
+        this.delegate = new UniquePathKeyFileStore(baseDir);
         this.temporaryFileProvider = temporaryFileProvider;
         this.grouper = grouper;
         this.namer = namer;
+        this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
     }
 
     public LocallyAvailableResource move(K key, File source) {
-        return delegate.move(toPath(key, getChecksum(source)), source);
+        return markAccessed(delegate.move(toPath(key, getChecksum(source)), source));
     }
 
     public Set<? extends LocallyAvailableResource> search(K key) {
         return delegate.search(toPath(key, "*"));
     }
 
+    public FileAccessTracker getFileAccessTracker() {
+        return checksumDirAccessTracker;
+    }
+
     private String toPath(K key, String checksumPart) {
-        String group = grouper.transform(key);
-        String name = namer.transform(key);
+        String group = grouper.determineGroup(key);
+        String name = namer.determineName(key);
 
         return group + "/" + checksumPart + "/" + name;
     }
@@ -59,7 +67,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         return HashUtil.createHash(contentFile, "SHA1").asHexString();
     }
 
-    public File getTempFile() {
+    private File getTempFile() {
         return temporaryFileProvider.createTemporaryFile("filestore", "bin");
     }
 
@@ -69,6 +77,17 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         final File tempFile = getTempFile();
         addAction.execute(tempFile);
         final String groupedAndNamedKey = toPath(key, getChecksum(tempFile));
-        return delegate.move(groupedAndNamedKey, tempFile);
+        return markAccessed(delegate.move(groupedAndNamedKey, tempFile));
     }
+
+    private LocallyAvailableResource markAccessed(LocallyAvailableResource resource) {
+        checksumDirAccessTracker.markAccessed(resource.getFile());
+        return resource;
+    }
+
+    public interface Grouper<K> {
+        String determineGroup(K key);
+        int getNumberOfGroupingDirs();
+    }
+
 }

@@ -38,11 +38,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter inDirectory(File directory);
 
     /**
-     * Enables search upwards. Defaults to false.
-     */
-    GradleExecuter withSearchUpwards();
-
-    /**
      * Sets the task names to execute. Defaults to an empty list.
      */
     GradleExecuter withTasks(String... names);
@@ -444,4 +439,40 @@ public interface GradleExecuter extends Stoppable {
      * By default the message is never rendered.
      */
     GradleExecuter withWelcomeMessageEnabled();
+
+    /**
+     * Specifies we should use a test console that has both stdout and stderr attached.
+     */
+    GradleExecuter withTestConsoleAttached();
+
+    /**
+     * Specifies we should use a test console that only has stdout attached.
+     */
+    GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment);
+
+    /**
+     * Apply an init script which replaces all external repositories with inner mirrors.
+     * Note this doesn't work for buildSrc and composite build.
+     *
+     * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
+     */
+    GradleExecuter withRepositoryMirrors();
+
+    /**
+     * Requires an isolated gradle user home and put an init script which replaces all external repositories with inner mirrors.
+     * This works for all scenarios.
+     *
+     * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
+     */
+    GradleExecuter withGlobalRepositoryMirrors();
+
+    /**
+     * Start the build with {@link org.gradle.api.internal.artifacts.BaseRepositoryFactory#PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}
+     * set to our inner mirror.
+     *
+     * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil
+     */
+    GradleExecuter withPluginRepositoryMirror();
+
+    GradleExecuter ignoreMissingSettingsFile();
 }

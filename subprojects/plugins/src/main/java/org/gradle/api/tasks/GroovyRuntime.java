@@ -19,16 +19,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Cast;
+import org.gradle.util.VersionNumber;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -54,8 +53,9 @@ import java.util.List;
  *     // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly.
  * </pre>
  */
-@Incubating
 public class GroovyRuntime {
+    private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
+    private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
     private final Project project;
 
     public GroovyRuntime(Project project) {
@@ -73,7 +73,7 @@ public class GroovyRuntime {
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
-        // alternatively, we could return project.files(Runnable)
+        // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
             @Override
@@ -89,7 +89,7 @@ public class GroovyRuntime {
                 }
 
                 if (groovyJar.isGroovyAll()) {
-                    return Cast.cast(FileCollectionInternal.class, project.files(groovyJar.getFile()));
+                    return project.getLayout().files(groovyJar.getFile());
                 }
 
                 if (project.getRepositories().isEmpty()) {
@@ -100,11 +100,20 @@ public class GroovyRuntime {
                 List<Dependency> dependencies = Lists.newArrayList();
                 // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
                 dependencies.add(project.getDependencies().create(notation));
-                if (groovyJar.getVersion().getMajor() >= 2) {
-                    // add groovy-ant to bring in Groovydoc
-                    dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
+                VersionNumber groovyVersion = groovyJar.getVersion();
+                if (groovyVersion.compareTo(GROOVY_VERSION_WITH_SEPARATE_ANT) >= 0) {
+                    // add groovy-ant to bring in Groovydoc for Groovy 2.0+
+                    addGroovyDependency(notation, dependencies, "groovy-ant");
+                }
+                if (groovyVersion.compareTo(GROOVY_VERSION_REQUIRING_TEMPLATES) >= 0) {
+                    // add groovy-templates for Groovy 2.5+
+                    addGroovyDependency(notation, dependencies, "groovy-templates");
                 }
                 return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
+            }
+
+            private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
+                dependencies.add(project.getDependencies().create(groovyDependencyNotion.replace(":groovy:", ":" + otherDependency + ":")));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
@@ -117,10 +126,8 @@ public class GroovyRuntime {
         };
     }
 
-    private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
-        if (classpath == null) {
-            return null;
-        }
+    @Nullable
+    private static GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
         for (File file : classpath) {
             GroovyJarFile groovyJar = GroovyJarFile.parse(file);
             if (groovyJar != null) {

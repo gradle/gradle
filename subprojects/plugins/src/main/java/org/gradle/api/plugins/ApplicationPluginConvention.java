@@ -20,84 +20,55 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 
-import java.util.ArrayList;
-
 /**
  * <p>The {@link Convention} used for configuring the {@link ApplicationPlugin}.</p>
  */
-public class ApplicationPluginConvention {
-    private String applicationName;
-    private String mainClassName;
-    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
-    private String executableDir = "bin";
-    private CopySpec applicationDistribution;
-
-    private final Project project;
-
-    public ApplicationPluginConvention(Project project) {
-        this.project = project;
-        applicationDistribution = project.copySpec();
-    }
+public abstract class ApplicationPluginConvention {
+    /**
+     * The name of the application.
+     */
+    public abstract String getApplicationName();
 
     /**
      * The name of the application.
      */
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    /**
-     * The name of the application.
-     */
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
+    public abstract void setApplicationName(String applicationName);
 
     /**
      * The fully qualified name of the application's main class.
      */
-    public String getMainClassName() {
-        return mainClassName;
-    }
+    public abstract String getMainClassName();
 
     /**
      * The fully qualified name of the application's main class.
      */
-    public void setMainClassName(String mainClassName) {
-        this.mainClassName = mainClassName;
-    }
+    public abstract void setMainClassName(String mainClassName);
 
     /**
      * Array of string arguments to pass to the JVM when running the application
      */
-    public Iterable<String> getApplicationDefaultJvmArgs() {
-        return applicationDefaultJvmArgs;
-    }
+    public abstract Iterable<String> getApplicationDefaultJvmArgs();
 
     /**
      * Array of string arguments to pass to the JVM when running the application
      */
-    public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
-        this.applicationDefaultJvmArgs = applicationDefaultJvmArgs;
-    }
+    public abstract void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs);
 
     /**
      * Directory to place executables in
+     *
      * @since 4.5
      */
     @Incubating
-    public String getExecutableDir() {
-        return executableDir;
-    }
+    public abstract String getExecutableDir();
 
     /**
      * Directory to place executables in
+     *
      * @since 4.5
      */
     @Incubating
-    public void setExecutableDir(String executableDir) {
-        this.executableDir = executableDir;
-    }
+    public abstract void setExecutableDir(String executableDir);
 
     /**
      * <p>The specification of the contents of the distribution.</p>
@@ -115,15 +86,9 @@ public class ApplicationPluginConvention {
      * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
      * into the "{@code lib}" directory.
      */
-    public CopySpec getApplicationDistribution() {
-        return applicationDistribution;
-    }
+    public abstract CopySpec getApplicationDistribution();
 
-    public void setApplicationDistribution(CopySpec applicationDistribution) {
-        this.applicationDistribution = applicationDistribution;
-    }
+    public abstract void setApplicationDistribution(CopySpec applicationDistribution);
 
-    public final Project getProject() {
-        return project;
-    }
+    public abstract Project getProject();
 }

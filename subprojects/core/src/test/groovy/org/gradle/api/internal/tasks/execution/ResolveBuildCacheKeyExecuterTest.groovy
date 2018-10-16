@@ -27,8 +27,10 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Path
 
@@ -127,28 +129,26 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def adapter = new ResolveBuildCacheKeyExecuter.OperationResultImpl(key)
 
         when:
-        inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
+        inputs.inputValueHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
+        inputs.inputFiles >> ImmutableSortedMap.copyOf(c: { getHash: { HashCode.fromInt(0x000000cc) } } as CurrentFileCollectionFingerprint)
+
         then:
-        adapter.inputHashes == [a: "000000aa", b: "000000bb"]
+        adapter.inputValueHashesBytes.collectEntries { [(it.key):HashCode.fromBytes(it.value).toString()] } == [a: "000000aa", b: "000000bb"]
 
         when:
-        inputs.inputPropertiesLoadedByUnknownClassLoader >> ImmutableSortedSet.of("bean", "someOtherBean")
+        inputs.nonCacheableInputProperties >> ImmutableSortedMap.of("bean", "Implementation loaded by unknown classloader.", "someOtherBean", "Implementation implemented by Java Lambda.")
         then:
         adapter.inputPropertiesLoadedByUnknownClassLoader == ["bean", "someOtherBean"] as SortedSet
 
         when:
-        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
+        inputs.taskImplementation >> ImplementationSnapshot.of("org.gradle.TaskType", HashCode.fromInt(0x000000cc))
         then:
-        adapter.classLoaderHash == "000000cc"
+        HashCode.fromBytes(adapter.classLoaderHashBytes).toString() == "000000cc"
 
         when:
-        inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromInt(0x000000ee), HashCode.fromInt(0x000000dd)])
+        inputs.actionImplementations >> ImmutableList.copyOf([ImplementationSnapshot.of("foo", HashCode.fromInt(0x000000ee)), ImplementationSnapshot.of("bar", HashCode.fromInt(0x000000dd))])
         then:
-        adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
-
-        when:
-        inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
-        then:
+        adapter.actionClassLoaderHashesBytes.collect{ HashCode.fromBytes(it).toString() } == ["000000ee", "000000dd"]
         adapter.actionClassNames == ["foo", "bar"]
 
         when:
@@ -157,10 +157,10 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         adapter.outputPropertyNames == ["1", "2"]
 
         when:
-        key.hashCode >> HashCode.fromInt(0x000000ff)
+        key.hashCodeBytes >> HashCode.fromInt(0x000000ff).toByteArray()
         key.valid >> true
         then:
-        adapter.buildCacheKey == "000000ff"
+        HashCode.fromBytes(adapter.hashBytes).toString() == "000000ff"
     }
 
     private SnapshotTaskInputsBuildOperationType.Result buildOpResult() {

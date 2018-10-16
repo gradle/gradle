@@ -47,6 +47,7 @@ import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
@@ -287,7 +288,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         final Set<File> files = Sets.newLinkedHashSet();
 
         @Override
-        public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+        public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             try {
                 ResolvedArtifact resolvedArtifact = artifact.toPublicView();
                 files.add(resolvedArtifact.getFile());
@@ -313,7 +314,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
             throw new UnsupportedOperationException();
         }
     }
@@ -325,7 +326,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         }
 
         @Override
-        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
+        public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
             files.add(file);
         }
     }

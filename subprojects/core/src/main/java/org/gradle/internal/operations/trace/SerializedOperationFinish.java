@@ -17,12 +17,12 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 
-import java.util.Collections;
 import java.util.Map;
+
+import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
 
 class SerializedOperationFinish implements SerializedOperation {
 
@@ -38,18 +38,9 @@ class SerializedOperationFinish implements SerializedOperation {
     SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent) {
         this.id = descriptor.getId().getId();
         this.endTime = finishEvent.getEndTime();
-        this.result = transform(finishEvent.getResult());
+        this.result = toSerializableModel(finishEvent.getResult());
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
-    }
-
-    private Object transform(Object result) {
-        if (result instanceof ResolveConfigurationDependenciesBuildOperationType.Result) {
-            ResolveConfigurationDependenciesBuildOperationType.Result cast = (ResolveConfigurationDependenciesBuildOperationType.Result) result;
-            return Collections.singletonMap("resolvedDependenciesCount", cast.getRootComponent().getDependencies().size());
-        }
-
-        return result;
     }
 
     SerializedOperationFinish(Map<String, ?> map) {

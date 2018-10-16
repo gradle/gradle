@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -24,19 +25,49 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class BuildDefinition {
+    @Nullable
+    private final String name;
+    @Nullable
     private final File buildRootDir;
     private final StartParameter startParameter;
     private final PluginRequests injectedSettingsPlugins;
 
-    public BuildDefinition(@Nullable File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
+    private final PublicBuildPath fromBuild;
+
+    private BuildDefinition(@Nullable String name, @Nullable File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins, @Nullable PublicBuildPath fromBuild) {
+        this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
+        this.fromBuild = fromBuild;
     }
 
+    /**
+     * Returns a name to use for this build. Use {@code null} to have a name assigned.
+     */
+    @Nullable
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Returns the root directory for this build, when known.
+     */
     @Nullable
     public File getBuildRootDir() {
         return buildRootDir;
+    }
+
+    /**
+     * The identity of the build that caused this build to be included.
+     *
+     * This is not guaranteed to be the parent build WRT the build path, or Gradle instance.
+     *
+     * Null if the build is the root build.
+     */
+    @Nullable
+    public PublicBuildPath getFromBuild() {
+        return fromBuild;
     }
 
     public StartParameter getStartParameter() {
@@ -47,23 +78,31 @@ public class BuildDefinition {
         return injectedSettingsPlugins;
     }
 
-    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, File buildRootDir, PluginRequests pluginRequests) {
+    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, @Nullable String name, File buildRootDir, PublicBuildPath fromBuild) {
+        return fromStartParameterForBuild(startParameter, name, buildRootDir, DefaultPluginRequests.EMPTY, fromBuild);
+    }
+
+    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, @Nullable String name, File buildRootDir, PluginRequests pluginRequests, PublicBuildPath fromBuild) {
+        return new BuildDefinition(name, buildRootDir, configure(startParameter, buildRootDir), pluginRequests, fromBuild);
+    }
+
+    private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
         includedBuildStartParam.setSearchUpwards(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
-        return new BuildDefinition(buildRootDir, includedBuildStartParam, pluginRequests);
+        return includedBuildStartParam;
     }
 
-    public static BuildDefinition fromStartParameter(StartParameter startParameter) {
-        return new BuildDefinition(null, startParameter, DefaultPluginRequests.EMPTY);
+    public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
+        return new BuildDefinition(null, null, startParameter, DefaultPluginRequests.EMPTY, fromBuild);
     }
 
     /**
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(buildRootDir, startParameter.newInstance(), injectedSettingsPlugins);
+        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, fromBuild);
     }
 }

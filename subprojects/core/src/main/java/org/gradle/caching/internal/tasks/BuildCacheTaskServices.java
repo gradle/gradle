@@ -21,7 +21,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -39,6 +38,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
@@ -118,6 +118,7 @@ public class BuildCacheTaskServices {
         BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? ENABLED : DISABLED;
         RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? OFFLINE : ONLINE;
         boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
+        boolean emitDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         return BuildCacheControllerFactory.create(
             buildOperationExecutor,
@@ -127,6 +128,7 @@ public class BuildCacheTaskServices {
             buildCacheMode,
             remoteAccessMode,
             logStackTraces,
+            emitDebugLogging,
             instantiatorFactory.inject(serviceRegistry)
         );
     }

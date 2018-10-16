@@ -55,6 +55,19 @@ class VariantSpec {
         capabilities << new CapabilitySpec(group: 'org.test', name: name, version: '1.0')
     }
 
+    void dependsOn(String notation, @DelegatesTo(value=org.gradle.test.fixtures.gradle.DependencySpec, strategy=Closure.DELEGATE_FIRST)  Closure<?> configuration) {
+        def gav = notation.split(':')
+        doDependOn(gav[0], gav[1], gav[2], configuration)
+    }
+
+    void dependsOn(String group, String name, String version, @DelegatesTo(value=org.gradle.test.fixtures.gradle.DependencySpec, strategy=Closure.DELEGATE_FIRST)  Closure<?> configuration) {
+        doDependOn(group, name, version, configuration)
+    }
+
+    private void doDependOn(String group, String name, String version, @DelegatesTo(value=org.gradle.test.fixtures.gradle.DependencySpec, strategy=Closure.DELEGATE_FIRST)  Closure<?> configuration) {
+        dependsOn << new DependencySpec(group: group, name: name, version: version, configuration: configuration)
+    }
+
     static class ArtifactSpec {
         String name
         String url
@@ -65,5 +78,12 @@ class VariantSpec {
         String group
         String name
         String version
+    }
+
+    static class DependencySpec {
+        String group
+        String name
+        String version
+        Closure<?> configuration
     }
 }

@@ -41,7 +41,6 @@ import java.util.concurrent.Callable;
 /**
  * Extension including common properties and methods for Jacoco.
  */
-@Incubating
 public class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
@@ -89,6 +88,7 @@ public class JacocoPluginExtension {
      * @param reportsDir Reports directory provider
      * @since 4.0
      */
+    @Incubating
     public void setReportsDir(Provider<File> reportsDir) {
         this.reportsDir.set(reportsDir);
     }
@@ -111,12 +111,24 @@ public class JacocoPluginExtension {
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
         extension.setDestinationFile(project.provider(new Callable<File>() {
             @Override
-            public File call() throws Exception {
+            public File call() {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
         }));
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
+        task.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
+                    // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
+                    // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
+                    // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
+                    File coverageFile = extension.getDestinationFile();
+                    project.delete(coverageFile);
+                }
+            }
+        });
 
         // Do not cache the task if we are not writing execution data to a file
         task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {
@@ -124,14 +136,6 @@ public class JacocoPluginExtension {
             public boolean isSatisfiedBy(Task element) {
                 // Do not cache Test task if Jacoco doesn't produce its output as files
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
-            }
-        });
-
-        // Do not cache the Test task if we are appending to the Jacoco output
-        task.getOutputs().doNotCacheIf("JaCoCo agent configured with `append = true`", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return extension.isEnabled() && extension.isAppend();
             }
         });
     }

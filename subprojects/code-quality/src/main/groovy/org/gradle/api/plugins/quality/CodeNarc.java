@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CodeNarcInvoker;
@@ -37,6 +36,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.util.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -92,14 +92,8 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
         setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
-    /**
-     * Injects and returns an instance of {@link org.gradle.api.model.ObjectFactory}.
-     *
-     * @since 4.2
-     */
-    @Incubating
     @Inject
-    public ObjectFactory getObjectFactory() {
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -169,7 +163,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     @Nested
     public TextResource getConfig() {
         return config;
@@ -180,7 +173,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      *
      * @since 2.2
      */
-    @Incubating
     public void setConfig(TextResource config) {
         this.config = config;
     }

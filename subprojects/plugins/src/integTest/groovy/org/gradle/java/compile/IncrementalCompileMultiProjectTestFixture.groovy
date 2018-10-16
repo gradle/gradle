@@ -27,10 +27,6 @@ trait IncrementalCompileMultiProjectTestFixture {
             buildFile << '''
                 subprojects {
                     apply plugin: 'java'
-                    
-                    tasks.withType(JavaCompile) {
-                        it.options.incremental = true
-                    }
                 }
                 
                 project(':app') {

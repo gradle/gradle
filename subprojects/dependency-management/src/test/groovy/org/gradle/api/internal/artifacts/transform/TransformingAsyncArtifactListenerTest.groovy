@@ -17,36 +17,55 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.Maps
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.testing.internal.util.Specification
 
 class TransformingAsyncArtifactListenerTest extends Specification {
-    def transformer = Mock(ArtifactTransformer)
+    def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener  = new TransformingAsyncArtifactListener(transformer, null, operationQueue, Maps.newHashMap(), Maps.newHashMap())
+    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap())
+    def file = new File("foo")
+    def artifactFile = new File("foo-artifact")
+    def artifactId = Stub(ComponentArtifactIdentifier)
+    def artifact = Stub(ResolvableArtifact) {
+        getId() >> artifactId
+        getArtifactFile() >> artifactFile
+    }
 
     def "runs transforms in parallel if no cached result is available"() {
         given:
-        transformer.hasCachedResult(_) >> false
+        transformation.hasCachedResult(_ as TransformationSubject) >> false
 
         when:
-        listener.artifactAvailable(Stub(ResolvableArtifact))
-        listener.fileAvailable(new File("foo"))
+        listener.artifactAvailable(artifact)
 
         then:
-        2 * operationQueue.add(_)
+        1 * operationQueue.add(_ as BuildOperation)
+
+        when:
+        listener.fileAvailable(file)
+
+        then:
+        1 * operationQueue.add(_ as BuildOperation)
     }
 
     def "runs transforms immediately if the result is already cached"() {
         given:
-        transformer.hasCachedResult(_) >> true
+        transformation.hasCachedResult(_ as TransformationSubject) >> true
 
         when:
-        listener.artifactAvailable(Stub(ResolvableArtifact))
-        listener.fileAvailable(new File("foo"))
+        listener.artifactAvailable(artifact)
 
         then:
-        2 * transformer.transform(_)
+        1 * transformation.transform({ it.files == [artifactFile] })
+
+        when:
+        listener.fileAvailable(file)
+
+        then:
+        1 * transformation.transform({ it.files == [file] })
     }
 }

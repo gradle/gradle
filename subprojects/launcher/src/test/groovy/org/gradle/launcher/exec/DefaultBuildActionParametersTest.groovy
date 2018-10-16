@@ -20,11 +20,11 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.classpath.ClassPath
 import spock.lang.Specification
 
-public class DefaultBuildActionParametersTest extends Specification {
+class DefaultBuildActionParametersTest extends Specification {
 
     def "is serializable"() {
         given:
-        def params = new DefaultBuildActionParameters(System.properties, System.getenv(), new File("."), LogLevel.ERROR, true, false, true, ClassPath.EMPTY)
+        def params = new DefaultBuildActionParameters(System.properties, System.getenv(), new File("."), LogLevel.ERROR, true, false, ClassPath.EMPTY)
         ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream());
 
         when:

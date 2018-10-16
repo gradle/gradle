@@ -17,13 +17,13 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +35,7 @@ public interface ConfigurationMetadata extends HasAttributes {
      * for this information. However it _is_ currently used by {@link MavenDependencyDescriptor#selectLegacyConfigurations}
      * to determine if the target 'runtime' configuration includes the target 'compile' configuration.
      */
-    Collection<String> getHierarchy();
+    ImmutableSet<String> getHierarchy();
 
     String getName();
 

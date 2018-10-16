@@ -21,15 +21,22 @@ import org.apache.commons.lang.StringUtils;
 public abstract class Names {
 
     public static Names of(String name) {
-        // Assume that names that end with 'Executable' represent the 'main' variant of the parent thing
         if (name.equals("main")) {
             return new Main();
         }
-        if (name.endsWith("Executable")) {
-            return new Other(name.substring(0, name.length() - 10));
-        }
-        return new Other(name);
+        return new Other(name, name);
     }
+
+    public static Names of(String name, String baseName) {
+        return new Other(name, baseName);
+    }
+
+    public abstract Names append(String suffix);
+
+    /**
+     * The raw name.
+     */
+    public abstract String getName();
 
     /**
      * Camel case formatted base name.
@@ -53,6 +60,11 @@ public abstract class Names {
     public abstract String getDirName();
 
     private static class Main extends Names {
+        @Override
+        public String getName() {
+            return "main";
+        }
+
         @Override
         public String getBaseName() {
             return "main";
@@ -87,15 +99,22 @@ public abstract class Names {
         public String withSuffix(String suffix) {
             return suffix;
         }
+
+        @Override
+        public Names append(String suffix) {
+            return Names.of("main" + StringUtils.capitalize(suffix));
+        }
     }
 
     private static class Other extends Names {
+        private final String name;
         private final String baseName;
         private final String lowerBaseName;
         private final String capitalizedBaseName;
         private final String dirName;
 
-        Other(String name) {
+        Other(String rawName, String name) {
+            this.name = rawName;
             StringBuilder baseName = new StringBuilder();
             StringBuilder lowerBaseName = new StringBuilder();
             StringBuilder capBaseName = new StringBuilder();
@@ -117,6 +136,11 @@ public abstract class Names {
             this.lowerBaseName = lowerBaseName.toString();
             this.capitalizedBaseName = capBaseName.toString();
             this.dirName = dirName.toString();
+        }
+
+        @Override
+        public String getName() {
+            return name;
         }
 
         @Override
@@ -153,6 +177,11 @@ public abstract class Names {
         @Override
         public String getDirName() {
             return dirName;
+        }
+
+        @Override
+        public Names append(String suffix) {
+            return Names.of(name + StringUtils.capitalize(suffix));
         }
 
         private void append(String name, int start, int end, StringBuilder baseName, StringBuilder lowerBaseName, StringBuilder capBaseName, StringBuilder dirName) {

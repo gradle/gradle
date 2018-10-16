@@ -20,11 +20,13 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.DefaultContentHasherFactory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.resource.BasicTextResourceLoader;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -61,10 +63,24 @@ public class TestFiles {
     }
 
     /**
+     * Returns a resolver with no base directory.
+     */
+    public static PathToFileResolver pathToFileResolver() {
+        return FILE_LOOKUP.getPathToFileResolver();
+    }
+
+    /**
      * Returns a resolver with the given base directory.
      */
     public static FileResolver resolver(File baseDir) {
         return FILE_LOOKUP.getFileResolver(baseDir);
+    }
+
+    /**
+     * Returns a resolver with the given base directory.
+     */
+    public static PathToFileResolver pathToFileResolver(File baseDir) {
+        return FILE_LOOKUP.getPathToFileResolver(baseDir);
     }
 
     public static DirectoryFileTreeFactory directoryFileTreeFactory() {
@@ -72,11 +88,15 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory());
+        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory(), textResourceLoader());
+    }
+
+    public static TextResourceLoader textResourceLoader() {
+        return new BasicTextResourceLoader();
     }
 
     public static DefaultStreamHasher streamHasher() {
-        return new DefaultStreamHasher(new DefaultContentHasherFactory());
+        return new DefaultStreamHasher();
     }
 
     public static DefaultFileHasher fileHasher() {
@@ -85,14 +105,6 @@ public class TestFiles {
 
     public static FileCollectionFactory fileCollectionFactory() {
         return new DefaultFileCollectionFactory();
-    }
-
-    public static SourceDirectorySetFactory sourceDirectorySetFactory() {
-        return new DefaultSourceDirectorySetFactory(resolver(), new DefaultDirectoryFileTreeFactory());
-    }
-
-    public static SourceDirectorySetFactory sourceDirectorySetFactory(File baseDir) {
-        return new DefaultSourceDirectorySetFactory(resolver(baseDir), new DefaultDirectoryFileTreeFactory());
     }
 
     public static ExecFactory execFactory() {

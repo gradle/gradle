@@ -63,13 +63,15 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             import spock.lang.Specification
 
             class Test extends Specification {
-                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
 
                 def setup() {
                     def buildSrcDir = testProjectDir.newFolder('buildSrc', 'src', 'main', 'java')
                     def pluginFile = new File(buildSrcDir, 'BuildScanPlugin.java')
                     pluginFile << '''${buildScanPlugin()}'''
+                    def settingsFile = testProjectDir.newFile('settings.gradle')
+                    settingsFile << "rootProject.name = 'test'"
                     buildFile = testProjectDir.newFile('build.gradle')
                     buildFile << '''${buildScanPluginApplication()}'''
                 }

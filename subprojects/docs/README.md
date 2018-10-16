@@ -1,4 +1,4 @@
-The docs project produces the [userguide](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/),
+The docs project produces the [user manual](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/),
 [javadoc](http://gradle.org/docs/current/javadoc/) and [release notes](http://gradle.org/docs/current/release-notes)
 (as well as some other minor bits).
 
@@ -38,34 +38,107 @@ Run the `viewReleaseNotes` task to generate the release notes, and open them in 
 
 You can run the `editReleaseNotes` task to open the raw markdown notes in whatever editor is registered for this file type (requires Java 6).
 
-## Userguide
+## User Manual
 
-The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) or [asciidoc](http://asciidoctor.org) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customizations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://github.com/flyingsaucerproject/flyingsaucer) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.
+The source for the user manual lives @ `src/docs/userguide`, and is authored in [Asciidoctor](https://asciidoctor.org).
 
-When adding new content, it's generally best to find an example of the kind of content that you want to add somewhere else in the userguide and copy it.
+To generate the user manual and see your changes, run:
 
-To generate the userguide and see your changes, run:
+    ./gradlew :docs:userguide
+    
+This will generate:
 
-    ./gradlew docs:userguide
-
-You can then view the built html in `build/docs/userguide` (open the `userguide.html`) to view the front page.
+ - A multi-page HTML manual in `build/docs/userguide` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
+ - A single-page HTML manual at `build/docs/userguide/userguide_single.html`
+ - A PDF at `build/docs/userguide/userguide.pdf`
 
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
 
-### Using Docbook
+### Authoring with AsciiDoc
 
-To write a chapter in Docbook format, simply place it in `src/docs/userguide` called `<chapter>.xml`.
+To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
 
-#### Useful docbook tags:
+You will find these references useful when authoring AsciiDoc:
+
+ - [AsciiDoc Syntax Quick Reference](https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/)
+ - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
+ - [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
+
+### Using Asciidoctor
+
+To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
+
+### Code Samples
+
+Samples and output belong under `src/samples` and are typically included in the user manual. This is a typical example:
+
+#### Example multi-language sample file listing
+This shows Groovy and Kotlin sample projects under "sample-dir" which is defined as "$projectDir/src/samples".
+
+```
+subprojects/docs/src/samples/
+└── userguide/initScripts/customLogger/
+    ├── customLogger.out
+    ├── customLogger.sample.conf
+    ├── groovy
+    │   ├── build.gradle
+    │   ├── init.gradle
+    │   └── settings.gradle
+    └── kotlin
+        ├── build.gradle.kts
+        ├── customLogger.init.gradle.kts
+        └── settings.gradle.kts
+```
+
+Note here that there are 2 sample projects under `userguide/initScripts/customLogger/`: one for the Groovy DSL and one for Kotlin DSL. Also note that there is only 1 `customLogger.sample.conf` file that tells Exemplar how to execute both groovy and kotlin samples, with 1 `customLogger.out` file proving the output is identical between the two.
+
+#### Example Asciidoctor multi-language sample declaration
+
+```asciidoc
+.Customizing what Gradle logs
+====
+include::sample[dir="userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
+
+include::sample[dir="userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+====
+
+[.multi-language-text.lang-groovy]
+----
+$ gradle -I init.gradle build
+include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
+----
+[.multi-language-text.lang-kotlin]
+----
+$ gradle -I customLogger.init.gradle.kts build
+include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
+----
+```
+
+Let's break down this example to explain:
+
+* Enclosing `====` around the sample includes groups these samples and collapses them 
+* `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/samples/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
+* `[.multi-language-text.lang-groovy]`: Most times the gradle command is identical between Groovy and Kotlin samples, but in this case we need to use `[.multi-language-text.lang-*]` that our CSS will collapse and switch for the DSL of choice. This is case-sensitive. You can use this construct for any 2 sibling blocks!
+
+It is possible to embed sample sources, commands, and expected output directly in the Asciidoc (or a mixture of embedded and `include`d), but we don't use this for the user manual yet. See the [Exemplar documentation](https://github.com/gradle/exemplar/#configuring-embedded-samples) if you're interested in this.
+
+## Groovy DSL Reference
+
+The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`. 
+Much of the content is extracted from code doc comments.
+
+To build it, run:
+
+```bash
+./gradlew :docs:dslHtml
+```
+
+The output is available under `build/docs/dsl`.
+
+### Useful docbook tags
 
 See the [docbook reference](http://docbook.org/tdg/en/html/part2.html) for a list of all available tags.
-
-Here are some useful ones:
-
-##### `<programlisting>`
-
-For code snippets
 
 #### Custom Tags
 
@@ -81,130 +154,16 @@ To link to a method:
 
     <apilink class='org.gradle.api.Project' method="apply(java.util.Map)" />
 
-##### `<sample>`
-
-This is a block element which adds some source code from one of the sample builds in `src/samples`.
-
-    <sample id='aUniqueIdForTheSample' dir='userguide/someSample' includeLocation="true" title='a title for the sample'>
-        <layout after='someTask'>
-            dir1/
-            dir1/build.gradle
-            dir2/
-            dir2/src/main/java/org/gradle/SomeClass.java
-        </layout>
-        <sourcefile file='build.gradle'/>
-        <sourcefile file='water/build.gradle' snippet='some-snippet'/>
-        <output args='-PsomeProp=1020 hello'/>
-        <output args='-q hello' outputFile='someSample.out' ignoreExtraLines="true" ignoreLineOrder="true" expectFailure="false"/>
-        <test args="-q someTask"/>
-    </sample>
-
-You can include zero or more `<sourcefile>` elements, zero or more `<output>` elements, and optionally one `<layout>` element. They can appear in any order, and are included in the userguide in the order they appear in the source document.
-
-Attribute `includeLocation` is optional and defaults to false. When set to true, a tip is included in the userguide to inform the reader when they can find the source for the sample.
-
-###### `<layout>`
-
-The `<layout>` element generates a directory tree listing showing the given files and directories. It will be compared against the actual sample directory layout, to test that the listing included in the userguide matches that in the source. The `after` attribute is optional. When present, Gradle will be run with the given arguments before checking that the files and directories exist. This way, you can document generated files. The `<layout>` element should contain a list of file or directory paths, one per line, relative to the sample directory. Directory names must end with a trailing `/` character.
-
-###### `<sourcefile>`
-
-The `<sourcefile>` element includes a source file in the userguide. It must have a `file` attribute. This is the path to the file to include, relative to the sample base directory. It may optionally have a `snippet` attribute, which is the name of the snippet to include from the source file.
-
-###### `<output>`
-
-The `<output>` element includes a screen listing showing the command to be executed and the expected output.
-
-###### `<test>`
-
-The `<test>` elements defines an integration test to exercise the sample. Nothing is included in the userguide for this element.
-
-When you use the `<sample>` element, a test is added to the integration testsuite to ensure that the sample actually works. If no `<output>`, `<test>`, or `<layout after='...'>` element is present, the test will run `gradle tasks` in the sample directory, and check that the build does not fail. For each `<output>` element, the test will run `gradle $args` and compare the output against the corresponding expected output file in `src/samples/userguideOutput`. For each `<test args='...'>` or `<layout after='...'>` element, the test will run `gradle $args`.
-
-##### `condition="standalone"`
-
-This attribute can be attached to any docbook element to conditionally includes the element in the generated document when the target document is a standalone document, rather than part of the userguide.
-
-    <section condition="standalone">
-      <para>You are not reading the user guide right now.</para>
-    </section>
-
-##### `<ulink url="website:somepage.html"/>`
-
-Adds a link to the given page on the Gradle web site. This will be replaced by a relative link when the content is included in the web site, and an absolute link when the content is included in a stand alone user guide.
-
-##### Snippets
-
-The sample source files can contain snippets which can be included in the documentation, in place of the entire source file.
-
-    // START SNIPPET something
-    some code
-    // END SNIPPET something
-
-    some other code
-
-### Using Asciidoctor
-
-To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
-
-#### Sources and console logs
-
-Use a [source code block](http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/#source-code) to include code snippets.
-
-```asciidoc
-[source,java]
-----
-public static void main(String... args) {}
-----
-```
-
-Omit the `[source]` element for console logs.
-
-#### API links
-
-To link to the API documentation for a particular class or method, use the `api:` macro:
-
-```asciidoc
-You can use the api:org.gradle.api.Project[] interface to do stuff.
-```
-
-The link will point to the DSL reference for the specified class, if available. Otherwise, it will point to the javadoc for the class.
-
-To link to a method:
-
-```asciidoc
-api:org.gradle.api.Project#apply(java.util.Map[]
-```
-
-You can omit the method's parameters if the method has no overloads.
-
-**Note:** When linking to a method with multiple arguments, be sure _not_ to separate them by whitespace.
-
-#### All other custom elements
-
-Not everything is supported natively for Asciidoc. For other custom things like `<sample>`s and `<test>`s you can simply use the Docbook tags wrapped in a passthrough block:
-
-```asciidoc
-++++
-<sample id='aUniqueIdForTheSample' dir='userguide/someSample' includeLocation="true" title='a title for the sample'>
-    <!-- ... -->
-</sample>
-++++
-```
-
-## Reference Documentation
-
-The reference documentation (i.e. dsl, javadoc etc.) are extracted from the in code doc comments.
+## Javadocs
 
 To build these, run:
 
-    ./gradlew docs:dslHtml
-    ./gradlew docs:javadoc
+    ./gradlew :docs:javadoc
 
-The output is available in the `dsl` and `javadoc` directories respectively within `build/docs`.
+The output is available within `build/docs/javadoc`.
 
 ## Building all the docs
 
 There is a convenience task to build all of the documentation:
 
-    ./gradlew docs:docs
+    ./gradlew :docs:docs

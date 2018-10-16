@@ -17,13 +17,13 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.Timeout
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Timeout(300)
+@IntegrationTestTimeout(300)
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
         given:
@@ -185,7 +185,7 @@ try {
         def a = output.indexOf('init #a#')
         def b = output.indexOf('init #b#')
         def c = output.indexOf('init #c#')
-        a > 0
+        a >= 0
         b > a
         c > b
     }
@@ -218,7 +218,7 @@ rootProject {
         long before = initScript.length()
 
         expect:
-        (10..40).each {
+        (10..20).each {
             initScript.text = "println 'counter: $it'"
             assert initScript.length() == before
 

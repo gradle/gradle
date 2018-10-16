@@ -16,7 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataListerDetails;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -27,15 +28,17 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
-import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -62,14 +65,18 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
-    public MavenResolver(String name, URI rootUri,
+    public MavenResolver(String name,
+                         URI rootUri,
                          RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider,
-                         MavenMetadataLoader mavenMetadataLoader) {
+                         MavenMetadataLoader mavenMetadataLoader,
+                         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+                         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
+                         Instantiator injector) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -77,7 +84,10 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             artifactFileStore,
             moduleIdentifierFactory,
             metadataSources,
-            metadataArtifactProvider);
+            metadataArtifactProvider,
+            componentMetadataSupplierFactory,
+            versionListerFactory,
+            injector);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();
@@ -198,10 +208,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return remoteAccess;
     }
 
-    public ComponentMetadataSupplier createMetadataSupplier() {
-        return null;
-    }
-
     public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {
         if (isNonUniqueSnapshot(metaData.getId())) {
             metaData.setChanging(true);
@@ -266,8 +272,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
-        return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
-            moduleComponentIdentifier.getModule(),
+        return new MavenUniqueSnapshotComponentIdentifier(
+            moduleComponentIdentifier.getModuleIdentifier(),
             moduleComponentIdentifier.getVersion(),
             uniqueSnapshotVersion.getTimestamp());
     }

@@ -22,7 +22,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class UnionVersionSelectorTest extends Specification {
-    private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())
     private final VersionParser parser = new VersionParser()
     private final List<VersionSelector> members = []
     private final UnionVersionSelector union = new UnionVersionSelector(members)

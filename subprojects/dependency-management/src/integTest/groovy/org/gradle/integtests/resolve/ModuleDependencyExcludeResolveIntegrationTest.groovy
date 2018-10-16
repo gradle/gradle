@@ -16,11 +16,19 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
  */
+@IgnoreIf({
+    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
+    // infrastructure to simulate everything done here, so we're only going to execute this test in
+    // embedded mode
+    !GradleContextualExecuter.embedded
+})
 class ModuleDependencyExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """

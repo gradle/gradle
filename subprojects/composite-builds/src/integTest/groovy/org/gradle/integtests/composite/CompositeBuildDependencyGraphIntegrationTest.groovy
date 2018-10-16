@@ -31,7 +31,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
     def setup() {
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        resolve = new ResolveTestFixture(buildA.buildFile)
+        resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -754,8 +754,8 @@ afterEvaluate {
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
-    ${m.pom.file.toURL()}
-    ${m.artifact.file.toURL()}
+  - ${m.pom.file.toURL()}
+  - ${m.artifact.file.toURL()}
 Required by:
     project :buildC""")
 

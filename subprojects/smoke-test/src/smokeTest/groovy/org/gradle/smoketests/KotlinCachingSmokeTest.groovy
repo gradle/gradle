@@ -20,9 +20,9 @@ import org.eclipse.jgit.api.Git
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import spock.lang.Ignore
 
+@Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
 class KotlinCachingSmokeTest extends AbstractSmokeTest {
 
-    @Ignore("Kotlin platform plugin relies on broken TaskContainer.remove() that didn't actually remove the task")
     def "can cache Spek framework build"() {
         def testRepoUri = "https://github.com/gradle/kotlin-relocation-test"
         def testRepoBranch = "master"

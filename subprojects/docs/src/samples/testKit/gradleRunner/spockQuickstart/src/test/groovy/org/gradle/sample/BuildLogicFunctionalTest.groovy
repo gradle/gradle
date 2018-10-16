@@ -16,7 +16,7 @@
 
 package org.gradle.sample
 
-// START SNIPPET functional-test-spock
+// tag::functional-test-spock[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
@@ -24,15 +24,18 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+    File settingsFile
     File buildFile
 
     def setup() {
+        settingsFile = testProjectDir.newFile('settings.gradle')
         buildFile = testProjectDir.newFile('build.gradle')
     }
 
     def "hello world task prints hello world"() {
         given:
+        settingsFile << "rootProject.name = 'hello-world'"
         buildFile << """
             task helloWorld {
                 doLast {
@@ -52,4 +55,4 @@ class BuildLogicFunctionalTest extends Specification {
         result.task(":helloWorld").outcome == SUCCESS
     }
 }
-// END SNIPPET functional-test-spock
+// end::functional-test-spock[]

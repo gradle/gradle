@@ -46,7 +46,7 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public BuildLauncher newBuild() {
-        return new ProjectConnectionBuildLauncher(connection, parameters);
+        return new DefaultBuildLauncher(connection, parameters);
     }
 
     @Override
@@ -65,4 +65,8 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildActionExecuter<T>(buildAction, connection, parameters);
     }
 
+    @Override
+    public BuildActionExecuter.Builder action() {
+        return new DefaultBuildActionExecuter.Builder(connection, parameters);
+    }
 }

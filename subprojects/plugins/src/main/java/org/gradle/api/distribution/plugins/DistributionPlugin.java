@@ -16,24 +16,25 @@
 
 package org.gradle.api.distribution.plugins;
 
-import org.codehaus.groovy.runtime.StringGroovyMethods;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.Sync;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
@@ -47,7 +48,6 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} to package project as a distribution.</p>
  */
-@Incubating
 public class DistributionPlugin implements Plugin<ProjectInternal> {
     /**
      * Name of the main distribution
@@ -87,9 +87,9 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
 
                 dist.getContents().from("src/" + dist.getName() + "/dist");
                 String zipTaskName = MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_ZIP_NAME : dist.getName() + "DistZip";
-                Task zipTask = configureArchiveTask(project, zipTaskName, dist, Zip.class);
+                TaskProvider<Zip> zipTask = configureArchiveTask(project, zipTaskName, dist, Zip.class);
                 String tarTaskName = MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_TAR_NAME : dist.getName() + "DistTar";
-                Task tarTask = configureArchiveTask(project, tarTaskName, dist, Tar.class);
+                TaskProvider<Tar> tarTask = configureArchiveTask(project, tarTaskName, dist, Tar.class);
                 addAssembleTask(project, dist, zipTask, tarTask);
                 addInstallTask(project, dist);
             }
@@ -97,32 +97,42 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         distributions.create(MAIN_DISTRIBUTION_NAME);
     }
 
-    private <T extends AbstractArchiveTask> Task configureArchiveTask(Project project, String taskName, final Distribution distribution, Class<T> type) {
-        final T archiveTask = project.getTasks().create(taskName, type);
-        archiveTask.setDescription("Bundles the project as a distribution.");
-        archiveTask.setGroup(DISTRIBUTION_GROUP);
-        archiveTask.getConventionMapping().map("baseName", new Callable<Object>() {
+    private <T extends AbstractArchiveTask> TaskProvider<T> configureArchiveTask(Project project, String taskName, final Distribution distribution, Class<T> type) {
+        final TaskProvider<T> archiveTask = project.getTasks().register(taskName, type, new Action<T>() {
             @Override
-            public Object call() throws Exception {
-                if (distribution.getBaseName() == null || distribution.getBaseName().equals("")) {
-                    throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.");
-                }
-                return distribution.getBaseName();
+            public void execute(T archiveTask) {
+                archiveTask.setDescription("Bundles the project as a distribution.");
+                archiveTask.setGroup(DISTRIBUTION_GROUP);
+                archiveTask.getConventionMapping().map("baseName", new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        if (distribution.getBaseName() == null || distribution.getBaseName().equals("")) {
+                            throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.");
+                        }
+                        return distribution.getBaseName();
+                    }
+                });
             }
         });
+
 
         Callable<String> baseDir = new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return TextUtil.minus(archiveTask.getArchiveName(), "." + archiveTask.getExtension());
+                return TextUtil.minus(archiveTask.get().getArchiveName(), "." + archiveTask.get().getExtension());
             }
         };
 
-        CopySpec childSpec = project.copySpec();
+        final CopySpec childSpec = project.copySpec();
         childSpec.into(baseDir);
         childSpec.with(distribution.getContents());
-        archiveTask.with(childSpec);
-        ArchivePublishArtifact archiveArtifact = new ArchivePublishArtifact(archiveTask);
+        archiveTask.configure(new Action<T>() {
+            @Override
+            public void execute(T t) {
+                t.with(childSpec);
+            }
+        });
+        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
         return archiveTask;
     }
@@ -130,30 +140,38 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     private void addInstallTask(final Project project, final Distribution distribution) {
         String taskName = TASK_INSTALL_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = "install" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";
+            taskName = "install" + StringUtils.capitalize(distribution.getName()) + "Dist";
         }
 
-        Sync installTask = project.getTasks().create(taskName, Sync.class);
-        installTask.setDescription("Installs the project as a distribution as-is.");
-        installTask.setGroup(DISTRIBUTION_GROUP);
-        installTask.with(distribution.getContents());
-        installTask.into(new Callable<File>() {
+        project.getTasks().register(taskName, Sync.class, new Action<Sync>() {
             @Override
-            public File call() throws Exception {
-                return project.file("" + project.getBuildDir() + "/install/" + distribution.getBaseName());
+            public void execute(Sync installTask){
+                installTask.setDescription("Installs the project as a distribution as-is.");
+                installTask.setGroup(DISTRIBUTION_GROUP);
+                installTask.with(distribution.getContents());
+                installTask.into(new Callable<File>() {
+                    @Override
+                    public File call() {
+                        return project.file("" + project.getBuildDir() + "/install/" + distribution.getBaseName());
+                    }
+                });
             }
         });
     }
 
-    private void addAssembleTask(Project project, Distribution distribution, Task... tasks) {
+    private void addAssembleTask(Project project, final Distribution distribution, final TaskProvider<?>... tasks) {
         String taskName = TASK_ASSEMBLE_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = "assemble" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";
+            taskName = "assemble" + StringUtils.capitalize(distribution.getName()) + "Dist";
         }
 
-        Task assembleTask = project.getTasks().create(taskName);
-        assembleTask.setDescription("Assembles the " + distribution.getName() + " distributions");
-        assembleTask.setGroup(DISTRIBUTION_GROUP);
-        assembleTask.dependsOn((Object[]) tasks);
+        project.getTasks().register(taskName, DefaultTask.class, new Action<DefaultTask>() {
+            @Override
+            public void execute(DefaultTask assembleTask) {
+                assembleTask.setDescription("Assembles the " + distribution.getName() + " distributions");
+                assembleTask.setGroup(DISTRIBUTION_GROUP);
+                assembleTask.dependsOn((Object[]) tasks);
+            }
+        });
     }
 }

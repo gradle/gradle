@@ -87,7 +87,7 @@ class ChainingHttpHandler implements HttpHandler {
 
             ResourceHandler resourceHandler = selectHandler(id, httpExchange);
             if (resourceHandler != null) {
-                System.out.println(String.format("[%d] sending response", id));
+                System.out.println(String.format("[%d] sending response for %s %s", id, httpExchange.getRequestMethod(), httpExchange.getRequestURI().getPath()));
                 try {
                     resourceHandler.writeTo(id, httpExchange);
                 } catch (Throwable e) {

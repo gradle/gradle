@@ -24,7 +24,9 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
@@ -39,6 +41,8 @@ import java.util.List;
 import java.util.Set;
 
 public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet {
+    private static final DisplayName LOCAL_FILE = Describables.of("local file");
+
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final VariantSelector selector;
@@ -82,7 +86,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
-            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, "local file", variantAttributes, dependencyMetadata);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant));
         }
 
@@ -94,14 +98,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, BuildableSingleResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final String variantName;
+        private final DisplayName variantName;
         private final AttributeContainerInternal variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
             this.file = file;
             this.artifactIdentifier = artifactIdentifier;
             this.variantName = variantName;
@@ -130,6 +134,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public ImmutableAttributes getOverridenAttributes() {
+            return ImmutableAttributes.EMPTY;
+        }
+
+        @Override
         public AttributesSchemaInternal getSchema() {
             return EmptySchema.INSTANCE;
         }
@@ -150,12 +159,22 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
+            visitor.visitDependency(getBuildDependencies());
         }
 
         @Override
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
+        }
+
+        @Override
+        public ComponentArtifactIdentifier getArtifactId() {
+            return artifactIdentifier;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return dependencyMetadata.getFiles().getBuildDependencies();
         }
     }
 }

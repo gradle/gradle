@@ -16,50 +16,47 @@
 
 package org.gradle.internal.locking
 
-import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
 class DependencyLockingNotationConverterTest extends Specification {
 
-    @Subject
-    def converter = new DependencyLockingNotationConverter()
-
-    def 'converts a lock notation to a strict dependency constraint'() {
+    def 'converts lock notation to a ModuleComponentIdentifier'() {
         given:
+        def converter = new DependencyLockingNotationConverter()
         def lockEntry = 'org:foo:1.1'
 
         when:
-        def converted = converter.convertToDependencyConstraint(lockEntry)
+        def converted = converter.convertFromLockNotation(lockEntry)
 
         then:
-        converted instanceof DependencyConstraint
+        converted instanceof ModuleComponentIdentifier
         converted.group == 'org'
-        converted.name == 'foo'
+        converted.module == 'foo'
         converted.version == '1.1'
-        converted.reason == 'dependency was locked to version 1.1'
-        converted.versionConstraint.preferredVersion == '1.1'
-        converted.versionConstraint.rejectedVersions == [']1.1,)']
     }
 
     @Unroll
     def "fails to convert an invalid lock notation: #lockEntry"() {
         when:
-        def converted = converter.convertToDependencyConstraint(lockEntry)
+        def converter = new DependencyLockingNotationConverter()
+        converter.convertFromLockNotation(lockEntry)
 
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "The module notation does not respect the lock file format of 'group:name:version' - received '$lockEntry'"
 
         where:
-        lockEntry << ['invalid', 'invalid:invalid']
+        lockEntry << ['invalid', 'invalid:invalid', 'invalid:invalid:invalid:1.0']
     }
 
     def 'converts a ModuleComponentIdentifier to a lock notation'() {
         given:
-        def module = new DefaultModuleComponentIdentifier('org', 'foo', '1.1')
+        def converter = new DependencyLockingNotationConverter()
+        def module = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
 
         when:
         def converted = converter.convertToLockNotation(module)

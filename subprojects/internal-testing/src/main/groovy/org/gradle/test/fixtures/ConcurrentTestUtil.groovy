@@ -385,8 +385,9 @@ abstract class AbstractAction implements LongRunningAction {
     }
 
     void completesWithin(long maxWaitValue, TimeUnit maxWaitUnits) {
-        Date expiry = new Date(System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue))
-        completesBefore(expiry + 500)
+        long expiry = System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue)
+        // TODO I'm pretty sure we should not add 500 _days_ here, but changing that kills some Play integration tests
+        completesBefore(new Date(expiry + TimeUnit.DAYS.toMillis(500)))
     }
 
     abstract void completesBefore(Date timeout)
@@ -496,6 +497,11 @@ class ManagedExecutorStub extends AbstractExecutorService implements ManagedExec
 
     @Override
     void setFixedPoolSize(int numThreads) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void setKeepAlive(int timeout, TimeUnit timeUnit) {
         throw new UnsupportedOperationException()
     }
 }

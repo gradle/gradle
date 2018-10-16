@@ -253,7 +253,7 @@ apply type: ComponentTypeRules
             // Need to restructure the calling tasks
             assert taskName.startsWith("first")
             def binaryDisplayName = "first:" + taskName.toLowerCase().charAt(5) + taskName.substring(6)
-            failure.assertHasDescription("Could not resolve all dependencies for 'Jar '$binaryDisplayName'' source set 'Java source 'first:java''")
+            failure.assertHasCause("Could not resolve all dependencies for 'Jar '$binaryDisplayName'' source set 'Java source 'first:java''")
             errors[taskName].each { err ->
                 failure.assertThatCause(containsText(err))
             }

@@ -22,11 +22,6 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 
 class SwiftXCTestWithoutComponentIntegrationTest extends AbstractSwiftXCTestIntegrationTest {
     @Override
-    protected String[] getTaskToAssembleComponentUnderTest() {
-        return []
-    }
-
-    @Override
     protected String[] getTasksToCompileComponentUnderTest() {
         return []
     }

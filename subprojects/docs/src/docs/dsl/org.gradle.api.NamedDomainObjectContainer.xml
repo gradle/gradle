@@ -39,6 +39,9 @@
             <tr>
                 <td>maybeCreate</td>
             </tr>
+            <tr>
+                <td>register</td>
+            </tr>
         </table>
     </section>
 </section>

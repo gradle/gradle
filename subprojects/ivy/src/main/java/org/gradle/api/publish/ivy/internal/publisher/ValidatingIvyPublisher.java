@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
 
 import java.io.File;
@@ -91,7 +91,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private void validateArtifacts(IvyNormalizedPublication publication) {
-        for (final IvyArtifact artifact : publication.getArtifacts()) {
+        for (final IvyArtifact artifact : publication.getAllArtifacts()) {
             field(publication, "artifact name", artifact.getName())
                     .notEmpty().validInFileName();
             field(publication, "artifact type", artifact.getType())
@@ -108,7 +108,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     private void checkNoDuplicateArtifacts(IvyNormalizedPublication publication) {
         Set<IvyArtifact> verified = new HashSet<IvyArtifact>();
 
-        for (final IvyArtifact artifact : publication.getArtifacts()) {
+        for (final IvyArtifact artifact : publication.getAllArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getName(), artifact.getExtension(), artifact.getType(), artifact.getClassifier());
             verified.add(artifact);
         }

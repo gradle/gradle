@@ -16,11 +16,22 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
+import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.NEW;
 
 /**
  * Adapts members selected by {@link ApiMemberSelector}, stripping out method
@@ -37,7 +48,7 @@ public class MethodStubbingApiMemberAdapter extends ClassVisitor {
     private String internalClassName;
 
     public MethodStubbingApiMemberAdapter(ClassWriter cv) {
-        super(ASM6, cv);
+        super(AsmConstants.ASM_LEVEL, cv);
     }
 
     @Override

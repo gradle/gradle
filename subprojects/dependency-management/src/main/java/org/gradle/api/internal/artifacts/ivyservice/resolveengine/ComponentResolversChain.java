@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -47,7 +47,8 @@ public class ComponentResolversChain {
 
     public ComponentResolversChain(List<ComponentResolvers> providers, ArtifactTypeRegistry artifactTypeRegistry) {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<DependencyToComponentIdResolver>(providers.size());
-        List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(providers.size());
+        List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(1 + providers.size());
+        componentMetaDataResolvers.add(VirtualComponentMetadataResolver.INSTANCE);
         List<ArtifactResolver> artifactResolvers = new ArrayList<ArtifactResolver>(providers.size());
         List<OriginArtifactSelector> artifactSelectors = new ArrayList<OriginArtifactSelector>(providers.size());
         for (ComponentResolvers provider : providers) {
@@ -135,19 +136,21 @@ public class ComponentResolversChain {
     }
 
     private static class DependencyToComponentIdResolverChain implements DependencyToComponentIdResolver {
-        private final List<DependencyToComponentIdResolver> resolvers;
+        // Using an array here because we're going to iterate pretty often and it avoids the creation of an iterator
+        // that checks for concurrent modification
+        private final DependencyToComponentIdResolver[] resolvers;
 
         public DependencyToComponentIdResolverChain(List<DependencyToComponentIdResolver> resolvers) {
-            this.resolvers = resolvers;
+            this.resolvers = resolvers.toArray(new DependencyToComponentIdResolver[0]);
         }
 
         @Override
-        public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result) {
+        public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
             for (DependencyToComponentIdResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
                 }
-                resolver.resolve(dependency, versionConstraint, result);
+                resolver.resolve(dependency, acceptor, rejector, result);
             }
         }
     }

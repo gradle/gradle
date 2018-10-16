@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 
 /**
- * Captures user-provided information about a version control system.
+ * Captures user-provided information about a version control repository.
  *
  * @since 4.4
  */
@@ -40,16 +40,18 @@ public interface VersionControlSpec extends Describable {
 
     /**
      * Returns the relative path to the root of the build within the repository.
-     * <p>
-     * Defaults to an empty relative path, meaning the root of the repository.
      *
+     * <p>Defaults to an empty relative path, meaning the root of the repository.
+     *
+     * @return the root directory of the build, relative to the root of this repository.
      * @since 4.5
      */
     String getRootDir();
 
     /**
-     * Sets the relative path to the root of the build within the repository.
+     * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
      *
+     * @param rootDir The root directory of the build, relative to the root of this repository.
      * @since 4.5
      */
     void setRootDir(String rootDir);

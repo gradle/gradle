@@ -31,8 +31,6 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
@@ -40,8 +38,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -73,7 +71,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
-    private DuplicatesStrategy duplicatesStrategy;
+    private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
@@ -125,24 +123,18 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec from(Object sourcePath, final Closure c) {
+    public CopySpec from(Object sourcePath, Closure c) {
         return from(sourcePath, new ClosureBackedAction<CopySpec>(c));
     }
 
     @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
-        //noinspection ConstantConditions
-        if (configureAction == null) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.from()");
-            from(sourcePath);
-            return this;
-        } else {
-            CopySpecInternal child = addChild();
-            child.from(sourcePath);
-            CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
-            configureAction.execute(wrapper);
-            return wrapper;
-        }
+        Preconditions.checkNotNull(configureAction, "Gradle does not allow passing null for the configuration action for CopySpec.from().");
+        CopySpecInternal child = addChild();
+        child.from(sourcePath);
+        CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
+        configureAction.execute(wrapper);
+        return wrapper;
     }
 
     @Override
@@ -239,18 +231,12 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
-        //noinspection ConstantConditions
-        if (copySpec == null) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("Gradle does not allow passing null for the configuration action for CopySpec.into()");
-            into(destPath);
-            return this;
-        } else {
-            CopySpecInternal child = addChild();
-            child.into(destPath);
-            CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
-            copySpec.execute(wrapper);
-            return wrapper;
-        }
+        Preconditions.checkNotNull(copySpec, "Gradle does not allow passing null for the configuration action for CopySpec.into().");
+        CopySpecInternal child = addChild();
+        child.into(destPath);
+        CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
+        copySpec.execute(wrapper);
+        return wrapper;
     }
 
     @Override
@@ -279,7 +265,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         this.duplicatesStrategy = strategy;
     }
 
@@ -631,7 +617,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public DuplicatesStrategy getDuplicatesStrategy() {
-            if (duplicatesStrategy != null) {
+            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
                 return duplicatesStrategy;
             }
             if (parentResolver != null) {

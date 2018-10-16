@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -30,15 +31,15 @@ class AbstractRenderableDependencyResultSpec extends Specification {
 
     def "renders name for ModuleComponentSelector"() {
         given:
-        def requested = DefaultModuleComponentSelector.newSelector('org.mockito', 'mockito-core', new DefaultMutableVersionConstraint('1.0'))
+        def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('org.mockito', 'mockito-core'), new DefaultMutableVersionConstraint('1.0'),)
 
         expect:
-        dep(requested, DefaultModuleComponentIdentifier.newId('org.mockito', 'mockito-core', '1.0')).name == 'org.mockito:mockito-core:1.0'
-        dep(requested, DefaultModuleComponentIdentifier.newId('org.mockito', 'mockito-core', '2.0')).name == 'org.mockito:mockito-core:1.0 -> 2.0'
-        dep(requested, DefaultModuleComponentIdentifier.newId('org.mockito', 'mockito', '1.0')).name == 'org.mockito:mockito-core:1.0 -> org.mockito:mockito:1.0'
-        dep(requested, DefaultModuleComponentIdentifier.newId('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
-        dep(requested, DefaultModuleComponentIdentifier.newId('com.mockito.other', 'mockito-core', '3.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito.other:mockito-core:3.0'
-        dep(requested, DefaultModuleComponentIdentifier.newId('com.mockito.other', 'mockito-core', '1.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito.other:mockito-core:1.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org.mockito', 'mockito-core'), '1.0')).name == 'org.mockito:mockito-core:1.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org.mockito', 'mockito-core'), '2.0')).name == 'org.mockito:mockito-core:1.0 -> 2.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org.mockito', 'mockito'), '1.0')).name == 'org.mockito:mockito-core:1.0 -> org.mockito:mockito:1.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('com.mockito', 'mockito'), '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('com.mockito.other', 'mockito-core'), '3.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito.other:mockito-core:3.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('com.mockito.other', 'mockito-core'), '1.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito.other:mockito-core:1.0'
         dep(requested, newProjectId(':a')).name == 'org.mockito:mockito-core:1.0 -> project :a'
     }
 
@@ -49,7 +50,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         expect:
         dep(requested, newProjectId(':a')).name == 'project :a'
         dep(requested, newProjectId(':b')).name == 'project :a -> project :b'
-        dep(requested, DefaultModuleComponentIdentifier.newId('org.somegroup', 'module', '1.0')).name == 'project :a -> org.somegroup:module:1.0'
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org.somegroup', 'module'), '1.0')).name == 'project :a -> org.somegroup:module:1.0'
     }
 
     private AbstractRenderableDependencyResult dep(ComponentSelector requested, ComponentIdentifier selected) {
@@ -60,14 +61,6 @@ class AbstractRenderableDependencyResultSpec extends Specification {
 
             ComponentIdentifier getActual() {
                 return selected
-            }
-
-            RenderableDependency.ResolutionState getResolutionState() {
-                throw new UnsupportedOperationException()
-            }
-
-            Set<RenderableDependency> getChildren() {
-                throw new UnsupportedOperationException()
             }
         }
     }

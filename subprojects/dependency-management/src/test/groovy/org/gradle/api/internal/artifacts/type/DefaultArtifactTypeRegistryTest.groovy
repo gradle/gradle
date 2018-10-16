@@ -22,11 +22,11 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class DefaultArtifactTypeRegistryTest extends Specification {
-    def attributesFactory = TestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def registry = new DefaultArtifactTypeRegistry(DirectInstantiator.INSTANCE, attributesFactory)
 
     def "creates as required and reuses"() {
@@ -152,25 +152,6 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         expect:
         registry.mapAttributesFor(variant) == attrs
-    }
-
-    def "does not apply mapping when variant already defines some attributes"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
-        def variant = Stub(VariantResolveMetadata)
-        def artifact = Stub(ComponentArtifactMetadata)
-        def artifactName = Stub(IvyArtifactName)
-
-        given:
-        variant.attributes >> attrs
-        variant.artifacts >> [artifact]
-        artifact.name >> artifactName
-        artifactName.extension >> "jar"
-        artifactName.type >> "jar"
-
-        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
-
-        expect:
-        registry.mapAttributesFor(variant) == concat(attrs, ["artifactType": "jar"])
     }
 
     def concat(ImmutableAttributes source, Map<String, String> attrs) {

@@ -26,9 +26,9 @@ import java.util.Set;
 
 /**
  * Represents the computation of the task artifact state and the task output caching state.
- *
+ * <p>
  * This operation is executed only when the build cache is enabled or when the build scan plugin is applied.
- * Must occur as a child of {@link org.gradle.internal.execution.ExecuteTaskBuildOperationType}.
+ * Must occur as a child of {@link org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType}.
  *
  * @since 4.0
  */
@@ -41,7 +41,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     /**
      * The hashes of the inputs.
-     *
+     * <p>
      * If the inputs were not snapshotted, all fields are null.
      * This may occur if the task had no outputs.
      */
@@ -50,34 +50,35 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
         /**
          * The overall hash value for the inputs.
-         *
+         * <p>
          * Null if the overall key was not calculated because the inputs were invalid.
          */
         @Nullable
-        String getBuildCacheKey();
+        byte[] getHashBytes();
 
         /**
          * The hash of the the classloader that loaded the task implementation.
-         *
+         * <p>
          * Null if the classloader is not managed by Gradle.
          */
         @Nullable
-        String getClassLoaderHash();
+        byte[] getClassLoaderHashBytes();
+
 
         /**
          * The hashes of the classloader that loaded each of the task's actions.
-         *
+         * <p>
          * May contain duplicates.
          * Order corresponds to execution order of the actions.
          * Never empty.
          * May contain nulls (non Gradle managed classloader)
          */
         @Nullable
-        List<String> getActionClassLoaderHashes();
+        List<byte[]> getActionClassLoaderHashesBytes();
 
         /**
          * The class names of each of the task's actions.
-         *
+         * <p>
          * May contain duplicates.
          * Order corresponds to execution order of the actions.
          * Never empty.
@@ -85,24 +86,94 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         @Nullable
         List<String> getActionClassNames();
 
-        /**
-         * Hashes of each of the input properties.
-         *
-         * key = property name
-         * value = hash
-         *
-         * Ordered by key, lexicographically.
-         * No null keys or values.
-         * Never empty.
-         * Null if the task has no inputs.
-         */
         @Nullable
-        Map<String, String> getInputHashes();
+        Map<String, byte[]> getInputValueHashesBytes();
 
+        /**
+         * The consuming visitor for file property inputs.
+         * <p>
+         * Properties are visited depth-first lexicographical.
+         * Roots are visited in semantic order (i.e. the order in which they make up the file collection)
+         * Files and directories are depth-first lexicographical.
+         * <p>
+         * For roots that are a file, they are also visited with {@link #file(VisitState)}.
+         */
+        interface InputFilePropertyVisitor {
+
+            /**
+             * Called once per file property.
+             * <p>
+             * Only getProperty*() state methods may be called during.
+             */
+            void preProperty(VisitState state);
+
+            /**
+             * Called for each root of the current property.
+             * <p>
+             * {@link VisitState#getName()} and {@link VisitState#getPath()} may be called during.
+             */
+            void preRoot(VisitState state);
+
+            /**
+             * Called before entering a directory.
+             * <p>
+             * {@link VisitState#getName()} and {@link VisitState#getPath()} may be called during.
+             */
+            void preDirectory(VisitState state);
+
+            /**
+             * Called when visiting a non-directory file.
+             * <p>
+             * {@link VisitState#getName()}, {@link VisitState#getPath()} and {@link VisitState#getHashBytes()} may be called during.
+             */
+            void file(VisitState state);
+
+            /**
+             * Called when exiting a directory.
+             */
+            void postDirectory();
+
+            /**
+             * Called when exiting a root.
+             */
+            void postRoot();
+
+            /**
+             * Called when exiting a property.
+             */
+            void postProperty();
+        }
+
+        /**
+         * Provides information about the current location in the visit.
+         * <p>
+         * Consumers should expect this to be mutable.
+         * Calling any method on this outside of a method that received it has undefined behavior.
+         */
+        interface VisitState {
+            String getPropertyName();
+
+            byte[] getPropertyHashBytes();
+
+            String getPropertyNormalizationStrategyName();
+
+            String getPath();
+
+            String getName();
+
+            byte[] getHashBytes();
+        }
+
+        /**
+         * Traverses the input properties that are file types (e.g. File, FileCollection, FileTree, List of File).
+         * <p>
+         * If there are no input file properties, visitor will not be called at all.
+         */
+        void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
         /**
          * Names of input properties which have been loaded by non Gradle managed classloader.
-         *
+         * <p>
          * Ordered by property name, lexicographically.
          * No null values.
          * Never empty.
@@ -112,7 +183,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
         /**
          * The names of the output properties.
-         *
+         * <p>
          * No duplicate values.
          * Ordered lexicographically.
          * Never empty.

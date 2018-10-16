@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  */
 public class JavadocConverter {
     private static final Pattern HEADER_PATTERN = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ACCESSOR_COMMENT_PATTERN = Pattern.compile("(?:returns|sets)\\s+(the|whether)\\s+", Pattern.CASE_INSENSITIVE);
     private final Document document;
     private final JavadocLinkConverter linkConverter;
 
@@ -64,7 +65,7 @@ public class JavadocConverter {
             try {
                 CommentSource commentSource = new InheritedPropertyCommentSource(propertyMetaData, listener);
                 DocCommentImpl docComment = parse(rawCommentText, ownerClass, commentSource, listener);
-                adjustGetterComment(docComment);
+                adjustAccessorComment(docComment);
                 return docComment;
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText), e);
@@ -92,8 +93,8 @@ public class JavadocConverter {
         }
     }
 
-    private void adjustGetterComment(DocCommentImpl docComment) {
-        // Replace 'Returns the ...' with 'The ...'
+    private void adjustAccessorComment(DocCommentImpl docComment) {
+        // Replace 'Returns the ...'/'Sets the ...' with 'The ...'
         List<Element> nodes = docComment.getDocbook();
         if (nodes.isEmpty()) {
             return;
@@ -105,8 +106,7 @@ public class JavadocConverter {
         }
 
         Text comment = (Text) firstNode.getFirstChild();
-        Pattern getterPattern = Pattern.compile("returns\\s+(the|whether)\\s+", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = getterPattern.matcher(comment.getData());
+        Matcher matcher = ACCESSOR_COMMENT_PATTERN.matcher(comment.getData());
         if (matcher.lookingAt()) {
             String theOrWhether = matcher.group(1).toLowerCase(Locale.US);
             comment.setData(StringUtils.capitalize(theOrWhether) + " " + comment.getData().substring(matcher.end()));

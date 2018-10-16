@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.gradle
 
 import groovy.json.JsonBuilder
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.test.fixtures.file.TestFile
 
 class GradleFileModuleAdapter {
@@ -39,7 +40,7 @@ class GradleFileModuleAdapter {
         def file = moduleDir.file("$module-${version}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
-            formatVersion '0.3'
+            formatVersion ModuleMetadataParser.FORMAT_VERSION
             builtBy {
                 gradle { }
             }
@@ -72,7 +73,13 @@ class GradleFileModuleAdapter {
                             group d.group
                             module d.module
                             version {
-                                prefers d.prefers
+                                if (d.strictVersion) {
+                                    strictly d.strictVersion
+                                } else if (d.version) {
+                                    requires d.version
+                                } else if (d.preferredVersion) {
+                                    prefers d.preferredVersion
+                                }
                                 rejects d.rejects
                             }
                             if (d.reason) {
@@ -86,6 +93,13 @@ class GradleFileModuleAdapter {
                                     }
                                 })
                             }
+                            if (d.attributes) {
+                                attributes {
+                                    d.attributes.each { key, value ->
+                                        "$key" value
+                                    }
+                                }
+                            }
                         }
                     })
                     dependencyConstraints(v.dependencyConstraints.collect { dc ->
@@ -93,8 +107,12 @@ class GradleFileModuleAdapter {
                             group dc.group
                             module dc.module
                             version {
-                                if (dc.prefers) {
-                                    prefers dc.prefers
+                                if (dc.strictVersion) {
+                                    strictly dc.strictVersion
+                                } else if (dc.version) {
+                                    requires dc.version
+                                } else if (dc.preferredVersion) {
+                                    prefers dc.preferredVersion
                                 }
                                 if (dc.rejects) {
                                     rejects dc.rejects
@@ -102,6 +120,13 @@ class GradleFileModuleAdapter {
                             }
                             if (dc.reason) {
                                 reason dc.reason
+                            }
+                            if (dc.attributes) {
+                                attributes {
+                                    dc.attributes.each { key, value ->
+                                        "$key" value
+                                    }
+                                }
                             }
                         }
                     })

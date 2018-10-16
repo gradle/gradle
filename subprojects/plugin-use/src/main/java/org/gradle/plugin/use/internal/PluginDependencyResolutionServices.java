@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Factory;
 
 import java.util.ArrayList;
@@ -66,6 +68,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
     @Override
     public DependencyLockingHandler getDependencyLockingHandler() {
         return getDependencyResolutionServices().getDependencyLockingHandler();
+    }
+
+    @Override
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return getDependencyResolutionServices().getAttributesFactory();
     }
 
     public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
@@ -118,6 +125,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         @Override
         public ConfiguredModuleComponentRepository createResolver() {
             return resolutionAwareDelegate.createResolver();
+        }
+
+        @Override
+        public RepositoryDescriptor getDescriptor() {
+            return resolutionAwareDelegate.getDescriptor();
         }
 
         @Override

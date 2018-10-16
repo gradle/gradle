@@ -51,11 +51,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            
-            compileJava {
-                compileJava.options.incremental = true
-                options.fork = true
-            }
         """
 
         processorProjectDir.file("build.gradle") << """
@@ -93,6 +88,27 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
         expect:
         fails("compileJava")
-        failure.assertHasCause("java.lang.ClassNotFoundException: unknown.Processor")
+        failure.assertHasCause("Annotation processor 'unknown.Processor' not found")
     }
+
+    def "recompiles when a resource changes"() {
+        given:
+        buildFile << """
+            compileJava.inputs.dir 'src/main/resources'
+        """
+        java("class A {}")
+        java("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        resource.text = 'bar'
+
+        then:
+        succeeds 'compileJava'
+        outputs.recompiledClasses("A", "B")
+    }
+
 }

@@ -16,9 +16,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -26,7 +28,6 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
 import org.gradle.platform.base.BinarySpec
@@ -36,6 +37,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
+import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.WrapUtil.toLinkedSet
 
@@ -43,15 +45,72 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
 
-    void appliesBasePluginsAndAddsConventionObject() {
+    void "applies base plugins and adds convention and extensions"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
-        project.plugins.hasPlugin(LanguageBasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
+        project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
+        project.extensions.java instanceof JavaPluginExtension
+    }
+
+    void "sourceSets extension is exposed as SourceSetContainer"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        project.extensions.extensionsSchema.find { it.name == "sourceSets" }.publicType == typeOf(SourceSetContainer)
+    }
+
+    void "properties on convention and extension are synchronized"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        def ext = project.extensions.java
+        project.sourceCompatibility == JavaVersion.current()
+        project.targetCompatibility == JavaVersion.current()
+        ext.sourceCompatibility == JavaVersion.current()
+        ext.targetCompatibility == JavaVersion.current()
+
+        when:
+        project.sourceCompatibility = JavaVersion.VERSION_1_6
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_6
+        project.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility == JavaVersion.VERSION_1_6
+        ext.targetCompatibility == JavaVersion.VERSION_1_6
+
+        when:
+        ext.sourceCompatibility = JavaVersion.VERSION_1_8
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_8
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_8
+
+        when:
+        project.targetCompatibility = JavaVersion.VERSION_1_7
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_7
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_7
+
+        when:
+        ext.targetCompatibility = JavaVersion.VERSION_1_6
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
 
     void "creates tasks and applies mappings for source set"() {
@@ -139,7 +198,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
-        project.sourceSets.custom.output.classesDir = classesDir
+        project.sourceSets.custom.java.outputDir = classesDir
         project.sourceSets.custom.output.resourcesDir = resourcesDir
 
         then:
@@ -160,7 +219,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation ' instead)."
+        compile.description == "Dependencies for source set 'custom' (deprecated, use 'customImplementation' instead)."
 
         then:
         def implementation = project.configurations.customImplementation
@@ -175,7 +234,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly ' instead)."
+        runtime.description == "Runtime dependencies for source set 'custom' (deprecated, use 'customRuntimeOnly' instead)."
 
         and:
         def runtimeOnly = project.configurations.customRuntimeOnly
@@ -261,7 +320,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
     }
 
-    def "adds language source sets for each source set added to the 'sourceSets' container"() {
+    def "adds language source sets for each source set added to the 'sourceSets' container when software model is active"() {
         project.pluginManager.apply(JavaBasePlugin)
 
         given:
@@ -273,11 +332,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
                 resources {
                     srcDirs = [project.file("resrc1"), project.file("resrc2")]
                 }
-                compileClasspath = project.files("jar1.jar", "jar2.jar")
+                compileClasspath = project.layout.files("jar1.jar", "jar2.jar")
             }
         }
 
         when:
+        project.prepareForRuleBasedPlugins()
         def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
 
         then:
@@ -286,25 +346,26 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def java = sources.withType(JavaSourceSet).iterator().next()
         java.source.srcDirs as Set == [project.file("src1"), project.file("src2")] as Set
-        java.compileClasspath.files as Set == project.files("jar1.jar", "jar2.jar") as Set
+        java.compileClasspath.files as Set == project.layout.files("jar1.jar", "jar2.jar") as Set
 
         and:
         def resources = sources.withType(JvmResourceSet).iterator().next()
         resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
     }
 
-    def "adds a class directory binary for each source set added to the 'sourceSets' container"() {
+    def "adds a class directory binary for each source set added to the 'sourceSets' container when software model is active"() {
         project.pluginManager.apply(JavaBasePlugin)
 
         given:
         project.sourceSets {
             custom {
-                output.classesDir = project.file("classes")
+                java.outputDir = project.file("classes")
                 output.resourcesDir = project.file("resources")
             }
         }
 
         when:
+        project.prepareForRuleBasedPlugins()
         def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
         def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
 
@@ -318,16 +379,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         binary.inputs as Set == sources as Set
     }
 
-    def "attaches tasks to binary associated with each source set"() {
+    def "attaches tasks to binary associated with each source set when software model is active"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
         project.sourceSets {
             custom {
-                output.classesDir = project.file("classes")
-                output.resourcesDir = project.file("resources")
+                output.classesDirs.from = project.files("classes")
+                output.resourcesDir = project.files("resources")
             }
         }
+        project.prepareForRuleBasedPlugins()
         def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
 
         then:

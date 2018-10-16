@@ -19,13 +19,12 @@ package org.gradle.play.internal.toolchain
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.platform.PlayMajorVersion
 import org.gradle.play.internal.run.PlayApplicationRunner
-import org.gradle.play.internal.run.PlayRunAdapterV22X
 import org.gradle.play.internal.run.PlayRunAdapterV23X
 import org.gradle.play.internal.run.PlayRunAdapterV24X
 import org.gradle.play.internal.run.PlayRunAdapterV25X
@@ -37,14 +36,14 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultPlayToolProviderTest extends Specification {
-    FileResolver fileResolver = Mock()
+    def fileResolver = Mock(PathToFileResolver)
     WorkerDaemonFactory workerDaemonFactory = Mock()
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
     WorkerProcessFactory workerProcessBuilderFactory = Mock()
     File daemonWorkingDir = Mock()
-    ClasspathSnapshotter snapshotter = Mock()
+    ClasspathFingerprinter fingerprinter = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -52,7 +51,7 @@ class DefaultPlayToolProviderTest extends Specification {
     DefaultPlayToolProvider playToolProvider
 
     private DefaultPlayToolProvider createProvider() {
-        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, snapshotter)
+        return new DefaultPlayToolProvider(fileResolver, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter)
     }
 
     @Unroll
@@ -70,7 +69,6 @@ class DefaultPlayToolProviderTest extends Specification {
 
         where:
         playVersion | adapter
-        "2.2.x"     | PlayRunAdapterV22X
         "2.3.x"     | PlayRunAdapterV23X
         "2.4.x"     | PlayRunAdapterV24X
         "2.5.x"     | PlayRunAdapterV25X

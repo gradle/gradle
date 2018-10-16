@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import junit.framework.AssertionFailedError
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.transform.ArtifactTransform
@@ -25,13 +26,13 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.util.TestUtil
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class ConsumerProvidedVariantFinderTest extends Specification {
     def matcher = Mock(AttributeMatcher)
     def schema = Mock(AttributesSchemaInternal)
-    def immutableAttributesFactory = TestUtil.attributesFactory()
+    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     def transformRegistrations = Mock(VariantTransformRegistry)
     def matchingCache = new ConsumerProvidedVariantFinder(transformRegistrations, schema, immutableAttributesFactory)
 
@@ -66,7 +67,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         result.matches.size() == 1
         result.matches.first().attributes == c2
-        result.matches.first().transformer.is(reg2.artifactTransform)
+        result.matches.first().transformation.is(reg2.transformationStep)
 
         and:
         _ * schema.matcher() >> matcher
@@ -95,7 +96,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         result.matches.size() == 2
         result.matches*.attributes == [c3, c2]
-        result.matches*.transformer == [reg1.artifactTransform, reg2.artifactTransform]
+        result.matches*.transformation == [reg1.transformationStep, reg2.transformationStep]
 
         and:
         _ * schema.matcher() >> matcher
@@ -123,7 +124,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         then:
         def match = result.matches.first()
-        match.transformer.is(reg2.artifactTransform)
+        match.transformation.is(reg2.transformationStep)
 
         and:
         _ * schema.matcher() >> matcher
@@ -141,7 +142,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         then:
         def match2 = result2.matches.first()
         match2.attributes.is(match.attributes)
-        match2.transformer.is(match.transformer)
+        match2.transformation.is(match.transformation)
 
         and:
         0 * matcher._
@@ -182,10 +183,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def result = transformer.transformer.transform(new File("in.txt"))
+        def result = transformer.transformation.transform(initialSubject("in.txt"))
 
         then:
-        result == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
+        result.files == [new File("in.txt.2a.5"), new File("in.txt.2b.5")]
     }
 
     def "prefers direct transformation over indirect"() {
@@ -205,7 +206,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         matchingCache.collectConsumerVariants(source, requested, result)
 
         then:
-        result.matches.first().transformer.is(reg3.artifactTransform)
+        result.matches.first().transformation.is(reg3.transformationStep)
 
         and:
         _ * schema.matcher() >> matcher
@@ -257,7 +258,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
 
         when:
-        def files = result.matches.first().transformer.transform(new File("a"))
+        def files = result.matches.first().transformation.transform(initialSubject("a")).files
 
         then:
         files == [new File("d"), new File("e")]
@@ -324,17 +325,21 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * matcher._
     }
 
+    private static TransformationSubject initialSubject(String path) {
+        TransformationSubject.initial(new File(path))
+    }
+
     private AttributeContainerInternal attributes() {
         immutableAttributesFactory.mutable()
     }
 
-    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer transformer) {
+    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer<List<File>, File> transformer) {
         def reg = Stub(VariantTransformRegistry.Registration)
         reg.from >> from
         reg.to >> to
-        reg.artifactTransform >> Stub(ArtifactTransformer) {
-            transform(_) >> { File file ->
-                transformer.transform(file)
+        reg.transformationStep >> Stub(TransformationStep) {
+            transform(_ as TransformationSubject) >> { TransformationSubject subject ->
+                return subject.transformationSuccessful(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))
             }
         }
         reg

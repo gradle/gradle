@@ -453,6 +453,7 @@ public class GUtil {
      * @param <T> Callable's return type
      * @return The value returned by {@link Callable#call()}
      */
+    @Nullable
     public static <T> T uncheckedCall(Callable<T> callable) {
         try {
             return callable.call();
@@ -493,6 +494,7 @@ public class GUtil {
             value, value.getClass().getName(), enumType.getName()));
     }
 
+    @Nullable
     private static <T extends Enum<T>> T findEnumValue(Class<? extends T> enumType, final String literal) {
         List<? extends T> enumConstants = Arrays.asList(enumType.getEnumConstants());
         return CollectionUtils.findFirst(enumConstants, new Spec<T>() {

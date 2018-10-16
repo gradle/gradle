@@ -16,40 +16,33 @@
 
 package org.gradle.performance.results;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.performance.results.HtmlPageGenerator.NavigationItem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 
 public class ReportGenerator {
 
     public static void main(String... args) throws Exception {
         Class<?> resultStoreClass = Class.forName(args[0]);
         File outputDirectory = new File(args[1]);
-        ResultsStore resultStore = (ResultsStore) resultStoreClass.newInstance();
+        ResultsStore resultStore = (ResultsStore) resultStoreClass.getConstructor().newInstance();
+        File resultJson = new File(args[2]);
         try {
-            new ReportGenerator().generate(resultStore, outputDirectory);
+            new ReportGenerator().generate(resultStore, outputDirectory, resultJson);
         } finally {
             resultStore.close();
         }
     }
 
-    void generate(final ResultsStore store, File outputDirectory) {
+    void generate(final ResultsStore store, File outputDirectory, File resultJson) {
         try {
             FileRenderer fileRenderer = new FileRenderer();
             TestPageGenerator testHtmlRenderer = new TestPageGenerator();
             TestDataGenerator testDataRenderer = new TestDataGenerator();
 
-            List<NavigationItem> navigationItems = ImmutableList.of(
-                new NavigationItem("Overview", "index.html"),
-                new NavigationItem("Graphs", "graph-index.html")
-            );
-            fileRenderer.render(store, new IndexPageGenerator(navigationItems), new File(outputDirectory, "index.html"));
-            fileRenderer.render(store, new GraphIndexPageGenerator(navigationItems), new File(outputDirectory, "graph-index.html"));
+            fileRenderer.render(store, new IndexPageGenerator(store, resultJson), new File(outputDirectory, "index.html"));
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
@@ -64,6 +57,7 @@ public class ReportGenerator {
             copyResource("style.css", outputDirectory);
             copyResource("report.js", outputDirectory);
             copyResource("performanceGraph.js", outputDirectory);
+            copyResource("performanceReport.js", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not generate performance test report to '%s'.", outputDirectory), e);
         }

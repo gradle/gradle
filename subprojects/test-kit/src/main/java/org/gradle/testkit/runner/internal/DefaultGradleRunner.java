@@ -167,7 +167,7 @@ public class DefaultGradleRunner extends GradleRunner {
             f.add(new File(file.getAbsolutePath()));
         }
         if (!f.isEmpty()) {
-            this.classpath = new DefaultClassPath(f);
+            this.classpath = DefaultClassPath.of(f);
         }
         return this;
     }

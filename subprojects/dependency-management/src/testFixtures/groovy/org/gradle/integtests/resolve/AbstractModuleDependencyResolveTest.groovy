@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
 
-    private final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
+    protected final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
 
     boolean useIvy() {
         GradleMetadataResolveRunner.useIvy()
@@ -47,7 +47,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     }
 
     boolean usesJavaLibraryVariants() {
-        GradleMetadataResolveRunner.isGradleMetadataEnabled() || (useMaven() && isExperimentalEnabled())
+        GradleMetadataResolveRunner.isGradleMetadataEnabled() || useMaven()
     }
 
     String getTestConfiguration() { 'conf' }
@@ -117,6 +117,34 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
     }
 
+    void setMetadataSupplierClass(String clazz) {
+        buildFile << supplierDeclaration(clazz)
+    }
+
+    String supplierDeclaration(String clazz) {
+        """
+            repositories."${useIvy()?'ivy':'maven'}".metadataSupplier = $clazz
+        """
+    }
+
+    void setMetadataSupplierClassWithParams(String clazz, String... params) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".setMetadataSupplier($clazz) { ${params.collect { "params($it)" }.join(';')} }
+        """
+    }
+
+    void setMetadataListerClass(String clazz) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".componentVersionsLister = $clazz
+        """
+    }
+
+    void setMetadataListerClassWithParams(String clazz, String... params) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".setComponentVersionsLister($clazz) { ${params.collect { "params($it)" }.join(';')} }
+        """
+    }
+
     def getRepositoryDeclaration() {
         useIvy() ? ivyRepository : mavenRepository
     }
@@ -126,7 +154,6 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         resolve.expectDefaultConfiguration(usesJavaLibraryVariants() ? "runtime" : "default")
         settingsFile << "rootProject.name = '$rootProjectName'"
         if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
             FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         }
         resolve.prepare()
@@ -137,6 +164,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
                 $testConfiguration
             }
         """
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {

@@ -151,8 +151,22 @@ class ExceptionPlaceholder implements Serializable {
         }
 
         Throwable placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causeThrowable);
-        placeholder.setStackTrace(stackTrace);
+        try {
+            placeholder.setStackTrace(stackTrace);
+        } catch (NullPointerException e) {
+            diagnoseNullPointerException(e);
+            throw e;
+        }
         return placeholder;
+    }
+
+    private void diagnoseNullPointerException(NullPointerException e) {
+        // https://github.com/gradle/gradle-private/issues/1368
+        StringBuilder sb = new StringBuilder("Malicious stack traces\n");
+        for (StackTraceElement element : stackTrace) {
+            sb.append(element).append("\n");
+        }
+        LOGGER.error(sb.toString(), e);
     }
 
     private Throwable getCause(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {

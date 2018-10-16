@@ -16,6 +16,8 @@
 
 package org.gradle.internal.locking;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,6 +32,7 @@ import java.util.List;
 public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
+    private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
@@ -39,19 +42,21 @@ public class LockFileReaderWriter {
                                                  "# This file is expected to be part of source control.\n";
 
     private final Path lockFilesRoot;
+    private final DomainObjectContext context;
 
-    public LockFileReaderWriter(FileResolver fileResolver) {
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context) {
+        this.context = context;
         Path resolve = null;
-        try {
+        if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
-        } catch (UnsupportedOperationException e) {
-            // TODO Investigate if locking and no base dir can happen together
         }
         this.lockFilesRoot = resolve;
         LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
     }
 
     public void writeLockFile(String configurationName, List<String> resolvedModules) {
+        checkValidRoot(configurationName);
+
         if (!Files.exists(lockFilesRoot)) {
             try {
                 Files.createDirectories(lockFilesRoot);
@@ -64,15 +69,17 @@ public class LockFileReaderWriter {
             builder.append(module).append("\n");
         }
         try {
-            Files.write(lockFilesRoot.resolve(configurationName + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
+            Files.write(lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
         } catch (IOException e) {
             throw new RuntimeException("Unable to write lock file", e);
         }
     }
 
     public List<String> readLockFile(String configurationName) {
+        checkValidRoot(configurationName);
+
         try {
-            Path lockFile = lockFilesRoot.resolve(configurationName + FILE_SUFFIX);
+            Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
             if (Files.exists(lockFile)) {
                 List<String> lines = Files.readAllLines(lockFile, CHARSET);
                 filterNonModuleLines(lines);
@@ -84,6 +91,21 @@ public class LockFileReaderWriter {
             throw new RuntimeException("Unable to load lock file", e);
         }
 
+    }
+
+    private String decorate(String configurationName) {
+        if (context.isScript()) {
+            return "buildscript-" + configurationName;
+        } else {
+            return configurationName;
+        }
+    }
+
+    private void checkValidRoot(String configurationName) {
+        if (lockFilesRoot == null) {
+            throw new IllegalStateException("Dependency locking cannot be used for configuration '" + context.identityPath(configurationName) + "'." +
+                " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
+        }
     }
 
     private void filterNonModuleLines(List<String> lines) {

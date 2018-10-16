@@ -131,8 +131,8 @@ task showBroken { doLast { println configurations.compile.files } }
                 .assertHasCause("Could not parse POM ${child.pom.uri}")
                 .assertHasCause("""Could not find org:parent:1.0.
 Searched in the following locations:
-    ${parent.pom.uri}
-    ${parent.artifact.uri}""")
+  - ${parent.pom.uri}
+  - ${parent.artifact.uri}""")
     }
 
     def "reports parent POM that cannot be parsed"() {

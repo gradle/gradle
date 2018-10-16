@@ -44,7 +44,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
-        contentsDir.file('samples/java/quickstart/build.gradle').assertIsFile()
+        contentsDir.file('samples/java/quickstart/groovy/build.gradle').assertIsFile()
 
         def buildAndGradleDirs = []
         contentsDir.file('samples').eachFileRecurse(FileType.DIRECTORIES) {
@@ -63,7 +63,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         contentsDir.file('docs/userguide/userguide.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h3 class=\"releaseinfo\">Version ${version}</h3>"))
+        contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
 //        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
 
         // DSL reference

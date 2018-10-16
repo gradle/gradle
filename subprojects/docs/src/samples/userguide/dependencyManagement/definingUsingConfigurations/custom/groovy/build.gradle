@@ -1,0 +1,24 @@
+// tag::custom-configuration[]
+configurations {
+    jasper
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    jasper 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.2'
+}
+
+task preCompileJsps {
+    doLast {
+        ant.taskdef(classname: 'org.apache.jasper.JspC',
+                    name: 'jasper',
+                    classpath: configurations.jasper.asPath)
+        ant.jasper(validateXml: false,
+                   uriroot: file('src/main/webapp'),
+                   outputDir: file("$buildDir/compiled-jsps"))
+    }
+}
+// end::custom-configuration[]

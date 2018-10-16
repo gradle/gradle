@@ -27,12 +27,13 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
@@ -42,6 +43,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -113,7 +115,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * be declared.
      * @since 3.4
      */
-    @Incubating
     public static final String API_CONFIGURATION_NAME = "api";
 
     /**
@@ -121,7 +122,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * a component should be declared.
      * @since 3.4
      */
-    @Incubating
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
 
     /**
@@ -130,7 +130,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @since 3.4
      */
-    @Incubating
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
 
     /**
@@ -160,14 +159,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * that should only be found at runtime.
      * @since 3.4
      */
-    @Incubating
     public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
 
     /**
      * The name of the runtime classpath configuration, used by a component to query its own runtime classpath.
      * @since 3.4
      */
-    @Incubating
     public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
 
     /**
@@ -175,14 +172,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * to query the runtime dependencies of a component.
      * @since 3.4
      */
-    @Incubating
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
 
     /**
      * The name of the compile classpath configuration.
      * @since 3.4
      */
-    @Incubating
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
 
     /**
@@ -198,7 +193,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * The name of the test implementation dependencies configuration.
      * @since 3.4
      */
-    @Incubating
     public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
 
     /**
@@ -219,14 +213,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * The name of the test runtime only dependencies configuration.
      * @since 3.4
      */
-    @Incubating
     public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
 
     /**
      * The name of the test compile classpath configuration.
      * @since 3.4
      */
-    @Incubating
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
 
     /**
@@ -240,7 +232,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * The name of the test runtime classpath configuration.
      * @since 3.4
      */
-    @Incubating
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
     private final ObjectFactory objectFactory;
@@ -272,8 +263,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
-        test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+        test.setCompileClasspath(project.getLayout().configurableFiles(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+        test.setRuntimeClasspath(project.getLayout().configurableFiles(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         // Register the project's source set output directories
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
@@ -284,33 +275,39 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(JavaPluginConvention pluginConvention) {
+    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
-
-        SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        Javadoc javadoc = project.getTasks().create(JAVADOC_TASK_NAME, Javadoc.class);
-        javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-        javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-        javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-        javadoc.setSource(mainSourceSet.getAllJava());
-        addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+        project.getTasks().register(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
+            @Override
+            public void execute(Javadoc javadoc) {
+                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
+                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
+                javadoc.setSource(mainSourceSet.getAllJava());
+            }
+        });
     }
 
-    private void configureArchivesAndComponent(Project project, JavaPluginConvention pluginConvention) {
-        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
-        jar.setDescription("Assembles a jar archive containing the main classes.");
-        jar.setGroup(BasePlugin.BUILD_GROUP);
-        jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
-
-        ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
+    private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
+        TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+            @Override
+            public void execute(Jar jar) {
+                jar.setDescription("Assembles a jar archive containing the main classes.");
+                jar.setGroup(BasePlugin.BUILD_GROUP);
+                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+            }
+        });
+        // TODO: Allow this to be added lazily
+        PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        Provider<JavaCompile> javaCompile = project.getTasks().getByNameLater(JavaCompile.class, COMPILE_JAVA_TASK_NAME);
-        Provider<ProcessResources> processResources = project.getTasks().getByNameLater(ProcessResources.class, PROCESS_RESOURCES_TASK_NAME);
+        Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
+        Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
 
         addJar(apiElementConfiguration, jarArtifact);
         addJar(runtimeConfiguration, jarArtifact);
@@ -320,7 +317,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
     }
 
-    private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {
+    private void addJar(Configuration configuration, PublishArtifact jarArtifact) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -328,7 +325,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
+    private void addRuntimeVariants(Configuration configuration, PublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -356,14 +353,24 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuild(Project project) {
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME), false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                addDependsOnTaskInOtherProjects(task, true,
+                    JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            }
+        });
+        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                addDependsOnTaskInOtherProjects(task, false,
+                    JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            }
+        });
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -377,10 +384,20 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        Test test = project.getTasks().create(TEST_TASK_NAME, Test.class);
-        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
-        test.setDescription("Runs the unit tests.");
-        test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
+        final Provider<Test> test = project.getTasks().register(TEST_TASK_NAME, Test.class, new Action<Test>() {
+            @Override
+            public void execute(Test test) {
+                test.setDescription("Runs the unit tests.");
+                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+            }
+        });
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(test);
+            }
+        });
     }
 
     private void configureConfigurations(Project project) {

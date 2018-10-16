@@ -41,6 +41,23 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         !localBuildCache.empty
     }
 
+    def "can enable with settings.gradle"() {
+        settingsFile << """
+            gradle.startParameter.buildCacheEnabled = true
+            buildCache {
+                local(DirectoryBuildCache) {
+                    directory = '$cacheDir'
+                }
+            }
+        """
+
+        buildFile << customTaskCode()
+
+        expect:
+        succeeds("customTask")
+        !localBuildCache.empty
+    }
+
     def "can configure with init script"() {
         def initScript = file("initBuildCache.gradle") << """
             gradle.settingsEvaluated { settings ->
@@ -55,6 +72,25 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.withBuildCacheEnabled().usingInitScript(initScript)
+        succeeds("customTask")
+        !localBuildCache.empty
+    }
+
+    def "can enable with init script"() {
+        def initScript = file("initBuildCache.gradle") << """
+            gradle.startParameter.buildCacheEnabled = true
+            gradle.settingsEvaluated { settings ->
+                settings.buildCache {
+                    local(DirectoryBuildCache) {
+                        directory = '$cacheDir'
+                    }
+                }
+            }
+        """
+        buildFile << customTaskCode()
+
+        expect:
+        executer.usingInitScript(initScript)
         succeeds("customTask")
         !localBuildCache.empty
     }

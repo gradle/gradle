@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaContentRoot
@@ -115,6 +116,7 @@ idea.module.testOutputDir = file('someTestDir')
         module.compilerOutput.testOutputDir == file('someTestDir')
     }
 
+    @TargetGradleVersion(">=2.6 <5.0")
     def "provides source dir information"() {
 
         file('build.gradle').text = "apply plugin: 'java'"
@@ -164,6 +166,7 @@ idea.module.excludeDirs += file('foo')
         module.contentRoots[0].excludeDirectories.any { it.path.endsWith 'foo' }
     }
 
+    @ToolingApiVersion(">3.1")
     def "provides dependencies"() {
 
         def fakeRepo = file("repo")
@@ -215,7 +218,7 @@ project(':impl') {
         lib.scope.scope == 'TEST'
 
         IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
-        mod.dependencyModule == project.modules.find { it.name == 'api'}
+        mod.targetModuleName == 'api'
         if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'
         } else {
@@ -223,7 +226,7 @@ project(':impl') {
         }
     }
 
-    @TargetGradleVersion('>=1.2 <=2.7')
+    @TargetGradleVersion('>=2.6 <=2.7')
     def "makes sure module names are unique"() {
 
         file('build.gradle').text = """
@@ -255,8 +258,8 @@ project(':contrib:impl') {
         IdeaModule impl = project.modules.find { it.name == 'impl' }
         IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
 
-        impl.dependencies[0].dependencyModule        == project.modules.find { it.name == 'api' }
-        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        impl.dependencies[0].targetModuleName == 'api'
+        contribImpl.dependencies[0].targetModuleName == 'contrib-api'
     }
 
     def "module has access to gradle project and its tasks"() {
@@ -288,6 +291,7 @@ project(':impl') {
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
 
+    @ToolingApiVersion(">3.1")
     def "offline model should not resolve external dependencies"() {
 
         file('build.gradle').text = """
@@ -318,7 +322,7 @@ project(':impl') {
             libs.size() == 1
         }
         libs.each {
-            it.dependencyModule == project.modules.find { it.name == 'api' }
+            it.targetModuleName == 'api'
         }
     }
 }

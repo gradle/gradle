@@ -44,7 +44,6 @@ import org.w3c.dom.Element
  * Takes the following as input:
  * <ul>
  * <li>A source docbook XML file.</li>
- * <li>A directory containing the snippets for the samples to be included in the document, as produced by {@link ExtractSnippetsTask}.</li>
  * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  *
@@ -71,10 +70,6 @@ class UserGuideTransformTask extends DefaultTask {
     File destFile
 
     @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
-    File snippetsDir
-
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @Optional
     FileCollection includes
@@ -94,9 +89,6 @@ class UserGuideTransformTask extends DefaultTask {
         websiteUrl
     }
 
-    @Internal
-    final SampleElementValidator validator = new SampleElementValidator()
-
     @TaskAction
     def transform() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
@@ -109,7 +101,6 @@ class UserGuideTransformTask extends DefaultTask {
         use(BuildableDOMCategory) {
             addVersionInfo(doc)
             applyConditionalChunks(doc)
-            transformSamples(doc)
             transformApiLinks(doc)
             transformWebsiteLinks(doc)
             fixProgramListings(doc)
@@ -185,92 +176,6 @@ class UserGuideTransformTask extends DefaultTask {
                 }
                 element.setAttribute('url', url)
             }
-        }
-    }
-
-    def transformSamples(Document doc) {
-        String lastTitle
-        String lastId
-        Element lastExampleElement
-        findAll(doc, 'sample').each { Element sampleElement ->
-
-            validator.validate(sampleElement)
-
-            String sampleId = sampleElement.'@id'
-            String srcDir = sampleElement.'@dir'
-
-            // This class handles the responsibility of adding the location tips to the first child of first
-            // example defined in the sample.
-            SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, sampleElement, srcDir)
-            SampleLayoutHandler layoutHandler = new SampleLayoutHandler(srcDir)
-
-            String title = sampleElement.'@title'
-
-            Element exampleElement = lastExampleElement
-
-            if (lastId!=sampleId || lastTitle!=title) {
-                Element titleElement = doc.createElement('title')
-                titleElement.appendChild(doc.createTextNode(title))
-                exampleElement = doc.createElement('example')
-                exampleElement.setAttribute('id', sampleId)
-                exampleElement.appendChild(titleElement)
-            }
-            lastId = sampleId
-            lastTitle = title
-            lastExampleElement = exampleElement
-
-            sampleElement.children().each { Element child ->
-                if (child.name() == 'sourcefile') {
-                    String file = child.'@file'
-
-                    Element sourceFileTitle = doc.createElement("para")
-                    Element commandElement = doc.createElement('filename')
-                    commandElement.appendChild(doc.createTextNode(file))
-                    sourceFileTitle.appendChild(commandElement)
-                    exampleElement.appendChild(sourceFileTitle)
-
-                    Element programListingElement = doc.createElement('programlisting')
-                    if (file.endsWith('.gradle') || file.endsWith('.groovy') || file.endsWith('.java')) {
-                        programListingElement.setAttribute('language', 'java')
-                    } else if (file.endsWith('.xml')) {
-                        programListingElement.setAttribute('language', 'xml')
-                    }
-                    File srcFile
-                    String snippet = child.'@snippet'
-                    if (snippet) {
-                        srcFile = new File(snippetsDir, "$srcDir/$file-$snippet")
-                    } else {
-                        srcFile = new File(snippetsDir, "$srcDir/$file")
-                    }
-                    programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
-                    exampleElement.appendChild(programListingElement)
-                } else if (child.name() == 'output') {
-                    String args = child.'@args'
-                    String outputFile = child.'@outputFile' ?: "${sampleId}.out"
-                    boolean hidden = child.'@hidden' ?: false
-                    String executable = child.'@executable' ?: 'gradle'
-
-                    if (!hidden) {
-                        Element outputTitle = doc.createElement("para")
-                        outputTitle.appendChild(doc.createTextNode("Output of "))
-                        Element commandElement = doc.createElement('userinput')
-                        commandElement.appendChild(doc.createTextNode("$executable $args"))
-                        outputTitle.appendChild(commandElement)
-                        exampleElement.appendChild(outputTitle)
-
-                        Element screenElement = doc.createElement('screen')
-                        File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
-                        screenElement.appendChild(doc.createTextNode("> $executable $args\n" + normalise(srcFile.text)))
-                        exampleElement.appendChild(screenElement)
-                    }
-                } else if (child.name() == 'layout') {
-                    layoutHandler.handle(child.text(), exampleElement)
-                }
-
-                locationHandler.processSampleLocation(exampleElement)
-            }
-            sampleElement.parentNode.insertBefore(exampleElement, sampleElement)
-            sampleElement.parentNode.removeChild(sampleElement)
         }
     }
 

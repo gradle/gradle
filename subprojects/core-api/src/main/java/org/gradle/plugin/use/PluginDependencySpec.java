@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -29,7 +27,6 @@ import javax.annotation.Nullable;
  * See {@link PluginDependenciesSpec} for more information about declaring plugin dependencies.
  * </p>
  */
-@Incubating
 public interface PluginDependencySpec {
 
     /**

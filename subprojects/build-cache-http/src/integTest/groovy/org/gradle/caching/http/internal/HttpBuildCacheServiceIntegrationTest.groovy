@@ -17,10 +17,10 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import spock.lang.Timeout
 
-@Timeout(120)
+@IntegrationTestTimeout(120)
 class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
 
     static final String ORIGINAL_HELLO_WORLD = """
@@ -312,7 +312,8 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().run "jar"
 
         then:
-        output.contains("java.net.UnknownHostException: invalid.invalid")
+        output.contains("java.net.UnknownHostException")
+        output.contains("invalid.invalid")
         output.contains("The remote build cache was disabled during the build due to errors.")
     }
 }

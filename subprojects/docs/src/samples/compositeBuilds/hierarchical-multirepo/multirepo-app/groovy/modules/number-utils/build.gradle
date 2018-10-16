@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+group "org.sample"
+version "1.0"
+
+repositories {
+    ivy {
+        name 'localrepo'
+        url file("../../../local-repo")
+    }
+}
+
+uploadArchives {
+    repositories {
+        add project.repositories.localrepo
+    }
+}

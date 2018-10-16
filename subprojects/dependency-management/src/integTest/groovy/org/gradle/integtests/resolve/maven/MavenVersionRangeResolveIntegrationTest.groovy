@@ -22,6 +22,10 @@ import spock.lang.Issue
 
 class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def setup() {
+        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+    }
+
     @Issue("GRADLE-3334")
     def "can resolve version range with single value specified"() {
         given:
@@ -45,6 +49,7 @@ dependencies {
 
         def resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'
@@ -91,6 +96,7 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
+        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
@@ -127,6 +133,7 @@ dependencies {
 
         def resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'
@@ -136,7 +143,7 @@ dependencies {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
                     edge("org.test:imported:[2.0,3.0)", "org.test:imported:2.1") {
-                        artifact(group: 'org.test', module: 'imported', version: '2.1', type: 'pom')
+                        artifact(group: 'org.test', module: 'imported', version: '2.1', type: 'pom').byReason("didn't match version 3.0")
                         edge("org.test:dep:2.1", "org.test:dep:2.1")
                     }
                 }

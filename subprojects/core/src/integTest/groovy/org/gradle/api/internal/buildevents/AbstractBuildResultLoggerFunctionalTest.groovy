@@ -16,11 +16,18 @@
 
 package org.gradle.api.internal.buildevents
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.fusesource.jansi.Ansi
+import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest.StyledOutput
 
 @SuppressWarnings("IntegrationTestFixtures")
-abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractIntegrationSpec {
+abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest implements RichConsoleStyling {
+    protected final String buildFailed = 'BUILD FAILED'
+    protected final String buildSuccess = 'BUILD SUCCESSFUL'
+    protected final StyledOutput buildFailedStyled = styled(buildFailed, Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
+    protected final StyledOutput buildSuccessStyled = styled(buildSuccess, Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD)
+
     def setup() {
         executer.withStackTraceChecksDisabled()
     }
@@ -35,7 +42,7 @@ abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractIntegrati
         fails('fail')
 
         then:
-        result.output.contains(failureMessage)
+        failure.assertHasRawErrorOutput(failureMessage)
     }
 
     def "Failure message is logged with appropriate styling"() {
@@ -47,7 +54,7 @@ abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractIntegrati
         fails('fail')
 
         then:
-        result.output.contains(failureMessage)
+        failure.assertHasRawErrorOutput(failureMessage)
     }
 
     def "Success message is logged with appropriate styling"() {
@@ -59,10 +66,8 @@ abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractIntegrati
         succeeds('success')
 
         then:
-        result.output.contains(successMessage)
+        result.assertRawOutputContains(successMessage)
     }
-
-    abstract ConsoleOutput getConsoleType()
 
     abstract String getFailureMessage()
 

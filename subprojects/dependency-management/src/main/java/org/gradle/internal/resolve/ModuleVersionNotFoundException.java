@@ -15,9 +15,11 @@
  */
 package org.gradle.internal.resolve;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.internal.text.TreeFormatter;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -31,7 +33,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         super(selector, message);
     }
 
-    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
+    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
     }
 
@@ -43,57 +45,85 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         super(selector, format(selector, attemptedLocations));
     }
 
-    private static String format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
-        StringBuilder builder = new StringBuilder();
+    private static String format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
+        TreeFormatter builder = new TreeFormatter();
         if (unmatchedVersions.isEmpty() && rejectedVersions.isEmpty()) {
-            builder.append(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getModule()));
+            builder.node(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getModule()));
         } else {
-            builder.append(String.format("Could not find any version that matches %s.", selector));
+            builder.node(String.format("Could not find any version that matches %s.", selector));
             if (!unmatchedVersions.isEmpty()) {
-                builder.append(String.format("%nVersions that do not match:"));
+                builder.node("Versions that do not match");
                 appendSizeLimited(builder, unmatchedVersions);
             }
             if (!rejectedVersions.isEmpty()) {
-                builder.append(String.format("%nVersions rejected by component selection rules:"));
-                appendSizeLimited(builder, rejectedVersions);
+                Collection<RejectedVersion> byRule = Lists.newArrayListWithExpectedSize(rejectedVersions.size());
+                Collection<RejectedVersion> byAttributes = Lists.newArrayListWithExpectedSize(rejectedVersions.size());
+                mapRejections(rejectedVersions, byRule, byAttributes);
+                if (!byRule.isEmpty()) {
+                    builder.node("Versions rejected by component selection rules");
+                    appendSizeLimited(builder, byRule);
+                }
+                if (!byAttributes.isEmpty()) {
+                    builder.node("Versions rejected by attribute matching");
+                    appendSizeLimited(builder, byAttributes);
+                }
             }
         }
         addLocations(builder, locations);
         return builder.toString();
     }
 
+    private static void mapRejections(Collection<RejectedVersion> in, Collection<RejectedVersion> outByRule, Collection<RejectedVersion> outByAttributes) {
+        for (RejectedVersion version : in) {
+            if (version instanceof RejectedByAttributesVersion) {
+                outByAttributes.add(version);
+            } else {
+                outByRule.add(version);
+            }
+        }
+    }
+
     private static String format(ModuleVersionIdentifier id, Collection<String> locations) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(String.format("Could not find %s.", id));
+        TreeFormatter builder = new TreeFormatter();
+        builder.node(String.format("Could not find %s.", id));
         addLocations(builder, locations);
         return builder.toString();
     }
 
     private static String format(ModuleComponentSelector selector, Collection<String> locations) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(String.format("Could not find any version that matches %s.", selector));
+        TreeFormatter builder = new TreeFormatter();
+        builder.node(String.format("Could not find any version that matches %s.", selector));
         addLocations(builder, locations);
         return builder.toString();
     }
 
-    private static void appendSizeLimited(StringBuilder builder, Collection<String> values) {
-        Iterator<String> iterator = values.iterator();
+    private static void appendSizeLimited(TreeFormatter builder, Collection<?> values) {
+        builder.startChildren();
+        Iterator<?> iterator = values.iterator();
         int count = Math.min(5, values.size());
         for (int i = 0; i < count; i++) {
-            builder.append(String.format("%n    %s", iterator.next()));
+            Object next = iterator.next();
+            if (next instanceof RejectedVersion) {
+                ((RejectedVersion) next).describeTo(builder);
+            } else {
+                builder.node(next.toString());
+            }
         }
         if (count < values.size()) {
-            builder.append(String.format("%n    + %d more", values.size() - count));
+            builder.node(String.format("+ %d more", values.size() - count));
         }
+        builder.endChildren();
     }
 
-    private static void addLocations(StringBuilder builder, Collection<String> locations) {
+    private static void addLocations(TreeFormatter builder, Collection<String> locations) {
         if (locations.isEmpty()) {
             return;
         }
-        builder.append(String.format("%nSearched in the following locations:"));
+        builder.node("Searched in the following locations");
+        builder.startChildren();
         for (String location : locations) {
-            builder.append(String.format("%n    %s", location));
+            builder.node(location);
         }
+        builder.endChildren();
     }
 }

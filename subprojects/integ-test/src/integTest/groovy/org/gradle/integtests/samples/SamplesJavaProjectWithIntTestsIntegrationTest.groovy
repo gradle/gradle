@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,8 +28,13 @@ class SamplesJavaProjectWithIntTestsIntegrationTest extends AbstractIntegrationT
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/withIntegrationTests')
 
+    @Before
+    void setup() {
+        executer.withRepositoryMirrors()
+    }
+
     @Test
-    public void canRunIntegrationTests() {
+    void canRunIntegrationTests() {
         TestFile javaprojectDir = sample.dir
 
         // Run int tests

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.operations.notify;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -38,38 +37,72 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BuildOperationNotificationBridge implements Stoppable {
+public class BuildOperationNotificationBridge {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
-
-    private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
-    private BuildOperationNotificationListener2 notificationListener;
-
-    private boolean stopped;
-
     private final ListenerManager listenerManager;
+
+    private class State {
+        private ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
+        private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
+        private BuildOperationNotificationListener notificationListener;
+
+        private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
+            if (this.notificationListener != null) {
+                throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
+            }
+            this.notificationListener = notificationListener;
+        }
+
+        private void stop() {
+            buildOperationListenerManager.removeListener(state.buildOperationListener);
+            listenerManager.removeListener(buildListener);
+        }
+    }
+
+    private State state;
+
+    private final BuildOperationNotificationValve valve = new BuildOperationNotificationValve() {
+        @Override
+        public void start() {
+            if (state != null) {
+                throw new IllegalStateException("build operation notification valve already started");
+            }
+
+            state = new State();
+            buildOperationListenerManager.addListener(state.buildOperationListener);
+        }
+
+
+        @Override
+        public void stop() {
+            if (state != null) {
+                state.stop();
+                state = null;
+            }
+        }
+    };
 
     // Listen for the end of configuration of the root project of the root build,
     // and discard buffered notifications if no listeners have yet appeared.
     // This avoids buffering until the end of the build when no listener comes.
-    private final BuildListener buildListener = new BuildAdapter() {
+    private final BuildListener buildListener = new InternalBuildAdapter() {
         public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
-                gradle.rootProject(new Action<Project>() {
+                gradle.rootProject(new InternalAction<Project>() {
                     @Override
                     public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                        project.afterEvaluate(new Action<Project>() {
+                        project.afterEvaluate(new InternalAction<Project>() {
                             @Override
                             public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                                if (notificationListener == null) {
-                                    stop();
+                                State s = state;
+                                if (s != null && s.notificationListener == null) {
+                                    valve.stop();
                                 }
                             }
                         });
@@ -80,36 +113,27 @@ public class BuildOperationNotificationBridge implements Stoppable {
     };
 
     private final BuildOperationNotificationListenerRegistrar registrar = new BuildOperationNotificationListenerRegistrar() {
-        @Override
-        public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
-            BuildOperationNotificationListener2 adapted = adapt(notificationListener);
-            assignSingleListener(adapted);
 
-            // Remove the old adapter and start again.
-            // We explicitly do not want to receive finish notifications
-            // for any operations currently in flight,
-            // and we want to throw away the recorded notifications.
-            buildOperationListenerManager.removeListener(buildOperationListener);
-            buildOperationListener = new Adapter(adapted);
-            buildOperationListenerManager.addListener(buildOperationListener);
+        @Override
+        public void register(BuildOperationNotificationListener listener) {
+            State state = requireState();
+            state.assignSingleListener(listener);
+            state.replayAndAttachListener.attach(listener);
         }
 
-        @Override
-        public void registerBuildScopeListenerAndReceiveStoredOperations(BuildOperationNotificationListener notificationListener) {
-            register(adapt(notificationListener));
-        }
+        private State requireState() {
+            State s = state;
+            if (s == null) {
+                throw new IllegalStateException("state is null");
+            }
 
-        @Override
-        public void register(BuildOperationNotificationListener2 listener) {
-            assignSingleListener(listener);
-            replayAndAttachListener.attach(listener);
+            return s;
         }
     };
 
     public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.listenerManager = listenerManager;
-        buildOperationListenerManager.addListener(buildOperationListener);
         listenerManager.addListener(buildListener);
     }
 
@@ -117,21 +141,8 @@ public class BuildOperationNotificationBridge implements Stoppable {
         return registrar;
     }
 
-    private void assignSingleListener(BuildOperationNotificationListener2 notificationListener) {
-        if (this.notificationListener != null) {
-            throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
-        }
-        this.notificationListener = notificationListener;
-    }
-
-    @Override
-    public void stop() {
-        if (!stopped) {
-            buildOperationListenerManager.removeListener(buildOperationListener);
-            buildOperationListener = null;
-            listenerManager.removeListener(buildListener);
-            stopped = true;
-        }
+    public BuildOperationNotificationValve getValve() {
+        return valve;
     }
 
     /*
@@ -143,19 +154,19 @@ public class BuildOperationNotificationBridge implements Stoppable {
      */
     private static class Adapter implements BuildOperationListener {
 
-        private final BuildOperationNotificationListener2 notificationListener;
+        private final BuildOperationNotificationListener notificationListener;
 
-        private final Map<Object, Object> parents = new ConcurrentHashMap<Object, Object>();
-        private final Map<Object, Object> active = new ConcurrentHashMap<Object, Object>();
+        private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
+        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<OperationIdentifier, Object>();
 
-        private Adapter(BuildOperationNotificationListener2 notificationListener) {
+        private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            Object id = buildOperation.getId();
-            Object parentId = buildOperation.getParentId();
+            OperationIdentifier id = buildOperation.getId();
+            OperationIdentifier parentId = buildOperation.getParentId();
 
             if (parentId != null) {
                 if (active.containsKey(parentId)) {
@@ -198,7 +209,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
             }
 
             // Find the nearest parent up that we care about and use that as the parent.
-            Object owner = findOwner(buildOperationId);
+            OperationIdentifier owner = findOwner(buildOperationId);
             if (owner == null) {
                 return;
             }
@@ -206,7 +217,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
             notificationListener.progress(new Progress(owner, progressEvent.getTime(), details));
         }
 
-        private Object findOwner(Object id) {
+        private OperationIdentifier findOwner(OperationIdentifier id) {
             if (active.containsKey(id)) {
                 return id;
             } else {
@@ -216,8 +227,8 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            Object id = buildOperation.getId();
-            Object parentId = parents.remove(id);
+            OperationIdentifier id = buildOperation.getId();
+            OperationIdentifier parentId = parents.remove(id);
             if (active.remove(id) == null) {
                 return;
             }
@@ -233,7 +244,7 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
     }
 
-    private static class RecordingListener implements BuildOperationNotificationListener2 {
+    private static class RecordingListener implements BuildOperationNotificationListener {
 
         private final Queue<Object> storedEvents = new ConcurrentLinkedQueue<Object>();
 
@@ -254,16 +265,16 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
     }
 
-    private static class ReplayAndAttachListener implements BuildOperationNotificationListener2 {
+    private static class ReplayAndAttachListener implements BuildOperationNotificationListener {
 
         private RecordingListener recordingListener = new RecordingListener();
 
-        private volatile BuildOperationNotificationListener2 listener = recordingListener;
+        private volatile BuildOperationNotificationListener listener = recordingListener;
 
-        private final AtomicBoolean needLock = new AtomicBoolean(true);
+        private boolean needLock = true;
         private final Lock lock = new ReentrantLock();
 
-        private synchronized void attach(BuildOperationNotificationListener2 realListener) {
+        private void attach(BuildOperationNotificationListener realListener) {
             lock.lock();
             try {
                 for (Object storedEvent : recordingListener.storedEvents) {
@@ -280,13 +291,13 @@ public class BuildOperationNotificationBridge implements Stoppable {
                 this.recordingListener = null; // release
             } finally {
                 lock.unlock();
-                needLock.set(false);
+                needLock = false;
             }
         }
 
         @Override
-        public synchronized void started(BuildOperationStartedNotification notification) {
-            if (needLock.get()) {
+        public void started(BuildOperationStartedNotification notification) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.started(notification);
@@ -299,8 +310,8 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
 
         @Override
-        public synchronized void progress(BuildOperationProgressNotification notification) {
-            if (needLock.get()) {
+        public void progress(BuildOperationProgressNotification notification) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.progress(notification);
@@ -313,8 +324,8 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
 
         @Override
-        public synchronized void finished(BuildOperationFinishedNotification notification) {
-            if (needLock.get()) {
+        public void finished(BuildOperationFinishedNotification notification) {
+            if (needLock) {
                 lock.lock();
                 try {
                     listener.finished(notification);
@@ -326,17 +337,20 @@ public class BuildOperationNotificationBridge implements Stoppable {
             }
         }
 
+        public void reset() {
+
+        }
     }
 
     private static class Started implements BuildOperationStartedNotification {
 
         private final long timestamp;
 
-        private final Object id;
-        private final Object parentId;
+        private final OperationIdentifier id;
+        private final OperationIdentifier parentId;
         private final Object details;
 
-        private Started(long timestamp, Object id, Object parentId, Object details) {
+        private Started(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -378,12 +392,12 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
     private static class Progress implements BuildOperationProgressNotification {
 
-        private final Object id;
+        private final OperationIdentifier id;
 
         private final long timestamp;
         private final Object details;
 
-        public Progress(Object id, long timestamp, Object details) {
+        Progress(OperationIdentifier id, long timestamp, Object details) {
             this.id = id;
             this.timestamp = timestamp;
             this.details = details;
@@ -410,13 +424,13 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
         private final long timestamp;
 
-        private final Object id;
-        private final Object parentId;
+        private final OperationIdentifier id;
+        private final OperationIdentifier parentId;
         private final Object details;
         private final Object result;
         private final Throwable failure;
 
-        private Finished(long timestamp, Object id, Object parentId, Object details, Object result, Throwable failure) {
+        private Finished(long timestamp, OperationIdentifier id, OperationIdentifier parentId, Object details, Object result, Throwable failure) {
             this.timestamp = timestamp;
             this.id = id;
             this.parentId = parentId;
@@ -469,22 +483,4 @@ public class BuildOperationNotificationBridge implements Stoppable {
         }
     }
 
-    private static BuildOperationNotificationListener2 adapt(final BuildOperationNotificationListener listener) {
-        return new BuildOperationNotificationListener2() {
-            @Override
-            public void started(BuildOperationStartedNotification notification) {
-                listener.started(notification);
-            }
-
-            @Override
-            public void progress(BuildOperationProgressNotification notification) {
-
-            }
-
-            @Override
-            public void finished(BuildOperationFinishedNotification notification) {
-                listener.finished(notification);
-            }
-        };
-    }
 }

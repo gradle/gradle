@@ -52,7 +52,9 @@ import java.util.Collection;
  * </pre>
  *
  * @see FindBugsPlugin
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
+@Deprecated
 public class FindBugsExtension extends CodeQualityExtension {
 
     private final Project project;
@@ -150,7 +152,6 @@ public class FindBugsExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Nullable
-    @Incubating
     public TextResource getIncludeFilterConfig() {
         return includeFilterConfig;
     }
@@ -160,7 +161,6 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setIncludeFilterConfig(@Nullable TextResource includeFilterConfig) {
         this.includeFilterConfig = includeFilterConfig;
     }
@@ -189,7 +189,6 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     @Nullable
     public TextResource getExcludeFilterConfig() {
         return excludeFilterConfig;
@@ -200,7 +199,6 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @Incubating
     public void setExcludeFilterConfig(@Nullable TextResource excludeFilterConfig) {
         this.excludeFilterConfig = excludeFilterConfig;
     }
@@ -229,7 +227,6 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.4
      */
-    @Incubating
     @Nullable
     public TextResource getExcludeBugsFilterConfig() {
         return excludeBugsFilterConfig;
@@ -240,7 +237,6 @@ public class FindBugsExtension extends CodeQualityExtension {
      *
      * @since 2.4
      */
-    @Incubating
     public void setExcludeBugsFilterConfig(@Nullable TextResource excludeBugsFilterConfig) {
         this.excludeBugsFilterConfig = excludeBugsFilterConfig;
     }

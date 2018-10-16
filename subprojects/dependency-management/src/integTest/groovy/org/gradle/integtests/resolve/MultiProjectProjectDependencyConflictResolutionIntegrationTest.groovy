@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildState
+
 class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends AbstractProjectDependencyConflictResolutionIntegrationSpec {
 
     @Override
@@ -25,7 +28,7 @@ class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends Abs
 
     @Override
     String getBuildId() {
-        "((org.gradle.api.internal.project.ProjectInternal) project).getServices().get(org.gradle.initialization.BuildIdentity.class).getCurrentBuild()"
+        "((${ProjectInternal.name}) project).getServices().get(${BuildState.name}.class).getBuildIdentifier()"
     }
 
     @Override

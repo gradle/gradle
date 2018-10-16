@@ -26,18 +26,17 @@ import javax.annotation.Nullable;
 
 @UsedByScanPlugin
 public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
+    public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
+    public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";
+
     private final OperationIdentifier progressOperationId;
     private final OperationIdentifier parentProgressOperationId;
     private final String description;
-    private final String shortDescription;
-    private final String loggingHeader;
+    private final @Nullable String loggingHeader;
     private final String status;
     private final int totalProgress;
-
     private final boolean buildOperationStart;
-
-    private final OperationIdentifier buildOperationId;
-    private final OperationIdentifier parentBuildOperationId;
+    private final @Nullable OperationIdentifier buildOperationId;
     private final BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(
@@ -46,26 +45,22 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         long timestamp,
         String category,
         String description,
-        @Nullable String shortDescription,
         @Nullable String loggingHeader,
         String status,
         int totalProgress,
         boolean buildOperationStart,
         @Nullable OperationIdentifier buildOperationId,
-        @Nullable OperationIdentifier parentBuildOperationId,
         @Nullable BuildOperationCategory buildOperationCategory
     ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
         this.description = description;
-        this.shortDescription = shortDescription;
         this.loggingHeader = loggingHeader;
         this.status = status;
         this.totalProgress = totalProgress;
         this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
-        this.parentBuildOperationId = parentBuildOperationId;
         this.buildOperationCategory = buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
     }
 
@@ -76,11 +71,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     public String getDescription() {
         return description;
-    }
-
-    @Nullable
-    public String getShortDescription() {
-        return shortDescription;
     }
 
     @Nullable
@@ -98,7 +88,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     @Override
     public String toString() {
-        return "ProgressStart " + description;
+        return "ProgressStart (p:" + progressOperationId + " parent p:" + parentProgressOperationId + " b:" + buildOperationId + ") " + description;
     }
 
     public OperationIdentifier getProgressOperationId() {
@@ -113,18 +103,19 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
         return buildOperationStart;
     }
 
+    /**
+     * When this event is a build operation start event, this property will be non-null and will have the same value as {@link #getProgressOperationId()}.
+     */
     @Nullable
     public OperationIdentifier getBuildOperationId() {
         return buildOperationId;
-    }
-
-    @Nullable
-    public OperationIdentifier getParentBuildOperationId() {
-        return parentBuildOperationId;
     }
 
     public BuildOperationCategory getBuildOperationCategory() {
         return buildOperationCategory;
     }
 
+    public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+    }
 }

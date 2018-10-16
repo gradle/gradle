@@ -18,14 +18,10 @@ package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
 
 
@@ -34,45 +30,25 @@ import java.util.Set;
  */
 public final class AggregatingProcessor extends DelegatingProcessor {
 
-    private final AnnotationProcessingResult result;
-    private Messager messager;
+    private final IncrementalProcessingStrategy strategy;
 
     public AggregatingProcessor(Processor delegate, AnnotationProcessingResult result) {
         super(delegate);
-        this.result = result;
+        this.strategy = new AggregatingProcessingStrategy(result);
     }
 
     @Override
     public final void init(ProcessingEnvironment processingEnv) {
-        messager = processingEnv.getMessager();
-        IncrementalFiler incrementalFiler = new AggregatingFiler(processingEnv.getFiler(), result, messager);
+        IncrementalFiler incrementalFiler = new IncrementalFiler(processingEnv.getFiler(), strategy);
         IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalProcessingEnvironment);
     }
 
     @Override
     public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        validateAnnotations(annotations);
-        recordAggregatedTypes(annotations, roundEnv);
+        strategy.recordProcessingInputs(getSupportedAnnotationTypes(), annotations, roundEnv);
         return super.process(annotations, roundEnv);
     }
 
-    private void validateAnnotations(Set<? extends TypeElement> annotations) {
-        for (TypeElement annotation : annotations) {
-            Retention retention = annotation.getAnnotation(Retention.class);
-            if (retention != null && retention.value() == RetentionPolicy.SOURCE) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "'@" + annotation.getSimpleName() + "' has source retention. Aggregating annotation processors require class or runtime retention.");
-            }
-        }
-    }
 
-    private void recordAggregatedTypes(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        if (getSupportedAnnotationTypes().contains("*")) {
-            result.getAggregatedTypes().addAll(ElementUtils.getTopLevelTypeNames(roundEnv.getRootElements()));
-        } else {
-            for (TypeElement annotation : annotations) {
-                result.getAggregatedTypes().addAll(ElementUtils.getTopLevelTypeNames(roundEnv.getElementsAnnotatedWith(annotation)));
-            }
-        }
-    }
 }

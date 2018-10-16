@@ -15,19 +15,25 @@
  */
 package org.gradle.integtests.samples.dependencymanagement
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
-class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
+class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    def "can run resolveConfiguration sample"() {
-        executer.inDirectory(sample.dir)
+    def "can run resolveConfiguration sample with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         run "resolveConfiguration"
@@ -36,22 +42,30 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         output.contains "Rejected version: 1.5"
         output.contains "Rejected version: 1.4"
         output.contains "** Accepted version: 1.3.0"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    def "can run reject sample"() {
-        executer.inDirectory(sample.dir)
+    def "can run reject sample with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         run "printRejectConfig"
 
         then:
         output.contains "Resolved: api-1.4.jar"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    def "can run metadata rules sample"() {
-        executer.inDirectory(sample.dir)
+    def "can run metadata rules sample with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         run "printMetadataRulesConfig"
@@ -59,27 +73,38 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractIntegrationS
         then:
         output.contains "Resolved: api-1.3.0.jar"
         output.contains "Resolved: lib-1.9.jar"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    def "can run targeted rule sample"() {
-        executer.inDirectory(sample.dir)
+    def "can run targeted rule sample with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         run "printTargetConfig"
 
         then:
         output.contains "Resolved: api-1.4.jar"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    def "can run rules source sample"() {
-        executer.inDirectory(sample.dir)
+    def "can run rules source sample with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         run "printRuleSourceConfig"
 
         then:
         output.contains "Resolved: api-1.4.jar"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

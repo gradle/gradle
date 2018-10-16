@@ -16,9 +16,7 @@
 
 package org.gradle.caching.local;
 
-import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
@@ -45,29 +43,8 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * The directory is evaluated as per {@code Project.file(Object)}.
      */
-    public void setDirectory(Object directory) {
+    public void setDirectory(@Nullable Object directory) {
         this.directory = directory;
-    }
-
-    /**
-     * Used to be the target size of the build cache in megabytes, now returns {@code 0}.
-     *
-     * @deprecated Use {@link #getRemoveUnusedEntriesAfterDays()} instead.
-     */
-    @Deprecated
-    public long getTargetSizeInMB() {
-        DeprecationLogger.nagUserOfReplacedMethod("DirectoryBuildCache.getTargetSizeInMB()", "getRemoveUnusedEntriesAfterDays()");
-        return 0;
-    }
-
-    /**
-     * Used to set the target size of the build cache in megabytes, now has no effect.
-     *
-     * @deprecated Use {@link #setRemoveUnusedEntriesAfterDays(int)} instead.
-     */
-    @Deprecated
-    public void setTargetSizeInMB(long targetSizeInMB) {
-        DeprecationLogger.nagUserOfReplacedMethod("DirectoryBuildCache.setTargetSizeInMB()", "setRemoveUnusedEntriesAfterDays()");
     }
 
     /**
@@ -75,7 +52,6 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * @since 4.6
      */
-    @Incubating
     public int getRemoveUnusedEntriesAfterDays() {
         return removeUnusedEntriesAfterDays;
     }
@@ -87,7 +63,6 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * @since 4.6
      */
-    @Incubating
     public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
         if (removeUnusedEntriesAfterDays < 1) {
             throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");

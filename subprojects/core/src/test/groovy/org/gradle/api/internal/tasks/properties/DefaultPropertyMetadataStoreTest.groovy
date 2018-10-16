@@ -43,6 +43,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
@@ -96,6 +97,10 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             SearchPath
         }
 
+        @Override
+        boolean shouldVisit(PropertyVisitor visitor) {
+            return true
+        }
 
         @Override
         void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
@@ -109,7 +114,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             annotatedProperties << propertyInfo.propertyName
         }
         def annotationHandler = new SearchPathAnnotationHandler(configureAction)
-        def metadataStore = new DefaultPropertyMetadataStore([annotationHandler])
+        def metadataStore = new DefaultPropertyMetadataStore([annotationHandler], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation).propertiesMetadata
@@ -135,7 +140,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "can make property internal and then make it into another type of property"() {
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         expect:
         isOfType(metadataStore.getTypeMetadata(TaskWithInputFile).propertiesMetadata.first(), InputFile)
@@ -157,7 +162,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
         def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
@@ -186,7 +191,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
         def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
@@ -215,7 +220,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
         def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
@@ -239,7 +244,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata
@@ -271,7 +276,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
 
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath does not take precedence over @InputFiles when overriding properties in child type"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(OverridingClasspathPropertyTask).propertiesMetadata
@@ -292,7 +297,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "warns about both method and field having the same annotation"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotation).propertiesMetadata.first()
@@ -311,7 +316,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "doesn't warn about both method and field having the same irrelevant annotation"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotationButIrrelevant).propertiesMetadata.first()
@@ -337,7 +342,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "warns about annotations on private properties"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def metadata = metadataStore.getTypeMetadata(TaskWithAnnotationsOnPrivateProperties).propertiesMetadata
@@ -360,7 +365,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "warns about conflicting property types being specified"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def metadata = metadataStore.getTypeMetadata(TaskWithConflictingPropertyTypes).propertiesMetadata
@@ -379,7 +384,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "doesn't warn about non-conflicting property types being specified"() {
-        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
+        def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def metadata = metadataStore.getTypeMetadata(TaskWithNonConflictingPropertyTypes).propertiesMetadata
@@ -404,7 +409,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "can get annotated properties of simple task"() {
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
@@ -438,7 +443,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "overridden properties inherit super-class annotations"() {
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(OverridingTask).propertiesMetadata
@@ -460,7 +465,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     def "implemented properties inherit interface annotations"() {
-        def metadataStore = new DefaultPropertyMetadataStore([])
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(InterfaceImplementingTask).propertiesMetadata
@@ -490,8 +495,8 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2115")
-    def "annotation on private filed is recognized for is-getter"() {
-        def metadataStore = new DefaultPropertyMetadataStore([])
+    def "annotation on private field is recognized for is-getter"() {
+        def metadataStore = new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(IsGetterTask).propertiesMetadata

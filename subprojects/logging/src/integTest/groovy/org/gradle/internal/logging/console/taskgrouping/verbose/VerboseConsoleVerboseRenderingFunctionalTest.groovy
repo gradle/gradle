@@ -40,7 +40,7 @@ task upToDate{
         succeeds('upToDate')
 
         then:
-        result.output.contains("> Task :upToDate")
-        !result.output.contains("${SystemProperties.instance.lineSeparator}> Task :upToDate")
+        result.normalizedOutput.contains("> Task :upToDate")
+        !result.normalizedOutput.contains("${SystemProperties.instance.lineSeparator}> Task :upToDate")
     }
 }

@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -37,6 +37,7 @@ public class DaemonParameters {
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens", "java.base/java.util=ALL-UNNAMED");
 
     private final File gradleUserHomeDir;
 
@@ -52,7 +53,6 @@ public class DaemonParameters {
     private boolean foreground;
     private boolean stop;
     private boolean status;
-    private boolean interactive = ConsoleStateUtil.isInteractive();
     private JavaInfo jvm = Jvm.current();
 
     public DaemonParameters(BuildLayoutParameters layout) {
@@ -69,10 +69,6 @@ public class DaemonParameters {
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
         envVariables = new HashMap<String, String>(System.getenv());
-    }
-
-    public boolean isInteractive() {
-        return interactive;
     }
 
     public boolean isEnabled() {
@@ -126,6 +122,10 @@ public class DaemonParameters {
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+            jvmOptions.jvmArgs(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
+            jvmOptions.jvmArgs(GroovyJpmsWorkarounds.SUPPRESS_COMMON_GROOVY_WARNINGS);
+        }
         if (hasJvmArgs) {
             return;
         }

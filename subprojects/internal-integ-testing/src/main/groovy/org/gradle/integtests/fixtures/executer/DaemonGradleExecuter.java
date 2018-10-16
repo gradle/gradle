@@ -15,9 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
@@ -29,21 +26,34 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
+
+    private boolean daemonExplicitlyRequired;
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
-        requireDaemon();
+        super.requireDaemon();
     }
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
-        requireDaemon();
+        super.requireDaemon();
+    }
+
+    @Override
+    public GradleExecuter requireDaemon() {
+        daemonExplicitlyRequired = true;
+        return super.requireDaemon();
     }
 
     @Override
     protected void validateDaemonVisibility() {
-        // Ignore. Should really ignore only when daemon has not been explicitly enabled or disabled
+        if (isDaemonExplicitlyRequired()) {
+            super.validateDaemonVisibility();
+        }
+    }
+
+    protected boolean isDaemonExplicitlyRequired() {
+        return daemonExplicitlyRequired || resolveCliDaemonArgument() == CliDaemonArgument.DAEMON;
     }
 
     @Override
@@ -61,24 +71,6 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         }
 
         return args;
-    }
-
-    @Override
-    protected List<String> getImplicitBuildJvmArgs() {
-        if (!isUseDaemon() || !isSharedDaemons()) {
-            return super.getImplicitBuildJvmArgs();
-        }
-
-        // Add JVM heap settings only for shared daemons
-        List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
-
-        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
-            buildJvmOpts.add("-XX:MaxPermSize=320m");
-        }
-
-        buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
-        buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
-        return buildJvmOpts;
     }
 
     @Override

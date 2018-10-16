@@ -25,11 +25,12 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
  * should not be required.
  */
 class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -90,8 +91,8 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause """A conflict was found between the following modules:
- - org:foo:1.0
- - org:foo:1.1"""
+  - org:foo:1.0
+  - org:foo:1.1"""
     }
 
     void "dependency substitution rules are applied to dependency constraints"() {

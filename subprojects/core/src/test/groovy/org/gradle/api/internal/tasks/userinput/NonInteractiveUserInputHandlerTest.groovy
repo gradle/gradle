@@ -20,12 +20,20 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class NonInteractiveUserInputHandlerTest extends Specification {
-
-    private static final String TEXT = 'Accept license?'
     @Subject def userInputHandler = new NonInteractiveUserInputHandler()
 
-    def "always returns null"() {
+    def "always returns null for yes/no question"() {
         expect:
-        !userInputHandler.askYesNoQuestion(TEXT)
+        !userInputHandler.askYesNoQuestion('Accept license?')
+    }
+
+    def "always returns default for select question"() {
+        expect:
+        userInputHandler.selectOption('Select count', [1, 2, 3], 2) == 2
+    }
+
+    def "always returns default for text question"() {
+        expect:
+        userInputHandler.askQuestion('Enter something', 'ok') == 'ok'
     }
 }

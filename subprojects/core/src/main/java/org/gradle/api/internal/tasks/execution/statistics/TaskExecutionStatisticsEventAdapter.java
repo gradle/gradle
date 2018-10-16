@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.tasks.execution.statistics;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.internal.InternalBuildAdapter;
 
-public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements BuildListener, TaskExecutionListener {
+public class TaskExecutionStatisticsEventAdapter extends InternalBuildAdapter implements BuildListener, TaskExecutionListener {
     private final TaskExecutionStatisticsListener listener;
     private int executedTasksCount;
     private int fromCacheTaskCount;

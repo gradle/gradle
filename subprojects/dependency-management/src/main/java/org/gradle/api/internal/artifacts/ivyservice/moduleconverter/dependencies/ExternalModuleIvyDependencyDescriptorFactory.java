@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
@@ -40,11 +41,14 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable());
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+            ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(),
+            dependency.getAttributes());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                componentId, selector, clientConfiguration, clientAttributes, dependency.getTargetConfiguration(),
+                componentId, selector, clientConfiguration, clientAttributes, dependency.getAttributes(), dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 excludes, force, changing, transitive, false, dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);

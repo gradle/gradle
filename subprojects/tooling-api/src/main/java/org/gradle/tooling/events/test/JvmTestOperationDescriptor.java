@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -26,7 +24,6 @@ import javax.annotation.Nullable;
  *
  * @since 2.4
  */
-@Incubating
 public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
 
     /**

@@ -18,79 +18,81 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
+import org.gradle.util.Requires
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.Matchers.containsString
 
-class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
-
-    static final String JAVA_PROJECT_NAME = 'java/multiproject'
+@Requires(KOTLIN_SCRIPT)
+@LeaksFileHandles
+class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
     static final String WEBAPP_NAME = 'webservice'
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
-    private TestFile javaprojectDir
-    private List projects;
-
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
 
-    @Before
-    void setUp() {
-        javaprojectDir = sample.dir
-        projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
+    def setup() {
+        // java/multiproject sample contains buildSrc, which needs global init script to make mirror work
+        executer.withGlobalRepositoryMirrors()
     }
 
-    @Test
-    void multiProjectJavaProjectSample() {
+    @Unroll
+    def "multi project Java project sample with #dsl dsl"() {
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('build').run()
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir).withTasks('build').run()
 
-        assertBuildSrcBuilt()
-        assertEverythingBuilt()
+        assertBuildSrcBuilt(dslDir)
+        assertEverythingBuilt(dslDir)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    private void assertBuildSrcBuilt() {
-        TestFile buildSrcDir = javaprojectDir.file('buildSrc')
+    private void assertBuildSrcBuilt(TestFile dslDir) {
+        TestFile buildSrcDir = dslDir.file('buildSrc')
 
         buildSrcDir.file('build/libs/buildSrc.jar').assertIsFile()
         def result = new DefaultTestExecutionResult(buildSrcDir)
         result.assertTestClassesExecuted('org.gradle.buildsrc.BuildSrcClassTest')
     }
 
-    private void assertEverythingBuilt() {
+    private void assertEverythingBuilt(TestFile dslDir) {
         String packagePrefix = 'build/classes/java/main/org/gradle'
         String testPackagePrefix = 'build/classes/java/test/org/gradle'
         String resPackagePrefix = 'build/resources/main/org/gradle'
         String testResPackagePrefix = 'build/resources/test/org/gradle'
 
         // Check classes and resources
-        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        assertExists(javaprojectDir, SHARED_NAME, resPackagePrefix, SHARED_NAME, 'main.properties')
+        assertExists(dslDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
+        assertExists(dslDir, SHARED_NAME, resPackagePrefix, SHARED_NAME, 'main.properties')
 
         // Check test classes and resources
-        assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
-        assertExists(javaprojectDir, SHARED_NAME, testResPackagePrefix, SHARED_NAME, 'test.properties')
-        assertExists(javaprojectDir, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
-        assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
+        assertExists(dslDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
+        assertExists(dslDir, SHARED_NAME, testResPackagePrefix, SHARED_NAME, 'test.properties')
+        assertExists(dslDir, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+        assertExists(dslDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
         // Check test results and report
-        def result = new DefaultTestExecutionResult(javaprojectDir.file(SHARED_NAME))
+        def result = new DefaultTestExecutionResult(dslDir.file(SHARED_NAME))
         result.assertTestClassesExecuted('org.gradle.shared.PersonTest')
 
-        result = new DefaultTestExecutionResult(javaprojectDir.file(WEBAPP_PATH))
+        result = new DefaultTestExecutionResult(dslDir.file(WEBAPP_PATH))
         result.assertTestClassesExecuted('org.gradle.webservice.TestTestTest')
 
         // Check contents of shared jar
         TestFile tmpDir = file("$SHARED_NAME-1.0.jar")
-        javaprojectDir.file(SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar").unzipTo(tmpDir)
+        dslDir.file(SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/shared/Person.class',
@@ -101,7 +103,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
         // Check contents of API jar
         tmpDir = file("$API_NAME-1.0.jar")
-        javaprojectDir.file(API_NAME, "build/libs/$API_NAME-1.0.jar").unzipTo(tmpDir)
+        dslDir.file(API_NAME, "build/libs/$API_NAME-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/api/PersonList.class',
@@ -109,14 +111,14 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
         // Check contents of API jar
         tmpDir = file("$API_NAME-spi-1.0.jar")
-        javaprojectDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar").unzipTo(tmpDir)
+        dslDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/api/PersonList.class')
 
         // Check contents of War
         tmpDir = file("$WEBAPP_NAME-2.5.war")
-        javaprojectDir.file(WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war").unzipTo(tmpDir)
+        dslDir.file(WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'WEB-INF/classes/org/gradle/webservice/TestTest.class',
@@ -124,83 +126,110 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
                 "WEB-INF/lib/$API_NAME-1.0.jar".toString(),
                 "WEB-INF/lib/$API_NAME-spi-1.0.jar".toString(),
                 'WEB-INF/lib/commons-collections-3.2.2.jar',
-                'WEB-INF/lib/commons-io-1.2.jar',
-                'WEB-INF/lib/commons-lang-2.4.jar'
+                'WEB-INF/lib/commons-io-2.6.jar',
+                'WEB-INF/lib/commons-lang3-3.7.jar'
         )
 
         // Check contents of dist zip
         tmpDir = file("$API_NAME-1.0.zip")
-        javaprojectDir.file(API_NAME, "build/distributions/$API_NAME-1.0.zip").unzipTo(tmpDir)
+        dslDir.file(API_NAME, "build/distributions/$API_NAME-1.0.zip").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'README.txt',
                 "libs/$API_NAME-spi-1.0.jar".toString(),
                 "libs/$SHARED_NAME-1.0.jar".toString(),
-                'libs/commons-io-1.2.jar',
-                'libs/commons-lang-2.4.jar'
+                'libs/commons-io-2.6.jar',
+                'libs/commons-lang3-3.7.jar'
         )
     }
 
-    @Test
-    void multiProjectJavaDoc() {
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertIsFile()
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertContents(containsString("shared 1.0 API"))
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/Person.html').assertIsFile()
-        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').assertContents(containsString("These are the shared classes."))
-        javaprojectDir.file(API_NAME, 'build/docs/javadoc/index.html').assertIsFile()
-        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/PersonList.html').assertIsFile()
-        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').assertContents(containsString("These are the API classes"))
-        javaprojectDir.file(WEBAPP_PATH, 'build/docs/javadoc/index.html').assertIsFile()
+    @Unroll
+    def "multi project javadoc with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir).withTasks('clean', 'javadoc').run()
+        dslDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        dslDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertContents(containsString("shared 1.0 API"))
+        dslDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/Person.html').assertIsFile()
+        dslDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').assertContents(containsString("These are the shared classes."))
+        dslDir.file(API_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        dslDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/PersonList.html').assertIsFile()
+        dslDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').assertContents(containsString("These are the API classes"))
+        dslDir.file(WEBAPP_PATH, 'build/docs/javadoc/index.html').assertIsFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void multiProjectPartialBuild() {
+    @Unroll
+    def "multi project partial build with #dsl dsl"() {
         String packagePrefix = 'build/classes/java/main/org/gradle'
         String testPackagePrefix = 'build/classes/java/test/org/gradle'
 
+        TestFile dslDir = sample.dir.file(dsl)
         // Partial build using current directory
-        executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks('buildNeeded').run()
-        checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
+        if (dsl == 'groovy') {
+            executer.inDirectory(dslDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks('buildNeeded').run()
+            checkPartialWebAppBuild(packagePrefix, dslDir, testPackagePrefix)
 
-        // check resources
-        assertExists(javaprojectDir, SHARED_NAME, 'build/resources/main/org/gradle', SHARED_NAME, 'main.properties')
-        assertExists(javaprojectDir, SHARED_NAME, 'build/resources/test/org/gradle', SHARED_NAME, 'test.properties')
+            // check resources
+            assertExists(dslDir, SHARED_NAME, 'build/resources/main/org/gradle', SHARED_NAME, 'main.properties')
+            assertExists(dslDir, SHARED_NAME, 'build/resources/test/org/gradle', SHARED_NAME, 'test.properties')
+        }
 
         // Partial build using task path
-        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:classes".toString()).run()
-        assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
-        assertDoesNotExist(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+        executer.inDirectory(dslDir).withTasks('clean', "$SHARED_NAME:classes".toString()).run()
+        assertExists(dslDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
+        assertDoesNotExist(dslDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
 
-    @Test
-    void buildDependents() {
-        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:buildDependents".toString()).run()
-        assertEverythingBuilt()
+    @Unroll
+    def "buildDependents with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir).withTasks('clean', "$SHARED_NAME:buildDependents".toString()).run()
+        assertEverythingBuilt(dslDir)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void clean() {
-        executer.inDirectory(javaprojectDir).withTasks('classes').run()
-        executer.inDirectory(javaprojectDir).withTasks('clean').run()
-        projects.each { javaprojectDir.file("$it/build").assertDoesNotExist() }
+    @Unroll
+    def "clean with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir).withTasks('classes').run()
+
+        def projects = [SHARED_NAME, API_NAME, WEBAPP_PATH]
+        projects.each { dslDir.file("$it/build").assertExists() }
+
+        executer.inDirectory(dslDir).withTasks('clean').run()
+        projects.each { dslDir.file("$it/build").assertDoesNotExist() }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void noRebuildOfProjectDependencies() {
-        TestFile apiDir = javaprojectDir.file(API_NAME)
-        executer.inDirectory(apiDir).withTasks('classes').run()
-        TestFile sharedJar = javaprojectDir.file("shared/build/libs/shared-1.0.jar")
+    @Unroll
+    def "no rebuild of project dependencies with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir).withTasks(":$API_NAME:classes").run()
+        TestFile sharedJar = dslDir.file("shared/build/libs/shared-1.0.jar")
         TestFile.Snapshot snapshot = sharedJar.snapshot()
-        executer.expectDeprecationWarning()
-        executer.inDirectory(apiDir).withTasks('clean', 'classes').withArguments("-a").run()
+        executer.inDirectory(dslDir).withTasks(":$API_NAME:clean", ":$API_NAME:classes").withArguments("-a").run()
         sharedJar.assertHasNotChangedSince(snapshot)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    @Test
-    void shouldNotUseCacheForProjectDependencies() {
-        TestFile apiDir = javaprojectDir.file(API_NAME)
-        executer.inDirectory(apiDir).withTasks('checkProjectDependency').run()
+    @Unroll
+    def "should not use cache for project dependencies with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir).withTasks(":$API_NAME:checkProjectDependency").run()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     private static def checkPartialWebAppBuild(String packagePrefix, TestFile javaprojectDir, String testPackagePrefix) {

@@ -17,19 +17,19 @@
 package org.gradle.api.internal.tasks.compile.incremental.cache;
 
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
-import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
-import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
+import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshotCache;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationStore;
 
+/**
+ * The build scoped compile caches.
+ *
+ * NOTE: This class cannot be renamed because it used to leak onto the public API
+ * and some community plugins still depend on it in their byte code.
+ */
 public interface GeneralCompileCaches {
     ClassAnalysisCache getClassAnalysisCache();
 
-    JarSnapshotCache getJarSnapshotCache();
+    ClasspathEntrySnapshotCache getClasspathEntrySnapshotCache();
 
-    LocalJarClasspathSnapshotStore createLocalJarClasspathSnapshotStore(String taskPath);
-
-    LocalClassSetAnalysisStore createLocalClassSetAnalysisStore(String taskPath);
-
-    AnnotationProcessorPathStore createAnnotationProcessorPathStore(String taskPath);
+    PreviousCompilationStore createPreviousCompilationStore(String taskPath);
 }

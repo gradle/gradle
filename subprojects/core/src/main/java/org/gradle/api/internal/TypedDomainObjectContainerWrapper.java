@@ -19,7 +19,9 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
@@ -82,12 +84,42 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return ConfigureUtil.configureSelf(configureClosure, this, delegate);
     }
 
+    @Override
+    public NamedDomainObjectProvider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
+        return parent.register(name, type, configurationAction);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<U> register(String name) throws InvalidUserDataException {
+        return parent.register(name, type);
+    }
+
     public Set<U> findAll(Closure spec) {
         return delegate.findAll(spec);
     }
 
     public NamedDomainObjectSet<U> matching(Closure spec) {
         return delegate.matching(spec);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<U> named(String name) throws UnknownDomainObjectException {
+        return delegate.named(name);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<U> named(String name, Action<? super U> configurationAction) throws UnknownDomainObjectException {
+        return delegate.named(name, configurationAction);
+    }
+
+    @Override
+    public <S extends U> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+        return delegate.named(name, type);
+    }
+
+    @Override
+    public <S extends U> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+        return delegate.named(name, type, configurationAction);
     }
 
     public NamedDomainObjectSet<U> matching(Spec<? super U> spec) {
@@ -105,6 +137,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     @Override
     public void addLater(Provider<? extends U> provider) {
         delegate.addLater(provider);
+    }
+
+    @Override
+    public void addAllLater(Provider<? extends Iterable<U>> provider) {
+        delegate.addAllLater(provider);
     }
 
     public boolean addAll(Collection<? extends U> c) {
@@ -130,6 +167,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
 
     public SortedMap<String, U> getAsMap() {
         return delegate.getAsMap();
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return delegate.getCollectionSchema();
     }
 
     public U getAt(String name) throws UnknownDomainObjectException {
@@ -170,13 +212,8 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public void configureEachLater(Action<? super U> action) {
-        delegate.configureEachLater(action);
-    }
-
-    @Override
-    public <S extends U> void configureEachLater(Class<S> type, Action<? super S> action) {
-        delegate.configureEachLater(type, action);
+    public void configureEach(Action<? super U> action) {
+        delegate.configureEach(action);
     }
 
     public Action<? super U> whenObjectAdded(Action<? super U> action) {

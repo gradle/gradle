@@ -29,8 +29,32 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
-    def "provide setEnvironmentVariables on LongRunningOperation"() {
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    def "old versions can mutate environment on JDK < 9"() {
+        given:
+        toolingApi.requireDaemons() //cannot be run in embedded mode
+
+        buildFile << """
+            task printEnv() {
+                doLast {
+                    println "<" + System.getenv() + ">"
+                }
+            }"""
+
+        when:
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        withConnection { ProjectConnection connection ->
+            connection.newBuild().setEnvironmentVariables(["var": "val"]).setStandardOutput(out).forTasks('printEnv').run()
+        }
+
+        then:
+        out.toString().contains("<${["var": "val"]}>")
+    }
+
+    @ToolingApiVersion(">=4.11")
+    @TargetGradleVersion(">=4.11")
+    @Requires(TestPrecondition.SET_ENV_VARIABLE)
+    def "new Gradle versions can mutate environment on all JDK versions"() {
         given:
         toolingApi.requireDaemons() //cannot be run in embedded mode
 
@@ -52,7 +76,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=3.5")
-    @TargetGradleVersion(">=1.2 <3.5")
+    @TargetGradleVersion(">=2.6 <3.5")
     def "long running operation should fail when environment vars specified but not supported by target"() {
         when:
         withConnection {

@@ -244,14 +244,29 @@ task check {
 
     @Issue("GRADLE-3124")
     void "provides reasonable error message for typo in exclude declaration"() {
+        given:
+        mavenRepo.module('org.gradle.test', 'external', '1.0').publish()
+
         when:
         buildFile << """
-            configurations { foo }
-            configurations.foo.exclude group: 'kafka', modue: 'kafka'
+            configurations { 
+                foo {
+                    exclude group: 'org.gradle.test', modue: 'external'
+                }  
+            }
+            dependencies {
+                foo "org.gradle.test:external:1.0"
+            }
+            
+            task resolve() {
+                doLast {
+                    configurations.foo.resolve()
+                }
+            }
         """
 
         then:
-        fails()
+        fails "resolve"
         failure.assertHasCause("Could not set unknown property 'modue' for object of type org.gradle.api.internal.artifacts.DefaultExcludeRule.")
     }
 

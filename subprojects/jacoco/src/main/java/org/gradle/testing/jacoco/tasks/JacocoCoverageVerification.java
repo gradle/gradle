@@ -18,7 +18,6 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
@@ -37,7 +36,6 @@ import java.io.File;
  *
  * @since 3.4
  */
-@Incubating
 public class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;

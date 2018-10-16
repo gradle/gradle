@@ -24,15 +24,15 @@ import org.gradle.platform.base.ComponentType
 import org.gradle.platform.base.TypeBuilder
 import sample.documentation.DocumentationBinary
 
-// START SNIPPET markdown-lang-registration
-// START SNIPPET markdown-tasks-generation
+// tag::markdown-lang-registration[]
+// tag::markdown-tasks-generation[]
 class MarkdownPlugin extends RuleSource {
-// END SNIPPET markdown-tasks-generation
+// end::markdown-tasks-generation[]
     @ComponentType
     void registerMarkdownLanguage(TypeBuilder<MarkdownSourceSet> builder) {}
-// END SNIPPET markdown-lang-registration
+// end::markdown-lang-registration[]
 
-// START SNIPPET markdown-tasks-generation
+// tag::markdown-tasks-generation[]
     @BinaryTasks
     void processMarkdownDocumentation(ModelMap<Task> tasks, final DocumentationBinary binary) {
         binary.inputs.withType(MarkdownSourceSet) { markdownSourceSet ->
@@ -46,7 +46,7 @@ class MarkdownPlugin extends RuleSource {
             }
         }
     }
-// START SNIPPET markdown-lang-registration
+// tag::markdown-lang-registration[]
 }
-// END SNIPPET markdown-lang-registration
-// END SNIPPET markdown-tasks-generation
+// end::markdown-lang-registration[]
+// end::markdown-tasks-generation[]

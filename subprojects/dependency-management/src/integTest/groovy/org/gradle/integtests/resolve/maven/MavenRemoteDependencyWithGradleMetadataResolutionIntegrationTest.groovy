@@ -24,10 +24,11 @@ import spock.lang.Unroll
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
 
     def setup() {
         resolve.prepare()
+        resolve.addDefaultVariantDerivationStrategy()
         server.start()
 
         settingsFile << "rootProject.name = 'test'"
@@ -60,7 +61,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -71,7 +72,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -86,7 +87,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }
@@ -672,8 +673,8 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find test:a:1.2.
 Searched in the following locations:
-    ${m.moduleMetadata.uri}
-    ${m.pom.uri}
+  - ${m.moduleMetadata.uri}
+  - ${m.pom.uri}
 Required by:
     project :""")
 
@@ -688,7 +689,7 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }
@@ -729,7 +730,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -32,6 +32,8 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     BlockingHttpServer server = new BlockingHttpServer()
 
     def "multi-project build tasks logs are grouped"() {
+        server.start()
+
         given:
         settingsFile << "include '1', '2', '3'"
 
@@ -39,21 +41,36 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             subprojects {
                 task log { 
                     doFirst { 
-                        logger.quiet "Output from " + project.name 
+                        logger.error "Error from " + project.name
+                        logger.quiet "Output from " + project.name
+                        new java.net.URL("${server.uri}/log" + project.name).openConnection().getContentLength()
                         logger.quiet "Done with " + project.name 
+                        logger.error "Done with " + project.name
                     } 
                 }
             }
         """
 
         when:
-        succeeds('log')
+        server.expectConcurrent("log1", "log2", "log3")
+        result = executer.withArgument("--parallel").withTasks("log").start().waitForFinish()
 
         then:
         result.groupedOutput.taskCount == 3
-        result.groupedOutput.task(':1:log').output == "Output from 1\nDone with 1"
-        result.groupedOutput.task(':2:log').output == "Output from 2\nDone with 2"
-        result.groupedOutput.task(':3:log').output == "Output from 3\nDone with 3"
+        if (errorsShouldAppearOnStdout()) {
+            // both stdout and stderr are attached to the console
+            assert result.groupedOutput.task(':1:log').output == "Error from 1\nOutput from 1\nDone with 1\nDone with 1"
+            assert result.groupedOutput.task(':2:log').output == "Error from 2\nOutput from 2\nDone with 2\nDone with 2"
+            assert result.groupedOutput.task(':3:log').output == "Error from 3\nOutput from 3\nDone with 3\nDone with 3"
+        } else {
+            assert result.groupedOutput.task(':1:log').output == "Output from 1\nDone with 1"
+            assert result.groupedOutput.task(':2:log').output == "Output from 2\nDone with 2"
+            assert result.groupedOutput.task(':3:log').output == "Output from 3\nDone with 3"
+
+            result.assertHasErrorOutput("Error from 1\nDone with 1")
+            result.assertHasErrorOutput("Error from 2\nDone with 2")
+            result.assertHasErrorOutput("Error from 3\nDone with 3")
+        }
     }
 
     def "logs at execution time are grouped"() {
@@ -93,7 +110,12 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         succeeds('log')
 
         then:
-        result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
+        if (errorsShouldAppearOnStdout()) {
+            result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
+        } else {
+            result.groupedOutput.task(':log').output == "Standard out 1\nStandard out 2\n"
+            result.assertHasErrorOutput("Standard err 1\nStandard err 2")
+        }
     }
 
     def "grouped output is displayed for failed tasks"() {
@@ -191,7 +213,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         when:
         handle.waitForAllPendingCalls()
-        assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
+        assertOutputContains(gradle, "Before")
         handle.releaseAll()
         result = gradle.waitForFinish()
 
@@ -206,7 +228,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         return "new URL('${server.uri}/${name}').text"
     }
 
-    private static void assertOutputContains(GradleHandle gradle, String str) {
+    protected static void assertOutputContains(GradleHandle gradle, String str) {
         ConcurrentTestUtil.poll(sleepTimeout/1000 as double) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }

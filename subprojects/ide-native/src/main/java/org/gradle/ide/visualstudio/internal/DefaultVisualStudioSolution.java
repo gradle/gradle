@@ -60,7 +60,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
             }
         }));
         this.ideArtifactRegistry = ideArtifactRegistry;
-        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectMetadata.class));
+        builtBy(ideArtifactRegistry.getIdeProjectFiles(VisualStudioProjectMetadata.class));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     @Override
     @Internal
     public List<VisualStudioProjectMetadata> getProjects() {
-        return CollectionUtils.collect(ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectMetadata.class), new Transformer<VisualStudioProjectMetadata, IdeArtifactRegistry.Reference<VisualStudioProjectMetadata>>() {
+        return CollectionUtils.collect(ideArtifactRegistry.getIdeProjects(VisualStudioProjectMetadata.class), new Transformer<VisualStudioProjectMetadata, IdeArtifactRegistry.Reference<VisualStudioProjectMetadata>>() {
             @Override
             public VisualStudioProjectMetadata transform(IdeArtifactRegistry.Reference<VisualStudioProjectMetadata> reference) {
                 return reference.get();

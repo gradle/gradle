@@ -20,9 +20,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.DIRECT_CALL
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
+import static SimulatedSingleMessageLogger.DIRECT_CALL
+import static SimulatedSingleMessageLogger.INDIRECT_CALL
+import static SimulatedSingleMessageLogger.INDIRECT_CALL_2
 
 @Subject(FeatureUsage)
 class FeatureUsageTest extends Specification {
@@ -31,14 +31,14 @@ class FeatureUsageTest extends Specification {
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {
         expect:
         !usage.stack.empty
-        usage.message == expectedMessage
+        usage.summary == expectedSummary
 
         def stackTraceRoot = usage.stack[0]
         stackTraceRoot.className == callLocationClass.name
         stackTraceRoot.methodName == expectedMethod
 
         where:
-        callLocationClass           | expectedMessage | expectedMethod | usage
+        callLocationClass           | expectedSummary | expectedMethod | usage
         SimulatedJavaCallLocation   | DIRECT_CALL     | 'create'       | SimulatedJavaCallLocation.create()
         SimulatedJavaCallLocation   | INDIRECT_CALL   | 'indirectly'   | SimulatedJavaCallLocation.indirectly()
         SimulatedJavaCallLocation   | INDIRECT_CALL_2 | 'indirectly2'  | SimulatedJavaCallLocation.indirectly2()
@@ -46,4 +46,5 @@ class FeatureUsageTest extends Specification {
         SimulatedGroovyCallLocation | INDIRECT_CALL   | 'indirectly'   | SimulatedGroovyCallLocation.indirectly()
         SimulatedGroovyCallLocation | INDIRECT_CALL_2 | 'indirectly2'  | SimulatedGroovyCallLocation.indirectly2()
     }
+
 }

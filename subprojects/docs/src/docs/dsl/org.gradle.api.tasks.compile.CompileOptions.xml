@@ -49,10 +49,6 @@
                 <td></td>
             </tr>
             <tr>
-                <td>bootClasspath</td>
-                <td><literal>null</literal></td>
-            </tr>
-            <tr>
                 <td>bootstrapClasspath</td>
                 <td><literal>null</literal></td>
             </tr>
@@ -74,7 +70,7 @@
             </tr>
             <tr>
                 <td>incremental</td>
-                <td><literal>false</literal></td>
+                <td><literal>true</literal></td>
             </tr>
             <tr>
                 <td>annotationProcessorPath</td>
@@ -82,6 +78,10 @@
             </tr>
             <tr>
                 <td>annotationProcessorGeneratedSourcesDirectory</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>headerOutputDirectory</td>
                 <td><literal>null</literal></td>
             </tr>
         </table>

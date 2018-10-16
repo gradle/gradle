@@ -56,6 +56,6 @@ allprojects {
         run 'resolveAll'
 
         where:
-        playApp << [new BasicPlayApp(), new AdvancedPlayApp(), new PlayAppWithDependencies(), new PlayCompositeBuild(), new WithFailingTestsApp()]
+        playApp << [new BasicPlayApp(versionNumber), new AdvancedPlayApp(versionNumber), new PlayAppWithDependencies(versionNumber), new PlayCompositeBuild(versionNumber), new WithFailingTestsApp(versionNumber)]
     }
 }

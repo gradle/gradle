@@ -105,7 +105,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         def scriptFile = file("script.gradle.kts") << """
             tasks {
-                "hello" {
+                register("hello") {
                     doLast { 
                         println("Hello!") 
                     }
@@ -136,6 +136,9 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can query KotlinBuildScriptModel'() {
         given:
+        // TODO Remove this once the Kotlin DSL upgrades 'pattern("layout") {' to 'patternLayout {
+        // Using expectDeprecationWarning did not work as some setup do not trigger one
+        executer.noDeprecationChecks()
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
         // of internal APIs is not broken by refactorings on the Gradle side
         buildFile << """

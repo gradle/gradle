@@ -40,7 +40,7 @@ public class ProgressEvent extends OutputEvent {
 
     @Override
     public String toString() {
-        return "Progress " + status;
+        return "Progress (" + progressOperationId + ") " + status;
     }
 
     public OperationIdentifier getProgressOperationId() {

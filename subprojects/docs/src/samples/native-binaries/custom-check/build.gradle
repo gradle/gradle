@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET custom-check
+// tag::custom-check[]
 apply plugin: "cpp"
 // You don't need to apply the plugin below if you're already using CUnit or GoogleTest support
 apply plugin: TestingModelBasePlugin
@@ -35,4 +35,4 @@ model {
         }
     }
 }
-// END SNIPPET custom-check
+// end::custom-check[]

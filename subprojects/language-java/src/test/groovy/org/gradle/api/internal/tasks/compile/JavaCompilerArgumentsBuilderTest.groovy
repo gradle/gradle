@@ -15,14 +15,17 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
@@ -38,7 +41,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -169,23 +172,12 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
+        def compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
+        compileOptions.bootstrapClasspath = ImmutableFileCollection.of(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "generates -bootclasspath option via deprecated property"() {
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
-        spec.compileOptions = compileOptions
-        def options = builder.build()
-
-        expect:
-        options == ["-bootclasspath", new File("/lib/lib1.jar").path + File.pathSeparator + new File("/lib/lib2.jar").path] + defaultOptions
     }
 
     def "generates -extdirs option"() {
@@ -312,7 +304,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "can include/exclude source files"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.source = new SimpleFileCollection(file1, file2)
+        spec.sourceFiles = [file1, file2]
 
         when:
         builder.includeSourceFiles(true)
@@ -330,7 +322,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "does not include source files by default"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.source = new SimpleFileCollection(file1, file2)
+        spec.sourceFiles = [file1, file2]
 
         expect:
         builder.build() == defaultOptions
@@ -348,34 +340,30 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.noEmptySourcePath().build() == expected
     }
 
-    def "merges user-provided sourcepath arguments with sourcepath property"() {
-        given:
-        def file1 = new File('/libs/lib1.jar')
-        def file2 = new File('/libs/lib2.jar')
-        def fc = [file1, file2]
-        def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
-        spec.compileOptions.sourcepath = fc
-        spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
-        def expected = ["-g", "-sourcepath", [GUtil.asPath(fc), userProvidedPath].join(File.pathSeparator), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
-
-        expect:
-        builder.build() == expected
-        builder.noEmptySourcePath().build() == expected
-    }
-
-    def "respects sourcepath purely provided by compiler args list"() {
+    @Unroll
+    def "prohibits setting #option as compiler argument"() {
         given:
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
-        spec.compileOptions.compilerArgs = ['-sourcepath', userProvidedPath]
-        def expected = ["-g", "-sourcepath", userProvidedPath, "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        spec.compileOptions.compilerArgs = [option, userProvidedPath]
 
-        expect:
-        builder.build() == expected
-        builder.noEmptySourcePath().build() == expected
+        when:
+        builder.build()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("Use the `$replacement` property instead.")
+
+        where:
+        option             | replacement
+        '-sourcepath'      | 'CompileOptions.sourcepath'
+        '--source-path'    | 'CompileOptions.sourcepath'
+        '-processorpath'   | 'CompileOptions.annotationProcessorPath'
+        '--processor-path' | 'CompileOptions.annotationProcessorPath'
     }
 
     def "removes sourcepath when module-source-path is provided"() {
         given:
+        spec.compileOptions.sourcepath = [new File("/ignored")]
         spec.compileOptions.compilerArgs = ['--module-source-path', '/src/other']
         def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-source-path", "/src/other"]
 
@@ -389,6 +377,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     String asPath(File... files) {
-        new SimpleFileCollection(files).asPath
+        ImmutableFileCollection.of(files).asPath
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
@@ -27,7 +27,7 @@ import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.startsWith
 
-public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
+class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
@@ -114,5 +114,32 @@ public class MyTest {
 
         then:
         outputContains('MyTest > testMyMethod FAILED')
+    }
+
+    @Unroll
+    @Issue('https://github.com/gradle/gradle/issues/4924')
+    def "re-executes test when #type is changed"() {
+        given:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << "test.useJUnit { ${type} 'org.gradle.CategoryA' }"
+
+        when:
+        succeeds ':test'
+
+        then:
+        executedAndNotSkipped ':test'
+
+        when:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << "test.useJUnit()"
+
+        and:
+        succeeds ':test'
+
+        then:
+        executedAndNotSkipped ':test'
+
+        where:
+        type << ['includeCategories', 'excludeCategories']
     }
 }

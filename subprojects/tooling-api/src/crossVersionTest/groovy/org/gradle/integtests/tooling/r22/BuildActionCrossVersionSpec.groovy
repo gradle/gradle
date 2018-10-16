@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -27,7 +26,6 @@ import org.gradle.tooling.ProjectConnection
 import java.nio.file.Files
 
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion(">=2.2")
     def "can change the implementation of an action"() {
         // Make sure we reuse the same daemon
         toolingApi.requireIsolatedDaemons()
@@ -53,7 +51,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         builder.buildJar(implJar)
 
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action1 = cl1.loadClass("ActionImpl").newInstance()
+        def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
 
         when:
         File actualJar1 = withConnection { ProjectConnection connection ->
@@ -76,7 +74,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
 """
         builder.buildJar(implJar)
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action2 = cl2.loadClass("ActionImpl").newInstance()
+        def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
 
         String result2 = withConnection { ProjectConnection connection ->
             connection.action(action2).run()

@@ -17,21 +17,23 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // This is a groovy project because we have int tests.
 // Remove any pre-configured archives
 configurations.all {
     artifacts.clear()
 }
-tasks.remove(jar)
+//tasks.remove(jar)
 
-tasks.withType(AbstractArchiveTask) {
+tasks.withType(AbstractArchiveTask).configureEach {
     baseName "gradle"
     version = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDir = rootProject.distsDir
-    clean.delete archivePath
+}
+
+tasks.named("clean").configure {
+    delete tasks.withType(AbstractArchiveTask)*.archivePath
 }
 
 configurations {
@@ -46,8 +48,9 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-
 evaluationDependsOn ":docs"
+
+evaluationDependsOn ":apiMetadata"
 
 ext {
     zipRootFolder = "gradle-$version"
@@ -61,6 +64,7 @@ ext {
         }
         into('lib') {
             from rootProject.configurations.runtime
+            from project(":apiMetadata").jar
             into('plugins') {
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }
@@ -84,25 +88,27 @@ ext {
         }
         into('samples') {
             from project(':docs').outputs.samples
+            exclude '**/*.out'
+            exclude '**/*.sample.conf*'
         }
     }
 }
 
-task allZip(type: Zip) {
+def allZip = tasks.register("allZip", Zip) {
     classifier = 'all'
     into(zipRootFolder) {
         with allDistImage
     }
 }
 
-task binZip(type: Zip) {
+def binZip = tasks.register("binZip", Zip) {
     classifier = 'bin'
     into(zipRootFolder) {
         with binWithDistDocImage
     }
 }
 
-task srcZip(type: Zip) {
+def srcZip = tasks.register("srcZip", Zip) {
     classifier = 'src'
     into(zipRootFolder) {
         from(rootProject.file('gradlew')) {
@@ -130,7 +136,7 @@ task srcZip(type: Zip) {
     }
 }
 
-task outputsZip(type: Zip) {
+tasks.register("outputsZip", Zip) {
     archiveName "outputs.zip"
     from {
         tasks.getByPath(':createBuildReceipt')
@@ -142,7 +148,7 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-integTestTasks.all {
+integTestTasks.configureEach {
     binaryDistributions.distributionsRequired = true
     systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
     systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')

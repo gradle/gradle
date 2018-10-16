@@ -17,9 +17,9 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -33,7 +33,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
@@ -49,12 +48,16 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
 import org.junit.runner.RunWith
+import spock.lang.Retry
 
 import java.lang.annotation.Annotation
 
+import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @RunWith(Runner)
+@Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
@@ -143,6 +146,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         DaemonLogsAnalyzer.newAnalyzer(daemonDir, version.version)
     }
 
+    def setup() {
+        settingsFile.createFile()
+    }
+
     def cleanup() {
         if (requireIsolatedTestKitDir) {
             testKitDaemons().killAll()
@@ -157,8 +164,20 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         OutputScrapingExecutionFailure.from(buildResult.output, buildResult.output)
     }
 
-    @Rule
-    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
+    static String determineMinimumVersionThatRunsOnCurrentJavaVersion(String desiredGradleVersion) {
+        if (JavaVersion.current().isJava11Compatible()) {
+            def compatibleVersion = GradleVersion.version("4.8.1") // see https://github.com/gradle/gradle/issues/4860
+            if (GradleVersion.version(desiredGradleVersion).compareTo(compatibleVersion) < 0) {
+                return compatibleVersion.version
+            }
+        } else if (JavaVersion.current().isJava9Compatible()) {
+            def compatibleVersion = GradleVersion.version("4.3.1") // see https://github.com/gradle/gradle/issues/2992
+            if (GradleVersion.version(desiredGradleVersion).compareTo(compatibleVersion) < 0) {
+                return compatibleVersion.version
+            }
+        }
+        return desiredGradleVersion
+    }
 
     static class Runner extends AbstractMultiTestRunner {
 
@@ -194,9 +213,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 case 'all':
                     crossVersion = true
                     return [
-                            TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
-                            TestedGradleDistribution.mostRecentFinalRelease(),
-                            TestedGradleDistribution.UNDER_DEVELOPMENT
+                        TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
+                        TestedGradleDistribution.mostRecentFinalRelease(),
+                        TestedGradleDistribution.UNDER_DEVELOPMENT
                     ] as SortedSet
                 case 'current': return [
                     TestedGradleDistribution.UNDER_DEVELOPMENT

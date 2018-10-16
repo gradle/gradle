@@ -16,24 +16,33 @@
 
 package org.gradle.testing.fixture
 
+
 import org.gradle.util.VersionNumber
 
 class GroovyCoverage {
-    final static String NEWEST = GroovySystem.version
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15']
+    static final String[] ALL
 
-    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', NEWEST]
+    private static final MINIMUM_WITH_GROOVYDOC_SUPPORT = VersionNumber.parse("1.6.9")
+    static final String[] SUPPORTS_GROOVYDOC
 
-    private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
+    private static final MINIMUM_WITH_TIMESTAMP_SUPPORT = VersionNumber.parse("2.4.6")
+    static final String[] SUPPORTS_TIMESTAMP
 
-    final static String[] SUPPORTS_GROOVYDOC = ALL_VERSIONS.findAll {
-        it >= VersionNumber.parse("1.6.9")
-    }.collect {
-        it.toString()
-    }
+    static {
+        def allVersions = [*PREVIOUS]
 
-    final static String[] SUPPORTS_TIMESTAMP = ALL_VERSIONS.findAll {
-        it >= VersionNumber.parse("2.4.6")
-    }.collect {
-        it.toString()
+        // Only test current Groovy version if it isn't a SNAPSHOT
+        if (!GroovySystem.version.endsWith("-SNAPSHOT")) {
+            allVersions += GroovySystem.version
+        }
+
+        ALL = allVersions
+        SUPPORTS_GROOVYDOC = allVersions.findAll {
+            VersionNumber.parse(it) >= MINIMUM_WITH_GROOVYDOC_SUPPORT
+        }
+        SUPPORTS_TIMESTAMP = allVersions.findAll {
+            VersionNumber.parse(it) >= MINIMUM_WITH_TIMESTAMP_SUPPORT
+        }
     }
 }

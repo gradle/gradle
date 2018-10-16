@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.events;
 
-import org.gradle.api.Incubating;
-
 /**
  * Describes how an operation finished successfully.
  *
  * @since 2.4
  */
-@Incubating
 public interface SuccessResult extends OperationResult {
 }

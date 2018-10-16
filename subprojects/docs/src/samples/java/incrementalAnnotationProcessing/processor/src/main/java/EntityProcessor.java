@@ -27,12 +27,12 @@ public class EntityProcessor extends AbstractProcessor {
             return false;
         }
 
-        // START SNIPPET isolating-annotation-processor
+        // tag::isolating-annotation-processor[]
         Set<? extends Element> entities = roundEnv.getElementsAnnotatedWith(entityAnnotation);
         for (Element entity : entities) {
             createRepository((TypeElement) entity);
         }
-        // END SNIPPET isolating-annotation-processor
+        // end::isolating-annotation-processor[]
         return true;
     }
 

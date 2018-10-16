@@ -16,12 +16,11 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.internal.build.IncludedBuildState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +35,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
-    public void build(IncludedBuildInternal build) {
+    public void build(IncludedBuildState build) {
         DependencySubstitutionsInternal substitutions = resolveDependencySubstitutions(build);
         if (!substitutions.hasRules()) {
             // Configure the included build to discover available modules
@@ -48,11 +47,9 @@ public class IncludedBuildDependencySubstitutionsBuilder {
         }
     }
 
-    private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildInternal build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build.getModel(), moduleIdentifierFactory);
-        for (Action<? super DependencySubstitutions> action : build.getRegisteredDependencySubstitutions()) {
-            action.execute(dependencySubstitutions);
-        }
+    private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory);
+        build.getRegisteredDependencySubstitutions().execute(dependencySubstitutions);
         return dependencySubstitutions;
     }
 

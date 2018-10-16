@@ -54,8 +54,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-
         String attributes = params.variant == null ?
             "" :
             """ 

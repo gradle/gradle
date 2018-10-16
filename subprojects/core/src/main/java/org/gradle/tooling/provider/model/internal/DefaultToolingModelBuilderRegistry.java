@@ -17,10 +17,18 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.Factory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,13 +36,17 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     private final ToolingModelBuilderRegistry parent;
 
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectStateRegistry projectStateRegistry;
 
-    public DefaultToolingModelBuilderRegistry() {
-        this.parent = null;
+    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
+        this(buildOperationExecutor, projectStateRegistry, null);
         register(new VoidToolingModelBuilder());
     }
 
-    public DefaultToolingModelBuilderRegistry(ToolingModelBuilderRegistry parent) {
+    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry, ToolingModelBuilderRegistry parent) {
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.projectStateRegistry = projectStateRegistry;
         this.parent = parent;
     }
 
@@ -53,13 +65,93 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             }
         }
         if (match != null) {
-            return match;
+            if (match instanceof ParameterizedToolingModelBuilder) {
+                return new ParameterizedBuildOperationWrappingToolingModelBuilder((ParameterizedToolingModelBuilder) match);
+            } else {
+                return new BuildOperationWrappingToolingModelBuilder(match);
+            }
         }
         if (parent != null) {
             return parent.getBuilder(modelName);
         }
 
         throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
+    }
+
+    private class BuildOperationWrappingToolingModelBuilder implements ToolingModelBuilder {
+        private final ToolingModelBuilder delegate;
+
+        private BuildOperationWrappingToolingModelBuilder(ToolingModelBuilder delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean canBuild(String modelName) {
+            return delegate.canBuild(modelName);
+        }
+
+        @Override
+        public Object buildAll(final String modelName, final Project project) {
+            return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
+                @Override
+                public Object call(BuildOperationContext context) {
+                    return projectStateRegistry.withLenientState(new Factory<Object>() {
+                        @Nullable
+                        @Override
+                        public Object create() {
+                            return delegate.buildAll(modelName, project);
+                        }
+                    });
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Build model '" + modelName + "' for " + project.getDisplayName()).
+                        progressDisplayName("Building model '" + modelName + "'");
+                }
+            });
+        }
+    }
+
+    private class ParameterizedBuildOperationWrappingToolingModelBuilder<T> extends BuildOperationWrappingToolingModelBuilder implements ParameterizedToolingModelBuilder<T> {
+        private final ParameterizedToolingModelBuilder<T> delegate;
+
+        private ParameterizedBuildOperationWrappingToolingModelBuilder(ParameterizedToolingModelBuilder delegate) {
+            super(delegate);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean canBuild(String modelName) {
+            return delegate.canBuild(modelName);
+        }
+
+        @Override
+        public Object buildAll(final String modelName, final T parameter, final Project project) {
+            return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
+                @Override
+                public Object call(BuildOperationContext context) {
+                    return projectStateRegistry.withLenientState(new Factory<Object>() {
+                        @Nullable
+                        @Override
+                        public Object create() {
+                            return delegate.buildAll(modelName, parameter, project);
+                        }
+                    });
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Build parameterized model '" + modelName + "' for " + project.getDisplayName()).
+                        progressDisplayName("Building parameterized model '" + modelName + "'");
+                }
+            });
+        }
+
+        @Override
+        public Class<T> getParameterType() {
+            return delegate.getParameterType();
+        }
     }
 
     private static class VoidToolingModelBuilder implements ToolingModelBuilder {

@@ -16,37 +16,52 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedByAttributesVersion;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
+import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
+import org.gradle.internal.text.TreeFormatter;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
+    private static final DisplayName UNKNOWN_VARIANT = Describables.of("unknown");
+
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
@@ -56,6 +71,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
+    private Multimap<VersionSelector, String> rejectedBySelectors;
+
     private volatile ComponentResolveMetadata metadata;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
@@ -97,6 +114,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
+    public String getRepositoryName() {
+        ModuleSource moduleSource = metadata.getSource();
+        if (moduleSource instanceof RepositoryChainModuleSource) {
+            return ((RepositoryChainModuleSource) moduleSource).getRepositoryName();
+        }
+        return null;
+    }
+
+    @Override
     public ModuleVersionIdentifier getModuleVersion() {
         return id;
     }
@@ -117,7 +143,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    ModuleResolveState getModule() {
+    public ModuleResolveState getModule() {
         return module;
     }
 
@@ -190,15 +216,16 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ComponentSelectionReasonInternal getSelectionReason() {
         if (root) {
-            return (ComponentSelectionReasonInternal) VersionSelectionReasons.root();
+            return VersionSelectionReasons.root();
         }
         ComponentSelectionReasonInternal reason = VersionSelectionReasons.empty();
-        for (SelectorState selectorState : module.getSelectors()) {
+        for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
-                selectorState.addReasonsForSelector(reason);
+                selectorState.addReasonsForSelector(reason, new RejectedBySelectorDescriptorBuilder(selectorState));
+
             }
         }
-        for (ComponentSelectionDescriptorInternal selectionCause : selectionCauses) {
+        for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
             reason.addCause(selectionCause);
         }
         return reason;
@@ -214,20 +241,25 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public String getVariantName() {
-        String name = null;
+    public DisplayName getVariantName() {
+        DisplayName name = null;
+        List<String> names = null;
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                name = variantNameBuilder.getVariantName(name, node.getMetadata().getName());
+                if (names == null) {
+                    names = Lists.newArrayListWithCapacity(nodes.size());
+                }
+                names.add(node.getMetadata().getName());
             }
         }
-        return name == null ? "unknown" : name;
+        name = variantNameBuilder.getVariantName(names);
+        return name == null ? UNKNOWN_VARIANT : name;
     }
 
     @Override
     public AttributeContainer getVariantAttributes() {
         NodeState selected = getSelectedNode();
-        return selected == null ? ImmutableAttributes.EMPTY : desugarAttributes(selected);
+        return selected == null ? ImmutableAttributes.EMPTY : AttributeDesugaring.desugar(selected.getMetadata().getAttributes(), selected.getAttributesFactory());
     }
 
     /**
@@ -242,32 +274,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return null;
     }
 
-    /**
-     * Desugars attributes so that what we're going to serialize consists only of String or Boolean attributes,
-     * and not their original types.
-     * @param selected the selected component
-     * @return desugared attributes
-     */
-    private ImmutableAttributes desugarAttributes(NodeState selected) {
-        ImmutableAttributes attributes = selected.getMetadata().getAttributes();
-        if (attributes.isEmpty()) {
-            return attributes;
-        }
-        AttributeContainerInternal mutable = selected.getAttributesFactory().mutable();
-        Set<Attribute<?>> keySet = attributes.keySet();
-        for (Attribute<?> attribute : keySet) {
-            Object value = attributes.getAttribute(attribute);
-            Attribute<Object> desugared = Cast.uncheckedCast(attribute);
-            if (attribute.getType() == Boolean.class || attribute.getType() == String.class) {
-                mutable.attribute(desugared, value);
-            } else {
-                desugared = Cast.uncheckedCast(Attribute.of(attribute.getName(), String.class));
-                mutable.attribute(desugared, value.toString());
-            }
-        }
-        return mutable.asImmutable();
-    }
-
     @Override
     public List<ComponentState> getDependents() {
         List<ComponentState> incoming = Lists.newArrayListWithCapacity(nodes.size());
@@ -277,6 +283,16 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             }
         }
         return incoming;
+    }
+
+    @Override
+    public Collection<? extends ModuleVersionIdentifier> getAllVersions() {
+        Collection<ComponentState> moduleVersions = module.getAllVersions();
+        List<ModuleVersionIdentifier> out = Lists.newArrayListWithCapacity(moduleVersions.size());
+        for (ComponentState moduleVersion : moduleVersions) {
+            out.add(moduleVersion.id);
+        }
+        return out;
     }
 
     public boolean isSelected() {
@@ -308,6 +324,35 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public boolean isRejected() {
         return rejected;
+    }
+
+    @Override
+    public void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
+        for (RejectedBySelectorVersion unmatchedVersion : unmatchedVersions) {
+            registerRejections(unmatchedVersion, unmatchedVersion.getId().getVersion());
+        }
+    }
+
+    @Override
+    public void rejected(Collection<RejectedVersion> rejectedVersions) {
+        for (RejectedVersion rejectedVersion : rejectedVersions) {
+            String version = rejectedVersion.getId().getVersion();
+            if (rejectedVersion instanceof RejectedBySelectorVersion) {
+                registerRejections((RejectedBySelectorVersion) rejectedVersion, version);
+            } else if (rejectedVersion instanceof RejectedByRuleVersion) {
+                String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
+                addCause(VersionSelectionReasons.REJECTION.withReason(new RejectedByRuleReason(version, reason)));
+            } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
+                addCause(VersionSelectionReasons.REJECTION.withReason(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
+            }
+        }
+    }
+
+    private void registerRejections(RejectedBySelectorVersion rejectedVersion, String version) {
+        if (rejectedBySelectors == null) {
+            rejectedBySelectors = LinkedHashMultimap.create();
+        }
+        rejectedBySelectors.put(rejectedVersion.getRejectionSelector(), version);
     }
 
     public void removeOutgoingEdges() {
@@ -387,4 +432,111 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return null;
     }
 
+    private class RejectedBySelectorDescriptorBuilder implements Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> {
+        private final SelectorState selectorState;
+
+        public RejectedBySelectorDescriptorBuilder(SelectorState selectorState) {
+            this.selectorState = selectorState;
+        }
+
+        @Override
+        public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal descriptor) {
+            if (rejectedBySelectors != null) {
+                Collection<String> rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRejectedSelector());
+                if (!rejectedByThisSelector.isEmpty()) {
+                    descriptor = descriptor.withReason(new RejectedBySelectorReason(rejectedByThisSelector, descriptor));
+                } else {
+                    rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRequiredSelector());
+                    if (!rejectedByThisSelector.isEmpty()) {
+                        descriptor = descriptor.withReason(new UnmatchedVersionsReason(rejectedByThisSelector, descriptor));
+                    }
+                }
+            }
+            return descriptor;
+        }
+    }
+
+    private static class RejectedByRuleReason implements Describable {
+        private final String version;
+        private final String reason;
+
+        private RejectedByRuleReason(String version, String reason) {
+            this.version = version;
+            this.reason = reason;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return version + " by rule" + (reason != null ? " because " + reason : "");
+        }
+    }
+
+    private static class RejectedByAttributesReason implements Describable {
+        private final RejectedByAttributesVersion version;
+
+        private RejectedByAttributesReason(RejectedByAttributesVersion version) {
+            this.version = version;
+        }
+
+
+        @Override
+        public String getDisplayName() {
+            TreeFormatter formatter = new TreeFormatter();
+            version.describeTo(formatter);
+            return "version " + formatter;
+        }
+    }
+
+    private static class RejectedBySelectorReason implements Describable {
+
+        private final Collection<String> rejectedVersions;
+        private final ComponentSelectionDescriptorInternal descriptor;
+
+        private RejectedBySelectorReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+            this.rejectedVersions = rejectedVersions;
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public String getDisplayName() {
+            boolean hasCustomDescription = descriptor.hasCustomDescription();
+            StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
+            sb.append(rejectedVersions.size() > 1 ? "rejected versions " : "rejected version ");
+            Joiner.on(", ").appendTo(sb, rejectedVersions);
+            if (hasCustomDescription) {
+                sb.append(" because ").append(descriptor.getDescription());
+            }
+            return sb.toString();
+        }
+
+        private int estimateSize(boolean hasCustomDescription) {
+            return 20 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
+        }
+    }
+
+    private static class UnmatchedVersionsReason implements Describable {
+        private final Collection<String> rejectedVersions;
+        private final ComponentSelectionDescriptorInternal descriptor;
+
+        private UnmatchedVersionsReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+            this.rejectedVersions = rejectedVersions;
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public String getDisplayName() {
+            boolean hasCustomDescription = descriptor.hasCustomDescription();
+            StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
+            sb.append(rejectedVersions.size() > 1 ? "didn't match versions " : "didn't match version ");
+            Joiner.on(", ").appendTo(sb, rejectedVersions);
+            if (hasCustomDescription) {
+                sb.append(" because ").append(descriptor.getDescription());
+            }
+            return sb.toString();
+        }
+
+        private int estimateSize(boolean hasCustomDescription) {
+            return 24 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
+        }
+    }
 }

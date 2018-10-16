@@ -16,9 +16,10 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
@@ -27,16 +28,18 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     private final String persistentCacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
-    private final CacheLockingManager cacheLockingManager;
+    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final FileAccessTracker fileAccessTracker;
 
     private PersistentIndexedCache<K, V> persistentCache;
 
-    public AbstractCachedIndex(String persistentCacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheLockingManager cacheLockingManager) {
+    public AbstractCachedIndex(String persistentCacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker) {
 
         this.persistentCacheName = persistentCacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
-        this.cacheLockingManager = cacheLockingManager;
+        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.fileAccessTracker = fileAccessTracker;
     }
 
     private PersistentIndexedCache<K, V> getPersistentCache() {
@@ -47,13 +50,13 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     private PersistentIndexedCache<K, V> initPersistentCache() {
-        return cacheLockingManager.createCache(persistentCacheName, keySerializer, valueSerializer);
+        return artifactCacheLockingManager.createCache(persistentCacheName, keySerializer, valueSerializer);
     }
 
     public V lookup(final K key) {
         assertKeyNotNull(key);
 
-        return cacheLockingManager.useCache(new Factory<V>() {
+        V result = artifactCacheLockingManager.useCache(new Factory<V>() {
             public V create() {
                 V found = getPersistentCache().get(key);
                 if (found == null) {
@@ -66,10 +69,16 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
                 }
             }
         });
+
+        if (result != null && result.getCachedFile() != null) {
+            fileAccessTracker.markAccessed(result.getCachedFile());
+        }
+
+        return result;
     }
 
     protected void storeInternal(final K key, final V entry) {
-        cacheLockingManager.useCache(new Runnable() {
+        artifactCacheLockingManager.useCache(new Runnable() {
             public void run() {
                 getPersistentCache().put(key, entry);
             }
@@ -90,7 +99,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
 
     public void clear(final K key) {
         assertKeyNotNull(key);
-        cacheLockingManager.useCache(new Runnable() {
+        artifactCacheLockingManager.useCache(new Runnable() {
             public void run() {
                 getPersistentCache().remove(key);
             }

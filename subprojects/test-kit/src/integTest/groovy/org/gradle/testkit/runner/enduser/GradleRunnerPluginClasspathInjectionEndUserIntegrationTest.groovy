@@ -60,10 +60,11 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
             import spock.lang.Specification
 
             class Test extends Specification {
-                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
 
                 def setup() {
+                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
                     buildFile = testProjectDir.newFile('build.gradle')
                     def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
@@ -112,11 +113,12 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
             import spock.lang.Specification
 
             class Test extends Specification {
-                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
                 List<File> pluginClasspath
 
                 def setup() {
+                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
                     buildFile = testProjectDir.newFile('build.gradle')
                     pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
