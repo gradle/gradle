@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -192,7 +193,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
                                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
                                                                     DependencyLockingProvider dependencyLockingProvider,
-                                                                    ProjectStateRegistry projectStateRegistry) {
+                                                                    ProjectStateRegistry projectStateRegistry,
+                                                                    DocumentationRegistry documentationRegistry) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -212,7 +214,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 moduleIdentifierFactory,
                 componentSelectorConverter,
                 dependencyLockingProvider,
-                projectStateRegistry
+                projectStateRegistry,
+                documentationRegistry
             );
         }
 
