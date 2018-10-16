@@ -19,7 +19,7 @@ operator fun File.div(child: String): File =
 /**
  * Defers the evaluation of an expression until its value is required by the consumer.
  */
-fun <T> deferred(value: () -> T): Any =
+fun <T> deferred(value: () -> T): Callable<T> =
     Callable { value() }
 
 

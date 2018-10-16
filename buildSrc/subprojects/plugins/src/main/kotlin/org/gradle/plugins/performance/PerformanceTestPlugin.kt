@@ -5,7 +5,6 @@ import accessors.java
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskCollection
@@ -436,18 +435,17 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
-        val registerInputs: (Task) -> Unit = { prepareSampleTask ->
-            val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            prepareSampleTaskInputs.forEach { key, value ->
-                inputs.property(key, value).optional(true)
+        sampleInputs.set(project.provider(deferred<Map<String, Any>> {
+            val prepareSampleTaskInputs = mutableMapOf<String, Any>()
+            val registerInputs: (Task) -> Unit = { prepareSampleTask ->
+                prepareSampleTaskInputs.putAll(prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" })
             }
-        }
-        project.configureSampleGenerators {
-            // TODO: Remove this hack https://github.com/gradle/gradle-native/issues/864
-            (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled {
-                all(registerInputs)
+            project.configureSampleGenerators {
+                forEach(registerInputs)
             }
-        }
+
+            prepareSampleTaskInputs
+        }))
     }
 
     private
