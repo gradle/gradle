@@ -162,7 +162,7 @@ public class InstallXCTestBundle extends DefaultTask {
     @SkipWhenEmpty
     @Nullable
     @Optional
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
     protected File getBundleBinary() {
         RegularFile bundle = getBundleBinaryFile().get();

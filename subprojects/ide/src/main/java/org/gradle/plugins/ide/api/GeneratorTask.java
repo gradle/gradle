@@ -119,7 +119,7 @@ public class GeneratorTask<T> extends ConventionTask {
 
     // Workaround for when the task is given an input file that doesn't exist
     @Nullable  @Optional
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     protected File getInputFileIfExists() {
         File inputFile = getInputFile();

@@ -54,7 +54,7 @@ public class PublishToIvyRepository extends DefaultTask {
             }
         })
             .withPropertyName("publication.publishableFiles")
-            .withPathSensitivity(PathSensitivity.RELATIVE);
+            .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files

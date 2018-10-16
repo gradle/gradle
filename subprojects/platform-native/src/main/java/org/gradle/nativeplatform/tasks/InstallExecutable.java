@@ -151,7 +151,7 @@ public class InstallExecutable extends DefaultTask {
     @SkipWhenEmpty
     @Nullable
     @Optional
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
     protected File getInputFileIfExists() {
         RegularFileProperty sourceFile = getExecutableFile();
