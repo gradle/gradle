@@ -24,11 +24,16 @@ import org.gradle.internal.component.model.ModuleSource;
 import javax.annotation.Nullable;
 
 public interface ModuleMetadataCache {
-    CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
+    CachedMetadata cacheMissing(ModuleMetadataDetails details);
 
-    CachedMetadata cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
+    CachedMetadata cacheMetaData(ModuleMetadataDetails details, ModuleComponentResolveMetadata metaData);
 
-    CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
+    CachedMetadata getCachedModuleDescriptor(ModuleMetadataDetails details);
+
+    interface ModuleMetadataDetails {
+        ModuleComponentRepository getRepository();
+        ModuleComponentIdentifier getModuleComponentIdentifier();
+    }
 
     interface CachedMetadata {
         ResolvedModuleVersion getModuleVersion();

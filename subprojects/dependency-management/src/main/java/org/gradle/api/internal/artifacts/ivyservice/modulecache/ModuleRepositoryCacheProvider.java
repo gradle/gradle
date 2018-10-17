@@ -25,11 +25,18 @@ public class ModuleRepositoryCacheProvider {
         this.inMemoryCaches = inMemoryCaches;
     }
 
-    public ModuleRepositoryCaches getCaches() {
+    /**
+     * Returns caches which will also be persisted to disk. They will also have an in-memory
+     * front-end, but eventually all results are persisted.
+     */
+    public ModuleRepositoryCaches getPersistentCaches() {
         return caches;
     }
 
-    public ModuleRepositoryCaches getInMemoryCaches() {
+    /**
+     * Returns caches which are *only* in memory: they will never write anything to disk.
+     */
+    public ModuleRepositoryCaches getInMemoryOnlyCaches() {
         return inMemoryCaches;
     }
 
