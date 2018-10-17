@@ -35,7 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
@@ -47,14 +48,6 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
 
     private final RelativePath relativePath;
     private final Action<OutputStream> contentWriter;
-
-    public GeneratedSingletonFileTree(final File tmpDir, DirectoryFileTreeFactory directoryFileTreeFactory, String relativePath, Action<OutputStream> contentWriter) {
-        this(new Factory<File>() {
-            public File create() {
-                return tmpDir;
-            }
-        }, directoryFileTreeFactory, RelativePath.parse(true, relativePath), contentWriter);
-    }
 
     public GeneratedSingletonFileTree(Factory<File> tmpDirSource, DirectoryFileTreeFactory directoryFileTreeFactory, RelativePath relativePath, Action<OutputStream> contentWriter) {
         this.tmpDirSource = tmpDirSource;
@@ -76,7 +69,6 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
     }
 
     public void visit(FileVisitor visitor) {
-        AtomicBoolean stopFlag = new AtomicBoolean();
         Visit visit = new Visit(visitor);
         visit.visit(relativePath, contentWriter);
     }
@@ -101,20 +93,31 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
         }
     }
 
+    private File createFileInstance(RelativePath path) {
+        return path.getFile(getTmpDir());
+    }
+
     private class Visit {
+        private final Set<RelativePath> visitedDirs = new LinkedHashSet<RelativePath>();
         private final FileVisitor visitor;
 
         public Visit(FileVisitor visitor) {
             this.visitor = visitor;
         }
 
+        private void visitDirs(RelativePath path, FileVisitor visitor) {
+            if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
+                return;
+            }
+
+            visitDirs(path.getParent(), visitor);
+            visitor.visitDir(new FileVisitDetailsImpl(path, null, fileSystem));
+        }
+
         public void visit(RelativePath path, Action<OutputStream> generator) {
+            visitDirs(path.getParent(), visitor);
             visitor.visitFile(new FileVisitDetailsImpl(path, generator, fileSystem));
         }
-    }
-
-    private File createFileInstance(RelativePath path) {
-        return path.getFile(getTmpDir());
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {

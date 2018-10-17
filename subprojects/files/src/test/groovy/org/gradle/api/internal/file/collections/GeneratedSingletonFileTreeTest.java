@@ -17,6 +17,8 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.RelativePath;
+import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -28,20 +30,27 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
 import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class GeneratedSingletonFileTreeTest {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private TestFile rootDir = tmpDir.getTestDirectory();
+
+    private Factory<File> fileFactory = new Factory<File>() {
+        public File create() {
+            return rootDir;
+        }
+    };
 
     @Before
     public void setup() {
@@ -74,7 +83,7 @@ public class GeneratedSingletonFileTreeTest {
         Action<OutputStream> action = getAction();
         MinimalFileTree tree = tree("path/file.txt", action);
 
-        assertVisits(tree, toList("path/file.txt"), Collections.<String>emptyList());
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
 
         TestFile file = rootDir.file("path/file.txt");
 
@@ -82,7 +91,7 @@ public class GeneratedSingletonFileTreeTest {
         file.makeOlder();
         TestFile.Snapshot snapshot = file.snapshot();
 
-        assertVisits(tree, toList("path/file.txt"), Collections.<String>emptyList());
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
         file.assertContents(equalTo("content"));
         file.assertHasNotChangedSince(snapshot);
     }
@@ -101,7 +110,7 @@ public class GeneratedSingletonFileTreeTest {
             }
         });
 
-        assertVisits(tree, toList("path/file.txt"), Collections.<String>emptyList());
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
 
         TestFile file = rootDir.file("path/file.txt");
 
@@ -110,13 +119,13 @@ public class GeneratedSingletonFileTreeTest {
 
         currentContentReference.set("updated content");
 
-        assertVisits(tree, toList("path/file.txt"), Collections.<String>emptyList());
+        assertVisits(tree, toList("path/file.txt"), toList("path"));
         file.assertContents(equalTo("updated content"));
         file.assertHasChangedSince(snapshot);
     }
 
     private GeneratedSingletonFileTree tree(String relativePath, Action<OutputStream> action) {
-        return new GeneratedSingletonFileTree(rootDir, directoryFileTreeFactory(), relativePath, action);
+        return new GeneratedSingletonFileTree(fileFactory, directoryFileTreeFactory(), RelativePath.parse(true, relativePath), action);
     }
 
     private Action<OutputStream> getAction() {
