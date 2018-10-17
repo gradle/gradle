@@ -281,10 +281,12 @@ inline class InternalName(val value: String) {
 }
 
 
+internal
 object InternalNameOf {
 
-    internal
     val Object = InternalName("java/lang/Object")
+
+    val Any = InternalName("kotlin/Any")
 }
 
 

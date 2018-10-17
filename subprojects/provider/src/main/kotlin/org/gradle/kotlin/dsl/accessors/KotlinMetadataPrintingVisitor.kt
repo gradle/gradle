@@ -20,14 +20,18 @@ import kotlinx.metadata.ClassName
 import kotlinx.metadata.Flags
 import kotlinx.metadata.KmAnnotation
 import kotlinx.metadata.KmExtensionType
+import kotlinx.metadata.KmFunctionExtensionVisitor
+import kotlinx.metadata.KmFunctionVisitor
 import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmPackageVisitor
 import kotlinx.metadata.KmPropertyExtensionVisitor
 import kotlinx.metadata.KmPropertyVisitor
 import kotlinx.metadata.KmTypeVisitor
+import kotlinx.metadata.KmValueParameterVisitor
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.KmVersionRequirementVisitor
 import kotlinx.metadata.jvm.JvmFieldSignature
+import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
@@ -57,6 +61,59 @@ object KotlinMetadataPrintingVisitor {
             println("visitProperty($flags, $name, $getterFlags, $setterFlags)")
             return ForProperty
         }
+
+        override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? {
+            println("visitFunction($flags, $name)")
+            return ForFunction
+        }
+
+        override fun visitEnd() {
+            println("visitEnd()")
+            super.visitEnd()
+        }
+    }
+
+    object ForFunction : KmFunctionVisitor() {
+
+        override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? {
+            println("visitExtensions($type)")
+            return object : JvmFunctionExtensionVisitor() {
+                override fun visit(desc: JvmMethodSignature?) {
+                    println("visit($desc)")
+                    super.visit(desc)
+                }
+                override fun visitEnd() {
+                    println("visitEnd()")
+                    super.visitEnd()
+                }
+            }
+        }
+
+        override fun visitReceiverParameterType(flags: Flags): KmTypeVisitor? {
+            println("visitReceiverParameterType($flags)")
+            return ForType
+        }
+
+        override fun visitValueParameter(flags: Flags, name: String): KmValueParameterVisitor? {
+            println("visitValueParameter($flags, $name)")
+            return object : KmValueParameterVisitor() {
+                override fun visitType(flags: Flags): KmTypeVisitor? {
+                    println("visitType($flags)")
+                    return ForType
+                }
+
+                override fun visitEnd() {
+                    println("visitEnd()")
+                    super.visitEnd()
+                }
+            }
+        }
+
+        override fun visitReturnType(flags: Flags): KmTypeVisitor? {
+            println("visitReturnType($flags)")
+            return super.visitReturnType(flags)
+        }
+
 
         override fun visitEnd() {
             println("visitEnd()")

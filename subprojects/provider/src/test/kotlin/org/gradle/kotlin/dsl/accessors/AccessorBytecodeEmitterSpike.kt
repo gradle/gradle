@@ -30,6 +30,8 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsWithOneClassPerConfiguration
 
@@ -52,6 +54,10 @@ import java.io.File
 
 val ConfigurationContainer.api: NamedDomainObjectProvider<Configuration>
     inline get() = named("api")
+
+
+fun DependencyHandler.`testCompile`(dependencyNotation: Any): Dependency? =
+    add("testCompile", dependencyNotation)
 
 
 class AccessorBytecodeEmitterSpike : TestWithTempFiles() {

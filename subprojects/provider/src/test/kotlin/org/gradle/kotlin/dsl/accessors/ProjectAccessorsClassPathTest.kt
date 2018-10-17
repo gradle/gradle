@@ -25,6 +25,7 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -44,8 +45,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     fun `#buildAccessorsFor`() {
 
         // given:
-        val srcDir = newFolder("src")
-        val binDir = newFolder("bin")
         val schema =
             ProjectSchema(
                 extensions = listOf(
@@ -72,6 +71,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 tasks = emptyList(),
                 configurations = listOf("api")
             )
+        val srcDir = newFolder("src")
+        val binDir = newFolder("bin")
 
         // when:
         buildAccessorsFor(
@@ -88,26 +89,32 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         }
         val extExtension = mock<ExtraPropertiesExtension>()
         val extensions = mock<ExtensionContainer> {
-            on { getByName(any<String>()) } doReturn extExtension
+            on { getByName(any()) } doReturn extExtension
         }
+        val dependencies = mock<DependencyHandler>()
         val project = mock<Project> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
+            on { getDependencies() } doReturn dependencies
         }
         project.eval(
             script = """
-                val api = configurations.api
-                val x = ext
+                val a = configurations.api
+                val b = ext
+                val c = dependencies.api("module")
             """,
-            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath,
-            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
+            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath
+// Runtime is not required because the accessores are inlined
+//            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
         )
 
-        inOrder(project, configurations, apiConfiguration, extensions, extExtension) {
+        inOrder(project, configurations, apiConfiguration, extensions, extExtension, dependencies) {
             verify(project).configurations
             verify(configurations).named("api")
             verify(project).extensions
             verify(extensions).getByName("ext")
+            verify(project).dependencies
+            verify(dependencies).add("api", "module")
             verifyNoMoreInteractions()
         }
     }

@@ -21,6 +21,7 @@ import kotlinx.metadata.Flags
 import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
+import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
@@ -93,6 +94,32 @@ fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
 
 
 internal
+fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
+    receiverType: KmTypeBuilder,
+    nullableReturnType: KmTypeBuilder,
+    name: String,
+    parameterName: String,
+    parameterType: KmTypeBuilder,
+    signature: JvmMethodSignature,
+    flags: Flags = inlineFunctionFlags) {
+
+    visitFunction(flags, name)!!.run {
+        visitReceiverParameterType(0).with(receiverType)
+        visitValueParameter(0, parameterName)!!.run {
+            visitType(0).with(parameterType)
+            visitEnd()
+        }
+        visitReturnType(flagsOf(Flag.Type.IS_NULLABLE)).with(nullableReturnType)
+        (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
+            visit(signature)
+            visitEnd()
+        }
+        visitEnd()
+    }
+}
+
+
+internal
 fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
     receiverType: KmTypeBuilder,
     returnType: KmTypeBuilder,
@@ -101,19 +128,22 @@ fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
     getterFlags: Flags = inlineGetterFlags
 ) {
     visitProperty(readOnlyPropertyFlags, propertyName, getterFlags, 6)!!.run {
-        visitReceiverParameterType(0)!!.run {
-            receiverType()
-            visitEnd()
-        }
-        visitReturnType(0)!!.run {
-            returnType()
-            visitEnd()
-        }
+        visitReceiverParameterType(0).with(receiverType)
+        visitReturnType(0).with(returnType)
         (visitExtensions(JvmPropertyExtensionVisitor.TYPE) as JvmPropertyExtensionVisitor).run {
             visit(null, getterSignature, null)
             visitSyntheticMethodForAnnotations(null)
             visitEnd()
         }
+        visitEnd()
+    }
+}
+
+
+private
+fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
+    this!!.run {
+        builder()
         visitEnd()
     }
 }
@@ -125,7 +155,7 @@ typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
-    // TODO: Honor JavaBeans convention
+// TODO: Honor JavaBeans convention
     JvmMethodSignature("get${propertyName.capitalize()}", desc)
 
 
@@ -142,4 +172,11 @@ val inlineGetterFlags = flagsOf(
     Flag.IS_PUBLIC,
     Flag.PropertyAccessor.IS_NOT_DEFAULT,
     Flag.PropertyAccessor.IS_INLINE
+)
+
+
+internal
+val inlineFunctionFlags = flagsOf(
+    Flag.IS_PUBLIC,
+    Flag.Function.IS_INLINE
 )
