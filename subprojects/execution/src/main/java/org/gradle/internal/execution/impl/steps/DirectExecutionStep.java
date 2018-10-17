@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.impl.steps;
 
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkResult;
 
 public interface DirectExecutionStep {
-    WorkResult execute(UnitOfWork work);
+    ExecutionResult execute(UnitOfWork work);
 }

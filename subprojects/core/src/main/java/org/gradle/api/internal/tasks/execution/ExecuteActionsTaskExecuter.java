@@ -33,9 +33,9 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.ExecutionException;
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -67,7 +67,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        WorkResult result = workExecutor.execute(new TaskExecution(task, context));
+        ExecutionResult result = workExecutor.execute(new TaskExecution(task, context));
         switch (result.getOutcome()) {
             case FAILED:
                 Throwable failure = result.getFailure();

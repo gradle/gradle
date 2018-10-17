@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.impl;
 
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.impl.steps.DirectExecutionStep;
 
 public class DefaultWorkExecutor implements WorkExecutor {
@@ -29,7 +29,7 @@ public class DefaultWorkExecutor implements WorkExecutor {
     }
 
     @Override
-    public WorkResult execute(UnitOfWork work) {
+    public ExecutionResult execute(UnitOfWork work) {
         return executeStep.execute(work);
     }
 }

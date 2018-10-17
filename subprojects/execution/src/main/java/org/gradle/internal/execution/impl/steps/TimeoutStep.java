@@ -18,8 +18,8 @@ package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.timeout.Timeout;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 
@@ -36,7 +36,7 @@ public class TimeoutStep implements DirectExecutionStep {
     }
 
     @Override
-    public WorkResult execute(UnitOfWork work) {
+    public ExecutionResult execute(UnitOfWork work) {
         Optional<Duration> timeoutProperty = work.getTimeout();
         if (timeoutProperty.isPresent()) {
             Duration timeout = timeoutProperty.get();
@@ -50,15 +50,15 @@ public class TimeoutStep implements DirectExecutionStep {
         }
     }
 
-    private WorkResult executeWithTimeout(UnitOfWork work, Duration timeout) {
+    private ExecutionResult executeWithTimeout(UnitOfWork work, Duration timeout) {
         Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout);
-        WorkResult result = delegate.execute(work);
+        ExecutionResult result = delegate.execute(work);
 
         taskTimeout.stop();
         if (taskTimeout.timedOut()) {
             //noinspection ResultOfMethodCallIgnored
             Thread.interrupted();
-            result = WorkResult.failure(new GradleException("Timeout has been exceeded"));
+            result = ExecutionResult.failure(new GradleException("Timeout has been exceeded"));
         }
 
         return result;
