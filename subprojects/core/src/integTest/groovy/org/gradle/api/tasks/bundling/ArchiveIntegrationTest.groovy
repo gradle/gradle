@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks
+package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -694,6 +694,38 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         tar.assertContainsFile('file1.txt')
         tar.assertContainsFile('file2.txt')
         tar.content("file1.txt") == "dir1/file1.txt"
+    }
+
+    def "ensure that the archiveFile can be used as an input to another task"() {
+        given:
+        createDir('dir1', {
+            file('file1.txt').text = "dir1/file1.txt"
+        })
+        buildFile << """
+        class TaskWithAutomaticDependency extends DefaultTask {
+            @InputFile
+            final RegularFileProperty inputFile = project.objects.fileProperty()
+            
+            @TaskAction
+            void doNothing() {
+                // does nothing
+            }
+        }
+        
+        task tar(type: Tar) {
+            from 'dir1'
+            baseName = "test"
+            destinationDirectory.set(layout.buildDirectory)
+        }
+        task shouldRun(type: TaskWithAutomaticDependency) {
+            // "Look Ma, no dependsOn!"
+            inputFile.set(tar.archiveFile)
+        }
+        """
+        when:
+        run "shouldRun"
+        then:
+        ":tar" in executedTasks
     }
 
     private def createTar(String name, Closure cl) {
