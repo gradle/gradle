@@ -17,12 +17,15 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Action
+import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.internal.Factory
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -250,7 +253,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
     def "snapshots a singletonFileTree as RegularFileSnapshot"() {
         given:
-        def file = tmpDir.createFile('testFile')
+        def tempDir = tmpDir.createDir('tmpDir')
+        def file = tempDir.createFile('testFile')
 
         when:
         def tree = new FileTreeAdapter(new DefaultSingletonFileTree(file), TestFiles.patternSetFactory)
@@ -259,21 +263,58 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         then:
         snapshots.size() == 1
         getSnapshotInfo(snapshots[0]) == [null, 1]
+
+        when:
+        def includedTree = tree.matching(new Action<PatternFilterable>() {
+            @Override
+            void execute(PatternFilterable patternFilterable) {
+                patternFilterable.include("**")
+            }
+        });
+        snapshots = snapshotter.snapshot(includedTree)
+
+        then:
+        snapshots.size() == 1
+
+        // TODO this should probably be a regular file snapshot too
+        getSnapshotInfo(snapshots[0]) == [tempDir.path, 2]
+
+        when:
+        def excludedTree = tree.matching(new Action<PatternFilterable>() {
+            @Override
+            void execute(PatternFilterable patternFilterable) {
+                patternFilterable.exclude("**")
+            }
+        });
+        snapshots = snapshotter.snapshot(excludedTree)
+
+        then:
+        snapshots.size() == 1
+
+        // TODO this should probably be a regular file snapshot too
+        getSnapshotInfo(snapshots[0]) == [tempDir.path, 2]
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
         given:
         def file = tmpDir.createFile('testFile')
-        def tmpDir = tmpDir.createDir('tmpDir')
+        def tempDir = tmpDir.createDir('tmpDir')
+        Factory<File> factory = new Factory<File>() {
+            @Override
+            File create() {
+                return tempDir
+            }
+        }
 
-        when:
-        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, TestFiles.directoryFileTreeFactory(), file.name, new Action<OutputStream>() {
-
+        def action = new Action<OutputStream>() {
             @Override
             void execute(OutputStream outputStream) {
                 outputStream.write("content".getBytes())
             }
-        }))
+        }
+
+        when:
+        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, TestFiles.directoryFileTreeFactory(), RelativePath.parse(true, file.name), action))
         def snapshots = snapshotter.snapshot(tree)
 
         then:
