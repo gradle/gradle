@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCacheDetails;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
@@ -186,7 +187,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-            ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(details);
             if (cachedMetadata == null) {
                 return;
             }
@@ -292,7 +294,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(details);
             if (cachedMetadata == null) {
                 return estimateCostViaRemoteAccess(moduleComponentIdentifier);
             }
@@ -370,16 +373,16 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
-
+            ModuleMetadataCache.ModuleMetadataDetails details = new DefaultModuleMetadataCacheDetails(delegate, moduleComponentIdentifier);
             delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, result);
             switch (result.getState()) {
                 case Missing:
-                    moduleMetadataCache.cacheMissing(delegate, moduleComponentIdentifier);
+                    moduleMetadataCache.cacheMissing(details);
                     break;
                 case Resolved:
                     ModuleComponentResolveMetadata resolvedMetadata = result.getMetaData();
                     ModuleSource moduleSource = resolvedMetadata.getSource();
-                    ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
+                    ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(details, resolvedMetadata);
                     ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
                     cachedMetadata.setProcessedMetadata(processedMetadata);
                     moduleSource = new CachingModuleSource(processedMetadata.getOriginalContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);

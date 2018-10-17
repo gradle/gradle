@@ -185,7 +185,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshMissingModule(_, _) >> mustRefreshMissingModule
-        moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
+        moduleDescriptorCache.getCachedModuleDescriptor({ it.moduleComponentIdentifier == module}) >> Stub(ModuleMetadataCache.CachedMetadata) {
             isMissing() >> true
         }
 
@@ -211,7 +211,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshChangingModule(_, _, _) >> mustRefreshChangingModule
-        moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
+        moduleDescriptorCache.getCachedModuleDescriptor({ it.moduleComponentIdentifier == module}) >> Stub(ModuleMetadataCache.CachedMetadata) {
             getProcessedMetadata() >> Stub(ModuleComponentResolveMetadata) {
                 isChanging() >> true
             }
@@ -239,7 +239,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshModule(_, _, _) >> mustRefreshModule
-        moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
+        moduleDescriptorCache.getCachedModuleDescriptor({ it.moduleComponentIdentifier == module}) >> Stub(ModuleMetadataCache.CachedMetadata) {
             getProcessedMetadata() >> Stub(ModuleComponentResolveMetadata)
         }
 
