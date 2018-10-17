@@ -19,6 +19,10 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 /**
  * Test Gradle performance against it's own build.
  *
@@ -33,13 +37,20 @@ import spock.lang.Unroll
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
 class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
+    static List<String> extraGradleBuildArguments() {
+        ["-Djava9Home=${System.getProperty('java9Home')}",
+         "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
+         "-Dorg.gradle.ignoreBuildJavaVersionCheck=true",
+         "-I", createMirrorInitScript().absolutePath]
+    }
+
     @Unroll
     def "#tasks on the gradle build comparing gradle"() {
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
         runner.targetVersions = ["5.1-20181016235832+0000"]
-        runner.args = ["-Djava9Home=${System.getProperty('java9Home')}"]
+        runner.args = extraGradleBuildArguments()
 
         when:
         def result = runner.run()
