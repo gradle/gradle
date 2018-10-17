@@ -129,59 +129,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `can access container element of default package type`() {
-
-        withBuildSrc {
-
-            "src/main/kotlin" {
-
-                withFile("Bean.kt", """
-                    open class Bean(private val name: String) : org.gradle.api.Named {
-                        override fun getName() = name
-                    }
-                """)
-
-                withFile("plugin.gradle.kts", """
-
-                    import org.gradle.api.internal.*
-                    import org.gradle.internal.reflect.*
-
-                    val beans = DefaultPolymorphicDomainObjectContainer(
-                        Any::class.java,
-                        DirectInstantiator.INSTANCE
-                    ) { (it as Bean).name }
-
-                    // TODO: schema doesn't expose the registered element as Bean
-                    beans.register("bean", Bean::class)
-                    extensions.add("beans", beans)
-
-                """)
-            }
-        }
-
-        withBuildScript("""
-
-            plugins { id("plugin") }
-
-            inline fun <reified T> typeOf(value: T) = typeOf<T>()
-
-            println("beans: " + typeOf(beans))
-            println("bean: " + typeOf(beans.bean))
-            beans { println("beans{} " + typeOf(beans)) }
-        """)
-
-        // TODO: `bean` should be exposed as `Bean` in the collection schema
-        assertThat(
-            build("help", "-q").output,
-            containsMultiLineString("""
-                beans: org.gradle.api.NamedDomainObjectContainer<java.lang.Object>
-                bean: org.gradle.api.NamedDomainObjectProvider<java.lang.Object>
-                beans{} org.gradle.api.NamedDomainObjectContainer<java.lang.Object>
-            """)
-        )
-    }
-
-    @Test
     fun `can access task of default package type`() {
 
         withBuildSrc {
