@@ -55,7 +55,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         executer.withStackTraceChecksDisabled()
         succeeds "customTask"
         output =~ /Failed to store cache entry .+ for task ':customTask'/
-        output =~ /Could not pack property 'output'/
+        output =~ /Could not pack tree 'output'/
         localCache.empty
         localCache.listCacheTempFiles().empty
 
@@ -98,7 +98,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         executer.withStackTraceChecksDisabled()
         succeeds "customTask"
         remoteCache.empty
-        output =~ /org.gradle.api.GradleException: Could not pack property 'output'/
+        output =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
     }
 
 
@@ -173,7 +173,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.withStackTraceChecksDisabled()
         succeeds("clean", "customTask")
-        output =~ /Cleaning outputs for task ':customTask' after failed load from cache/
+        output =~ /Cleaning task ':customTask' after failed load from cache/
         output =~ /Failed to load cache entry for task ':customTask', falling back to executing task/
         output =~ /Build cache entry .+ from local build cache is invalid/
         output =~ /java.io.EOFException: Unexpected end of ZLIB input stream/

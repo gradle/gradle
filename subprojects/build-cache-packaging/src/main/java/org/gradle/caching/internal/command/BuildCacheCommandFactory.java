@@ -106,7 +106,7 @@ public class BuildCacheCommandFactory {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
                 loadListener.afterLoad(snapshots, unpackResult.getOriginMetadata());
             } catch (Exception e) {
-                LOGGER.warn("Cleaning unpacked trees for {} after failed load from cache.", entity);
+                LOGGER.warn("Cleaning {} after failed load from cache.", entity);
                 try {
                     cleanupTreesAfterUnpackFailure();
                     loadListener.afterLoad(e);
