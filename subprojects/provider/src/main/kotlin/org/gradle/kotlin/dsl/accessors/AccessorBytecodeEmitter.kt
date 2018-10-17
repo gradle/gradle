@@ -25,6 +25,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtensionContainer
 
 import org.gradle.internal.hash.HashUtil
 
@@ -37,12 +39,15 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.InternalNameOf
 import org.gradle.kotlin.dsl.support.bytecode.LDC
+import org.gradle.kotlin.dsl.support.bytecode.RETURN
+import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
+import org.gradle.kotlin.dsl.support.bytecode.visitParameter
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
@@ -71,7 +76,7 @@ object AccessorBytecodeEmitter {
 
             val (internalClassName, classBytes) =
                 when (accessor) {
-                    is Accessor.ForConfiguration -> emitAccessorForConfiguration(accessor)
+                    is Accessor.ForConfiguration -> emitAccessorsForConfiguration(accessor)
                     is Accessor.ForExtension -> emitAccessorForExtension(accessor)
                 }
 
@@ -106,6 +111,10 @@ object AccessorBytecodeEmitter {
             accessorName,
             accessorDescriptorFor(receiverTypeName, jvmReturnType)
         )
+        val configureSignature = JvmMethodSignature(
+            accessorName,
+            "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+        )
 
         val header = writeFileFacadeClassHeader {
             writePropertyOf(
@@ -113,6 +122,17 @@ object AccessorBytecodeEmitter {
                 returnType = { visitClass(kotlinReturnType) },
                 propertyName = accessorName,
                 getterSignature = signature
+            )
+            writeFunctionOf(
+                receiverType = { visitClass(receiverTypeName) },
+                returnType = { visitClass(InternalNameOf.Unit) },
+                parameters = {
+                    visitParameter("configure", actionTypeOf {
+                        visitClass(kotlinReturnType)
+                    })
+                },
+                name = accessorName,
+                signature = configureSignature
             )
         }
 
@@ -131,13 +151,22 @@ object AccessorBytecodeEmitter {
                     }
                     ARETURN()
                 }
+                publicStaticMethod(configureSignature.name, configureSignature.desc) {
+                    ALOAD(0)
+                    CHECKCAST(ExtensionAware::class.internalName)
+                    INVOKEINTERFACE(ExtensionAware::class.internalName, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
+                    LDC(name.original)
+                    ALOAD(1)
+                    INVOKEINTERFACE(ExtensionContainer::class.internalName, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
+                    RETURN()
+                }
             }
 
         return internalClassName to classBytes
     }
 
     private
-    fun emitAccessorForConfiguration(accessor: Accessor.ForConfiguration): Pair<InternalName, ByteArray> {
+    fun emitAccessorsForConfiguration(accessor: Accessor.ForConfiguration): Pair<InternalName, ByteArray> {
 
         val configName = accessor.name
         val internalClassName =

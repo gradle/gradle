@@ -287,6 +287,8 @@ object InternalNameOf {
     val Object = InternalName("java/lang/Object")
 
     val Any = InternalName("kotlin/Any")
+
+    val Unit = InternalName("kotlin/Unit")
 }
 
 

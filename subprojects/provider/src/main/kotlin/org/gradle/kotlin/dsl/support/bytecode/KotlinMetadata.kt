@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
+import kotlinx.metadata.KmFunctionVisitor
 import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmTypeVisitor
+import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
@@ -94,22 +96,51 @@ fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
 
 
 internal
-fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
+inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
     receiverType: KmTypeBuilder,
     nullableReturnType: KmTypeBuilder,
     name: String,
     parameterName: String,
     parameterType: KmTypeBuilder,
     signature: JvmMethodSignature,
-    flags: Flags = inlineFunctionFlags) {
+    functionFlags: Flags = inlineFunctionFlags
+) {
+    writeFunctionOf(
+        receiverType,
+        nullableReturnType,
+        name,
+        signature = signature,
+        parameters = { visitParameter(parameterName, parameterType) },
+        returnTypeFlags = flagsOf(Flag.Type.IS_NULLABLE),
+        functionFlags = functionFlags
+    )
+}
 
-    visitFunction(flags, name)!!.run {
+
+internal
+inline fun KmFunctionVisitor.visitParameter(parameterName: String, parameterType: KmTypeBuilder) {
+    visitValueParameter(0, parameterName)!!.run {
+        visitType(0).with(parameterType)
+        visitEnd()
+    }
+}
+
+
+internal
+inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
+    receiverType: KmTypeBuilder,
+    returnType: KmTypeBuilder,
+    name: String,
+    parameters: KmFunctionVisitor.() -> Unit,
+    signature: JvmMethodSignature,
+    returnTypeFlags: Flags = 0,
+    functionFlags: Flags = inlineFunctionFlags
+) {
+
+    visitFunction(functionFlags, name)!!.run {
         visitReceiverParameterType(0).with(receiverType)
-        visitValueParameter(0, parameterName)!!.run {
-            visitType(0).with(parameterType)
-            visitEnd()
-        }
-        visitReturnType(flagsOf(Flag.Type.IS_NULLABLE)).with(nullableReturnType)
+        parameters()
+        visitReturnType(returnTypeFlags).with(returnType)
         (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
             visit(signature)
             visitEnd()
@@ -141,11 +172,26 @@ fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
 
 
 private
-fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
+inline fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
     this!!.run {
         builder()
         visitEnd()
     }
+}
+
+
+internal
+fun actionTypeOf(parameterType: KmTypeBuilder): KmTypeBuilder = {
+    visitClass("org/gradle/api/Action")
+    visitArgument(0, KmVariance.INVARIANT).with(parameterType)
+}
+
+
+internal
+fun functionTypeOf(parameterType: KmTypeBuilder, returnType: KmTypeBuilder): KmTypeBuilder = {
+    visitClass("kotlin/Function1")
+    visitArgument(0, KmVariance.INVARIANT).with(parameterType)
+    visitArgument(0, KmVariance.INVARIANT).with(returnType)
 }
 
 

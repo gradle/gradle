@@ -18,9 +18,11 @@ package org.gradle.kotlin.dsl.accessors
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -29,6 +31,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.internal.classpath.DefaultClassPath
@@ -57,8 +60,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 containerElements = listOf(
                     ProjectSchemaEntry(
                         SourceSetContainer::class.qualifiedName!!,
-                        "api",
-                        Configuration::class.qualifiedName!!
+                        "main",
+                        SourceSet::class.qualifiedName!!
                     )
                 ),
                 conventions = listOf(
@@ -102,6 +105,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 val a = configurations.api
                 val b = ext
                 val c = dependencies.api("module")
+                val d = ext {}
             """,
             scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath
 // Runtime is not required because the accessores are inlined
@@ -109,12 +113,22 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         )
 
         inOrder(project, configurations, apiConfiguration, extensions, extExtension, dependencies) {
+            // val a
             verify(project).configurations
             verify(configurations).named("api")
+
+            // val b
             verify(project).extensions
             verify(extensions).getByName("ext")
+
+            // val c
             verify(project).dependencies
             verify(dependencies).add("api", "module")
+
+            // val d
+            verify(project).extensions
+            verify(extensions).configure(eq("ext"), any<Action<*>>())
+
             verifyNoMoreInteractions()
         }
     }
