@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl;
+package org.gradle.internal.execution.timeout;
 
-import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.WorkResult;
-import org.gradle.internal.execution.impl.steps.DirectExecutionStep;
+/**
+ * Represents a timeout for some piece of work.
+ */
+public interface Timeout {
+    /**
+     * Returns whether the work did time out.
+     */
+    boolean timedOut();
 
-public class DefaultWorkExecutor implements WorkExecutor {
-    private final DirectExecutionStep executeStep;
-
-    public DefaultWorkExecutor(DirectExecutionStep executeStep) {
-        this.executeStep = executeStep;
-    }
-
-    @Override
-    public WorkResult execute(UnitOfWork work) {
-        return executeStep.execute(work);
-    }
+    /**
+     * Stops the timeout.
+     */
+    void stop();
 }

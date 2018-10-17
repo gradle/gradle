@@ -24,8 +24,8 @@ import org.gradle.api.internal.changedetection.state.TaskExecutionFingerprintSer
 import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
-import org.gradle.api.internal.tasks.timeout.DefaultTimeoutHandler;
-import org.gradle.api.internal.tasks.timeout.TimeoutHandler;
+import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;

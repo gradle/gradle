@@ -24,7 +24,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkOutcome;
 import org.gradle.internal.execution.WorkResult;
 
-public class ExecuteStep {
+public class ExecuteStep implements DirectExecutionStep {
 
     private final BuildCancellationToken cancellationToken;
     private final OutputChangeListener outputChangeListener;
@@ -37,6 +37,7 @@ public class ExecuteStep {
         this.outputChangeListener = outputChangeListener;
     }
 
+    @Override
     public WorkResult execute(UnitOfWork work) {
         try {
             outputChangeListener.beforeOutputChange();

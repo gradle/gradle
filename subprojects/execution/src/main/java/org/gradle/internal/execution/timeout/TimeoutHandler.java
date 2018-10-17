@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.timeout;
+package org.gradle.internal.execution.timeout;
 
 import org.gradle.internal.concurrent.Stoppable;
 

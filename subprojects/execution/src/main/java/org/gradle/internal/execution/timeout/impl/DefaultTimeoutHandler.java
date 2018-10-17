@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.timeout;
+package org.gradle.internal.execution.timeout.impl;
 
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.execution.timeout.Timeout;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;

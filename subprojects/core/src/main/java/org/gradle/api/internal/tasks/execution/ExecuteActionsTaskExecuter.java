@@ -43,8 +43,10 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
@@ -113,6 +115,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
             }
+        }
+
+        @Override
+        public Optional<Duration> getTimeout() {
+            return Optional.ofNullable(task.getTimeout().getOrNull());
         }
 
         @Override

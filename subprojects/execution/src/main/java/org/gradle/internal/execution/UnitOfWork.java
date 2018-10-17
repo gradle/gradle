@@ -18,11 +18,16 @@ package org.gradle.internal.execution;
 
 import org.gradle.api.Describable;
 
+import java.time.Duration;
+import java.util.Optional;
+
 public interface UnitOfWork extends Describable {
 //    WorkIdentifier getIdentifier();
 //    void visitInputs(InputVisitor inputVisitor);
 //    void visitOutputs(OutputVisitor outputVisitor);
     boolean execute();
+
+    Optional<Duration> getTimeout();
 
 //    interface InputVisitor {
 //        void visitType(Class<?> type);

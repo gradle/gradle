@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.timeout;
+package org.gradle.internal.execution.impl.steps;
 
-/**
- * Represents a timeout for some piece of work.
- */
-public interface Timeout {
-    /**
-     * Returns whether the work did time out.
-     */
-    boolean timedOut();
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkResult;
 
-    /**
-     * Stops the timeout.
-     */
-    void stop();
+public interface DirectExecutionStep {
+    WorkResult execute(UnitOfWork work);
 }

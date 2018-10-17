@@ -47,11 +47,9 @@ import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SnapshotAfterExecutionTaskExecuter;
-import org.gradle.api.internal.tasks.execution.TimeoutTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.timeout.TimeoutHandler;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -64,6 +62,8 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
+import org.gradle.internal.execution.impl.steps.TimeoutStep;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -106,9 +106,14 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     WorkExecutor createWorkExecutor(
         BuildCancellationToken cancellationToken,
-        OutputChangeListener outputChangeListener
+        OutputChangeListener outputChangeListener,
+        TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor(new ExecuteStep(cancellationToken, outputChangeListener));
+        return new DefaultWorkExecutor(
+            new TimeoutStep(timeoutHandler,
+                new ExecuteStep(cancellationToken, outputChangeListener)
+            )
+        );
     }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
@@ -127,7 +132,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
                                     TaskExecutionListener taskExecutionListener,
-                                    TimeoutHandler timeoutHandler,
                                     WorkExecutor workExecutor
     ) {
 
@@ -140,7 +144,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             actionListener,
             workExecutor
         );
-        executer = new TimeoutTaskExecuter(executer, timeoutHandler);
         executer = new SnapshotAfterExecutionTaskExecuter(executer, buildInvocationScopeId);
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (buildCacheEnabled) {
