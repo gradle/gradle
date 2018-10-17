@@ -60,13 +60,14 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.buildCacheKey = buildCacheKey;
     }
 
+    @Nullable
     @Override
     public OriginMetadata getOriginMetadata() {
         return originMetadata;
     }
 
     @Override
-    public void setOriginMetadata(OriginMetadata originMetadata) {
+    public void setOriginMetadata(@Nullable OriginMetadata originMetadata) {
         this.originMetadata = originMetadata;
     }
 

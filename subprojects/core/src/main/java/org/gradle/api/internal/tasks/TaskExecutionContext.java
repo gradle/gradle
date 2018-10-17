@@ -40,7 +40,7 @@ public interface TaskExecutionContext {
     @Nullable
     OriginMetadata getOriginMetadata();
 
-    void setOriginMetadata(OriginMetadata originMetadata);
+    void setOriginMetadata(@Nullable OriginMetadata originMetadata);
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.
