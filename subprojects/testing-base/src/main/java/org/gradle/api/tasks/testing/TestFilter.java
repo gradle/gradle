@@ -17,6 +17,7 @@ package org.gradle.api.tasks.testing;
 
 import java.util.Set;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 
 /**
@@ -77,7 +78,9 @@ public interface TestFilter {
      *
      * @param testNamePattern test name pattern to exclude, can be class or method name, can contain wildcard '*'
      * @return this filter object
+     * @since 5.0
      */
+    @Incubating
     TestFilter excludeTestsMatching(String testNamePattern);
 
     /**
@@ -95,8 +98,10 @@ public interface TestFilter {
      * {@link #setExcludePatterns(String...)}.
      *
      * @return included test name patterns
+     * @since 5.0
      */
     @Input
+    @Incubating
     Set<String> getExcludePatterns();
 
     /**
@@ -112,7 +117,9 @@ public interface TestFilter {
      *
      * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
      * @return this filter object
+     * @since 5.0
      */
+    @Incubating
     TestFilter setExcludePatterns(String... testNamePatterns);
 
     /**
@@ -130,7 +137,9 @@ public interface TestFilter {
      * @param className the class name of the test to exclude
      * @param methodName the method name of the test to exclude. Can be null.
      * @return this filter object
+     * @since 5.0
      */
+    @Incubating
     TestFilter excludeTest(String className, String methodName);
 
     /**
