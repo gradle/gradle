@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.origin;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.caching.internal.CacheableThing;
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -68,7 +68,7 @@ public class OriginMetadataFactory {
         this.currentBuildInvocationId = currentBuildInvocationId;
     }
 
-    public OriginWriter createWriter(CacheableThing entry, long elapsedTime) {
+    public OriginWriter createWriter(CacheableEntity entry, long elapsedTime) {
         return new OriginWriter() {
             @Override
             public void execute(OutputStream outputStream) {
@@ -94,7 +94,7 @@ public class OriginMetadataFactory {
         };
     }
 
-    public OriginReader createReader(CacheableThing entry) {
+    public OriginReader createReader(CacheableEntity entry) {
         return new OriginReader() {
             @Override
             public OriginMetadata execute(InputStream inputStream) {

@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.caching.internal
 
-/**
- * An entity that can potentially be stored in the build cache.
- */
-public interface CacheableThing {
-    String getPath();
+import org.gradle.caching.internal.packaging.CacheableTree
+
+import javax.annotation.Nonnull
+
+class TestCacheableTree implements CacheableTree {
+    final String name
+    final Type type
+    final File root
+
+    TestCacheableTree(String name, Type type, File root) {
+        this.name = name
+        this.type = type
+        this.root = root
+    }
+
+    @Override
+    int compareTo(@Nonnull CacheableTree o) {
+        name <=> o.name
+    }
 }

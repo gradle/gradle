@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
-import org.gradle.caching.internal.CacheableThing;
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.Factory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
@@ -33,7 +33,7 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.List;
 
-public interface TaskInternal extends Task, Configurable<Task>, CacheableThing {
+public interface TaskInternal extends Task, Configurable<Task>, CacheableEntity {
 
     /**
      * A more efficient version of {@link #getActions()}, which circumvents the

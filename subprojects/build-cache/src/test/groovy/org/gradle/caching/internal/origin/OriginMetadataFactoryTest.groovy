@@ -16,7 +16,7 @@
 
 package org.gradle.caching.internal.origin
 
-import org.gradle.caching.internal.CacheableThing
+import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Clock
@@ -24,7 +24,7 @@ import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class OriginMetadataFactoryTest extends Specification {
-    def entry = Mock(CacheableThing)
+    def entry = Mock(CacheableEntity)
     def timeProvider = Mock(Clock)
     def inetAddressFactory = Mock(InetAddressFactory)
     def rootDir = Mock(File)

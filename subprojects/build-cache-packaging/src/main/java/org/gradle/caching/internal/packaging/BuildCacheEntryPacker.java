@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.SortedSet;
 
 public interface BuildCacheEntryPacker {
-    PackResult pack(SortedSet<CacheableTree> propertySpecs, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException;
+    PackResult pack(SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;
@@ -43,7 +43,7 @@ public interface BuildCacheEntryPacker {
         }
     }
 
-    UnpackResult unpack(SortedSet<CacheableTree> propertySpecs, InputStream input, OriginReader readOrigin) throws IOException;
+    UnpackResult unpack(SortedSet<CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException;
 
     class UnpackResult {
         private final OriginMetadata originMetadata;

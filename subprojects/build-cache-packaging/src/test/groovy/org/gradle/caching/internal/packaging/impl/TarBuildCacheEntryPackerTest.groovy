@@ -18,7 +18,7 @@ package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.caching.internal.TestOutputTree
+import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.CacheableTree
@@ -58,7 +58,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror)
 
     @Unroll
-    def "can pack single output file with file mode #mode"() {
+    def "can pack single file with file mode #mode"() {
         def sourceOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("source.txt").absolutePath]) as File
         sourceOutputFile << "output"
         def targetOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("target.txt").absolutePath]) as File
@@ -88,7 +88,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         mode << [ "0644", "0755" ]
     }
 
-    def "can pack output directory"() {
+    def "can pack directory"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
         def sourceSubDir = sourceOutputDir.file("subdir").createDir()
         def sourceDataFile = sourceSubDir.file("data.txt")
@@ -121,7 +121,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     @Unroll
-    def "can pack output with missing #type (pre-existing as: #preExistsAs)"() {
+    def "can pack tree with missing #type (pre-existing as: #preExistsAs)"() {
         def sourceOutput = temporaryFolder.file("source")
         def targetOutput = temporaryFolder.file("target")
         switch (preExistsAs) {
@@ -160,7 +160,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     @Unroll
-    def "can pack single output file with #type name"() {
+    def "can pack single tree file with #type name"() {
         def sourceOutputFile = temporaryFolder.file("source.txt")
         sourceOutputFile << "output"
         def targetOutputFile = temporaryFolder.file("target.txt")
@@ -184,14 +184,14 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
 
         where:
-        type      | propertyName
-        "long"    | "prop-" + ("x" * 100)
-        "unicode" | "prop-dezső"
+        type      | treeName
+        "long"    | "tree-" + ("x" * 100)
+        "unicode" | "tree-dezső"
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Unroll
-    def "can pack output directory with files having #type characters in name"() {
+    def "can pack tree directory with files having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
         def sourceOutputFile = sourceOutputDir.file(fileName) << "output"
         def targetOutputDir = temporaryFolder.file("target")
@@ -227,14 +227,14 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     @Unroll
-    def "can pack output properties having #type characters in name"() {
+    def "can pack trees having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
         def sourceOutputFile = sourceOutputDir.file("output.txt") << "output"
         def targetOutputDir = temporaryFolder.file("target")
         def targetOutputFile = targetOutputDir.file("output.txt")
         def output = new ByteArrayOutputStream()
         when:
-        pack output, prop(propertyName, DIRECTORY, sourceOutputDir)
+        pack output, prop(treeName, DIRECTORY, sourceOutputDir)
 
         then:
         noExceptionThrown()
@@ -243,7 +243,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
 
         when:
         def input = new ByteArrayInputStream(output.toByteArray())
-        unpack input, prop(propertyName, DIRECTORY, targetOutputDir)
+        unpack input, prop(treeName, DIRECTORY, targetOutputDir)
 
         then:
         1 * fileSystem.chmod(targetOutputDir, 0755)
@@ -253,7 +253,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
 
         where:
-        type          | propertyName
+        type          | treeName
         "ascii-only"  | "input-file"
         "chinese"     | "输入文件"
         "hungarian"   | "Dezső"
@@ -263,7 +263,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         "file-system" | ":input\\/file:"
     }
 
-    def "can pack output with all optional, null outputs"() {
+    def "can pack entity with all optional, null trees"() {
         def output = new ByteArrayOutputStream()
         when:
         pack output,
@@ -284,7 +284,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
     }
 
-    def "can pack output with missing files"() {
+    def "can pack entity with missing files"() {
         def sourceDir = temporaryFolder.file("source")
         def missingSourceFile = sourceDir.file("missing.txt")
         def missingSourceDir = sourceDir.file("missing")
@@ -313,7 +313,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
     }
 
-    def "can pack output with empty output directory"() {
+    def "can pack entity with empty directory"() {
         def sourceDir = temporaryFolder.file("source").createDir()
         def targetDir = temporaryFolder.file("target")
         def output = new ByteArrayOutputStream()
@@ -336,25 +336,25 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
     }
 
-    def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, PropertyDefinition... propertyDefs) {
-        def propertySpecs = propertyDefs*.property as SortedSet
-        Map<String, CurrentFileCollectionFingerprint> outputSnapshots = propertyDefs.collectEntries { propertyDef ->
-            return [(propertyDef.property.name): propertyDef.outputSnapshot()]
+    def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {
+        def trees = treeDefs*.tree as SortedSet
+        Map<String, CurrentFileCollectionFingerprint> fingerprints = treeDefs.collectEntries { treeDef ->
+            return [(treeDef.tree.name): treeDef.fingerprint()]
         }
-        packer.pack(propertySpecs, outputSnapshots, output, writeOrigin)
+        packer.pack(trees, fingerprints, output, writeOrigin)
     }
 
-    def unpack(InputStream input, OriginReader readOrigin = this.readOrigin, PropertyDefinition... propertyDefs) {
-        def propertySpecs = propertyDefs*.property as SortedSet
-        packer.unpack(propertySpecs, input, readOrigin)
+    def unpack(InputStream input, OriginReader readOrigin = this.readOrigin, TreeDefinition... treeDefs) {
+        def trees = treeDefs*.tree as SortedSet
+        packer.unpack(trees, input, readOrigin)
     }
 
     def prop(String name = "test", CacheableTree.Type type, File output, FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING) {
         switch (type) {
             case FILE:
-                return new PropertyDefinition(new TestOutputTree(name, FILE, output)) {
+                return new TreeDefinition(new TestCacheableTree(name, FILE, output)) {
                     @Override
-                    CurrentFileCollectionFingerprint outputSnapshot() {
+                    CurrentFileCollectionFingerprint fingerprint() {
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
@@ -362,9 +362,9 @@ class TarBuildCacheEntryPackerTest extends Specification {
                     }
                 }
             case DIRECTORY:
-                return new PropertyDefinition(new TestOutputTree(name, DIRECTORY, output)) {
+                return new TreeDefinition(new TestCacheableTree(name, DIRECTORY, output)) {
                     @Override
-                    CurrentFileCollectionFingerprint outputSnapshot() {
+                    CurrentFileCollectionFingerprint fingerprint() {
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
@@ -376,13 +376,13 @@ class TarBuildCacheEntryPackerTest extends Specification {
         }
     }
 
-    private abstract static class PropertyDefinition {
-        CacheableTree property
+    private abstract static class TreeDefinition {
+        final CacheableTree tree
 
-        PropertyDefinition(CacheableTree property) {
-            this.property = property
+        TreeDefinition(CacheableTree tree) {
+            this.tree = tree
         }
 
-        abstract CurrentFileCollectionFingerprint outputSnapshot()
+        abstract CurrentFileCollectionFingerprint fingerprint()
     }
 }

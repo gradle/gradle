@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.internal.CacheableThing
-import org.gradle.caching.internal.TestOutputTree
+import org.gradle.caching.internal.CacheableEntity
+import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
@@ -55,7 +55,7 @@ class BuildCacheCommandFactoryTest extends Specification {
     def commandFactory = new BuildCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner)
 
     def key = Mock(BuildCacheKey)
-    def entry = Mock(CacheableThing)
+    def entry = Mock(CacheableEntity)
     def loadListener = Mock(BuildCacheLoadListener)
     def timer = Stub(Timer)
 
@@ -68,16 +68,16 @@ class BuildCacheCommandFactoryTest extends Specification {
     def localStateFile = temporaryFolder.file("local-state.txt").createFile()
     def localStateFiles = ImmutableFileCollection.of(localStateFile)
 
-    def "load invokes unpacker and fingerprints outputs"() {
+    def "load invokes unpacker and fingerprints trees"() {
         def outputFile = temporaryFolder.file("output.txt")
         def outputDir = temporaryFolder.file("outputDir")
         def outputDirFile = outputDir.file("file.txt")
         def input = Mock(InputStream)
-        def outputProperties = [
+        def trees = [
             prop("outputDir", DIRECTORY, outputDir),
             prop("outputFile", FILE, outputFile),
         ] as SortedSet
-        def load = commandFactory.createLoad(key, outputProperties, entry, localStateFiles, loadListener)
+        def load = commandFactory.createLoad(key, trees, entry, localStateFiles, loadListener)
 
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), 234)
         def fileSnapshots = ImmutableMap.of(
@@ -92,7 +92,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         1 * originFactory.createReader(entry) >> originReader
 
         then:
-        1 * packer.unpack(outputProperties, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
+        1 * packer.unpack(trees, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
         1 * fileSystemMirror.putMetadata(outputDir.absolutePath, DefaultFileMetadata.directory())
@@ -107,10 +107,10 @@ class BuildCacheCommandFactoryTest extends Specification {
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
         }
-        1 * loadListener.afterLoad(_ as ImmutableSortedMap<String, CurrentFileCollectionFingerprint>, originMetadata as OriginMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertyFingerprints, OriginMetadata metadata ->
-            assert propertyFingerprints.keySet() as List == ["outputDir", "outputFile"]
-            assert propertyFingerprints["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
-            assert propertyFingerprints["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        1 * loadListener.afterLoad(_ as ImmutableSortedMap<String, CurrentFileCollectionFingerprint>, originMetadata as OriginMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints, OriginMetadata metadata ->
+            assert fingerprints.keySet() as List == ["outputDir", "outputFile"]
+            assert fingerprints["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
+            assert fingerprints["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:
@@ -125,8 +125,8 @@ class BuildCacheCommandFactoryTest extends Specification {
     def "after failed unpacking output is cleaned up"() {
         def input = Mock(InputStream)
         def outputFile = temporaryFolder.file("output.txt")
-        def outputProperties = props("output", FILE, outputFile)
-        def command = commandFactory.createLoad(key, outputProperties, entry, localStateFiles, loadListener)
+        def trees = props("output", FILE, outputFile)
+        def command = commandFactory.createLoad(key, trees, entry, localStateFiles, loadListener)
 
         when:
         command.load(input)
@@ -136,7 +136,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         1 * originFactory.createReader(entry) >> originReader
 
         then:
-        1 * packer.unpack(outputProperties, input, originReader) >> {
+        1 * packer.unpack(trees, input, originReader) >> {
             outputFile << "partially extracted output fil..."
             throw new RuntimeException("unpacking error")
         }
@@ -157,8 +157,8 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     def "error during cleanup of failed unpacking is reported"() {
         def input = Mock(InputStream)
-        def outputProperties = Mock(SortedSet)
-        def command = commandFactory.createLoad(key, outputProperties, entry, localStateFiles, loadListener)
+        def trees = Mock(SortedSet)
+        def command = commandFactory.createLoad(key, trees, entry, localStateFiles, loadListener)
 
         when:
         command.load(input)
@@ -168,12 +168,12 @@ class BuildCacheCommandFactoryTest extends Specification {
         1 * originFactory.createReader(entry) >> originReader
 
         then:
-        1 * packer.unpack(outputProperties, input, originReader) >> {
+        1 * packer.unpack(trees, input, originReader) >> {
             throw new RuntimeException("unpacking error")
         }
 
         then:
-        1 * outputProperties.iterator() >> { throw new RuntimeException("cleanup error") }
+        1 * trees.iterator() >> { throw new RuntimeException("cleanup error") }
 
         then:
         def ex = thrown UnrecoverableUnpackingException
@@ -186,9 +186,9 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     def "store invokes packer"() {
         def output = Mock(OutputStream)
-        def outputProperties = props("output")
+        def trees = props("output")
         def outputFingerprints = Mock(Map)
-        def command = commandFactory.createStore(key, outputProperties, outputFingerprints, entry, 421L)
+        def command = commandFactory.createStore(key, trees, outputFingerprints, entry, 421L)
 
         when:
         def result = command.store(output)
@@ -197,7 +197,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         1 * originFactory.createWriter(entry, 421L) >> originWriter
 
         then:
-        1 * packer.pack(outputProperties, outputFingerprints, output, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
+        1 * packer.pack(trees, outputFingerprints, output, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
 
         then:
         result.artifactEntryCount == 123
@@ -209,6 +209,6 @@ class BuildCacheCommandFactoryTest extends Specification {
     }
 
     CacheableTree prop(String name, CacheableTree.Type type = FILE, File root = null) {
-        new TestOutputTree(name, type, root)
+        new TestCacheableTree(name, type, root)
     }
 }
