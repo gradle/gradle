@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.tasks
+package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.OutputType.FILE
-import static org.gradle.caching.internal.tasks.TaskOutputPackerUtils.ensureDirectoryForProperty
+import static org.gradle.caching.internal.packaging.CacheableTree.Type.DIRECTORY
+import static org.gradle.caching.internal.packaging.CacheableTree.Type.FILE
+import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.ensureDirectoryForTree
 
 @CleanupTestDirectory
-class TaskOutputPackerUtilsTest extends Specification {
+class PackerDirectoryUtilTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -35,7 +35,7 @@ class TaskOutputPackerUtilsTest extends Specification {
         targetOutputFile << "Some data"
 
         when:
-        ensureDirectoryForProperty(FILE, targetOutputFile)
+        ensureDirectoryForTree(FILE, targetOutputFile)
 
         then:
         targetOutputFile.parentFile.assertIsEmptyDir()
@@ -45,7 +45,7 @@ class TaskOutputPackerUtilsTest extends Specification {
         def targetOutputDir = temporaryFolder.file("build/output")
 
         when:
-        ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+        ensureDirectoryForTree(DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -56,7 +56,7 @@ class TaskOutputPackerUtilsTest extends Specification {
         targetOutputDir.file("sub-dir/data.txt") << "Some data"
 
         when:
-        ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+        ensureDirectoryForTree(DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -67,7 +67,7 @@ class TaskOutputPackerUtilsTest extends Specification {
         targetOutputDir << "This should become a directory"
 
         when:
-        ensureDirectoryForProperty(DIRECTORY, targetOutputDir)
+        ensureDirectoryForTree(DIRECTORY, targetOutputDir)
 
         then:
         targetOutputDir.assertIsEmptyDir()
@@ -78,7 +78,7 @@ class TaskOutputPackerUtilsTest extends Specification {
         targetOutputFile.createDir()
 
         when:
-        ensureDirectoryForProperty(FILE, targetOutputFile)
+        ensureDirectoryForTree(FILE, targetOutputFile)
 
         then:
         targetOutputFile.parentFile.assertIsEmptyDir()

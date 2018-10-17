@@ -66,6 +66,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.ensureDirectoryForTree;
+import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.makeDirectory;
+
 /**
  * Packages build cache entries to a POSIX TAR file.
  */
@@ -455,35 +458,5 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
                 throw new UncheckedIOException(e);
             }
         }
-    }
-
-    private static void ensureDirectoryForTree(CacheableTree.Type type, File root) throws IOException {
-        switch (type) {
-            case DIRECTORY:
-                if (!makeDirectory(root)) {
-                    FileUtils.cleanDirectory(root);
-                }
-                break;
-            case FILE:
-                if (!makeDirectory(root.getParentFile())) {
-                    if (root.exists()) {
-                        FileUtils.forceDelete(root);
-                    }
-                }
-                break;
-            default:
-                throw new AssertionError();
-        }
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private static boolean makeDirectory(File target) throws IOException {
-        if (target.isDirectory()) {
-            return false;
-        } else if (target.isFile()) {
-            FileUtils.forceDelete(target);
-        }
-        FileUtils.forceMkdir(target);
-        return true;
     }
 }

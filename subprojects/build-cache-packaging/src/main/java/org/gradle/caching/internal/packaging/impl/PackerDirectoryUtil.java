@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.tasks;
+package org.gradle.caching.internal.packaging.impl;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.tasks.OutputType;
+import org.gradle.caching.internal.packaging.CacheableTree;
 
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Packages task output to a ZIP file.
- */
-public class TaskOutputPackerUtils {
-    public static void ensureDirectoryForProperty(OutputType outputType, File specRoot) throws IOException {
-        switch (outputType) {
+public class PackerDirectoryUtil {
+    public static void ensureDirectoryForTree(CacheableTree.Type type, File root) throws IOException {
+        switch (type) {
             case DIRECTORY:
-                if (!makeDirectory(specRoot)) {
-                    FileUtils.cleanDirectory(specRoot);
+                if (!makeDirectory(root)) {
+                    FileUtils.cleanDirectory(root);
                 }
                 break;
             case FILE:
-                if (!makeDirectory(specRoot.getParentFile())) {
-                    if (specRoot.exists()) {
-                        FileUtils.forceDelete(specRoot);
+                if (!makeDirectory(root.getParentFile())) {
+                    if (root.exists()) {
+                        FileUtils.forceDelete(root);
                     }
                 }
                 break;
@@ -45,13 +42,13 @@ public class TaskOutputPackerUtils {
         }
     }
 
-    public static boolean makeDirectory(File output) throws IOException {
-        if (output.isDirectory()) {
+    public static boolean makeDirectory(File target) throws IOException {
+        if (target.isDirectory()) {
             return false;
-        } else if (output.isFile()) {
-            FileUtils.forceDelete(output);
+        } else if (target.isFile()) {
+            FileUtils.forceDelete(target);
         }
-        FileUtils.forceMkdir(output);
+        FileUtils.forceMkdir(target);
         return true;
     }
 }
