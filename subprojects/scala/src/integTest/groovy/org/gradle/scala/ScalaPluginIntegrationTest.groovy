@@ -194,4 +194,29 @@ task someTask
 </application>
 """
     }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/6849")
+    def "can publish test-only projects"() {
+        using m2
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+            apply plugin: 'maven'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                compile("org.scala-lang:scala-library:2.12.6")
+            }
+        """
+        file("src/test/scala/Foo.scala") << """
+            class Foo
+        """
+        expect:
+        succeeds("install")
+    }
 }
