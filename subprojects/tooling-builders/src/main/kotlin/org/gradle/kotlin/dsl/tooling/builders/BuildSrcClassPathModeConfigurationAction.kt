@@ -29,6 +29,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 import org.gradle.api.internal.project.ProjectInternal
 
@@ -38,12 +39,22 @@ import org.gradle.kotlin.dsl.resolver.buildSrcSourceRootsFilePath
 
 
 internal
-class BuildSrcSourceRootsConfigurationAction : BuildSrcProjectConfigurationAction {
+class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAction {
 
     override fun execute(project: ProjectInternal) = project.run {
         if (inClassPathMode()) {
             afterEvaluate {
+                disableVerificationTasks()
                 configureBuildSrcSourceRootsTask()
+            }
+        }
+    }
+
+    private
+    fun Project.disableVerificationTasks() {
+        allprojects { project ->
+            project.tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach { task ->
+                task.enabled = false
             }
         }
     }

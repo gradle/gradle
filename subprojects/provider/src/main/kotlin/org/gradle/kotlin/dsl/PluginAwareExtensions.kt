@@ -59,12 +59,12 @@ inline fun <reified T : Plugin<*>> PluginAware.apply() {
  * The given class should implement the [Plugin] interface.
  *
  * @param T the plugin type.
- * @param to the plugin target object or collection of objects
+ * @param targets the plugin target objects or collections of objects
  * @see [PluginAware.apply]
  */
-inline fun <reified T : Plugin<*>> PluginAware.apply(to: Any) {
+inline fun <reified T : Plugin<*>> PluginAware.applyTo(vararg targets: Any) {
     apply {
         it.plugin(T::class.java)
-        it.to(to)
+        it.to(*targets)
     }
 }

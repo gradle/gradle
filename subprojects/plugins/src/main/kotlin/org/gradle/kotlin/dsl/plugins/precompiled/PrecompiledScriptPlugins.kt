@@ -67,8 +67,8 @@ fun Project.enableScriptCompilation() {
         "kotlinCompilerPluginClasspath"(gradleApi())
     }
 
-    tasks.named("compileKotlin").configure {
-        (it as KotlinCompile).kotlinOptions {
+    tasks.named<KotlinCompile>("compileKotlin") {
+        kotlinOptions {
             freeCompilerArgs += listOf(
                 "-script-templates", scriptTemplates,
                 // Propagate implicit imports and other settings
@@ -149,10 +149,10 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptS
     val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
     sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
-    val generateScriptPluginAdapters = tasks.register("generateScriptPluginAdapters") {
-        it.inputs.files(scriptSourceFiles)
-        it.outputs.dir(generatedSourcesDir)
-        it.doLast {
+    val generateScriptPluginAdapters by tasks.registering {
+        inputs.files(scriptSourceFiles)
+        outputs.dir(generatedSourcesDir)
+        doLast {
             val outputDir = generatedSourcesDir.get().asFile
             for (scriptPlugin in scriptPlugins) {
                 scriptPlugin.writeScriptPluginAdapterTo(outputDir)
@@ -160,7 +160,7 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptS
         }
     }
 
-    tasks.named("compileKotlin").configure {
+    tasks.named("compileKotlin") {
         it.dependsOn(generateScriptPluginAdapters)
     }
 }

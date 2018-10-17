@@ -28,7 +28,15 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
  * @see [DependencyConstraintHandler]
  */
 @Incubating
-class DependencyConstraintHandlerScope(val constraints: DependencyConstraintHandler) : DependencyConstraintHandler by constraints {
+class DependencyConstraintHandlerScope
+private constructor(
+    val constraints: DependencyConstraintHandler
+) : DependencyConstraintHandler by constraints {
+
+    companion object {
+        fun of(constraints: DependencyConstraintHandler) =
+            DependencyConstraintHandlerScope(constraints)
+    }
 
     /**
      * Adds a dependency constraint to the given configuration.

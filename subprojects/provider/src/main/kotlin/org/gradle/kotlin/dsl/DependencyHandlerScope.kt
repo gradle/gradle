@@ -28,7 +28,15 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
  *
  * @see [DependencyHandler]
  */
-class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
+class DependencyHandlerScope
+private constructor(
+    val dependencies: DependencyHandler
+) : DependencyHandler by dependencies {
+
+    companion object {
+        fun of(dependencies: DependencyHandler) =
+            DependencyHandlerScope(dependencies)
+    }
 
     /**
      * Adds a dependency to the given configuration.

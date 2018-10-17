@@ -50,7 +50,7 @@ inline fun <reified S : Any> NamedDomainObjectCollection<in S>.withType(): Named
  * @param C the concrete container type
  */
 inline val <T : Any, C : NamedDomainObjectCollection<T>> C.existing: ExistingDomainObjectDelegateProvider<out C>
-    get() = ExistingDomainObjectDelegateProvider(this)
+    get() = ExistingDomainObjectDelegateProvider.of(this)
 
 
 /**
@@ -63,7 +63,7 @@ inline val <T : Any, C : NamedDomainObjectCollection<T>> C.existing: ExistingDom
  * @param action the configuration action
  */
 fun <T : Any, C : NamedDomainObjectCollection<T>> C.existing(action: T.() -> Unit): ExistingDomainObjectDelegateProviderWithAction<out C, T> =
-    ExistingDomainObjectDelegateProviderWithAction(this, action)
+    ExistingDomainObjectDelegateProviderWithAction.of(this, action)
 
 
 /**
@@ -76,7 +76,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>> C.existing(action: T.() -> Uni
  * @param type the domain object type
  */
 fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass<U>): ExistingDomainObjectDelegateProviderWithType<out C, U> =
-    ExistingDomainObjectDelegateProviderWithType(this, type)
+    ExistingDomainObjectDelegateProviderWithType.of(this, type)
 
 
 /**
@@ -90,7 +90,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass
  * @param action the configuration action
  */
 fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass<U>, action: U.() -> Unit): ExistingDomainObjectDelegateProviderWithTypeAndAction<out C, U> =
-    ExistingDomainObjectDelegateProviderWithTypeAndAction(this, type, action)
+    ExistingDomainObjectDelegateProviderWithTypeAndAction.of(this, type, action)
 
 
 /**
@@ -98,9 +98,15 @@ fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
-class ExistingDomainObjectDelegateProvider<T>(
-    val delegateProvider: T
-)
+class ExistingDomainObjectDelegateProvider<T>
+private constructor(
+    internal val delegateProvider: T
+) {
+    companion object {
+        fun <T> of(delegateProvider: T) =
+            ExistingDomainObjectDelegateProvider(delegateProvider)
+    }
+}
 
 
 /**
@@ -108,10 +114,16 @@ class ExistingDomainObjectDelegateProvider<T>(
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
-class ExistingDomainObjectDelegateProviderWithAction<C, T>(
-    val delegateProvider: C,
-    val action: T.() -> Unit
-)
+class ExistingDomainObjectDelegateProviderWithAction<C, T>
+private constructor(
+    internal val delegateProvider: C,
+    internal val action: T.() -> Unit
+) {
+    companion object {
+        fun <C, T> of(delegateProvider: C, action: T.() -> Unit) =
+            ExistingDomainObjectDelegateProviderWithAction(delegateProvider, action)
+    }
+}
 
 
 /**
@@ -119,10 +131,16 @@ class ExistingDomainObjectDelegateProviderWithAction<C, T>(
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
-class ExistingDomainObjectDelegateProviderWithType<T, U : Any>(
-    val delegateProvider: T,
-    val type: KClass<U>
-)
+class ExistingDomainObjectDelegateProviderWithType<T, U : Any>
+private constructor(
+    internal val delegateProvider: T,
+    internal val type: KClass<U>
+) {
+    companion object {
+        fun <T, U : Any> of(delegateProvider: T, type: KClass<U>) =
+            ExistingDomainObjectDelegateProviderWithType(delegateProvider, type)
+    }
+}
 
 
 /**
@@ -130,11 +148,17 @@ class ExistingDomainObjectDelegateProviderWithType<T, U : Any>(
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
-class ExistingDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>(
-    val delegateProvider: T,
-    val type: KClass<U>,
-    val action: U.() -> Unit
-)
+class ExistingDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>
+private constructor(
+    internal val delegateProvider: T,
+    internal val type: KClass<U>,
+    internal val action: U.() -> Unit
+) {
+    companion object {
+        fun <T, U : Any> of(delegateProvider: T, type: KClass<U>, action: U.() -> Unit) =
+            ExistingDomainObjectDelegateProviderWithTypeAndAction(delegateProvider, type, action)
+    }
+}
 
 
 /**
@@ -144,7 +168,7 @@ class ExistingDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>(
 operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectDelegateProvider<C>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name)
 )
 
@@ -156,7 +180,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectD
 operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectDelegateProviderWithAction<C, T>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name).apply { configure(action) }
 )
 
@@ -168,7 +192,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectD
 operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomainObjectDelegateProviderWithType<C, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name, type)
 )
 
@@ -180,7 +204,7 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomain
 operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomainObjectDelegateProviderWithTypeAndAction<C, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate(
+) = ExistingDomainObjectDelegate.of(
     delegateProvider.named(property.name, type, action)
 )
 
@@ -189,7 +213,15 @@ operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomain
  * Holds a property delegate with the purpose of providing specialized implementations for the
  * `getValue` operator based on the static type of the delegate.
  */
-class ExistingDomainObjectDelegate<T>(val delegate: T)
+class ExistingDomainObjectDelegate<T>
+private constructor(
+    internal val delegate: T
+) {
+    companion object {
+        fun <T> of(delegate: T) =
+            ExistingDomainObjectDelegate(delegate)
+    }
+}
 
 
 /**
@@ -328,16 +360,21 @@ inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting: U
  * `tasks { val jar by getting { group = "My" } }`
  */
 fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() -> Unit) =
-    NamedDomainObjectCollectionDelegateProvider(this, configuration)
+    NamedDomainObjectCollectionDelegateProvider.of(this, configuration)
 
 
 /**
  * Enables typed access to container elements via delegated properties.
  */
-class NamedDomainObjectCollectionDelegateProvider<T>(
-    val collection: NamedDomainObjectCollection<T>,
-    val configuration: T.() -> Unit
+class NamedDomainObjectCollectionDelegateProvider<T>
+private constructor(
+    internal val collection: NamedDomainObjectCollection<T>,
+    internal val configuration: T.() -> Unit
 ) {
+    companion object {
+        fun <T> of(collection: NamedDomainObjectCollection<T>, configuration: T.() -> Unit) =
+            NamedDomainObjectCollectionDelegateProvider(collection, configuration)
+    }
 
     operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>) =
         collection.named(property.name).apply { configure(configuration) }
