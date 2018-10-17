@@ -246,6 +246,26 @@ val testRuntime by configurations.creating {
     extendsFrom(gradlePlugins)
 }
 
+val gradleApiElementsConfigurationAction : Configuration.() -> Unit = {
+    isVisible = false
+    isCanBeConsumed = true
+    isCanBeResolved = false
+    description = "Configuration for runtime API info."
+    usage(Usage.JAVA_RUNTIME)
+    attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "yes")
+}
+
+val gradleApiElements by configurations.creating(gradleApiElementsConfigurationAction)
+gradleApiElements.extendsFrom(gradlePlugins)
+gradleApiElements.extendsFrom(externalModules)
+
+subprojects {
+    pluginManager.withPlugin("java") {
+        val gradleApiElements by configurations.creating(gradleApiElementsConfigurationAction)
+        gradleApiElements.extendsFrom(configurations.getByName("runtimeClasspath"))
+    }
+}
+
 configurations {
     all {
         usage(Usage.JAVA_RUNTIME)
