@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.Flag
+import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 
@@ -38,6 +39,8 @@ import org.gradle.kotlin.dsl.support.bytecode.DUP
 import org.gradle.kotlin.dsl.support.bytecode.GETFIELD
 import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESPECIAL
+import org.gradle.kotlin.dsl.support.bytecode.InternalName
+import org.gradle.kotlin.dsl.support.bytecode.InternalNameOf
 import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.NEW
@@ -107,7 +110,7 @@ fun buildPluginAccessorsFor(
             writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
         }
 
-        val fileFacadeClassName = baseFileName + "Kt"
+        val fileFacadeClassName = InternalName(baseFileName + "Kt")
         val moduleName = "kotlin-dsl-plugin-spec-accessors"
         val moduleMetadata = moduleMetadataBytesFor(listOf(fileFacadeClassName))
         writer.writeFile(
@@ -240,10 +243,16 @@ inline fun <T> Iterable<T>.runEach(f: T.() -> Unit) {
 
 
 internal
-data class TypeSpec(val sourceName: String, val internalName: String) {
+data class TypeSpec(val sourceName: String, val internalName: InternalName) {
 
     val builder: KmTypeBuilder
         get() = { visitClass(internalName) }
+}
+
+
+internal
+fun KmTypeVisitor.visitClass(internalName: InternalName) {
+    visitClass(internalName.value)
 }
 
 
@@ -308,7 +317,7 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
 
 internal
 fun typeSpecForPluginGroupType(groupType: String) =
-    TypeSpec(groupType, "org/gradle/kotlin/dsl/$groupType")
+    TypeSpec(groupType, InternalName("org/gradle/kotlin/dsl/$groupType"))
 
 
 internal
@@ -353,7 +362,7 @@ fun pluginGroupTypeName(path: List<String>) =
 
 
 private
-fun WriterThread.writeClassFileTo(binDir: File, internalClassName: String, classBytes: ByteArray) {
+fun WriterThread.writeClassFileTo(binDir: File, internalClassName: InternalName, classBytes: ByteArray) {
     val classFile = binDir.resolve("$internalClassName.class")
     writeFile(classFile, classBytes)
 }
@@ -373,14 +382,14 @@ fun MethodVisitor.GETPLUGINS(receiverType: TypeSpec) {
 
 
 private
-fun emitClassForGroup(group: PluginAccessor.ForGroup): Pair<String, ByteArray> = group.run {
+fun emitClassForGroup(group: PluginAccessor.ForGroup): Pair<InternalName, ByteArray> = group.run {
 
     val className = extension.returnType.internalName
     val classBytes = publicClass(className) {
         packagePrivateField(pluginsFieldName, pluginDependenciesSpecTypeDesc)
         publicMethod("<init>", groupTypeConstructorSignature) {
             ALOAD(0)
-            INVOKESPECIAL("java/lang/Object", "<init>", "()V")
+            INVOKESPECIAL(InternalNameOf.Object, "<init>", "()V")
             ALOAD(0)
             ALOAD(1)
             PUTFIELD(className, pluginsFieldName, pluginDependenciesSpecTypeDesc)

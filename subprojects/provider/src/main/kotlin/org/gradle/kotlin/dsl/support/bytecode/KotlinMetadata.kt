@@ -35,7 +35,7 @@ import java.io.File
 
 internal
 fun publicKotlinClass(
-    internalClassName: String,
+    internalClassName: InternalName,
     header: KotlinClassHeader,
     classBody: ClassWriter.() -> Unit
 ): ByteArray = publicClass(internalClassName) {
@@ -57,9 +57,9 @@ fun writeFileFacadeClassHeader(fileFacadeWriter: KotlinClassMetadata.FileFacade.
 
 
 internal
-fun moduleMetadataBytesFor(fileFacades: List<String>): ByteArray =
+fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray =
     KotlinModuleMetadata.Writer().run {
-        visitPackageParts("org.gradle.kotlin.dsl", fileFacades, emptyMap())
+        visitPackageParts("org.gradle.kotlin.dsl", fileFacades.map { it.value }, emptyMap())
         visitEnd()
         write().bytes
     }
@@ -125,6 +125,7 @@ typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
+    // TODO: Honor JavaBeans convention
     JvmMethodSignature("get${propertyName.capitalize()}", desc)
 
 

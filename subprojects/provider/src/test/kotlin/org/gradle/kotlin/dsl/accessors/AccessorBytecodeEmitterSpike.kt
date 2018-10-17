@@ -66,13 +66,13 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
             val internalNamesOfEmittedClasses =
                 emitExtensionsWithOneClassPerConfiguration(
                     configOnlySchemaWith(
-                        accessors.filterIsInstance<Accessor.ForConfiguration>().map { it.configurationName }.toList()
+                        accessors.filterIsInstance<Accessor.ForConfiguration>().map { it.name }.toList()
                     ),
                     srcDir,
                     binDir
                 )
             internalNamesOfEmittedClasses.map {
-                it.replace('/', '.')
+                it.value.replace('/', '.')
             }
         }
     }

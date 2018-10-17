@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.Project
+
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 
@@ -23,6 +25,16 @@ import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
+
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptAndPluginsBlock
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
@@ -34,6 +46,7 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESPECIAL
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
 import org.gradle.kotlin.dsl.support.bytecode.INVOKEVIRTUAL
+import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.NEW
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
@@ -43,22 +56,10 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
-
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
-
-import org.gradle.kotlin.dsl.support.KotlinBuildscriptAndPluginsBlock
-import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
-import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
-import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
-
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
@@ -217,10 +218,10 @@ class ResidualProgramCompiler(
         ALOAD(Vars.ProgramHost)
         ALOAD(Vars.ScriptHost)
         INVOKEVIRTUAL(
-            "org/gradle/kotlin/dsl/support/KotlinScriptHost",
+            KotlinScriptHost::class.internalName,
             "getTarget",
             "()Ljava/lang/Object;")
-        CHECKCAST("org/gradle/api/Project")
+        CHECKCAST(Project::class.internalName)
         invokeHost(
             "applyBasePluginsTo",
             "(Lorg/gradle/api/Project;)V")
@@ -286,7 +287,7 @@ class ResidualProgramCompiler(
         DUP()
         ALOAD(Vars.ScriptHost)
         INVOKEVIRTUAL(
-            "org/gradle/kotlin/dsl/support/KotlinScriptHost",
+            KotlinScriptHost::class.internalName,
             "getScriptSource",
             "()Lorg/gradle/groovy/scripts/ScriptSource;")
         INVOKESPECIAL(
@@ -316,7 +317,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    val pluginRequestCollectorType by unsafeLazy { PluginRequestCollector::class.internalName }
+    val pluginRequestCollectorType = PluginRequestCollector::class.internalName
 
     private
     fun MethodVisitor.invokeApplyPluginsTo() {
@@ -437,7 +438,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass: String) {
+    fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass: InternalName) {
 
         precompiledScriptClassInstantiation(precompiledScriptClass) {
 
@@ -449,7 +450,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.precompiledScriptClassInstantiation(precompiledScriptClass: String, instantiation: MethodVisitor.() -> Unit) {
+    fun MethodVisitor.precompiledScriptClassInstantiation(precompiledScriptClass: InternalName, instantiation: MethodVisitor.() -> Unit) {
 
         TRY_CATCH<Throwable>(
             tryBlock = {
@@ -463,7 +464,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitOnScriptException(precompiledScriptClass: String) {
+    fun MethodVisitor.emitOnScriptException(precompiledScriptClass: InternalName) {
         // Exception is on the stack
         ASTORE(4)
         ALOAD(Vars.ProgramHost)
@@ -515,9 +516,9 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun program(superName: String, classBody: ClassWriter.() -> Unit = {}) {
+    fun program(superName: InternalName, classBody: ClassWriter.() -> Unit = {}) {
         writeFile("Program.class",
-            publicClass("Program", superName, null) {
+            publicClass(InternalName("Program"), superName, null) {
                 publicDefaultConstructor(superName)
                 classBody()
             })
@@ -537,10 +538,10 @@ class ResidualProgramCompiler(
         source: ProgramSource,
         scriptDefinition: KotlinScriptDefinition,
         compileClassPath: ClassPath = classPath
-    ): String {
+    ): InternalName =
         withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
-            return compileScript(
+            compileScript(
                 scriptFile,
                 originalScriptPath,
                 scriptDefinition,
@@ -548,7 +549,6 @@ class ResidualProgramCompiler(
                 compileClassPath
             )
         }
-    }
 
     private
     fun compileScript(
@@ -557,7 +557,7 @@ class ResidualProgramCompiler(
         scriptDefinition: KotlinScriptDefinition,
         stage: String,
         compileClassPath: ClassPath = classPath
-    ): String =
+    ) = InternalName(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
@@ -567,8 +567,10 @@ class ResidualProgramCompiler(
                 messageCollectorFor(logger) { path ->
                     if (path == scriptFile.path) originalPath
                     else path
-                })
+                }
+            )
         }
+    )
 
     /**
      * Stage descriptions for build operations.

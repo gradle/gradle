@@ -28,7 +28,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -174,28 +173,11 @@ fun buildAccessorsFor(
     binDir: File
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-
-    val sourceFiles = sourceFilesWithAccessorsFor(availableSchema, srcDir)
-
-    require(
-        compileToDirectory(
-            binDir,
-            sourceFiles,
-            logger,
-            classPath.asFiles
-        )
-    ) {
-        """
-            Failed to compile accessors.
-
-                projectSchema: $projectSchema
-
-                classPath: $classPath
-
-                availableSchema: $availableSchema
-
-        """.replaceIndent()
-    }
+    AccessorBytecodeEmitter.emitAccessorsFor(
+        availableSchema,
+        srcDir,
+        binDir
+    )
 }
 
 

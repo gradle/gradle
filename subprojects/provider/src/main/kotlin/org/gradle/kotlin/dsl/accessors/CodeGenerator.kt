@@ -400,7 +400,7 @@ data class AccessorNameSpec(val original: String) {
 }
 
 
-private
+internal
 data class TypedAccessorSpec(
     val targetTypeAccess: TypeAccessibility.Accessible,
     val name: AccessorNameSpec,
@@ -423,7 +423,7 @@ fun accessorNameSpec(originalName: String) =
     AccessorNameSpec(originalName)
 
 
-private
+internal
 fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>) =
     schemaEntry.takeIf { isLegalAccessorName(it.name) }?.target?.run {
         when (this) {

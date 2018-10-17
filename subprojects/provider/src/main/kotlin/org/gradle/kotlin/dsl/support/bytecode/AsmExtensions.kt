@@ -29,12 +29,12 @@ import kotlin.reflect.KClass
 
 internal
 fun publicClass(
-    name: String,
-    superName: String = "java/lang/Object",
+    name: InternalName,
+    superName: InternalName = InternalNameOf.Object,
     interfaces: Array<String>? = null,
     classBody: ClassWriter.() -> Unit = {}
 ) = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).run {
-    visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name, null, superName, interfaces)
+    visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name.value, null, superName.value, interfaces)
     classBody()
     visitEnd()
     toByteArray()
@@ -42,7 +42,7 @@ fun publicClass(
 
 
 internal
-fun ClassWriter.publicDefaultConstructor(superName: String) {
+fun ClassWriter.publicDefaultConstructor(superName: InternalName) {
     publicMethod("<init>", "()V") {
         ALOAD(0)
         INVOKESPECIAL(superName, "<init>", "()V")
@@ -107,8 +107,14 @@ fun MethodVisitor.loadByteArray(byteArray: ByteArray) {
 
 
 internal
-fun MethodVisitor.NEW(type: String) {
+fun MethodVisitor.NEW(type: InternalName) {
     visitTypeInsn(Opcodes.NEW, type)
+}
+
+
+internal
+fun MethodVisitor.visitTypeInsn(opcode: Int, type: InternalName) {
+    visitTypeInsn(opcode, type.value)
 }
 
 
@@ -125,26 +131,32 @@ fun MethodVisitor.LDC(value: Any) {
 
 
 internal
-fun MethodVisitor.INVOKEVIRTUAL(owner: String, name: String, desc: String, itf: Boolean = false) {
-    visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, name, desc, itf)
+fun MethodVisitor.INVOKEVIRTUAL(owner: InternalName, name: String, desc: String, itf: Boolean = false) {
+    visitMethodInsn_(Opcodes.INVOKEVIRTUAL, owner, name, desc, itf)
 }
 
 
 internal
-fun MethodVisitor.INVOKESPECIAL(owner: String, name: String, desc: String, itf: Boolean = false) {
-    visitMethodInsn(Opcodes.INVOKESPECIAL, owner, name, desc, itf)
+fun MethodVisitor.INVOKESPECIAL(owner: InternalName, name: String, desc: String, itf: Boolean = false) {
+    visitMethodInsn_(Opcodes.INVOKESPECIAL, owner, name, desc, itf)
 }
 
 
 internal
-fun MethodVisitor.INVOKEINTERFACE(owner: String, name: String, desc: String, itf: Boolean = true) {
-    visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, name, desc, itf)
+fun MethodVisitor.INVOKEINTERFACE(owner: InternalName, name: String, desc: String, itf: Boolean = true) {
+    visitMethodInsn_(Opcodes.INVOKEINTERFACE, owner, name, desc, itf)
 }
 
 
 internal
-fun MethodVisitor.INVOKESTATIC(owner: String, name: String, desc: String) {
-    visitMethodInsn(Opcodes.INVOKESTATIC, owner, name, desc, false)
+fun MethodVisitor.INVOKESTATIC(owner: InternalName, name: String, desc: String) {
+    visitMethodInsn_(Opcodes.INVOKESTATIC, owner, name, desc, false)
+}
+
+
+internal
+fun MethodVisitor.visitMethodInsn_(opcode: Int, owner: InternalName, name: String, desc: String, itf: Boolean) {
+    visitMethodInsn(opcode, owner.value, name, desc, itf)
 }
 
 
@@ -200,7 +212,7 @@ inline fun <reified T> MethodVisitor.TRY_CATCH(
 
 internal
 fun MethodVisitor.TRY_CATCH(
-    exceptionType: String,
+    exceptionType: InternalName,
     tryBlock: MethodVisitor.() -> Unit,
     catchBlock: MethodVisitor.() -> Unit
 ) {
@@ -209,7 +221,7 @@ fun MethodVisitor.TRY_CATCH(
     val tryBlockEnd = Label()
     val catchBlockStart = Label()
     val catchBlockEnd = Label()
-    visitTryCatchBlock(tryBlockStart, tryBlockEnd, catchBlockStart, exceptionType)
+    visitTryCatchBlock(tryBlockStart, tryBlockEnd, catchBlockStart, exceptionType.value)
 
     visitLabel(tryBlockStart)
     tryBlock()
@@ -230,25 +242,25 @@ fun <T : Enum<T>> MethodVisitor.GETSTATIC(field: T) {
 
 
 internal
-fun MethodVisitor.GETSTATIC(owner: String, name: String, desc: String) {
-    visitFieldInsn(Opcodes.GETSTATIC, owner, name, desc)
+fun MethodVisitor.GETSTATIC(owner: InternalName, name: String, desc: String) {
+    visitFieldInsn(Opcodes.GETSTATIC, owner.value, name, desc)
 }
 
 
 internal
-fun MethodVisitor.GETFIELD(owner: String, name: String, desc: String) {
-    visitFieldInsn(Opcodes.GETFIELD, owner, name, desc)
+fun MethodVisitor.GETFIELD(owner: InternalName, name: String, desc: String) {
+    visitFieldInsn(Opcodes.GETFIELD, owner.value, name, desc)
 }
 
 
 internal
-fun MethodVisitor.PUTFIELD(owner: String, name: String, desc: String) {
-    visitFieldInsn(Opcodes.PUTFIELD, owner, name, desc)
+fun MethodVisitor.PUTFIELD(owner: InternalName, name: String, desc: String) {
+    visitFieldInsn(Opcodes.PUTFIELD, owner.value, name, desc)
 }
 
 
 internal
-fun MethodVisitor.CHECKCAST(type: String) {
+fun MethodVisitor.CHECKCAST(type: InternalName) {
     visitTypeInsn(Opcodes.CHECKCAST, type)
 }
 
@@ -259,11 +271,28 @@ fun MethodVisitor.ACONST_NULL() {
 }
 
 
+/**
+ * A JVM internal type name (as in `java/lang/Object` instead of `java.lang.Object`).
+ */
+@Suppress("experimental_feature_warning")
 internal
-val KClass<*>.internalName: String
+inline class InternalName(val value: String) {
+    override fun toString() = value
+}
+
+
+object InternalNameOf {
+
+    internal
+    val Object = InternalName("java/lang/Object")
+}
+
+
+internal
+val KClass<*>.internalName: InternalName
     get() = java.internalName
 
 
 internal
-inline val Class<*>.internalName: String
-    get() = Type.getInternalName(this)
+inline val Class<*>.internalName: InternalName
+    get() = InternalName(Type.getInternalName(this))
