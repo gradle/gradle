@@ -19,6 +19,8 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.SingletonFileTree
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -241,6 +243,19 @@ class DefaultFileSystemSnapshotterTest extends Specification {
                 throw new UnsupportedOperationException()
             }
         })
+    }
+
+    def "snapshots an singletonFileTree"() {
+        given:
+        def file = tmpDir.createFile('testFile')
+
+        when:
+        def tree = new FileTreeAdapter(new SingletonFileTree(file), TestFiles.patternSetFactory)
+        def snapshots = snapshotter.snapshot(tree)
+
+        then:
+        snapshots.size() == 1
+        getSnapshotInfo(snapshots[0]) == [null, 1]
     }
 
     private static DirectoryFileTree dirTree(File dir) {
