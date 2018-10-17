@@ -31,7 +31,8 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
+    private final static String TASK_HEADER = "> Task (artifact [^\\n]*|:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
+    private final static String TRANSFORMATION_HEADER = "> Transform (artifact|file) ([^\\n]+) with ([^\\n]+)";
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
@@ -41,7 +42,7 @@ public class GroupedOutputFixture {
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
+    private final static String END_OF_GROUPED_OUTPUT = TASK_HEADER + "|" + TRANSFORMATION_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
 
     /**
      * Pattern to extract task output.
@@ -52,13 +53,27 @@ public class GroupedOutputFixture {
         String pattern = "(?ms)";
         pattern += TASK_HEADER;
         // Capture all output, lazily up until two new lines and an END_OF_TASK designation
-        pattern += "([\\s\\S]*?(?=[^\\n]*?" + END_OF_TASK_OUTPUT + "))";
+        pattern += "([\\s\\S]*?(?=[^\\n]*?" + END_OF_GROUPED_OUTPUT + "))";
         TASK_OUTPUT_PATTERN = Pattern.compile(pattern);
+    }
+
+    /**
+     * Pattern to extract task output.
+     */
+    private static final Pattern TRANSFORMATION_OUTPUT_PATTERN;
+
+    static {
+        String pattern = "(?ms)";
+        pattern += TRANSFORMATION_HEADER;
+        // Capture all output, lazily up until two new lines and an END_OF_TASK designation
+        pattern += "([\\s\\S]*?(?=[^\\n]*?" + END_OF_GROUPED_OUTPUT + "))";
+        TRANSFORMATION_OUTPUT_PATTERN = Pattern.compile(pattern);
     }
 
     private final String originalOutput;
     private final String strippedOutput;
     private Map<String, GroupedTaskFixture> tasks;
+    private Map<String, GroupedTransformationFixture> transformations;
 
     public GroupedOutputFixture(String output) {
         this.originalOutput = output;
@@ -67,6 +82,7 @@ public class GroupedOutputFixture {
 
     private String parse(String output) {
         tasks = new HashMap<String, GroupedTaskFixture>();
+        transformations = new HashMap<String, GroupedTransformationFixture>();
 
         String strippedOutput = LogContent.of(output).removeAnsiChars().withNormalizedEol();
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(strippedOutput);
@@ -85,11 +101,33 @@ public class GroupedOutputFixture {
             task.setOutcome(taskOutcome);
         }
 
+        matcher = TRANSFORMATION_OUTPUT_PATTERN.matcher(strippedOutput);
+        while (matcher.find()) {
+            String initialSubjectType = matcher.group(1);
+            String subject = matcher.group(2);
+            String transformer = matcher.group(3);
+            String transformationOutput = StringUtils.strip(matcher.group(4), "\n");
+
+            String key = initialSubjectType + ";" + subject + ";" + transformer;
+
+            GroupedTransformationFixture transformation = transformations.get(key);
+            if (transformation == null) {
+                transformation = new GroupedTransformationFixture(initialSubjectType, subject, transformer);
+                transformations.put(key, transformation);
+            }
+
+            transformation.addOutput(transformationOutput);
+        }
+
         return strippedOutput;
     }
 
     public int getTaskCount() {
         return tasks.size();
+    }
+
+    public int getTransformationCount() {
+        return transformations.size();
     }
 
     public boolean hasTask(String taskName) {
