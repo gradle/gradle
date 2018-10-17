@@ -86,6 +86,7 @@ class AbstractIntegrationSpec extends Specification {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     def cleanup() {
         executer.cleanup()
     }
@@ -94,14 +95,27 @@ class AbstractIntegrationSpec extends Specification {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
+    @CompileStatic
     protected TestFile getBuildFile() {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    @CompileStatic
+    protected TestFile getBuildKotlinFile() {
+        testDirectory.file(getDefaultBuildKotlinFileName())
+    }
+
+    @CompileStatic
     protected String getDefaultBuildFileName() {
         'build.gradle'
     }
 
+    @CompileStatic
+    protected String getDefaultBuildKotlinFileName() {
+        'build.gradle.kts'
+    }
+
+    @CompileStatic
     protected TestFile buildScript(String script) {
         buildFile.text = script
         buildFile
@@ -208,16 +222,19 @@ class AbstractIntegrationSpec extends Specification {
         executer.withArgument("-d")
     }
 
+    @CompileStatic
     protected ExecutionResult succeeds(String... tasks) {
-        result = executer.withTasks(*tasks).run()
+        result = executer.withTasks(tasks.toList()).run()
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     protected ExecutionFailure runAndFail(String... tasks) {
         fails(*tasks)
     }
 
+    @CompileStatic
     protected ExecutionFailure fails(String... tasks) {
-        failure = executer.withTasks(*tasks).runWithFailure()
+        failure = executer.withTasks(tasks.toList()).runWithFailure()
         result = failure
     }
 

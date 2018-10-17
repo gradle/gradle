@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.plugins.ExtensionAware;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -249,7 +250,7 @@ import java.util.Map;
  * The module notation is the same as the dependency notations described above, except that the classifier property is
  * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
  */
-public interface DependencyHandler {
+public interface DependencyHandler extends ExtensionAware {
     /**
      * Adds a dependency to the given configuration.
      *

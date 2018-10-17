@@ -31,11 +31,18 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.ExtensibleDynamicObject;
+import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -43,7 +50,7 @@ import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 
-public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
+public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn, DynamicObjectAware, HasConvention {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final ProjectFinder projectFinder;
@@ -55,6 +62,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     private final VariantTransformRegistry transforms;
     private final Factory<ArtifactTypeContainer> artifactTypeContainer;
     private final DynamicAddDependencyMethods dynamicMethods;
+    private final ExtensibleDynamicObject extensibleDynamicObject;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactory dependencyFactory,
@@ -65,7 +73,8 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
                                     ArtifactResolutionQueryFactory resolutionQueryFactory,
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
-                                    Factory<ArtifactTypeContainer> artifactTypeContainer) {
+                                    Factory<ArtifactTypeContainer> artifactTypeContainer,
+                                    Instantiator instantiator) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -78,6 +87,12 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         this.artifactTypeContainer = artifactTypeContainer;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
+
+        extensibleDynamicObject = new ExtensibleDynamicObject(
+            this,
+            DefaultDependencyHandler.class,
+            instantiator
+        );
     }
 
     @Override
@@ -243,6 +258,21 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         Dependency dep = enforcedPlatform(notation);
         configureAction.execute(dep);
         return dep;
+    }
+
+    @Override
+    public DynamicObject getAsDynamicObject() {
+        return extensibleDynamicObject;
+    }
+
+    @Override
+    public ExtensionContainer getExtensions() {
+        return extensibleDynamicObject.getConvention();
+    }
+
+    @Override
+    public Convention getConvention() {
+        return extensibleDynamicObject.getConvention();
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {

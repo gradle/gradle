@@ -45,6 +45,7 @@ import java.util.zip.ZipFile;
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore {
+    @Nullable
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<String, Module>();
     private final Map<String, Module> externalModules = new HashMap<String, Module>();
@@ -97,6 +98,9 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     private Module loadExternalModule(String name) {
         File externalJar = findJar(name);
         if (externalJar == null) {
+            if (gradleInstallation == null) {
+                throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s'. Gradle Home isn't present", name));
+            }
             throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
         }
         return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet());
