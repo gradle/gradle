@@ -19,6 +19,7 @@ package org.gradle.plugins.javascript.coffeescript;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
@@ -47,6 +48,15 @@ public class CoffeeScriptCompile extends SourceTask {
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource();
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
