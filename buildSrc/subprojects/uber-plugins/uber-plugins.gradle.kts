@@ -1,12 +1,3 @@
-import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
-
-plugins {
-    `java-gradle-plugin`
-}
-
-apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-apply<PrecompiledScriptPlugins>()
-
 dependencies {
     implementation(project(":binaryCompatibility"))
     implementation(project(":cleanup"))

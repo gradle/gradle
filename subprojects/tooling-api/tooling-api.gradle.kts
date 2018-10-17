@@ -32,7 +32,7 @@ val testPublishRuntime by configurations.creating
 
 val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType<BuildReceipt>().named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
-the<ShadedJarExtension>().apply {
+shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
     keepPackages.set(listOf("org.gradle.tooling"))
     unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
@@ -74,7 +74,7 @@ testFixtures {
 
 apply(from = "buildship.gradle")
 
-tasks.named<Jar>("sourceJar") {
+tasks.sourceJar {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
         val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
         from(sourceSet.groovy.srcDirs)
@@ -94,7 +94,7 @@ eclipse {
 
 tasks.register<Upload>("publishLocalArchives") {
     val repoBaseDir = rootProject.file("build/repo")
-    configuration = configurations["publishRuntime"] // TODO:kotlin-dsl revert to accessor
+    configuration = configurations.publishRuntime.get()
     isUploadDescriptor = false
     repositories {
         ivy {

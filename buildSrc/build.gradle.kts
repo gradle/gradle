@@ -60,15 +60,15 @@ subprojects {
 
     afterEvaluate {
         if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-            val validateTaskProperties = tasks.register("validateTaskProperties", ValidateTaskProperties::class.java) {
-                outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
+            val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
+                outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
 
-                val mainSourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+                val mainSourceSet = project.sourceSets.main.get()
                 classes = mainSourceSet.output.classesDirs
                 classpath = mainSourceSet.compileClasspath
                 dependsOn(mainSourceSet.output)
             }
-            tasks.named("check").configure { dependsOn(validateTaskProperties) }
+            tasks.check { dependsOn(validateTaskProperties) }
         }
     }
 
@@ -101,7 +101,7 @@ allprojects {
 
 dependencies {
     subprojects.forEach {
-        "runtime"(project(it.path))
+        runtime(project(it.path))
     }
 }
 
@@ -146,7 +146,7 @@ fun readProperties(propertiesFile: File) = Properties().apply {
     }
 }
 
-val checkSameDaemonArgs = tasks.register("checkSameDaemonArgs") {
+val checkSameDaemonArgs by tasks.registering {
     doLast {
         val buildSrcProperties = readProperties(File(project.rootDir, "gradle.properties"))
         val rootProperties = readProperties(File(project.rootDir, "../gradle.properties"))
@@ -159,7 +159,7 @@ val checkSameDaemonArgs = tasks.register("checkSameDaemonArgs") {
     }
 }
 
-tasks.named("build").configure { dependsOn(checkSameDaemonArgs) }
+tasks.build { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
     apply(plugin = "groovy")
@@ -195,10 +195,10 @@ fun Project.applyGroovyProjectConventions() {
         
     }
 
-    val compileGroovy: TaskProvider<GroovyCompile> = tasks.withType(GroovyCompile::class.java).named("compileGroovy")
+    val compileGroovy by tasks.existing(GroovyCompile::class)
 
     configurations {
-        "apiElements" {
+        apiElements {
             outgoing.variants["classes"].artifact(
                 mapOf(
                     "file" to compileGroovy.get().destinationDir,
@@ -210,15 +210,8 @@ fun Project.applyGroovyProjectConventions() {
 }
 
 fun Project.applyKotlinProjectConventions() {
-    apply(plugin = "kotlin")
-
+    apply(plugin = "org.gradle.kotlin.kotlin-dsl")
     apply(plugin = "org.gradle.kotlin.ktlint-convention")
-
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs += listOf("-Xjsr305=strict")
-        }
-    }
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {

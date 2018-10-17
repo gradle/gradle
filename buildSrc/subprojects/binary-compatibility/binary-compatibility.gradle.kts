@@ -5,4 +5,3 @@ dependencies {
     compile("org.javassist:javassist:3.23.0-GA")
     compile("com.github.javaparser:javaparser-core")
 }
-
