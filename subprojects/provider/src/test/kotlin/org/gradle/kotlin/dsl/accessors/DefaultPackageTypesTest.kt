@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.kotlin.dsl.accessors.TypeAccessibility.Accessible
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -30,6 +32,31 @@ class DefaultPackageTypesTest {
         assertThat(
             defaultPackageTypesIn(listOf("gradle.Container<Extension>")),
             equalTo(listOf("Extension"))
+        )
+    }
+
+    @Test
+    fun `#importsRequiredBy takes container elements into account`() {
+
+        assertThat(
+            importsRequiredBy(
+                ProjectSchema(
+                    containerElements = listOf(
+                        ProjectSchemaEntry(
+                            Accessible("Container"),
+                            "element",
+                            Accessible("DefaultPackageType")
+                        )
+                    ),
+                    extensions = emptyList(),
+                    conventions = emptyList(),
+                    tasks = emptyList(),
+                    configurations = emptyList()
+                )
+            ),
+            equalTo(
+                listOf("DefaultPackageType")
+            )
         )
     }
 }
