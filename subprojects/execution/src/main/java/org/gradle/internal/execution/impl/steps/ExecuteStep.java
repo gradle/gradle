@@ -17,12 +17,13 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.ExecutionException;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.ExecutionOutcome;
 
 public class ExecuteStep implements DirectExecutionStep {
 
@@ -39,19 +40,27 @@ public class ExecuteStep implements DirectExecutionStep {
 
     @Override
     public ExecutionResult execute(UnitOfWork work) {
+        boolean didWork = true;
+        GradleException failure;
         try {
             outputChangeListener.beforeOutputChange();
 
-            boolean didWork = work.execute();
+            didWork = work.execute();
             if (cancellationToken.isCancellationRequested()) {
-                return ExecutionResult.failure(new BuildCancelledException("Build cancelled during executing " + work.getDisplayName()));
+                failure = new BuildCancelledException("Build cancelled during executing " + work.getDisplayName());
+            } else {
+                failure = null;
             }
+        } catch (Throwable t) {
+            // TODO Should we catch Exception here?
+            failure = new ExecutionException(work, t);
+        }
+        if (failure != null) {
+            return ExecutionResult.failure(failure);
+        } else {
             return didWork
                 ? ExecutionResult.success(ExecutionOutcome.EXECUTED)
                 : ExecutionResult.success(ExecutionOutcome.UP_TO_DATE);
-        } catch (Throwable t) {
-            // TODO Should we catch Exception here?
-            return ExecutionResult.failure(new ExecutionException(work, t));
         }
     }
 }
