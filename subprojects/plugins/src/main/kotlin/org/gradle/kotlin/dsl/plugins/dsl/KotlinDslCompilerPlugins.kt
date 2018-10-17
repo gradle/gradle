@@ -70,7 +70,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 private
 fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
     replaceLoggerWith(
-        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger, project)
+        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger, project.kotlinDslPluginExperimentalWarning())
         else KotlinCompilerWarningSilencingLogger(logger)
     )
 
@@ -93,11 +93,11 @@ fun KotlinCompile.replaceLoggerWith(logger: Logger) {
 private
 class KotlinCompilerWarningSubstitutingLogger(
     private val delegate: Logger,
-    private val project: Project
+    private val kotlinDslPluginExperimentalWarning: String
 ) : Logger by delegate {
 
     override fun warn(message: String) {
-        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(project.kotlinDslPluginExperimentalWarning())
+        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(kotlinDslPluginExperimentalWarning)
         else delegate.warn(message)
     }
 }
