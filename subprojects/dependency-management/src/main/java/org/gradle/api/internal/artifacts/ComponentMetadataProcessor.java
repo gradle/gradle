@@ -17,9 +17,13 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.hash.HashCode;
 
 public interface ComponentMetadataProcessor {
     ComponentMetadataProcessor NO_OP = new ComponentMetadataProcessor() {
+        private final HashCode noRulesHash = HashCode.fromInt(0);
+
+
         @Override
         public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
             return metadata;
@@ -29,6 +33,10 @@ public interface ComponentMetadataProcessor {
         public ComponentMetadata processMetadata(ComponentMetadata metadata) {
             return metadata;
         }
+
+        public HashCode getRulesHash() {
+            return noRulesHash;
+        };
     };
 
     ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata);
@@ -40,4 +48,6 @@ public interface ComponentMetadataProcessor {
      * @return updated metadata, if any component metadata rule applies.
      */
     ComponentMetadata processMetadata(ComponentMetadata metadata);
+
+    HashCode getRulesHash();
 }

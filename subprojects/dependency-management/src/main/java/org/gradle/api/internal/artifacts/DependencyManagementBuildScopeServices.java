@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.PersistentModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
@@ -192,7 +192,7 @@ class DependencyManagementBuildScopeServices {
                 timeProvider,
                 artifactCacheLockingManager,
                 moduleIdentifierFactory)),
-            new InMemoryModuleMetadataCache(timeProvider, new DefaultModuleMetadataCache(
+            new InMemoryModuleMetadataCache(timeProvider, new PersistentModuleMetadataCache(
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactCacheMetadata,

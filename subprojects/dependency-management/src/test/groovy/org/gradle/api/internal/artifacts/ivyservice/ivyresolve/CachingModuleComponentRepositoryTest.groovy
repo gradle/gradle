@@ -212,7 +212,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshChangingModule(_, _, _) >> mustRefreshChangingModule
         moduleDescriptorCache.getCachedModuleDescriptor({ it.moduleComponentIdentifier == module}) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata() >> Stub(ModuleComponentResolveMetadata) {
+            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata) {
                 isChanging() >> true
             }
         }
@@ -240,7 +240,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
         cachePolicy.mustRefreshModule(_, _, _) >> mustRefreshModule
         moduleDescriptorCache.getCachedModuleDescriptor({ it.moduleComponentIdentifier == module}) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata() >> Stub(ModuleComponentResolveMetadata)
+            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata)
         }
 
         when:

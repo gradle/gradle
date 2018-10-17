@@ -35,20 +35,20 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-public class DefaultModuleMetadataCache extends AbstractModuleMetadataCache {
+public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
 
-    public DefaultModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
-                                      ArtifactCacheLockingManager artifactCacheLockingManager,
-                                      ArtifactCacheMetadata artifactCacheMetadata,
-                                      ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                      AttributeContainerSerializer attributeContainerSerializer,
-                                      MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                      IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                                      Interner<String> stringInterner) {
+    public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
+                                         ArtifactCacheLockingManager artifactCacheLockingManager,
+                                         ArtifactCacheMetadata artifactCacheMetadata,
+                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                         AttributeContainerSerializer attributeContainerSerializer,
+                                         MavenMutableModuleMetadataFactory mavenMetadataFactory,
+                                         IvyMutableModuleMetadataFactory ivyMetadataFactory,
+                                         Interner<String> stringInterner) {
         super(timeProvider);
         moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory, stringInterner);
         this.artifactCacheLockingManager = artifactCacheLockingManager;

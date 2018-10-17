@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.rules.SpecRuleAction;
 
 import java.util.Collection;
@@ -34,11 +35,13 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
     private MetadataRuleWrapper lastAdded;
     private boolean classBasedRulesOnly = true;
     private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
+    private HashCode rulesHash = HashCode.fromInt(0);
 
     void addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
-        lastAdded = new ActionBasedMetadataRuleWrapepr(ruleAction);
+        lastAdded = new ActionBasedMetadataRuleWrapper(ruleAction);
         rules.add(lastAdded);
         classBasedRulesOnly = false;
+        rulesHash = HashCode.fromInt(31 * rulesHash.hashCode() + ruleAction.hashCode());
     }
 
     void addClassRule(SpecConfigurableRule ruleAction) {
@@ -48,6 +51,7 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
             lastAdded = new ClassBasedMetadataRuleWrapper(ruleAction);
             rules.add(lastAdded);
         }
+        rulesHash = HashCode.fromInt(31 * rulesHash.hashCode() + ruleAction.getConfigurableRule().hashCode());
     }
 
     boolean isClassBasedRulesOnly() {
@@ -76,5 +80,9 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
 
     public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
         this.variantDerivationStrategy = variantDerivationStrategy;
+    }
+
+    public HashCode getRulesHash() {
+        return rulesHash;
     }
 }

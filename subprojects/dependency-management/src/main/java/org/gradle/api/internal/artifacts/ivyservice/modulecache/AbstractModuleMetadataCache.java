@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetadataCache.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PersistentModuleMetadataCache.class);
     protected final BuildCommencedTimeProvider timeProvider;
 
     AbstractModuleMetadataCache(BuildCommencedTimeProvider timeProvider) {
@@ -51,7 +51,7 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
         return cachedMetaData;
     }
 
-    private ModuleComponentAtRepositoryKey createKey(ModuleMetadataDetails details) {
+    protected ModuleComponentAtRepositoryKey createKey(ModuleMetadataDetails details) {
         return new ModuleComponentAtRepositoryKey(details.getRepository().getId(), details.getModuleComponentIdentifier());
     }
 
