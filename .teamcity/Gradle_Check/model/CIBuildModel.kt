@@ -101,6 +101,7 @@ data class CIBuildModel (
             GradleSubproject("dependencyManagement", crossVersionTests = true),
             GradleSubproject("diagnostics"),
             GradleSubproject("ear"),
+            GradleSubproject("execution"),
             GradleSubproject("files"),
             GradleSubproject("ide", crossVersionTests = true),
             GradleSubproject("ideNative"),
