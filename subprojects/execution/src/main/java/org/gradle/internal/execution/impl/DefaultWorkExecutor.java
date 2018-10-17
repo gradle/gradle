@@ -19,10 +19,17 @@ package org.gradle.internal.execution.impl;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.WorkResult;
+import org.gradle.internal.execution.impl.steps.ExecuteStep;
 
 public class DefaultWorkExecutor implements WorkExecutor {
+    private final ExecuteStep executeStep;
+
+    public DefaultWorkExecutor(ExecuteStep executeStep) {
+        this.executeStep = executeStep;
+    }
+
     @Override
     public WorkResult execute(UnitOfWork work) {
-        return null;
+        return executeStep.execute(work);
     }
 }

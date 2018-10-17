@@ -16,28 +16,15 @@
 
 package org.gradle.internal.execution;
 
-import javax.annotation.Nullable;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
-public abstract class WorkResult {
-    public abstract WorkOutcome getOutcome();
-    @Nullable
-    public abstract Throwable getFailure();
-
-    public static WorkResult success(WorkOutcome outcome) {
-        return outcome.asResult();
-    }
-
-    public static WorkResult failure(Throwable failure) {
-        return new WorkResult() {
-            @Override
-            public WorkOutcome getOutcome() {
-                return WorkOutcome.FAILED;
-            }
-
-            @Override
-            public Throwable getFailure() {
-                return failure;
-            }
-        };
+/**
+ * An {@code ExecutionException} is thrown when a unit of work fails to execute successfully.
+ */
+@Contextual
+public class ExecutionException extends GradleException {
+    public ExecutionException(UnitOfWork work, Throwable cause) {
+        super(String.format("Execution failed for %s.", work.getDisplayName()), cause);
     }
 }

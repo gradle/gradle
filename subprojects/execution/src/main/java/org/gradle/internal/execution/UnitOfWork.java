@@ -16,8 +16,10 @@
 
 package org.gradle.internal.execution;
 
-public interface UnitOfWork {
-    WorkIdentifier getIdentifier();
+import org.gradle.api.Describable;
+
+public interface UnitOfWork extends Describable {
+//    WorkIdentifier getIdentifier();
 //    void visitInputs(InputVisitor inputVisitor);
 //    void visitOutputs(OutputVisitor outputVisitor);
     boolean execute();

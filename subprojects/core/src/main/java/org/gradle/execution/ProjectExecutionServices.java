@@ -62,6 +62,9 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -94,6 +97,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
         AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
+    WorkExecutor createWorkExecutor(BuildCancellationToken cancellationToken) {
+        return new DefaultWorkExecutor(new ExecuteStep(cancellationToken));
+    }
+
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     BuildCacheCommandFactory commandFactory,
                                     BuildCacheController buildCacheController,
@@ -108,9 +115,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
-                                    BuildCancellationToken buildCancellationToken,
                                     TaskExecutionListener taskExecutionListener,
-                                    TimeoutHandler timeoutHandler
+                                    TimeoutHandler timeoutHandler,
+                                    WorkExecutor workExecutor
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -120,7 +127,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildOperationExecutor,
             asyncWorkTracker,
-            buildCancellationToken
+            workExecutor
         );
         executer = new ActionEventFiringTaskExecuter(executer, taskOutputChangesListener, listenerManager.getBroadcaster(TaskActionListener.class));
         executer = new TimeoutTaskExecuter(executer, timeoutHandler);

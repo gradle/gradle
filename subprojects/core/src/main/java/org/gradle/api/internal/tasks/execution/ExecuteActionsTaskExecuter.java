@@ -16,8 +16,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.BuildCancelledException;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -28,12 +26,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -45,60 +44,89 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@link org.gradle.api.internal.tasks.TaskExecuter} which executes the actions of a task.
+ * A {@link TaskExecuter} which executes the actions of a task.
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final BuildCancellationToken buildCancellationToken;
+    private final WorkExecutor workExecutor;
 
-    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildCancellationToken buildCancellationToken) {
+    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkExecutor workExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
-        this.buildCancellationToken = buildCancellationToken;
+        this.workExecutor = workExecutor;
     }
 
+    @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        state.setExecuting(true);
-        try {
-            GradleException failure = executeActions(task, state, context);
-            if (failure != null) {
+        WorkResult result = workExecutor.execute(new TaskExecution(task, context));
+        switch (result.getOutcome()) {
+            case FAILED:
+                Throwable failure = result.getFailure();
+                assert failure != null;
                 state.setOutcome(failure);
-            } else {
-                state.setOutcome(
-                    state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
-                );
-            }
-        } finally {
-            state.setExecuting(false);
+                break;
+            case EXECUTED:
+                state.setOutcome(TaskExecutionOutcome.EXECUTED);
+                break;
+            case UP_TO_DATE:
+                state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+                break;
+            case FROM_CACHE:
+                state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                break;
+            case NO_SOURCE:
+                state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
+                break;
+            default:
+                throw new AssertionError();
         }
     }
 
-    private GradleException executeActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    private class TaskExecution implements UnitOfWork {
+        private final TaskInternal task;
+        private final TaskExecutionContext context;
+
+        public TaskExecution(TaskInternal task, TaskExecutionContext context) {
+            this.task = task;
+            this.context = context;
+        }
+
+        @Override
+        public boolean execute() {
+            task.getState().setExecuting(true);
+            try {
+                executeActions(task, context);
+                return task.getState().getDidWork();
+            } finally {
+                task.getState().setExecuting(false);
+            }
+        }
+
+        @Override
+        public String getDisplayName() {
+            return task.toString();
+        }
+    }
+
+    private void executeActions(TaskInternal task, TaskExecutionContext context) {
         LOGGER.debug("Executing actions for {}.", task);
-        final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>(task.getTaskActions());
-        for (ContextAwareTaskAction action : actions) {
-            state.setDidWork(true);
+        for (ContextAwareTaskAction action : new ArrayList<ContextAwareTaskAction>(task.getTaskActions())) {
+            task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
                 executeAction(action.getDisplayName(), task, action, context);
-                if (buildCancellationToken.isCancellationRequested()) {
-                    return new BuildCancelledException("Build cancelled during executing " + task);
-                }
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
             } catch (StopExecutionException e) {
                 LOGGER.info("Execution stopped by some action with message: {}", e.getMessage());
                 break;
-            } catch (Throwable t) {
-                return new TaskExecutionException(task, t);
             } finally {
                 task.getStandardOutputCapture().stop();
             }
         }
-        return null;
     }
 
     private void executeAction(final String actionDisplayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
@@ -152,10 +180,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Contextual
     private static class MultipleTaskActionFailures extends DefaultMultiCauseException {
-        public MultipleTaskActionFailures(String message, Throwable... causes) {
-            super(message, causes);
-        }
-
         public MultipleTaskActionFailures(String message, Iterable<? extends Throwable> causes) {
             super(message, causes);
         }

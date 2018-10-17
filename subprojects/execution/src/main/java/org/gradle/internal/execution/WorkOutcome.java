@@ -18,26 +18,36 @@ package org.gradle.internal.execution;
 
 import javax.annotation.Nullable;
 
-public abstract class WorkResult {
-    public abstract WorkOutcome getOutcome();
-    @Nullable
-    public abstract Throwable getFailure();
+public enum WorkOutcome {
+    NO_SOURCE,
+    UP_TO_DATE,
+    FROM_CACHE,
+    EXECUTED,
+    FAILED {
+        @Override
+        WorkResult asResult() {
+            throw new UnsupportedOperationException();
+        }
+    };
 
-    public static WorkResult success(WorkOutcome outcome) {
-        return outcome.asResult();
-    }
+    private final WorkResult result;
 
-    public static WorkResult failure(Throwable failure) {
-        return new WorkResult() {
+    WorkOutcome() {
+        this.result = new WorkResult() {
             @Override
             public WorkOutcome getOutcome() {
-                return WorkOutcome.FAILED;
+                return WorkOutcome.this;
             }
 
+            @Nullable
             @Override
             public Throwable getFailure() {
-                return failure;
+                return null;
             }
         };
+    }
+
+    WorkResult asResult() {
+        return result;
     }
 }
