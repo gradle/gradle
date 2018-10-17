@@ -21,11 +21,11 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -46,7 +46,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         given:
         def originBuildInvocationId = UniqueId.generate()
         def executionTime = 1
-        def originMetadata = new OriginTaskExecutionMetadata(originBuildInvocationId, executionTime)
+        def originMetadata = new OriginMetadata(originBuildInvocationId, executionTime)
 
         when:
         executer.execute(task, taskState, taskContext)
@@ -57,7 +57,7 @@ class SkipUpToDateTaskExecuterTest extends Specification {
         1 * taskExecutionHistory.getOriginExecutionMetadata() >> originMetadata
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
-        1 * taskContext.setOriginExecutionMetadata(originMetadata)
+        1 * taskContext.setOriginMetadata(originMetadata)
         0 * _
     }
 

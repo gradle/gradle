@@ -22,11 +22,11 @@ import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
@@ -49,7 +49,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskOutputChangesListener = Mock(TaskOutputChangesListener)
     final buildInvocationId = UniqueId.generate()
     final taskExecutionTime = 1L
-    final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
+    final originExecutionMetadata = new OriginMetadata(buildInvocationId, taskExecutionTime)
     final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputChangesListener, target, new BuildInvocationScopeId(buildInvocationId))
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {

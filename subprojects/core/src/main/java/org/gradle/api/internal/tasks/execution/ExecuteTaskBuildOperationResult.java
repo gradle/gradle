@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskOutputCachingState;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
@@ -50,7 +50,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getOriginBuildInvocationId() {
-        OriginTaskExecutionMetadata originExecutionMetadata = ctx.getOriginExecutionMetadata();
+        OriginMetadata originExecutionMetadata = ctx.getOriginMetadata();
         UniqueId originBuildInvocationId = originExecutionMetadata == null ? null : originExecutionMetadata.getBuildInvocationId();
         return originBuildInvocationId == null ? null : originBuildInvocationId.asString();
     }
@@ -58,7 +58,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public Long getOriginExecutionTime() {
-        OriginTaskExecutionMetadata originExecutionMetadata = ctx.getOriginExecutionMetadata();
+        OriginMetadata originExecutionMetadata = ctx.getOriginMetadata();
         return originExecutionMetadata == null ? null : originExecutionMetadata.getExecutionTime();
     }
 

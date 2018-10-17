@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
@@ -47,7 +47,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private Boolean successful;
-    private OriginTaskExecutionMetadata originExecutionMetadata;
+    private OriginMetadata originExecutionMetadata;
 
     public CurrentTaskExecution(
         ImplementationSnapshot taskImplementation,
@@ -113,11 +113,11 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+    public OriginMetadata getOriginExecutionMetadata() {
         return originExecutionMetadata;
     }
 
-    public void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata) {
+    public void setOriginExecutionMetadata(OriginMetadata originExecutionMetadata) {
         this.originExecutionMetadata = originExecutionMetadata;
     }
 }

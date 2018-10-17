@@ -54,9 +54,9 @@ import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.timeout.TimeoutHandler;
+import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
-import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -95,7 +95,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
-                                    TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,
+                                    BuildCacheCommandFactory commandFactory,
                                     BuildCacheController buildCacheController,
                                     ListenerManager listenerManager,
                                     TaskInputsListener inputsListener,
@@ -130,7 +130,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,
                 taskOutputChangesListener,
-                taskOutputCacheCommandFactory,
+                commandFactory,
                 executer
             );
         }

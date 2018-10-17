@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 import javax.annotation.Nullable;
@@ -37,9 +38,9 @@ public interface TaskExecutionContext {
      * The information about the origin where the tasks outputs were first created, if reusing outputs.
      */
     @Nullable
-    OriginTaskExecutionMetadata getOriginExecutionMetadata();
+    OriginMetadata getOriginMetadata();
 
-    void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata);
+    void setOriginMetadata(OriginMetadata originMetadata);
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.
