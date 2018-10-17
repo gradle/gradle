@@ -15,6 +15,7 @@
  */
 package org.gradle.scala
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -145,5 +146,77 @@ task someTask
         """
         expect:
         succeeds(":other:resolve")
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/7014")
+    def "can use Scala with war and ear plugins"() {
+        settingsFile << """
+            include 'war', 'ear'
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    ${jcenterRepository()}
+                }
+                apply plugin: 'scala'
+
+                dependencies {
+                    compile("org.scala-lang:scala-library:2.12.6")
+                }
+            }
+            project(":war") {
+                apply plugin: 'war'
+            }
+            project(":ear") {
+                apply plugin: 'ear'
+                dependencies {
+                    deploy project(path: ':war', configuration: 'archives')
+                }
+            }
+        """
+        file("war/src/main/scala/Bar.scala") << """
+            class Bar {
+            }
+        """
+        expect:
+        succeeds(":ear:assemble")
+        file("ear/build/tmp/ear/application.xml").text == """<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="6">
+  <display-name>ear</display-name>
+  <module>
+    <web>
+      <web-uri>war.war</web-uri>
+      <context-root>war</context-root>
+    </web>
+  </module>
+  <library-directory>lib</library-directory>
+</application>
+"""
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/6849")
+    def "can publish test-only projects"() {
+        using m2
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+            apply plugin: 'maven'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                compile("org.scala-lang:scala-library:2.12.6")
+            }
+        """
+        file("src/test/scala/Foo.scala") << """
+            class Foo
+        """
+        expect:
+        succeeds("install")
     }
 }

@@ -15,7 +15,7 @@
 [[task_configuration_avoidance]]
 = Task Configuration Avoidance
 
-We are asking early adopters to try out a new API for creating and configuring tasks to iron out any issues and gather feedback. This chapter provides a quick introduction to the feature and explains some guidelines for migrating your build to use the new API. We intend for this new API to eventually replace the existing API through our usual deprecation process over several major releases.
+We are asking early adopters to try out a new API for creating and configuring tasks to iron out any issues and gather feedback. This chapter provides a quick introduction to the feature and explains some guidelines for migrating your build to use the new API. We intend for this new API to eventually replace the existing API through our usual deprecation process over several major releases. As of Gradle 5.0, we believe the API will become the recommended approach to creating tasks in the next minor release. The core part of the API is identical back to Gradle 4.9. There may be some convenience methods added in later versions of Gradle that do not exist in older releaes.
 
 [NOTE]
 ====
@@ -25,7 +25,7 @@ The new Task configuration API is currently <<feature_lifecycle.adoc#feature_lif
 [[sec:what_is_new_task_configuration]]
 == What is the new API good for?
 
-In a nutshell, the new API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed. We identified task configuration as a contributor to overall configuration time. Configuration time affects every build, so making it faster is good for everyone. For example, if you're only compiling, Gradle doesn't need to also configure code quality, testing and publishing tasks. For tasks that aren't used often by developers, configuration can be expensive (e.g., running `git status` or querying a webservice) and can slow down builds that do not need to execute them. This new API avoids configuring those tasks if they are not needed.
+In a nutshell, the new API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed. https://blog.gradle.org/preview-avoiding-task-configuration-time[This is part of our approach to evolving the Gradle API to reduce configuration time.] We identified task configuration as a contributor to overall configuration time. Configuration time affects every build, so making it faster is good for everyone. For example, if you're only compiling, Gradle doesn't need to also configure code quality, testing and publishing tasks. For tasks that aren't used often by developers, configuration can be expensive (e.g., running `git status` or querying a webservice) and can slow down builds that do not need to execute them. This new API avoids configuring those tasks if they are not needed.
 
 This feature is designed to be backwards compatible when mixed with the old and new APIs, so you can gradually migrate your plugins and build scripts to the new API. Instead of immediately creating a task and running all configuration actions, Gradle exposes a link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] to a task. A task will only be created and configured when the task is required. If at any point, a task registered with the new API is accessed through the old API, the task will be created and configured just as if it had been created with the old API.
 
@@ -223,9 +223,8 @@ It’s good practice to write integration test for your build logic using TestKi
 In the majority of the case, referencing a task by name is a fragile pattern and should be avoided.
 Although task name is available on the `TaskProvider`, effort should be made to use references from a strongly typed model instead.
 
-7. **Use the lazy task API as much as possible.**
-Although realizing a task within a lazy configuration action may not have any immediate impact, it makes misuse of the lazy API more costly.
-The lazy task API is an opt-in feature, meaning someone may be realizing task eagerly which would cause the realization to realize other tasks transitively.
+7. **Use the new task API as much as possible.**
+The lazy task API is an opt-in feature. Eagerly realizing some tasks may cause a cascade of other tasks to be realized.
 Using `TaskProvider` helps create an indirection that protects transitive realization.
 
 8. Some APIs may be disallowed if you try to access them from the new API's configuration blocks. For example,
@@ -273,7 +272,7 @@ It’s unfortunate, and we feel your frustration. Keep reading onto the next sec
 * **The build became unstable after migrating to lazy task configuration.**
 It’s a common issue that happens during the migration.
 Follow these next steps to find out the issue:
-  1. Is the build succeed when all tasks are eagerly resolved on creation using the command line flag (`-Dorg.gradle.internal.tasks.eager=true`)?
+  1. Is the build succeed when all tasks are eagerly realized on creation using the command line flag (`-Dorg.gradle.internal.tasks.eager=true`)?
   Verify that <<#task_configuration_avoidance_guideline_only_mutate_task_object, each task configuration only mutating the task>>.
 
   2. Was there any build logic accidentally deleted?
@@ -283,7 +282,7 @@ Follow these next steps to find out the issue:
   For example, https://github.com/gradle/gradle-native/issues/737[the issue of `FileCollection` using `TaskProvider` was a real discrepancy] found while migrating a build to lazy task API.
   As a rule of thumb, a `TaskProvider` should be accepted everywhere a `Task` instance is accepted.
 
-* **Where a task was resolved?**
+* **Where a task was realized?**
 As we keep developing the feature, more reporting, and troubleshooting information will be made available to answer this question.
 In the meantime, https://gradle.com/enterprise/releases/2018.3#reduce-configuration-time-by-leveraging-task-creation-avoidance[build scan is the best way to answer this question].
 Follow these steps:
@@ -335,16 +334,16 @@ In the far future, eager realizations will become an error, until them, it’s u
 * [[task_configuration_avoidance_pitfalls_hidden_eager_task_realization]] **Beware of the hidden eager task realization.**
 Gradle has lots of ways to configure a task eagerly.
 `TaskContainer#getByName(String, Action)` is an explicit configuration by name.
-Configuring a task as a DSL block is an alias to the previous explicit configuration, meaning a lazy task will be prematurely resolved:
+Configuring a task as a DSL block is an alias to the previous explicit configuration, meaning a lazy task will be realized:
 +
 [source,groovy]
 ----
 // Given a task lazily created with
-tasks.register "someTask"
+tasks.register("someTask")
 
 // Some time later, the task is configured using a DSL block like
 someTask {
-    // The task is resolved immediately, and this closure is executed immediately
+    // The task is realized immediately, and this closure is executed immediately
 }
 ----
 +
@@ -363,26 +362,26 @@ If this lookup is done from anything other than a lazy configuration action, the
 +
 [source,groovy]
 ----
-tasks.register "someTask"
+tasks.register("someTask")
 
 // Sometime later, an eager task is configured like
 task anEagerTask {
-    // The task is resolved immediately as it will be treated as a property of the project and will result in an eager task lookup by name
+    // The task is realized immediately as it will be treated as a property of the project and will result in an eager task lookup by name
     dependsOn someTask
 }
 ----
 +
-You can solve the following in three ways:
+You can solve this in three ways:
 
   - **Use `TaskProvider` variable.**
-  Useful when the task is referenced multiple time in the same build script.
+  Useful when the task is referenced multiple times in the same build script.
 +
 ====
 [.multi-language-sample]
 =====
 [source,groovy]
 ----
-def someTask = tasks.register "someTask"
+def someTask = tasks.register("someTask")
 
 task anEagerTask {
     dependsOn someTask
@@ -402,13 +401,11 @@ task("anEagerTask") {
 =====
 ====
 
-    - **Migrate consumer task.**
-    It will only work under specific circumstances.
-    If the task gets resolve later or the realization may happen in a configuration action with no ways of actually knowing where the task is created or configured, this solution won't be helpful.
+    - **Migrate the consumer task to the new API.**
 +
 [source,groovy]
 ----
-tasks.register "someTask"
+tasks.register("someTask")
 
 tasks.register("anEagerTask") {
     dependsOn someTask
@@ -416,14 +413,14 @@ tasks.register("anEagerTask") {
 ----
 
     - **Lookup the task lazily.**
-    Useful when the task registration isn’t co-located with its eager usage.
+    Useful when the tasks are not created by the same plugin.
 +
 ====
 [.multi-language-sample]
 =====
 [source,groovy]
 ----
-tasks.register "someTask"
+tasks.register("someTask")
 
 task anEagerTask {
     dependsOn tasks.named("someTask")
@@ -443,16 +440,12 @@ task("anEagerTask") {
 =====
 ====
 
-* **The `jar` task is eagerly realized, always.**
-The following https://github.com/gradle/gradle-native/issues/730[issue is tracking this pitfall].
-Even though this issue wasn't released with Gradle 4.9, you should reference the `jar` task lazily.
-
 * [[task_configuration_avoidance_pitfall_build_scan_plugin]] **The build scan plugin `buildScanPublishPrevious` task is eager until version 1.15.** Upgrade the build scan plugin in your build to use the latest version.
 
 [[sec:task_configuration_avoidance_backward_compatibility_migration]]
 ==== Supporting older versions of Gradle
 
-This section describes two ways to keep your plugin backward compatible with older version of Gradle if you must maintain compatibility with versions of Gradle older than 4.9.
+This section describes two ways to keep your plugin backward compatible with older version of Gradle if you must maintain compatibility with versions of Gradle older than 4.9. Most of the new API methods are available from Gradle 4.9 upwards.
 
 [NOTE]
 ====
@@ -466,7 +459,7 @@ The second method is to use Java reflection to cope with the fact that the APIs 
 It is highly recommended to have cross-version test coverage using <<test_kit.adoc#sub:gradle-runner-gradle-version, TestKit>> and multiple versions of Gradle.
 
 [[sec:old_vs_new_configuration_api_overview]]
-== Old vs New API overview
+== Existing vs New API overview
 
 [NOTE]
 ====
