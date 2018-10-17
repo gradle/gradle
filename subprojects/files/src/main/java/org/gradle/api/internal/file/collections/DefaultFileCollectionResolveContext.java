@@ -231,7 +231,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             if (file.isDirectory()) {
                 result.add(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create(), FileSystems.getDefault()), patternSetFactory));
             } else if (file.isFile()) {
-                result.add(new FileTreeAdapter(new SingletonFileTree(file), patternSetFactory));
+                result.add(new FileTreeAdapter(new DefaultSingletonFileTree(file), patternSetFactory));
             }
         }
     }

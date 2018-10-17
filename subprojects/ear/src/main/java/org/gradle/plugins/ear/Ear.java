@@ -21,8 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.MapFileTree;
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Input;
@@ -107,12 +108,11 @@ public class Ear extends Jar {
             public FileTreeAdapter call() {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
                 if (descriptor != null) {
-                    MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem(), getDirectoryFileTreeFactory());
                     if (descriptor.getLibraryDirectory() == null) {
                         descriptor.setLibraryDirectory(getLibDirName());
                     }
 
-                    descriptorSource.add(descriptor.getFileName(), new Action<OutputStream>() {
+                    GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), getDirectoryFileTreeFactory(), RelativePath.parse(true, descriptor.getFileName()), new Action<OutputStream>() {
                         public void execute(OutputStream outputStream) {
                             descriptor.writeTo(new OutputStreamWriter(outputStream));
                         }

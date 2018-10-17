@@ -95,8 +95,8 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
             return randomAccess.contains(file);
         }
-        if (tree instanceof MapFileTree) {
-            return ((MapFileTree) tree).getFilesWithoutCreating().contains(file);
+        if (tree instanceof GeneratedSingletonFileTree) {
+            return ((GeneratedSingletonFileTree) tree).getFileWithoutCreating().equals(file);
         }
         if (tree instanceof FileSystemMirroringFileTree) {
             return ((FileSystemMirroringFileTree) tree).getMirror().contains(file);
@@ -123,9 +123,12 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof DirectoryFileTree) {
             DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
             visitor.visitDirectoryTree(directoryFileTree);
-        } else if (tree instanceof SingletonFileTree) {
-            SingletonFileTree singletonFileTree = (SingletonFileTree) tree;
+        } else if (tree instanceof DefaultSingletonFileTree) {
+            DefaultSingletonFileTree singletonFileTree = (DefaultSingletonFileTree) tree;
             visitor.visitCollection(ImmutableFileCollection.of(singletonFileTree.getFile()));
+        } else if (tree instanceof GeneratedSingletonFileTree) {
+            GeneratedSingletonFileTree mapFileTree = (GeneratedSingletonFileTree) tree;
+            visitor.visitCollection(ImmutableFileCollection.of(mapFileTree.getFile()));
         } else {
             visitor.visitGenericFileTree(this);
         }

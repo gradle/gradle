@@ -16,11 +16,13 @@
 
 package org.gradle.internal.snapshot.impl
 
+import org.gradle.api.Action
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.SingletonFileTree
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -34,7 +36,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultFileSystemSnapshotterTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
@@ -245,12 +248,32 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         })
     }
 
-    def "snapshots an singletonFileTree"() {
+    def "snapshots a singletonFileTree as RegularFileSnapshot"() {
         given:
         def file = tmpDir.createFile('testFile')
 
         when:
-        def tree = new FileTreeAdapter(new SingletonFileTree(file), TestFiles.patternSetFactory)
+        def tree = new FileTreeAdapter(new DefaultSingletonFileTree(file), TestFiles.patternSetFactory)
+        def snapshots = snapshotter.snapshot(tree)
+
+        then:
+        snapshots.size() == 1
+        getSnapshotInfo(snapshots[0]) == [null, 1]
+    }
+
+    def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
+        given:
+        def file = tmpDir.createFile('testFile')
+        def tmpDir = tmpDir.createDir('tmpDir')
+
+        when:
+        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, TestFiles.directoryFileTreeFactory(), file.name, new Action<OutputStream>() {
+
+            @Override
+            void execute(OutputStream outputStream) {
+                outputStream.write("content".getBytes())
+            }
+        }))
         def snapshots = snapshotter.snapshot(tree)
 
         then:

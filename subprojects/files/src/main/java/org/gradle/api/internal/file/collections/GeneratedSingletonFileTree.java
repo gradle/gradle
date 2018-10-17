@@ -16,9 +16,8 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.io.Files;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -27,41 +26,42 @@ import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.Factory;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A {@link MinimalFileTree} which is composed using a mapping from relative path to file source.
+ * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
  */
-public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
-    private final Map<RelativePath, Action<OutputStream>> elements = new LinkedHashMap<RelativePath, Action<OutputStream>>();
+public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystemMirroringFileTree {
     private final Factory<File> tmpDirSource;
-    private final Chmod chmod;
+    private final FileSystem fileSystem = FileSystems.getDefault();
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public MapFileTree(final File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    private final RelativePath relativePath;
+    private final Action<OutputStream> contentWriter;
+
+    public GeneratedSingletonFileTree(final File tmpDir, DirectoryFileTreeFactory directoryFileTreeFactory, String relativePath, Action<OutputStream> contentWriter) {
         this(new Factory<File>() {
                 public File create() {
                     return tmpDir;
                 }
-        }, chmod, directoryFileTreeFactory);
+        }, directoryFileTreeFactory, RelativePath.parse(true, relativePath), contentWriter);
     }
 
-    public MapFileTree(Factory<File> tmpDirSource, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, DirectoryFileTreeFactory directoryFileTreeFactory, RelativePath relativePath, Action<OutputStream> contentWriter) {
         this.tmpDirSource = tmpDirSource;
-        this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.relativePath = relativePath;
+        this.contentWriter = contentWriter;
     }
 
     private File getTmpDir() {
@@ -78,61 +78,34 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public void visit(FileVisitor visitor) {
         AtomicBoolean stopFlag = new AtomicBoolean();
-        Visit visit = new Visit(visitor, stopFlag);
-        for (Map.Entry<RelativePath, Action<OutputStream>> entry : elements.entrySet()) {
-            if (stopFlag.get()) {
-                break;
-            }
-            RelativePath path = entry.getKey();
-            Action<OutputStream> generator = entry.getValue();
-            visit.visit(path, generator);
+        Visit visit = new Visit(visitor);
+        visit.visit(relativePath, contentWriter);
+    }
+
+    public File getFileWithoutCreating() {
+        return createFileInstance(relativePath);
+    }
+
+    @Override
+    public File getFile() {
+        File fileInstance = createFileInstance(relativePath);
+        try {
+            contentWriter.execute(new FileOutputStream(fileInstance));
+            return fileInstance;
+        } catch (FileNotFoundException e) {
+            throw new GradleException("Cannot create file " + fileInstance.getAbsolutePath(), e);
         }
-    }
-
-    public Set<File> getFilesWithoutCreating() {
-        return CollectionUtils.collect(elements.keySet(), new Transformer<File, RelativePath>() {
-            @Override
-            public File transform(RelativePath relativePath) {
-                return createFileInstance(relativePath);
-            }
-        });
-    }
-
-    /**
-     * Adds an element to this tree. The given closure is passed an OutputStream which it can use to write the content
-     * of the element to.
-     */
-    public void add(String path, Closure contentClosure) {
-        Action<OutputStream> action = ConfigureUtil.configureUsing(contentClosure);
-        add(path, action);
-    }
-
-    public void add(String path, Action<OutputStream> contentWriter) {
-        elements.put(RelativePath.parse(true, path), contentWriter);
     }
 
     private class Visit {
-        private final Set<RelativePath> visitedDirs = new LinkedHashSet<RelativePath>();
         private final FileVisitor visitor;
-        private final AtomicBoolean stopFlag;
 
-        public Visit(FileVisitor visitor, AtomicBoolean stopFlag) {
+        public Visit(FileVisitor visitor) {
             this.visitor = visitor;
-            this.stopFlag = stopFlag;
-        }
-
-        private void visitDirs(RelativePath path, FileVisitor visitor) {
-            if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
-                return;
-            }
-
-            visitDirs(path.getParent(), visitor);
-            visitor.visitDir(new FileVisitDetailsImpl(path, null, stopFlag, chmod));
         }
 
         public void visit(RelativePath path, Action<OutputStream> generator) {
-            visitDirs(path.getParent(), visitor);
-            visitor.visitFile(new FileVisitDetailsImpl(path, generator, stopFlag, chmod));
+            visitor.visitFile(new FileVisitDetailsImpl(path, generator, fileSystem));
         }
     }
 
@@ -145,15 +118,13 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         private final Action<OutputStream> generator;
         private long lastModified;
         private long size;
-        private final AtomicBoolean stopFlag;
         private File file;
         private final boolean isDirectory;
 
-        public FileVisitDetailsImpl(RelativePath path, Action<OutputStream> generator, AtomicBoolean stopFlag, Chmod chmod) {
+        public FileVisitDetailsImpl(RelativePath path, Action<OutputStream> generator, Chmod chmod) {
             super(chmod);
             this.path = path;
             this.generator = generator;
-            this.stopFlag = stopFlag;
             this.isDirectory = !path.isFile();
         }
 
@@ -162,7 +133,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public void stopVisiting() {
-            stopFlag.set(true);
+           // only one file
         }
 
         public File getFile() {
