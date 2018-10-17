@@ -22,7 +22,7 @@ import java.time.Duration;
 import java.util.Optional;
 
 public interface UnitOfWork extends Describable {
-//    WorkIdentifier getIdentifier();
+//    String getIdentifier();
 //    void visitInputs(InputVisitor inputVisitor);
 //    void visitOutputs(OutputVisitor outputVisitor);
     boolean execute();
