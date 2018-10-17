@@ -30,7 +30,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,9 +50,9 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
 
     public GeneratedSingletonFileTree(final File tmpDir, DirectoryFileTreeFactory directoryFileTreeFactory, String relativePath, Action<OutputStream> contentWriter) {
         this(new Factory<File>() {
-                public File create() {
-                    return tmpDir;
-                }
+            public File create() {
+                return tmpDir;
+            }
         }, directoryFileTreeFactory, RelativePath.parse(true, relativePath), contentWriter);
     }
 
@@ -88,12 +87,17 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
 
     @Override
     public File getFile() {
-        File fileInstance = createFileInstance(relativePath);
+        File file = createFileInstance(relativePath);
         try {
-            contentWriter.execute(new FileOutputStream(fileInstance));
-            return fileInstance;
-        } catch (FileNotFoundException e) {
-            throw new GradleException("Cannot create file " + fileInstance.getAbsolutePath(), e);
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            try {
+                contentWriter.execute(fileOutputStream);
+            } finally {
+                fileOutputStream.close();
+            }
+            return file;
+        } catch (Exception e) {
+            throw new GradleException(String.format("Cannot create file %s", file), e);
         }
     }
 
@@ -133,7 +137,7 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
         }
 
         public void stopVisiting() {
-           // only one file
+            // only one file
         }
 
         public File getFile() {
