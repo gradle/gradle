@@ -302,6 +302,18 @@ open class IdePlugin : Plugin<Project> {
                     }
                 }
             }
+            create<Application>("Run Gradle") {
+                mainClass = "org.gradle.debug.GradleRunConfiguration"
+                programParameters = "help"
+                workingDirectory = rootProject.projectDir.absolutePath
+                moduleName = "integTest"
+                jvmArgs = "-Dorg.gradle.daemon=false"
+                beforeRun {
+                    create<Make>("make") {
+                        enabled = false
+                    }
+                }
+            }
             create<Remote>("Remote debug port 5005") {
                 mode = Remote.RemoteMode.ATTACH
                 transport = Remote.RemoteTransport.SOCKET
