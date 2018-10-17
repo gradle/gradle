@@ -90,6 +90,7 @@ data class CIBuildModel (
             GradleSubproject("baseServicesGroovy", functionalTests = false),
             GradleSubproject("buildCache"),
             GradleSubproject("buildCacheHttp"),
+            GradleSubproject("buildCachePackaging"),
             GradleSubproject("buildComparison"),
             GradleSubproject("buildOption"),
             GradleSubproject("buildInit"),
