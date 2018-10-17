@@ -25,6 +25,7 @@ import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
+
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
 
@@ -113,25 +114,25 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                 on { id(any()) } doReturn expectedPluginSpec
             }
 
-            val myPluginGroup =
-                accessorsClass
-                    .getDeclaredMethod("getMy", PluginDependenciesSpec::class.java)
-                    .invoke(null, plugins)!!
+            accessorsClass.run {
 
-            val myOwnPluginGroup =
-                accessorsClass
-                    .getDeclaredMethod("getOwn", myPluginGroup.javaClass)
-                    .invoke(null, myPluginGroup)!!
+                val myPluginGroup =
+                    getDeclaredMethod("getMy", PluginDependenciesSpec::class.java)
+                        .invoke(null, plugins)!!
 
-            val actualPluginSpec =
-                accessorsClass
-                    .getDeclaredMethod("getPlugin", myOwnPluginGroup.javaClass)
-                    .invoke(null, myOwnPluginGroup) as PluginDependencySpec
+                val myOwnPluginGroup =
+                    getDeclaredMethod("getOwn", myPluginGroup.javaClass)
+                        .invoke(null, myPluginGroup)!!
 
-            assertThat(
-                actualPluginSpec,
-                sameInstance(expectedPluginSpec)
-            )
+                val actualPluginSpec =
+                    getDeclaredMethod("getPlugin", myOwnPluginGroup.javaClass)
+                        .invoke(null, myOwnPluginGroup) as PluginDependencySpec
+
+                assertThat(
+                    actualPluginSpec,
+                    sameInstance(expectedPluginSpec)
+                )
+            }
 
             verify(plugins).id("my.own.plugin")
             verifyNoMoreInteractions(plugins)
