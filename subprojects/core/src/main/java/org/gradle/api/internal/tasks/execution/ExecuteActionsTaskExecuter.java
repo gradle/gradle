@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -26,10 +27,12 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.WorkResult;
@@ -50,11 +53,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
+    private final TaskActionListener actionListener;
     private final WorkExecutor workExecutor;
 
-    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkExecutor workExecutor) {
+    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, TaskActionListener actionListener, WorkExecutor workExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
+        this.actionListener = actionListener;
         this.workExecutor = workExecutor;
     }
 
@@ -65,7 +70,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             case FAILED:
                 Throwable failure = result.getFailure();
                 assert failure != null;
-                state.setOutcome(failure);
+                TaskExecutionException taskFailure = (failure instanceof ExecutionException)
+                    ? new TaskExecutionException(task, failure.getCause())
+                    : new TaskExecutionException(task, failure);
+                state.setOutcome(taskFailure);
                 break;
             case EXECUTED:
                 state.setOutcome(TaskExecutionOutcome.EXECUTED);
@@ -97,10 +105,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public boolean execute() {
             task.getState().setExecuting(true);
             try {
+                LOGGER.debug("Executing actions for {}.", task);
+                actionListener.beforeActions(task);
                 executeActions(task, context);
                 return task.getState().getDidWork();
             } finally {
                 task.getState().setExecuting(false);
+                actionListener.afterActions(task);
             }
         }
 
@@ -111,7 +122,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private void executeActions(TaskInternal task, TaskExecutionContext context) {
-        LOGGER.debug("Executing actions for {}.", task);
         for (ContextAwareTaskAction action : new ArrayList<ContextAwareTaskAction>(task.getTaskActions())) {
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();

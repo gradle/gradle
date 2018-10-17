@@ -17,13 +17,13 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
@@ -88,7 +88,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
      *
      * The second level indexes on the hash of file content and contains the value that was calculated from a file with the given hash.
      */
-    private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputChangesListener {
+    private static class DefaultFileContentCache<V> implements FileContentCache<V>, OutputChangeListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
         private final String name;
         private final FileSystemSnapshotter fileSystemSnapshotter;
@@ -103,7 +103,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         }
 
         @Override
-        public void beforeTaskOutputChanged() {
+        public void beforeOutputChange() {
             // A very dumb strategy for invalidating cache
             cache.clear();
         }

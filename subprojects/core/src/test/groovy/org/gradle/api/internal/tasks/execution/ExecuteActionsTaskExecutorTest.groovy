@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution
 
+import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
@@ -28,6 +29,9 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.impl.steps.ExecuteStep
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -48,7 +52,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
-    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, new DefaultBuildCancellationToken())
+    def actionListener = Mock(TaskActionListener)
+    def outputChangeListener = Mock(OutputChangeListener)
+    def cancellationToken = new DefaultBuildCancellationToken()
+    def workExecutor = new DefaultWorkExecutor(new ExecuteStep(cancellationToken, outputChangeListener))
+    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

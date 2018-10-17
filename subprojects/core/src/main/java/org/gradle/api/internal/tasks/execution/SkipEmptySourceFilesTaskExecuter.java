@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GFileUtils;
 
@@ -42,14 +43,14 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
-    private final TaskOutputChangesListener taskOutputChangesListener;
+    private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
     private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputChangesListener taskOutputChangesListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
         this.taskInputsListener = taskInputsListener;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
-        this.taskOutputChangesListener = taskOutputChangesListener;
+        this.outputChangeListener = outputChangeListener;
         this.executer = executer;
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
@@ -69,7 +70,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }
-                taskOutputChangesListener.beforeTaskOutputChanged();
+                outputChangeListener.beforeOutputChange();
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
 

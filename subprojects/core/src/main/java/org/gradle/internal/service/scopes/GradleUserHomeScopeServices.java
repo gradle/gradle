@@ -37,7 +37,6 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -64,6 +63,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -159,10 +159,10 @@ public class GradleUserHomeScopeServices {
 
     FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
         final DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
-        listenerManager.addListener(new TaskOutputChangesListener() {
+        listenerManager.addListener(new OutputChangeListener() {
             @Override
-            public void beforeTaskOutputChanged() {
-                fileSystemMirror.beforeTaskOutputChanged();
+            public void beforeOutputChange() {
+                fileSystemMirror.beforeOutputChange();
             }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {

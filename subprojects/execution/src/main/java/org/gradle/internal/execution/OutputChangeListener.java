@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.internal.execution;
 
-public interface TaskOutputChangesListener {
+public interface OutputChangeListener {
     /**
-     * Invoked when the outputs for a task are about to change.
-     * This is for example just before the task actions are executed or the outputs are loaded from the cache.
+     * Invoked when the outputs of a work item are about to change.
+     * This happens for example just before the task actions are executed or the outputs are loaded from the cache.
      */
-    void beforeTaskOutputChanged();
+    void beforeOutputChange();
 }

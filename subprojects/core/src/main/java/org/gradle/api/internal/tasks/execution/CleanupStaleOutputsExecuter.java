@@ -26,10 +26,11 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -42,15 +43,15 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     private final Logger logger = Logging.getLogger(CleanupStaleOutputsExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
-    private final TaskOutputChangesListener taskOutputChangesListener;
+    private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
 
-    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, TaskOutputChangesListener taskOutputChangesListener, TaskExecuter executer) {
+    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, OutputChangeListener outputChangeListener, TaskExecuter executer) {
         this.cleanupRegistry = cleanupRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.taskOutputChangesListener = taskOutputChangesListener;
+        this.outputChangeListener = outputChangeListener;
         this.executer = executer;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
@@ -68,7 +69,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             }
         }
         if (!filesToDelete.isEmpty()) {
-            taskOutputChangesListener.beforeTaskOutputChanged();
+            outputChangeListener.beforeOutputChange();
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

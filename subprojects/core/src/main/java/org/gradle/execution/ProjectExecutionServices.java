@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.execution.ActionEventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
@@ -48,7 +47,6 @@ import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SnapshotAfterExecutionTaskExecuter;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.internal.tasks.execution.TimeoutTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -62,6 +60,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
@@ -97,15 +96,27 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
         AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
-    WorkExecutor createWorkExecutor(BuildCancellationToken cancellationToken) {
-        return new DefaultWorkExecutor(new ExecuteStep(cancellationToken));
+    OutputChangeListener createOutputChangeListener(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(OutputChangeListener.class);
+    }
+
+    TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(TaskActionListener.class);
+    }
+
+    WorkExecutor createWorkExecutor(
+        BuildCancellationToken cancellationToken,
+        OutputChangeListener outputChangeListener
+    ) {
+        return new DefaultWorkExecutor(new ExecuteStep(cancellationToken, outputChangeListener));
     }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     BuildCacheCommandFactory commandFactory,
                                     BuildCacheController buildCacheController,
-                                    ListenerManager listenerManager,
                                     TaskInputsListener inputsListener,
+                                    TaskActionListener actionListener,
+                                    OutputChangeListener outputChangeListener,
                                     BuildOperationExecutor buildOperationExecutor,
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
@@ -122,21 +133,20 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
-        TaskOutputChangesListener taskOutputChangesListener = listenerManager.getBroadcaster(TaskOutputChangesListener.class);
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildOperationExecutor,
             asyncWorkTracker,
+            actionListener,
             workExecutor
         );
-        executer = new ActionEventFiringTaskExecuter(executer, taskOutputChangesListener, listenerManager.getBroadcaster(TaskActionListener.class));
         executer = new TimeoutTaskExecuter(executer, timeoutHandler);
         executer = new SnapshotAfterExecutionTaskExecuter(executer, buildInvocationScopeId);
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (buildCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,
-                taskOutputChangesListener,
+                outputChangeListener,
                 commandFactory,
                 executer
             );
@@ -147,8 +157,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, buildCacheController.isEmitDebugLogging());
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputChangesListener, executer, buildInvocationScopeId);
-        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, taskOutputChangesListener, executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, outputChangeListener, executer, buildInvocationScopeId);
+        executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, outputChangeListener, executer);
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);

@@ -33,6 +33,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.CacheableTree;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,16 +49,16 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     private final BuildCacheController buildCache;
     private final TaskExecuter delegate;
-    private final TaskOutputChangesListener taskOutputChangesListener;
+    private final OutputChangeListener outputChangeListener;
     private final BuildCacheCommandFactory commandFactory;
 
     public SkipCachedTaskExecuter(
         BuildCacheController buildCache,
-        TaskOutputChangesListener taskOutputChangesListener,
+        OutputChangeListener outputChangeListener,
         BuildCacheCommandFactory commandFactory,
         TaskExecuter delegate
     ) {
-        this.taskOutputChangesListener = taskOutputChangesListener;
+        this.outputChangeListener = outputChangeListener;
         this.commandFactory = commandFactory;
         this.buildCache = buildCache;
         this.delegate = delegate;
@@ -86,7 +87,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         commandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), new BuildCacheLoadListener() {
                             @Override
                             public void beforeLoad() {
-                                taskOutputChangesListener.beforeTaskOutputChanged();
+                                outputChangeListener.beforeOutputChange();
                             }
 
                             @Override

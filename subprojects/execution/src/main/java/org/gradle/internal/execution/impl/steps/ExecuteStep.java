@@ -19,6 +19,7 @@ package org.gradle.internal.execution.impl.steps;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.ExecutionException;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkOutcome;
 import org.gradle.internal.execution.WorkResult;
@@ -26,13 +27,20 @@ import org.gradle.internal.execution.WorkResult;
 public class ExecuteStep {
 
     private final BuildCancellationToken cancellationToken;
+    private final OutputChangeListener outputChangeListener;
 
-    public ExecuteStep(BuildCancellationToken cancellationToken) {
+    public ExecuteStep(
+        BuildCancellationToken cancellationToken,
+        OutputChangeListener outputChangeListener
+    ) {
         this.cancellationToken = cancellationToken;
+        this.outputChangeListener = outputChangeListener;
     }
 
     public WorkResult execute(UnitOfWork work) {
         try {
+            outputChangeListener.beforeOutputChange();
+
             boolean didWork = work.execute();
             if (cancellationToken.isCancellationRequested()) {
                 return WorkResult.failure(new BuildCancelledException("Build cancelled during executing " + work.getDisplayName()));
