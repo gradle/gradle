@@ -72,11 +72,11 @@ class ResolveIvyFactoryTest extends Specification {
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(ModuleArtifactCache)
         def caches = new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex)
-        buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
-        cacheProvider = new ModuleRepositoryCacheProvider(buildCommencedTimeProvider, caches)
+        cacheProvider = new ModuleRepositoryCacheProvider(caches, caches)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
+        buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionComparator = Mock(VersionComparator)
         repositoryBlacklister = Mock(RepositoryBlacklister)
