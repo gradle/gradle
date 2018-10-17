@@ -58,7 +58,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror)
 
     @Unroll
-    def "can pack single task output file with file mode #mode"() {
+    def "can pack single output file with file mode #mode"() {
         def sourceOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("source.txt").absolutePath]) as File
         sourceOutputFile << "output"
         def targetOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("target.txt").absolutePath]) as File
@@ -88,7 +88,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         mode << [ "0644", "0755" ]
     }
 
-    def "can pack task output directory"() {
+    def "can pack output directory"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
         def sourceSubDir = sourceOutputDir.file("subdir").createDir()
         def sourceDataFile = sourceSubDir.file("data.txt")
@@ -121,7 +121,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     @Unroll
-    def "can pack task output with missing #type (pre-existing as: #preExistsAs)"() {
+    def "can pack output with missing #type (pre-existing as: #preExistsAs)"() {
         def sourceOutput = temporaryFolder.file("source")
         def targetOutput = temporaryFolder.file("target")
         switch (preExistsAs) {
@@ -160,7 +160,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     @Unroll
-    def "can pack single task output file with #type name"() {
+    def "can pack single output file with #type name"() {
         def sourceOutputFile = temporaryFolder.file("source.txt")
         sourceOutputFile << "output"
         def targetOutputFile = temporaryFolder.file("target.txt")
@@ -263,7 +263,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         "file-system" | ":input\\/file:"
     }
 
-    def "can pack task output with all optional, null outputs"() {
+    def "can pack output with all optional, null outputs"() {
         def output = new ByteArrayOutputStream()
         when:
         pack output,
@@ -284,7 +284,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
     }
 
-    def "can pack task output with missing files"() {
+    def "can pack output with missing files"() {
         def sourceDir = temporaryFolder.file("source")
         def missingSourceFile = sourceDir.file("missing.txt")
         def missingSourceDir = sourceDir.file("missing")
@@ -313,7 +313,7 @@ class TarBuildCacheEntryPackerTest extends Specification {
         0 * _
     }
 
-    def "can pack task output with empty output directory"() {
+    def "can pack output with empty output directory"() {
         def sourceDir = temporaryFolder.file("source").createDir()
         def targetDir = temporaryFolder.file("target")
         def output = new ByteArrayOutputStream()

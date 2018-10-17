@@ -72,8 +72,8 @@ public class BuildCacheCommandFactory {
         return new LoadCommand(cacheKey, outputProperties, entry, localState, loadListener);
     }
 
-    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, SortedSet<CacheableTree> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, CacheableThing entry, long taskExecutionTime) {
-        return new StoreCommand(cacheKey, outputProperties, outputFingerprints, entry, taskExecutionTime);
+    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, SortedSet<CacheableTree> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, CacheableThing entry, long executionTime) {
+        return new StoreCommand(cacheKey, outputProperties, outputFingerprints, entry, executionTime);
     }
 
     private class LoadCommand implements BuildCacheLoadCommand<OriginMetadata> {
@@ -217,14 +217,14 @@ public class BuildCacheCommandFactory {
         private final SortedSet<CacheableTree> outputProperties;
         private final Map<String, CurrentFileCollectionFingerprint> outputFingerprints;
         private final CacheableThing entry;
-        private final long taskExecutionTime;
+        private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, SortedSet<CacheableTree> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, CacheableThing entry, long taskExecutionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, SortedSet<CacheableTree> outputProperties, Map<String, CurrentFileCollectionFingerprint> outputFingerprints, CacheableThing entry, long executionTime) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.outputFingerprints = outputFingerprints;
             this.entry = entry;
-            this.taskExecutionTime = taskExecutionTime;
+            this.executionTime = executionTime;
         }
 
         @Override
@@ -235,7 +235,7 @@ public class BuildCacheCommandFactory {
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             LOGGER.info("Packing {}", entry);
-            final BuildCacheEntryPacker.PackResult packResult = packer.pack(outputProperties, outputFingerprints, output, originMetadataFactory.createWriter(entry, taskExecutionTime));
+            final BuildCacheEntryPacker.PackResult packResult = packer.pack(outputProperties, outputFingerprints, output, originMetadataFactory.createWriter(entry, executionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override
                 public long getArtifactEntryCount() {
