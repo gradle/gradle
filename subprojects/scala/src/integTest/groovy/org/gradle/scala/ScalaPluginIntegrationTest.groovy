@@ -15,7 +15,7 @@
  */
 package org.gradle.scala
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -148,7 +148,6 @@ task someTask
         succeeds(":other:resolve")
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/7014")
     def "can use Scala with war and ear plugins"() {
         settingsFile << """
@@ -195,7 +194,6 @@ task someTask
 """
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/6849")
     def "can publish test-only projects"() {
         using m2
