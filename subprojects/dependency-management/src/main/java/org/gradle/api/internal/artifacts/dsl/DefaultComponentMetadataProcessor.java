@@ -49,6 +49,7 @@ import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadata;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -204,6 +205,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             throw new ModuleVersionResolveException(updatedMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().toString(), updatedMetadata.getStatusScheme()));
         }
         return updatedMetadata;
+    }
+
+    @Override
+    public HashCode getRulesHash() {
+        return metadataRuleContainer.getRulesHash();
     }
 
     private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id) {

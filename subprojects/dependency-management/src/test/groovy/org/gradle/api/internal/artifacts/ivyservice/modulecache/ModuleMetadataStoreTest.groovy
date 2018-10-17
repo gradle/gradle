@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,6 +42,7 @@ class ModuleMetadataStoreTest extends Specification {
     }
     def moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
     def serializer = Mock(ModuleMetadataSerializer)
+    def rulesHash = HashCode.fromInt(0)
     @Subject ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
@@ -53,7 +55,7 @@ class ModuleMetadataStoreTest extends Specification {
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier));
+        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier))
         then:
         1 * pathKeyFileStore.get("org.test", "testArtifact", "1.0", "repositoryId", "descriptor.bin") >> null
     }

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 
@@ -49,13 +50,15 @@ public interface ModuleMetadataCache {
         /**
          * The metadata after being processed by component metadata rules.
          * Will be null the first time an entry is read from the filesystem cache during a build invocation.
+         *
+         * @param key the hash of the rules
          */
         @Nullable
-        ModuleComponentResolveMetadata getProcessedMetadata();
+        ModuleComponentResolveMetadata getProcessedMetadata(HashCode key);
 
         /**
          * Set the processed metadata to be cached in-memory only.
          */
-        void setProcessedMetadata(ModuleComponentResolveMetadata processedMetadata);
+        void putProcessedMetadata(HashCode key, ModuleComponentResolveMetadata processedMetadata);
     }
 }

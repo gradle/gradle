@@ -21,10 +21,10 @@ import org.gradle.internal.rules.SpecRuleAction;
 
 import java.util.Collection;
 
-class ActionBasedMetadataRuleWrapepr implements MetadataRuleWrapper {
+class ActionBasedMetadataRuleWrapper implements MetadataRuleWrapper {
     private final SpecRuleAction<? super ComponentMetadataDetails> ruleAction;
 
-    ActionBasedMetadataRuleWrapepr(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
+    ActionBasedMetadataRuleWrapper(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
         this.ruleAction = ruleAction;
     }
 

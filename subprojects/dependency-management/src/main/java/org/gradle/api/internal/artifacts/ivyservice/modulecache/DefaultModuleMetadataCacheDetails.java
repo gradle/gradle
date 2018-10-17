@@ -36,4 +36,5 @@ public class DefaultModuleMetadataCacheDetails implements ModuleMetadataCache.Mo
     public ModuleComponentIdentifier getModuleComponentIdentifier() {
         return id;
     }
+
 }
