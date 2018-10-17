@@ -52,9 +52,13 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
      *
-     * @return The source.
+     * <p>
+     * The path sensitivity of the source is {@link PathSensitivity#RELATIVE} by default.
+     * If your sources have a different path sensitivity, override this method and add the corresponding annotations.
+     * </p>
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     @SkipWhenEmpty
     public FileTree getSource() {
         ArrayList<Object> copy = new ArrayList<Object>(this.source);

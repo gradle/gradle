@@ -24,7 +24,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
@@ -353,15 +352,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     public FindBugs jvmArgs(String... arguments) {
         jvmArgs.addAll(Arrays.asList(arguments));
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
-        return super.getSource();
     }
 
     /**

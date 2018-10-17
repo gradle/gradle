@@ -31,8 +31,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -269,16 +267,5 @@ public class AntlrTask extends SourceTask {
         if (source instanceof SourceDirectorySet) {
             this.sourceDirectorySet = (SourceDirectorySet) source;
         }
-    }
-
-    /**
-     * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
-     *
-     * @return The source.
-     */
-    @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
-        return super.getSource();
     }
 }

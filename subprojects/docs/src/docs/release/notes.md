@@ -163,6 +163,14 @@ The only remaining reason to disable caching for the task is if the output conta
 You can now specify a timeout for a task, after which it will be interrupted.
 See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
 
+### SourceTask.source path sensitivity is now relative
+
+Most sources are not dependent on the absolute location of the source files when compiling.
+What actually matters is the relative location of the sources to each other.
+Therefore, the [path sensitivity](javadoc/org/gradle/api/tasks/PathSensitive.html) on [`SourceTask.source`](javadoc/org/gradle/api/tasks/SourceTask.html#getSource--) is now relative.
+For task authors that means that, when extending from `SourceTask`, you don't have to change the path sensitivity of that property any more.
+This is especially important for cacheable tasks since it allows sharing task outputs between different workspaces.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

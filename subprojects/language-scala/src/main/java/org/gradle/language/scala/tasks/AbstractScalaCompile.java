@@ -24,7 +24,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
@@ -39,8 +38,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -188,15 +185,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     public FileCollection getEffectiveAnnotationProcessorPath() {
         SingleMessageLogger.nagUserOfReplacedProperty("AbstractScalaCompile.effectiveAnnotationProcessorPath", "AbstractScalaCompile.options.annotationProcessorPath");
         return compileOptions.getAnnotationProcessorPath();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    public FileTree getSource() {
-        return super.getSource();
     }
 
     /**

@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.scala.AntScalaDoc;
 import org.gradle.api.tasks.CacheableTask;
@@ -25,8 +24,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
@@ -63,15 +60,6 @@ public class ScalaDoc extends SourceTask {
 
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @Override
-    public FileTree getSource() {
-        return super.getSource();
     }
 
     /**
