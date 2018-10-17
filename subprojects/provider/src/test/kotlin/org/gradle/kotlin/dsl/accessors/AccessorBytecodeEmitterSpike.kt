@@ -31,7 +31,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 
-import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsSingleThreaded
 import org.gradle.kotlin.dsl.accessors.AccessorBytecodeEmitter.emitExtensionsWithOneClassPerConfiguration
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
@@ -78,21 +77,8 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
     }
 
     @Test
-    fun `verify bytecode accessors (single-threaded)`() {
-        verifyAccessorsProducedBy { accessors, _, binDir ->
-            emitExtensionsSingleThreaded(accessors, binDir)
-            listOf("org.gradle.kotlin.dsl.ConfigurationAccessorsKt")
-        }
-    }
-
-    @Test
     fun `benchmark bytecode accessors (one class per configuration)`() {
         benchmarkWithConfigOnlySchema(::bytecodeAccessorsWithOneClassPerConfiguration)
-    }
-
-    @Test
-    fun `benchmark bytecode accessors (single-threaded)`() {
-        benchmarkWithConfigOnlySchema(::bytecodeAccessorsSingledThreaded)
     }
 
     @Test
@@ -116,12 +102,6 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
     }
 
     private
-    fun bytecodeAccessorsSingledThreaded(projectSchema: ProjectSchema<String>, srcDir: File, binDir: File) {
-        emitSourcesFor(projectSchema, srcDir)
-        emitExtensionsSingleThreaded(accessorsForConfigurationsOf(projectSchema), binDir)
-    }
-
-    private
     fun benchmarkWithConfigOnlySchema(experiment: (ProjectSchema<String>, File, File) -> Unit) {
         var run = 0
         val configOnlySchema = loadConfigurationSchema()
@@ -135,18 +115,6 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
             }
         }
         prettyPrint(benchmarkResult)
-    }
-
-    /**
-     * Account for source code generation time.
-     */
-    private
-    fun emitSourcesFor(projectSchema: ProjectSchema<String>, file: File) {
-        val srcDir = file
-        writeAccessorsTo(
-            srcDir.resolve("ConfigurationAccessors.kt"),
-            projectSchema.configurationAccessors()
-        )
     }
 
     // Compare only the time required to generate the configuration accessors

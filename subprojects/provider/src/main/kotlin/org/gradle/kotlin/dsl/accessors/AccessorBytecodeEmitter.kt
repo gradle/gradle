@@ -214,33 +214,6 @@ object AccessorBytecodeEmitter {
         internalClassNames
     }
 
-    fun emitExtensionsSingleThreaded(accessors: Sequence<Accessor>, outputDir: File) {
-
-        val accessorGetterSignaturePairs = accessors.filterIsInstance<Accessor.ForConfiguration>().map { accessor ->
-            accessor to jvmMethodSignatureFor(accessor)
-        }.toList()
-
-        val header = writeFileFacadeClassHeader {
-            for ((accessor, getterSignature) in accessorGetterSignaturePairs) {
-                writeConfigurationAccessorMetadataFor(accessor.name, getterSignature)
-            }
-        }
-
-        val className = InternalName("org/gradle/kotlin/dsl/ConfigurationAccessorsKt")
-        val classBytes =
-            publicKotlinClass(className, header) {
-                for ((accessor, getterSignature) in accessorGetterSignaturePairs) {
-                    emitConfigurationAccessorFor(accessor, getterSignature)
-                }
-            }
-
-        outputDir.resolve("$className.class").run {
-            parentFile.mkdirs()
-            writeBytes(classBytes)
-        }
-
-        writeModuleMetadataFor(className, outputDir)
-    }
 
     private
     fun ClassWriter.emitConfigurationAccessorFor(accessor: Accessor.ForConfiguration, signature: JvmMethodSignature) {
@@ -258,14 +231,6 @@ object AccessorBytecodeEmitter {
             LDC(elementName)
             INVOKEINTERFACE(containerTypeName, "named", namedMethodDescriptor)
             ARETURN()
-        }
-    }
-
-    private
-    fun writeModuleMetadataFor(className: InternalName, outputDir: File) {
-        moduleFileFor(outputDir).run {
-            parentFile.mkdir()
-            writeBytes(moduleMetadataBytesFor(listOf(className)))
         }
     }
 

@@ -28,7 +28,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.jetbrains.kotlin.metadata.ProtoBuf
@@ -517,7 +516,24 @@ fun inaccessible(type: String, reasons: List<InaccessibilityReason>): TypeAccess
 
 
 private
-val logger by lazy { loggerFor<AccessorsClassPath>() }
+fun multiProjectSchemaSnapshotOf(project: Project) =
+    MultiProjectSchemaSnapshot(
+        projectSchemaSnapshotFileOf(project)?.let {
+            loadMultiProjectSchemaFrom(it)
+        })
+
+
+private
+data class MultiProjectSchemaSnapshot(val schema: Map<String, ProjectSchema<String>>?)
+
+
+private
+fun projectSchemaSnapshotFileOf(project: Project): File? =
+    project
+        .rootProject
+        .file(PROJECT_SCHEMA_RESOURCE_PATH)
+        .takeIf { it.isFile }
+>>>>>>> 002ebde2... Remove unused code
 
 
 private
