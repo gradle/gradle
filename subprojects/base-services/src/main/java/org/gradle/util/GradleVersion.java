@@ -134,7 +134,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
             snapshot = 0L;
         } else if (matcher.group(8) == null) {
             snapshot = null;
-        } else if ("SNAPSHOT".equals(matcher.group(8)) || matcher.group(8).startsWith("commit")) {
+        } else if ("SNAPSHOT".equals(matcher.group(8)) || "commit".equals(matcher.group(4))) {
             snapshot = 0L;
         } else {
             try {

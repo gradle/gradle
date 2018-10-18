@@ -22,11 +22,11 @@ import org.gradle.util.GradleVersion
 
 class LocallyBuiltGradleDistribution extends DefaultGradleDistribution {
     LocallyBuiltGradleDistribution(String version) {
-        super(GradleVersion.version(version), null, getBinDistribution(version))
+        super(GradleVersion.version(version), getGradleHome(version), null)
     }
 
-    private static TestFile getBinDistribution(String version) {
-        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-forkpoint/gradle-${version}-bin.zip")
+    private static TestFile getGradleHome(String version) {
+        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-forkpoint/gradle-${version}")
     }
 
     static boolean isLocallyBuiltVersion(String version) {
