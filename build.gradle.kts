@@ -313,7 +313,7 @@ tasks.register<Install>("installAll") {
     installDirPropertyName = ::gradle_installPath.name
 }
 
-val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
+val allIncubationReports by tasks.registering(IncubatingApiAggregateReportTask::class) {
     val allReports = collectAllIncubationReports()
     dependsOn(allReports)
     reports = allReports.associateBy({ it.title.get()}) { it.textReportFile.asFile.get() }

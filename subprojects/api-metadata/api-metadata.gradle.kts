@@ -12,7 +12,7 @@ gradlebuildJava {
 
 apiMetadata {
     sources.from(provider {
-        javaProjects.map { it.sourceSets["main"].allJava }
+        javaProjects.map { it.sourceSets.main.get().allJava }
     })
     includes.addAll(provider { PublicApi.includes })
     excludes.addAll(provider { PublicApi.excludes })

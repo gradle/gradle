@@ -1,9 +1,3 @@
-plugins {
-    `java-gradle-plugin`
-}
-
-apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-
 dependencies {
     implementation(project(":configuration"))
     implementation(project(":build"))
@@ -18,7 +12,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.1.0")
 }
 
-tasks.withType(Test::class.java).named("test").configure {
+tasks.test {
     useJUnitPlatform()
 }
 

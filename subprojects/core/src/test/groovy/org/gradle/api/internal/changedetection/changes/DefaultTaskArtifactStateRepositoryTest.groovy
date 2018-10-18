@@ -32,7 +32,6 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -45,6 +44,7 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.file.PathToFileResolver
@@ -102,7 +102,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
-    final originMetadata = new OriginTaskExecutionMetadata(buildScopeId.id, 1)
+    final originMetadata = new OriginMetadata(buildScopeId.id, 1)
     def taskExecutionContext = Mock(TaskExecutionContext)
     def taskCacheKeyCalculator = new TaskCacheKeyCalculator(false)
 

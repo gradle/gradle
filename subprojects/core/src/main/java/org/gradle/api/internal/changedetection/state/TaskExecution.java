@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 public interface TaskExecution {
 
     @Nullable
-    OriginTaskExecutionMetadata getOriginExecutionMetadata();
+    OriginMetadata getOriginExecutionMetadata();
 
     /**
      * Returns the names of all cacheable output property names that have a value set.

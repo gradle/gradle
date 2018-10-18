@@ -35,7 +35,6 @@ dependencies {
     integTestRuntime(project(":toolingApiBuilders"))
 }
 
-
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }

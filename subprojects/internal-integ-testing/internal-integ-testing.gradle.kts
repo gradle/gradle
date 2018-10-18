@@ -69,7 +69,7 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
     mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 
-sourceSets["main"].output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir)
+sourceSets.main { output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir) }
 
 ideConfiguration {
     makeAllSourceDirsTestSourceDirsToWorkaroundIssuesWithIDEA13()

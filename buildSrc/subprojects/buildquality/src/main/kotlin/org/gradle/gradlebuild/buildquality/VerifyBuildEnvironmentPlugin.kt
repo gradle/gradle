@@ -10,14 +10,9 @@ import org.gradle.kotlin.dsl.*
 
 open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        validateForAllBuilds(project)
         validateForProductionEnvironments(project)
         validateForAllCompileTasks(project)
     }
-
-    private
-    fun validateForAllBuilds(rootProject: Project) =
-        rootProject.availableJavaInstallations.validateForAllBuilds()
 
     private
     fun validateForProductionEnvironments(rootProject: Project) =

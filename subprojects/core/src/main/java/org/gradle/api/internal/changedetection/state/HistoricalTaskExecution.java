@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 public class HistoricalTaskExecution extends AbstractTaskExecution {
 
     private final boolean successful;
-    private final OriginTaskExecutionMetadata originExecutionMetadata;
+    private final OriginMetadata originExecutionMetadata;
     private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints;
     private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints;
 
@@ -46,7 +46,7 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints,
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints,
         boolean successful,
-        OriginTaskExecutionMetadata originExecutionMetadata
+        OriginMetadata originExecutionMetadata
     ) {
         super(taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
         this.inputFingerprints = inputFingerprints;
@@ -62,7 +62,7 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
 
     @Nonnull
     @Override
-    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+    public OriginMetadata getOriginExecutionMetadata() {
         return originExecutionMetadata;
     }
 

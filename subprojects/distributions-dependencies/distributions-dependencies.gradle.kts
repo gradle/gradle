@@ -29,7 +29,7 @@ plugins {
 dependencies {
     constraints {
         libraries.keys.forEach { libId ->
-            add("default", library(libId)) {
+            default(library(libId)) {
                 version {
                     strictly(libraryVersion(libId))
                 }
@@ -38,7 +38,7 @@ dependencies {
         }
 
         // Reject dependencies we do not want completely
-        add("default", "org.sonatype.sisu:sisu-inject-plexus") {
+        default("org.sonatype.sisu:sisu-inject-plexus") {
             version { rejectAll() }
             because("We do not want this dependency injection on the classpath")
         }
