@@ -24,6 +24,8 @@ import spock.lang.Unroll
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
+    private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich]
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -32,7 +34,9 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
             include 'app'
         """
 
-        buildFile << """
+        buildFile << """ 
+            import java.nio.file.Files
+
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
                 
@@ -43,8 +47,13 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                     }
                     registerTransform {
                         from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
+                        to.attribute(artifactType, "green")
+                        artifactTransform(GreenMultiplier)
+                    }                    
+                    registerTransform {
+                        from.attribute(artifactType, "green")
+                        to.attribute(artifactType, "blue")
+                        artifactTransform(BlueMultiplier)
                     }                    
                 }
                 configurations {
@@ -52,12 +61,18 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                         attributes.attribute usage, 'api'
                     }
                 }
-                task resolve {
-                    def size = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-
-                    inputs.files size.artifactFiles
+                ["blue", "green"].each { type ->
+                    tasks.register("resolve\${type.capitalize()}") {
+                        def artifacts = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, type) }
+                        }.artifacts
+    
+                        inputs.files artifacts.artifactFiles
+                        
+                        doLast {
+                            println "files: " + artifacts.collect { it.file.name }
+                        }
+                    }
                 }
             }
             
@@ -89,39 +104,55 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                 }
             }
 
-            class FileSizer extends ArtifactTransform {
-                private boolean showOutput = System.getProperty("showOutput") != null
-            
-                FileSizer() {
+            class Multiplier extends ArtifactTransform {
+                private final String target
+                private final boolean showOutput = System.getProperty("showOutput") != null
+        
+                @javax.inject.Inject
+                Multiplier(String target) {
                     if (showOutput) {
-                        println "Creating FileSizer"
+                        println("Creating multiplier")
                     }
+                    this.target = target
                 }
-                
+        
+                @Override
                 List<File> transform(File input) {
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-                    def output = new File(outputDirectory, input.name + ".txt")
+                    def output1 = new File(outputDirectory, input.name + ".1." + target)
+                    def output2 = new File(outputDirectory, input.name + ".2." + target)
                     if (showOutput) {
-                        println "Transforming \${input.name} to \${output.name}"
+                        println("Transforming \${input.name} to \${input.name}.\${target}")
                     }
-                    output.text = String.valueOf(input.length())
-                    return [output]
+                    Files.copy(input.toPath(), output1.toPath())
+                    Files.copy(input.toPath(), output2.toPath())
+                    return [output1, output2]
+                }
+            }
+            
+            class GreenMultiplier extends Multiplier {
+                GreenMultiplier() {
+                    super("green")
+                }
+            }
+            class BlueMultiplier extends Multiplier {
+                BlueMultiplier() {
+                    super("blue")
                 }
             }
         """
     }
 
-//    @Unroll
+    @Unroll
     def "does not show transformation headers when there is no output for #type console"() {
         consoleType = ConsoleOutput.Plain
 
         when:
-        succeeds(":util:resolve")
+        succeeds(":util:resolveGreen")
         then:
         result.groupedOutput.transformationCount == 0
 
         where:
-        type << ConsoleOutput.values()
+        type << TESTED_CONSOLE_TYPES
     }
 
     @Unroll
@@ -129,11 +160,20 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         consoleType = type
 
         when:
-        succeeds(":util:resolve", "-DshowOutput")
+        succeeds(":util:resolveGreen", "-DshowOutput")
         then:
         result.groupedOutput.transformationCount == 2
 
         where:
-        type << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
+        type << TESTED_CONSOLE_TYPES
+    }
+
+    def "each step is logged separately"() {
+        consoleType = ConsoleOutput.Plain
+
+        when:
+        succeeds(":util:resolveBlue", "-DshowOutput")
+        then:
+        result.groupedOutput.transformationCount == 4
     }
 }

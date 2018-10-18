@@ -31,8 +31,8 @@ public class GroupedOutputFixture {
     /**
      * All tasks will start with > Task, captures everything starting with : and going until a control char
      */
-    private final static String TASK_HEADER = "> Task (artifact [^\\n]*|:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
-    private final static String TRANSFORMATION_HEADER = "> Transform (artifact|file) ([^\\n]+) with ([^\\n]+)";
+    private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
+    private final static String TRANSFORMATION_HEADER = "> Transform (artifact|file) ([^\\n]+) with ([^\\n]+\\n?)";
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
