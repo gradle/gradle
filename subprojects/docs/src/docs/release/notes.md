@@ -327,6 +327,18 @@ The same applies to builds run through TestKit.
 Gradle 5.0 requires a minimum Tooling API client version of 3.0. 
 Older client libraries can no longer run builds with Gradle 5.0
 
+### Lower default memory settings
+
+The command line client now starts with 64m of heap instead of 1g. 
+This may affect builds running directly inside the client VM using --no-daemon mode. 
+We discourage the use of --no-daemon, but if you must use it, you can increase the available memory using the GRADLE_OPTS environment variable.
+
+The Gradle daemon now starts with 512m of heap instead of 1g.
+Large projects may have to increase this setting using the `org.gradle.jvmargs` property.
+
+All workers, including compilers and test executors, now start with 512m of heap. The previous default was 1/4th of physical memory.
+Large projects may have to increase this setting on the relevant tasks, e.g. `JavaCompile` or `Test`.
+
 ### Configuration Avoidance API disallows common configuration errors
 
 The [configuration avoidance API](userguide/task_configuration_avoidance.html) introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.

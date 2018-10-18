@@ -14,7 +14,7 @@ set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS=-Xmx128m -Dfile.encoding=UTF-8
+set DEFAULT_JVM_OPTS=-Xmx64m -Dfile.encoding=UTF-8
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
