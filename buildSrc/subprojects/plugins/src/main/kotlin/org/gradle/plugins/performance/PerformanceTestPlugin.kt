@@ -12,6 +12,7 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.internal.hash.HashUtil
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
@@ -110,14 +111,15 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.registerForkPointDistributionTask() {
         whenNotOnMasterOrReleaseBranch {
             val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
+                setCiServer(BuildEnvironment.isCiServer)
                 dependsOn("determineForkPoint")
             }
             tasks.register("determineForkPoint") {
                 doLast {
-                    val masterForkPointCommit = Runtime.getRuntime().exec("git merge-base master HEAD").inputStream.reader().readText().trim()
-                    val releaseForkPointCommit = Runtime.getRuntime().exec("git merge-base release HEAD").inputStream.reader().readText().trim()
+                    val masterForkPointCommit = execAndGetStdout("git", "merge-base", "master", "HEAD")
+                    val releaseForkPointCommit = execAndGetStdout("git", "merge-base", "release", "HEAD")
                     val forkPointCommit =
-                        if (Runtime.getRuntime().exec("git merge-base --is-ancestor $masterForkPointCommit $releaseForkPointCommit").waitFor() == 0)
+                        if (exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
                             releaseForkPointCommit
                         else
                             masterForkPointCommit

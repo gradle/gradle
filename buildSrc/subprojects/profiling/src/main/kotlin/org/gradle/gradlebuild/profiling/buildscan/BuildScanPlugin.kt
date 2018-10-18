@@ -28,12 +28,12 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.filter
 import kotlin.collections.forEach
+import org.gradle.kotlin.dsl.*
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -139,27 +139,21 @@ open class BuildScanPlugin : Plugin<Project> {
 
             if (!isCiServer) {
                 background {
-                    system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
-                        setCommitId(commitId)
-                    }
+                    setCommitId(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
                 }
             }
 
             background {
-                system("git", "status", "--porcelain").let { status ->
-                    if (status.isNotEmpty()) {
-                        tag("dirty")
-                        value("Git Status", status)
-                    }
+                execAndGetStdout("git", "status", "--porcelain").takeIf { it.isNotEmpty() }?.let { status ->
+                    tag("dirty")
+                    value("Git Status", status)
                 }
             }
 
             background {
-                system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
-                    if (branchName.isNotEmpty() && branchName != "HEAD") {
-                        tag(branchName)
-                        value("Git Branch Name", branchName)
-                    }
+                execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD").takeIf { it.isNotEmpty() && it != "HEAD" }?.let { branchName ->
+                    tag(branchName)
+                    value("Git Branch Name", branchName)
                 }
             }
         }
@@ -219,17 +213,6 @@ open class BuildScanPlugin : Plugin<Project> {
     inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
         buildScan.apply(configure)
     }
-}
-
-
-private
-fun Project.system(vararg args: String): String {
-    val out = ByteArrayOutputStream()
-    exec {
-        commandLine(*args)
-        standardOutput = out
-    }
-    return String(out.toByteArray()).trim()
 }
 
 

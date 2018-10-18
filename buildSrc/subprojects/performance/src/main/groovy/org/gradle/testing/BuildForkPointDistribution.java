@@ -18,6 +18,7 @@ package org.gradle.testing;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.CacheableTask;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,9 +38,18 @@ import java.util.stream.Stream;
 public class BuildForkPointDistribution extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(BuildForkPointDistribution.class);
 
+    private final DirectoryProperty forkPointDistributionDir = getProject().getObjects().directoryProperty();
+
     private String forkPointCommitId;
 
     private String baselineVersion = "defaults";
+
+    private boolean ciServer;
+
+    @Inject
+    public BuildForkPointDistribution() {
+        forkPointDistributionDir.set(getProject().getRootProject().getLayout().getBuildDirectory().dir("distributions/gradle-forkpoint"));
+    }
 
     @Input
     @Optional
@@ -51,13 +62,17 @@ public class BuildForkPointDistribution extends DefaultTask {
     }
 
     @OutputDirectory
-    public File getForkPointDistributionDir() {
-        return new File(getProject().getRootProject().getBuildDir(), "distributions/gradle-forkpoint");
+    public DirectoryProperty getForkPointDistributionDir() {
+        return forkPointDistributionDir;
     }
 
     @Internal
     public String getBaselineVersion() {
         return baselineVersion;
+    }
+
+    public void setCiServer(boolean ciServer) {
+        this.ciServer = ciServer;
     }
 
     @TaskAction
@@ -74,7 +89,7 @@ public class BuildForkPointDistribution extends DefaultTask {
     }
 
     private void setBaselineVersion() {
-        baselineVersion = Stream.of(getForkPointDistributionDir().listFiles())
+        baselineVersion = Stream.of(getForkPointDistributionDir().getAsFile().get().listFiles())
             .filter(file -> file.getName().endsWith("-bin.zip"))
             // gradle-5.0-commit-2149a1d-bin.zip -> 5.0-commit-2149a1d
             .map(file -> file.getName().substring("gradle-".length(), file.getName().length() - "-bin.zip".length())).findFirst()
@@ -106,16 +121,24 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     private void tryBuildDistribution(String commit) throws Exception {
         exec(getGradleCloneTmpDir(), "git", "checkout", commit, "--force");
-        exec(getGradleCloneTmpDir(), "./gradlew", ":distributions:binZip", ":toolingApi:toolingApiShadedJar");
+        exec(getGradleCloneTmpDir(), (Object[]) getBuildCommands());
 
-        FileUtils.cleanDirectory(getForkPointDistributionDir());
+        FileUtils.cleanDirectory(getForkPointDistributionDir().getAsFile().get());
         String baseVersion = new String(Files.readAllBytes(getGradleCloneTmpDir().toPath().resolve("version.txt"))).trim();
 
         copyToDistributionDir("build/distributions/gradle-" + baseVersion + "-bin.zip", "gradle-" + baseVersion + "-commit-" + commit + "-bin.zip");
         copyToDistributionDir("subprojects/tooling-api/build/shaded-jar/gradle-tooling-api-shaded-" + baseVersion + ".jar", "gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar");
     }
 
+    private String[] getBuildCommands() {
+        if (ciServer) {
+            return new String[]{"./gradlew", ":distributions:binZip", ":toolingApi:toolingApiShadedJar", "--init-script", new File(getGradleCloneTmpDir(), "gradle/init-scripts/build-scan.init.gradle.kts").getAbsolutePath()};
+        } else {
+            return new String[]{"./gradlew", ":distributions:binZip", ":toolingApi:toolingApiShadedJar"};
+        }
+    }
+
     private void copyToDistributionDir(String srcRelativePath, String destRelativePath) throws IOException {
-        Files.copy(getGradleCloneTmpDir().toPath().resolve(srcRelativePath), getForkPointDistributionDir().toPath().resolve(destRelativePath));
+        Files.copy(getGradleCloneTmpDir().toPath().resolve(srcRelativePath), getForkPointDistributionDir().getAsFile().get().toPath().resolve(destRelativePath));
     }
 }

@@ -3,6 +3,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.Callable
 
@@ -21,6 +22,16 @@ operator fun File.div(child: String): File =
  */
 fun <T> deferred(value: () -> T): Any =
     Callable { value() }
+
+
+fun Project.execAndGetStdout(vararg args: String): String {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine(*args)
+        standardOutput = out
+    }
+    return String(out.toByteArray()).trim()
+}
 
 
 fun Project.stringPropertyOrNull(projectPropertyName: String): String? =
