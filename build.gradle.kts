@@ -22,6 +22,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
+import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import org.gradle.util.GradleVersion
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
@@ -244,6 +245,21 @@ val gradlePlugins by configurations.creating {
 val testRuntime by configurations.creating {
     extendsFrom(runtime)
     extendsFrom(gradlePlugins)
+}
+
+publicJavaProjects.forEach {
+    it.configure {
+        val javadocClasspathElements by it.configurations.creating {
+            extendsFrom(it.configurations["compileClasspath"])
+            extendsFrom(it.configurations["runtimeClasspath"])
+            isVisible = false
+            isCanBeResolved = false
+            isCanBeConsumed = true
+            description = "Classpath for javadoc"
+            usage(Usage.JAVA_API_CLASSES)
+            attributes.attribute(Attribute.of("org.gradle.javadoc", String::class.java), "yes")
+        }
+    }
 }
 
 configurations {

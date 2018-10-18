@@ -257,6 +257,20 @@ def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
+configurations.create("javadocClasspath") {
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_CLASSES))
+    attributes.attribute(Attribute.of("org.gradle.javadoc", String), "yes")
+    visible = false
+    canBeConsumed = false
+    canBeResolved = true
+    description = "Classpath for javadoc"
+}
+
+dependencies {
+    javadocClasspath ProjectGroups.INSTANCE.getPublicJavaProjects(project)
+}
+
+
 def javadocAll = tasks.register("javadocAll", Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
     inputs.file stylesheetFile withPropertyName "stylesheetFile" withPathSensitivity PathSensitivity.NAME_ONLY
@@ -271,7 +285,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = configurations.javadocClasspath
     PublicApi.includes.each {
         include it
     }
