@@ -125,6 +125,12 @@ fun MethodVisitor.NEWARRAY(primitiveType: Int) {
 
 
 internal
+fun MethodVisitor.LDC(type: InternalName) {
+    visitLdcInsn(Type.getType("L${type.value};"))
+}
+
+
+internal
 fun MethodVisitor.LDC(value: Any) {
     visitLdcInsn(value)
 }

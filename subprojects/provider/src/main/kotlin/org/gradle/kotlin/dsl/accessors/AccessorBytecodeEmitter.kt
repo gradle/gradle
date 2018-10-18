@@ -78,6 +78,7 @@ object AccessorBytecodeEmitter {
                 when (accessor) {
                     is Accessor.ForConfiguration -> emitAccessorsForConfiguration(accessor)
                     is Accessor.ForExtension -> emitAccessorForExtension(accessor)
+                    is Accessor.ForContainerElement -> emitAccessorForContainerElement(accessor)
                 }
 
             writer.writeFile(
@@ -97,22 +98,55 @@ object AccessorBytecodeEmitter {
     }
 
     private
+    fun emitAccessorForContainerElement(accessor: Accessor.ForContainerElement): Pair<InternalName, ByteArray> {
+
+        // val $targetType.$name: NamedDomainObjectProvider<$returnType>
+
+        val accessorSpec = accessor.spec
+        val className = internalNameForAccessorClassOf(accessorSpec)
+        val (targetType, name, returnType) = accessorSpec
+        val propertyName = name.kotlinIdentifier
+        val receiverTypeName = internalNameFromSourceName(targetType.type)
+        val (kotlinReturnType, jvmReturnType) = accessibleReturnTypeFor(returnType)
+        val getterSignature = jvmGetterSignatureFor(
+            propertyName,
+            accessorDescriptorFor(receiverTypeName, namedDomainObjectProviderTypeName)
+        )
+
+        val header = writeFileFacadeClassHeader {
+            writeElementAccessorMetadataFor(receiverTypeName, kotlinReturnType, propertyName, getterSignature)
+        }
+
+        val classBytes =
+            publicKotlinClass(className, header) {
+                publicStaticMethod(getterSignature.name, getterSignature.desc) {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    LDC(jvmReturnType)
+                    INVOKEINTERFACE(receiverTypeName, "named", namedWithTypeMethodDescriptor)
+                    ARETURN()
+                }
+            }
+
+        return className to classBytes
+    }
+
+    private
     fun emitAccessorForExtension(accessor: Accessor.ForExtension): Pair<InternalName, ByteArray> {
 
-        val (targetType, name, returnType) = accessor.spec
-
-        val internalClassName = InternalName("org/gradle/kotlin/dsl/ExtensionAccessors${hashOf(accessor)}Kt")
-
-        val accessorName = name.kotlinIdentifier
+        val accessorSpec = accessor.spec
+        val className = internalNameForAccessorClassOf(accessorSpec)
+        val (targetType, name, returnType) = accessorSpec
+        val propertyName = name.kotlinIdentifier
         val receiverTypeName = internalNameFromSourceName(targetType.type)
         val (kotlinReturnType, jvmReturnType) = accessibleReturnTypeFor(returnType)
 
-        val signature = jvmGetterSignatureFor(
-            accessorName,
+        val getterSignature = jvmGetterSignatureFor(
+            propertyName,
             accessorDescriptorFor(receiverTypeName, jvmReturnType)
         )
         val configureSignature = JvmMethodSignature(
-            accessorName,
+            propertyName,
             "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
         )
 
@@ -120,8 +154,8 @@ object AccessorBytecodeEmitter {
             writePropertyOf(
                 receiverType = { visitClass(receiverTypeName) },
                 returnType = { visitClass(kotlinReturnType) },
-                propertyName = accessorName,
-                getterSignature = signature
+                propertyName = propertyName,
+                getterSignature = getterSignature
             )
             writeFunctionOf(
                 receiverType = { visitClass(receiverTypeName) },
@@ -131,14 +165,14 @@ object AccessorBytecodeEmitter {
                         visitClass(kotlinReturnType)
                     })
                 },
-                name = accessorName,
+                name = propertyName,
                 signature = configureSignature
             )
         }
 
         val classBytes =
-            publicKotlinClass(internalClassName, header) {
-                publicStaticMethod(signature.name, signature.desc) {
+            publicKotlinClass(className, header) {
+                publicStaticMethod(getterSignature.name, getterSignature.desc) {
                     ALOAD(0)
                     LDC(name.original)
                     invokeRuntime(
@@ -162,25 +196,28 @@ object AccessorBytecodeEmitter {
                 }
             }
 
-        return internalClassName to classBytes
+        return className to classBytes
     }
+
+    private
+    fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
+        InternalName("org/gradle/kotlin/dsl/Accessors${hashOf(accessorSpec)}Kt")
 
     private
     fun emitAccessorsForConfiguration(accessor: Accessor.ForConfiguration): Pair<InternalName, ByteArray> {
 
-        val configName = accessor.name
-        val internalClassName =
-            InternalName("org/gradle/kotlin/dsl/${configName.capitalize()}ConfigurationAccessorsKt")
+        val propertyName = accessor.name
+        val className = InternalName("org/gradle/kotlin/dsl/${propertyName.capitalize()}ConfigurationAccessorsKt")
 
-        val getterSignature = jvmMethodSignatureFor(accessor)
-        val overload1 = JvmMethodSignature(configName, "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+        val getterSignature = jvmGetterSignatureFor(accessor.name, configurationAccessorMethodSignature)
+        val overload1 = JvmMethodSignature(propertyName, "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
 
         val header = writeFileFacadeClassHeader {
-            writeConfigurationAccessorMetadataFor(configName, getterSignature)
+            writeConfigurationAccessorMetadataFor(propertyName, getterSignature)
             writeFunctionOf(
                 receiverType = { visitClass(DependencyHandler::class.internalName) },
                 nullableReturnType = { visitClass(Dependency::class.internalName) },
-                name = configName,
+                name = propertyName,
                 parameterName = "dependencyNotation",
                 parameterType = { visitClass(InternalNameOf.Any) },
                 signature = overload1
@@ -188,20 +225,20 @@ object AccessorBytecodeEmitter {
         }
 
         val classBytes =
-            publicKotlinClass(internalClassName, header) {
+            publicKotlinClass(className, header) {
 
-                emitConfigurationAccessorFor(configName, getterSignature)
+                emitConfigurationAccessorFor(propertyName, getterSignature)
 
                 publicStaticMethod(overload1.name, overload1.desc) {
                     ALOAD(0)
-                    LDC(configName)
+                    LDC(propertyName)
                     ALOAD(1)
                     INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
                     ARETURN()
                 }
             }
 
-        return internalClassName to classBytes
+        return className to classBytes
     }
 
     private
@@ -214,8 +251,8 @@ object AccessorBytecodeEmitter {
         InternalName(type.replace('.', '/'))
 
     private
-    fun hashOf(accessor: Accessor.ForExtension) =
-        HashUtil.createCompactMD5(accessor.spec.toString())
+    fun hashOf(accessorSpec: TypedAccessorSpec) =
+        HashUtil.createCompactMD5(accessorSpec.toString())
 
     private
     fun accessibleReturnTypeFor(returnType: TypeAccessibility): Pair<InternalName, InternalName> =
@@ -234,7 +271,7 @@ object AccessorBytecodeEmitter {
         // TODO: make it observable via build operations
         val internalClassNames = accessorsForConfigurationsOf(projectSchema).asStream().unordered().parallel().map { accessor ->
 
-            val getterSignature = jvmMethodSignatureFor(accessor)
+            val getterSignature = jvmGetterSignatureFor(accessor.name, configurationAccessorMethodSignature)
 
             val header = writeFileFacadeClassHeader {
                 writeConfigurationAccessorMetadataFor(accessor.name, getterSignature)
@@ -264,7 +301,6 @@ object AccessorBytecodeEmitter {
         internalClassNames
     }
 
-
     private
     fun ClassWriter.emitConfigurationAccessorFor(name: String, signature: JvmMethodSignature) {
         emitContainerElementAccessorFor(configurationContainerInternalName, name, signature)
@@ -289,25 +325,36 @@ object AccessorBytecodeEmitter {
         configurationName: String,
         getterSignature: JvmMethodSignature
     ) {
-        writePropertyOf(
-            receiverType = {
-                visitClass(configurationContainerInternalName)
-            },
-            returnType = {
-                visitClass(namedDomainObjectProviderInternalName)
-                visitArgument(0, KmVariance.INVARIANT)!!.run {
-                    visitClass(configurationInternalName)
-                    visitEnd()
-                }
-            },
-            propertyName = configurationName,
-            getterSignature = getterSignature
+        writeElementAccessorMetadataFor(
+            configurationContainerInternalName,
+            configurationInternalName,
+            configurationName,
+            getterSignature
         )
     }
 
     private
-    fun jvmMethodSignatureFor(accessor: Accessor.ForConfiguration): JvmMethodSignature =
-        jvmGetterSignatureFor(accessor.name, configurationAccessorMethodSignature)
+    fun KotlinClassMetadata.FileFacade.Writer.writeElementAccessorMetadataFor(
+        containerType: InternalName,
+        elementType: InternalName,
+        propertyName: String,
+        getterSignature: JvmMethodSignature
+    ) {
+        writePropertyOf(
+            receiverType = {
+                visitClass(containerType)
+            },
+            returnType = {
+                visitClass(namedDomainObjectProviderTypeName)
+                visitArgument(0, KmVariance.INVARIANT)!!.run {
+                    visitClass(elementType)
+                    visitEnd()
+                }
+            },
+            propertyName = propertyName,
+            getterSignature = getterSignature
+        )
+    }
 
     private
     val configurationContainerInternalName = ConfigurationContainer::class.internalName
@@ -316,13 +363,16 @@ object AccessorBytecodeEmitter {
     val configurationInternalName = Configuration::class.internalName
 
     private
-    val namedDomainObjectProviderInternalName = NamedDomainObjectProvider::class.internalName
+    val namedDomainObjectProviderTypeName = NamedDomainObjectProvider::class.internalName
 
     private
-    val namedMethodDescriptor = "(Ljava/lang/String;)L$namedDomainObjectProviderInternalName;"
+    val namedMethodDescriptor = "(Ljava/lang/String;)L$namedDomainObjectProviderTypeName;"
 
     private
-    val configurationAccessorMethodSignature = accessorDescriptorFor(configurationContainerInternalName, namedDomainObjectProviderInternalName)
+    val namedWithTypeMethodDescriptor = "(Ljava/lang/String;Ljava/lang/Class;)L$namedDomainObjectProviderTypeName;"
+
+    private
+    val configurationAccessorMethodSignature = accessorDescriptorFor(configurationContainerInternalName, namedDomainObjectProviderTypeName)
 
     private
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
@@ -336,13 +386,21 @@ sealed class Accessor {
     data class ForConfiguration(val name: String) : Accessor()
 
     data class ForExtension(val spec: TypedAccessorSpec) : Accessor()
+
+    data class ForContainerElement(val spec: TypedAccessorSpec) : Accessor()
+
 }
 
 
 internal
-fun accessorsFor(projectSchema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> = projectSchema.run {
-    (configurations.asSequence().map { Accessor.ForConfiguration(it) }
-        + extensions.asSequence().mapNotNull(::typedAccessorSpec).map { Accessor.ForExtension(it) })
+fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> = sequence {
+    schema.run {
+        AccessorScope().run {
+            yieldAll(uniqueAccessorsFor(extensions).map(Accessor::ForExtension))
+            yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
+            yieldAll(accessorsForConfigurationsOf(schema))
+        }
+    }
 }
 
 

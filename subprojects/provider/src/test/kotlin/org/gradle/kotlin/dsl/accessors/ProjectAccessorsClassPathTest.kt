@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 
@@ -53,8 +52,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 extensions = listOf(
                     ProjectSchemaEntry(
                         Project::class.qualifiedName!!,
-                        "ext",
-                        ExtraPropertiesExtension::class.qualifiedName!!
+                        "sourceSets",
+                        SourceSetContainer::class.qualifiedName!!
                     )
                 ),
                 containerElements = listOf(
@@ -90,9 +89,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val configurations = mock<ConfigurationContainer> {
             on { named(any<String>()) } doReturn apiConfiguration
         }
-        val extExtension = mock<ExtraPropertiesExtension>()
+        val sourceSets = mock<SourceSetContainer>()
         val extensions = mock<ExtensionContainer> {
-            on { getByName(any()) } doReturn extExtension
+            on { getByName(any()) } doReturn sourceSets
         }
         val dependencies = mock<DependencyHandler>()
         val project = mock<Project> {
@@ -102,32 +101,42 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         }
         project.eval(
             script = """
-                val a = configurations.api
-                val b = ext
-                val c = dependencies.api("module")
-                val d = ext {}
+                val a: NamedDomainObjectProvider<Configuration> = configurations.api
+
+                val b: Dependency? = dependencies.api("module")
+
+                val c: SourceSetContainer = sourceSets
+
+                val d: Unit = sourceSets {}
+
+                val e: NamedDomainObjectProvider<SourceSet> = sourceSets.main
             """,
             scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath
 // Runtime is not required because the accessores are inlined
 //            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
         )
 
-        inOrder(project, configurations, apiConfiguration, extensions, extExtension, dependencies) {
+        inOrder(project, configurations, apiConfiguration, extensions, sourceSets, dependencies) {
             // val a
             verify(project).configurations
             verify(configurations).named("api")
 
             // val b
-            verify(project).extensions
-            verify(extensions).getByName("ext")
-
-            // val c
             verify(project).dependencies
             verify(dependencies).add("api", "module")
 
+            // val c
+            verify(project).extensions
+            verify(extensions).getByName("sourceSets")
+
             // val d
             verify(project).extensions
-            verify(extensions).configure(eq("ext"), any<Action<*>>())
+            verify(extensions).configure(eq("sourceSets"), any<Action<*>>())
+
+            // val e
+            verify(project).extensions
+            verify(extensions).getByName("sourceSets")
+            verify(sourceSets).named("main", SourceSet::class.java)
 
             verifyNoMoreInteractions()
         }

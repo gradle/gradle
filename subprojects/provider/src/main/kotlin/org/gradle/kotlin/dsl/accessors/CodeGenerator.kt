@@ -51,7 +51,7 @@ fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> =
         .map(::configurationAccessor)
 
 
-private
+internal
 data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
 ) {
