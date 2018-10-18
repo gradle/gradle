@@ -1,19 +1,21 @@
 package org.gradle.kotlin.dsl.accessors
 
+import groovy.json.JsonOutput
+import groovy.json.JsonOutput.prettyPrint
+import groovy.json.JsonSlurper
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import groovy.json.JsonOutput
-import groovy.json.JsonOutput.prettyPrint
-import groovy.json.JsonSlurper
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Test
 
 import java.io.File
@@ -50,7 +52,7 @@ class ProjectSchemaIntegrationTest : AbstractIntegrationTest() {
                 apply(plugin = "org.gradle.kotlin.kotlin-dsl")
             }
 
-            buildscript { dependencies { classpath(files("$dumpTaskJar")) } }
+            buildscript { dependencies { classpath(files("${dumpTaskJar.normalisedPath}")) } }
             tasks.register<${DumpJsonProjectSchema::class.java.name}>("dumpJsonProjectSchema")
         """)
 
