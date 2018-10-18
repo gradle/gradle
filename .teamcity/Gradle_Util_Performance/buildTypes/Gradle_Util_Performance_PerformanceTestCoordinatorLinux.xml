@@ -81,7 +81,7 @@ fi]]></param>
       </extension>
     </build-extensions>
     <artifact-dependencies>
-      <dependency id="ARTIFACT_DEPENDENCY_4" sourceBuildTypeId="Gradle_Check_SanityCheck" cleanDestination="true">
+      <dependency id="ARTIFACT_DEPENDENCY_4" sourceBuildTypeId="Gradle_Check_CompileAll" cleanDestination="true">
         <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
         <artifact sourcePath="build-receipt.properties =&gt; incoming-distributions" />
       </dependency>
