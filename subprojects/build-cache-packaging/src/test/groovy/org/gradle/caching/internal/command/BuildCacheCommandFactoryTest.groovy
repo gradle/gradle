@@ -149,7 +149,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         !(ex instanceof UnrecoverableUnpackingException)
         ex.cause.message == "unpacking error"
         !outputFile.exists()
-        //0 * _
+        0 * _
 
         then:
         !localStateFile.exists()
