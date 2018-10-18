@@ -46,6 +46,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### `ProjectBuilder` constructor
+Now the constructor of the `ProjectBuilder` is deprecated.
+You should always grab an instance of it via the `ProjectBuilder#builder()` method.
+
 ### Breaking changes
 
 <!-- summary and links -->

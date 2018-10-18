@@ -51,6 +51,15 @@ public class ProjectBuilder {
     private ProjectBuilderImpl impl = new ProjectBuilderImpl();
 
     /**
+     * Don't use this constructor anymore.
+     *
+     * An instance should only be created via the {@link #builder()}.
+     */
+    public ProjectBuilder() {
+        SingleMessageLogger.nagUserOfDeprecated("The ProjectBuilder() constructor", "Please use ProjectBuilder.builder() instead.");
+    }
+
+    /**
      * Creates a project builder.
      *
      * @return The builder
@@ -73,6 +82,7 @@ public class ProjectBuilder {
     /**
      * Specifies the Gradle user home for the builder. If not set, an empty directory under the project directory
      * will be used.
+     *
      * @return The builder
      */
     public ProjectBuilder withGradleUserHomeDir(File dir) {
