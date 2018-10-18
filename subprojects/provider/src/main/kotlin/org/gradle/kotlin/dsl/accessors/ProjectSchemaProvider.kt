@@ -16,22 +16,15 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-
 import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
 
-import java.io.File
 import java.io.Serializable
 
 
 interface ProjectSchemaProvider {
 
     fun schemaFor(project: Project): ProjectSchema<TypeOf<*>>
-
-    fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> =
-        root.allprojects.map { it.path to schemaFor(it) }.toMap()
 }
 
 
@@ -73,41 +66,3 @@ data class ProjectSchemaEntry<out T>(
 
 fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
     map(::kotlinTypeStringFor)
-
-
-fun toJson(multiProjectStringSchema: Map<String, ProjectSchema<String>>): String =
-    JsonOutput.toJson(multiProjectStringSchema)
-
-
-@Suppress("unchecked_cast")
-fun loadMultiProjectSchemaFrom(file: File) =
-    (JsonSlurper().parse(file) as Map<String, Map<String, *>>).mapValues { (_, value) ->
-        ProjectSchema(
-            extensions = loadSchemaEntryListFrom(value["extensions"]),
-            conventions = loadSchemaEntryListFrom(value["conventions"]),
-            tasks = loadSchemaEntryListFrom(value["tasks"]),
-            containerElements = loadSchemaEntryListFrom(value["containerElements"]),
-            configurations = value["configurations"] as? List<String> ?: emptyList())
-    }
-
-
-@Suppress("unchecked_cast")
-private
-fun loadSchemaEntryListFrom(extensions: Any?): List<ProjectSchemaEntry<String>> =
-    when (extensions) {
-        is Map<*, *> -> // <0.17 format
-            (extensions as? Map<String, String>)?.map {
-                ProjectSchemaEntry(
-                    Project::class.java.name,
-                    it.key,
-                    it.value)
-            } ?: emptyList()
-        is List<*> -> // >=0.17 format
-            (extensions as? List<Map<String, String>>)?.map {
-                ProjectSchemaEntry(
-                    it.getValue("target"),
-                    it.getValue("name"),
-                    it.getValue("type"))
-            } ?: emptyList()
-        else -> emptyList()
-    }

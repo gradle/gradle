@@ -112,20 +112,6 @@ fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
 
 private
 fun configuredProjectSchemaOf(project: Project) =
-    aotProjectSchemaOf(project) ?: jitProjectSchemaOf(project)
-
-
-private
-fun aotProjectSchemaOf(project: Project) =
-    project
-        .rootProject
-        .getOrCreateSingletonProperty { multiProjectSchemaSnapshotOf(project) }
-        .schema
-        ?.let { it[project.path] }
-
-
-private
-fun jitProjectSchemaOf(project: Project) =
     project.takeIf(::enabledJitAccessors)?.let {
         require(classLoaderScopeOf(project).isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
@@ -550,26 +536,6 @@ fun inaccessible(type: String, reasons: List<InaccessibilityReason>): TypeAccess
 
 private
 val logger by lazy { loggerFor<AccessorsClassPath>() }
-
-
-private
-fun multiProjectSchemaSnapshotOf(project: Project) =
-    MultiProjectSchemaSnapshot(
-        projectSchemaSnapshotFileOf(project)?.let {
-            loadMultiProjectSchemaFrom(it)
-        })
-
-
-private
-data class MultiProjectSchemaSnapshot(val schema: Map<String, ProjectSchema<String>>?)
-
-
-private
-fun projectSchemaSnapshotFileOf(project: Project): File? =
-    project
-        .rootProject
-        .file(PROJECT_SCHEMA_RESOURCE_PATH)
-        .takeIf { it.isFile }
 
 
 private
