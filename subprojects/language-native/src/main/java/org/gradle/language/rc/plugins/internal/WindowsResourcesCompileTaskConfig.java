@@ -87,7 +87,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
 
         PreprocessingTool rcCompiler = (PreprocessingTool) binary.getToolByName("rcCompiler");
         task.setMacros(rcCompiler.getMacros());
-        task.setCompilerArgs(rcCompiler.getArgs());
+        task.getCompilerArgs().set(rcCompiler.getArgs());
 
         FileTree resourceOutputs = task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.res"));
         binary.binaryInputs(resourceOutputs);

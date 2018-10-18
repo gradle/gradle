@@ -211,9 +211,6 @@ public class WindowsResourceCompile extends DefaultTask {
         return compilerArgs;
     }
 
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs.addAll(compilerArgs);
-    }
 
     /**
      * The set of dependent headers. This is used for up-to-date checks only.
