@@ -367,7 +367,7 @@ In this case, no need for an import, the `Test` task type is part of the Gradle 
 === About conventions
 
 Some of the Gradle core plugins expose configurability with the help of a so-called `Convention`.
-`Convention` is the preceding concept of an extension and serves a similar purpose.
+The `Convention` concept precedes that of extension and serves a similar purpose.
 Please avoid using the `Convention` concept when writing new plugins.
 The long term plan is to migrate all Gradle core plugins to use extensions and remove the `Convention` concept altogether.
 
