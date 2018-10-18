@@ -87,8 +87,10 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
-        indexedCache = cache.createCache(PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
-            .cacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
+        indexedCache = cache.createCache(
+            PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
+                .withCacheDecorator(cacheDecoratorFactory.decorator(1000, true))
+        );
         fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 

@@ -64,8 +64,8 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
-        PersistentIndexedCacheParameters<HashCode, V> parameters = new PersistentIndexedCacheParameters<HashCode, V>(name, hashCodeSerializer, serializer)
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
+        PersistentIndexedCacheParameters<HashCode, V> parameters = PersistentIndexedCacheParameters.of(name, hashCodeSerializer, serializer)
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         PersistentIndexedCache<HashCode, V> store = cache.createCache(parameters);
 
         DefaultFileContentCache<V> cache = (DefaultFileContentCache<V>) caches.get(name);

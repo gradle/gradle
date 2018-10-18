@@ -102,8 +102,8 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     }
 
     private static PersistentIndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new PersistentIndexedCacheParameters<String, Boolean>("outputFiles", String.class, Boolean.class)
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
+        return PersistentIndexedCacheParameters.of("outputFiles", String.class, Boolean.class)
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
     }
 
     @Override

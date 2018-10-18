@@ -40,8 +40,8 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
                 .withDisplayName("native compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
-        PersistentIndexedCacheParameters<String, CompilationState> parameters = new PersistentIndexedCacheParameters<String, CompilationState>("nativeCompile", String.class, new CompilationStateSerializer())
-                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
+        PersistentIndexedCacheParameters<String, CompilationState> parameters = PersistentIndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
 
         compilationStateIndexedCache = cache.createCache(parameters);
     }

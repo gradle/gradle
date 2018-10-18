@@ -39,6 +39,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -183,7 +184,10 @@ public class GradleUserHomeScopeServices {
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(TaskHistoryStore store) {
-        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache("resourceHashesCache", HashCode.class, new HashCodeSerializer(), 400000, true);
+        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
+            PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
+            400000,
+            true);
         return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
     }
 

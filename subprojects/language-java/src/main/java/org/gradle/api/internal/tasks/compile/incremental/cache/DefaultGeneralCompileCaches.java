@@ -56,16 +56,16 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
             .withDisplayName("Java compile cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
-        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = new PersistentIndexedCacheParameters<HashCode, ClassAnalysis>("classAnalysis", new HashCodeSerializer(), new ClassAnalysisSerializer(interner))
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
+        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of("classAnalysis", new HashCodeSerializer(), new ClassAnalysisSerializer(interner))
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
         this.classAnalysisCache = new DefaultClassAnalysisCache(cache.createCache(classCacheParameters));
 
-        PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = new PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData>("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
+        PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
         this.classpathEntrySnapshotCache = new SplitClasspathEntrySnapshotCache(fileLocations, userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(), new DefaultClasspathEntrySnapshotCache(fileSystemSnapshotter, cache.createCache(jarCacheParameters)));
 
-        PersistentIndexedCacheParameters<String, PreviousCompilationData> previousCompilationCacheParameters = new PersistentIndexedCacheParameters<String, PreviousCompilationData>("taskHistory", String.class, new PreviousCompilationData.Serializer(interner))
-            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
+        PersistentIndexedCacheParameters<String, PreviousCompilationData> previousCompilationCacheParameters = PersistentIndexedCacheParameters.of("taskHistory", String.class, new PreviousCompilationData.Serializer(interner))
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
         previousCompilationCache = cache.createCache(previousCompilationCacheParameters);
     }
 

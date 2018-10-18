@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 
 import javax.annotation.Nullable;
 
@@ -25,9 +26,7 @@ public class TaskHistoryCache {
 
     public TaskHistoryCache(TaskHistoryStore cacheAccess, TaskExecutionFingerprintSerializer serializer) {
         this.cache = cacheAccess.createCache(
-            "taskHistory",
-            String.class,
-            serializer,
+            PersistentIndexedCacheParameters.of("taskHistory", String.class, serializer),
             10000,
             false
         );

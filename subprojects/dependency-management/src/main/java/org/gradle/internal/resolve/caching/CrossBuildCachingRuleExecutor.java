@@ -88,13 +88,13 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     private PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = new PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>>(
+        return PersistentIndexedCacheParameters.of(
             name,
             new HashCodeSerializer(),
             createEntrySerializer(resultSerializer)
+        ).withCacheDecorator(
+            cacheDecoratorFactory.decorator(2000, true)
         );
-        cacheParams.cacheDecorator(cacheDecoratorFactory.decorator(2000, true));
-        return cacheParams;
     }
 
     private Serializer<CachedEntry<RESULT>> createEntrySerializer(final Serializer<RESULT> resultSerializer) {
