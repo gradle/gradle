@@ -87,7 +87,7 @@ fi]]></param>
       </dependency>
     </artifact-dependencies>
     <dependencies>
-      <depend-on sourceBuildTypeId="Gradle_Check_SanityCheck">
+      <depend-on sourceBuildTypeId="Gradle_Check_CompileAll">
         <options>
           <option name="run-build-if-dependency-failed" value="CANCEL" />
           <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
