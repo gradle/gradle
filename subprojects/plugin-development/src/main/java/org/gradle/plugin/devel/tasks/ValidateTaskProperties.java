@@ -38,7 +38,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -57,6 +56,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -115,7 +115,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
-    private final Property<Boolean> enableStricterValidation;
+    private boolean enableStricterValidation;
     private boolean ignoreFailures;
     private boolean failOnWarning;
 
@@ -124,8 +124,6 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         this.classes = layout.configurableFiles();
         this.classpath = layout.configurableFiles();
         this.outputFile = objects.fileProperty();
-        this.enableStricterValidation = objects.property(Boolean.class);
-        this.enableStricterValidation.set(Boolean.FALSE);
     }
 
     @TaskAction
@@ -192,7 +190,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                     }
                     Class<? extends Task> taskClass = Cast.uncheckedCast(clazz);
                     try {
-                        validatorMethod.invoke(null, taskClass, taskValidationProblems, enableStricterValidation.get());
+                        validatorMethod.invoke(null, taskClass, taskValidationProblems, enableStricterValidation);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     } catch (InvocationTargetException e) {
@@ -299,6 +297,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      */
     @Deprecated
     public void setClasses(FileCollection classes) {
+        DeprecationLogger.nagUserOfReplacedMethod("setClasses(FileCollection)", "getClasses().setFrom(FileCollection)");
         this.classes.setFrom(classes);
     }
 
@@ -318,6 +317,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      */
     @Deprecated
     public void setClasspath(FileCollection classpath) {
+        DeprecationLogger.nagUserOfReplacedMethod("setClasspath(FileCollection)", "getClasspath().setFrom(FileCollection)");
         this.classpath.setFrom(classpath);
     }
 
@@ -336,8 +336,18 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      */
     @Incubating
     @Input
-    public Property<Boolean> getEnableStricterValidation() {
+    public boolean getEnableStricterValidation() {
         return enableStricterValidation;
+    }
+
+    /**
+     * Enable the stricter validation for cacheable tasks for all tasks.
+     * 
+     * @since 5.1
+     */
+    @Incubating
+    public void setEnableStricterValidation(boolean enableStricterValidation) {
+        this.enableStricterValidation = enableStricterValidation;
     }
 
     /**
