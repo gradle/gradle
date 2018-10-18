@@ -268,7 +268,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             void execute(PatternFilterable patternFilterable) {
                 patternFilterable.include("**")
             }
-        });
+        })
         snapshots = snapshotter.snapshot(includedTree)
 
         then:
@@ -282,13 +282,62 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             void execute(PatternFilterable patternFilterable) {
                 patternFilterable.exclude("**")
             }
-        });
+        })
         snapshots = snapshotter.snapshot(excludedTree)
 
         then:
-        snapshots.size() == 1
+        assertSingleFileSnapshot(snapshots)
 
-        getSnapshotInfo(snapshots[0]) == [null, 1]
+        
+        when:
+        def singleFileTree = TestFiles.fileOperations(tempDir).fileTree(file)
+        snapshots = snapshotter.snapshot(singleFileTree)
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+
+        when:
+        snapshots = snapshotter.snapshot(singleFileTree.matching { true })
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+
+        when:
+        snapshots = snapshotter.snapshot(singleFileTree.matching { false })
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+
+        when:
+        def fromConfigurableFiles = TestFiles.fileOperations(tempDir).configurableFiles(file).asFileTree
+        snapshots = snapshotter.snapshot(fromConfigurableFiles)
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+
+        when:
+        snapshots = snapshotter.snapshot(fromConfigurableFiles.matching { true })
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+
+        when:
+        snapshots = snapshotter.snapshot(fromConfigurableFiles.matching { false })
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+    }
+
+    def assertSingleFileSnapshot(def snapshots) {
+        assert snapshots.size() == 1
+        assert getSnapshotInfo(snapshots[0]) == [null, 1]
+        true
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
