@@ -39,6 +39,7 @@ class ImplicitImports(private val importsReader: ImportsReader) {
             // TODO: let this be contributed by :plugins
             "org.gradle.kotlin.dsl.plugins.dsl.*",
             // TODO: infer list of types below at build time by inspecting the Gradle API
+            "java.util.concurrent.Callable",
             "java.util.concurrent.TimeUnit",
             "java.math.BigDecimal",
             "java.io.File")
