@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -26,22 +25,15 @@ public abstract class AbstractTaskExecution implements TaskExecution {
     private final ImplementationSnapshot taskImplementation;
     private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
-    private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
 
     public AbstractTaskExecution(
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedSet<String> outputPropertyNames) {
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties
+    ) {
         this.taskImplementation = taskImplementation;
         this.taskActionImplementations = taskActionImplementations;
         this.inputProperties = inputProperties;
-        this.outputPropertyNamesForCacheKey = outputPropertyNames;
-    }
-
-    @Override
-    public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
-        return ImmutableSortedSet.copyOf(outputPropertyNamesForCacheKey);
     }
 
     @Override

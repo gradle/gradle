@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -29,14 +28,6 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 public interface TaskExecution {
 
     OriginMetadata getOriginExecutionMetadata();
-
-    /**
-     * Returns the names of all cacheable output property names that have a value set.
-     * The collection includes names of properties declared via mapped plural outputs,
-     * and excludes optional properties that don't have a value set. If the task is not
-     * cacheable, it returns an empty collection.
-     */
-    ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey();
 
     ImplementationSnapshot getTaskImplementation();
 

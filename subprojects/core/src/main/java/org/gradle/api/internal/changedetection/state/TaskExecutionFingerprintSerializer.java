@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
@@ -64,20 +63,12 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
         }
         ImmutableList<ImplementationSnapshot> taskActionImplementations = taskActionImplementationsBuilder.build();
 
-        int cacheableOutputPropertiesCount = decoder.readSmallInt();
-        ImmutableSortedSet.Builder<String> cacheableOutputPropertiesBuilder = ImmutableSortedSet.naturalOrder();
-        for (int j = 0; j < cacheableOutputPropertiesCount; j++) {
-            cacheableOutputPropertiesBuilder.add(decoder.readString());
-        }
-        ImmutableSortedSet<String> cacheableOutputProperties = cacheableOutputPropertiesBuilder.build();
-
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
         return new HistoricalTaskExecution(
             taskImplementation,
             taskActionImplementations,
             inputProperties,
-            cacheableOutputProperties,
             inputFilesFingerprints,
             outputFilesFingerprints,
             successful,
@@ -95,10 +86,6 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
         encoder.writeSmallInt(execution.getTaskActionImplementations().size());
         for (ImplementationSnapshot actionImpl : execution.getTaskActionImplementations()) {
             implementationSnapshotSerializer.write(encoder, actionImpl);
-        }
-        encoder.writeSmallInt(execution.getOutputPropertyNamesForCacheKey().size());
-        for (String outputFile : execution.getOutputPropertyNamesForCacheKey()) {
-            encoder.writeString(outputFile);
         }
         inputPropertiesSerializer.write(encoder, execution.getInputProperties());
     }

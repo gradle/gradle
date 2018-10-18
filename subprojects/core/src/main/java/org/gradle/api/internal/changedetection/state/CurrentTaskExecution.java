@@ -46,6 +46,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
     private final OverlappingOutputs detectedOverlappingOutputs;
+    private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
     private Boolean successful;
     private OriginMetadata originExecutionMetadata;
 
@@ -58,10 +59,11 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprintsBeforeExecution,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
-        super(taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
+        super(taskImplementation, taskActionImplementations, inputProperties);
         this.outputFingerprints = outputFingerprintsBeforeExecution;
         this.inputFingerprints = inputFingerprints;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
+        this.outputPropertyNamesForCacheKey = outputPropertyNames;
     }
 
     @Override
@@ -71,6 +73,16 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
 
     public void setSuccessful(boolean successful) {
         this.successful = successful;
+    }
+
+    /**
+     * Returns the names of all cacheable output property names that have a value set.
+     * The collection includes names of properties declared via mapped plural outputs,
+     * and excludes optional properties that don't have a value set. If the task is not
+     * cacheable, it returns an empty collection.
+     */
+    public ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey() {
+        return outputPropertyNamesForCacheKey;
     }
 
     /**
@@ -104,7 +116,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
             getTaskImplementation(),
             getTaskActionImplementations(),
             getInputProperties(),
-            getOutputPropertyNamesForCacheKey(),
             historicalInputFingerprints,
             historicalOutputFingerprints,
             successful,

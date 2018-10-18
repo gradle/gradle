@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
@@ -40,13 +39,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints,
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints,
         boolean successful,
         OriginMetadata originExecutionMetadata
     ) {
-        super(taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
+        super(taskImplementation, taskActionsImplementations, inputProperties);
         this.inputFingerprints = inputFingerprints;
         this.outputFingerprints = outputFingerprints;
         this.successful = successful;
