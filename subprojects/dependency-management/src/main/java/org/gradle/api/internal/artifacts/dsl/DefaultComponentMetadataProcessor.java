@@ -49,7 +49,6 @@ import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.RealisedMavenModuleResolveMetadata;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -208,7 +207,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     @Override
-    public HashCode getRulesHash() {
+    public int getRulesHash() {
         return metadataRuleContainer.getRulesHash();
     }
 

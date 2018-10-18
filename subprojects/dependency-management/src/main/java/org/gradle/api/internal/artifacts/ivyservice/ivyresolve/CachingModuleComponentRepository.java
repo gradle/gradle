@@ -47,7 +47,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -225,7 +224,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             result.setAuthoritative(cachedMetadata.getAgeMillis() == 0);
         }
 
-        private ModuleComponentResolveMetadata getProcessedMetadata(HashCode key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
+        private ModuleComponentResolveMetadata getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
             ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata(key);
             if (metadata == null) {
                 metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
