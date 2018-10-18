@@ -22,7 +22,7 @@ import java.io.File
 const val PROJECT_SCHEMA_JSON_PATH = "build/project-schema.json"
 
 
-class KotlinDslAccessorsSnapshotTaskIntegrationTest : AbstractIntegrationTest() {
+class ProjectSchemaIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `project schema for a java, groovy and kotlin-dsl multi-project build`() {
