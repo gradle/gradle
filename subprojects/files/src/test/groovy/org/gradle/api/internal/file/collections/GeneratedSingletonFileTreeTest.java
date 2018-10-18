@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
@@ -80,17 +81,17 @@ public class GeneratedSingletonFileTreeTest {
     @Test
     public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() throws InterruptedException {
         Action<OutputStream> action = getAction();
-        MinimalFileTree tree = tree("path/file.txt", action);
+        MinimalFileTree tree = tree("file.txt", action);
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
 
-        TestFile file = rootDir.file("path/file.txt");
+        TestFile file = rootDir.file("file.txt");
 
         file.assertContents(equalTo("content"));
         file.makeOlder();
         TestFile.Snapshot snapshot = file.snapshot();
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
         file.assertContents(equalTo("content"));
         file.assertHasNotChangedSince(snapshot);
     }
@@ -98,7 +99,7 @@ public class GeneratedSingletonFileTreeTest {
     @Test
     public void overwritesFileWhenGeneratedContentChanges() {
         final MutableReference<String> currentContentReference = MutableReference.of("content");
-        GeneratedSingletonFileTree tree = tree("path/file.txt", new Action<OutputStream>() {
+        GeneratedSingletonFileTree tree = tree("file.txt", new Action<OutputStream>() {
             @Override
             public void execute(OutputStream outputStream) {
                 try {
@@ -109,16 +110,16 @@ public class GeneratedSingletonFileTreeTest {
             }
         });
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
 
-        TestFile file = rootDir.file("path/file.txt");
+        TestFile file = rootDir.file("file.txt");
 
         file.assertContents(equalTo("content"));
         TestFile.Snapshot snapshot = file.snapshot();
 
         currentContentReference.set("updated content");
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
         file.assertContents(equalTo("updated content"));
         file.assertHasChangedSince(snapshot);
     }

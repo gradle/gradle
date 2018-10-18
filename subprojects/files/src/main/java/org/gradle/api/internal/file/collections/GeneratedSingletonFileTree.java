@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
@@ -24,14 +25,17 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.Factory;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
@@ -74,20 +78,17 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
     @Override
     public File getFile() {
         File file = createFileInstance(fileName);
-        if(!file.exists()){
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
             try {
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                try {
-                    contentWriter.execute(fileOutputStream);
-                } finally {
-                    fileOutputStream.close();
-                }
-                return file;
-            } catch (Exception e) {
-                throw new GradleException(String.format("Cannot create file %s", file), e);
+                contentWriter.execute(fileOutputStream);
+            } finally {
+                fileOutputStream.close();
             }
+            return file;
+        } catch (Exception e) {
+            throw new GradleException(String.format("Cannot create file %s", file), e);
         }
-        return file;
     }
 
     private File createFileInstance(String fileName) {
@@ -120,12 +121,49 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
                     copyTo(file);
+                } else {
+                    updateFileOnlyWhenGeneratedContentChanges();
                 }
                 // round to nearest second
                 lastModified = file.lastModified() / 1000 * 1000;
                 size = file.length();
             }
             return file;
+        }
+
+        // prevent file system change events when generated content
+        // remains the same as the content in the existing file
+        private void updateFileOnlyWhenGeneratedContentChanges() {
+            byte[] generatedContent = generateContent();
+            if (!hasContent(generatedContent, file)) {
+                try {
+                    Files.write(generatedContent, file);
+                } catch (IOException e) {
+                    throw new org.gradle.api.UncheckedIOException(e);
+                }
+            }
+        }
+
+        private byte[] generateContent() {
+            StreamByteBuffer buffer = new StreamByteBuffer();
+            copyTo(buffer.getOutputStream());
+            return buffer.readAsByteArray();
+        }
+
+        private boolean hasContent(byte[] generatedContent, File file) {
+            if (generatedContent.length != file.length()) {
+                return false;
+            }
+
+            byte[] existingContent;
+            try {
+                existingContent = Files.toByteArray(this.file);
+            } catch (IOException e) {
+                // Assume changed if reading old file fails
+                return false;
+            }
+
+            return Arrays.equals(generatedContent, existingContent);
         }
 
         public void copyTo(OutputStream output) {
@@ -153,6 +191,7 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
         public RelativePath getRelativePath() {
             return RelativePath.parse(true, fileName);
         }
+
     }
 
     @Override
