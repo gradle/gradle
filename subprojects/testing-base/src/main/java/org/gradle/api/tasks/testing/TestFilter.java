@@ -15,9 +15,10 @@
  */
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.tasks.Input;
-
 import java.util.Set;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 
 /**
  * Allows filtering tests for execution. Some examples:
@@ -62,13 +63,25 @@ import java.util.Set;
 public interface TestFilter {
 
     /**
-     * Appends a test name pattern to the filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names: "com.foo.FooTest.someMethod",
+     * Appends a test name pattern to the inclusion filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names: "com.foo.FooTest.someMethod",
      * "com.foo.FooTest", "*FooTest*", "com.foo*". See examples in the docs for {@link TestFilter}.
      *
      * @param testNamePattern test name pattern to include, can be class or method name, can contain wildcard '*'
      * @return this filter object
      */
     TestFilter includeTestsMatching(String testNamePattern);
+
+    /**
+     * Appends a test name pattern to the exclusion filter. Wildcard '*' is supported, either test
+     * method name or class name is supported. Examples of test names: "com.foo.FooTest.someMethod",
+     * "com.foo.FooTest", "*FooTest*", "com.foo*". See examples in the docs for {@link TestFilter}.
+     *
+     * @param testNamePattern test name pattern to exclude, can be class or method name, can contain wildcard '*'
+     * @return this filter object
+     * @since 5.0
+     */
+    @Incubating
+    TestFilter excludeTestsMatching(String testNamePattern);
 
     /**
      * Returns the included test name patterns. They can be class or method names and may contain wildcard '*'. Test name patterns can be appended via {@link #includeTestsMatching(String)} or set via
@@ -80,12 +93,34 @@ public interface TestFilter {
     Set<String> getIncludePatterns();
 
     /**
+     * Returns the excluded test name patterns. They can be class or method names and may contain wildcard '*'.
+     * Test name patterns can be appended via {@link #excludeTestsMatching(String)} or set via
+     * {@link #setExcludePatterns(String...)}.
+     *
+     * @return included test name patterns
+     * @since 5.0
+     */
+    @Input
+    @Incubating
+    Set<String> getExcludePatterns();
+
+    /**
      * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
      *
      * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
      * @return this filter object
      */
     TestFilter setIncludePatterns(String... testNamePatterns);
+
+    /**
+     * Sets the test name patterns to be excluded in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
+     *
+     * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
+     * @return this filter object
+     * @since 5.0
+     */
+    @Incubating
+    TestFilter setExcludePatterns(String... testNamePatterns);
 
     /**
      * Add a test method specified by test class name and method name.
@@ -95,6 +130,17 @@ public interface TestFilter {
      * @return this filter object
      */
     TestFilter includeTest(String className, String methodName);
+
+    /**
+     * Excludes a test method specified by test class name and method name.
+     *
+     * @param className the class name of the test to exclude
+     * @param methodName the method name of the test to exclude. Can be null.
+     * @return this filter object
+     * @since 5.0
+     */
+    @Incubating
+    TestFilter excludeTest(String className, String methodName);
 
     /**
      * Let the test task fail if a filter configuration was provided but no test matched the given configuration.

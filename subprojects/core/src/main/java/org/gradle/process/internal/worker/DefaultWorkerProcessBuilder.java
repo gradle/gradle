@@ -194,6 +194,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand, shouldPublishJvmMemoryInfo);
 
         javaCommand.args("'" + displayName + "'");
+        if (javaCommand.getMaxHeapSize() == null) {
+            javaCommand.setMaxHeapSize("512m");
+        }
         ExecHandle execHandle = javaCommand.build();
 
         workerProcess.setExecHandle(execHandle);
