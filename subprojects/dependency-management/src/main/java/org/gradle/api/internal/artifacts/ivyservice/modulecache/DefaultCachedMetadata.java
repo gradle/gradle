@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
@@ -31,7 +30,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final ModuleSource moduleSource;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metadata;
-    private Map<HashCode, ModuleComponentResolveMetadata> processedMetadataByRules;
+    private Map<Integer, ModuleComponentResolveMetadata> processedMetadataByRules;
 
     public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
@@ -61,7 +60,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     @Nullable
     @Override
-    public ModuleComponentResolveMetadata getProcessedMetadata(HashCode key) {
+    public ModuleComponentResolveMetadata getProcessedMetadata(int key) {
         if (processedMetadataByRules != null) {
             return processedMetadataByRules.get(key);
         }
@@ -69,7 +68,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     }
 
     @Override
-    public void putProcessedMetadata(HashCode hash, ModuleComponentResolveMetadata processed) {
+    public void putProcessedMetadata(int hash, ModuleComponentResolveMetadata processed) {
         if (processedMetadataByRules == null) {
             processedMetadataByRules = Collections.singletonMap(hash, processed);
             return;
