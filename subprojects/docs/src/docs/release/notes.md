@@ -609,6 +609,7 @@ We would like to thank the following community members for making contributions 
 - [Alex Saveau](https://github.com/SUPERCILEX) - Report all files in directory as changed for incremental task for non-incremental change (gradle/gradle#6019)
 - [Thad House](https://github.com/ThadHouse) - Allow disabling of cache cleanup by the end user (gradle/gradle#6928)
 - [Dan Sanduleac](https://github.com/dansanduleac) - Conflict resolution can be bypassed, resulting in arbitrary version chosen (gradle/gradle#7049)
+- [Felipe Lima](https://github.com/felipecsl) - Add support for excluding tests with TestFilter (gradle/gradle#6439)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
