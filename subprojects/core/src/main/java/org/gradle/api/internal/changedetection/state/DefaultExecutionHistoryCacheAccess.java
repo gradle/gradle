@@ -34,8 +34,8 @@ public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCache
     public DefaultExecutionHistoryCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
-                .cache(gradle, "taskHistory")
-                .withDisplayName("task history cache")
+                .cache(gradle, "executionHistory")
+                .withDisplayName("execution history cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
                 .open();
     }

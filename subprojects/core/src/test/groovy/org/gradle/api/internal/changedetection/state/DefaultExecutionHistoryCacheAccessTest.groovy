@@ -37,7 +37,7 @@ class DefaultExecutionHistoryCacheAccessTest extends Specification {
         new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()))
 
         then:
-        1 * cacheRepository.cache(gradle, "taskHistory") >> cacheBuilder
+        1 * cacheRepository.cache(gradle, "executionHistory") >> cacheBuilder
         1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache

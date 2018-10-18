@@ -59,7 +59,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         userHomeDir = executer.gradleUserHomeDir
         buildFile = projectDir.file('build.gradle')
 
-        artifactsCache = projectDir.file(".gradle/$version/taskHistory/taskHistory.bin")
+        artifactsCache = projectDir.file(".gradle/$version/executionHistory/executionHistory.bin")
 
         repo = new MavenHttpRepository(server, mavenRepo)
 
