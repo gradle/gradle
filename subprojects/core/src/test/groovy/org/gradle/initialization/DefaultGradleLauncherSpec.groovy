@@ -23,7 +23,7 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore
+import org.gradle.api.internal.changedetection.state.ExecutionHistoryCacheAccess
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -59,7 +59,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildExecuter = Mock(BuildExecuter)
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class)
     def buildScopeServices = Mock(ServiceRegistry)
-    def cacheAccess = Mock(TaskHistoryStore)
+    def cacheAccess = Mock(ExecutionHistoryCacheAccess)
 
     private ProjectInternal expectedRootProject
     private ProjectInternal expectedCurrentProject
@@ -119,7 +119,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.includedBuilds >> []
         _ * gradleMock.getBuildOperation() >> null
 
-        buildScopeServices.get(TaskHistoryStore) >> cacheAccess
+        buildScopeServices.get(ExecutionHistoryCacheAccess) >> cacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
         buildServices.get(WorkerLeaseService) >> workerLeaseService
     }

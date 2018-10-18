@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -32,15 +32,15 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
 
     private final boolean successful;
     private final OriginMetadata originExecutionMetadata;
-    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints;
-    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints;
+    private final ImmutableSortedMap<String, FileCollectionFingerprint> inputFingerprints;
+    private final ImmutableSortedMap<String, FileCollectionFingerprint> outputFingerprints;
 
     public HistoricalTaskExecution(
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints,
+        ImmutableSortedMap<String, FileCollectionFingerprint> inputFingerprints,
+        ImmutableSortedMap<String, FileCollectionFingerprint> outputFingerprints,
         boolean successful,
         OriginMetadata originExecutionMetadata
     ) {
@@ -62,12 +62,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFingerprints() {
+    public ImmutableSortedMap<String, FileCollectionFingerprint> getInputFingerprints() {
         return inputFingerprints;
     }
 
     @Override
-    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFingerprints() {
+    public ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFingerprints() {
         return outputFingerprints;
     }
 }

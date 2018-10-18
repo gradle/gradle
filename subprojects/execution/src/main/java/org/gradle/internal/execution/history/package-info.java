@@ -13,26 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.history;
 
-package org.gradle.api.internal.changedetection.state;
-
-import org.gradle.cache.PersistentIndexedCache;
-
-import javax.annotation.Nullable;
-
-public class TaskHistoryCache {
-    private final PersistentIndexedCache<String, HistoricalTaskExecution> cache;
-
-    public TaskHistoryCache(PersistentIndexedCache<String, HistoricalTaskExecution> cache) {
-        this.cache = cache;
-    }
-
-    @Nullable
-    public HistoricalTaskExecution get(String key) {
-        return cache.get(key);
-    }
-
-    public void put(String key, HistoricalTaskExecution value) {
-        cache.put(key, value);
-    }
-}
+import org.gradle.api.NonNullApi;

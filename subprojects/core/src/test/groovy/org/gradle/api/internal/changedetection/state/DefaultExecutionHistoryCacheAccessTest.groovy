@@ -25,7 +25,7 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import spock.lang.Specification
 
-class DefaultTaskHistoryStoreTest extends Specification {
+class DefaultExecutionHistoryCacheAccessTest extends Specification {
     final GradleInternal gradle = Mock()
     final CacheRepository cacheRepository = Mock()
 
@@ -34,7 +34,7 @@ class DefaultTaskHistoryStoreTest extends Specification {
         PersistentCache backingCache = Mock()
 
         when:
-        new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()))
+        new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()))
 
         then:
         1 * cacheRepository.cache(gradle, "taskHistory") >> cacheBuilder

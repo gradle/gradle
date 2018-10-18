@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateR
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -60,6 +59,7 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
@@ -195,13 +195,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     TaskHistoryRepository createTaskHistoryRepository(
-        TaskHistoryCache taskHistoryCache,
+        ExecutionHistoryStore executionHistoryStore,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry) {
 
         return new CacheBackedTaskHistoryRepository(
-            taskHistoryCache,
+            executionHistoryStore,
             classLoaderHierarchyHasher,
             valueSnapshotter,
             fingerprinterRegistry

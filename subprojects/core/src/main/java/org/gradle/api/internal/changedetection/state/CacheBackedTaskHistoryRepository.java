@@ -33,13 +33,14 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.execution.history.ExecutionHistory;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
@@ -67,18 +68,18 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheBackedTaskHistoryRepository.class);
 
-    private final TaskHistoryCache taskHistoryCache;
+    private final ExecutionHistoryStore executionHistoryStore;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
 
     public CacheBackedTaskHistoryRepository(
-        TaskHistoryCache taskHistoryCache,
+        ExecutionHistoryStore executionHistoryStore,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry
     ) {
-        this.taskHistoryCache = taskHistoryCache;
+        this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;
@@ -120,9 +121,18 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void persist() {
-                taskHistoryCache.put(task.getPath(), getCurrentExecution().archive());
+                HistoricalTaskExecution execution = getCurrentExecution().archive();
+                executionHistoryStore.store(
+                    task.getPath(),
+                    execution.getOriginExecutionMetadata(),
+                    execution.getTaskImplementation(),
+                    execution.getTaskActionImplementations(),
+                    execution.getInputProperties(),
+                    execution.getInputFingerprints(),
+                    execution.getOutputFingerprints(),
+                    execution.isSuccessful()
+                );
             }
-
         };
     }
 
@@ -171,7 +181,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 @SuppressWarnings("NullableProblems")
                 public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
                     CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
-                    HistoricalFileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previousExecution, propertyName);
+                    FileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previousExecution, propertyName);
                     return filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
                 }
             }));
@@ -188,7 +198,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
      * Returns a new fingerprint that filters out entries that should not be considered outputs of the task.
      */
     private static CurrentFileCollectionFingerprint filterOutputFingerprint(
-        @Nullable HistoricalFileCollectionFingerprint afterPreviousExecution,
+        @Nullable FileCollectionFingerprint afterPreviousExecution,
         CurrentFileCollectionFingerprint beforeExecution,
         CurrentFileCollectionFingerprint afterExecution
     ) {
@@ -344,7 +354,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : taskOutputs.entrySet()) {
             String propertyName = entry.getKey();
             FileCollectionFingerprint beforeExecution = entry.getValue();
-            HistoricalFileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previousExecution, propertyName);
+            FileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previousExecution, propertyName);
             OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
             if (overlappingOutputs != null) {
                 return overlappingOutputs;
@@ -353,10 +363,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return null;
     }
 
-    private static HistoricalFileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
+    private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
-            Map<String, HistoricalFileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFingerprints();
-            HistoricalFileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
+            Map<String, FileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFingerprints();
+            FileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
             }
@@ -366,7 +376,19 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     @Nullable
     private HistoricalTaskExecution loadPreviousExecution(TaskInternal task) {
-        return taskHistoryCache.get(task.getPath());
+        ExecutionHistory execution = executionHistoryStore.load(task.getPath());
+        if (execution == null) {
+            return null;
+        }
+        return new HistoricalTaskExecution(
+            execution.getImplementation(),
+            execution.getAdditionalImplementations(),
+            execution.getInputProperties(),
+            execution.getInputFileProperties(),
+            execution.getOutputFileProperties(),
+            execution.isSuccessful(),
+            execution.getOriginMetadata()
+        );
     }
 
     private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskProperties taskProperties) {

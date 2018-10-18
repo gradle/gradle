@@ -17,12 +17,9 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
-import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskExecutionFingerprintSerializer;
-import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
+import org.gradle.api.internal.changedetection.state.ExecutionHistoryCacheAccess;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
@@ -37,10 +34,14 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.execution.history.ExecutionHistory;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
+import org.gradle.internal.execution.history.impl.ExecutionHistorySerializer;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathCompareStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
@@ -71,23 +72,23 @@ public class TaskExecutionServices {
         return new DefaultTimeoutHandler(executorFactory.createScheduled("task timeouts", 1));
     }
 
-    TaskHistoryStore createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new DefaultTaskHistoryStore(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
+    ExecutionHistoryCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    TaskHistoryCache createTaskHistoryCache(TaskHistoryStore taskHistoryStore, StringInterner stringInterner) {
+    ExecutionHistoryStore createExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         serializerRegistry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, FINGERPRINT_COMPARE_STRATEGIES));
         serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
-        TaskExecutionFingerprintSerializer serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
+        ExecutionHistorySerializer serializer = new ExecutionHistorySerializer(serializerRegistry.build(FileCollectionFingerprint.class));
 
-        PersistentIndexedCache<String, HistoricalTaskExecution> cache = taskHistoryStore.createCache(
-            PersistentIndexedCacheParameters.of("taskHistory", String.class, serializer),
+        PersistentIndexedCache<String, ExecutionHistory> cache = executionHistoryCacheAccess.createCache(
+            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer),
             10000,
             false
         );
 
-        return new TaskHistoryCache(cache);
+        return new DefaultExecutionHistoryStore(cache);
     }
 
     TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {

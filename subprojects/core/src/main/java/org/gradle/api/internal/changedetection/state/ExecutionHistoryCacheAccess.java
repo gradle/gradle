@@ -22,7 +22,7 @@ import org.gradle.internal.serialize.Serializer;
 /**
  * Provides access to the persistent task history store.
  */
-public interface TaskHistoryStore {
+public interface ExecutionHistoryCacheAccess {
     /**
      * See {@link org.gradle.cache.PersistentStore#createCache(String, Class, Serializer)} for more details.
      *

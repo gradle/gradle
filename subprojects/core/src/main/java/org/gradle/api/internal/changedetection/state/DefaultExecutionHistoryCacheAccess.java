@@ -27,11 +27,11 @@ import java.io.Closeable;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
+public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCacheAccess, Closeable {
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
 
-    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultExecutionHistoryCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
                 .cache(gradle, "taskHistory")

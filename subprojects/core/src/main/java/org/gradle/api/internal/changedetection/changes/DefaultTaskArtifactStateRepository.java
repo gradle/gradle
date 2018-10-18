@@ -42,7 +42,6 @@ import org.gradle.internal.changes.TaskStateChange;
 import org.gradle.internal.changes.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -135,7 +134,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
-            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFingerprints().values();
+            ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFingerprints().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
                 for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {

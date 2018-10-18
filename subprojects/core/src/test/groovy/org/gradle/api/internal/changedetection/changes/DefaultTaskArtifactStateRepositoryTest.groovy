@@ -24,11 +24,9 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
-import org.gradle.api.internal.changedetection.state.TaskExecutionFingerprintSerializer
-import org.gradle.api.internal.changedetection.state.TaskHistoryCache
+import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess
+import org.gradle.api.internal.changedetection.state.ExecutionHistoryCacheAccess
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -48,9 +46,11 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
+import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore
+import org.gradle.internal.execution.history.impl.ExecutionHistorySerializer
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
@@ -112,7 +112,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         task = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         CrossBuildInMemoryCacheFactory cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-        TaskHistoryStore cacheAccess = new DefaultTaskHistoryStore(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, cacheFactory))
+        ExecutionHistoryCacheAccess cacheAccess = new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, cacheFactory))
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
@@ -130,15 +130,15 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             IgnoredPathCompareStrategy.INSTANCE,
         ]));
         serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
-        def serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
+        def serializer = new ExecutionHistorySerializer(serializerRegistry.build(FileCollectionFingerprint))
 
         def cache = cacheAccess.createCache(
-            PersistentIndexedCacheParameters.of("taskHistory", String.class, serializer),
+            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer),
             10000,
             false
         )
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
-            new TaskHistoryCache(cache),
+            new DefaultExecutionHistoryStore(cache),
             classLoaderHierarchyHasher,
             SnapshotTestUtil.valueSnapshotter(),
             fingerprinterRegistry
