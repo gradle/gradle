@@ -237,7 +237,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         ensureDirectoryForTree(type, treeRoot);
         if (type == CacheableTree.Type.FILE) {
             if (isDirEntry) {
-                throw new IllegalStateException("Should be a file tree: " + treeName);
+                throw new IllegalStateException("Should be a file: " + treeName);
             }
             RegularFileSnapshot fileSnapshot = unpackFile(input, rootEntry, treeRoot, treeRoot.getName());
             snapshots.put(treeName, fileSnapshot);
@@ -245,7 +245,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         if (!isDirEntry) {
-            throw new IllegalStateException("Should be a directory tree: " + treeName);
+            throw new IllegalStateException("Should be a directory: " + treeName);
         }
         chmodUnpackedFile(rootEntry, treeRoot);
 
