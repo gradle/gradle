@@ -54,11 +54,6 @@ public class EmptyHistoricalFileCollectionFingerprint implements HistoricalFileC
     }
 
     @Override
-    public HistoricalFileCollectionFingerprint archive() {
-        return this;
-    }
-
-    @Override
     public String toString() {
         return "EMPTY";
     }

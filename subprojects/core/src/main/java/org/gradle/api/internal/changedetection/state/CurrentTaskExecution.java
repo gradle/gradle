@@ -35,10 +35,10 @@ import javax.annotation.Nullable;
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution {
 
-    private static final Function<FileCollectionFingerprint, HistoricalFileCollectionFingerprint> ARCHIVE_FINGERPRINT = new Function<FileCollectionFingerprint, HistoricalFileCollectionFingerprint>() {
+    private static final Function<CurrentFileCollectionFingerprint, FileCollectionFingerprint> ARCHIVE_FINGERPRINT = new Function<CurrentFileCollectionFingerprint, FileCollectionFingerprint>() {
         @Override
         @SuppressWarnings("NullableProblems")
-        public HistoricalFileCollectionFingerprint apply(FileCollectionFingerprint value) {
+        public HistoricalFileCollectionFingerprint apply(CurrentFileCollectionFingerprint value) {
             return value.archive();
         }
     };

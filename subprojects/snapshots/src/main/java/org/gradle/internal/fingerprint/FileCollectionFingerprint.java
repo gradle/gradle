@@ -44,9 +44,4 @@ public interface FileCollectionFingerprint {
      * The Merkle hashes of the roots which make up this file collection fingerprint.
      */
     Multimap<String, HashCode> getRootHashes();
-
-    /**
-     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
-     */
-    HistoricalFileCollectionFingerprint archive();
 }

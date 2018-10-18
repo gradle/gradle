@@ -31,4 +31,9 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
     String getStrategyIdentifier();
 
     boolean isEmpty();
+
+    /**
+     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
+     */
+    HistoricalFileCollectionFingerprint archive();
 }

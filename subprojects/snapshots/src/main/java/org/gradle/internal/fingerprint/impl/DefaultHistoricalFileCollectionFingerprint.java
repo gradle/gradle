@@ -70,11 +70,6 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
         return rootHashes;
     }
 
-    @Override
-    public HistoricalFileCollectionFingerprint archive() {
-        return this;
-    }
-
     public static class SerializerImpl implements Serializer<DefaultHistoricalFileCollectionFingerprint> {
 
         private final FingerprintMapSerializer fingerprintMapSerializer;
