@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.cache.internal
 
 import com.google.common.cache.CacheBuilder
 import org.gradle.api.Transformer
 import org.gradle.cache.FileLock
-import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.atomic.AtomicReference

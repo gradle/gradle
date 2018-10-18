@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.cache.internal
 
 import com.google.common.cache.CacheBuilder
-import org.gradle.api.logging.Logger
+import org.slf4j.Logger
 import spock.lang.Specification
 
 class LoggingEvictionListenerTest extends Specification {
@@ -37,7 +37,7 @@ class LoggingEvictionListenerTest extends Specification {
 
         then:
         if (replaceLogger) {
-            11 * logger.log(_, _, _)
+            11 * logger.info(_, _)
         }
         noExceptionThrown()
 

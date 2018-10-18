@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator

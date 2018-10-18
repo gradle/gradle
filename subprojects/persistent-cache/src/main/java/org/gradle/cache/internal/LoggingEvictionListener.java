@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.cache.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class LoggingEvictionListener implements RemovalListener<Object, Object> {
-    private static Logger logger = Logging.getLogger(LoggingEvictionListener.class);
+    private static Logger logger = LoggerFactory.getLogger(LoggingEvictionListener.class);
     private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
     volatile int evictionCounter;
     private final String cacheId;
@@ -47,7 +46,7 @@ class LoggingEvictionListener implements RemovalListener<Object, Object> {
     public void onRemoval(RemovalNotification<Object, Object> notification) {
         if (notification.getCause() == RemovalCause.SIZE) {
             if (evictionCounter % logInterval == 0) {
-                logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+                logger.info("Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
             }
             evictionCounter++;
         }

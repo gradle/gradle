@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.snapshot.WellKnownFileLocations

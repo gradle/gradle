@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.cache.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Transformer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
-import org.gradle.cache.internal.AsyncCacheAccessDecoratedCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.cache.internal.CrossProcessSynchronizingCache;
-import org.gradle.cache.internal.HeapProportionalCacheSizer;
-import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Also decorates each cache so that updates to the backing cache are made asynchronously.
  */
 public class InMemoryCacheDecoratorFactory {
-    private final static Logger LOG = Logging.getLogger(InMemoryCacheDecoratorFactory.class);
+    private final static Logger LOG = LoggerFactory.getLogger(InMemoryCacheDecoratorFactory.class);
     private final boolean longLivingProcess;
     private final HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
     private final CrossBuildInMemoryCache<String, CacheDetails> caches;

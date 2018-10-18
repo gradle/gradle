@@ -25,7 +25,6 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.TaskExecutionFingerprintSerializer
 import org.gradle.api.internal.changedetection.state.TaskHistoryCache
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -44,6 +43,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator

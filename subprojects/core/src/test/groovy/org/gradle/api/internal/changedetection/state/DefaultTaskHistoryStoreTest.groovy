@@ -20,6 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import spock.lang.Specification

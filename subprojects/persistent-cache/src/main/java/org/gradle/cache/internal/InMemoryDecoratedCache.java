@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.cache.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.util.concurrent.Runnables;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Transformer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLock;
-import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.ValueSnapshot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
-    private final static Logger LOG = Logging.getLogger(InMemoryDecoratedCache.class);
+    private final static Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
     private final static Object NULL = new Object();
     private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
     private final Cache<Object, Object> inMemoryCache;
@@ -55,7 +52,6 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
 
     @Override
     public V get(final K key) {
-        validateKeyType(key);
         Object value;
         try {
             value = inMemoryCache.get(key, new Callable<Object>() {
@@ -73,17 +69,12 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         if (value == NULL) {
             return null;
         } else {
-            return (V) value;
+            return Cast.uncheckedCast(value);
         }
-    }
-
-    private void validateKeyType(K key) {
-        assert key instanceof String || key instanceof Long || key instanceof File || key instanceof HashCode || key instanceof ValueSnapshot : "Unsupported key type: " + key;
     }
 
     @Override
     public V get(final K key, final Transformer<? extends V, ? super K> producer, final Runnable completion) {
-        validateKeyType(key);
         final AtomicReference<Runnable> completionRef = new AtomicReference<Runnable>(completion);
         Object value;
         try {
@@ -92,7 +83,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
             if (wasNull) {
                 inMemoryCache.invalidate(key);
             } else if (value != null) {
-                return (V) value;
+                return Cast.uncheckedCast(value);
             }
             value = inMemoryCache.get(key, new Callable<Object>() {
                 @Override
@@ -119,7 +110,7 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
         if (value == NULL) {
             return null;
         } else {
-            return (V) value;
+            return Cast.uncheckedCast(value);
         }
     }
 
