@@ -21,7 +21,7 @@ or, if you don't have Gradle installed already, you can generate Gradle builds o
 
 The Gradle Kotlin DSL is documented in a [dedicated chapter](https://docs.gradle.org/current/userguide/kotlin_dsl.html) in the Gradle user manual.
 
-Moreover, the Gradle [user manual](https://docs.gradle.org/current/userguide/userguide.html) and [guides](https://gradle.org/guides/) contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL. This is the best place where to find how to do this and that with the Gradle Kotlin DSL ; and it covers all Gradle features from [using plugins](https://docs.gradle.org/current/userguide/plugins.html#plugins) to [customizing the dependency resolution behavior](https://docs.gradle.org/current/userguide/customizing_dependency_resolution_behavior.html#customizing_dependency_resolution_behavior).
+Moreover, the Gradle [user manual](https://docs.gradle.org/current/userguide/userguide.html) and [guides](https://gradle.org/guides/) contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL. This is the best place where to find how to do this and that with the Gradle Kotlin DSL; and it covers all Gradle features from [using plugins](https://docs.gradle.org/current/userguide/plugins.html#plugins) to [customizing the dependency resolution behavior](https://docs.gradle.org/current/userguide/customizing_dependency_resolution_behavior.html#customizing_dependency_resolution_behavior).
 
 There are also some Gradle Kotlin DSL [samples](samples) in this repository. You'll find complete instructions in the README there.
 
@@ -41,7 +41,7 @@ If you're dealing with what you believe to be an issue with Kotlin itself or the
 Staying in Touch
 ----------------
 
-Come chat with us in the #gradle channel of the public [Kotlin Slack](http://slack.kotlinlang.org/) instance.
+Come chat with us in the #kotlin-dsl channel of the public [Gradle Community Slack](https://join.slack.com/t/gradle-community/shared_invite/enQtNDE3MzAwNjkxMzY0LTYwMTk0MWUwN2FiMzIzOWM3MzBjYjMxNWYzMDE1NGIwOTJkMTQ2NDEzOGM2OWIzNmU1ZTk5MjVhYjFhMTI3MmE) instance.
 
 
 License
