@@ -15,9 +15,12 @@
  */
 package org.gradle.scala
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
@@ -148,7 +151,6 @@ task someTask
         succeeds(":other:resolve")
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/7014")
     def "can use Scala with war and ear plugins"() {
         settingsFile << """
@@ -181,21 +183,10 @@ task someTask
         """
         expect:
         succeeds(":ear:assemble")
-        file("ear/build/tmp/ear/application.xml").text == """<?xml version="1.0"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="6">
-  <display-name>ear</display-name>
-  <module>
-    <web>
-      <web-uri>war.war</web-uri>
-      <context-root>war</context-root>
-    </web>
-  </module>
-  <library-directory>lib</library-directory>
-</application>
-"""
+        // The Scala incremental compilation mapping should not be exposed to anything else
+        file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("compileScala.mapping")))
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/6849")
     def "can publish test-only projects"() {
         using m2
