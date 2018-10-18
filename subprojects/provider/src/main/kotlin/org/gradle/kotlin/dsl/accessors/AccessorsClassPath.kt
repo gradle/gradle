@@ -653,6 +653,6 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
 
 
 /**
- * Location of the project schema snapshot taken by the _kotlinDslAccessorsSnapshot_ task relative to the root project.
+ * Location of the discontinued project schema snapshot, relative to the root project.
  */
 const val PROJECT_SCHEMA_RESOURCE_PATH = "gradle/project-schema.json"

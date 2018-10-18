@@ -52,6 +52,11 @@ class FoldersDsl(val root: File) {
             writeText(content)
         }
 
+    fun existing(fileName: String): File =
+        fileName.asCanonicalFile().also {
+            require(it.exists()) { "$it doesn't exist" }
+        }
+
     private
     fun String.asCanonicalFile(): File =
         File(root, this).canonicalFile
