@@ -30,8 +30,10 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -70,7 +72,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                         ApplicationPluginConvention::class.qualifiedName!!
                     )
                 ),
-                tasks = emptyList(),
+                tasks = listOf(
+                    ProjectSchemaEntry(
+                        TaskContainer::class.qualifiedName!!,
+                        "clean",
+                        Delete::class.qualifiedName!!
+                    )
+                ),
                 configurations = listOf("api")
             )
         val srcDir = newFolder("src")
@@ -94,10 +102,12 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { getByName(any()) } doReturn sourceSets
         }
         val dependencies = mock<DependencyHandler>()
+        val tasks = mock<TaskContainer>()
         val project = mock<Project> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
             on { getDependencies() } doReturn dependencies
+            on { getTasks() } doReturn tasks
         }
         project.eval(
             script = """
@@ -110,13 +120,15 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 val d: Unit = sourceSets {}
 
                 val e: NamedDomainObjectProvider<SourceSet> = sourceSets.main
+
+                val f: TaskProvider<Delete> = tasks.clean
             """,
             scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath
 // Runtime is not required because the accessores are inlined
 //            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
         )
 
-        inOrder(project, configurations, apiConfiguration, extensions, sourceSets, dependencies) {
+        inOrder(project, configurations, apiConfiguration, extensions, sourceSets, dependencies, tasks) {
             // val a
             verify(project).configurations
             verify(configurations).named("api")
@@ -137,6 +149,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verify(project).extensions
             verify(extensions).getByName("sourceSets")
             verify(sourceSets).named("main", SourceSet::class.java)
+
+            // val f
+            verify(project).tasks
+            verify(tasks).named("clean", Delete::class.java)
 
             verifyNoMoreInteractions()
         }
