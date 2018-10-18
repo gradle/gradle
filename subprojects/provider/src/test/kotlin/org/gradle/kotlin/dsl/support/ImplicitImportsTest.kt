@@ -33,6 +33,7 @@ class ImplicitImportsTest : AbstractIntegrationTest() {
             val b = TimeUnit.DAYS
             val c = File("some")
             val d = BigDecimal.ONE
+            val e = BigInteger.ONE
         """)
 
         build("help")
