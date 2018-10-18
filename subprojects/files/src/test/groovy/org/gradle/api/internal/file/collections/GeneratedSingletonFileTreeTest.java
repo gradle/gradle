@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
 import org.gradle.test.fixtures.file.TestFile;
@@ -124,8 +123,8 @@ public class GeneratedSingletonFileTreeTest {
         file.assertHasChangedSince(snapshot);
     }
 
-    private GeneratedSingletonFileTree tree(String relativePath, Action<OutputStream> action) {
-        return new GeneratedSingletonFileTree(fileFactory, directoryFileTreeFactory(), RelativePath.parse(true, relativePath), action);
+    private GeneratedSingletonFileTree tree(String fileName, Action<OutputStream> action) {
+        return new GeneratedSingletonFileTree(fileFactory, directoryFileTreeFactory(), fileName, action);
     }
 
     private Action<OutputStream> getAction() {

@@ -36,6 +36,7 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -104,20 +105,27 @@ public class Ear extends Jar {
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
-        metaInf.addChild().from(new Callable<FileTreeAdapter>() {
+        CopySpecInternal descriptorChild = metaInf.addChild();
+        descriptorChild.from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
+
                 if (descriptor != null) {
                     if (descriptor.getLibraryDirectory() == null) {
                         descriptor.setLibraryDirectory(getLibDirName());
                     }
 
-                    GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), getDirectoryFileTreeFactory(), RelativePath.parse(true, descriptor.getFileName()), new Action<OutputStream>() {
+                    RelativePath relativePath = RelativePath.parse(true, descriptor.getFileName());
+                    if (relativePath.getSegments().length > 1) {
+                        DeprecationLogger.nagUserOfDeprecated("File paths in deployment descriptor file name", "Use simple file name instead.");
+                    }
+                    GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), getDirectoryFileTreeFactory(), relativePath.getLastName(), new Action<OutputStream>() {
                         public void execute(OutputStream outputStream) {
                             descriptor.writeTo(new OutputStreamWriter(outputStream));
                         }
-
                     });
+
+
                     return new FileTreeAdapter(descriptorSource);
                 }
 

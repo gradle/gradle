@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -58,7 +57,7 @@ public class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(new Callable<FileTreeAdapter>() {
             public FileTreeAdapter call() throws Exception {
-                GeneratedSingletonFileTree manifestSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), getDirectoryFileTreeFactory(), RelativePath.parse(true, "MANIFEST.MF"), new Action<OutputStream>() {
+                GeneratedSingletonFileTree manifestSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), getDirectoryFileTreeFactory(), "MANIFEST.MF", new Action<OutputStream>() {
                     public void execute(OutputStream outputStream) {
                         Manifest manifest = getManifest();
                         if (manifest == null) {

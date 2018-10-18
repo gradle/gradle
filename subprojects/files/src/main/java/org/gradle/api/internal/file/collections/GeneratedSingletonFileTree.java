@@ -15,28 +15,23 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.Factory;
-import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
@@ -46,13 +41,13 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
     private final FileSystem fileSystem = FileSystems.getDefault();
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    private final RelativePath relativePath;
+    private final String fileName;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, DirectoryFileTreeFactory directoryFileTreeFactory, RelativePath relativePath, Action<OutputStream> contentWriter) {
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, DirectoryFileTreeFactory directoryFileTreeFactory, String fileName, Action<OutputStream> contentWriter) {
         this.tmpDirSource = tmpDirSource;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.relativePath = relativePath;
+        this.fileName = fileName;
         this.contentWriter = contentWriter;
     }
 
@@ -69,74 +64,51 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
     }
 
     public void visit(FileVisitor visitor) {
-        Visit visit = new Visit(visitor);
-        visit.visit(relativePath, contentWriter);
+        visitor.visitFile(new FileVisitDetailsImpl(fileName, contentWriter, fileSystem));
     }
 
     public File getFileWithoutCreating() {
-        return createFileInstance(relativePath);
+        return createFileInstance(fileName);
     }
 
     @Override
     public File getFile() {
-        File file = createFileInstance(relativePath);
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
+        File file = createFileInstance(fileName);
+        if(!file.exists()){
             try {
-                contentWriter.execute(fileOutputStream);
-            } finally {
-                fileOutputStream.close();
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                try {
+                    contentWriter.execute(fileOutputStream);
+                } finally {
+                    fileOutputStream.close();
+                }
+                return file;
+            } catch (Exception e) {
+                throw new GradleException(String.format("Cannot create file %s", file), e);
             }
-            return file;
-        } catch (Exception e) {
-            throw new GradleException(String.format("Cannot create file %s", file), e);
         }
+        return file;
     }
 
-    private File createFileInstance(RelativePath path) {
-        return path.getFile(getTmpDir());
-    }
-
-    private class Visit {
-        private final Set<RelativePath> visitedDirs = new LinkedHashSet<RelativePath>();
-        private final FileVisitor visitor;
-
-        public Visit(FileVisitor visitor) {
-            this.visitor = visitor;
-        }
-
-        private void visitDirs(RelativePath path, FileVisitor visitor) {
-            if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
-                return;
-            }
-
-            visitDirs(path.getParent(), visitor);
-            visitor.visitDir(new FileVisitDetailsImpl(path, null, fileSystem));
-        }
-
-        public void visit(RelativePath path, Action<OutputStream> generator) {
-            visitDirs(path.getParent(), visitor);
-            visitor.visitFile(new FileVisitDetailsImpl(path, generator, fileSystem));
-        }
+    private File createFileInstance(String fileName) {
+        return new File(getTmpDir(), fileName);
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
-        private final RelativePath path;
+        private final String fileName;
         private final Action<OutputStream> generator;
         private long lastModified;
         private long size;
         private File file;
-        private final boolean isDirectory;
 
-        public FileVisitDetailsImpl(RelativePath path, Action<OutputStream> generator, Chmod chmod) {
+        public FileVisitDetailsImpl(String fileName, Action<OutputStream> generator, Chmod chmod) {
             super(chmod);
-            this.path = path;
+            this.fileName = fileName;
             this.generator = generator;
-            this.isDirectory = !path.isFile();
         }
 
         public String getDisplayName() {
-            return path.toString();
+            return fileName;
         }
 
         public void stopVisiting() {
@@ -145,11 +117,9 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
 
         public File getFile() {
             if (file == null) {
-                file = createFileInstance(path);
+                file = createFileInstance(fileName);
                 if (!file.exists()) {
                     copyTo(file);
-                } else if (!isDirectory()) {
-                    updateFileOnlyWhenGeneratedContentChanges();
                 }
                 // round to nearest second
                 lastModified = file.lastModified() / 1000 * 1000;
@@ -162,43 +132,8 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
             generator.execute(output);
         }
 
-        // prevent file system change events when generated content
-        // remains the same as the content in the existing file
-        private void updateFileOnlyWhenGeneratedContentChanges() {
-            byte[] generatedContent = generateContent();
-            if (!hasContent(generatedContent, file)) {
-                try {
-                    Files.write(generatedContent, file);
-                } catch (IOException e) {
-                    throw new org.gradle.api.UncheckedIOException(e);
-                }
-            }
-        }
-
-        private byte[] generateContent() {
-            StreamByteBuffer buffer = new StreamByteBuffer();
-            copyTo(buffer.getOutputStream());
-            return buffer.readAsByteArray();
-        }
-
-        private boolean hasContent(byte[] generatedContent, File file) {
-            if (generatedContent.length != file.length()) {
-                return false;
-            }
-
-            byte[] existingContent;
-            try {
-                existingContent = Files.toByteArray(this.file);
-            } catch (IOException e) {
-                // Assume changed if reading old file fails
-                return false;
-            }
-
-            return Arrays.equals(generatedContent, existingContent);
-        }
-
         public boolean isDirectory() {
-            return isDirectory;
+            return false;
         }
 
         public long getLastModified() {
@@ -216,17 +151,16 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
         }
 
         public RelativePath getRelativePath() {
-            return path;
+            return RelativePath.parse(true, fileName);
         }
     }
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
-
     }
 
     @Override
     public void visitTreeOrBackingFile(FileVisitor visitor) {
-        visit(visitor);
+        visitor.visitFile(new DefaultFileVisitDetails(getFile(), fileSystem, fileSystem));
     }
 }

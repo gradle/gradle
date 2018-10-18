@@ -514,4 +514,34 @@ ear {
         ear.assertContainsFile("lib/d.jar")
         ear.assertNotContainsFile("lib/e.jar")
     }
+
+    def "using nested descriptor file name is deprecated"() {
+        buildScript '''
+            apply plugin: 'ear'
+            
+            ear {
+                deploymentDescriptor {
+                    fileName = 'nested/descriptor.xml'
+                }
+            }
+            
+        '''.stripIndent()
+
+
+        createDir('src/main/application/META-INF/nested') {
+            file('descriptor.xml').text = "<application/>"
+        }
+        def deprecationMessage = "File paths in deployment descriptor file name has been deprecated. This is scheduled to be removed in Gradle 6.0. Use simple file name instead."
+
+        when:
+        executer.expectDeprecationWarning()
+        run 'assemble'
+
+        then:
+
+        output.contains(deprecationMessage)
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/nested/descriptor.xml")
+    }
+
 }
