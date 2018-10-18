@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -65,6 +66,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private boolean positionIndependentCode;
     private boolean debug;
     private boolean optimize;
+    private final Property<Boolean> overrideCompilerArgs;
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection systemIncludes;
@@ -83,6 +85,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         this.source = getTaskFileVarFactory().newInputFileCollection(this);
         this.objectFileDir = objectFactory.directoryProperty();
         this.compilerArgs = getProject().getObjects().listProperty(String.class).empty();
+        this.overrideCompilerArgs = getProject().getObjects().property(Boolean.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
         this.incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(new Transformer<Boolean, NativeToolChain>() {
@@ -130,7 +133,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
-
+        spec.setOverrideCompilerArgs((overrideCompilerArgs.getOrNull() != null) ? overrideCompilerArgs.get() : false);
+        
         configureSpec(spec);
 
         NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
@@ -306,4 +310,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     protected FileCollection getHeaderDependencies() {
         return incrementalCompiler.getHeaderFiles();
     }
+
+    /**
+     * Overrride compiler args?
+     *
+     * @since 5.1
+     */
+    @Optional
+    @Input
+    public Property<Boolean> getOverrideCompilerArgs() {
+        return overrideCompilerArgs;
+    }
+
 }

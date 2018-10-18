@@ -92,4 +92,9 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     List<File> getSourceFilesForPch();
 
     void setSourceFilesForPch(List<File> sourceFilesForPch);
+        
+    boolean isOverrideCompilerArgs();
+    
+    void setOverrideCompilerArgs(boolean overrideCompilerArgs);
+    
 }

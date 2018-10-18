@@ -26,22 +26,33 @@ class GccCompilerArgsTransformerTest extends Specification {
         protected String getLanguage() {
             return "gradle-groovy-dsl"
         }
+        
+        @Override
+        protected void addUserArgs(NativeCompileSpec spec, List<String> args) {
+            args.addAll(["-g3", "-O0"]);
+        }
+    
     }
 
     def "includes options when debug and optimized enabled"() {
         def spec = Stub(NativeCompileSpec)
         spec.debuggable >> debug
         spec.optimized >> optimize
+        spec.overrideCompilerArgs >> override
 
         expect:
         def args = transformer.transform(spec)
         args.containsAll(expected)
 
+
         where:
-        debug | optimize | expected
-        true  | false    | ["-g"]
-        false | true     | ["-O3"]
-        true  | true     | ["-g", "-O3"]
+        debug | optimize | override |  expected
+        true  | false    | false    |  ["-g"]
+        false | true     | false    |  ["-O3"]
+        true  | true     | false    |  ["-g", "-O3"]
+        true  | false    | true     |  ["-g3", "-O0"]
+        false | true     | true     |  ["-g3", "-O0"]
+        true  | true     | true     |  ["-g3", "-O0"]
     }
 
     def "transforms system header and include args correctly"() {

@@ -38,19 +38,21 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
         return args;
     }
 
-    private void addUserArgs(T spec, List<String> args) {
+    protected void addUserArgs(T spec, List<String> args) {
         args.addAll(escapeUserArgs(spec.getAllArgs()));
     }
 
     protected void addToolSpecificArgs(T spec, List<String> args) {
-        args.add(getLanguageOption());
-        args.add("/nologo");
-        args.add("/c");
-        if (spec.isDebuggable()) {
-            args.add("/Zi");
-        }
-        if (spec.isOptimized()) {
-            args.add("/O2");
+        if (!spec.isOverrideCompilerArgs()) {
+            args.add(getLanguageOption());
+            args.add("/nologo");
+            args.add("/c");
+            if (spec.isDebuggable()) {
+                args.add("/Zi");
+            }
+            if (spec.isOptimized()) {
+                args.add("/O2");
+            }
         }
     }
 

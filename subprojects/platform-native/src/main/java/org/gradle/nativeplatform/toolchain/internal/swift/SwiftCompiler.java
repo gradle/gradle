@@ -139,11 +139,14 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     importRootArgs.add("-I");
                     importRootArgs.add(importRoot.getAbsolutePath());
                 }
-                if (spec.isDebuggable()) {
-                    genericArgs.add("-g");
-                }
-                if (spec.isOptimized()) {
-                    genericArgs.add("-O");
+                
+                if (!spec.isOverrideCompilerArgs()) {
+                    if (spec.isDebuggable()) {
+                        genericArgs.add("-g");
+                    }
+                    if (spec.isOptimized()) {
+                        genericArgs.add("-O");
+                    }
                 }
 
                 genericArgs.addAll(CollectionUtils.collect(spec.getMacros().keySet(), new Transformer<String, String>() {

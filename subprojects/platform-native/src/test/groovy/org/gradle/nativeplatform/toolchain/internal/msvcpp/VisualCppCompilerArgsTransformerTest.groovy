@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs
+
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import spock.lang.Specification
 
@@ -25,22 +27,32 @@ class VisualCppCompilerArgsTransformerTest extends Specification {
         protected String getLanguageOption() {
             return "/GRADLE_DSL"
         }
+
+        @Override
+        protected void addUserArgs(NativeCompileSpec spec, List<String> args) {
+            args.addAll(escapeUserArgs(["/Z7", "/Od"]));
+        }
     }
 
     def "includes options when debug and optimized enabled"() {
         def spec = Stub(NativeCompileSpec)
         spec.debuggable >> debug
         spec.optimized >> optimize
-
+        spec.overrideCompilerArgs >> override
+        
         expect:
         def args = transformer.transform(spec)
         args.containsAll(expected)
+        
 
         where:
-        debug | optimize | expected
-        true  | false    | ["/Zi"]
-        false | true     | ["/O2"]
-        true  | true     | ["/Zi", "/O2"]
+        debug | optimize | override |  expected
+        false | true     | false    | ["/O2"]
+        true  | false    | false    | ["/Zi"]
+        true  | true     | false    | ["/Zi", "/O2"]
+        false | true     | true     | ["/Z7", "/Od"]
+        true  | false    | true     | ["/Z7", "/Od"]
+        true  | true     | true     | ["/Z7", "/Od"]
     }
 
     def "transforms system header and include args correctly"() {

@@ -40,6 +40,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private boolean positionIndependentCode;
     private boolean debuggable;
     private boolean optimized;
+    private boolean overrideCompilerArgs;
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
@@ -171,6 +172,16 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     @Override
     public void setOptimized(boolean optimized) {
         this.optimized = optimized;
+    }
+
+    @Override
+    public boolean isOverrideCompilerArgs() {
+        return overrideCompilerArgs;
+    }
+
+    @Override
+    public void setOverrideCompilerArgs(boolean overrideCompilerArgs) {
+        this.overrideCompilerArgs = overrideCompilerArgs;
     }
 
     @Override
