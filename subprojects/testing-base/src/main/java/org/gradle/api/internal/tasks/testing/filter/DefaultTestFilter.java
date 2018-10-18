@@ -15,19 +15,20 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.testing.TestFilter;
-
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.testing.TestFilter;
+
 public class DefaultTestFilter implements TestFilter {
 
-    private Set<String> testNames = new HashSet<String>();
-    private Set<String> commandLineTestNames = new HashSet<String>();
+    private final Set<String> includeTestNames = new HashSet<String>();
+    private final Set<String> excludeTestNames = new HashSet<String>();
+    private final Set<String> commandLineIncludeTestNames = new HashSet<String>();
     private boolean failOnNoMatching = true;
 
     private void validateName(String name) {
@@ -39,17 +40,33 @@ public class DefaultTestFilter implements TestFilter {
     @Override
     public TestFilter includeTestsMatching(String testNamePattern) {
         validateName(testNamePattern);
-        testNames.add(testNamePattern);
+        includeTestNames.add(testNamePattern);
+        return this;
+    }
+
+    @Override
+    public TestFilter excludeTestsMatching(String testNamePattern) {
+        validateName(testNamePattern);
+        excludeTestNames.add(testNamePattern);
         return this;
     }
 
     @Override
     public TestFilter includeTest(String className, String methodName) {
+        return addToFilteringSet(includeTestNames, className, methodName);
+    }
+
+    @Override
+    public TestFilter excludeTest(String className, String methodName) {
+        return addToFilteringSet(excludeTestNames, className, methodName);
+    }
+
+    private TestFilter addToFilteringSet(Set<String> filter, String className, String methodName) {
         validateName(className);
-        if(methodName == null || methodName.trim().isEmpty()){
-            testNames.add(new StringBuilder(className).append(".*").toString());
-        }else{
-            testNames.add(new StringBuilder(className).append(".").append(methodName).toString());
+        if (methodName == null || methodName.trim().isEmpty()) {
+            filter.add(className + ".*");
+        } else {
+            filter.add(className + "." + methodName);
         }
         return this;
     }
@@ -67,29 +84,44 @@ public class DefaultTestFilter implements TestFilter {
     @Override
     @Input
     public Set<String> getIncludePatterns() {
-        return testNames;
+        return includeTestNames;
+    }
+
+    @Override
+    public Set<String> getExcludePatterns() {
+        return excludeTestNames;
     }
 
     @Override
     public TestFilter setIncludePatterns(String... testNamePatterns) {
+        return setFilteringPatterns(includeTestNames, testNamePatterns);
+    }
+
+    @Override
+    public TestFilter setExcludePatterns(String... testNamePatterns) {
+        return setFilteringPatterns(excludeTestNames, testNamePatterns);
+    }
+
+    private TestFilter setFilteringPatterns(Set<String> filter, String... testNamePatterns) {
         for (String name : testNamePatterns) {
             validateName(name);
         }
-        this.testNames = Sets.newHashSet(testNamePatterns);
+        filter.clear();
+        filter.addAll(Arrays.asList(testNamePatterns));
         return this;
     }
 
     @Input
     public Set<String> getCommandLineIncludePatterns() {
-        return commandLineTestNames;
+        return commandLineIncludeTestNames;
     }
 
     public TestFilter setCommandLineIncludePatterns(Collection<String> testNamePatterns) {
         for (String name : testNamePatterns) {
             validateName(name);
         }
-        this.commandLineTestNames.clear();
-        this.commandLineTestNames.addAll(testNamePatterns);
+        this.commandLineIncludeTestNames.clear();
+        this.commandLineIncludeTestNames.addAll(testNamePatterns);
         return this;
     }
 }
