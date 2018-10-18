@@ -64,8 +64,8 @@ subprojects {
                 outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
 
                 val mainSourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-                classes = mainSourceSet.output.classesDirs
-                classpath = mainSourceSet.compileClasspath
+                setClasses(mainSourceSet.output.classesDirs)
+                setClasspath(mainSourceSet.compileClasspath)
                 dependsOn(mainSourceSet.output)
             }
             tasks.named("check").configure { dependsOn(validateTaskProperties) }
