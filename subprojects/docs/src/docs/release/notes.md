@@ -70,6 +70,11 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Starting Gradle as a lower priority process
+
+You can now use the `--priority low` command line argument or `org.gradle.priority=low` property to start Gradle as a low priority process.
+This ensures that other applications like your IDE or browser stay responsive, even while a very demanding build is running.
+
 ### Build init plugin improvements
 
 This release includes a number of improvements to The [Build Init plugin](userguide/build_init_plugin.html).

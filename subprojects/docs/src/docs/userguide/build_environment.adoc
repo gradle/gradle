@@ -66,6 +66,8 @@ When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute
 When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging,Command-line logging options>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
+`org.gradle.priority=(low,normal)`::
+Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Default is `normal`. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 
 The following example demonstrates usage of various properties.
 
