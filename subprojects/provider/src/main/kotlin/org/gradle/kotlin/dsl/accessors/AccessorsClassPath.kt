@@ -621,16 +621,16 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
 /**
  * Location of the discontinued project schema snapshot, relative to the root project.
  */
-const val PROJECT_SCHEMA_RESOURCE_PATH =
+const val projectSchemaResourcePath =
     "gradle/project-schema.json"
 
 
-const val PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING =
-    "Support for $PROJECT_SCHEMA_RESOURCE_PATH was removed in Gradle 5.0. The file is no longer needed and it can be safely deleted."
+const val projectSchemaResourceDiscontinuedWarning =
+    "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer needed and it can be safely deleted."
 
 
 fun Project.warnAboutDiscontinuedJsonProjectSchema() {
-    if (file(PROJECT_SCHEMA_RESOURCE_PATH).isFile) {
-        logger.warn(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING)
+    if (file(projectSchemaResourcePath).isFile) {
+        logger.warn(projectSchemaResourceDiscontinuedWarning)
     }
 }
