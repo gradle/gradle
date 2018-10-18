@@ -606,6 +606,22 @@
             "changes": [
                 "Method added to interface"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.isUniqueVersion()",
+            "acceptation": "Maven 2 support has been removed, so this would just be a no-op",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+        ,{
+            "type": "org.gradle.api.artifacts.maven.MavenDeployer",
+            "member": "Method org.gradle.api.artifacts.maven.MavenDeployer.setUniqueVersion(boolean)",
+            "acceptation": "Maven 2 support has been removed, so this would just be a no-op",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
