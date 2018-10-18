@@ -23,14 +23,11 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import javax.annotation.Nullable;
-
 /**
  * The state for a single task execution.
  */
 public interface TaskExecution {
 
-    @Nullable
     OriginMetadata getOriginExecutionMetadata();
 
     /**

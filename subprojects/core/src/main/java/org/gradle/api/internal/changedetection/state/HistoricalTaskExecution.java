@@ -25,8 +25,6 @@ import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import javax.annotation.Nonnull;
-
 /**
  * State of a task when it was executed.
  */
@@ -60,7 +58,6 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         return successful;
     }
 
-    @Nonnull
     @Override
     public OriginMetadata getOriginExecutionMetadata() {
         return originExecutionMetadata;
