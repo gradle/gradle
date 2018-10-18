@@ -246,6 +246,16 @@ val testRuntime by configurations.creating {
     extendsFrom(gradlePlugins)
 }
 
+val apiMetadataElements by configurations.creating {
+    extendsFrom(runtime)
+    extendsFrom(gradlePlugins)
+    isVisible = false
+    isCanBeConsumed = true
+    isCanBeResolved = false
+    description = "Classpath configuration for API metadata"
+    attributes.attribute(Attribute.of("org.gradle.api.metadata", String::class.java), "yes")
+}
+
 configurations {
     all {
         usage(Usage.JAVA_RUNTIME)
