@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Action
-import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
@@ -276,8 +275,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         then:
         snapshots.size() == 1
 
-        // TODO this should probably be a regular file snapshot too
-        getSnapshotInfo(snapshots[0]) == [tempDir.path, 2]
+        getSnapshotInfo(snapshots[0]) == [null, 1]
 
         when:
         def excludedTree = tree.matching(new Action<PatternFilterable>() {
@@ -291,8 +289,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         then:
         snapshots.size() == 1
 
-        // TODO this should probably be a regular file snapshot too
-        getSnapshotInfo(snapshots[0]) == [tempDir.path, 2]
+        getSnapshotInfo(snapshots[0]) == [null, 1]
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
@@ -314,7 +311,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         }
 
         when:
-        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, TestFiles.directoryFileTreeFactory(), RelativePath.parse(true, file.name), action))
+        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, TestFiles.directoryFileTreeFactory(), file.name, action))
         def snapshots = snapshotter.snapshot(tree)
 
         then:
