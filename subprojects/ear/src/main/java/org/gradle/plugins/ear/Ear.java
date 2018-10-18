@@ -120,7 +120,7 @@ public class Ear extends Jar {
                         DeprecationLogger.nagUserOfDeprecated("File paths in deployment descriptor file name", "Use simple file name instead.");
                         descriptorChild.into(relativePath.getParent().getPathString());
                     }
-                    GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), getDirectoryFileTreeFactory(), relativePath.getLastName(), new Action<OutputStream>() {
+                    GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), relativePath.getLastName(), new Action<OutputStream>() {
                         public void execute(OutputStream outputStream) {
                             descriptor.writeTo(new OutputStreamWriter(outputStream));
                         }

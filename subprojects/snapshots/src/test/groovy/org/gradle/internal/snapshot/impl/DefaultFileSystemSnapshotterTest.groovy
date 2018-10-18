@@ -319,7 +319,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         }
 
         when:
-        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, TestFiles.directoryFileTreeFactory(), file.name, action))
+        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, file.name, action))
         def snapshots = snapshotter.snapshot(tree)
 
         then:

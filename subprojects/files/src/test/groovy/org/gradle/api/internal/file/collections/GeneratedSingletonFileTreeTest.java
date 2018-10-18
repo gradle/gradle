@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -125,7 +124,7 @@ public class GeneratedSingletonFileTreeTest {
     }
 
     private GeneratedSingletonFileTree tree(String fileName, Action<OutputStream> action) {
-        return new GeneratedSingletonFileTree(fileFactory, directoryFileTreeFactory(), fileName, action);
+        return new GeneratedSingletonFileTree(fileFactory, fileName, action);
     }
 
     private Action<OutputStream> getAction() {

@@ -40,17 +40,15 @@ import java.util.Arrays;
 /**
  * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystemMirroringFileTree {
+public class GeneratedSingletonFileTree implements SingletonFileTree {
     private final Factory<File> tmpDirSource;
     private final FileSystem fileSystem = FileSystems.getDefault();
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     private final String fileName;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, DirectoryFileTreeFactory directoryFileTreeFactory, String fileName, Action<OutputStream> contentWriter) {
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource,  String fileName, Action<OutputStream> contentWriter) {
         this.tmpDirSource = tmpDirSource;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileName = fileName;
         this.contentWriter = contentWriter;
     }
@@ -61,10 +59,6 @@ public class GeneratedSingletonFileTree implements SingletonFileTree, FileSystem
 
     public String getDisplayName() {
         return "file tree";
-    }
-
-    public DirectoryFileTree getMirror() {
-        return directoryFileTreeFactory.create(getTmpDir());
     }
 
     public void visit(FileVisitor visitor) {
