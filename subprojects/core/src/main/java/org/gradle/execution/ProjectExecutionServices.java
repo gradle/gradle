@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.OutputDirectoryCreatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
@@ -61,6 +60,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -110,8 +110,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor(
-            new TimeoutStep(timeoutHandler,
-                new ExecuteStep(cancellationToken, outputChangeListener)
+            new CreateOutputsStep(
+                new TimeoutStep(timeoutHandler,
+                    new ExecuteStep(cancellationToken, outputChangeListener)
+                )
             )
         );
     }
@@ -145,7 +147,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             workExecutor
         );
         executer = new SnapshotAfterExecutionTaskExecuter(executer, buildInvocationScopeId);
-        executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (buildCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,

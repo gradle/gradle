@@ -17,11 +17,13 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -34,6 +36,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.OutputFileProperty;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -114,6 +117,35 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             } finally {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
+            }
+        }
+
+        @Override
+        public void visitOutputs(OutputVisitor outputVisitor) {
+            for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
+                outputVisitor.visitOutput(new OutputFileProperty() {
+                    @Override
+                    public String getName() {
+                        return property.getPropertyName();
+                    }
+
+                    @Override
+                    public FileCollection getFiles() {
+                        return property.getPropertyFiles();
+                    }
+
+                    @Override
+                    public OutputType getOutputType() {
+                        switch (property.getOutputType()) {
+                            case FILE:
+                                return OutputType.FILE;
+                            case DIRECTORY:
+                                return OutputType.DIRECTORY;
+                            default:
+                                throw new AssertionError();
+                        }
+                    }
+                });
             }
         }
 

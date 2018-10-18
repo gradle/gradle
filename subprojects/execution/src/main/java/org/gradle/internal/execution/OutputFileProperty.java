@@ -17,8 +17,8 @@
 package org.gradle.internal.execution;
 
 public interface OutputFileProperty extends FileProperty {
-    /**
-     * Cleans the output and returns whether anything had to be actually removed.
-     */
-    boolean clean();
+    OutputType getOutputType();
+    enum OutputType {
+        FILE, DIRECTORY
+    }
 }

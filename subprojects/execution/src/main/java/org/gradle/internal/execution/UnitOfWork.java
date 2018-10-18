@@ -24,10 +24,12 @@ import java.util.Optional;
 public interface UnitOfWork extends Describable {
 //    String getIdentifier();
 //    void visitInputs(InputVisitor inputVisitor);
-//    void visitOutputs(OutputVisitor outputVisitor);
+
     boolean execute();
 
     Optional<Duration> getTimeout();
+
+    void visitOutputs(OutputVisitor outputVisitor);
 
 //    interface InputVisitor {
 //        void visitType(Class<?> type);
@@ -36,8 +38,8 @@ public interface UnitOfWork extends Describable {
 //
 //        void visitFileInput(InputFileProperty input);
 //    }
-//
-//    interface OutputVisitor {
-//        void visitOutput(OutputFileProperty output);
-//    }
+
+    interface OutputVisitor {
+        void visitOutput(OutputFileProperty output);
+    }
 }
