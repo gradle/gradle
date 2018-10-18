@@ -185,13 +185,15 @@ apply(plugin = "gradlebuild.update-versions")
 apply(plugin = "gradlebuild.dependency-vulnerabilities")
 apply(plugin = "gradlebuild.add-verify-production-environment-task")
 
+allprojects {
+    apply(plugin = "gradlebuild.dependencies-metadata-rules")
+}
 
 subprojects {
     version = rootProject.version
 
     if (project in javaProjects) {
         apply(plugin = "gradlebuild.java-projects")
-        apply(plugin = "gradlebuild.dependencies-metadata-rules")
     }
 
     if (project in publishedProjects) {

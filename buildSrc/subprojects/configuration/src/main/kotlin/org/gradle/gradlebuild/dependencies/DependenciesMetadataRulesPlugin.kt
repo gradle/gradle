@@ -44,6 +44,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withLibraryDependencies(library("aether_connector"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_compat"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_plugin_api"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
+                withLibraryDependencies(library("maven3_settings_builder"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
 
                 // Read capabilities declared in capabilities.json
                 readCapabilitiesFromJson()
