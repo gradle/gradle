@@ -22,11 +22,6 @@ import org.gradle.kotlin.dsl.extra
 
 
 internal
-inline fun <reified T : Any> ExtensionAware.getOrCreateSingletonProperty(crossinline create: () -> T): T =
-    getOrCreateProperty(T::class.qualifiedName!!, create)
-
-
-internal
 inline fun <reified T : Any> ExtensionAware.getOrCreateProperty(
     property: String,
     crossinline create: () -> T

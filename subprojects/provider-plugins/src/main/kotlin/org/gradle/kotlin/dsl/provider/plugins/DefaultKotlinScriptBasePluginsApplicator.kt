@@ -19,8 +19,8 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+import org.gradle.kotlin.dsl.accessors.warnAboutDiscontinuedJsonProjectSchema
 import org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors
-import org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
 import org.gradle.kotlin.dsl.provider.KotlinScriptBasePluginsApplicator
 
 
@@ -40,7 +40,6 @@ class KotlinScriptBasePlugin : Plugin<Project> {
 
 
 class KotlinScriptRootPlugin : Plugin<Project> {
-    override fun apply(project: Project): Unit = project.run {
-        tasks.register("kotlinDslAccessorsSnapshot", UpdateProjectSchema::class.java)
-    }
+    override fun apply(project: Project): Unit =
+        project.warnAboutDiscontinuedJsonProjectSchema()
 }

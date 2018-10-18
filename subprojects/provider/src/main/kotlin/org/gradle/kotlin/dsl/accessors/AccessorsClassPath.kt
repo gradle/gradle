@@ -112,20 +112,6 @@ fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
 
 private
 fun configuredProjectSchemaOf(project: Project) =
-    aotProjectSchemaOf(project) ?: jitProjectSchemaOf(project)
-
-
-private
-fun aotProjectSchemaOf(project: Project) =
-    project
-        .rootProject
-        .getOrCreateSingletonProperty { multiProjectSchemaSnapshotOf(project) }
-        .schema
-        ?.let { it[project.path] }
-
-
-private
-fun jitProjectSchemaOf(project: Project) =
     project.takeIf(::enabledJitAccessors)?.let {
         require(classLoaderScopeOf(project).isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
@@ -553,26 +539,6 @@ val logger by lazy { loggerFor<AccessorsClassPath>() }
 
 
 private
-fun multiProjectSchemaSnapshotOf(project: Project) =
-    MultiProjectSchemaSnapshot(
-        projectSchemaSnapshotFileOf(project)?.let {
-            loadMultiProjectSchemaFrom(it)
-        })
-
-
-private
-data class MultiProjectSchemaSnapshot(val schema: Map<String, ProjectSchema<String>>?)
-
-
-private
-fun projectSchemaSnapshotFileOf(project: Project): File? =
-    project
-        .rootProject
-        .file(PROJECT_SCHEMA_RESOURCE_PATH)
-        .takeIf { it.isFile }
-
-
-private
 fun classLoaderScopeOf(project: Project) =
     (project as ProjectInternal).classLoaderScope
 
@@ -653,6 +619,18 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
 
 
 /**
- * Location of the project schema snapshot taken by the _kotlinDslAccessorsSnapshot_ task relative to the root project.
+ * Location of the discontinued project schema snapshot, relative to the root project.
  */
-const val PROJECT_SCHEMA_RESOURCE_PATH = "gradle/project-schema.json"
+const val projectSchemaResourcePath =
+    "gradle/project-schema.json"
+
+
+const val projectSchemaResourceDiscontinuedWarning =
+    "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer needed and it can be safely deleted."
+
+
+fun Project.warnAboutDiscontinuedJsonProjectSchema() {
+    if (file(projectSchemaResourcePath).isFile) {
+        logger.warn(projectSchemaResourceDiscontinuedWarning)
+    }
+}

@@ -21,6 +21,7 @@ import org.gradle.kotlin.dsl.fixtures.matching
 
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
@@ -32,19 +33,6 @@ import java.io.File
 
 
 class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
-
-    @Test
-    fun `classpath model includes generated accessors`() {
-
-        val buildFile = withBuildScript("""
-            plugins { java }
-        """)
-
-        println(
-            build("kotlinDslAccessorsSnapshot").output)
-
-        assertAccessorsInClassPathOf(buildFile)
-    }
 
     @Test
     fun `classpath model includes jit accessors by default`() {
@@ -83,6 +71,17 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
         assertThat(s1, equalTo(s3))      // application = application
         assertThat(s2, equalTo(s5))      // java        = java
         assertThat(s1, equalTo(s4))      // application ⊇ java
+    }
+
+    @Test
+    fun `warning is emitted if a gradle slash project dash schema dot json file is present`() {
+
+        withDefaultSettings()
+        withBuildScript("")
+
+        withFile(projectSchemaResourcePath)
+
+        assertThat(build("help").output, containsString(projectSchemaResourceDiscontinuedWarning))
     }
 
     private

@@ -277,7 +277,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             "buildSrc" {
 
-                withPrecompiledPlugins()
+                withKotlinDslPlugin()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -323,7 +323,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             "buildSrc" {
 
-                withPrecompiledPlugins()
+                withKotlinDslPlugin()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -352,7 +352,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     private
-    fun FoldersDsl.withPrecompiledPlugins() {
+    fun FoldersDsl.withKotlinDslPlugin() {
         withFile("settings.gradle.kts", defaultSettingsScript)
         withFile("build.gradle.kts", """
 
@@ -422,21 +422,23 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 data class Book(val name: String)
 
             """)
+            existing("build.gradle.kts").appendText("""
+                gradlePlugin {
+                    plugins {
+                        register("my.documentation") {
+                            id = name
+                            implementationClass = "my.DocumentationPlugin"
+                        }
+                    }
+                }
+            """)
         }
 
-        val buildFile = withBuildScript("""
+        withBuildScript("""
 
-            apply<my.DocumentationPlugin>()
-
-        """)
-
-
-        println(
-            build("kotlinDslAccessorsSnapshot").output
-        )
-
-
-        buildFile.appendText("""
+            plugins {
+                id("my.documentation")
+            }
 
             (`the books`) {
                 register("quickStart") {
@@ -544,15 +546,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         val aTasks = build(":a:tasks").output
         assertThat(aTasks, containsString("kotlinDslAccessorsReport"))
-        assertThat(aTasks, not(containsString("kotlinDslAccessorsSnapshot")))
 
         val rootTasks = build(":tasks").output
         assertThat(
             rootTasks,
-            allOf(
-                containsString("kotlinDslAccessorsReport"),
-                containsString("kotlinDslAccessorsSnapshot")
-            )
+            containsString("kotlinDslAccessorsReport")
         )
     }
 
@@ -928,7 +926,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     fun withBuildSrc(contents: FoldersDslExpression) {
         withFolders {
             "buildSrc" {
-                withPrecompiledPlugins()
+                withKotlinDslPlugin()
                 contents()
             }
         }
