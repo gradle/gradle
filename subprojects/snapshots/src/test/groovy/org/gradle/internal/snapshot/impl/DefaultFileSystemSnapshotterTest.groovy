@@ -289,15 +289,6 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshots.size() == 1
 
         getSnapshotInfo(snapshots[0]) == [null, 1]
-
-        when:
-        def tree1 = TestFiles.fileOperations(tempDir).zipTree("zip")
-
-        snapshots = snapshotter.snapshot(tree1)
-
-        then:
-        getSnapshotInfo(snapshots[0]) == [null, 1]
-
     }
 
     def "snapshots a generated singletonFileTree as RegularFileSnapshot"() {
