@@ -521,16 +521,14 @@ ear {
             
             ear {
                 deploymentDescriptor {
-                    fileName = 'nested/descriptor.xml'
+                    fileName = 'nested/blubb.xml'
+                    applicationName = 'NestedDemo'
+
                 }
             }
             
         '''.stripIndent()
 
-
-        createDir('src/main/application/META-INF/nested') {
-            file('descriptor.xml').text = "<application/>"
-        }
         def deprecationMessage = "File paths in deployment descriptor file name has been deprecated. This is scheduled to be removed in Gradle 6.0. Use simple file name instead."
 
         when:
@@ -541,7 +539,7 @@ ear {
 
         output.contains(deprecationMessage)
         def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.assertContainsFile("META-INF/nested/descriptor.xml")
+        ear.assertContainsFile("META-INF/nested/blubb.xml")
     }
 
 }
