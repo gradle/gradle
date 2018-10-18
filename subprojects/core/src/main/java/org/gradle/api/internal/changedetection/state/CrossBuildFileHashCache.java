@@ -26,11 +26,10 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
+public class CrossBuildFileHashCache implements Closeable {
     public static final String FILE_HASHES_CACHE_KEY = "fileHashes";
 
     private final PersistentCache cache;
@@ -45,7 +44,6 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
             .open();
     }
 
-    @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
         return cache.createCache(parameters
                 .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses))
@@ -53,7 +51,7 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         cache.close();
     }
 }

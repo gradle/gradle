@@ -33,7 +33,7 @@ class CachingFileHasherTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def target = Mock(FileHasher)
     def cache = Mock(PersistentIndexedCache)
-    def cacheAccess = Mock(TaskHistoryStore)
+    def cacheAccess = Mock(CrossBuildFileHashCache)
     def timeStampInspector = Mock(FileTimeStampInspector)
     def hash = HashCode.fromInt(0x0123)
     def oldHash = HashCode.fromInt(0x0321)

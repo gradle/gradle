@@ -30,7 +30,6 @@ import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampIns
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -183,7 +182,7 @@ public class GradleUserHomeScopeServices {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(TaskHistoryStore store) {
+    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
         PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
             PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
             400000,

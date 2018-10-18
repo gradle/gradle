@@ -59,7 +59,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildExecuter = Mock(BuildExecuter)
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class)
     def buildScopeServices = Mock(ServiceRegistry)
-    def taskArtifactStateCacheAccess = Mock(TaskHistoryStore)
+    def cacheAccess = Mock(TaskHistoryStore)
 
     private ProjectInternal expectedRootProject
     private ProjectInternal expectedCurrentProject
@@ -119,7 +119,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.includedBuilds >> []
         _ * gradleMock.getBuildOperation() >> null
 
-        buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
+        buildScopeServices.get(TaskHistoryStore) >> cacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
         buildServices.get(WorkerLeaseService) >> workerLeaseService
     }

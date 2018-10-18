@@ -40,7 +40,7 @@ public class CachingFileHasher implements FileHasher {
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
+    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
         this.cache = store.createCache(

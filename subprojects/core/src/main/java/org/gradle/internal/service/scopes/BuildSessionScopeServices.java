@@ -30,7 +30,6 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
@@ -156,7 +155,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileHasher createFileSnapshotter(FileHasher globalHasher, TaskHistoryStore cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher, WellKnownFileLocations wellKnownFileLocations) {
+    FileHasher createFileSnapshotter(FileHasher globalHasher, CrossBuildFileHashCache cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher, WellKnownFileLocations wellKnownFileLocations) {
         CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         return new SplitFileHasher(globalHasher, localHasher, wellKnownFileLocations);
     }
@@ -189,7 +188,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
     }
 
-    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, TaskHistoryStore store, WellKnownFileLocations wellKnownFileLocations) {
+    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, CrossBuildFileHashCache store, WellKnownFileLocations wellKnownFileLocations) {
         PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
         DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
         return new SplitResourceSnapshotterCacheService(globalCache, localCache, wellKnownFileLocations);
