@@ -1,0 +1,5 @@
+language: java
+jdk: oraclejdk9
+install: ./gradlew --version
+script: ./gradlew --continue --init-script gradle/init-scripts/build-scan.init.gradle.kts --scan --stacktrace sanityCheck
+if: pull_request AND head_repo != gradle/gradle
