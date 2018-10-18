@@ -33,7 +33,7 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.internal.tasks.TaskOutputPacker;
+import org.gradle.caching.internal.CacheFormat;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpClientResponse;
@@ -53,7 +53,7 @@ import java.util.Set;
  */
 public class HttpBuildCacheService implements BuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
-    static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v" + TaskOutputPacker.CACHE_ENTRY_FORMAT;
+    static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v" + CacheFormat.CACHE_ENTRY_FORMAT;
 
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
         HttpStatus.SC_USE_PROXY,

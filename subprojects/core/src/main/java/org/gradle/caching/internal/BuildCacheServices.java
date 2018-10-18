@@ -21,7 +21,6 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
-import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
@@ -79,7 +78,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGradleServices(ServiceRegistration registration) {
         // Not build scoped because of dependency on GradleInternal for build path
-        registration.addProvider(new BuildCacheTaskServices());
+        registration.addProvider(new org.gradle.caching.internal.services.BuildCacheServices());
     }
 
 }

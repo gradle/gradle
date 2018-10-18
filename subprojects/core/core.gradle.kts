@@ -43,6 +43,7 @@ dependencies {
     api(project(":native"))
     api(project(":persistentCache"))
     api(project(":buildCache"))
+    api(project(":buildCachePackaging"))
     api(project(":coreApi"))
     api(project(":files"))
 

@@ -50,7 +50,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         if (taskArtifactState.isUpToDate(messages)) {
             LOGGER.info("Skipping {} as it is up-to-date.", task);
             state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-            context.setOriginExecutionMetadata(taskArtifactState.getExecutionHistory().getOriginExecutionMetadata());
+            context.setOriginMetadata(taskArtifactState.getExecutionHistory().getOriginExecutionMetadata());
             return;
         }
         context.setUpToDateMessages(ImmutableList.copyOf(messages));
