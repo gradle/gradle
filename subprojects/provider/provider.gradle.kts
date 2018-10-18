@@ -30,8 +30,10 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-sourceSets["main"].kotlin {
-    srcDir(apiExtensionsOutputDir)
+sourceSets.main {
+    kotlin {
+        srcDir(apiExtensionsOutputDir)
+    }
 }
 
 val publishedPluginsVersion: String by rootProject.extra
@@ -48,19 +50,12 @@ tasks {
         dependsOn(generateKotlinDependencyExtensions)
     }
 
-    "compileKotlin" {
+    compileKotlin {
         dependsOn(generateExtensions)
     }
 
-    "clean"(Delete::class) {
+    clean {
         delete(apiExtensionsOutputDir)
-    }
-
-    "compileTestJava"(JavaCompile::class) {
-        // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
-        // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
-        // `-proc:none` disables annotation processing and gets rid of the warning.
-        options.compilerArgs.add("-proc:none")
     }
 
 // -- Version manifest properties --------------------------------------
@@ -76,10 +71,14 @@ tasks {
     }
 
 // -- Testing ----------------------------------------------------------
-// Disable incremental compilation for Java fixture sources
-// Incremental compilation is causing OOMEs with our low build daemon heap settings
-    withType(JavaCompile::class).named("compileTestJava").configure {
+    compileTestJava {
+        // Disable incremental compilation for Java fixture sources
+        // Incremental compilation is causing OOMEs with our low build daemon heap settings
         options.isIncremental = false
+        // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
+        // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
+        // `-proc:none` disables annotation processing and gets rid of the warning.
+        options.compilerArgs.add("-proc:none")
     }
 
     test {
