@@ -2,6 +2,7 @@
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 // end::filter-files[]
+import java.util.concurrent.Callable
 
 version = "1.1"
 
@@ -150,7 +151,7 @@ task<Copy>("anotherCopyTask") {
     // Copy the contents of a Zip file
     from(zipTree("src/main/assets.zip"))
     // Determine the destination directory later
-    into { getDestDir() }
+    into(Callable { getDestDir() })
 }
 // end::copy-task-2[]
 
