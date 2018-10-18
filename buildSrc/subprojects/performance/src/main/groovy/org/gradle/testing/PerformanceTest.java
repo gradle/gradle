@@ -16,26 +16,24 @@
 
 package org.gradle.testing;
 
-import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.Task;
-
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Map.Entry;
-
-import org.gradle.process.CommandLineArgumentProvider;
 
 /**
  * A test that checks execution time and memory consumption.
@@ -222,5 +220,10 @@ public class PerformanceTest extends DistributionTest {
                 result.add("-D" + propertyName + "=" + propertyValue.toString());
             }
         }
+    }
+
+    @Input
+    public long getPoisonPill() {
+        return System.currentTimeMillis();
     }
 }
