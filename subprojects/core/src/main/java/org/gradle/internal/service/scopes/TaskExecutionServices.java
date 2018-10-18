@@ -19,23 +19,26 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepository;
+import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskExecutionFingerprintSerializer;
 import org.gradle.api.internal.changedetection.state.TaskHistoryCache;
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
-import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
-import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathCompareStrategy;
@@ -77,7 +80,14 @@ public class TaskExecutionServices {
         serializerRegistry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, FINGERPRINT_COMPARE_STRATEGIES));
         serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
         TaskExecutionFingerprintSerializer serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
-        return new TaskHistoryCache(taskHistoryStore, serializer);
+
+        PersistentIndexedCache<String, HistoricalTaskExecution> cache = taskHistoryStore.createCache(
+            PersistentIndexedCacheParameters.of("taskHistory", String.class, serializer),
+            10000,
+            false
+        );
+
+        return new TaskHistoryCache(cache);
     }
 
     TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {

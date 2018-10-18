@@ -40,6 +40,7 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecu
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
@@ -131,8 +132,13 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
         def serializer = new TaskExecutionFingerprintSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
 
+        def cache = cacheAccess.createCache(
+            PersistentIndexedCacheParameters.of("taskHistory", String.class, serializer),
+            10000,
+            false
+        )
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
-            new TaskHistoryCache(cacheAccess, serializer),
+            new TaskHistoryCache(cache),
             classLoaderHierarchyHasher,
             SnapshotTestUtil.valueSnapshotter(),
             fingerprinterRegistry

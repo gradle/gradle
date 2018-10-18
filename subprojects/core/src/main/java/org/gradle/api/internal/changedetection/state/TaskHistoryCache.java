@@ -17,19 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 
 import javax.annotation.Nullable;
 
 public class TaskHistoryCache {
     private final PersistentIndexedCache<String, HistoricalTaskExecution> cache;
 
-    public TaskHistoryCache(TaskHistoryStore cacheAccess, TaskExecutionFingerprintSerializer serializer) {
-        this.cache = cacheAccess.createCache(
-            PersistentIndexedCacheParameters.of("taskHistory", String.class, serializer),
-            10000,
-            false
-        );
+    public TaskHistoryCache(PersistentIndexedCache<String, HistoricalTaskExecution> cache) {
+        this.cache = cache;
     }
 
     @Nullable
