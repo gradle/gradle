@@ -259,8 +259,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshots = snapshotter.snapshot(tree)
 
         then:
-        snapshots.size() == 1
-        getSnapshotInfo(snapshots[0]) == [null, 1]
+        assertSingleFileSnapshot(snapshots)
+
 
         when:
         def includedTree = tree.matching(new Action<PatternFilterable>() {
@@ -272,9 +272,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshots = snapshotter.snapshot(includedTree)
 
         then:
-        snapshots.size() == 1
+        assertSingleFileSnapshot(snapshots)
 
-        getSnapshotInfo(snapshots[0]) == [null, 1]
 
         when:
         def excludedTree = tree.matching(new Action<PatternFilterable>() {
@@ -288,7 +287,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         then:
         assertSingleFileSnapshot(snapshots)
 
-        
+
         when:
         def singleFileTree = TestFiles.fileOperations(tempDir).fileTree(file)
         snapshots = snapshotter.snapshot(singleFileTree)
