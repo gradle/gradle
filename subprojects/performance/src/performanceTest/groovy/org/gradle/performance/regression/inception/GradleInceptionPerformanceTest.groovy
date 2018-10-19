@@ -16,6 +16,12 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.performance.measure.MeasuredOperation
+import org.junit.experimental.categories.Category
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -50,5 +56,35 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         where:
         tasks  | _
         'help' | _
+    }
+
+    @Category(PerformanceExperiment)
+    def "buildSrc change in the gradle build comparing gradle"() {
+        given:
+        runner.testProject = 'gradleBuildCurrent'
+        runner.tasksToRun = ['help']
+        runner.targetVersions = ["5.0-20181016235834+0000"]
+        runner.runs = 10
+        runner.args = [
+            "-Djava9Home=${System.getProperty('java9Home')}",
+            "-Pgradlebuild.skipBuildSrcChecks=true"
+        ]
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                new File(invocationInfo.projectDir, "buildSrc/subprojects/build/src/main/groovy/org/gradle/build/ChangingClass.groovy").text = """
+                    package org.gradle.build
+                    class ChangingClass {
+                        def value = $invocationInfo.iterationNumber
+                    }
+                """.stripIndent()
+            }
+        })
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
     }
 }
