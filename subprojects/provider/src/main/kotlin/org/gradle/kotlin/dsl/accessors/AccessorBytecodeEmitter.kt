@@ -69,7 +69,6 @@ object AccessorBytecodeEmitter {
         binDir: File
     ): List<InternalName> = WriterThread().use { writer ->
 
-        // TODO: honor Gradle max workers?
         // TODO: make it observable via build operations
         val internalClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
 

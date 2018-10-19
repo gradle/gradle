@@ -22,6 +22,7 @@ import kotlin.streams.asSequence
 import kotlin.streams.asStream
 
 
+// TODO: honor Gradle max workers?
 internal
 fun <T, U> Sequence<T>.unorderedParallelMap(f: (T) -> U): Sequence<U> =
     if (JavaVersion.current().isJava8) map(f) // Java 8 stream API impl is too resource hungry
