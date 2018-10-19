@@ -8,9 +8,9 @@ See also:
 
 We are excited to share some great new features and improvements with you in this release:
 
-First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0) with it's 1.0 release!
+First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13) with it's 1.0 release!
 Authoring your build logic using Kotlin provides significant additional editing assistance in IDEs, including: improved completion, error highlighting, and refactoring tools.
-Please follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
+Please read our [Gradle Kotlin DSL Primer](userguide/kotlin_dsl.html) and follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
 If you prefer the flexibility and dynamic nature of Groovy, that's totally okay — the Groovy DSL will _never_ be deprecated.
 
 Java enthusiasts will be happy to read that this release **supports running Gradle builds with JDK 11**.
