@@ -289,46 +289,6 @@ object AccessorBytecodeEmitter {
             is TypeAccessibility.Inaccessible -> InternalNameOf.Any to InternalNameOf.Object
         }
 
-    fun emitExtensionsWithOneClassPerConfiguration(
-        projectSchema: ProjectSchema<*>,
-        srcDir: File,
-        binDir: File
-    ): List<InternalName> = WriterThread().use { writer ->
-
-        // TODO: honor Gradle max workers?
-        // TODO: make it observable via build operations
-        val internalClassNames = accessorsForConfigurationsOf(projectSchema).asStream().unordered().parallel().map { accessor ->
-
-            val getterSignature = jvmGetterSignatureFor(accessor.name, configurationAccessorMethodSignature)
-
-            val header = writeFileFacadeClassHeader {
-                writeConfigurationAccessorMetadataFor(accessor.name, getterSignature)
-            }
-
-            val internalClassName =
-                InternalName("org/gradle/kotlin/dsl/${accessor.name.capitalize()}ConfigurationAccessorsKt")
-
-            val classBytes =
-                publicKotlinClass(internalClassName, header) {
-                    emitConfigurationAccessorFor(accessor.name, getterSignature)
-                }
-
-            writer.writeFile(
-                binDir.resolve("$internalClassName.class"),
-                classBytes
-            )
-
-            internalClassName
-        }.toList()
-
-        writer.writeFile(
-            moduleFileFor(binDir),
-            moduleMetadataBytesFor(internalClassNames)
-        )
-
-        internalClassNames
-    }
-
     private
     fun ClassWriter.emitConfigurationAccessorFor(name: String, signature: JvmMethodSignature) {
         emitContainerElementAccessorFor(configurationContainerInternalName, name, signature)
