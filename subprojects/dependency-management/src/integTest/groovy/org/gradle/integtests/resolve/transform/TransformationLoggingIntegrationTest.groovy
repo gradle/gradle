@@ -175,5 +175,8 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         succeeds(":util:resolveBlue", "-DshowOutput")
         then:
         result.groupedOutput.transformationCount == 4
+        def initialSubjects = ((1..2).collect { "lib${it}.jar (project :lib)".toString() }) as Set
+        result.groupedOutput.subjectsFor('GreenMultiplier') == initialSubjects
+        result.groupedOutput.subjectsFor('BlueMultiplier') == initialSubjects
     }
 }

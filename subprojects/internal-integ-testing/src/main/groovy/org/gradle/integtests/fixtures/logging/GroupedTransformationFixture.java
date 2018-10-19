@@ -61,4 +61,13 @@ public class GroupedTransformationFixture {
         });
         return join("\n", nonEmptyOutputs);
     }
+
+    @Override
+    public String toString() {
+        return "GroupedTransformationFixture{" +
+                "initialSubjectType='" + initialSubjectType + '\'' +
+                ", subject='" + subject + '\'' +
+                ", transformer='" + transformer + '\'' +
+                '}';
+    }
 }
