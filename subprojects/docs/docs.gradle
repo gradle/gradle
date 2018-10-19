@@ -55,6 +55,14 @@ configurations {
         canBeResolved = false
         canBeConsumed = true
     }
+
+    gradleApiRuntime {
+        visible = false
+        canBeResolved = true
+        canBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+        attributes.attribute(Attribute.of("org.gradle.api", String), "runtime")
+    }
 }
 
 dependencies {
@@ -77,6 +85,8 @@ dependencies {
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
+
+    gradleApiRuntime project(":")
 }
 
 gradlebuildJava {
@@ -271,7 +281,8 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = configurations.gradleApiRuntime
+
     PublicApi.includes.each {
         include it
     }

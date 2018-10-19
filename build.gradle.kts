@@ -202,15 +202,17 @@ subprojects {
     apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
+val runtimeUsage = objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
+
 val coreRuntime by configurations.creating {
-    usage(Usage.JAVA_RUNTIME)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     isCanBeResolved = true
     isCanBeConsumed = false
     isVisible = false
 }
 
 val coreRuntimeExtensions by configurations.creating {
-    usage(Usage.JAVA_RUNTIME)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     isCanBeResolved = true
     isCanBeConsumed = false
     isVisible = false
@@ -246,9 +248,31 @@ val testRuntime by configurations.creating {
     extendsFrom(gradlePlugins)
 }
 
+// TODO: These should probably be all collapsed into a single variant
+configurations {
+    create("gradleApiMetadataElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(runtime)
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
+    }
+}
+configurations {
+    create("gradleApiRuntimeElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(externalModules)
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
+    }
+}
+
 configurations {
     all {
-        usage(Usage.JAVA_RUNTIME)
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
     }
 }
 
@@ -273,6 +297,7 @@ dependencies {
 
     pluginProjects.forEach { gradlePlugins(it) }
     implementationPluginProjects.forEach { gradlePlugins(it) }
+
     gradlePlugins(project(":workers"))
     gradlePlugins(project(":dependencyManagement"))
     gradlePlugins(project(":testKit"))
@@ -313,6 +338,9 @@ tasks.register<Install>("installAll") {
     installDirPropertyName = ::gradle_installPath.name
 }
 
+fun distributionImage(named: String) =
+        project(":distributions").property(named) as CopySpec
+
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     val allReports = collectAllIncubationReports()
     dependsOn(allReports)
@@ -324,11 +352,5 @@ tasks.register<Zip>("allIncubationReportsZip") {
     from(allIncubationReports.get().htmlReportFile)
     from(collectAllIncubationReports().map { it.htmlReportFile })
 }
-
-fun distributionImage(named: String) =
-    project(":distributions").property(named) as CopySpec
-
-fun Configuration.usage(named: String) =
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
 
 fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
