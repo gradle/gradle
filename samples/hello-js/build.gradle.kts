@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 plugins {
-    id("kotlin2js") version "1.3.0-rc-116"
+    id("kotlin2js") version "1.3.0-rc-190"
 }
 
 dependencies {
