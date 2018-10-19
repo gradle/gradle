@@ -20,8 +20,6 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     protected
     val pluginManagementBlock by lazy {
         """
-            import org.gradle.kotlin.dsl.support.kotlinEap
-
             pluginManagement {
                 $pluginRepositoriesBlock
                 $resolutionStrategyBlock
@@ -34,7 +32,6 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         """
             repositories {
                 $testRepositories
-                kotlinEap()
                 gradlePluginPortal()
             }
         """

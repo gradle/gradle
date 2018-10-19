@@ -1,15 +1,7 @@
-import org.gradle.kotlin.dsl.support.kotlinEap
-
 pluginManagement {
     repositories {
-        kotlinEap()
         gradlePluginPortal()
     }
-}
-
-gradle.beforeProject {
-    buildscript.repositories.kotlinEap()
-    repositories.kotlinEap()
 }
 
 apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
