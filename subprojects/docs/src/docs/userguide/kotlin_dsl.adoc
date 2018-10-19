@@ -17,6 +17,7 @@
 :kotlin-dsl-samples: https://github.com/gradle/kotlin-dsl/tree/master/samples/
 :kotlin-dsl-issues: https://github.com/gradle/kotlin-dsl/issues/
 :kotlin-dsl-api: https://gradle.github.io/kotlin-dsl-docs/api/
+:gradle-issues: https://github.com/gradle/gradle/issues/
 
 
 [[kotlin_dsl]]
@@ -130,6 +131,35 @@ image::intellij-script-dependencies-reload.png[Reload script dependencies]
 
 It is recommended to *disable automatic build import* but *enable automatic reload of script dependencies.*
 That way you get early feedback while editing Gradle scripts while controlling when the whole build setup gets synchronized with your IDE.
+
+=== Troubleshooting
+
+The IDE support is provided by two components:
+
+* the IntelliJ IDEA or Android Studio Kotlin Plugin version,
+* the version of Gradle used to import the build.
+
+In you run into trouble, the first thing to try is to run `gradle tasks` to see if your issue is IDE related only and to possibly get more details.
+If running Gradle works but your script editor is complaining then you can try restarting your IDE and invalidating its caches.
+
+If, after trying the above, you suspect an issue with the `.gradle.kts` script editor you can:
+
+* run `gradle tasks` to get more details,
+* check logs in
+** `$HOME/Library/Logs/gradle-kotlin-dsl` on macos,
+** `$HOME/.gradle-kotlin-dsl/logs` on Linux,
+** `$HOME/Application Data/gradle-kotlin-dsl/log` on Windows,
+* and finally, open an issue on the link:{kotlin-dsl-issues}[`gradle/kotlin-dsl` issue tracker] with as much detail as you can.
+
+For IDE issues out of the `.gradle.kts` script editor, please open issues in the IDE issue tracker, respectively
+
+* link:[JetBrains's IDEA issue tracker],
+* link:[Google's Android Studio issue tracker].
+
+Last but not least, if you face problems with Gradle itself or with the Gradle Kotlin DSL, please open issues on the corresponding issue tracker, respectively
+
+* link:{gradle-issues}[`gradle/gradle` issue tracker],
+* link{kotlin-dsl-issues}[`gradle/kotlin-dsl` issue tracker].
 
 
 [[sec:scripts]]
