@@ -29,8 +29,8 @@ public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentF
             ImmutableList<ImplementationSnapshot> additionalImplementations,
             ImmutableSortedMap<String, ValueSnapshot> inputProperties,
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties)
-    {
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties
+    ) {
         super(
                 implementation,
                 additionalImplementations,

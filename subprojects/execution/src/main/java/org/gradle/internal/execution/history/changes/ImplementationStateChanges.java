@@ -21,56 +21,61 @@ import org.gradle.api.Describable;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 
 public class ImplementationStateChanges implements ChangeContainer {
-    private final PreviousExecutionState previousExecution;
-    private final BeforeExecutionState currentExecution;
+    private final ImplementationSnapshot previousImplementation;
+    private final ImmutableList<ImplementationSnapshot> previousAdditionalImplementations;
+    private final ImplementationSnapshot currentImplementation;
+    private final ImmutableList<ImplementationSnapshot> currentAdditionalImplementations;
     private final Describable executable;
 
-    public ImplementationStateChanges(PreviousExecutionState previousExecution, BeforeExecutionState currentExecution, Describable executable) {
-        this.previousExecution = previousExecution;
-        this.currentExecution = currentExecution;
+    public ImplementationStateChanges(
+        ImplementationSnapshot previousImplementation,
+        ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
+        ImplementationSnapshot currentImplementation,
+        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations,
+        Describable executable
+    ) {
+        this.previousImplementation = previousImplementation;
+        this.previousAdditionalImplementations = previousAdditionalImplementations;
+        this.currentImplementation = currentImplementation;
+        this.currentAdditionalImplementations = currentAdditionalImplementations;
         this.executable = executable;
     }
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        ImplementationSnapshot prevImplementation = previousExecution.getImplementation();
-        ImplementationSnapshot implementation = currentExecution.getImplementation();
-        if (!implementation.getTypeName().equals(prevImplementation.getTypeName())) {
+        if (!currentImplementation.getTypeName().equals(previousImplementation.getTypeName())) {
             return visitor.visitChange(new DescriptiveChange("The type of %s has changed from '%s' to '%s'.",
-                executable.getDisplayName(), prevImplementation.getTypeName(), implementation.getTypeName()));
+                executable.getDisplayName(), previousImplementation.getTypeName(), currentImplementation.getTypeName()));
         }
-        if (implementation.isUnknown()) {
+        if (currentImplementation.isUnknown()) {
             return visitor.visitChange(new DescriptiveChange("The type of %s %s",
-                    executable.getDisplayName(), implementation.getUnknownReason()));
+                    executable.getDisplayName(), currentImplementation.getUnknownReason()));
         }
-        if (prevImplementation.isUnknown()) {
+        if (previousImplementation.isUnknown()) {
             return visitor.visitChange(new DescriptiveChange("During the previous execution of %s, it %s",
-                    executable.getDisplayName(), prevImplementation.getUnknownReason()));
+                    executable.getDisplayName(), previousImplementation.getUnknownReason()));
         }
-        if (!implementation.getClassLoaderHash().equals(prevImplementation.getClassLoaderHash())) {
+        if (!currentImplementation.getClassLoaderHash().equals(previousImplementation.getClassLoaderHash())) {
             return visitor.visitChange(new DescriptiveChange("Class path of %s has changed from %s to %s.",
-                    executable.getDisplayName(), prevImplementation.getClassLoaderHash(), implementation.getClassLoaderHash()));
+                    executable.getDisplayName(), previousImplementation.getClassLoaderHash(), currentImplementation.getClassLoaderHash()));
         }
 
-        ImmutableList<ImplementationSnapshot> additionalImplementations = currentExecution.getAdditionalImplementations();
-        ImplementationSnapshot unknownImplementation = findUnknownImplementation(additionalImplementations);
+        ImplementationSnapshot unknownImplementation = findUnknownImplementation(currentAdditionalImplementations);
         if (unknownImplementation != null) {
             return visitor.visitChange(new DescriptiveChange("Additional action for %s: %s",
                     executable.getDisplayName(), unknownImplementation.getUnknownReason()));
         }
-        ImplementationSnapshot previousUnknownImplementation = findUnknownImplementation(previousExecution.getAdditionalImplementations());
+        ImplementationSnapshot previousUnknownImplementation = findUnknownImplementation(previousAdditionalImplementations);
         if (previousUnknownImplementation != null) {
             return visitor.visitChange(new DescriptiveChange("During the previous execution of %s, it had an additional action that %s",
                     executable.getDisplayName(), previousUnknownImplementation.getUnknownReason()));
         }
-        if (!additionalImplementations.equals(previousExecution.getAdditionalImplementations())) {
+        if (!currentAdditionalImplementations.equals(previousAdditionalImplementations)) {
             return visitor.visitChange(new DescriptiveChange("One or more additional actions for %s have changed.",
                     executable.getDisplayName()));
         }

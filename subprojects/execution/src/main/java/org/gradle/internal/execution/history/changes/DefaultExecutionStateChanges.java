@@ -38,7 +38,11 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
 
     public DefaultExecutionStateChanges(PreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(lastExecution);
-        ChangeContainer taskTypeState = new ImplementationStateChanges(lastExecution, thisExecution, executable);
+        ChangeContainer taskTypeState = new ImplementationStateChanges(
+            lastExecution.getImplementation(), lastExecution.getAdditionalImplementations(),
+            thisExecution.getImplementation(), thisExecution.getAdditionalImplementations(),
+            executable
+        );
         ChangeContainer inputPropertyChanges = new InputPropertyChanges(lastExecution, thisExecution, executable);
         ChangeContainer inputPropertyValueChanges = new InputPropertyValueChanges(lastExecution, thisExecution, executable);
 
