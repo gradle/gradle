@@ -140,6 +140,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory, ProgressLoggerFactory progressLoggerFactory) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
+        /*
+         * add cacheDir to default exclusions because not doing so causes and MD5 error
+         * when .gradle project cache is part of the root source code directory
+         * (typically in native builds) issue:
+         * https://github.com/gradle/gradle/issues/5941
+         */
+        DirectoryScanner.addDefaultExclude(cacheDir.getPath());
         return new ProjectCacheDir(cacheDir, progressLoggerFactory);
     }
 
@@ -165,11 +172,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
-        // added to fix  MD5 error when .gradle project cache is part of the root source code dirs (typically in native builds)
-        // issue: https://github.com/gradle/gradle/issues/5941
-        DirectoryScanner.addDefaultExclude("**/.gradle/**"); // should never include the .gradle directory in a snapshot
-        FileSystemSnapshotter retval = new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
-        return retval;
+        return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
     AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
