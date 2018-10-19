@@ -141,7 +141,6 @@ class ResolveIvyFactoryTest extends Specification {
                 cacheAwareExternalResourceAccessor,
                 locallyAvailableResourceFinder,
                 artifactFileStore,
-                moduleIdentifierFactory,
                 metadataSources,
                 metadataArtifactProvider,
                 componentMetadataSupplierFactory,

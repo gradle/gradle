@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class ModuleComponentAtRepositoryKey {
     private final String repositoryId;
     private final ModuleComponentIdentifier componentId;
+    private final int hashCode;
 
     ModuleComponentAtRepositoryKey(String repositoryId, ModuleComponentIdentifier componentId) {
         this.repositoryId = repositoryId;
         this.componentId = componentId;
+        this.hashCode = Objects.hashCode(repositoryId, componentId);
     }
 
     @Override
@@ -42,15 +45,15 @@ public class ModuleComponentAtRepositoryKey {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof ModuleComponentAtRepositoryKey)) {
+        if (!(o instanceof ModuleComponentAtRepositoryKey)) {
             return false;
         }
         ModuleComponentAtRepositoryKey other = (ModuleComponentAtRepositoryKey) o;
-        return repositoryId.equals(other.repositoryId) && componentId.equals(other.componentId);
+        return hashCode == other.hashCode && repositoryId.equals(other.repositoryId) && componentId.equals(other.componentId);
     }
 
     @Override
     public int hashCode() {
-        return repositoryId.hashCode() ^ componentId.hashCode();
+        return hashCode;
     }
 }
