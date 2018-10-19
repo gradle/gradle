@@ -517,27 +517,6 @@ fun inaccessible(type: String, reasons: List<InaccessibilityReason>): TypeAccess
 
 
 private
-fun multiProjectSchemaSnapshotOf(project: Project) =
-    MultiProjectSchemaSnapshot(
-        projectSchemaSnapshotFileOf(project)?.let {
-            loadMultiProjectSchemaFrom(it)
-        })
-
-
-private
-data class MultiProjectSchemaSnapshot(val schema: Map<String, ProjectSchema<String>>?)
-
-
-private
-fun projectSchemaSnapshotFileOf(project: Project): File? =
-    project
-        .rootProject
-        .file(PROJECT_SCHEMA_RESOURCE_PATH)
-        .takeIf { it.isFile }
->>>>>>> 002ebde2... Remove unused code
-
-
-private
 fun classLoaderScopeOf(project: Project) =
     (project as ProjectInternal).classLoaderScope
 
