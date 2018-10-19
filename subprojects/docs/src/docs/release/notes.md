@@ -10,11 +10,11 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Stricter validation with validateTaskProperties
+### Stricter validation with `validateTaskProperties`
 
-Cacheable tasks are validated stricter than non-cacheable tasks by the `ValidateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
+Cacheable tasks are validated stricter than non-cacheable tasks by the `validateTaskProperties` task, which is added automatically by the [`java-gradle-plugin`](userguide/java_gradle_plugin.html).
 For example, all file inputs are required to have a normalization declared, like e.g. `@PathSensitive(RELATIVE)`.
-This stricter validation can now be enabled for all tasks via [`ValidateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
+This stricter validation can now be enabled for all tasks via [`validateTaskProperties.enableStricterValidation = true`](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-).
 
 ## Promoted features
 
@@ -40,7 +40,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Setters for `classes` and `classpath` on `ValidateTaskProperties`
+### Setters for `classes` and `classpath` on `validateTaskProperties`
 
 There should not be setters for lazy properties like `ConfigurableFileCollection`s.
 Use `setFrom` instead.
