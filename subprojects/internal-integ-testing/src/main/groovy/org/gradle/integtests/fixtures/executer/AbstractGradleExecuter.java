@@ -714,7 +714,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withWorkerDaemonsExpirationDisabled() {
-        return withArgument("-Dorg.gradle.workers.internal.disable-daemons-expiration=true");
+        return withBuildJvmOpts("-Dorg.gradle.workers.internal.disable-daemons-expiration=true");
     }
 
     @Override
