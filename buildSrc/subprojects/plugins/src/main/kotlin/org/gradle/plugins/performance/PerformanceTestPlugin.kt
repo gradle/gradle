@@ -12,7 +12,6 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
-import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.internal.hash.HashUtil
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
@@ -111,7 +110,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.registerForkPointDistributionTask() {
         whenNotOnMasterOrReleaseBranch {
             val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
-                setBuildScanRequired(BuildEnvironment.isCiServer)
                 dependsOn("determineForkPoint")
             }
             tasks.register("determineForkPoint") {

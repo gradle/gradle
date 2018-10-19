@@ -44,8 +44,6 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     private String forkPointCommitId;
 
-    private boolean buildScanRequired;
-
     private String baselineVersion;
 
     @Inject
@@ -78,10 +76,6 @@ public class BuildForkPointDistribution extends DefaultTask {
                 .orElse("defaults");
         }
         return baselineVersion;
-    }
-
-    public void setBuildScanRequired(boolean buildScanRequired) {
-        this.buildScanRequired = buildScanRequired;
     }
 
     @TaskAction
@@ -137,9 +131,16 @@ public class BuildForkPointDistribution extends DefaultTask {
             "-PtoolingApiShadedJarInstallPath=" + getDestinationFile("gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar")
         };
 
-        if (buildScanRequired) {
-            String[] buildScanParams = new String[]{"--init-script", new File(getGradleCloneTmpDir(), "gradle/init-scripts/build-scan.init.gradle.kts").getAbsolutePath()};
-            return Stream.of(commands, buildScanParams).flatMap(Stream::of).toArray();
+        if (System.getenv().containsKey("CI")) {
+            String[] ciParams = new String[]{
+                "--init-script",
+                new File(getGradleCloneTmpDir(), "gradle/init-scripts/build-scan.init.gradle.kts").getAbsolutePath(),
+                "--build-cache",
+                "-Dgradle.cache.remote.url=" + System.getProperty("gradle.cache.remote.url"),
+                "-Dgradle.cache.remote.username=gradle",
+                "-Dgradle.cache.remote.password=" + System.getProperty("gradle.cache.remote.password")
+            };
+            return Stream.of(commands, ciParams).flatMap(Stream::of).toArray();
         } else {
             return commands;
         }
