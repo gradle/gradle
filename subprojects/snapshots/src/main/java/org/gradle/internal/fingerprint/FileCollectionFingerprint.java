@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.Multimap;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -31,9 +31,9 @@ public interface FileCollectionFingerprint {
     /**
      * Visits the changes to file contents since the given fingerprint, subject to the given filters.
      *
-     * @return Whether the {@link TaskStateChangeVisitor} is looking for further changes. See {@link TaskStateChangeVisitor#visitChange(TaskStateChange)}.
+     * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
      */
-    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
+    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, ChangeVisitor visitor);
 
     /**
      * The underlying fingerprints.

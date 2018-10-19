@@ -16,25 +16,18 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.DescriptiveChange;
 
-@NonNullApi
 public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
 
     public static final NoHistoryTaskUpToDateState INSTANCE = new NoHistoryTaskUpToDateState();
 
-    private final Iterable<TaskStateChange> noHistoryTaskStateChanges;
     private final DescriptiveChange noHistoryChange = new DescriptiveChange("No history is available.");
 
-    private NoHistoryTaskUpToDateState() {
-        noHistoryTaskStateChanges = ImmutableList.<TaskStateChange>of(noHistoryChange);
-    }
-
     @Override
-    public Iterable<TaskStateChange> getInputFilesChanges() {
+    public Iterable<Change> getInputFilesChanges() {
         throw new UnsupportedOperationException("Input file changes can only be queried when task history is available.");
     }
 
@@ -44,7 +37,7 @@ public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public void visitAllTaskChanges(TaskStateChangeVisitor visitor) {
+    public void visitAllChanges(ChangeVisitor visitor) {
         visitor.visitChange(noHistoryChange);
     }
 

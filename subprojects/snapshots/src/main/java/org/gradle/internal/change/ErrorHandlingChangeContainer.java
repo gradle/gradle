@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
 
-public class ErrorHandlingTaskStateChanges implements TaskStateChanges {
-    private final Task task;
-    private final TaskStateChanges delegate;
+public class ErrorHandlingChangeContainer implements ChangeContainer {
+    private final Object work;
+    private final ChangeContainer delegate;
 
-    ErrorHandlingTaskStateChanges(Task task, TaskStateChanges delegate) {
-        this.task = task;
+    public ErrorHandlingChangeContainer(Object work, ChangeContainer delegate) {
+        this.work = work;
         this.delegate = delegate;
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         try {
             return delegate.accept(visitor);
         } catch (Exception ex) {
-            throw new GradleException(String.format("Cannot determine task state changes for %s", task), ex);
+            throw new GradleException(String.format("Cannot determine changes for %s", work), ex);
         }
     }
 }

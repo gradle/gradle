@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,20 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.internal.changes.TaskStateChange;
+import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
-class DescriptiveChange implements TaskStateChange {
-    private final String message;
+import java.util.SortedMap;
 
-    public DescriptiveChange(String message, Object... params) {
-        this.message = String.format(message, params);
+public class InputPropertyChanges extends AbstractPropertyChanges<ValueSnapshot> {
+
+    public InputPropertyChanges(TaskExecution previous, TaskExecution current, Task task) {
+        super(previous, current, "Input", task);
     }
 
-    public String getMessage() {
-        return message;
+    @Override
+    protected SortedMap<String, ValueSnapshot> getProperties(TaskExecution execution) {
+        return execution.getInputProperties();
     }
 }

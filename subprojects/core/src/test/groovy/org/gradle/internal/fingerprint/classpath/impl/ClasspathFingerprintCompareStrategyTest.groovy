@@ -16,8 +16,8 @@
 
 package org.gradle.internal.fingerprint.classpath.impl
 
-import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
-import org.gradle.internal.changes.FileChange
+import org.gradle.internal.change.CollectingChangeVisitor
+import org.gradle.internal.change.FileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy
@@ -171,13 +171,13 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
     }
 
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingTaskStateChangeVisitor()
+        def visitor = new CollectingChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
     def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingTaskStateChangeVisitor()
+        def visitor = new CollectingChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }

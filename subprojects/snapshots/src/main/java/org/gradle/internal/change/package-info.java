@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.change;
 
-package org.gradle.api.internal.changedetection.rules;
-
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-
-public class ChangeDetectorVisitor implements ChangeVisitor {
-    private boolean anyChanges;
-
-    @Override
-    public boolean visitChange(Change change) {
-        anyChanges = true;
-        return false;
-    }
-
-    public boolean hasAnyChanges() {
-        return anyChanges;
-    }
-}
+import org.gradle.api.NonNullApi;

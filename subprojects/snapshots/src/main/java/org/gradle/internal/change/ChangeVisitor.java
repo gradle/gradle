@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
-import org.gradle.internal.changes.TaskStateChangeVisitor;
-
-public interface TaskStateChanges {
+public interface ChangeVisitor {
     /**
-     * Propagate changes the visitor.
+     * Visits a new change.
      *
-     * @return Whether the visitor still wants to obtain more changes.
+     * @return Whether to continue looking for changes.
      */
-    boolean accept(TaskStateChangeVisitor visitor);
+    boolean visitChange(Change change);
 }

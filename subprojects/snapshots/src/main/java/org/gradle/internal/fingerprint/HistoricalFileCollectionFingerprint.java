@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint;
 
 /**
- * A file collection fingerprint loaded from the task history.
+ * A file collection fingerprint loaded from the execution history.
  */
 public interface HistoricalFileCollectionFingerprint extends FileCollectionFingerprint {
 }

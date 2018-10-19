@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Provides an efficient summary of the changes, without doing too much unnecessary work.
  * - Will only emit changes of a single type (from a single delegate change set)
  */
-class SummaryTaskStateChanges implements TaskStateChanges {
-    private final List<TaskStateChanges> sources;
+public class SummarizingChangeContainer implements ChangeContainer {
+    private final List<ChangeContainer> sources;
 
-
-    public SummaryTaskStateChanges(TaskStateChanges... sources) {
-        this.sources = Arrays.asList(sources);
+    public SummarizingChangeContainer(ChangeContainer... sources) {
+        this.sources = ImmutableList.copyOf(sources);
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         ChangeDetectingVisitor changeDetectingVisitor = new ChangeDetectingVisitor(visitor);
-        for (TaskStateChanges source : sources) {
+        for (ChangeContainer source : sources) {
             if (!source.accept(changeDetectingVisitor)) {
                 return false;
             }
@@ -48,16 +45,16 @@ class SummaryTaskStateChanges implements TaskStateChanges {
         return true;
     }
 
-    private static class ChangeDetectingVisitor implements TaskStateChangeVisitor {
-        private final TaskStateChangeVisitor delegate;
+    private static class ChangeDetectingVisitor implements ChangeVisitor {
+        private final ChangeVisitor delegate;
         private boolean changesDetected;
 
-        public ChangeDetectingVisitor(TaskStateChangeVisitor delegate) {
+        public ChangeDetectingVisitor(ChangeVisitor delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public boolean visitChange(TaskStateChange change) {
+        public boolean visitChange(Change change) {
             changesDetected = true;
             return delegate.visitChange(change);
         }

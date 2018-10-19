@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules
+package org.gradle.internal.change
 
-import org.gradle.internal.changes.TaskStateChange
 import spock.lang.Specification
 
-class MaximumNumberTaskStateChangeVisitorTest extends Specification {
+class LimitingChangeVisitorTest extends Specification {
 
-    def collectingVisitor = new CollectingTaskStateChangeVisitor()
-    def visitor = new MaximumNumberTaskStateChangeVisitor(2, collectingVisitor)
+    def collectingVisitor = new CollectingChangeVisitor()
+    def visitor = new LimitingChangeVisitor(2, collectingVisitor)
 
     def "will not accept more changes than specified"() {
-        def change1 = Mock(TaskStateChange)
-        def change2 = Mock(TaskStateChange)
+        def change1 = Mock(Change)
+        def change2 = Mock(Change)
 
         expect:
         visitor.visitChange(change1)

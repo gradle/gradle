@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules
+package org.gradle.internal.change
 
-import org.gradle.internal.changes.TaskStateChange
-import org.gradle.internal.changes.TaskStateChangeVisitor
+
 import spock.lang.Specification
 
-class CachingTaskStateChangesTest extends Specification {
-    def delegate = Mock(TaskStateChanges.class)
-    def change1 = Mock(TaskStateChange)
-    def change2 = Mock(TaskStateChange)
-    def change3 = Mock(TaskStateChange)
+class CachingChangeContainerTest extends Specification {
+    def delegate = Mock(ChangeContainer)
+    def change1 = Mock(Change)
+    def change2 = Mock(Change)
+    def change3 = Mock(Change)
 
-    def cachingChanges = new CachingTaskStateChanges(2, delegate)
-    def collectingVisitor = new CollectingTaskStateChangeVisitor()
+    def cachingChanges = new CachingChangeContainer(2, delegate)
+    def collectingVisitor = new CollectingChangeVisitor()
 
     def "caches all reported changes under cache size"() {
         when:
-        cachingChanges.accept(new CollectingTaskStateChangeVisitor())
+        cachingChanges.accept(new CollectingChangeVisitor())
 
         then:
         interaction {
@@ -52,7 +51,7 @@ class CachingTaskStateChangesTest extends Specification {
 
     def "does not cache once reported changes exceed cache size"() {
         when:
-        cachingChanges.accept(new CollectingTaskStateChangeVisitor())
+        cachingChanges.accept(new CollectingChangeVisitor())
 
         then:
         interaction {
@@ -61,7 +60,7 @@ class CachingTaskStateChangesTest extends Specification {
         0 * _
 
         when:
-        cachingChanges.accept(new CollectingTaskStateChangeVisitor())
+        cachingChanges.accept(new CollectingChangeVisitor())
         cachingChanges.accept(collectingVisitor)
         def reported = collectingVisitor.changes
 
@@ -78,7 +77,7 @@ class CachingTaskStateChangesTest extends Specification {
 
     def "does not cache if visitor aborts visiting"() {
         when:
-        cachingChanges.accept(new MaximumNumberTaskStateChangeVisitor(2, new CollectingTaskStateChangeVisitor()))
+        cachingChanges.accept(new LimitingChangeVisitor(2, new CollectingChangeVisitor()))
 
         then:
         interaction {
@@ -100,9 +99,9 @@ class CachingTaskStateChangesTest extends Specification {
         reported == [change1, change2]
     }
 
-    private void receivesChanges(TaskStateChange... changes) {
+    private void receivesChanges(Change... changes) {
         1 * delegate.accept(_) >> { args ->
-            TaskStateChangeVisitor visitor = args[0]
+            ChangeVisitor visitor = args[0]
             for (change in changes) {
                 if (!visitor.visitChange(change)) {
                     return false

@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.change
 
-package org.gradle.api.internal.changedetection.rules
-
-import org.gradle.internal.changes.TaskStateChange
 import spock.lang.Specification
 
-class SummaryTaskStateChangesTest extends Specification {
+class SummarizingChangeContainerTest extends Specification {
 
-    def state1 = Mock(TaskStateChanges)
-    def state2 = Mock(TaskStateChanges)
-    def state = new SummaryTaskStateChanges(state1, state2)
-    def change = Mock(TaskStateChange)
-    def visitor = new CollectingTaskStateChangeVisitor()
+    def state1 = Mock(ChangeContainer)
+    def state2 = Mock(ChangeContainer)
+    def state = new SummarizingChangeContainer(state1, state2)
+    def change = Mock(Change)
+    def visitor = new CollectingChangeVisitor()
 
     def "looks for changes in all delegate change sets"() {
         when:
@@ -42,7 +40,7 @@ class SummaryTaskStateChangesTest extends Specification {
     }
 
     def "only returns changes from a single delegate"() {
-        def change1 = Mock(TaskStateChange)
+        def change1 = Mock(Change)
 
         when:
         state.accept(visitor)

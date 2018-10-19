@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.changes;
+package org.gradle.internal.change;
 
 import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -22,7 +22,7 @@ import org.gradle.internal.file.FileType;
 
 import java.io.File;
 
-public class FileChange implements TaskStateChange, InputFileDetails {
+public class FileChange implements Change, InputFileDetails {
     private final String path;
     private final ChangeType change;
     private final String title;

@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.SortedMap;
 
-@NonNullApi
-public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges<FileCollectionFingerprint> {
+public class OutputPropertyChanges extends AbstractPropertyChanges<FileCollectionFingerprint> {
 
-    public OutputPropertyTaskChanges(TaskExecution previous, TaskExecution current, Task task) {
+    public OutputPropertyChanges(TaskExecution previous, TaskExecution current, Task task) {
         super(previous, current, "Output", task);
     }
 

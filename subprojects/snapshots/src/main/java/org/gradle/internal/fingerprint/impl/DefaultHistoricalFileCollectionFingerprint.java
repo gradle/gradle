@@ -22,7 +22,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
@@ -51,7 +51,7 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     }
 
     @Override
-    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
+    public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, ChangeVisitor visitor) {
         return compareStrategy.visitChangesSince(visitor, getFingerprints(), oldFingerprint.getFingerprints(), title, includeAdded);
     }
 

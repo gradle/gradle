@@ -19,8 +19,8 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
-import org.gradle.internal.changes.FileChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.FileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
@@ -59,7 +59,7 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
      * </ul>
      */
     @Override
-    protected boolean doVisitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();

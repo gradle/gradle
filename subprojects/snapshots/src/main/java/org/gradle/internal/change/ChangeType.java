@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.changes;
+package org.gradle.internal.change;
 
-public interface TaskStateChange {
-    String getMessage();
+public enum ChangeType {
+    ADDED("has been added"),
+    MODIFIED("has changed"),
+    REMOVED("has been removed");
+
+    private final String description;
+
+    ChangeType(String description) {
+        this.description = description;
+    }
+
+    public String describe() {
+        return description;
+    }
 }

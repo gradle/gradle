@@ -17,14 +17,12 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-@NonNullApi
-public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    public InputFileTaskStateChanges(TaskExecution previous, TaskExecution current) {
+public class InputFileChanges extends AbstractFingerprintBasedChanges {
+    public InputFileChanges(TaskExecution previous, TaskExecution current) {
         super(previous, current, "Input");
     }
 
@@ -34,7 +32,7 @@ public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStat
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         return accept(visitor, true);
     }
 }

@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
-
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+package org.gradle.internal.change;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,25 +24,25 @@ import java.util.List;
  * When the cache is overrun, then the delegate will be visited directly in further requests.
  * If a visitor does not consume all the changes, then nothing is cached.
  */
-public class CachingTaskStateChanges implements TaskStateChanges {
-    private final TaskStateChanges delegate;
-    private final List<TaskStateChange> cache = new ArrayList<TaskStateChange>();
+public class CachingChangeContainer implements ChangeContainer {
+    private final ChangeContainer delegate;
+    private final List<Change> cache = new ArrayList<Change>();
     private final int maxCachedChanges;
     private boolean cached;
     private boolean overrun;
 
-    public CachingTaskStateChanges(int maxCachedChanges, TaskStateChanges delegate) {
+    public CachingChangeContainer(int maxCachedChanges, ChangeContainer delegate) {
         this.maxCachedChanges = maxCachedChanges;
         this.delegate = delegate;
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         if (overrun) {
             return delegate.accept(visitor);
         }
         if (cached) {
-            for (TaskStateChange change : cache) {
+            for (Change change : cache) {
                 if (!visitor.visitChange(change)) {
                     return false;
                 }
@@ -58,16 +55,16 @@ public class CachingTaskStateChanges implements TaskStateChanges {
         return acceptedAllChanges;
     }
 
-    private class CachingVisitor implements TaskStateChangeVisitor {
-        private final TaskStateChangeVisitor delegate;
+    private class CachingVisitor implements ChangeVisitor {
+        private final ChangeVisitor delegate;
         private int numChanges;
 
-        public CachingVisitor(TaskStateChangeVisitor delegate) {
+        public CachingVisitor(ChangeVisitor delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public boolean visitChange(TaskStateChange change) {
+        public boolean visitChange(Change change) {
             if (numChanges < maxCachedChanges) {
                 numChanges++;
                 cache.add(change);

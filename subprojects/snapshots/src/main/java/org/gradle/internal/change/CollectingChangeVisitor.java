@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-public class ChangeDetectorVisitor implements ChangeVisitor {
-    private boolean anyChanges;
+public class CollectingChangeVisitor implements ChangeVisitor {
+    private List<Change> changes = new ArrayList<Change>();
 
     @Override
     public boolean visitChange(Change change) {
-        anyChanges = true;
-        return false;
+        changes.add(change);
+        return true;
     }
 
-    public boolean hasAnyChanges() {
-        return anyChanges;
+    public Collection<Change> getChanges() {
+        return changes;
     }
 }

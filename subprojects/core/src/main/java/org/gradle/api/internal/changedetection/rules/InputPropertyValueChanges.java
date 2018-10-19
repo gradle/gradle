@@ -20,17 +20,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.DescriptiveChange;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 
-class InputPropertyValueTaskStateChanges implements TaskStateChanges {
+class InputPropertyValueChanges implements ChangeContainer {
     private final TaskInternal task;
     private final ImmutableMap<String, String> changed;
 
-    public InputPropertyValueTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+    public InputPropertyValueChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution.getInputProperties();
         ImmutableMap.Builder<String, String> changedBuilder = ImmutableMap.builder();
         ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
@@ -51,7 +53,7 @@ class InputPropertyValueTaskStateChanges implements TaskStateChanges {
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         for (Map.Entry<String, String> entry : changed.entrySet()) {
             String propertyName = entry.getKey();
             String changeType = entry.getValue();

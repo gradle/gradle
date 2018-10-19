@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
+public class DescriptiveChange implements Change {
+    private final String message;
 
-public class ChangeDetectorVisitor implements ChangeVisitor {
-    private boolean anyChanges;
-
-    @Override
-    public boolean visitChange(Change change) {
-        anyChanges = true;
-        return false;
+    public DescriptiveChange(String message, Object... params) {
+        this.message = String.format(message, params);
     }
 
-    public boolean hasAnyChanges() {
-        return anyChanges;
+    public String getMessage() {
+        return message;
     }
 }

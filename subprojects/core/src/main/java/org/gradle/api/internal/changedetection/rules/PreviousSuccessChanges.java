@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.DescriptiveChange;
 
-@NonNullApi
-public class PreviousSuccessTaskStateChanges implements TaskStateChanges {
-    private static final TaskStateChange PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
+public class PreviousSuccessChanges implements ChangeContainer {
+    private static final Change PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
     private final TaskExecution previousExecution;
 
-    public PreviousSuccessTaskStateChanges(TaskExecution previousExecution) {
+    public PreviousSuccessChanges(TaskExecution previousExecution) {
         this.previousExecution = previousExecution;
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         if (!previousExecution.isSuccessful()) {
             return visitor.visitChange(PREVIOUS_FAILURE);
         }

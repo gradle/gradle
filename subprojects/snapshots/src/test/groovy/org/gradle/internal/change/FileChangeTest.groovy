@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.changes
+package org.gradle.internal.change
 
 import org.gradle.internal.file.FileType
 import spock.lang.Specification

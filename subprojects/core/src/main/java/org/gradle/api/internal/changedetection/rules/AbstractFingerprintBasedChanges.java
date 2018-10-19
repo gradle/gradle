@@ -17,18 +17,17 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-@NonNullApi
-public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
+public abstract class AbstractFingerprintBasedChanges implements ChangeContainer {
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final String title;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(TaskExecution previous, TaskExecution current, String title) {
+    protected AbstractFingerprintBasedChanges(TaskExecution previous, TaskExecution current, String title) {
         this.previous = previous;
         this.current = current;
         this.title = title;
@@ -44,7 +43,7 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
 
     protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution);
 
-    protected boolean accept(final TaskStateChangeVisitor visitor, final boolean includeAdded) {
+    protected boolean accept(final ChangeVisitor visitor, final boolean includeAdded) {
         return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionFingerprint>() {
             @Override
             public boolean removed(String previousProperty) {

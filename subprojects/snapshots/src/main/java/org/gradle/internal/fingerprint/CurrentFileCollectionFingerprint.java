@@ -33,7 +33,7 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
     boolean isEmpty();
 
     /**
-     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.
+     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the execution history.
      */
     HistoricalFileCollectionFingerprint archive();
 }

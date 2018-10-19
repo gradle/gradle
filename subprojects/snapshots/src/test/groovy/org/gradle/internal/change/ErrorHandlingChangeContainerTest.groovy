@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules
+package org.gradle.internal.change
 
 import org.gradle.api.GradleException
 import org.gradle.api.Task
-import org.gradle.internal.changes.TaskStateChangeVisitor
 import spock.lang.Specification
 
-class ErrorHandlingTaskStateChangesTest extends Specification {
+class ErrorHandlingChangeContainerTest extends Specification {
     def task = Mock(Task)
-    def delegate = Mock(TaskStateChanges)
-    def changes = new ErrorHandlingTaskStateChanges(task, delegate)
+    def delegate = Mock(ChangeContainer)
+    def changes = new ErrorHandlingChangeContainer(task, delegate)
 
     def "accept error reports task path"() {
         when:
-        changes.accept(Mock(TaskStateChangeVisitor))
+        changes.accept(Mock(ChangeVisitor))
         then:
         def ex = thrown GradleException
         ex.message == "Cannot determine task state changes for Mock for type 'Task' named 'task'"
@@ -37,7 +36,7 @@ class ErrorHandlingTaskStateChangesTest extends Specification {
     }
 
     def "visitor error reports task path"() {
-        def visitor = Mock(TaskStateChangeVisitor)
+        def visitor = Mock(ChangeVisitor)
 
         when:
         changes.accept(visitor)

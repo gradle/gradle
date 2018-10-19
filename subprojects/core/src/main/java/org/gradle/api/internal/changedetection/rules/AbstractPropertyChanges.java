@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.DescriptiveChange;
 
 import java.util.SortedMap;
 
-@NonNullApi
-public abstract class AbstractPropertyTaskStateChanges<V> implements TaskStateChanges {
+public abstract class AbstractPropertyChanges<V> implements ChangeContainer {
 
     private final TaskExecution previous;
     private final TaskExecution current;
     private final String title;
     private final Task task;
 
-    protected AbstractPropertyTaskStateChanges(TaskExecution previous, TaskExecution current, String title, Task task) {
+    protected AbstractPropertyChanges(TaskExecution previous, TaskExecution current, String title, Task task) {
         this.previous = previous;
         this.current = current;
         this.title = title;
@@ -41,7 +41,7 @@ public abstract class AbstractPropertyTaskStateChanges<V> implements TaskStateCh
     protected abstract SortedMap<String, ? extends V> getProperties(TaskExecution execution);
 
     @Override
-    public boolean accept(final TaskStateChangeVisitor visitor) {
+    public boolean accept(final ChangeVisitor visitor) {
         return SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
             @Override
             public boolean removed(String previousProperty) {

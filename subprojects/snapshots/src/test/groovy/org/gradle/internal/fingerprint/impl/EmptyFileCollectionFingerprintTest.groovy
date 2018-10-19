@@ -17,9 +17,9 @@
 package org.gradle.internal.fingerprint.impl
 
 import com.google.common.collect.ImmutableMultimap
-import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
-import org.gradle.internal.changes.FileChange
-import org.gradle.internal.changes.TaskStateChange
+import org.gradle.internal.change.Change
+import org.gradle.internal.change.CollectingChangeVisitor
+import org.gradle.internal.change.FileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -80,8 +80,8 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         secondEmpty = combination[1]
     }
 
-    private static Collection<TaskStateChange> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {
-        def visitor = new CollectingTaskStateChangeVisitor()
+    private static Collection<Change> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {
+        def visitor = new CollectingChangeVisitor()
         current.visitChangesSince(previous, "test", includeAdded, visitor)
         visitor.changes
     }

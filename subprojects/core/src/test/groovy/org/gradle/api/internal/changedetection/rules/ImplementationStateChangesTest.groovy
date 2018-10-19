@@ -25,13 +25,14 @@ import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.internal.Cast
+import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.util.Path
 import spock.lang.Specification
 
-class TaskTypeTaskStateChangesTest extends Specification {
+class ImplementationStateChangesTest extends Specification {
     def taskLoaderHash = HashCode.fromInt(123)
     def taskLoader = SimpleTask.getClassLoader()
     def task = Stub(TaskInternal) {
@@ -49,7 +50,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes.empty
@@ -59,7 +60,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous = mockExecution(impl(PreviousTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' has changed type from '$PreviousTask.name' to '$SimpleTask.name'." as String]
@@ -70,7 +71,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(SimpleTask, previousHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' class path has changed from ${previousHash} to ${taskLoaderHash}." as String]
@@ -81,7 +82,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, previousHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' has additional actions that have changed"]
@@ -91,7 +92,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' has additional actions that have changed"]
@@ -101,7 +102,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' has additional actions that have changed"]
@@ -111,7 +112,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' has additional actions that have changed"]
@@ -128,7 +129,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(simpleTaskClass, null), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(simpleTaskClass, null), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
         changes == ["Task ':test' was loaded with an unknown classloader (class 'SimpleTask')."]
@@ -138,34 +139,34 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, null))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
-        changes == ["Task ':test' has an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$TestAction')."]
+        changes == ["Task ':test' has an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.ImplementationStateChangesTest\$TestAction')."]
     }
 
     def "not up-to-date when task was previously loaded with an unknown classloader"() {
         def previous =  mockExecution(impl(SimpleTask, null), impl(TestAction, taskLoaderHash))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
-        changes == ["During the previous execution of the task ':test', it was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$SimpleTask')."]
+        changes == ["During the previous execution of the task ':test', it was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.ImplementationStateChangesTest\$SimpleTask')."]
     }
 
     def "not up-to-date when task action was previously loaded with an unknown classloader"() {
         def previous =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, null))
         def current =  mockExecution(impl(SimpleTask, taskLoaderHash), impl(TestAction, taskLoaderHash))
 
-        def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
+        def changes = collectChanges(new ImplementationStateChanges(previous, current, task))
 
         expect:
-        changes == ["During the previous execution of the task ':test', it had an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$TestAction')."]
+        changes == ["During the previous execution of the task ':test', it had an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.ImplementationStateChangesTest\$TestAction')."]
     }
 
-    List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {
-        def visitor = new CollectingTaskStateChangeVisitor()
+    List<String> collectChanges(ImplementationStateChanges stateChanges) {
+        def visitor = new CollectingChangeVisitor()
         stateChanges.accept(visitor)
         return visitor.changes*.message
     }

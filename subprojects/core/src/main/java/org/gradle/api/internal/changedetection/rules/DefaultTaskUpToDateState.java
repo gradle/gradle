@@ -16,50 +16,53 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.CachingChangeContainer;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.CollectingChangeVisitor;
+import org.gradle.internal.change.ErrorHandlingChangeContainer;
+import org.gradle.internal.change.SummarizingChangeContainer;
 
-@NonNullApi
 public class DefaultTaskUpToDateState implements TaskUpToDateState {
 
-    private final TaskStateChanges inputFileChanges;
-    private final OutputFileTaskStateChanges outputFileChanges;
-    private final TaskStateChanges allTaskChanges;
-    private final TaskStateChanges rebuildChanges;
-    private final TaskStateChanges outputFilePropertyChanges;
+    private final ChangeContainer inputFileChanges;
+    private final OutputFileChanges outputFileChanges;
+    private final ChangeContainer allChanges;
+    private final ChangeContainer rebuildChanges;
+    private final ChangeContainer outputFilePropertyChanges;
 
     public DefaultTaskUpToDateState(TaskExecution lastExecution, TaskExecution thisExecution, TaskInternal task) {
-        TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution);
-        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges inputPropertyChanges = new InputPropertyTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges inputPropertyValueChanges = new InputPropertyValueTaskStateChanges(lastExecution, thisExecution, task);
+        ChangeContainer previousSuccessState = new PreviousSuccessChanges(lastExecution);
+        ChangeContainer taskTypeState = new ImplementationStateChanges(lastExecution, thisExecution, task);
+        ChangeContainer inputPropertyChanges = new InputPropertyChanges(lastExecution, thisExecution, task);
+        ChangeContainer inputPropertyValueChanges = new InputPropertyValueChanges(lastExecution, thisExecution, task);
 
         // Capture outputs state
-        this.outputFilePropertyChanges = new OutputPropertyTaskChanges(lastExecution, thisExecution, task);
-        OutputFileTaskStateChanges uncachedOutputChanges = new OutputFileTaskStateChanges(lastExecution, thisExecution);
-        TaskStateChanges outputFileChanges = caching(uncachedOutputChanges);
+        this.outputFilePropertyChanges = new OutputPropertyChanges(lastExecution, thisExecution, task);
+        OutputFileChanges uncachedOutputChanges = new OutputFileChanges(lastExecution, thisExecution);
+        ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
         this.outputFileChanges = uncachedOutputChanges;
 
         // Capture input files state
-        TaskStateChanges inputFilePropertyChanges = new InputFilePropertyTaskStateChanges(lastExecution, thisExecution, task);
-        InputFileTaskStateChanges directInputFileChanges = new InputFileTaskStateChanges(lastExecution, thisExecution);
-        TaskStateChanges inputFileChanges = caching(directInputFileChanges);
-        this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
+        ChangeContainer inputFilePropertyChanges = new InputFilePropertyChanges(lastExecution, thisExecution, task);
+        InputFileChanges directInputFileChanges = new InputFileChanges(lastExecution, thisExecution);
+        ChangeContainer inputFileChanges = caching(directInputFileChanges);
+        this.inputFileChanges = new ErrorHandlingChangeContainer(task, inputFileChanges);
 
-        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
-        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        this.allChanges = new ErrorHandlingChangeContainer(task, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
+        this.rebuildChanges = new ErrorHandlingChangeContainer(task, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
     }
 
-    private static TaskStateChanges caching(TaskStateChanges wrapped) {
-        return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+    private static ChangeContainer caching(ChangeContainer wrapped) {
+        return new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
     @Override
-    public Iterable<TaskStateChange> getInputFilesChanges() {
-        CollectingTaskStateChangeVisitor visitor = new CollectingTaskStateChangeVisitor();
+    public Iterable<Change> getInputFilesChanges() {
+        CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         inputFileChanges.accept(visitor);
         return visitor.getChanges();
     }
@@ -72,8 +75,8 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
     }
 
     @Override
-    public void visitAllTaskChanges(TaskStateChangeVisitor visitor) {
-        allTaskChanges.accept(visitor);
+    public void visitAllChanges(ChangeVisitor visitor) {
+        allChanges.accept(visitor);
     }
 
     @Override

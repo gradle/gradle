@@ -19,24 +19,26 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.DescriptiveChange;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 
-class TaskTypeTaskStateChanges implements TaskStateChanges {
+class ImplementationStateChanges implements ChangeContainer {
     private final TaskExecution previousExecution;
     private final TaskExecution currentExecution;
     private final TaskInternal task;
 
-    public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+    public ImplementationStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         this.previousExecution = previousExecution;
         this.currentExecution = currentExecution;
         this.task = task;
     }
 
     @Override
-    public boolean accept(TaskStateChangeVisitor visitor) {
+    public boolean accept(ChangeVisitor visitor) {
         ImplementationSnapshot prevImplementation = previousExecution.getTaskImplementation();
         ImplementationSnapshot taskImplementation = currentExecution.getTaskImplementation();
         if (!taskImplementation.getTypeName().equals(prevImplementation.getTypeName())) {

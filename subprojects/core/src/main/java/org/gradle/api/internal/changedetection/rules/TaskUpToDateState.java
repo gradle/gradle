@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
 
 /**
- * Represents the complete changes in a tasks state
+ * Represents the complete changes in execution state
  */
-@NonNullApi
 public interface TaskUpToDateState {
 
     int MAX_OUT_OF_DATE_MESSAGES = 3;
@@ -31,7 +29,7 @@ public interface TaskUpToDateState {
     /**
      * Returns changes to input files only.
      */
-    Iterable<TaskStateChange> getInputFilesChanges();
+    Iterable<Change> getInputFilesChanges();
 
     /**
      * Returns if any output files have been changed, added or removed.
@@ -39,9 +37,9 @@ public interface TaskUpToDateState {
     boolean hasAnyOutputFileChanges();
 
     /**
-     * Visits any change to task inputs or outputs.
+     * Visits any change to inputs or outputs.
      */
-    void visitAllTaskChanges(TaskStateChangeVisitor visitor);
+    void visitAllChanges(ChangeVisitor visitor);
 
     /**
      * Whether there are changes that force an incremental task to fully rebuild.

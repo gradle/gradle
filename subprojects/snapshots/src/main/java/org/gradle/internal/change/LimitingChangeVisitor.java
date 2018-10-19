@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+public class LimitingChangeVisitor implements ChangeVisitor {
+    private final int maxReportedChanges;
+    private final ChangeVisitor delegate;
+    private int visited;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-public class CollectingTaskStateChangeVisitor implements TaskStateChangeVisitor {
-    private List<TaskStateChange> changes = new ArrayList<TaskStateChange>();
-
-    @Override
-    public boolean visitChange(TaskStateChange change) {
-        changes.add(change);
-        return true;
+    public LimitingChangeVisitor(int maxReportedChanges, ChangeVisitor delegate) {
+        this.maxReportedChanges = maxReportedChanges;
+        this.delegate = delegate;
     }
 
-    public Collection<TaskStateChange> getChanges() {
-        return changes;
+    @Override
+    public boolean visitChange(Change change) {
+        boolean delegateResult = delegate.visitChange(change);
+        visited++;
+        return delegateResult && visited < maxReportedChanges;
     }
 }

@@ -26,7 +26,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.DefaultTaskUpToDateState;
-import org.gradle.api.internal.changedetection.rules.MaximumNumberTaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.rules.NoHistoryTaskUpToDateState;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
@@ -40,8 +39,9 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.changes.TaskStateChange;
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.LimitingChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -94,7 +94,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public boolean isUpToDate(final Collection<String> messages) {
             MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(messages);
-            getStates().visitAllTaskChanges(new MaximumNumberTaskStateChangeVisitor(MAX_OUT_OF_DATE_MESSAGES, visitor));
+            getStates().visitAllChanges(new LimitingChangeVisitor(MAX_OUT_OF_DATE_MESSAGES, visitor));
             this.upToDate = !visitor.hasAnyChanges();
             return upToDate;
         }
@@ -226,9 +226,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 CurrentFileCollectionFingerprint beforeCollection = entry.getValue();
                 CurrentFileCollectionFingerprint afterCollection = after.get(property);
                 final MutableBoolean changed = new MutableBoolean();
-                afterCollection.visitChangesSince(beforeCollection, "", true, new TaskStateChangeVisitor() {
+                afterCollection.visitChangesSince(beforeCollection, "", true, new ChangeVisitor() {
                     @Override
-                    public boolean visitChange(TaskStateChange change) {
+                    public boolean visitChange(Change change) {
                         changed.set(true);
                         return false;
                     }
@@ -256,7 +256,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
     }
 
-    private static class MessageCollectingChangeVisitor implements TaskStateChangeVisitor {
+    private static class MessageCollectingChangeVisitor implements ChangeVisitor {
         private final Collection<String> messages;
         private boolean anyChanges;
 
@@ -265,7 +265,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public boolean visitChange(TaskStateChange change) {
+        public boolean visitChange(Change change) {
             messages.add(change.getMessage());
             anyChanges = true;
             return true;

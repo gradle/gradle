@@ -30,8 +30,8 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.execution.history.ExecutionHistory;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.PreviousExecutionSnapshot;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -214,7 +214,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     @Nullable
     private HistoricalTaskExecution loadPreviousExecution(TaskInternal task) {
-        ExecutionHistory execution = executionHistoryStore.load(task.getPath());
+        PreviousExecutionSnapshot execution = executionHistoryStore.load(task.getPath());
         if (execution == null) {
             return null;
         }
