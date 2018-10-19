@@ -168,6 +168,10 @@ The only remaining reason to disable caching for the task is if the output conta
 You can now specify a timeout for a task, after which it will be interrupted.
 See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
 
+### Gradle Native ecosystem
+
+The [Gradle Native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-50) continues to improve and evolve the native ecosystem support for Gradle.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
