@@ -25,15 +25,19 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -52,6 +56,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -105,13 +110,21 @@ import java.util.Map;
  * @since 3.0
  */
 @CacheableTask
-@SuppressWarnings("WeakerAccess")
-public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
-    private FileCollection classes;
-    private FileCollection classpath;
-    private RegularFileProperty outputFile = getProject().getObjects().fileProperty();
+@SuppressWarnings("deprecation")
+public class ValidateTaskProperties extends ConventionTask implements VerificationTask, org.gradle.plugin.devel.tasks.internal.ValidateTaskPropertiesBackwardsCompatibleAdapter {
+    private final ConfigurableFileCollection classes;
+    private final ConfigurableFileCollection classpath;
+    private final RegularFileProperty outputFile;
+    private boolean enableStricterValidation;
     private boolean ignoreFailures;
     private boolean failOnWarning;
+
+    @Inject
+    public ValidateTaskProperties(ObjectFactory objects, ProjectLayout layout) {
+        this.classes = layout.configurableFiles();
+        this.classpath = layout.configurableFiles();
+        this.outputFile = objects.fileProperty();
+    }
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
@@ -134,7 +147,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         try {
             taskInterface = classLoader.loadClass(Task.class.getName());
             Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.tasks.properties.PropertyValidationAccess");
-            validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class);
+            validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class, Boolean.TYPE);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (NoSuchMethodException e) {
@@ -177,7 +190,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                     }
                     Class<? extends Task> taskClass = Cast.uncheckedCast(clazz);
                     try {
-                        validatorMethod.invoke(null, taskClass, taskValidationProblems);
+                        validatorMethod.invoke(null, taskClass, taskValidationProblems, enableStricterValidation);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     } catch (InvocationTargetException e) {
@@ -268,10 +281,11 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      *
      * @since 4.0
      */
+    @Override
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
-    public FileCollection getClasses() {
+    public ConfigurableFileCollection getClasses() {
         return classes;
     }
 
@@ -279,24 +293,32 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
      * Sets the classes to validate.
      *
      * @since 4.0
+     * @deprecated Use {@link #getClasses()}.setFrom instead.
      */
+    @Deprecated
     public void setClasses(FileCollection classes) {
-        this.classes = classes;
+        DeprecationLogger.nagUserOfReplacedMethod("setClasses(FileCollection)", "getClasses().setFrom(FileCollection)");
+        this.classes.setFrom(classes);
     }
 
     /**
      * The classpath used to load the classes under validation.
      */
+    @Override
     @Classpath
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         return classpath;
     }
 
     /**
      * Sets the classpath used to load the classes under validation.
+     *
+     * @deprecated Use {@link #getClasspath()}.setFrom instead.
      */
+    @Deprecated
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        DeprecationLogger.nagUserOfReplacedMethod("setClasspath(FileCollection)", "getClasspath().setFrom(FileCollection)");
+        this.classpath.setFrom(classpath);
     }
 
     /**
@@ -305,6 +327,27 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     @Input
     public boolean getFailOnWarning() {
         return failOnWarning;
+    }
+
+    /**
+     * Enable the stricter validation for cacheable tasks for all tasks.
+     *
+     * @since 5.1
+     */
+    @Incubating
+    @Input
+    public boolean getEnableStricterValidation() {
+        return enableStricterValidation;
+    }
+
+    /**
+     * Enable the stricter validation for cacheable tasks for all tasks.
+     * 
+     * @since 5.1
+     */
+    @Incubating
+    public void setEnableStricterValidation(boolean enableStricterValidation) {
+        this.enableStricterValidation = enableStricterValidation;
     }
 
     /**

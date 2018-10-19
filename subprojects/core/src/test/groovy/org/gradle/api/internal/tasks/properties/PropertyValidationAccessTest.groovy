@@ -155,10 +155,10 @@ class PropertyValidationAccessTest extends Specification {
         ])
     }
 
-    private static void assertHasValidationProblems(Class<?> taskType, List<String> expectedProblems) {
+    private static void assertHasValidationProblems(Class<?> taskType, List<String> expectedProblems, enableStricterValidation = false) {
         def propertyValidationAccess = new PropertyValidationAccess()
         def problems = new HashMap<String, Boolean>()
-        propertyValidationAccess.collectTaskValidationProblems(taskType, problems)
+        propertyValidationAccess.collectTaskValidationProblems(taskType, problems, enableStricterValidation)
 
         assert problems.keySet() == validationProblems(taskType, expectedProblems)
     }

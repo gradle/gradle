@@ -60,8 +60,14 @@ public class PropertyValidationAccess {
         InputDirectory.class, new MissingPathSensitivityValidator()
     );
 
-    @SuppressWarnings("unused")
+    // TODO: Remove as soon as we updated the wrapper on `gradle/gradle` to include the method {@link #collectTaskValidationProblems(Class, Map, boolean)}.
+    @Deprecated
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
+        collectTaskValidationProblems(topLevelBean, problems, false);
+    }
+
+    @SuppressWarnings("unused")
+    public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
         DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
@@ -71,10 +77,11 @@ public class PropertyValidationAccess {
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
         boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
+        boolean stricterValidation = enableStricterValidation || cacheable;
 
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
-            node.visit(topLevelBean, cacheable, problems, queue, nodeFactory);
+            node.visit(topLevelBean, stricterValidation, problems, queue, nodeFactory);
         }
     }
 
@@ -117,7 +124,7 @@ public class PropertyValidationAccess {
             this.beanType = beanType;
         }
 
-        public abstract void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
+        public abstract void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
 
         public boolean nodeCreatesCycle(TypeToken<?> childType) {
             return findNodeCreatingCycle(childType, Equivalence.equals()) != null;
@@ -141,7 +148,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             for (PropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(metadata.getFieldName());
                 for (String validationMessage : metadata.getValidationMessages()) {
@@ -156,7 +163,7 @@ public class PropertyValidationAccess {
                 }
                 PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
                 if (validator != null) {
-                    String validationMessage = validator.validate(cacheable, metadata);
+                    String validationMessage = validator.validate(stricterValidation, metadata);
                     if (validationMessage != null) {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                     }
@@ -195,7 +202,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
             nodeFactory.createAndAddToQueue(this, determinePropertyName(nestedType), nestedType, queue);
         }
@@ -208,7 +215,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean cacheable, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
             nodeFactory.createAndAddToQueue(this, getQualifiedPropertyName("<key>"), nestedType, queue);
         }
@@ -216,13 +223,13 @@ public class PropertyValidationAccess {
 
     private interface PropertyValidator {
         @Nullable
-        String validate(boolean cacheable, PropertyMetadata metadata);
+        String validate(boolean stricterValidation, PropertyMetadata metadata);
     }
 
     private static class InputOnFileTypeValidator implements PropertyValidator {
         @Nullable
         @Override
-        public String validate(boolean cacheable, PropertyMetadata metadata) {
+        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
             Class<?> valueType = metadata.getDeclaredType();
             if (File.class.isAssignableFrom(valueType)
                 || java.nio.file.Path.class.isAssignableFrom(valueType)
@@ -237,9 +244,9 @@ public class PropertyValidationAccess {
 
         @Nullable
         @Override
-        public String validate(boolean cacheable, PropertyMetadata metadata) {
+        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
             PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
-            if (cacheable && pathSensitive == null) {
+            if (stricterValidation && pathSensitive == null) {
                 return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";
             }
             return null;

@@ -243,8 +243,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
                 validator.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/task-properties/report.txt"));
 
-                validator.setClasses(mainSourceSet.getOutput().getClassesDirs());
-                validator.setClasspath(mainSourceSet.getCompileClasspath());
+                validator.getClasses().setFrom(mainSourceSet.getOutput().getClassesDirs());
+                validator.getClasspath().setFrom(mainSourceSet.getCompileClasspath());
                 validator.dependsOn(mainSourceSet.getOutput());
             }
         });

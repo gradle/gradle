@@ -15,6 +15,8 @@
  */
 package org.gradle.gradlebuild.buildquality
 
+import accessors.java
+import accessors.reporting
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -22,12 +24,8 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.tasks.testing.Test
-import org.gradle.plugin.devel.tasks.ValidateTaskProperties
-
-import accessors.java
-import accessors.reporting
-
 import org.gradle.kotlin.dsl.*
+import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 
 
 private
@@ -79,8 +77,8 @@ fun Project.addValidateTask() =
             val validateTask = tasks.register(validateTaskName, ValidateTaskProperties::class) {
                 val main by java.sourceSets
                 dependsOn(main.output)
-                classes = main.output.classesDirs
-                classpath = main.runtimeClasspath
+                setClasses(main.output.classesDirs)
+                setClasspath(main.runtimeClasspath)
                 // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
                 outputFile.set(reporting.baseDirectory.file(reportFileName))
                 failOnWarning = true

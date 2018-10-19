@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -376,5 +377,55 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "validateTaskProperties"
+    }
+
+    def "can enable stricter validation"() {
+        buildFile << """
+            apply plugin: "groovy"
+
+            dependencies {
+                compile localGroovy()
+            }
+            
+            validateTaskProperties.enableStricterValidation = true
+        """
+        file("src/main/groovy/MyTask.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class MyTask extends DefaultTask {
+                @InputFile
+                File missingNormalization
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'missingNormalization' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+        """.stripIndent().trim()
+    }
+
+    @Unroll
+    def "reports deprecated #property setter"() {
+        buildFile << """
+            validateTaskProperties.${property} = sourceSets.main.${value}
+        """
+
+        when:
+        executer.expectDeprecationWarnings(1)
+        succeeds("validateTaskProperties")
+        then:
+        output.contains("The set${property.capitalize()}(FileCollection) method has been deprecated. This is scheduled to be removed in Gradle 6.0. Please use the get${property.capitalize()}().setFrom(FileCollection) method instead.")
+
+        where:
+        property    | value
+        'classes'   | 'output.classesDirs'
+        'classpath' | ' compileClasspath '
     }
 }
