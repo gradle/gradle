@@ -20,19 +20,19 @@ import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 
 public class PreviousSuccessChanges implements ChangeContainer {
     private static final Change PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
-    private final PreviousExecutionState previous;
 
-    public PreviousSuccessChanges(PreviousExecutionState previous) {
-        this.previous = previous;
+    private final boolean successful;
+
+    public PreviousSuccessChanges(boolean successful) {
+        this.successful = successful;
     }
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        if (!previous.isSuccessful()) {
+        if (!successful) {
             return visitor.visitChange(PREVIOUS_FAILURE);
         }
         return true;

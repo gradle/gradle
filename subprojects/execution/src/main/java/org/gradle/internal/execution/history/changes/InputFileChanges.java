@@ -18,19 +18,12 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-public class InputFileChanges extends AbstractFingerprintBasedChanges {
-    public InputFileChanges(PreviousExecutionState previous, BeforeExecutionState current) {
-        super(previous, current, "Input");
-    }
+public class InputFileChanges extends AbstractFingerprintChanges {
 
-    @Override
-    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(ExecutionState execution) {
-        return execution.getInputFileProperties();
+    public InputFileChanges(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current) {
+        super(previous, current, "Input");
     }
 
     @Override

@@ -31,39 +31,67 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 public class DefaultExecutionStateChanges implements ExecutionStateChanges {
 
     private final ChangeContainer inputFileChanges;
+    private final ChangeContainer outputFilePropertyChanges;
     private final OutputFileChanges outputFileChanges;
     private final ChangeContainer allChanges;
-    private final ChangeContainer rebuildChanges;
-    private final ChangeContainer outputFilePropertyChanges;
+    private final ChangeContainer rebuildTriggeringChanges;
 
     public DefaultExecutionStateChanges(PreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
-        ChangeContainer previousSuccessState = new PreviousSuccessChanges(lastExecution);
-        ChangeContainer taskTypeState = new ImplementationStateChanges(
+        // Capture changes in execution outcome
+        ChangeContainer previousSuccessState = new PreviousSuccessChanges(
+            lastExecution.isSuccessful());
+
+        // Capture changes to implementation
+        ChangeContainer implementationChanges = new ImplementationChanges(
             lastExecution.getImplementation(), lastExecution.getAdditionalImplementations(),
             thisExecution.getImplementation(), thisExecution.getAdditionalImplementations(),
-            executable
-        );
-        ChangeContainer inputPropertyChanges = new InputPropertyChanges(lastExecution, thisExecution, executable);
-        ChangeContainer inputPropertyValueChanges = new InputPropertyValueChanges(lastExecution, thisExecution, executable);
+            executable);
 
-        // Capture outputs state
-        this.outputFilePropertyChanges = new OutputPropertyChanges(lastExecution, thisExecution, executable);
-        OutputFileChanges uncachedOutputChanges = new OutputFileChanges(lastExecution, thisExecution);
+        // Capture non-file input changes
+        ChangeContainer inputPropertyChanges = new PropertyChanges(
+            lastExecution.getInputProperties(),
+            thisExecution.getInputProperties(),
+            "Input",
+            executable);
+        ChangeContainer inputPropertyValueChanges = new InputValueChanges(
+            lastExecution.getInputProperties(),
+            thisExecution.getInputProperties(),
+            executable);
+
+        // Capture input files state
+        ChangeContainer inputFilePropertyChanges = new PropertyChanges(
+            lastExecution.getInputFileProperties(),
+            thisExecution.getInputFileProperties(),
+            "Input file",
+            executable);
+        InputFileChanges directInputFileChanges = new InputFileChanges(
+            lastExecution.getInputFileProperties(),
+            thisExecution.getInputFileProperties());
+        ChangeContainer inputFileChanges = caching(directInputFileChanges);
+        this.inputFileChanges = errorHandling(executable, inputFileChanges);
+
+        // Capture output files state
+        this.outputFilePropertyChanges = new PropertyChanges(
+            lastExecution.getOutputFileProperties(),
+            thisExecution.getOutputFileProperties(),
+            "Output",
+            executable);
+        OutputFileChanges uncachedOutputChanges = new OutputFileChanges(
+            lastExecution.getOutputFileProperties(),
+            thisExecution.getOutputFileProperties());
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
         this.outputFileChanges = uncachedOutputChanges;
 
-        // Capture input files state
-        ChangeContainer inputFilePropertyChanges = new InputFilePropertyChanges(lastExecution, thisExecution, executable);
-        InputFileChanges directInputFileChanges = new InputFileChanges(lastExecution, thisExecution);
-        ChangeContainer inputFileChanges = caching(directInputFileChanges);
-        this.inputFileChanges = new ErrorHandlingChangeContainer(executable, inputFileChanges);
-
-        this.allChanges = new ErrorHandlingChangeContainer(executable, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
-        this.rebuildChanges = new ErrorHandlingChangeContainer(executable, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        this.allChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
+        this.rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
     }
 
     private static ChangeContainer caching(ChangeContainer wrapped) {
         return new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+    }
+
+    private static ChangeContainer errorHandling(Describable executable, ChangeContainer wrapped) {
+        return new ErrorHandlingChangeContainer(executable, wrapped);
     }
 
     @Override
@@ -88,8 +116,7 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
     @Override
     public boolean isRebuildRequired() {
         ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
-        rebuildChanges.accept(changeDetectorVisitor);
+        rebuildTriggeringChanges.accept(changeDetectorVisitor);
         return changeDetectorVisitor.hasAnyChanges();
     }
-
 }

@@ -16,35 +16,30 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 
-import java.util.SortedMap;
+public class PropertyChanges implements ChangeContainer {
 
-public abstract class AbstractPropertyChanges<V> implements ChangeContainer {
-
-    private final PreviousExecutionState previous;
-    private final BeforeExecutionState current;
+    private final ImmutableSortedMap<String, ?> previous;
+    private final ImmutableSortedMap<String, ?> current;
     private final String title;
     private final Describable executable;
 
-    protected AbstractPropertyChanges(PreviousExecutionState previous, BeforeExecutionState current, String title, Describable executable) {
+    // TODO This should actually compare a SortedSet
+    protected PropertyChanges(ImmutableSortedMap<String, ?> previous, ImmutableSortedMap<String, ?> current, String title, Describable executable) {
         this.previous = previous;
         this.current = current;
         this.title = title;
         this.executable = executable;
     }
 
-    protected abstract SortedMap<String, ? extends V> getProperties(ExecutionState execution);
-
     @Override
     public boolean accept(final ChangeVisitor visitor) {
-        return SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
+        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, Object>() {
             @Override
             public boolean removed(String previousProperty) {
                 return visitor.visitChange(new DescriptiveChange("%s property '%s' has been removed for %s",
@@ -58,7 +53,7 @@ public abstract class AbstractPropertyChanges<V> implements ChangeContainer {
             }
 
             @Override
-            public boolean updated(String property, V previous, V current) {
+            public boolean updated(String property, Object previous, Object current) {
                 // Ignore
                 return true;
             }

@@ -16,14 +16,15 @@
 
 package org.gradle.internal.change;
 
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 
 public class ErrorHandlingChangeContainer implements ChangeContainer {
-    private final Object work;
+    private final Describable executable;
     private final ChangeContainer delegate;
 
-    public ErrorHandlingChangeContainer(Object work, ChangeContainer delegate) {
-        this.work = work;
+    public ErrorHandlingChangeContainer(Describable executable, ChangeContainer delegate) {
+        this.executable = executable;
         this.delegate = delegate;
     }
 
@@ -32,7 +33,7 @@ public class ErrorHandlingChangeContainer implements ChangeContainer {
         try {
             return delegate.accept(visitor);
         } catch (Exception ex) {
-            throw new GradleException(String.format("Cannot determine changes for %s", work), ex);
+            throw new GradleException(String.format("Cannot determine changes for %s", executable.getDisplayName()), ex);
         }
     }
 }

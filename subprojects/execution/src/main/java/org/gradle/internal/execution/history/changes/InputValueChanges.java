@@ -22,25 +22,21 @@ import org.gradle.api.Describable;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 
-class InputPropertyValueChanges implements ChangeContainer {
+class InputValueChanges implements ChangeContainer {
     private final Describable executable;
     private final ImmutableMap<String, String> changed;
 
-    public InputPropertyValueChanges(PreviousExecutionState previousExecution, BeforeExecutionState currentExecution, Describable executable) {
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution.getInputProperties();
+    public InputValueChanges(ImmutableSortedMap<String, ValueSnapshot> previous, ImmutableSortedMap<String, ValueSnapshot> current, Describable executable) {
         ImmutableMap.Builder<String, String> changedBuilder = ImmutableMap.builder();
-        ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
-        for (Map.Entry<String, ValueSnapshot> entry : currentInputProperties.entrySet()) {
+        for (Map.Entry<String, ValueSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
             ValueSnapshot currentSnapshot = entry.getValue();
-            ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
+            ValueSnapshot previousSnapshot = previous.get(propertyName);
             if (previousSnapshot != null) {
                 if (!currentSnapshot.equals(previousSnapshot)) {
                     changedBuilder.put(

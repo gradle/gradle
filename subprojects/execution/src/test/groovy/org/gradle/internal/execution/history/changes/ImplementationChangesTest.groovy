@@ -30,7 +30,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import spock.lang.Specification
 
-class ImplementationStateChangesTest extends Specification {
+class ImplementationChangesTest extends Specification {
     def taskLoaderHash = HashCode.fromInt(123)
     def executable = Stub(Describable) {
         getDisplayName() >> "task ':test'"
@@ -138,7 +138,7 @@ class ImplementationStateChangesTest extends Specification {
             ImplementationSnapshot currentImpl, List<ImplementationSnapshot> currentAdditionalImpls
     ) {
         def visitor = new CollectingChangeVisitor()
-        new ImplementationStateChanges(
+        new ImplementationChanges(
                 previousImpl, ImmutableList.copyOf(previousAdditionalImpls),
                 currentImpl, ImmutableList.copyOf(currentAdditionalImpls),
                 executable

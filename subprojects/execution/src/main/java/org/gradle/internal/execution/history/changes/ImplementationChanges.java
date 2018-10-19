@@ -25,14 +25,14 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 
-public class ImplementationStateChanges implements ChangeContainer {
+public class ImplementationChanges implements ChangeContainer {
     private final ImplementationSnapshot previousImplementation;
     private final ImmutableList<ImplementationSnapshot> previousAdditionalImplementations;
     private final ImplementationSnapshot currentImplementation;
     private final ImmutableList<ImplementationSnapshot> currentAdditionalImplementations;
     private final Describable executable;
 
-    public ImplementationStateChanges(
+    public ImplementationChanges(
         ImplementationSnapshot previousImplementation,
         ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
         ImplementationSnapshot currentImplementation,

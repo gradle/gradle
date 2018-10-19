@@ -19,20 +19,12 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-public class OutputFileChanges extends AbstractFingerprintBasedChanges {
+public class OutputFileChanges extends AbstractFingerprintChanges {
 
-    public OutputFileChanges(PreviousExecutionState previous, BeforeExecutionState current) {
+    public OutputFileChanges(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current) {
         super(previous, current, "Output");
-    }
-
-    @Override
-    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(ExecutionState execution) {
-        return execution.getOutputFileProperties();
     }
 
     public boolean hasAnyChanges() {

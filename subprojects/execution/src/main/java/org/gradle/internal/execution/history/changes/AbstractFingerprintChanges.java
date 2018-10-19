@@ -19,34 +19,21 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-public abstract class AbstractFingerprintBasedChanges implements ChangeContainer {
-    protected final PreviousExecutionState previous;
-    protected final BeforeExecutionState current;
+public abstract class AbstractFingerprintChanges implements ChangeContainer {
+    protected final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous;
+    protected final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current;
     private final String title;
 
-    protected AbstractFingerprintBasedChanges(PreviousExecutionState previous, BeforeExecutionState current, String title) {
+    protected AbstractFingerprintChanges(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current, String title) {
         this.previous = previous;
         this.current = current;
         this.title = title;
     }
 
-    private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getPrevious() {
-        return getFingerprints(previous);
-    }
-
-    private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getCurrent() {
-        return getFingerprints(current);
-    }
-
-    protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(ExecutionState execution);
-
     protected boolean accept(final ChangeVisitor visitor, final boolean includeAdded) {
-        return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionFingerprint>() {
+        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, FileCollectionFingerprint>() {
             @Override
             public boolean removed(String previousProperty) {
                 return true;
