@@ -40,7 +40,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Setters for `classes` and `classpath` on `validateTaskProperties`
+### Setters for `classes` and `classpath` on `ValidateTaskProperties`
 
 There should not be setters for lazy properties like `ConfigurableFileCollection`s.
 Use `setFrom` instead.
