@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -83,25 +82,22 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             outputProperties = resolveProperties(taskProperties.getOutputFileProperties());
             if (taskState.isAllowedToUseCachedResults()) {
                 try {
-                    OriginMetadata originMetadata = buildCache.load(
-                        commandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), new BuildCacheLoadListener() {
-                            @Override
-                            public void beforeLoad() {
-                                outputChangeListener.beforeOutputChange();
-                            }
+                    BuildCacheCommandFactory.LoadMetadata result = buildCache.load(
+                            commandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), new BuildCacheLoadListener() {
+                                @Override
+                                public void beforeLoad() {
+                                    outputChangeListener.beforeOutputChange();
+                                }
 
-                            @Override
-                            public void afterLoad(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots, OriginMetadata originMetadata) {
-                                taskState.snapshotAfterLoadedFromCache(snapshots, originMetadata);
-                            }
-
-                            @Override
-                            public void afterLoad(Throwable error) {
-                                taskState.afterOutputsRemovedBeforeTask();
-                            }
-                        })
+                                @Override
+                                public void afterLoad(Throwable error) {
+                                    taskState.afterOutputsRemovedBeforeTask();
+                                }
+                            })
                     );
-                    if (originMetadata != null) {
+                    if (result != null) {
+                        OriginMetadata originMetadata = result.getOriginMetadata();
+                        taskState.snapshotAfterLoadedFromCache(result.getResultingSnapshots(), originMetadata);
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
                         context.setOriginMetadata(originMetadata);
                         return;

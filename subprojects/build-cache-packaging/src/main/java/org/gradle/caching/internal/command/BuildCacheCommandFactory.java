@@ -68,7 +68,7 @@ public class BuildCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<OriginMetadata> createLoad(BuildCacheKey cacheKey, SortedSet<CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
+    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, SortedSet<CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
         return new LoadCommand(cacheKey, trees, entity, localState, loadListener);
     }
 
@@ -76,7 +76,12 @@ public class BuildCacheCommandFactory {
         return new StoreCommand(cacheKey, trees, fingerprints, entity, executionTime);
     }
 
-    private class LoadCommand implements BuildCacheLoadCommand<OriginMetadata> {
+    public interface LoadMetadata {
+        OriginMetadata getOriginMetadata();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots();
+    }
+
+    private class LoadCommand implements BuildCacheLoadCommand<LoadMetadata> {
 
         private final BuildCacheKey cacheKey;
         private final SortedSet<CacheableTree> trees;
@@ -98,13 +103,33 @@ public class BuildCacheCommandFactory {
         }
 
         @Override
-        public BuildCacheLoadCommand.Result<OriginMetadata> load(InputStream input) {
+        public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) {
             loadListener.beforeLoad();
-            final BuildCacheEntryPacker.UnpackResult unpackResult;
             try {
-                unpackResult = packer.unpack(trees, input, originMetadataFactory.createReader(entity));
+                BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(trees, input, originMetadataFactory.createReader(entity));
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-                loadListener.afterLoad(snapshots, unpackResult.getOriginMetadata());
+                LOGGER.info("Unpacked trees for {} from cache.", entity);
+                return new Result<LoadMetadata>() {
+                    @Override
+                    public long getArtifactEntryCount() {
+                        return unpackResult.getEntries();
+                    }
+
+                    @Override
+                    public LoadMetadata getMetadata() {
+                        return new LoadMetadata() {
+                            @Override
+                            public OriginMetadata getOriginMetadata() {
+                                return unpackResult.getOriginMetadata();
+                            }
+
+                            @Override
+                            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
+                                return snapshots;
+                            }
+                        };
+                    }
+                };
             } catch (Exception e) {
                 LOGGER.warn("Cleaning {} after failed load from cache.", entity);
                 try {
@@ -118,19 +143,6 @@ public class BuildCacheCommandFactory {
             } finally {
                 cleanLocalState();
             }
-            LOGGER.info("Unpacked trees for {} from cache.", entity);
-
-            return new BuildCacheLoadCommand.Result<OriginMetadata>() {
-                @Override
-                public long getArtifactEntryCount() {
-                    return unpackResult.getEntries();
-                }
-
-                @Override
-                public OriginMetadata getMetadata() {
-                    return unpackResult.getOriginMetadata();
-                }
-            };
         }
 
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {

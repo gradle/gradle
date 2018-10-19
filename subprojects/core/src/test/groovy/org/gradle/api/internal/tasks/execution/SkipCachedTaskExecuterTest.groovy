@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -36,6 +37,7 @@ import org.gradle.caching.internal.packaging.CacheableTree
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.id.UniqueId
 import org.gradle.testing.internal.util.Specification
 
@@ -64,6 +66,18 @@ class SkipCachedTaskExecuterTest extends Specification {
         def originId = UniqueId.generate()
         def originalExecutionTime = 1234L
         def metadata = new OriginMetadata(originId, originalExecutionTime)
+        def resultingSnapshots = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
+        def loadResult = new BuildCacheCommandFactory.LoadMetadata() {
+            @Override
+            OriginMetadata getOriginMetadata() {
+                metadata
+            }
+
+            @Override
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
+                resultingSnapshots
+            }
+        }
 
         when:
         executer.execute(task, taskState, taskContext)
@@ -83,11 +97,12 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet<CacheableTree>, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
 
         then:
-        1 * buildCacheController.load(loadCommand) >> metadata
+        1 * buildCacheController.load(loadCommand) >> loadResult
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
         1 * taskContext.setOriginMetadata(metadata)
+        1 * taskArtifactState.snapshotAfterLoadedFromCache(resultingSnapshots, metadata)
         0 * _
     }
 

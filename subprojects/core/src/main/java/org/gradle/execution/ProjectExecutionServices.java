@@ -213,7 +213,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         Instantiator instantiator,
         StartParameter startParameter,
         TaskHistoryRepository taskHistoryRepository,
-        TaskOutputFilesRepository taskOutputsRepository
+        TaskOutputFilesRepository taskOutputsRepository,
+        FileCollectionFingerprinterRegistry fingerprinterRegistry
     ) {
         TaskCacheKeyCalculator taskCacheKeyCalculator = new TaskCacheKeyCalculator(startParameter.isBuildCacheDebugLogging());
 
@@ -221,6 +222,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             startParameter,
             instantiator,
             new DefaultTaskArtifactStateRepository(
+                fingerprinterRegistry,
                 taskHistoryRepository,
                 instantiator,
                 taskOutputsRepository,
