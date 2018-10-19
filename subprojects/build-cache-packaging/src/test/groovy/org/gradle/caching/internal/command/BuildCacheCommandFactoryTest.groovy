@@ -18,7 +18,6 @@ package org.gradle.caching.internal.command
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.BuildCacheKey
@@ -31,7 +30,6 @@ import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.internal.packaging.CacheableTree
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -107,15 +105,13 @@ class BuildCacheCommandFactoryTest extends Specification {
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
         }
-        1 * loadListener.afterLoad(_ as ImmutableSortedMap<String, CurrentFileCollectionFingerprint>, originMetadata as OriginMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints, OriginMetadata metadata ->
-            assert fingerprints.keySet() as List == ["outputDir", "outputFile"]
-            assert fingerprints["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
-            assert fingerprints["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
-        }
 
         then:
         result.artifactEntryCount == 123
-        result.metadata == originMetadata
+        result.metadata.originMetadata == originMetadata
+        result.metadata.resultingSnapshots.keySet() as List == ["outputDir", "outputFile"]
+        result.metadata.resultingSnapshots["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
+        result.metadata.resultingSnapshots["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         0 * _
 
         then:
