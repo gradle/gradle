@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.hash.HashUtil
 
 import org.gradle.kotlin.dsl.concurrent.WriterThread
+import org.gradle.kotlin.dsl.concurrent.unorderedParallelMap
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -58,9 +59,6 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 import java.io.File
 
-import kotlin.streams.asStream
-import kotlin.streams.toList
-
 
 internal
 object AccessorBytecodeEmitter {
@@ -73,7 +71,7 @@ object AccessorBytecodeEmitter {
 
         // TODO: honor Gradle max workers?
         // TODO: make it observable via build operations
-        val internalClassNames = accessorsFor(projectSchema).asStream().unordered().parallel().map { accessor ->
+        val internalClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
 
             val (internalClassName, classBytes) =
                 when (accessor) {
