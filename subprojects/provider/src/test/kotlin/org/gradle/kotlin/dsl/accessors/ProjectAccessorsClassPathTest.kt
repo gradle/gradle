@@ -122,6 +122,14 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 val e: NamedDomainObjectProvider<SourceSet> = sourceSets.main
 
                 val f: TaskProvider<Delete> = tasks.clean
+
+                fun Project.canUseAccessorsFromConfigurationsScope() {
+                    configurations {
+                        api {
+                            outgoing.variants
+                        }
+                    }
+                }
             """,
             scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath
 // Runtime is not required because the accessores are inlined

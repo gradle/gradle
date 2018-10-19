@@ -16,10 +16,12 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -289,19 +291,18 @@ object AccessorBytecodeEmitter {
 
     private
     fun ClassWriter.emitConfigurationAccessorFor(name: String, signature: JvmMethodSignature) {
-        emitContainerElementAccessorFor(configurationContainerInternalName, name, signature)
+        emitContainerElementAccessorFor(name, signature)
     }
 
     private
     fun ClassWriter.emitContainerElementAccessorFor(
-        containerTypeName: InternalName,
         elementName: String,
         signature: JvmMethodSignature
     ) {
         publicStaticMethod(signature.name, signature.desc) {
             ALOAD(0)
             LDC(elementName)
-            INVOKEINTERFACE(containerTypeName, "named", namedMethodDescriptor)
+            INVOKEINTERFACE(namedDomainObjectContainerTypeName, "named", namedMethodDescriptor)
             ARETURN()
         }
     }
@@ -311,13 +312,21 @@ object AccessorBytecodeEmitter {
         configurationName: String,
         getterSignature: JvmMethodSignature
     ) {
-        writeElementAccessorMetadataFor(
-            configurationContainerInternalName,
-            namedDomainObjectProviderTypeName,
-            configurationInternalName,
-            configurationName,
-            getterSignature
+        writePropertyOf(
+            receiverType = genericTypeOf(namedDomainObjectContainerTypeName, configurationTypeName),
+            returnType = genericTypeOf(namedDomainObjectProviderTypeName, configurationTypeName),
+            propertyName = configurationName,
+            getterSignature = getterSignature
         )
+    }
+
+    private
+    fun genericTypeOf(genericType: InternalName, genericArgument: InternalName): KmTypeVisitor.() -> Unit = {
+        visitClass(genericType)
+        visitArgument(0, KmVariance.INVARIANT)!!.run {
+            visitClass(genericArgument)
+            visitEnd()
+        }
     }
 
     private
@@ -348,7 +357,7 @@ object AccessorBytecodeEmitter {
     val configurationContainerInternalName = ConfigurationContainer::class.internalName
 
     private
-    val configurationInternalName = Configuration::class.internalName
+    val configurationTypeName = Configuration::class.internalName
 
     private
     val namedDomainObjectProviderTypeName = NamedDomainObjectProvider::class.internalName
@@ -366,7 +375,10 @@ object AccessorBytecodeEmitter {
     val namedTaskWithTypeMethodDescriptor = "(Ljava/lang/String;Ljava/lang/Class;)L$taskProviderTypeName;"
 
     private
-    val configurationAccessorMethodSignature = accessorDescriptorFor(configurationContainerInternalName, namedDomainObjectProviderTypeName)
+    val namedDomainObjectContainerTypeName = NamedDomainObjectContainer::class.internalName
+
+    private
+    val configurationAccessorMethodSignature = accessorDescriptorFor(namedDomainObjectContainerTypeName, namedDomainObjectProviderTypeName)
 
     private
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
