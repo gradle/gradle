@@ -34,7 +34,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertNotEquals
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -534,7 +533,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Ignore("This version of Gradle requires version 2.0 of the build scan plugin or later.")
     fun `automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block`() {
 
         withBuildScript("""
