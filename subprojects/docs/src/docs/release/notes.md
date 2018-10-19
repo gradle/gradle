@@ -605,6 +605,16 @@ Since JDK 11 no longer supports changing the working directory of a running proc
 All workers now use the same working directory to enable reuse.
 Please pass files and directories as arguments instead.
 
+### Changes to the Gradle Kotlin DSL
+
+Artifact configuration accessors are now typed `NamedDomainObjectProvider<Configuration>` instead of simply `Configuration`.
+
+`PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
+
+Both changes could cause script compilation errors.
+
+See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13#breaking-changes) for more information and how to fix builds broken by the changes described above.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
