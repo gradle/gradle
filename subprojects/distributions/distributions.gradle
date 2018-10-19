@@ -33,7 +33,7 @@ tasks.withType(AbstractArchiveTask).configureEach {
 }
 
 tasks.named("clean").configure {
-    delete tasks.withType(AbstractArchiveTask)*.archivePath
+    delete tasks.withType(AbstractArchiveTask)
 }
 
 configurations {
