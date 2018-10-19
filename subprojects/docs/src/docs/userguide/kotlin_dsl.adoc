@@ -469,7 +469,7 @@ include::sample[dir="kotlinDsl/androidBuild",files="build.gradle.kts[tags=androi
 It's not that different from what Android Studio produces when creating a new build.
 The main difference is that sub projects build scripts apply plugins using the `plugins {}` block.
 
-If you want to use a plugin that can't be applied using the `plugins {}` block directly in a single project build, see the <<kotlin_dsl#sec:plugins_resolution_strategy,dedicated section>> below.
+If you want to use a plugin that can't be applied using the `plugins {}` block directly in your root project or in a single project build, see the <<kotlin_dsl#sec:plugins_resolution_strategy,dedicated section>> below.
 
 
 === Cross-configuring projects
