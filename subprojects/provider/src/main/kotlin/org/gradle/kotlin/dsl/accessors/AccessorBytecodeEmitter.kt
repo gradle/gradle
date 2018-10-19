@@ -26,6 +26,7 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
@@ -238,7 +239,14 @@ object AccessorBytecodeEmitter {
         val className = InternalName("org/gradle/kotlin/dsl/${propertyName.capitalize()}ConfigurationAccessorsKt")
 
         val getterSignature = jvmGetterSignatureFor(accessor.name, configurationAccessorMethodSignature)
-        val overload1 = JvmMethodSignature(propertyName, "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+        val overload1 = JvmMethodSignature(
+            propertyName,
+            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;"
+        )
+        val overload2 = JvmMethodSignature(
+            propertyName,
+            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+        )
 
         val header = writeFileFacadeClassHeader {
             writeConfigurationAccessorMetadataFor(propertyName, getterSignature)
@@ -249,6 +257,20 @@ object AccessorBytecodeEmitter {
                 parameterName = "dependencyNotation",
                 parameterType = { visitClass(InternalNameOf.Any) },
                 signature = overload1
+            )
+            writeFunctionOf(
+                receiverType = { visitClass(DependencyHandler::class.internalName) },
+                returnType = { visitClass(ExternalModuleDependency::class.internalName) },
+                name = propertyName,
+                parameters = {
+                    visitParameter("dependencyNotation") {
+                        visitClass(InternalNameOf.Any)
+                    }
+                    visitParameter("configurationAction", actionTypeOf {
+                        visitClass(ExternalModuleDependency::class.internalName)
+                    })
+                },
+                signature = overload2
             )
         }
 
@@ -262,6 +284,17 @@ object AccessorBytecodeEmitter {
                     LDC(propertyName)
                     ALOAD(1)
                     INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+                    ARETURN()
+                }
+
+                publicStaticMethod(overload2.name, overload2.desc) {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    ALOAD(2)
+                    invokeRuntime("addDependencyTo",
+                        "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                    )
                     ARETURN()
                 }
             }

@@ -27,6 +27,7 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.ExtensionContainer
@@ -101,7 +102,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val extensions = mock<ExtensionContainer> {
             on { getByName(any()) } doReturn sourceSets
         }
-        val dependencies = mock<DependencyHandler>()
+        val dependency = mock<ExternalModuleDependency>()
+        val dependencies = mock<DependencyHandler> {
+            on { create(any()) } doReturn dependency
+        }
         val tasks = mock<TaskContainer>()
         val project = mock<Project> {
             on { getConfigurations() } doReturn configurations
@@ -122,6 +126,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 val e: NamedDomainObjectProvider<SourceSet> = sourceSets.main
 
                 val f: TaskProvider<Delete> = tasks.clean
+
+                val g: Dependency? = dependencies.api("module") {
+                    val module: ExternalModuleDependency = this
+                }
 
                 fun Project.canUseAccessorsFromConfigurationsScope() {
                     configurations {
@@ -161,6 +169,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val f
             verify(project).tasks
             verify(tasks).named("clean", Delete::class.java)
+
+            // val g
+            verify(project).dependencies
+            verify(dependencies).create("module")
+            verify(dependencies).add("api", dependency)
 
             verifyNoMoreInteractions()
         }

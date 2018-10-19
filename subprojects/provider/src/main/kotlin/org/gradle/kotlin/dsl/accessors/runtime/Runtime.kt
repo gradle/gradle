@@ -16,8 +16,25 @@
 
 package org.gradle.kotlin.dsl.accessors.runtime
 
+import org.gradle.api.Action
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyHandler
+
 import org.gradle.api.plugins.ExtensionAware
 
 
 fun extensionOf(target: Any, extensionName: String): Any =
     (target as ExtensionAware).extensions.getByName(extensionName)
+
+
+fun addDependencyTo(
+    dependencies: DependencyHandler,
+    configuration: String,
+    dependencyNotation: Any,
+    configurationAction: Action<ExternalModuleDependency>
+): ExternalModuleDependency = dependencies.run {
+    (create(dependencyNotation) as ExternalModuleDependency).also { dependency ->
+        configurationAction.execute(dependency)
+        add(configuration, dependency)
+    }
+}
