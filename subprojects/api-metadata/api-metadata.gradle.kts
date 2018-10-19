@@ -10,14 +10,23 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
+configurations {
+    create("gradleApiRuntime") {
+        isVisible = false
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
+    }
+}
+dependencies {
+    testImplementation(project(":distributionsDependencies"))
+    "gradleApiRuntime"(project(":"))
+}
+
 apiMetadata {
     sources.from(javaProjects.map { it.sourceSets["main"].allJava })
     includes.addAll(PublicApi.includes)
     excludes.addAll(PublicApi.excludes)
-    classpath.from(rootProject.configurations.runtime)
-    classpath.from(rootProject.configurations["gradlePlugins"])
-}
-
-dependencies {
-    testImplementation(project(":distributionsDependencies"))
+    classpath.from(configurations["gradleApiRuntime"])
 }
