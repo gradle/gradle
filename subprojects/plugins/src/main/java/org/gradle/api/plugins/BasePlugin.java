@@ -164,11 +164,13 @@ public class BasePlugin implements Plugin<Project> {
         );
 
         configurations.all(new Action<Configuration>() {
-            public void execute(Configuration configuration) {
+            public void execute(final Configuration configuration) {
                 if (!configuration.equals(archivesConfiguration)) {
                     configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
                         public void execute(PublishArtifact artifact) {
-                            defaultArtifacts.addCandidate(artifact);
+                            if (configuration.isVisible()) {
+                                defaultArtifacts.addCandidate(artifact);
+                            }
                         }
                     });
                 }

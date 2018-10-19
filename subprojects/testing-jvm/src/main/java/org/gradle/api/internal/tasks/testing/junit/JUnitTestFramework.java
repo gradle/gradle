@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.io.Serializable;
+
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -30,8 +32,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
-import java.io.Serializable;
-
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private final JUnitDetector detector;
@@ -45,7 +45,10 @@ public class JUnitTestFramework implements TestFramework {
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(options.getIncludeCategories(), options.getExcludeCategories(), filter.getIncludePatterns(), filter.getCommandLineIncludePatterns()));
+        return new TestClassProcessorFactoryImpl(new JUnitSpec(
+            options.getIncludeCategories(), options.getExcludeCategories(),
+            filter.getIncludePatterns(), filter.getExcludePatterns(),
+            filter.getCommandLineIncludePatterns()));
     }
 
     @Override

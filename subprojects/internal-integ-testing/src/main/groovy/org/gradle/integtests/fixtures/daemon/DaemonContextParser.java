@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.daemon;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 
@@ -57,7 +58,7 @@ public class DaemonContextParser {
     }
 
     private static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[(uid=[^\\n,]+)?,?javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)(,priority=[^\\n]+)?,daemonOpts=([^\\n]+)].*",
                 Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
@@ -68,8 +69,9 @@ public class DaemonContextParser {
             String pidStr = matcher.group(4);
             Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(5));
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(6)));
-            return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);
+            DaemonParameters.Priority priority = matcher.group(6) == null ? DaemonParameters.Priority.NORMAL : DaemonParameters.Priority.valueOf(matcher.group(6).substring(",priority=".length()));
+            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(7)));
+            return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts, priority);
         } else {
             return null;
         }
