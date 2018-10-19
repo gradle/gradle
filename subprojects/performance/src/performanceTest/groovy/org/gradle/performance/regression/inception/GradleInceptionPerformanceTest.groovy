@@ -18,12 +18,14 @@ package org.gradle.performance.regression.inception
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
+import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
 
 /**
  * Test Gradle performance against it's own build.
@@ -59,25 +61,31 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
     }
 
     @Category(PerformanceExperiment)
-    def "buildSrc change in the gradle build comparing gradle"() {
+    @Unroll
+    def "buildSrc change in #testProject comparing gradle"() {
         given:
-        runner.testProject = 'gradleBuildCurrent'
+        runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.targetVersions = ["5.0-20181016235834+0000"]
-        runner.runs = 10
+        runner.runs = runs
         runner.args = [
             "-Djava9Home=${System.getProperty('java9Home')}",
             "-Pgradlebuild.skipBuildSrcChecks=true"
         ]
+
+        and:
+        def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                new File(invocationInfo.projectDir, "buildSrc/subprojects/build/src/main/groovy/org/gradle/build/ChangingClass.groovy").text = """
-                    package org.gradle.build
-                    class ChangingClass {
-                        def value = $invocationInfo.iterationNumber
-                    }
-                """.stripIndent()
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                new File(invocationInfo.projectDir, changingClassFilePath).tap {
+                    parentFile.mkdirs()
+                    text = """
+                        class ChangingClass {
+                            def value = "${invocationInfo.phase} ${invocationInfo.iterationNumber}"
+                        }
+                    """.stripIndent()
+                }
             }
         })
 
@@ -86,5 +94,12 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                         | buildSrcProjectDir   | runs
+        MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                   | 40
+        LARGE_JAVA_MULTI_PROJECT            | ""                   | 20
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                   | 10
+        'gradleBuildCurrent'                | "subprojects/build/" | 10
     }
 }
