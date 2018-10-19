@@ -248,12 +248,23 @@ val testRuntime by configurations.creating {
     extendsFrom(gradlePlugins)
 }
 
+// TODO: These should probably be all collapsed into a single variant
+configurations {
+    create("gradleApiMetadataElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(runtime)
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
+    }
+}
 configurations {
     create("gradleApiRuntimeElements") {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(runtime)
+        extendsFrom(externalModules)
         extendsFrom(gradlePlugins)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
     }

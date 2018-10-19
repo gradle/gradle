@@ -16,7 +16,7 @@ configurations {
         isCanBeResolved = true
         isCanBeConsumed = false
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
     }
 }
 dependencies {
