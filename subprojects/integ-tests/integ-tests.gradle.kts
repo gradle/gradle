@@ -32,8 +32,6 @@ tasks {
         dependsOn(testEnvironment)
     }
 
-    val processTestResources by existing(ProcessResources::class)
-
     val writeFuturePluginVersions by registering {
 
         group = "build"
