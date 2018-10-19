@@ -18,21 +18,11 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-/**
- * A snapshot of the previous execution of a unit of work.
- */
-public interface ExecutionHistory {
-
-    /**
-     * The {@link OriginMetadata} of the execution that originally produced the outputs.
-     */
-    OriginMetadata getOriginMetadata();
-
+public interface ExecutionState {
     /**
      * The main implementation snapshots.
      */
@@ -51,15 +41,10 @@ public interface ExecutionHistory {
     /**
      * The file inputs.
      */
-    ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFileProperties();
 
     /**
      * The file outputs.
      */
-    ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFileProperties();
-
-    /**
-     * Whether or not the execution was successful.
-     */
-    boolean isSuccessful();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFileProperties();
 }

@@ -19,15 +19,13 @@ package org.gradle.api.internal.changedetection.changes;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
+import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.rules.DefaultTaskUpToDateState;
-import org.gradle.api.internal.changedetection.rules.NoHistoryTaskUpToDateState;
-import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -38,13 +36,16 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.LimitingChangeVisitor;
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.NoHistoryTaskUpToDateState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -56,7 +57,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.changedetection.rules.TaskUpToDateState.MAX_OUT_OF_DATE_MESSAGES;
+import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.MAX_OUT_OF_DATE_MESSAGES;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -84,7 +85,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskHistoryRepository.History history;
         private boolean upToDate;
         private boolean outputsRemoved;
-        private TaskUpToDateState states;
+        private ExecutionStateChanges states;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
@@ -114,7 +115,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public Iterable<? extends FileCollectionFingerprint> getCurrentInputFileFingerprints() {
-            return history.getCurrentExecution().getInputFingerprints().values();
+            return history.getCurrentExecution().getInputFileProperties().values();
         }
 
         @Override
@@ -139,7 +140,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
-            ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFingerprints().values();
+            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
                 for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
@@ -151,7 +152,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
-            return history.getCurrentExecution().getOutputFingerprints();
+            return history.getCurrentExecution().getOutputFileProperties();
         }
 
         @Override
@@ -162,7 +163,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public OriginMetadata getOriginExecutionMetadata() {
             HistoricalTaskExecution previousExecution = history.getPreviousExecution();
-            return previousExecution == null ? null : previousExecution.getOriginExecutionMetadata();
+            return previousExecution == null ? null : previousExecution.getOriginMetadata();
         }
 
         @Override
@@ -185,7 +186,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (currentExecution.getDetectedOverlappingOutputs() == null) {
                 newOutputFingerprints = outputFilesAfter;
             } else {
-                newOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFingerprints(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
+                newOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFileProperties(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
                     @Override
                     @SuppressWarnings("NullableProblems")
                     public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
@@ -208,39 +209,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private void snapshotAfterOutputsWereGenerated(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, @Nullable Throwable failure, OriginMetadata originMetadata) {
+            history.updateCurrentExecutionWithOutputs(newOutputFingerprints, failure == null, originMetadata);
             // Only persist history if there was no failure, or some output files have been changed
-            if (failure == null || hasOutputChanges(history.getCurrentExecution().getOutputFingerprints(), newOutputFingerprints)) {
-                history.updateCurrentExecutionWithOutputs(newOutputFingerprints, failure == null, originMetadata);
+            if (failure == null || getStates().hasAnyOutputFileChanges()) {
                 history.persist();
                 taskOutputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }
         }
 
-        // TODO This can probably be made a lot better/faster
-        private boolean hasOutputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> before, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> after) {
-            if (!before.keySet().equals(after.keySet())) {
-                return true;
-            }
-            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : before.entrySet()) {
-                String property = entry.getKey();
-                CurrentFileCollectionFingerprint beforeCollection = entry.getValue();
-                CurrentFileCollectionFingerprint afterCollection = after.get(property);
-                final MutableBoolean changed = new MutableBoolean();
-                afterCollection.visitChangesSince(beforeCollection, "", true, new ChangeVisitor() {
-                    @Override
-                    public boolean visitChange(Change change) {
-                        changed.set(true);
-                        return false;
-                    }
-                });
-                if (changed.get()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private TaskUpToDateState getStates() {
+        private ExecutionStateChanges getStates() {
             if (states == null) {
                 HistoricalTaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
@@ -249,7 +226,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 if (previousExecution == null) {
                     states = NoHistoryTaskUpToDateState.INSTANCE;
                 } else {
-                    states = new DefaultTaskUpToDateState(previousExecution, currentExecution, task);
+                    // TODO We need a nicer describable wrapper around task here
+                    states = new DefaultExecutionStateChanges(previousExecution, currentExecution, new Describable() {
+                        @Override
+                        public String getDisplayName() {
+                            // The value is cached, so we should be okay to call this many times
+                            return task.toString();
+                        }
+                    });
                 }
             }
             return states;

@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history;
 
-public interface PropertyDiffListener<K, V> {
-    boolean removed(K previousProperty);
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-    boolean added(K currentProperty);
+/**
+ * The execution state before the current execution.
+ */
+public interface BeforeExecutionState extends ExecutionState {
+    @Override
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
-    boolean updated(K property, V previous, V current);
+    @Override
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFileProperties();
 }

@@ -15,29 +15,15 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.execution.history.ExecutionState;
 
 /**
  * The state for a single task execution.
  */
-public interface TaskExecution {
+public interface TaskExecution extends ExecutionState {
 
-    OriginMetadata getOriginExecutionMetadata();
-
-    ImplementationSnapshot getTaskImplementation();
-
-    ImmutableList<ImplementationSnapshot> getTaskActionImplementations();
-
-    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
-
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFingerprints();
-
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFingerprints();
+    OriginMetadata getOriginMetadata();
 
     boolean isSuccessful();
 

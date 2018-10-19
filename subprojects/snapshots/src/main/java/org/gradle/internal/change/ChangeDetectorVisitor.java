@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.change;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.internal.snapshot.ValueSnapshot;
-
-import java.util.SortedMap;
-
-public class InputPropertyChanges extends AbstractPropertyChanges<ValueSnapshot> {
-
-    public InputPropertyChanges(TaskExecution previous, TaskExecution current, Task task) {
-        super(previous, current, "Input", task);
-    }
+public class ChangeDetectorVisitor implements ChangeVisitor {
+    private boolean anyChanges;
 
     @Override
-    protected SortedMap<String, ValueSnapshot> getProperties(TaskExecution execution) {
-        return execution.getInputProperties();
+    public boolean visitChange(Change change) {
+        anyChanges = true;
+        return false;
+    }
+
+    public boolean hasAnyChanges() {
+        return anyChanges;
     }
 }

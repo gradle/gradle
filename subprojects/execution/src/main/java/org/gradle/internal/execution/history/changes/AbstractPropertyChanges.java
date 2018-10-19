@@ -14,43 +14,47 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.Describable;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 
 import java.util.SortedMap;
 
 public abstract class AbstractPropertyChanges<V> implements ChangeContainer {
 
-    private final TaskExecution previous;
-    private final TaskExecution current;
+    private final PreviousExecutionState previous;
+    private final BeforeExecutionState current;
     private final String title;
-    private final Task task;
+    private final Describable executable;
 
-    protected AbstractPropertyChanges(TaskExecution previous, TaskExecution current, String title, Task task) {
+    protected AbstractPropertyChanges(PreviousExecutionState previous, BeforeExecutionState current, String title, Describable executable) {
         this.previous = previous;
         this.current = current;
         this.title = title;
-        this.task = task;
+        this.executable = executable;
     }
 
-    protected abstract SortedMap<String, ? extends V> getProperties(TaskExecution execution);
+    protected abstract SortedMap<String, ? extends V> getProperties(ExecutionState execution);
 
     @Override
     public boolean accept(final ChangeVisitor visitor) {
         return SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
             @Override
             public boolean removed(String previousProperty) {
-                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been removed for %s", title, previousProperty, task));
+                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been removed for %s",
+                        title, previousProperty, executable.getDisplayName()));
             }
 
             @Override
             public boolean added(String currentProperty) {
-                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been added for %s", title, currentProperty, task));
+                return visitor.visitChange(new DescriptiveChange("%s property '%s' has been added for %s",
+                        title, currentProperty, executable.getDisplayName()));
             }
 
             @Override

@@ -31,10 +31,11 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.PreviousExecutionSnapshot;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -103,12 +104,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 HistoricalTaskExecution execution = getCurrentExecution().archive();
                 executionHistoryStore.store(
                     task.getPath(),
-                    execution.getOriginExecutionMetadata(),
-                    execution.getTaskImplementation(),
-                    execution.getTaskActionImplementations(),
+                    execution.getOriginMetadata(),
+                    execution.getImplementation(),
+                    execution.getAdditionalImplementations(),
                     execution.getInputProperties(),
-                    execution.getInputFingerprints(),
-                    execution.getOutputFingerprints(),
+                    execution.getInputFileProperties(),
+                    execution.getOutputFileProperties(),
                     execution.isSuccessful()
                 );
             }
@@ -203,7 +204,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
-            Map<String, FileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFingerprints();
+            Map<String, HistoricalFileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
             FileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
@@ -214,7 +215,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     @Nullable
     private HistoricalTaskExecution loadPreviousExecution(TaskInternal task) {
-        PreviousExecutionSnapshot execution = executionHistoryStore.load(task.getPath());
+        PreviousExecutionState execution = executionHistoryStore.load(task.getPath());
         if (execution == null) {
             return null;
         }

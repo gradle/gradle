@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.Describable;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Map;
 
 class InputPropertyValueChanges implements ChangeContainer {
-    private final TaskInternal task;
+    private final Describable executable;
     private final ImmutableMap<String, String> changed;
 
-    public InputPropertyValueChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+    public InputPropertyValueChanges(PreviousExecutionState previousExecution, BeforeExecutionState currentExecution, Describable executable) {
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution.getInputProperties();
         ImmutableMap.Builder<String, String> changedBuilder = ImmutableMap.builder();
         ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
@@ -49,7 +50,7 @@ class InputPropertyValueChanges implements ChangeContainer {
             }
         }
         this.changed = changedBuilder.build();
-        this.task = task;
+        this.executable = executable;
     }
 
     @Override
@@ -57,7 +58,8 @@ class InputPropertyValueChanges implements ChangeContainer {
         for (Map.Entry<String, String> entry : changed.entrySet()) {
             String propertyName = entry.getKey();
             String changeType = entry.getValue();
-            if (!visitor.visitChange(new DescriptiveChange("%s of input property '%s' has changed for %s", changeType, propertyName, task))) {
+            if (!visitor.visitChange(new DescriptiveChange("%s of input property '%s' has changed for %s",
+                    changeType, propertyName, executable.getDisplayName()))) {
                 return false;
             }
         }

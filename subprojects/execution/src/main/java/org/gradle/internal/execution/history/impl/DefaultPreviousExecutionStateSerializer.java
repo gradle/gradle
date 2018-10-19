@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.ExecutionHistory;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -33,17 +33,17 @@ import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
 import java.util.Map;
 
-public class ExecutionHistorySerializer extends AbstractSerializer<ExecutionHistory> {
-    private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
+public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<PreviousExecutionState> {
+    private final Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
     private final Serializer<ValueSnapshot> valueSnapshotSerializer = new SnapshotSerializer();
 
-    public ExecutionHistorySerializer(Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer) {
+    public DefaultPreviousExecutionStateSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
     }
 
-    public ExecutionHistory read(Decoder decoder) throws Exception {
+    public PreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             UniqueId.from(decoder.readString()),
             decoder.readLong()
@@ -61,12 +61,12 @@ public class ExecutionHistorySerializer extends AbstractSerializer<ExecutionHist
         ImmutableList<ImplementationSnapshot> taskActionImplementations = taskActionImplementationsBuilder.build();
 
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = readInputProperties(decoder);
-        ImmutableSortedMap<String, FileCollectionFingerprint> inputFilesFingerprints = readFingerprints(decoder);
-        ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesFingerprints = readFingerprints(decoder);
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesFingerprints = readFingerprints(decoder);
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesFingerprints = readFingerprints(decoder);
 
         boolean successful = decoder.readBoolean();
 
-        return new DefaultExecutionHistory(
+        return new DefaultPreviousExecutionState(
             originMetadata,
             taskImplementation,
             taskActionImplementations,
@@ -77,7 +77,7 @@ public class ExecutionHistorySerializer extends AbstractSerializer<ExecutionHist
         );
     }
 
-    public void write(Encoder encoder, ExecutionHistory execution) throws Exception {
+    public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId().asString());
         encoder.writeLong(originMetadata.getExecutionTime());
@@ -120,20 +120,20 @@ public class ExecutionHistorySerializer extends AbstractSerializer<ExecutionHist
         }
     }
 
-    private ImmutableSortedMap<String, FileCollectionFingerprint> readFingerprints(Decoder decoder) throws Exception {
+    private ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> readFingerprints(Decoder decoder) throws Exception {
         int count = decoder.readSmallInt();
-        ImmutableSortedMap.Builder<String, FileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, HistoricalFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (int fingerprintIdx = 0; fingerprintIdx < count; fingerprintIdx++) {
             String property = decoder.readString();
-            FileCollectionFingerprint fingerprint = fileCollectionFingerprintSerializer.read(decoder);
+            HistoricalFileCollectionFingerprint fingerprint = fileCollectionFingerprintSerializer.read(decoder);
             builder.put(property, fingerprint);
         }
         return builder.build();
     }
 
-    private void writeFingerprints(Encoder encoder, Map<String, ? extends FileCollectionFingerprint> fingerprints) throws Exception {
+    private void writeFingerprints(Encoder encoder, Map<String, HistoricalFileCollectionFingerprint> fingerprints) throws Exception {
         encoder.writeSmallInt(fingerprints.size());
-        for (Map.Entry<String, ? extends FileCollectionFingerprint> entry : fingerprints.entrySet()) {
+        for (Map.Entry<String, HistoricalFileCollectionFingerprint> entry : fingerprints.entrySet()) {
             encoder.writeString(entry.getKey());
             fileCollectionFingerprintSerializer.write(encoder, entry.getValue());
         }

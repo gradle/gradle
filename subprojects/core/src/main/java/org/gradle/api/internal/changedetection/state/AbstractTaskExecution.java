@@ -22,28 +22,28 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 public abstract class AbstractTaskExecution implements TaskExecution {
 
-    private final ImplementationSnapshot taskImplementation;
-    private final ImmutableList<ImplementationSnapshot> taskActionImplementations;
+    private final ImplementationSnapshot implementation;
+    private final ImmutableList<ImplementationSnapshot> additionalImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
 
     public AbstractTaskExecution(
-        ImplementationSnapshot taskImplementation,
-        ImmutableList<ImplementationSnapshot> taskActionImplementations,
+        ImplementationSnapshot implementation,
+        ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties
     ) {
-        this.taskImplementation = taskImplementation;
-        this.taskActionImplementations = taskActionImplementations;
+        this.implementation = implementation;
+        this.additionalImplementations = additionalImplementations;
         this.inputProperties = inputProperties;
     }
 
     @Override
-    public ImplementationSnapshot getTaskImplementation() {
-        return taskImplementation;
+    public ImplementationSnapshot getImplementation() {
+        return implementation;
     }
 
     @Override
-    public ImmutableList<ImplementationSnapshot> getTaskActionImplementations() {
-        return taskActionImplementations;
+    public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
+        return additionalImplementations;
     }
 
     @Override

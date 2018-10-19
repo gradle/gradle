@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 @NonNullApi
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
 import org.gradle.api.NonNullApi;

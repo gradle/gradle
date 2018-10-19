@@ -25,7 +25,7 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import spock.lang.Specification
 
-class DefaultExecutionHistoryCacheAccessTest extends Specification {
+class DefaultPreviousExecutionCacheAccessTest extends Specification {
     final GradleInternal gradle = Mock()
     final CacheRepository cacheRepository = Mock()
 

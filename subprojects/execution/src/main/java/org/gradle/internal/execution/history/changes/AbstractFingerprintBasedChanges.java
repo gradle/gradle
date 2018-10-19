@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public abstract class AbstractFingerprintBasedChanges implements ChangeContainer {
-    protected final TaskExecution previous;
-    protected final TaskExecution current;
+    protected final PreviousExecutionState previous;
+    protected final BeforeExecutionState current;
     private final String title;
 
-    protected AbstractFingerprintBasedChanges(TaskExecution previous, TaskExecution current, String title) {
+    protected AbstractFingerprintBasedChanges(PreviousExecutionState previous, BeforeExecutionState current, String title) {
         this.previous = previous;
         this.current = current;
         this.title = title;
@@ -41,7 +43,7 @@ public abstract class AbstractFingerprintBasedChanges implements ChangeContainer
         return getFingerprints(current);
     }
 
-    protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution);
+    protected abstract ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(ExecutionState execution);
 
     protected boolean accept(final ChangeVisitor visitor, final boolean includeAdded) {
         return SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionFingerprint>() {

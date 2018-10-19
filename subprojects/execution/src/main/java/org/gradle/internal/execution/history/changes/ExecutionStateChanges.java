@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
@@ -22,7 +22,7 @@ import org.gradle.internal.change.ChangeVisitor;
 /**
  * Represents the complete changes in execution state
  */
-public interface TaskUpToDateState {
+public interface ExecutionStateChanges {
 
     int MAX_OUT_OF_DATE_MESSAGES = 3;
 

@@ -24,8 +24,8 @@ import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -33,9 +33,9 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import javax.annotation.Nullable;
 
 @NonNullApi
-public class CurrentTaskExecution extends AbstractTaskExecution {
+public class CurrentTaskExecution extends AbstractTaskExecution implements BeforeExecutionState {
 
-    private static final Function<CurrentFileCollectionFingerprint, FileCollectionFingerprint> ARCHIVE_FINGERPRINT = new Function<CurrentFileCollectionFingerprint, FileCollectionFingerprint>() {
+    private static final Function<CurrentFileCollectionFingerprint, HistoricalFileCollectionFingerprint> ARCHIVE_FINGERPRINT = new Function<CurrentFileCollectionFingerprint, HistoricalFileCollectionFingerprint>() {
         @Override
         @SuppressWarnings("NullableProblems")
         public HistoricalFileCollectionFingerprint apply(CurrentFileCollectionFingerprint value) {
@@ -91,7 +91,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
      * @return The fingerprint of the output files before or after the task executed, depending on which one is available.
      */
     @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFileProperties() {
         return outputFingerprints;
     }
 
@@ -100,7 +100,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFingerprints() {
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
         return inputFingerprints;
     }
 
@@ -110,11 +110,11 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     }
 
     public HistoricalTaskExecution archive() {
-        ImmutableSortedMap<String, FileCollectionFingerprint> historicalInputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(inputFingerprints, ARCHIVE_FINGERPRINT));
-        ImmutableSortedMap<String, FileCollectionFingerprint> historicalOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(outputFingerprints, ARCHIVE_FINGERPRINT));
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalInputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(inputFingerprints, ARCHIVE_FINGERPRINT));
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(outputFingerprints, ARCHIVE_FINGERPRINT));
         return new HistoricalTaskExecution(
-            getTaskImplementation(),
-            getTaskActionImplementations(),
+            getImplementation(),
+            getAdditionalImplementations(),
             getInputProperties(),
             historicalInputFingerprints,
             historicalOutputFingerprints,
@@ -124,7 +124,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public OriginMetadata getOriginExecutionMetadata() {
+    public OriginMetadata getOriginMetadata() {
         return originExecutionMetadata;
     }
 

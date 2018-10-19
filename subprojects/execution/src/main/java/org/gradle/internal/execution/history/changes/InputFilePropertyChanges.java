@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.Describable;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.SortedMap;
 
 public class InputFilePropertyChanges extends AbstractPropertyChanges<FileCollectionFingerprint> {
 
-    public InputFilePropertyChanges(TaskExecution previous, TaskExecution current, Task task) {
-        super(previous, current, "Input file", task);
+    public InputFilePropertyChanges(PreviousExecutionState previous, BeforeExecutionState current, Describable executable) {
+        super(previous, current, "Input file", executable);
     }
 
     @Override
-    protected SortedMap<String, ? extends FileCollectionFingerprint> getProperties(TaskExecution execution) {
-        return execution.getInputFingerprints();
+    protected SortedMap<String, ? extends FileCollectionFingerprint> getProperties(ExecutionState execution) {
+        return execution.getInputFileProperties();
     }
 }

@@ -30,7 +30,7 @@ class ErrorHandlingChangeContainerTest extends Specification {
         changes.accept(Mock(ChangeVisitor))
         then:
         def ex = thrown GradleException
-        ex.message == "Cannot determine task state changes for Mock for type 'Task' named 'task'"
+        ex.message == "Cannot determine changes for Mock for type 'Task' named 'task'"
         ex.cause.message == "Error!"
         1 * delegate.accept(_) >> { throw new RuntimeException("Error!") }
     }
@@ -46,7 +46,7 @@ class ErrorHandlingChangeContainerTest extends Specification {
 
         then:
         def ex = thrown GradleException
-        ex.message == "Cannot determine task state changes for Mock for type 'Task' named 'task'"
+        ex.message == "Cannot determine changes for Mock for type 'Task' named 'task'"
         ex.cause.message == "Error!"
     }
 }

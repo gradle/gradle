@@ -34,14 +34,14 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
-import org.gradle.internal.execution.history.ExecutionHistory;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.ExecutionHistorySerializer;
+import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionStateSerializer;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathCompareStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
@@ -80,9 +80,9 @@ public class TaskExecutionServices {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         serializerRegistry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, FINGERPRINT_COMPARE_STRATEGIES));
         serializerRegistry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
-        ExecutionHistorySerializer serializer = new ExecutionHistorySerializer(serializerRegistry.build(FileCollectionFingerprint.class));
+        DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(serializerRegistry.build(HistoricalFileCollectionFingerprint.class));
 
-        PersistentIndexedCache<String, ExecutionHistory> cache = executionHistoryCacheAccess.createCache(
+        PersistentIndexedCache<String, PreviousExecutionState> cache = executionHistoryCacheAccess.createCache(
             PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer),
             10000,
             false

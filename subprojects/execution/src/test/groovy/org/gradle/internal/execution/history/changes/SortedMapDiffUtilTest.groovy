@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules
+package org.gradle.internal.execution.history.changes
 
 import com.google.common.collect.ImmutableSortedMap
 import spock.lang.Specification

@@ -20,7 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -28,27 +29,27 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
  * State of a task when it was executed.
  */
 @NonNullApi
-public class HistoricalTaskExecution extends AbstractTaskExecution {
+public class HistoricalTaskExecution extends AbstractTaskExecution implements PreviousExecutionState {
 
     private final boolean successful;
-    private final OriginMetadata originExecutionMetadata;
-    private final ImmutableSortedMap<String, FileCollectionFingerprint> inputFingerprints;
-    private final ImmutableSortedMap<String, FileCollectionFingerprint> outputFingerprints;
+    private final OriginMetadata originMetadata;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints;
+    private final ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints;
 
     public HistoricalTaskExecution(
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, FileCollectionFingerprint> inputFingerprints,
-        ImmutableSortedMap<String, FileCollectionFingerprint> outputFingerprints,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFingerprints,
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFingerprints,
         boolean successful,
-        OriginMetadata originExecutionMetadata
+        OriginMetadata originMetadata
     ) {
         super(taskImplementation, taskActionsImplementations, inputProperties);
         this.inputFingerprints = inputFingerprints;
         this.outputFingerprints = outputFingerprints;
         this.successful = successful;
-        this.originExecutionMetadata = originExecutionMetadata;
+        this.originMetadata = originMetadata;
     }
 
     @Override
@@ -57,17 +58,17 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     }
 
     @Override
-    public OriginMetadata getOriginExecutionMetadata() {
-        return originExecutionMetadata;
+    public OriginMetadata getOriginMetadata() {
+        return originMetadata;
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionFingerprint> getInputFingerprints() {
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFileProperties() {
         return inputFingerprints;
     }
 
     @Override
-    public ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFingerprints() {
+    public ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFileProperties() {
         return outputFingerprints;
     }
 }

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
 
-public class NoHistoryTaskUpToDateState implements TaskUpToDateState {
+public class NoHistoryTaskUpToDateState implements ExecutionStateChanges {
 
     public static final NoHistoryTaskUpToDateState INSTANCE = new NoHistoryTaskUpToDateState();
 

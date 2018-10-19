@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
+public interface PropertyDiffListener<K, V> {
+    boolean removed(K previousProperty);
 
-public class ChangeDetectorVisitor implements ChangeVisitor {
-    private boolean anyChanges;
+    boolean added(K currentProperty);
 
-    @Override
-    public boolean visitChange(Change change) {
-        anyChanges = true;
-        return false;
-    }
-
-    public boolean hasAnyChanges() {
-        return anyChanges;
-    }
+    boolean updated(K property, V previous, V current);
 }

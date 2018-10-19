@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.Describable;
 import org.gradle.internal.change.CachingChangeContainer;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
+import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.change.ErrorHandlingChangeContainer;
 import org.gradle.internal.change.SummarizingChangeContainer;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 
-public class DefaultTaskUpToDateState implements TaskUpToDateState {
+public class DefaultExecutionStateChanges implements ExecutionStateChanges {
 
     private final ChangeContainer inputFileChanges;
     private final OutputFileChanges outputFileChanges;
@@ -34,26 +36,26 @@ public class DefaultTaskUpToDateState implements TaskUpToDateState {
     private final ChangeContainer rebuildChanges;
     private final ChangeContainer outputFilePropertyChanges;
 
-    public DefaultTaskUpToDateState(TaskExecution lastExecution, TaskExecution thisExecution, TaskInternal task) {
+    public DefaultExecutionStateChanges(PreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(lastExecution);
-        ChangeContainer taskTypeState = new ImplementationStateChanges(lastExecution, thisExecution, task);
-        ChangeContainer inputPropertyChanges = new InputPropertyChanges(lastExecution, thisExecution, task);
-        ChangeContainer inputPropertyValueChanges = new InputPropertyValueChanges(lastExecution, thisExecution, task);
+        ChangeContainer taskTypeState = new ImplementationStateChanges(lastExecution, thisExecution, executable);
+        ChangeContainer inputPropertyChanges = new InputPropertyChanges(lastExecution, thisExecution, executable);
+        ChangeContainer inputPropertyValueChanges = new InputPropertyValueChanges(lastExecution, thisExecution, executable);
 
         // Capture outputs state
-        this.outputFilePropertyChanges = new OutputPropertyChanges(lastExecution, thisExecution, task);
+        this.outputFilePropertyChanges = new OutputPropertyChanges(lastExecution, thisExecution, executable);
         OutputFileChanges uncachedOutputChanges = new OutputFileChanges(lastExecution, thisExecution);
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
         this.outputFileChanges = uncachedOutputChanges;
 
         // Capture input files state
-        ChangeContainer inputFilePropertyChanges = new InputFilePropertyChanges(lastExecution, thisExecution, task);
+        ChangeContainer inputFilePropertyChanges = new InputFilePropertyChanges(lastExecution, thisExecution, executable);
         InputFileChanges directInputFileChanges = new InputFileChanges(lastExecution, thisExecution);
         ChangeContainer inputFileChanges = caching(directInputFileChanges);
-        this.inputFileChanges = new ErrorHandlingChangeContainer(task, inputFileChanges);
+        this.inputFileChanges = new ErrorHandlingChangeContainer(executable, inputFileChanges);
 
-        this.allChanges = new ErrorHandlingChangeContainer(task, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
-        this.rebuildChanges = new ErrorHandlingChangeContainer(task, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        this.allChanges = new ErrorHandlingChangeContainer(executable, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
+        this.rebuildChanges = new ErrorHandlingChangeContainer(executable, new SummarizingChangeContainer(previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
     }
 
     private static ChangeContainer caching(ChangeContainer wrapped) {

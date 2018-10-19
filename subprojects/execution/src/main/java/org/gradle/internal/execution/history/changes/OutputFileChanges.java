@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class OutputFileChanges extends AbstractFingerprintBasedChanges {
 
-    public OutputFileChanges(TaskExecution previous, TaskExecution current) {
+    public OutputFileChanges(PreviousExecutionState previous, BeforeExecutionState current) {
         super(previous, current, "Output");
     }
 
     @Override
-    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(TaskExecution execution) {
-        return execution.getOutputFingerprints();
+    protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFingerprints(ExecutionState execution) {
+        return execution.getOutputFileProperties();
     }
 
     public boolean hasAnyChanges() {

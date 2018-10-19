@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.internal.execution.history.changes;
 
-import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 
 public class PreviousSuccessChanges implements ChangeContainer {
     private static final Change PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
-    private final TaskExecution previousExecution;
+    private final PreviousExecutionState previous;
 
-    public PreviousSuccessChanges(TaskExecution previousExecution) {
-        this.previousExecution = previousExecution;
+    public PreviousSuccessChanges(PreviousExecutionState previous) {
+        this.previous = previous;
     }
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        if (!previousExecution.isSuccessful()) {
+        if (!previous.isSuccessful()) {
             return visitor.visitChange(PREVIOUS_FAILURE);
         }
         return true;

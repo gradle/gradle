@@ -41,8 +41,8 @@ public class TaskCacheKeyCalculator {
         if (buildCacheDebugLogging) {
             builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);
         }
-        builder.appendTaskImplementation(execution.getTaskImplementation());
-        builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
+        builder.appendTaskImplementation(execution.getImplementation());
+        builder.appendTaskActionImplementations(execution.getAdditionalImplementations());
 
         SortedMap<String, ValueSnapshot> inputProperties = execution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
@@ -56,7 +56,7 @@ public class TaskCacheKeyCalculator {
             }
         }
 
-        SortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints = execution.getInputFingerprints();
+        SortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints = execution.getInputFileProperties();
         for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFingerprints.entrySet()) {
             builder.appendInputFilesProperty(entry.getKey(), entry.getValue());
         }
