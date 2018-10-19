@@ -457,7 +457,7 @@ include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tag
 Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the `plugins {}` block.
 It depends on how they have been published.
 
-For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and at least up to version 3.2.0 of the plugin, the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
+For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and at least up to version 3.2.0 of the plugin, the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository. Please star link:https://issuetracker.google.com/issues/64551265[the corresponding Google issue].
 
 In that case, you can fall back to declaring your plugin dependencies using the `buildscript {}` block in the root project build script:
 
