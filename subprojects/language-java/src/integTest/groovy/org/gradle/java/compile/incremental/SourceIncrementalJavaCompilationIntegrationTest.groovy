@@ -565,7 +565,7 @@ sourceSets {
 
         then:
         outputs.recompiledClasses("A", "B", "C")
-        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
+        output.contains("Cannot infer source root(s) for source `file collection`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
         output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
