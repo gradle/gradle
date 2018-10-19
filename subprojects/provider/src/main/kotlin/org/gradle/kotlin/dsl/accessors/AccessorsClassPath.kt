@@ -61,9 +61,10 @@ fun projectAccessorsClassPath(project: Project, classPath: ClassPath): Accessors
 private
 fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
-        cachedAccessorsClassPathFor(project, cacheKeyFor(projectSchema, classPath)) { srcDir, binDir ->
+        val stringlyProjectSchema = projectSchema.withKotlinTypeStrings()
+        cachedAccessorsClassPathFor(project, cacheKeyFor(stringlyProjectSchema, classPath)) { srcDir, binDir ->
             buildAccessorsFor(
-                projectSchema,
+                stringlyProjectSchema,
                 classPath,
                 srcDir = srcDir,
                 binDir = binDir
@@ -114,7 +115,7 @@ fun configuredProjectSchemaOf(project: Project) =
         require(classLoaderScopeOf(project).isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
         }
-        schemaFor(project).takeIf { it.isNotEmpty() }?.withKotlinTypeStrings()
+        schemaFor(project).takeIf { it.isNotEmpty() }
     }
 
 

@@ -81,6 +81,7 @@ object AccessorBytecodeEmitter {
                     is Accessor.ForExtension -> emitAccessorForExtension(accessor)
                     is Accessor.ForContainerElement -> emitAccessorForContainerElement(accessor)
                     is Accessor.ForTask -> emitAccessorForTask(accessor)
+//                    is Accessor.ForConvention -> TODO()
                 }
 
             writer.writeFile(
@@ -383,6 +384,8 @@ sealed class Accessor {
 
     data class ForExtension(val spec: TypedAccessorSpec) : Accessor()
 
+//    data class ForConvention(val spec: TypedAccessorSpec) : Accessor()
+
     data class ForContainerElement(val spec: TypedAccessorSpec) : Accessor()
 
     data class ForTask(val spec: TypedAccessorSpec) : Accessor()
@@ -394,6 +397,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
     schema.run {
         AccessorScope().run {
             yieldAll(uniqueAccessorsFor(extensions).map(Accessor::ForExtension))
+//            yieldAll(uniqueAccessorsFor(conventions).map(Accessor::ForConvention))
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
             yieldAll(accessorsForConfigurationsOf(schema))
