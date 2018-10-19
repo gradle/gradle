@@ -44,9 +44,9 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     private String forkPointCommitId;
 
-    private String baselineVersion = "defaults";
+    private boolean buildScanRequired;
 
-    private boolean ciServer;
+    private String baselineVersion;
 
     @Inject
     public BuildForkPointDistribution() {
@@ -70,11 +70,18 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     @Internal
     public String getBaselineVersion() {
+        if (baselineVersion == null) {
+            baselineVersion = Stream.of(getForkPointDistributionDir().getAsFile().get().listFiles())
+                .filter(file -> file.isDirectory() && file.getName().startsWith("gradle-"))
+                .map(file -> file.getName().substring("gradle-".length()))
+                .findFirst()
+                .orElse("defaults");
+        }
         return baselineVersion;
     }
 
-    public void setCiServer(boolean ciServer) {
-        this.ciServer = ciServer;
+    public void setBuildScanRequired(boolean buildScanRequired) {
+        this.buildScanRequired = buildScanRequired;
     }
 
     @TaskAction
@@ -83,14 +90,10 @@ public class BuildForkPointDistribution extends DefaultTask {
         try {
             prepareGradleRepository();
             tryBuildDistribution(forkPointCommitId);
-            LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + baselineVersion);
+            LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + getBaselineVersion());
         } catch (Exception e) {
             LOGGER.quiet("Building commit " + forkPointCommitId + " failed, fallback to default baseline.", e);
         }
-    }
-
-    private void setBaselineVersion(String baseVersion) {
-        baselineVersion = baseVersion + "-commit-" + forkPointCommitId;
     }
 
     private void prepareGradleRepository() throws IOException {
@@ -123,7 +126,6 @@ public class BuildForkPointDistribution extends DefaultTask {
         String baseVersion = new String(Files.readAllBytes(getGradleCloneTmpDir().toPath().resolve("version.txt"))).trim();
 
         exec(getGradleCloneTmpDir(), (Object[]) getBuildCommands(commit, baseVersion));
-        setBaselineVersion(baseVersion);
     }
 
     private Object[] getBuildCommands(String commit, String baseVersion) {
@@ -135,7 +137,7 @@ public class BuildForkPointDistribution extends DefaultTask {
             "-PtoolingApiShadedJarInstallPath=" + getDestinationFile("gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar")
         };
 
-        if (ciServer) {
+        if (buildScanRequired) {
             String[] buildScanParams = new String[]{"--init-script", new File(getGradleCloneTmpDir(), "gradle/init-scripts/build-scan.init.gradle.kts").getAbsolutePath()};
             return Stream.of(commands, buildScanParams).flatMap(Stream::of).toArray();
         } else {

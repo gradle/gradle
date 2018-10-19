@@ -111,7 +111,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.registerForkPointDistributionTask() {
         whenNotOnMasterOrReleaseBranch {
             val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
-                setCiServer(BuildEnvironment.isCiServer)
+                setBuildScanRequired(BuildEnvironment.isCiServer)
                 dependsOn("determineForkPoint")
             }
             tasks.register("determineForkPoint") {
