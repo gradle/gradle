@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+this should not compile
+
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
