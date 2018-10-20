@@ -15,6 +15,7 @@
  */
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.build.BuildReceipt
 import org.gradle.build.Install
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.modules.PatchExternalModules
@@ -267,6 +268,51 @@ configurations {
         extendsFrom(externalModules)
         extendsFrom(gradlePlugins)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
+    }
+}
+configurations {
+    create("gradleApiCoreElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(runtime)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core")
+    }
+}
+configurations {
+    create("gradleApiCoreExtensionsElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(coreRuntime)
+        extendsFrom(coreRuntimeExtensions)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
+    }
+}
+configurations {
+    create("gradleApiPluginElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        extendsFrom(gradlePlugins)
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
+    }
+}
+configurations {
+    create("gradleApiReceiptElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "build-receipt")
+
+        // TODO: Update BuildReceipt to retain dependency information by using Provider
+        val createBuildReceipt = tasks.named("createBuildReceipt", BuildReceipt::class.java)
+        val receiptFile = createBuildReceipt.map {
+            it.receiptFile
+        }
+        outgoing.artifact(receiptFile) {
+            builtBy(createBuildReceipt)
+        }
     }
 }
 

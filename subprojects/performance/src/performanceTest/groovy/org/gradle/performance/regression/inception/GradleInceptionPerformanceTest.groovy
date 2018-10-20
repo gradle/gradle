@@ -16,12 +16,17 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.junit.experimental.categories.Category
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.performance.generator.JavaTestProject.*
 
 /**
  * Test Gradle performance against it's own build.
@@ -61,5 +66,48 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         where:
         tasks  | _
         'help' | _
+    }
+
+    @Category(PerformanceExperiment)
+    @Unroll
+    def "buildSrc api change in #testProject comparing gradle"() {
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ['help']
+        runner.targetVersions = ["5.0-20181016235834+0000"]
+        runner.runs = runs
+        runner.args = [
+                "-Djava9Home=${System.getProperty('java9Home')}",
+                "-Pgradlebuild.skipBuildSrcChecks=true"
+        ]
+
+        and:
+        def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                new File(invocationInfo.projectDir, changingClassFilePath).tap {
+                    parentFile.mkdirs()
+                    text = """
+                        class ChangingClass {
+                            void changingMethod${invocationInfo.phase}${invocationInfo.iterationNumber}() {}
+                        }
+                    """.stripIndent()
+                }
+            }
+        })
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                         | buildSrcProjectDir   | runs
+        MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                   | 40
+        LARGE_JAVA_MULTI_PROJECT            | ""                   | 20
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                   | 10
+        'gradleBuildCurrent'                | "subprojects/build/" | 10
     }
 }
