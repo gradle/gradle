@@ -87,7 +87,6 @@ object AccessorBytecodeEmitter {
         binDir: File
     ): List<InternalName> = WriterThread().use { writer ->
 
-        // TODO: make it observable via build operations
         val internalClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
 
             val (internalClassName, classBytes) =

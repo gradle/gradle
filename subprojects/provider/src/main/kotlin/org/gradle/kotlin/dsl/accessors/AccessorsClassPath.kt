@@ -60,7 +60,7 @@ fun projectAccessorsClassPath(project: Project, classPath: ClassPath): Accessors
 private
 fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
-        // TODO: make cache key computation more efficient
+        // TODO:accessors make cache key computation more efficient
         val stringlyProjectSchema = projectSchema.withKotlinTypeStrings()
         cachedAccessorsClassPathFor(project, cacheKeyFor(stringlyProjectSchema, classPath)) { srcDir, binDir ->
             buildAccessorsFor(
@@ -287,7 +287,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
     fun accessibilityForType(type: SchemaType): TypeAccessibility =
-        // TODO: cache per SchemaType
+        // TODO:accessors cache per SchemaType
         inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
             else accessible(type)

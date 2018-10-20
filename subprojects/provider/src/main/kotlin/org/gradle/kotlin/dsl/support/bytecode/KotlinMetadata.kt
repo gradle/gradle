@@ -211,7 +211,7 @@ typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
-// TODO: Honor JavaBeans convention
+// TODO:accessors Honor JavaBeans convention?
     JvmMethodSignature("get${propertyName.capitalize()}", desc)
 
 
