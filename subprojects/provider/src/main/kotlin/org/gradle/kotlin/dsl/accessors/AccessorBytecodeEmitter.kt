@@ -16,11 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.Flag
-import kotlinx.metadata.KmFunctionVisitor
-import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmVariance
-import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
@@ -28,7 +24,6 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -63,6 +58,7 @@ import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
+import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
 import org.gradle.kotlin.dsl.support.bytecode.visitParameter
 import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
@@ -120,12 +116,10 @@ object AccessorBytecodeEmitter {
         val accessorSpec = accessor.spec
         val className = internalNameForAccessorClassOf(accessorSpec)
         val (accessibleReceiverType, name, returnType) = accessorSpec
+        val receiverType = accessibleReceiverType.type.builder
         val propertyName = name.kotlinIdentifier
         val receiverTypeName = accessibleReceiverType.internalName()
-        val (kotlinReturnType, jvmReturnType) = when (returnType) {
-            is TypeAccessibility.Accessible -> returnType.type.builder to returnType.internalName()
-            is TypeAccessibility.Inaccessible -> KotlinType.any to InternalNameOf.Object
-        }
+        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
         val getterSignature = jvmGetterSignatureFor(
             propertyName,
             accessorDescriptorFor(receiverTypeName, jvmReturnType)
@@ -137,13 +131,13 @@ object AccessorBytecodeEmitter {
 
         val header = writeFileFacadeClassHeader {
             writePropertyOf(
-                receiverType = receiverTypeName.builder,
+                receiverType = receiverType,
                 returnType = kotlinReturnType,
                 propertyName = propertyName,
                 getterSignature = getterSignature
             )
             writeFunctionOf(
-                receiverType = receiverTypeName.builder,
+                receiverType = receiverType,
                 returnType = KotlinType.unit,
                 parameters = {
                     visitParameter("configure", actionTypeOf(kotlinReturnType))
@@ -216,16 +210,17 @@ object AccessorBytecodeEmitter {
         val className = internalNameForAccessorClassOf(accessorSpec)
         val (accessibleReceiverType, name, returnType) = accessorSpec
         val propertyName = name.kotlinIdentifier
+        val receiverType = accessibleReceiverType.type.builder
         val receiverTypeName = accessibleReceiverType.internalName()
         val getterSignature = jvmGetterSignatureFor(
             propertyName,
             accessorDescriptorFor(receiverTypeName, providerType)
         )
-        val (kotlinReturnType, jvmReturnType) = accessibleReturnTypeFor(returnType)
+        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
 
         val header = writeFileFacadeClassHeader {
             writeElementAccessorMetadataFor(
-                receiverTypeName,
+                receiverType,
                 providerType,
                 kotlinReturnType,
                 propertyName,
@@ -235,7 +230,7 @@ object AccessorBytecodeEmitter {
 
         val classBytes =
             publicKotlinClass(className, header) {
-                publicStaticMethod(getterSignature.name, getterSignature.desc) {
+                publicStaticMethod(getterSignature) {
                     ALOAD(0)
                     LDC(propertyName)
                     LDC(jvmReturnType)
@@ -254,11 +249,9 @@ object AccessorBytecodeEmitter {
         val className = internalNameForAccessorClassOf(accessorSpec)
         val (accessibleReceiverType, name, returnType) = accessorSpec
         val propertyName = name.kotlinIdentifier
+        val receiverType = accessibleReceiverType.type.builder
         val receiverTypeName = accessibleReceiverType.internalName()
-        val (kotlinReturnType, jvmReturnType) = when (returnType) {
-            is TypeAccessibility.Accessible -> returnType.type.builder to returnType.internalName()
-            is TypeAccessibility.Inaccessible -> KotlinType.any to InternalNameOf.Object
-        }
+        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
         val getterSignature = jvmGetterSignatureFor(
             propertyName,
             accessorDescriptorFor(receiverTypeName, jvmReturnType)
@@ -270,13 +263,13 @@ object AccessorBytecodeEmitter {
 
         val header = writeFileFacadeClassHeader {
             writePropertyOf(
-                receiverType = accessibleReceiverType.type.builder,
+                receiverType = receiverType,
                 returnType = kotlinReturnType,
                 propertyName = propertyName,
                 getterSignature = getterSignature
             )
             writeFunctionOf(
-                receiverType = accessibleReceiverType.type.builder,
+                receiverType = receiverType,
                 returnType = KotlinType.unit,
                 parameters = {
                     visitParameter("configure", actionTypeOf(kotlinReturnType))
@@ -314,6 +307,12 @@ object AccessorBytecodeEmitter {
     }
 
     private
+    fun accessibleTypesFor(typeAccessibility: TypeAccessibility): Pair<KmTypeBuilder, InternalName> = when (typeAccessibility) {
+        is TypeAccessibility.Accessible -> typeAccessibility.run { type.builder to internalName() }
+        is TypeAccessibility.Inaccessible -> KotlinType.any to InternalNameOf.Object
+    }
+
+    private
     val SchemaType.builder: KmTypeBuilder
         get() = value.builder
 
@@ -321,18 +320,11 @@ object AccessorBytecodeEmitter {
     val TypeOf<*>.builder: KmTypeBuilder
         get() = when {
             isParameterized -> genericTypeOf(
-                parameterizedTypeDefinition.builder,
+                classOf(parameterizedTypeDefinition.concreteClass),
                 actualTypeArguments[0].builder
             )
-            else -> concreteClass.builder()
+            else -> classOf(concreteClass)
         }
-
-    private
-    fun Class<out Any>.builder() = internalName.builder
-
-    private
-    val InternalName.builder: KmTypeBuilder
-        get() = { visitClass(value.replace('$', '.')) }
 
     private
     fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
@@ -388,38 +380,33 @@ object AccessorBytecodeEmitter {
             "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;"
         )
 
-        val dependencyHandler: KmTypeBuilder = DependencyHandler::class.internalName.builder
-        val dependency: KmTypeBuilder = Dependency::class.internalName.builder
-
         val header = writeFileFacadeClassHeader {
 
             writeConfigurationAccessorMetadataFor(propertyName, getterSignature)
 
             writeFunctionOf(
-                receiverType = dependencyHandler,
-                nullableReturnType = dependency,
+                receiverType = GradleType.dependencyHandler,
+                nullableReturnType = GradleType.dependency,
                 name = propertyName,
                 parameterName = "dependencyNotation",
-                parameterType = { visitClass(InternalNameOf.Any) },
+                parameterType = KotlinType.any,
                 signature = overload1
             )
 
             writeFunctionOf(
-                receiverType = dependencyHandler,
-                returnType = { visitClass(ExternalModuleDependency::class.internalName) },
+                receiverType = GradleType.dependencyHandler,
+                returnType = GradleType.externalModuleDependency,
                 name = propertyName,
                 parameters = {
                     visitParameter("dependencyNotation", KotlinType.string)
-                    visitParameter("configurationAction", actionTypeOf {
-                        visitClass(ExternalModuleDependency::class.internalName)
-                    })
+                    visitParameter("configurationAction", actionTypeOf(GradleType.externalModuleDependency))
                 },
                 signature = overload2
             )
 
             writeFunctionOf(
-                receiverType = dependencyHandler,
-                returnType = { visitClass(ExternalModuleDependency::class.internalName) },
+                receiverType = GradleType.dependencyHandler,
+                returnType = GradleType.externalModuleDependency,
                 name = propertyName,
                 parameters = {
                     visitParameter("group", KotlinType.string)
@@ -435,10 +422,10 @@ object AccessorBytecodeEmitter {
             val typeParameter: KmTypeBuilder = { visitTypeParameter(0) }
             visitFunction(inlineFunctionFlags, propertyName)!!.run {
                 visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
-                    visitUpperBound(0).with(dependency)
+                    visitUpperBound(0).with(GradleType.dependency)
                     visitEnd()
                 }
-                visitReceiverParameterType(0).with(dependencyHandler)
+                visitReceiverParameterType(0).with(GradleType.dependencyHandler)
                 visitParameter("dependency", typeParameter)
                 visitParameter("action", actionTypeOf(typeParameter))
                 visitReturnType(0).with(typeParameter)
@@ -447,25 +434,21 @@ object AccessorBytecodeEmitter {
             }
 
             writeFunctionOf(
-                receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
-                nullableReturnType = { visitClass(DependencyConstraint::class.internalName) },
+                receiverType = GradleType.dependencyConstraintHandler,
+                nullableReturnType = GradleType.dependencyConstraint,
                 name = propertyName,
                 parameterName = "constraintNotation",
-                parameterType = { visitClass(InternalNameOf.Any) },
+                parameterType = KotlinType.any,
                 signature = constraintHandlerOverload1
             )
 
             writeFunctionOf(
-                receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
-                returnType = { visitClass(DependencyConstraint::class.internalName) },
+                receiverType = GradleType.dependencyConstraintHandler,
+                returnType = GradleType.dependencyConstraint,
                 name = propertyName,
                 parameters = {
-                    visitParameter("constraintNotation", {
-                        visitClass(InternalNameOf.Any)
-                    })
-                    visitParameter("configurationAction", actionTypeOf {
-                        visitClass(DependencyConstraint::class.internalName)
-                    })
+                    visitParameter("constraintNotation", KotlinType.any)
+                    visitParameter("configurationAction", actionTypeOf(GradleType.dependencyConstraint))
                 },
                 signature = constraintHandlerOverload2
             )
@@ -542,16 +525,6 @@ object AccessorBytecodeEmitter {
     }
 
     private
-    fun KmFunctionVisitor.visitOptionalParameter(parameterName: String, stringType: KmTypeBuilder) {
-        visitParameter(
-            parameterName,
-            stringType,
-            parameterFlags = flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE),
-            parameterTypeFlags = flagsOf(Flag.Type.IS_NULLABLE)
-        )
-    }
-
-    private
     fun MethodVisitor.invokeRuntime(function: String, desc: String) {
         INVOKESTATIC(InternalName("org/gradle/kotlin/dsl/accessors/runtime/RuntimeKt"), function, desc)
     }
@@ -559,13 +532,6 @@ object AccessorBytecodeEmitter {
     private
     fun hashOf(accessorSpec: TypedAccessorSpec) =
         HashUtil.createCompactMD5(accessorSpec.toString())
-
-    private
-    fun accessibleReturnTypeFor(returnType: TypeAccessibility): Pair<InternalName, InternalName> =
-        when (returnType) {
-            is TypeAccessibility.Accessible -> returnType.internalName().let { it to it }
-            is TypeAccessibility.Inaccessible -> InternalNameOf.Any to InternalNameOf.Object
-        }
 
     private
     fun TypeAccessibility.Accessible.internalName() = type.value.concreteClass.internalName
@@ -580,7 +546,7 @@ object AccessorBytecodeEmitter {
         elementName: String,
         signature: JvmMethodSignature
     ) {
-        publicStaticMethod(signature.name, signature.desc) {
+        publicStaticMethod(signature) {
             ALOAD(0)
             LDC(elementName)
             INVOKEINTERFACE(namedDomainObjectContainerTypeName, "named", namedMethodDescriptor)
@@ -594,43 +560,28 @@ object AccessorBytecodeEmitter {
         getterSignature: JvmMethodSignature
     ) {
         writePropertyOf(
-            receiverType = genericTypeOf(namedDomainObjectContainerTypeName.builder, configurationTypeName.builder),
-            returnType = genericTypeOf(namedDomainObjectProviderTypeName.builder, configurationTypeName.builder),
+            receiverType = GradleType.containerOfConfiguration,
+            returnType = GradleType.providerOfConfiguration,
             propertyName = configurationName,
             getterSignature = getterSignature
         )
     }
 
     private
-    fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): KmTypeVisitor.() -> Unit = {
-        genericType()
-        visitArgument(0, KmVariance.INVARIANT)!!.run {
-            genericArgument()
-            visitEnd()
-        }
-    }
-
-    private
     fun KotlinClassMetadata.FileFacade.Writer.writeElementAccessorMetadataFor(
-        containerType: InternalName,
+        containerType: KmTypeBuilder,
         providerType: InternalName,
-        elementType: InternalName,
+        elementType: KmTypeBuilder,
         propertyName: String,
         getterSignature: JvmMethodSignature
     ) {
         writePropertyOf(
-            receiverType = containerType.builder,
-            returnType = genericTypeOf(providerType.builder, elementType.builder),
+            receiverType = containerType,
+            returnType = genericTypeOf(classOf(providerType), elementType),
             propertyName = propertyName,
             getterSignature = getterSignature
         )
     }
-
-    private
-    val configurationContainerInternalName = ConfigurationContainer::class.internalName
-
-    private
-    val configurationTypeName = Configuration::class.internalName
 
     private
     val namedDomainObjectProviderTypeName = NamedDomainObjectProvider::class.internalName
@@ -656,6 +607,31 @@ object AccessorBytecodeEmitter {
     private
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
         "(L$receiverType;)L$returnType;"
+}
+
+
+private
+object GradleType {
+
+    val dependencyConstraintHandler = classOf<DependencyConstraintHandler>()
+
+    val dependencyConstraint = classOf<DependencyConstraint>()
+
+    val dependencyHandler = classOf<DependencyHandler>()
+
+    val dependency = classOf<Dependency>()
+
+    val externalModuleDependency = classOf<ExternalModuleDependency>()
+
+    val namedDomainObjectContainer = classOf<NamedDomainObjectContainer<*>>()
+
+    val configuration = classOf<Configuration>()
+
+    val namedDomainObjectProvider = classOf<NamedDomainObjectProvider<*>>()
+
+    val containerOfConfiguration = genericTypeOf(namedDomainObjectContainer, configuration)
+
+    val providerOfConfiguration = genericTypeOf(namedDomainObjectProvider, configuration)
 }
 
 
@@ -712,4 +688,31 @@ fun ClassVisitor.publicStaticMethod(
     methodBody: MethodVisitor.() -> Unit
 ) = jvmMethodSignature.run {
     publicStaticMethod(name, desc, signature, exceptions, methodBody)
+}
+
+
+private
+inline fun <reified T> classOf(): KmTypeBuilder =
+    classOf(T::class.java)
+
+
+private
+fun classOf(`class`: Class<*>) =
+    classOf(`class`.internalName)
+
+
+private
+fun classOf(className: InternalName): KmTypeBuilder =
+    className.value.replace('$', '.').let { kotlinName ->
+        { visitClass(kotlinName) }
+    }
+
+
+private
+fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): KmTypeBuilder = {
+    genericType()
+    visitArgument(0, KmVariance.INVARIANT)!!.run {
+        genericArgument()
+        visitEnd()
+    }
 }

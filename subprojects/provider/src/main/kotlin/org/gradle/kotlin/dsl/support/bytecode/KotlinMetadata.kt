@@ -118,6 +118,17 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
 
 
 internal
+fun KmFunctionVisitor.visitOptionalParameter(parameterName: String, parameterType: KmTypeBuilder) {
+    visitParameter(
+        parameterName,
+        parameterType,
+        parameterFlags = flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE),
+        parameterTypeFlags = flagsOf(Flag.Type.IS_NULLABLE)
+    )
+}
+
+
+internal
 inline fun KmFunctionVisitor.visitParameter(
     parameterName: String,
     parameterType: KmTypeBuilder,
