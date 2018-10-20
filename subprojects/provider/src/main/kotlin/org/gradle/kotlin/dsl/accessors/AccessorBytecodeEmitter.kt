@@ -158,11 +158,12 @@ object AccessorBytecodeEmitter {
         return className to classBytes
     }
 
-    private fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
+    private
+    fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
         ALOAD(0)
         LDC(name.original)
         invokeRuntime(
-            "conventionOf",
+            "conventionPluginOf",
             "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
         )
         when (returnType) {

@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
+
+import org.gradle.kotlin.dsl.accessors.runtime.conventionOf
+
 import kotlin.reflect.KClass
 
 
@@ -98,7 +100,4 @@ inline fun <ConventionType : Any, ReturnType> Any.withConvention(
     conventionType: KClass<ConventionType>,
     function: ConventionType.() -> ReturnType
 ): ReturnType =
-    when (this) {
-        is HasConvention -> convention.getPlugin(conventionType.java).run(function)
-        else -> throw IllegalStateException("Object `$this` doesn't support conventions!")
-    }
+    conventionOf(this).getPlugin(conventionType.java).run(function)
