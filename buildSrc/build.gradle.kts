@@ -106,7 +106,7 @@ dependencies {
 }
 
 // Set gradlebuild.skipBuildSrcChecks Gradle property to "true" to disable all buildSrc verification tasks
-if(findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
+if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
     allprojects {
         tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
             enabled = false
