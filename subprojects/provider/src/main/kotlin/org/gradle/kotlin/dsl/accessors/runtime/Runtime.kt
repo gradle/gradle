@@ -18,11 +18,10 @@ package org.gradle.kotlin.dsl.accessors.runtime
 
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
-
 import org.gradle.api.plugins.ExtensionAware
 
 
@@ -49,9 +48,9 @@ fun addDependencyTo(
     dependencies: DependencyHandler,
     configuration: String,
     dependencyNotation: Any,
-    configurationAction: Action<ExternalModuleDependency>
-): ExternalModuleDependency = dependencies.run {
-    (create(dependencyNotation) as ExternalModuleDependency).also { dependency ->
+    configurationAction: Action<in Any>
+): Dependency = dependencies.run {
+    create(dependencyNotation).also { dependency ->
         configurationAction.execute(dependency)
         add(configuration, dependency)
     }

@@ -16,8 +16,11 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.Flag
+import kotlinx.metadata.KmFunctionVisitor
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmVariance
+import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
@@ -40,6 +43,7 @@ import org.gradle.internal.hash.HashUtil
 
 import org.gradle.kotlin.dsl.concurrent.WriterThread
 import org.gradle.kotlin.dsl.concurrent.unorderedParallelMap
+import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -53,6 +57,7 @@ import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
+import org.gradle.kotlin.dsl.support.bytecode.method
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
@@ -65,6 +70,7 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor
 
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 import java.io.File
 
@@ -339,7 +345,24 @@ object AccessorBytecodeEmitter {
         )
         val overload2 = JvmMethodSignature(
             propertyName,
-            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+        )
+        val overload3 = JvmMethodSignature(
+            propertyName,
+            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+        )
+        val overload3Defaults = JvmMethodSignature(
+            "$propertyName\$default",
+            "(" +
+                "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
+                "Ljava/lang/String;" +
+                "Ljava/lang/String;" +
+                "Ljava/lang/String;" +
+                "Ljava/lang/String;" +
+                "Ljava/lang/String;" +
+                "Ljava/lang/String;" +
+                "ILjava/lang/Object;" +
+                ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
         )
         val constraintHandlerOverload1 = JvmMethodSignature(
             propertyName,
@@ -365,14 +388,26 @@ object AccessorBytecodeEmitter {
                 returnType = { visitClass(ExternalModuleDependency::class.internalName) },
                 name = propertyName,
                 parameters = {
-                    visitParameter("dependencyNotation") {
-                        visitClass(InternalNameOf.Any)
-                    }
+                    visitParameter("dependencyNotation", KotlinType.string)
                     visitParameter("configurationAction", actionTypeOf {
                         visitClass(ExternalModuleDependency::class.internalName)
                     })
                 },
                 signature = overload2
+            )
+            writeFunctionOf(
+                receiverType = { visitClass(DependencyHandler::class.internalName) },
+                returnType = { visitClass(ExternalModuleDependency::class.internalName) },
+                name = propertyName,
+                parameters = {
+                    visitParameter("group", KotlinType.string)
+                    visitParameter("name", KotlinType.string)
+                    visitOptionalParameter("version", KotlinType.string)
+                    visitOptionalParameter("configuration", KotlinType.string)
+                    visitOptionalParameter("classifier", KotlinType.string)
+                    visitOptionalParameter("ext", KotlinType.string)
+                },
+                signature = overload3
             )
             writeFunctionOf(
                 receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
@@ -387,9 +422,9 @@ object AccessorBytecodeEmitter {
                 returnType = { visitClass(DependencyConstraint::class.internalName) },
                 name = propertyName,
                 parameters = {
-                    visitParameter("constraintNotation") {
+                    visitParameter("constraintNotation", {
                         visitClass(InternalNameOf.Any)
-                    }
+                    })
                     visitParameter("configurationAction", actionTypeOf {
                         visitClass(DependencyConstraint::class.internalName)
                     })
@@ -417,8 +452,22 @@ object AccessorBytecodeEmitter {
                     ALOAD(1)
                     ALOAD(2)
                     invokeRuntime("addDependencyTo",
-                        "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                        "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/Dependency;"
                     )
+                    CHECKCAST(ExternalModuleDependency::class.internalName)
+                    ARETURN()
+                }
+
+                publicStaticMethod(overload3) {
+                    ACONST_NULL()
+                    ARETURN()
+                }
+
+                method(
+                    Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC,
+                    overload3Defaults.name,
+                    overload3Defaults.desc) {
+                    ACONST_NULL()
                     ARETURN()
                 }
 
@@ -441,6 +490,16 @@ object AccessorBytecodeEmitter {
             }
 
         return className to classBytes
+    }
+
+    private
+    fun KmFunctionVisitor.visitOptionalParameter(parameterName: String, stringType: KmTypeBuilder) {
+        visitParameter(
+            parameterName,
+            stringType,
+            parameterFlags = flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE),
+            parameterTypeFlags = flagsOf(Flag.Type.IS_NULLABLE)
+        )
     }
 
     private
@@ -548,6 +607,13 @@ object AccessorBytecodeEmitter {
     private
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
         "(L$receiverType;)L$returnType;"
+}
+
+
+private
+object KotlinType {
+
+    val string: KmTypeBuilder = { visitClass("kotlin/String") }
 }
 
 

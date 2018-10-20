@@ -118,9 +118,14 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
 
 
 internal
-inline fun KmFunctionVisitor.visitParameter(parameterName: String, parameterType: KmTypeBuilder) {
-    visitValueParameter(0, parameterName)!!.run {
-        visitType(0).with(parameterType)
+inline fun KmFunctionVisitor.visitParameter(
+    parameterName: String,
+    parameterType: KmTypeBuilder,
+    parameterFlags: Flags = 0,
+    parameterTypeFlags: Flags = 0
+) {
+    visitValueParameter(parameterFlags, parameterName)!!.run {
+        visitType(parameterTypeFlags).with(parameterType)
         visitEnd()
     }
 }
@@ -136,7 +141,6 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
     returnTypeFlags: Flags = 0,
     functionFlags: Flags = inlineFunctionFlags
 ) {
-
     visitFunction(functionFlags, name)!!.run {
         visitReceiverParameterType(0).with(receiverType)
         parameters()
