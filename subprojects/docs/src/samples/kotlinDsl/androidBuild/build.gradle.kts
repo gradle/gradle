@@ -7,3 +7,15 @@ plugins {
 // tag::android[]
 }
 // end::android[]
+
+// tag::android-buildscript[]
+buildscript {
+    repositories {
+        google()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:3.2.0")
+    }
+}
+// end::android-buildscript[]
