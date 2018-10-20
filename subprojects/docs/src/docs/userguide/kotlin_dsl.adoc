@@ -415,19 +415,6 @@ include::sample[dir="kotlinDsl/sourceSetConvention",files="build.gradle.kts[tags
 [[sec:multi_project_builds]]
 == Multi-project builds (e.g. Android)
 
-[CAUTION]
-.Configuration on demand
---
-Enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature is not recommended as it can lead to very hard-to-diagnose problems.
-The strictness of the Gradle Kotlin DSL makes it even more likely that problems will arise.
-In order to save you trouble, you should disable it if it's already enabled.
-
-The same is true for `evaluationDependsOn(projectPath)` and `evaluationDependsOnChildren()`.
-Favor <<multi_project_builds#sec:decoupled_projects,decoupling your projects>> instead.
-
-// TODO note that these will be deprecated soon, for Gradle 5?, need an issue link
---
-
 Multi-project builds are very common.
 Android builds are, for example, multi-project builds from the start.
 When creating a new build from Android Studio it creates a multi-project build.
