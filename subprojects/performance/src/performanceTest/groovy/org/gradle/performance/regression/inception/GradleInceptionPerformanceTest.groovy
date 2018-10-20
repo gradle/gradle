@@ -62,7 +62,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
 
     @Category(PerformanceExperiment)
     @Unroll
-    def "buildSrc change in #testProject comparing gradle"() {
+    def "buildSrc api change in #testProject comparing gradle"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['help']
@@ -82,7 +82,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
                     parentFile.mkdirs()
                     text = """
                         class ChangingClass {
-                            def value = "${invocationInfo.phase} ${invocationInfo.iterationNumber}"
+                            void changingMethod${invocationInfo.phase}${invocationInfo.iterationNumber}() {}
                         }
                     """.stripIndent()
                 }
