@@ -31,7 +31,11 @@ fun extensionOf(target: Any, extensionName: String): Any =
 
 
 fun conventionPluginOf(target: Any, name: String) =
-    conventionOf(target).plugins[name]
+    conventionPluginByName(conventionOf(target), name)
+
+
+fun conventionPluginByName(convention: Convention, name: String): Any =
+    convention.plugins[name] ?: throw IllegalStateException("A convention named '$name' could not be found.")
 
 
 fun conventionOf(target: Any): Convention = when (target) {
