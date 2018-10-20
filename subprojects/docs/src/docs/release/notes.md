@@ -60,11 +60,18 @@ Since JDK 11 no longer supports changing the working directory of a running proc
 All workers now use the same working directory to enable reuse.
 Please pass files and directories as arguments instead.
 
+### Passing arguments to Windows Resource Compiler
+
+To follow idiomatic [Provider API](userguide/lazy_configuration.html) practices, the `WindowsResourceCompile` task has been converted to use the Provider API.
+
+Passing additional compiler arguments now follow the same pattern as the `CppCompile` and other tasks.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
  - [Mike Kobit](https://github.com/mkobit) - Add missing `@Deprecated` annotations to `ProjectLayout` methods (gradle/gradle#7344)
+ - [Kent Fletcher](https://github.com/fletcher-sumglobal) - Convert `WindowsResourceCompile` to use Provider API (gradle/gradle#7432)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
