@@ -392,7 +392,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.isUpToDate([])
         fileSystemMirror.beforeOutputChange()
         outputDirFile.createFile()
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
 
         then:
         !state.upToDate
@@ -411,7 +411,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         fileSystemMirror.beforeOutputChange()
         outputDirFile2.createFile()
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
 
         then:
         // Task should be out-of-date
@@ -525,7 +525,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
         fileSystemMirror.beforeOutputChange()
         otherFile.write("new content")
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
         otherFile.delete()
 
         then:
@@ -541,7 +541,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = getStateFor(task)
         state.isUpToDate([])
-        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
+        state.snapshotAfterTaskExecution(true, buildScopeId.id, Mock(TaskExecutionContext))
 
         when:
         outputDirFile.write("ignore me")
@@ -709,7 +709,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             // reset state
             fileSystemMirror.beforeOutputChange()
             super.execute(task)
-            state.snapshotAfterTaskExecution(null, originMetadata.buildInvocationId, taskExecutionContext)
+            state.snapshotAfterTaskExecution(true, originMetadata.buildInvocationId, taskExecutionContext)
         }
         // reset state
         fileSystemMirror.beforeOutputChange()

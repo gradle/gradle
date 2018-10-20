@@ -37,7 +37,7 @@ public class SnapshotAfterExecutionTaskExecuter implements TaskExecuter {
         try {
             delegate.execute(task, state, context);
         } finally {
-            context.getTaskArtifactState().snapshotAfterTaskExecution(state.getFailure(), buildInvocationScopeId.getId(), context);
+            context.getTaskArtifactState().snapshotAfterTaskExecution(state.getFailure() == null, buildInvocationScopeId.getId(), context);
         }
     }
 }

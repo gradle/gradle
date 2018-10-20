@@ -134,8 +134,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
 
         @Override
-        public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
-            delegate.snapshotAfterTaskExecution(failure, buildInvocationId, taskExecutionContext);
+        public void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
+            delegate.snapshotAfterTaskExecution(successful, buildInvocationId, taskExecutionContext);
         }
 
         @Override

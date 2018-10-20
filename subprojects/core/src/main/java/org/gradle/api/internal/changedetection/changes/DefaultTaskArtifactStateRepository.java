@@ -177,7 +177,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
+        public void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
             final CurrentTaskExecution currentExecution = history.getCurrentExecution();
             final HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesAfter = Util.fingerprintTaskFiles(task, taskExecutionContext.getTaskProperties().getOutputFileProperties(), fingerprinterRegistry);
@@ -197,7 +197,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 }));
             }
 
-            snapshotAfterOutputsWereGenerated(newOutputFingerprints, failure, new OriginMetadata(
+            snapshotAfterOutputsWereGenerated(newOutputFingerprints, successful, new OriginMetadata(
                     buildInvocationId,
                     taskExecutionContext.markExecutionTime()
             ));
@@ -205,14 +205,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata) {
-            snapshotAfterOutputsWereGenerated(newOutputFingerprints, null, originMetadata);
+            snapshotAfterOutputsWereGenerated(newOutputFingerprints, true, originMetadata);
         }
 
-        private void snapshotAfterOutputsWereGenerated(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, @Nullable Throwable failure, OriginMetadata originMetadata) {
+        private void snapshotAfterOutputsWereGenerated(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             HistoricalTaskExecution previousExecution = history.getPreviousExecution();
-            history.updateCurrentExecutionWithOutputs(newOutputFingerprints, failure == null, originMetadata);
+            history.updateCurrentExecutionWithOutputs(newOutputFingerprints, successful, originMetadata);
             // Only persist history if there was no failure, or some output files have been changed
-            if (failure == null || previousExecution == null || hasAnyOutputFileChanges(previousExecution.getOutputFileProperties(), newOutputFingerprints)) {
+            if (successful || previousExecution == null || hasAnyOutputFileChanges(previousExecution.getOutputFileProperties(), newOutputFingerprints)) {
                 history.persist();
                 taskOutputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }

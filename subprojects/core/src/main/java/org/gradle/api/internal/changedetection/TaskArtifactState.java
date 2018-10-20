@@ -72,7 +72,7 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext);
+    void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext);
 
     /**
      * Called on task being loaded from cache.
