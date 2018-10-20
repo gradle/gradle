@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.same
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -30,6 +31,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
@@ -44,10 +46,13 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+import org.gradle.kotlin.dsl.project
 
 import org.gradle.nativeplatform.BuildType
 
 import org.junit.Test
+
+import org.mockito.ArgumentMatchers.anyMap
 
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
@@ -102,9 +107,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { add(any(), any(), any()) } doReturn constraint
         }
         val dependency = mock<ExternalModuleDependency>()
+        val projectDependency = mock<ProjectDependency>()
         val dependencies = mock<DependencyHandler> {
             on { create(any()) } doReturn dependency
             on { getConstraints() } doReturn constraints
+            on { project(anyMap<String, Any?>()) } doReturn projectDependency
         }
         val tasks = mock<TaskContainer>()
         val applicationPluginConvention = mock<ApplicationPluginConvention>()
@@ -149,6 +156,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 val k: DependencyConstraint? = dependencies.constraints.api("direct:accessor:1.0")
                 val l: DependencyConstraint? = dependencies.constraints.api("direct:accessor-with-action") {
                     val constraint: DependencyConstraint = this
+                }
+
+                val projectDependency = dependencies.project(":core")
+                val m: ProjectDependency = dependencies.api(projectDependency) {
+                    val dependency: ProjectDependency = this
                 }
 
                 fun Project.canUseAccessorsFromConfigurationsScope() {
@@ -227,6 +239,12 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verify(project).dependencies
             verify(dependencies).constraints
             verify(constraints).add(eq("api"), eq("direct:accessor-with-action"), any())
+
+            // val m
+            verify(project).dependencies
+            verify(dependencies).project(path = ":core")
+            verify(project).dependencies
+            verify(dependencies).add(eq("api"), same(projectDependency))
 
             verifyNoMoreInteractions()
         }

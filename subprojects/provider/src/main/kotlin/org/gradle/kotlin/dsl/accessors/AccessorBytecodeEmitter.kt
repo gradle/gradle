@@ -371,6 +371,15 @@ object AccessorBytecodeEmitter {
                 "ILjava/lang/Object;" +
                 ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
         )
+        val genericOverload = JvmMethodSignature(
+            propertyName,
+            "(" +
+                "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
+                "Lorg/gradle/api/artifacts/Dependency;" +
+                "Lorg/gradle/api/Action;" +
+                ")Lorg/gradle/api/artifacts/Dependency;"
+        )
+
         val constraintHandlerOverload1 = JvmMethodSignature(
             propertyName,
             "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;"
@@ -423,6 +432,21 @@ object AccessorBytecodeEmitter {
                 },
                 signature = overload3
             )
+
+            val typeParameter: KmTypeBuilder = { visitTypeParameter(0) }
+            visitFunction(inlineFunctionFlags, propertyName)!!.run {
+                visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
+                    visitUpperBound(0).with(dependency)
+                    visitEnd()
+                }
+                visitReceiverParameterType(0).with(dependencyHandler)
+                visitParameter("dependency", typeParameter)
+                visitParameter("action", actionTypeOf(typeParameter))
+                visitReturnType(0).with(typeParameter)
+                visitSignature(genericOverload)
+                visitEnd()
+            }
+
             writeFunctionOf(
                 receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
                 nullableReturnType = { visitClass(DependencyConstraint::class.internalName) },
@@ -431,6 +455,7 @@ object AccessorBytecodeEmitter {
                 parameterType = { visitClass(InternalNameOf.Any) },
                 signature = constraintHandlerOverload1
             )
+
             writeFunctionOf(
                 receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
                 returnType = { visitClass(DependencyConstraint::class.internalName) },
@@ -482,6 +507,17 @@ object AccessorBytecodeEmitter {
                     overload3Defaults.name,
                     overload3Defaults.desc) {
                     ACONST_NULL()
+                    ARETURN()
+                }
+
+                publicStaticMethod(genericOverload) {
+                    ALOAD(2)
+                    ALOAD(1)
+                    invokeAction()
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
                     ARETURN()
                 }
 

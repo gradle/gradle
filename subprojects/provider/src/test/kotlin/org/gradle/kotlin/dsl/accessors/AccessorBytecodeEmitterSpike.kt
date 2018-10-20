@@ -20,9 +20,9 @@ import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 
-import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.Action
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
@@ -32,11 +32,24 @@ import org.gradle.kotlin.dsl.support.loggerFor
 import org.junit.Test
 
 
-val ConfigurationContainer.api: NamedDomainObjectProvider<Configuration>
-    inline get() = named("api")
+inline fun <T : Dependency> DependencyHandler.foo(
+    dependency: T,
+    action: Action<T>
+): T = dependency.also { action.execute(it) }
 
 
 class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
+
+    @Test
+    fun `extract file metadata`() {
+
+        val fileFacadeHeader = javaClass.classLoader
+            .loadClass(javaClass.name + "Kt")
+            .readKotlinClassHeader()
+
+        val metadata = KotlinClassMetadata.read(fileFacadeHeader) as KotlinClassMetadata.FileFacade
+        metadata.accept(KotlinMetadataPrintingVisitor.ForPackage)
+    }
 
     @Test
     fun `extract module metadata`() {
@@ -63,17 +76,6 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
         val bytes = outputDir.resolve("META-INF/main.kotlin_module").readBytes()
         val metadata = KotlinModuleMetadata.read(bytes)!!
         metadata.accept(KotlinMetadataPrintingVisitor.ForModule)
-    }
-
-    @Test
-    fun `extract file metadata`() {
-
-        val fileFacadeHeader = javaClass.classLoader
-            .loadClass(javaClass.name + "Kt")
-            .readKotlinClassHeader()
-
-        val metadata = KotlinClassMetadata.read(fileFacadeHeader) as KotlinClassMetadata.FileFacade
-        metadata.accept(KotlinMetadataPrintingVisitor.ForPackage)
     }
 
     private

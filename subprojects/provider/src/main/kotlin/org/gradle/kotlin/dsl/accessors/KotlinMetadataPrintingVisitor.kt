@@ -26,6 +26,9 @@ import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmPackageVisitor
 import kotlinx.metadata.KmPropertyExtensionVisitor
 import kotlinx.metadata.KmPropertyVisitor
+import kotlinx.metadata.KmTypeExtensionVisitor
+import kotlinx.metadata.KmTypeParameterExtensionVisitor
+import kotlinx.metadata.KmTypeParameterVisitor
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.KmValueParameterVisitor
 import kotlinx.metadata.KmVariance
@@ -35,6 +38,8 @@ import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
+import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
+import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor
 import kotlinx.metadata.jvm.KmModuleVisitor
 
 
@@ -75,6 +80,34 @@ object KotlinMetadataPrintingVisitor {
 
     object ForFunction : KmFunctionVisitor() {
 
+        override fun visitTypeParameter(flags: Flags, name: String, id: Int, variance: KmVariance): KmTypeParameterVisitor? {
+            println("visitTypeParameter($flags, $name, $id, $variance)")
+            return object : KmTypeParameterVisitor() {
+                override fun visitUpperBound(flags: Flags): KmTypeVisitor? {
+                    println("visitUpperBound($flags)")
+                    return ForType
+                }
+
+                override fun visitExtensions(type: KmExtensionType): KmTypeParameterExtensionVisitor? {
+                    println("visitExtensions($type)")
+                    return object : JvmTypeParameterExtensionVisitor() {
+                        override fun visitAnnotation(annotation: KmAnnotation) {
+                            println("visitAnnotation($annotation)")
+                            super.visitAnnotation(annotation)
+                        }
+                        override fun visitEnd() {
+                            println("visitEnd()")
+                            super.visitEnd()
+                        }
+                    }
+                }
+                override fun visitEnd() {
+                    println("visitEnd()")
+                    super.visitEnd()
+                }
+            }
+        }
+
         override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? {
             println("visitExtensions($type)")
             return object : JvmFunctionExtensionVisitor() {
@@ -111,7 +144,7 @@ object KotlinMetadataPrintingVisitor {
 
         override fun visitReturnType(flags: Flags): KmTypeVisitor? {
             println("visitReturnType($flags)")
-            return super.visitReturnType(flags)
+            return ForType
         }
 
 
@@ -165,6 +198,56 @@ object KotlinMetadataPrintingVisitor {
     }
 
     object ForType : KmTypeVisitor() {
+
+        override fun visitTypeAlias(name: ClassName) {
+            println("visitTypeAlias($name)")
+            super.visitTypeAlias(name)
+        }
+
+        override fun visitStarProjection() {
+            println("visitStarProjection()")
+            super.visitStarProjection()
+        }
+
+        override fun visitOuterType(flags: Flags): KmTypeVisitor? {
+            println("visitOuterType($flags)")
+            return ForType
+        }
+
+        override fun visitAbbreviatedType(flags: Flags): KmTypeVisitor? {
+            println("visitAbbreviatedType($flags)")
+            return ForType
+        }
+
+        override fun visitTypeParameter(id: Int) {
+            println("visitTypeParameter($id)")
+            super.visitTypeParameter(id)
+        }
+
+        override fun visitFlexibleTypeUpperBound(flags: Flags, typeFlexibilityId: String?): KmTypeVisitor? {
+            println("visitFlexibleTypeUpperBound($flags, $typeFlexibilityId)")
+            return ForType
+        }
+
+        override fun visitExtensions(type: KmExtensionType): KmTypeExtensionVisitor? {
+            println("visitExtensions($type)")
+            return object : JvmTypeExtensionVisitor() {
+
+                override fun visit(isRaw: Boolean) {
+                    println("visit($isRaw)")
+                }
+
+                override fun visitAnnotation(annotation: KmAnnotation) {
+                    println("visitAnnotation($annotation)")
+                    super.visitAnnotation(annotation)
+                }
+
+                override fun visitEnd() {
+                    println("visitEnd()")
+                    super.visitEnd()
+                }
+            }
+        }
 
         override fun visitClass(name: ClassName) {
             println("visitClass($name)")
