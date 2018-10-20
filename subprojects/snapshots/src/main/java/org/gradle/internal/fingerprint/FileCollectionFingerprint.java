@@ -16,9 +16,8 @@
 
 package org.gradle.internal.fingerprint;
 
-import com.google.common.collect.Multimap;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -29,13 +28,6 @@ import java.util.Map;
 public interface FileCollectionFingerprint {
 
     /**
-     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
-     *
-     * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
-     */
-    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, ChangeVisitor visitor);
-
-    /**
      * The underlying fingerprints.
      */
     Map<String, FileSystemLocationFingerprint> getFingerprints();
@@ -43,5 +35,17 @@ public interface FileCollectionFingerprint {
     /**
      * The Merkle hashes of the roots which make up this file collection fingerprint.
      */
-    Multimap<String, HashCode> getRootHashes();
+    ImmutableMultimap<String, HashCode> getRootHashes();
+
+    FileCollectionFingerprint EMPTY = new FileCollectionFingerprint() {
+        @Override
+        public Map<String, FileSystemLocationFingerprint> getFingerprints() {
+            return ImmutableSortedMap.of();
+        }
+
+        @Override
+        public ImmutableMultimap<String, HashCode> getRootHashes() {
+            return ImmutableMultimap.of();
+        }
+    };
 }

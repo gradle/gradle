@@ -18,21 +18,36 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 
+import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
+import static com.google.common.collect.Maps.transformValues;
+
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
+
     private final PersistentIndexedCache<String, PreviousExecutionState> store;
 
-    public DefaultExecutionHistoryStore(PersistentIndexedCache<String, PreviousExecutionState> store) {
-        this.store = store;
+    public DefaultExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
+        DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
+            new FileCollectionFingerprintSerializer(stringInterner));
+
+        this.store = executionHistoryCacheAccess.createCache(
+            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer),
+            10000,
+            false
+        );
     }
 
     @Nullable
@@ -48,8 +63,8 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFileProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
         boolean successful
     ) {
         store.put(key, new DefaultPreviousExecutionState(
@@ -57,9 +72,16 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             implementation,
             additionalImplementations,
             inputProperties,
-            inputFileProperties,
-            outputFileProperties,
+            prepareForSerialization(inputFileProperties),
+            prepareForSerialization(outputFileProperties),
             successful
         ));
+    }
+
+    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
+        return copyOfSorted(transformValues(fingerprints, value -> {
+            //noinspection ConstantConditions
+            return new SerializableFileCollectionFingerprint(value.getFingerprints(), value.getRootHashes());
+        }));
     }
 }

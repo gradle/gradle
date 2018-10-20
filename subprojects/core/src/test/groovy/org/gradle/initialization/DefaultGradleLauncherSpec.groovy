@@ -23,7 +23,6 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.changedetection.state.ExecutionHistoryCacheAccess
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -36,6 +35,7 @@ import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService

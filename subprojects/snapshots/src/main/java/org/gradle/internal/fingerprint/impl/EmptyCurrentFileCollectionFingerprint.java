@@ -17,12 +17,11 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.FileChange;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
@@ -42,7 +41,12 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, final String title, boolean includeAdded, ChangeVisitor visitor) {
-        return EmptyHistoricalFileCollectionFingerprint.INSTANCE.visitChangesSince(oldFingerprint, title, includeAdded, visitor);
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : oldFingerprint.getFingerprints().entrySet()) {
+            if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -64,18 +68,13 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     public void accept(FileSystemSnapshotVisitor visitor) {
     }
 
-    public Multimap<String, HashCode> getRootHashes() {
+    public ImmutableMultimap<String, HashCode> getRootHashes() {
         return ImmutableMultimap.of();
     }
 
     @Override
     public String getStrategyIdentifier() {
         return identifier;
-    }
-
-    @Override
-    public HistoricalFileCollectionFingerprint archive() {
-        return EmptyHistoricalFileCollectionFingerprint.INSTANCE;
     }
 
     @Override

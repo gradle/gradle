@@ -46,7 +46,6 @@ import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -141,7 +140,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (previousExecution == null) {
                 return Collections.emptySet();
             }
-            ImmutableCollection<HistoricalFileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
+            ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
                 for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
@@ -219,7 +218,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
         }
 
-        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
             return !previous.keySet().equals(current.keySet())
                 || new OutputFileChanges(previous, current).hasAnyChanges();
         }

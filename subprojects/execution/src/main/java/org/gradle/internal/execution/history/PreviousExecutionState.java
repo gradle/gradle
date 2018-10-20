@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 /**
  * A execution state after the previous execution has finished.
@@ -36,8 +36,8 @@ public interface PreviousExecutionState extends ExecutionState {
     boolean isSuccessful();
 
     @Override
-    ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getInputFileProperties();
+    ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
 
     @Override
-    ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> getOutputFileProperties();
+    ImmutableSortedMap<String, FileCollectionFingerprint> getOutputFileProperties();
 }

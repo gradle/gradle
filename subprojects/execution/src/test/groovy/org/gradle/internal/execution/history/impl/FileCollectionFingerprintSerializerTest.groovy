@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint.impl
+package org.gradle.internal.execution.history.impl
 
 import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
-import org.gradle.internal.fingerprint.FingerprintCompareStrategy
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
-import spock.lang.Unroll
 
-class DefaultHistoricalFileCollectionFingerprintSerializerTest extends SerializerSpec {
-
-    static final List<FingerprintCompareStrategy> COMPARE_STRATEGIES = [
-        AbsolutePathFingerprintCompareStrategy.INSTANCE,
-        NormalizedPathFingerprintCompareStrategy.INSTANCE,
-        IgnoredPathCompareStrategy.INSTANCE,
-    ]
+class FileCollectionFingerprintSerializerTest extends SerializerSpec {
 
     def stringInterner = new StringInterner()
-    def serializer = new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner, COMPARE_STRATEGIES)
+    def serializer = new FileCollectionFingerprintSerializer(stringInterner)
 
-    @Unroll
-    def "reads and writes the fingerprints with #strategy.class.simpleName"() {
+    def "reads and writes fingerprints"() {
         def hash = HashCode.fromInt(1234)
 
         def rootHashes = ImmutableMultimap.of(
@@ -45,11 +38,11 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
         "/2", HashCode.fromInt(5678),
         "/3", HashCode.fromInt(1234))
         when:
-        def out = serialize(new DefaultHistoricalFileCollectionFingerprint(
+        def out = serialize(new SerializableFileCollectionFingerprint(
             '/1': new DefaultFileSystemLocationFingerprint("1", FileType.Directory, FileSystemLocationFingerprint.DIR_SIGNATURE),
             '/2': IgnoredPathFileSystemLocationFingerprint.create(FileType.RegularFile, hash),
             '/3': new DefaultFileSystemLocationFingerprint("/3", FileType.Missing, FileSystemLocationFingerprint.DIR_SIGNATURE),
-            strategy, rootHashes
+            rootHashes
         ), serializer)
 
         then:
@@ -69,20 +62,16 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             normalizedPath == "/3"
             normalizedContentHash == FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE
         }
-        out.compareStrategy == strategy
         out.rootHashes == rootHashes
-
-        where:
-        strategy << COMPARE_STRATEGIES
     }
 
     def "should retain order in serialization"() {
         when:
-        DefaultHistoricalFileCollectionFingerprint out = serialize(new DefaultHistoricalFileCollectionFingerprint(
+        def out = serialize(new SerializableFileCollectionFingerprint(
             "/3": new DefaultFileSystemLocationFingerprint('3', FileType.RegularFile, HashCode.fromInt(1234)),
             "/2": new DefaultFileSystemLocationFingerprint('/2', FileType.RegularFile, HashCode.fromInt(5678)),
             "/1": new DefaultFileSystemLocationFingerprint('1', FileType.Missing, FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE),
-            AbsolutePathFingerprintCompareStrategy.INSTANCE, ImmutableMultimap.of(
+            ImmutableMultimap.of(
             "/3", HashCode.fromInt(1234),
             "/2", HashCode.fromInt(5678),
             "/1", FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE)

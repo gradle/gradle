@@ -16,17 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -34,14 +31,6 @@ import javax.annotation.Nullable;
 
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution implements BeforeExecutionState {
-
-    private static final Function<CurrentFileCollectionFingerprint, HistoricalFileCollectionFingerprint> ARCHIVE_FINGERPRINT = new Function<CurrentFileCollectionFingerprint, HistoricalFileCollectionFingerprint>() {
-        @Override
-        @SuppressWarnings("NullableProblems")
-        public HistoricalFileCollectionFingerprint apply(CurrentFileCollectionFingerprint value) {
-            return value.archive();
-        }
-    };
 
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
@@ -107,20 +96,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution implements Befor
     @Nullable
     public OverlappingOutputs getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
-    }
-
-    public HistoricalTaskExecution archive() {
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalInputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(inputFingerprints, ARCHIVE_FINGERPRINT));
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(outputFingerprints, ARCHIVE_FINGERPRINT));
-        return new HistoricalTaskExecution(
-            getImplementation(),
-            getAdditionalImplementations(),
-            getInputProperties(),
-            historicalInputFingerprints,
-            historicalOutputFingerprints,
-            successful,
-            originExecutionMetadata
-        );
     }
 
     @Override

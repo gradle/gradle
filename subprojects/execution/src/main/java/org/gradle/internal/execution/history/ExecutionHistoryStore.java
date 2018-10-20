@@ -19,7 +19,7 @@ package org.gradle.internal.execution.history;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -34,7 +34,7 @@ public interface ExecutionHistoryStore {
                ImplementationSnapshot implementation,
                ImmutableList<ImplementationSnapshot> additionalImplementations,
                ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-               ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFileProperties,
-               ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFileProperties,
+               ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+               ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
                boolean successful);
 }

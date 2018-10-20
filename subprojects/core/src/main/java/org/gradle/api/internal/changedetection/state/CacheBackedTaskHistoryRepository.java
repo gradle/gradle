@@ -35,8 +35,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -101,7 +99,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             @Override
             public void persist() {
-                HistoricalTaskExecution execution = getCurrentExecution().archive();
+                CurrentTaskExecution execution = getCurrentExecution();
                 executionHistoryStore.store(
                     task.getPath(),
                     execution.getOriginMetadata(),
@@ -204,13 +202,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
-            Map<String, HistoricalFileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
+            Map<String, FileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
             FileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
             }
         }
-        return EmptyHistoricalFileCollectionFingerprint.INSTANCE;
+        return FileCollectionFingerprint.EMPTY;
     }
 
     @Nullable

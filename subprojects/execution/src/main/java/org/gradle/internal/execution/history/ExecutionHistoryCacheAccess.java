@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.execution.history;
 
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.serialize.Serializer;
 
 /**
- * Provides access to the persistent task history store.
+ * Provides access to the persistent execution history store.
  */
 public interface ExecutionHistoryCacheAccess {
     /**

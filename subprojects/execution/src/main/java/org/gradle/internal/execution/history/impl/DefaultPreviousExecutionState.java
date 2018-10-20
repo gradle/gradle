@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class DefaultPreviousExecutionState extends AbstractExecutionState<HistoricalFileCollectionFingerprint> implements PreviousExecutionState {
+public class DefaultPreviousExecutionState extends AbstractExecutionState<FileCollectionFingerprint> implements PreviousExecutionState {
     private final OriginMetadata originMetadata;
     private final boolean successful;
 
@@ -33,8 +33,8 @@ public class DefaultPreviousExecutionState extends AbstractExecutionState<Histor
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFileProperties,
+        ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
+        ImmutableSortedMap<String, FileCollectionFingerprint> outputFileProperties,
         boolean successful
     ) {
         super(implementation, additionalImplementations, inputProperties, inputFileProperties, outputFileProperties);

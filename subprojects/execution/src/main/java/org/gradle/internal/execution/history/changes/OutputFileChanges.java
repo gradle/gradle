@@ -19,11 +19,12 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class OutputFileChanges extends AbstractFingerprintChanges {
 
-    public OutputFileChanges(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current) {
+    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
         super(previous, current, "Output");
     }
 

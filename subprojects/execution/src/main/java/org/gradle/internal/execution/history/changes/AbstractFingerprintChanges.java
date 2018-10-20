@@ -19,21 +19,22 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
     protected final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous;
-    protected final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current;
+    protected final ImmutableSortedMap<String, ? extends CurrentFileCollectionFingerprint> current;
     private final String title;
 
-    protected AbstractFingerprintChanges(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous, ImmutableSortedMap<String, ? extends FileCollectionFingerprint> current, String title) {
+    protected AbstractFingerprintChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
         this.previous = previous;
         this.current = current;
         this.title = title;
     }
 
     protected boolean accept(final ChangeVisitor visitor, final boolean includeAdded) {
-        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, FileCollectionFingerprint>() {
+        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, FileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
             @Override
             public boolean removed(String previousProperty) {
                 return true;
@@ -45,7 +46,7 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
             }
 
             @Override
-            public boolean updated(String property, FileCollectionFingerprint previousFingerprint, FileCollectionFingerprint currentFingerprint) {
+            public boolean updated(String property, FileCollectionFingerprint previousFingerprint, CurrentFileCollectionFingerprint currentFingerprint) {
                 String propertyTitle = title + " property '" + property + "'";
                 return currentFingerprint.visitChangesSince(previousFingerprint, propertyTitle, includeAdded, visitor);
             }

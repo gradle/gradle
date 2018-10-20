@@ -28,10 +28,8 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -64,13 +62,13 @@ public class Util {
 
     public static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
         if (previousExecution != null) {
-            Map<String, HistoricalFileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
+            Map<String, FileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
             FileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
             }
         }
-        return EmptyHistoricalFileCollectionFingerprint.INSTANCE;
+        return FileCollectionFingerprint.EMPTY;
     }
 
     /**

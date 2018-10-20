@@ -16,6 +16,8 @@
 
 package org.gradle.internal.fingerprint;
 
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -33,7 +35,10 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
     boolean isEmpty();
 
     /**
-     * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the execution history.
+     * Visits the changes to file contents since the given fingerprint, subject to the given filters.
+     *
+     * @return Whether the {@link ChangeVisitor} is looking for further changes. See {@link ChangeVisitor#visitChange(Change)}.
      */
-    HistoricalFileCollectionFingerprint archive();
+    boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, ChangeVisitor visitor);
+
 }

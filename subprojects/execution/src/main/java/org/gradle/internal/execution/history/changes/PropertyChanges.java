@@ -39,7 +39,7 @@ public class PropertyChanges implements ChangeContainer {
 
     @Override
     public boolean accept(final ChangeVisitor visitor) {
-        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, Object>() {
+        return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, Object, Object>() {
             @Override
             public boolean removed(String previousProperty) {
                 return visitor.visitChange(new DescriptiveChange("%s property '%s' has been removed for %s",

@@ -46,7 +46,7 @@ class SortedMapDiffUtilTest extends Specification {
         SortedMap<String, String> currentMap = ImmutableSortedMap.copyOf(current.collectEntries { [(it): 'current' + it] })
 
         Map result = [added: [], removed: [], updated: []]
-        SortedMapDiffUtil.diff(previousMap, currentMap, new PropertyDiffListener<String, String>() {
+        SortedMapDiffUtil.diff(previousMap, currentMap, new PropertyDiffListener<String, String, String>() {
             @Override
             boolean removed(String previousProperty) {
                 result.removed.add(previousProperty)
