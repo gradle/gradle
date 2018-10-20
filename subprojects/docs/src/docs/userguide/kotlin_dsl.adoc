@@ -452,7 +452,7 @@ In that case, you can fall back to declaring your plugin dependencies using the 
 
 .Declare plugin dependencies in the root build script using the `buildscript {}` block
 ====
-include::sample[dir="kotlinDsl/androidBuild",files="build.gradle.kts[tags=android-buildscript];lib/build.gradle.kts[tags=android];app/build.gradle.kts[tags=android]"]
+include::sample[dir="kotlinDsl/androidBuild",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android-buildscript];lib/build.gradle.kts[tags=android];app/build.gradle.kts[tags=android]"]
 ====
 
 It's not that different from what Android Studio produces when creating a new build.
