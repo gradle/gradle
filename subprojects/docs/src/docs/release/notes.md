@@ -23,6 +23,11 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+### Inherited configuration-wide dependency excludes are now published
+
+Previously, only exclude rules directly declared on published configurations (e.g. `apiElements` and `runtimeElements` for the `java` component defined by the [Java Library Plugin](userguide/java_library_plugin.html#sec:java_library_configurations_graph)) were published in the Ivy descriptor and POM when using the [Ivy Publish Plugin](userguide/publishing_ivy.html) or [Maven Publish Plugins](userguide/publishing_maven.html), respectively.
+Now, inherited exclude rules defined on extended configurations (e.g. `api` for Java libraries) are also taken into account.
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed

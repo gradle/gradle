@@ -22,8 +22,10 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependen
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
+import spock.lang.Issue
 
 class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
@@ -675,6 +677,57 @@ dependencies { implementation 'some.group:greeter:1.2' }
         releaseInstall.assertIncludesLibraries("greeting")
         def releaseLib = sharedLibrary(producer.file("build/lib/main/release/greeting"))
         sharedLibrary(consumer.file("build/install/main/release/lib/greeting")).file.assertIsCopyOf(releaseLib.strippedRuntimeFile)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6766")
+    void "configuration exclusions are published in generated POM and Gradle metadata"() {
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        settingsFile << "include 'deck', 'card', 'shuffle'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp-library'
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${mavenRepo.uri}' } }
+                }
+            }
+            project(':deck') {
+                configurations {
+                    api.exclude(group: 'api-group', module: 'api-module')
+                }
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
+                }
+            }
+        """
+        app.deck.writeToProject(file('deck'))
+        app.card.writeToProject(file('card'))
+        app.shuffle.writeToProject(file('shuffle'))
+
+        when:
+        succeeds(':deck:publish')
+
+        then:
+        def module = mavenRepo.module('some.group', 'deck', '1.2')
+        module.assertPublished()
+        with(module.parsedPom) {
+            scopes.size() == 1
+            scopes.runtime.hasDependencyExclusion('some.group:card:1.2', new MavenDependencyExclusion('api-group', 'api-module'))
+        }
+        with(module.parsedModuleMetadata) {
+            variant('api') {
+                dependency('some.group:card:1.2') {
+                    hasExclude('api-group', 'api-module')
+                    noMoreExcludes()
+                }
+            }
+        }
     }
 
 }

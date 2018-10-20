@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.configurations
 
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.gradle.testing.internal.util.Specification
 
-import static org.junit.Assert.assertThat;
+class ConfigurationsTest extends Specification {
 
-public class ConfigurationsTest {
-    private static final String TEST_CONF = "testConf";
-
-    @Test
-    public void testUploadTaskName() {
-        assertThat(Configurations.uploadTaskName(TEST_CONF), Matchers.equalTo("uploadTestConf"));
+    def "prefixes task name with 'upload'"() {
+        expect:
+        Configurations.uploadTaskName("testConf") == "uploadTestConf"
     }
+
 }
