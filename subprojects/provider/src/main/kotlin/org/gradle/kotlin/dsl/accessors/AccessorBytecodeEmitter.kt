@@ -61,6 +61,7 @@ import org.gradle.kotlin.dsl.support.bytecode.visitParameter
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+import org.jetbrains.org.objectweb.asm.ClassVisitor
 
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
@@ -146,11 +147,11 @@ object AccessorBytecodeEmitter {
 
         val classBytes =
             publicKotlinClass(className, header) {
-                publicStaticMethod(getterSignature.name, getterSignature.desc) {
+                publicStaticMethod(getterSignature) {
                     loadConventionOf(name, returnType, jvmReturnType)
                     ARETURN()
                 }
-                publicStaticMethod(configureSignature.name, configureSignature.desc) {
+                publicStaticMethod(configureSignature) {
                     ALOAD(1)
                     loadConventionOf(name, returnType, jvmReturnType)
                     INVOKEINTERFACE(Action::class.internalName, "execute", "(Ljava/lang/Object;)V")
@@ -402,7 +403,7 @@ object AccessorBytecodeEmitter {
 
                 emitConfigurationAccessorFor(propertyName, getterSignature)
 
-                publicStaticMethod(overload1.name, overload1.desc) {
+                publicStaticMethod(overload1) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -410,7 +411,7 @@ object AccessorBytecodeEmitter {
                     ARETURN()
                 }
 
-                publicStaticMethod(overload2.name, overload2.desc) {
+                publicStaticMethod(overload2) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -421,7 +422,7 @@ object AccessorBytecodeEmitter {
                     ARETURN()
                 }
 
-                publicStaticMethod(constraintHandlerOverload1.name, constraintHandlerOverload1.desc) {
+                publicStaticMethod(constraintHandlerOverload1) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -429,7 +430,7 @@ object AccessorBytecodeEmitter {
                     ARETURN()
                 }
 
-                publicStaticMethod(constraintHandlerOverload2.name, constraintHandlerOverload2.desc) {
+                publicStaticMethod(constraintHandlerOverload2) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -582,3 +583,15 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
 internal
 fun accessorsForConfigurationsOf(projectSchema: ProjectSchema<*>) =
     projectSchema.configurations.asSequence().map { Accessor.ForConfiguration(it) }
+
+
+private
+fun ClassVisitor.publicStaticMethod(
+    jvmMethodSignature: JvmMethodSignature,
+    signature: String? = null,
+    exceptions: Array<String>? = null,
+    methodBody: MethodVisitor.() -> Unit
+) = jvmMethodSignature.run {
+    publicStaticMethod(name, desc, signature, exceptions, methodBody)
+}
+
