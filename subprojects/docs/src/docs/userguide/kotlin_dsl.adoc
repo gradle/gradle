@@ -426,8 +426,10 @@ As seen above, this can be achieved by using the `plugins {}` block.
 [[sec:multi_project_builds_applying_plugins]]
 === Applying plugins
 
-In multi-project builds you should centrally declare plugin dependencies in the root project build file, specifying the version, without applying those used in sub-projects only.
+In multi-project builds you should centrally declare plugin dependencies in the root project build file, specifying the version.
 This always allow for applying the plugins in sub projects build scripts using the `plugins {}` block.
+
+It is recommended to do so using the `plugins {}` block in your root project build script as documented in the <<plugins#sec:subprojects_plugins_dsl,Using Gradle plugins>> chapter:
 
 .Declare plugin dependencies in the root build script using the `plugins {}` block
 ====
@@ -441,10 +443,10 @@ If your build requires additional plugin repositories, they should be declared i
 include::sample[dir="kotlinDsl/multiProjectBuild",files="settings.gradle.kts[tags=repositories]"]
 ====
 
-Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the `plugins {}` block.
-It depends on how they have been published.
+Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] can only be requested using the `plugins {}` block if they were published with their <<plugins#sec:plugin_markers,plugin marker artifacts>>.
 
-For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and at least up to version 3.2.0 of the plugin, the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository. Please star link:https://issuetracker.google.com/issues/64551265[the corresponding Google issue].
+For example, the Android Plugin for Gradle present in the `google()` repository is published without plugin marker artifacts, at least up to version 3.2.0 of the plugin.
+Please star link:https://issuetracker.google.com/issues/64551265[the corresponding Google issue].
 
 In that case, you can fall back to declaring your plugin dependencies using the `buildscript {}` block in the root project build script:
 
