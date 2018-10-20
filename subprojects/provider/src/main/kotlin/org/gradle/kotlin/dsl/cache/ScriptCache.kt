@@ -71,7 +71,7 @@ class ScriptCache(
     }
 
     private
-    val cacheProperties = mapOf("version" to "13")
+    val cacheProperties = mapOf("version" to "14")
 
     private
     fun cacheDirOf(baseDir: File) = File(baseDir, "cache")

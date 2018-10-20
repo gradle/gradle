@@ -79,9 +79,6 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
             }
-            accessibleContainerSchema(target.configurations.collectionSchema).forEach { schema ->
-                containerElements.add(ProjectSchemaEntry(typeOfConfigurationContainer, schema.name, schema.publicType))
-            }
             accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                 tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
             }
