@@ -34,7 +34,7 @@ import static org.gradle.internal.IoActions.uncheckedClose;
 
 public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-([0-9a-z]*))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
 
     private final String version;
@@ -276,10 +276,9 @@ public class GradleVersion implements Comparable<GradleVersion> {
         static Stage from(int stage, String stageString) {
             Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(stageString);
             int number;
-            try {
-                m.matches();
+            if (m.matches()) {
                 number = Integer.parseInt(m.group(1));
-            } catch (Exception e) {
+            } else {
                 return null;
             }
 

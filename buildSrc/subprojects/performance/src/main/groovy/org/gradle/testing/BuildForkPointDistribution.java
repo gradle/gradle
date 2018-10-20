@@ -18,14 +18,19 @@ package org.gradle.testing;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.caching.configuration.BuildCache;
+import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.caching.http.HttpBuildCache;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,11 +51,6 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     private String baselineVersion;
 
-    @Inject
-    public BuildForkPointDistribution() {
-        forkPointDistributionDir.set(getProject().getRootProject().getLayout().getBuildDirectory().dir("distributions/gradle-forkpoint"));
-    }
-
     @Input
     @Optional
     public String getForkPointCommitId() {
@@ -59,6 +59,7 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     public void setForkPointCommitId(String forkPointCommitId) {
         this.forkPointCommitId = forkPointCommitId;
+        this.forkPointDistributionDir.set(getProject().getRootProject().getLayout().getBuildDirectory().dir("distributions/gradle-commit-" + forkPointCommitId));
     }
 
     @OutputDirectory
@@ -79,15 +80,11 @@ public class BuildForkPointDistribution extends DefaultTask {
     }
 
     @TaskAction
-    void buildDistribution() {
+    void buildDistribution() throws Exception {
         LOGGER.quiet("Building fork point distribution for: " + forkPointCommitId);
-        try {
-            prepareGradleRepository();
-            tryBuildDistribution(forkPointCommitId);
-            LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + getBaselineVersion());
-        } catch (Exception e) {
-            LOGGER.quiet("Building commit " + forkPointCommitId + " failed, fallback to default baseline.", e);
-        }
+        prepareGradleRepository();
+        tryBuildDistribution(forkPointCommitId);
+        LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + getBaselineVersion());
     }
 
     private void prepareGradleRepository() throws IOException {
@@ -123,27 +120,22 @@ public class BuildForkPointDistribution extends DefaultTask {
     }
 
     private Object[] getBuildCommands(String commit, String baseVersion) {
-        String[] commands = new String[]{
+        BuildCacheConfiguration buildCacheConf = ((GradleInternal) getProject().getGradle()).getSettings().getBuildCache();
+        HttpBuildCache remoteCache = (HttpBuildCache) buildCacheConf.getRemote();
+        boolean remoteCacheEnabled = remoteCache == null ? false : remoteCache.isEnabled();
+
+        return new String[]{
             "./gradlew",
-            "install",
+            "clean",
+            ":install",
             "-Pgradle_installPath=" + getDestinationFile("gradle-" + baseVersion + "-commit-" + commit),
             ":toolingApi:installToolingApiShadedJar",
-            "-PtoolingApiShadedJarInstallPath=" + getDestinationFile("gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar")
+            "-PtoolingApiShadedJarInstallPath=" + getDestinationFile("gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar"),
+            "-Dorg.gradle.caching=" + (remoteCache == null ? false : remoteCache.isEnabled()),
+            "-Dgradle.cache.remote.url=" + (remoteCache == null ? "" : remoteCache.getUrl()),
+            "-Dgradle.cache.remote.username=" + (remoteCache == null ? "" : remoteCache.getCredentials().getUsername()),
+            "-Dgradle.cache.remote.password=" + (remoteCache == null ? "" : remoteCache.getCredentials().getPassword())
         };
-
-        if (System.getenv().containsKey("CI")) {
-            String[] ciParams = new String[]{
-                "--init-script",
-                new File(getGradleCloneTmpDir(), "gradle/init-scripts/build-scan.init.gradle.kts").getAbsolutePath(),
-                "--build-cache",
-                "-Dgradle.cache.remote.url=" + System.getProperty("gradle.cache.remote.url"),
-                "-Dgradle.cache.remote.username=gradle",
-                "-Dgradle.cache.remote.password=" + System.getProperty("gradle.cache.remote.password")
-            };
-            return Stream.of(commands, ciParams).flatMap(Stream::of).toArray();
-        } else {
-            return commands;
-        }
     }
 
     private String getDestinationFile(String fileName) {

@@ -108,27 +108,27 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.registerForkPointDistributionTask() {
-        whenNotOnMasterOrReleaseBranch {
-            val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
-                dependsOn("determineForkPoint")
+        val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
+            dependsOn("determineForkPoint")
+        }
+        tasks.register("determineForkPoint") {
+            doLast {
+                val masterForkPointCommit = execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
+                val releaseForkPointCommit = execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
+                val forkPointCommit =
+                    if (exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
+                        releaseForkPointCommit
+                    else
+                        masterForkPointCommit
+                buildForkPointDistribution.get().forkPointCommitId = execAndGetStdout("git", "rev-parse", "--short", forkPointCommit)
             }
-            tasks.register("determineForkPoint") {
-                doLast {
-                    val masterForkPointCommit = execAndGetStdout("git", "merge-base", "master", "HEAD")
-                    val releaseForkPointCommit = execAndGetStdout("git", "merge-base", "release", "HEAD")
-                    val forkPointCommit =
-                        if (exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
-                            releaseForkPointCommit
-                        else
-                            masterForkPointCommit
-                    buildForkPointDistribution.get().forkPointCommitId = forkPointCommit.substring(0, 7)
-                }
-            }
-            tasks.register("configurePerformanceTestBaseline") {
-                dependsOn("buildForkPointDistribution")
-                doLast {
-                    val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).baselineVersion
-                    project.tasks.withType(PerformanceTest::class) {
+        }
+        tasks.register("configurePerformanceTestBaseline") {
+            dependsOn(buildForkPointDistribution)
+            doLast {
+                val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).baselineVersion
+                project.tasks.withType(DistributedPerformanceTest::class) {
+                    if (true == baselines?.isNullOrEmpty() || baselines == "defaults") {
                         baselines = commitBaseline
                     }
                 }
