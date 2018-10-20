@@ -145,10 +145,16 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
         visitReceiverParameterType(0).with(receiverType)
         parameters()
         visitReturnType(returnTypeFlags).with(returnType)
-        (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
-            visit(signature)
-            visitEnd()
-        }
+        visitSignature(signature)
+        visitEnd()
+    }
+}
+
+
+internal
+fun KmFunctionVisitor.visitSignature(genericOverload: JvmMethodSignature) {
+    (visitExtensions(JvmFunctionExtensionVisitor.TYPE) as JvmFunctionExtensionVisitor).run {
+        visit(genericOverload)
         visitEnd()
     }
 }
@@ -175,7 +181,7 @@ fun KotlinClassMetadata.FileFacade.Writer.writePropertyOf(
 }
 
 
-private
+internal
 inline fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
     this!!.run {
         builder()
