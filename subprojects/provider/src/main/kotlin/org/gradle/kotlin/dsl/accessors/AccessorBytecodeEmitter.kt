@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.internal.hash.HashUtil
@@ -125,13 +126,13 @@ object AccessorBytecodeEmitter {
 
         val header = writeFileFacadeClassHeader {
             writePropertyOf(
-                receiverType = { visitClass(receiverTypeName) },
+                receiverType = receiverTypeName.builder,
                 returnType = kotlinReturnType,
                 propertyName = propertyName,
                 getterSignature = getterSignature
             )
             writeFunctionOf(
-                receiverType = { visitClass(receiverTypeName) },
+                receiverType = receiverTypeName.builder,
                 returnType = { visitClass(InternalNameOf.Unit) },
                 parameters = {
                     visitParameter("configure", actionTypeOf(kotlinReturnType))
@@ -255,13 +256,13 @@ object AccessorBytecodeEmitter {
 
         val header = writeFileFacadeClassHeader {
             writePropertyOf(
-                receiverType = { visitClass(receiverTypeName) },
+                receiverType = accessibleReceiverType.type.builder,
                 returnType = kotlinReturnType,
                 propertyName = propertyName,
                 getterSignature = getterSignature
             )
             writeFunctionOf(
-                receiverType = { visitClass(receiverTypeName) },
+                receiverType = accessibleReceiverType.type.builder,
                 returnType = { visitClass(InternalNameOf.Unit) },
                 parameters = {
                     visitParameter("configure", actionTypeOf(kotlinReturnType))
@@ -302,16 +303,21 @@ object AccessorBytecodeEmitter {
 
     private
     val SchemaType.builder: KmTypeBuilder
-        get() = value.run {
-            when {
-                isParameterized -> genericTypeOf(parameterizedTypeDefinition.concreteClass.internalName, actualTypeArguments[0].concreteClass.internalName)
-                else -> concreteClass.internalName.builder
-            }
+        get() = value.builder
+
+    private
+    val TypeOf<*>.builder: KmTypeBuilder
+        get() = when {
+            isParameterized -> genericTypeOf(
+                parameterizedTypeDefinition.builder,
+                actualTypeArguments[0].builder
+            )
+            else -> concreteClass.internalName.builder
         }
 
     private
     val InternalName.builder: KmTypeBuilder
-        get() = { visitClass(this@builder) }
+        get() = { visitClass(value.replace('$', '.')) }
 
     private
     fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
@@ -430,18 +436,18 @@ object AccessorBytecodeEmitter {
         getterSignature: JvmMethodSignature
     ) {
         writePropertyOf(
-            receiverType = genericTypeOf(namedDomainObjectContainerTypeName, configurationTypeName),
-            returnType = genericTypeOf(namedDomainObjectProviderTypeName, configurationTypeName),
+            receiverType = genericTypeOf(namedDomainObjectContainerTypeName.builder, configurationTypeName.builder),
+            returnType = genericTypeOf(namedDomainObjectProviderTypeName.builder, configurationTypeName.builder),
             propertyName = configurationName,
             getterSignature = getterSignature
         )
     }
 
     private
-    fun genericTypeOf(genericType: InternalName, genericArgument: InternalName): KmTypeVisitor.() -> Unit = {
-        visitClass(genericType)
+    fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): KmTypeVisitor.() -> Unit = {
+        genericType()
         visitArgument(0, KmVariance.INVARIANT)!!.run {
-            visitClass(genericArgument)
+            genericArgument()
             visitEnd()
         }
     }
@@ -456,7 +462,7 @@ object AccessorBytecodeEmitter {
     ) {
         writePropertyOf(
             receiverType = containerType.builder,
-            returnType = genericTypeOf(providerType, elementType),
+            returnType = genericTypeOf(providerType.builder, elementType.builder),
             propertyName = propertyName,
             getterSignature = getterSignature
         )
