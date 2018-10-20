@@ -43,6 +43,7 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.InternalNameOf
+import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
@@ -123,18 +124,18 @@ object AccessorBytecodeEmitter {
         namedMethodDescriptor: String
     ): Pair<InternalName, ByteArray> {
 
-        // val $targetType.$name: $providerType<$returnType>
+        // val $receiverType.$name: $providerType<$returnType>
         //   get() = named("$name", $returnType::class.java)
 
         val className = internalNameForAccessorClassOf(accessorSpec)
-        val (targetType, name, returnType) = accessorSpec
+        val (accessibleReceiverType, name, returnType) = accessorSpec
         val propertyName = name.kotlinIdentifier
-        val receiverTypeName = internalNameFromSourceName(targetType.type)
-        val (kotlinReturnType, jvmReturnType) = accessibleReturnTypeFor(returnType)
+        val receiverTypeName = accessibleReceiverType.internalName()
         val getterSignature = jvmGetterSignatureFor(
             propertyName,
             accessorDescriptorFor(receiverTypeName, providerType)
         )
+        val (kotlinReturnType, jvmReturnType) = accessibleReturnTypeFor(returnType)
 
         val header = writeFileFacadeClassHeader {
             writeElementAccessorMetadataFor(
@@ -165,11 +166,13 @@ object AccessorBytecodeEmitter {
 
         val accessorSpec = accessor.spec
         val className = internalNameForAccessorClassOf(accessorSpec)
-        val (targetType, name, returnType) = accessorSpec
+        val (accessibleReceiverType, name, returnType) = accessorSpec
         val propertyName = name.kotlinIdentifier
-        val receiverTypeName = internalNameFromSourceName(targetType.type)
-        val (kotlinReturnType, jvmReturnType) = accessibleReturnTypeFor(returnType)
-
+        val receiverTypeName = accessibleReceiverType.internalName()
+        val (kotlinReturnType, jvmReturnType) = when (returnType) {
+            is TypeAccessibility.Accessible -> returnType.type.builder to returnType.internalName()
+            is TypeAccessibility.Inaccessible -> InternalNameOf.Any.builder to InternalNameOf.Object
+        }
         val getterSignature = jvmGetterSignatureFor(
             propertyName,
             accessorDescriptorFor(receiverTypeName, jvmReturnType)
@@ -182,7 +185,7 @@ object AccessorBytecodeEmitter {
         val header = writeFileFacadeClassHeader {
             writePropertyOf(
                 receiverType = { visitClass(receiverTypeName) },
-                returnType = { visitClass(kotlinReturnType) },
+                returnType = kotlinReturnType,
                 propertyName = propertyName,
                 getterSignature = getterSignature
             )
@@ -190,9 +193,7 @@ object AccessorBytecodeEmitter {
                 receiverType = { visitClass(receiverTypeName) },
                 returnType = { visitClass(InternalNameOf.Unit) },
                 parameters = {
-                    visitParameter("configure", actionTypeOf {
-                        visitClass(kotlinReturnType)
-                    })
+                    visitParameter("configure", actionTypeOf(kotlinReturnType))
                 },
                 name = propertyName,
                 signature = configureSignature
@@ -227,6 +228,19 @@ object AccessorBytecodeEmitter {
 
         return className to classBytes
     }
+
+    private
+    val SchemaType.builder: KmTypeBuilder
+        get() = value.run {
+            when {
+                isParameterized -> genericTypeOf(parameterizedTypeDefinition.concreteClass.internalName, actualTypeArguments[0].concreteClass.internalName)
+                else -> concreteClass.internalName.builder
+            }
+        }
+
+    private
+    val InternalName.builder: KmTypeBuilder
+        get() = { visitClass(this@builder) }
 
     private
     fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
@@ -308,19 +322,18 @@ object AccessorBytecodeEmitter {
     }
 
     private
-    fun internalNameFromSourceName(type: String) =
-        InternalName(type.replace('.', '/'))
-
-    private
     fun hashOf(accessorSpec: TypedAccessorSpec) =
         HashUtil.createCompactMD5(accessorSpec.toString())
 
     private
     fun accessibleReturnTypeFor(returnType: TypeAccessibility): Pair<InternalName, InternalName> =
         when (returnType) {
-            is TypeAccessibility.Accessible -> internalNameFromSourceName(returnType.type).let { it to it }
+            is TypeAccessibility.Accessible -> returnType.internalName().let { it to it }
             is TypeAccessibility.Inaccessible -> InternalNameOf.Any to InternalNameOf.Object
         }
+
+    private
+    fun TypeAccessibility.Accessible.internalName() = type.value.concreteClass.internalName
 
     private
     fun ClassWriter.emitConfigurationAccessorFor(name: String, signature: JvmMethodSignature) {

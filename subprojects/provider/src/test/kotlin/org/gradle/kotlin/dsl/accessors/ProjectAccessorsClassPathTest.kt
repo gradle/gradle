@@ -23,6 +23,7 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -41,44 +42,34 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 
+import org.gradle.nativeplatform.BuildType
+
 import org.junit.Test
 
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
+
+    inline fun <reified ReceiverType, reified ReturnType> entry(name: String): ProjectSchemaEntry<SchemaType> =
+        ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<ReturnType>())
 
     @Test
     fun `#buildAccessorsFor`() {
 
         // given:
         val schema =
-            ProjectSchema(
+            TypedProjectSchema(
                 extensions = listOf(
-                    ProjectSchemaEntry(
-                        Project::class.qualifiedName!!,
-                        "sourceSets",
-                        SourceSetContainer::class.qualifiedName!!
-                    )
+                    entry<Project, SourceSetContainer>("sourceSets"),
+                    entry<Project, NamedDomainObjectContainer<BuildType>>("buildTypes")
                 ),
                 containerElements = listOf(
-                    ProjectSchemaEntry(
-                        SourceSetContainer::class.qualifiedName!!,
-                        "main",
-                        SourceSet::class.qualifiedName!!
-                    )
+                    entry<SourceSetContainer, SourceSet>("main")
                 ),
                 conventions = listOf(
-                    ProjectSchemaEntry(
-                        Project::class.qualifiedName!!,
-                        "application",
-                        ApplicationPluginConvention::class.qualifiedName!!
-                    )
+                    entry<Project, ApplicationPluginConvention>("application")
                 ),
                 tasks = listOf(
-                    ProjectSchemaEntry(
-                        TaskContainer::class.qualifiedName!!,
-                        "clean",
-                        Delete::class.qualifiedName!!
-                    )
+                    entry<TaskContainer, Delete>("clean")
                 ),
                 configurations = listOf("api")
             )
@@ -131,6 +122,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val module: ExternalModuleDependency = this
                 }
 
+                val h: Unit = buildTypes {
+                    val container: NamedDomainObjectContainer<BuildType> = this
+                }
+
                 fun Project.canUseAccessorsFromConfigurationsScope() {
                     configurations {
                         api {
@@ -174,6 +169,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verify(project).dependencies
             verify(dependencies).create("module")
             verify(dependencies).add("api", dependency)
+
+            // val h
+            verify(project).extensions
+            verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
 
             verifyNoMoreInteractions()
         }

@@ -43,9 +43,9 @@ class DefaultPackageTypesTest {
                 ProjectSchema(
                     containerElements = listOf(
                         ProjectSchemaEntry(
-                            Accessible("Container"),
+                            Accessible(TODO("Container")),
                             "element",
-                            Accessible("DefaultPackageType")
+                            Accessible(TODO("DefaultPackageType"))
                         )
                     ),
                     extensions = emptyList(),

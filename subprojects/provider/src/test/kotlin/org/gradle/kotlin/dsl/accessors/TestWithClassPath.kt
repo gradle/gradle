@@ -8,8 +8,8 @@ import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.INVOKESPECIAL
 import org.objectweb.asm.Opcodes.RETURN
@@ -55,9 +55,10 @@ open class TestWithClassPath : TestWithTempFiles() {
 
     private
     fun classFileForType(name: String, rootDir: File, vararg modifiers: Int) {
-        File(rootDir, "${name.replace(".", "/")}.class").apply {
+        val internalName = name.replace(".", "/")
+        File(rootDir, "$internalName.class").apply {
             parentFile.mkdirs()
-            writeBytes(classBytesOf(name, *modifiers))
+            writeBytes(classBytesOf(internalName, *modifiers))
         }
     }
 

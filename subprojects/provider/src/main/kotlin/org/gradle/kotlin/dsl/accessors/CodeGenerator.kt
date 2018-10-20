@@ -72,8 +72,8 @@ private
 fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess)
+            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess)
         }
     }
 }
@@ -125,8 +125,8 @@ private
 fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess)
+            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess)
         }
     }
 }
@@ -178,7 +178,7 @@ private
 fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, typeAccess.type)
+            is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, typeAccess.type.kotlinString)
             is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, typeAccess)
         }
     }
@@ -217,8 +217,8 @@ private
 fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(targetTypeAccess.type, name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(targetTypeAccess.type, name, typeAccess)
+            is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess)
         }
     }
 }

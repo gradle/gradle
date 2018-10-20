@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.reflect.TypeOf
 
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
@@ -61,10 +60,11 @@ fun projectAccessorsClassPath(project: Project, classPath: ClassPath): Accessors
 private
 fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
+        // TODO: make cache key computation more efficient
         val stringlyProjectSchema = projectSchema.withKotlinTypeStrings()
         cachedAccessorsClassPathFor(project, cacheKeyFor(stringlyProjectSchema, classPath)) { srcDir, binDir ->
             buildAccessorsFor(
-                stringlyProjectSchema,
+                projectSchema,
                 classPath,
                 srcDir = srcDir,
                 binDir = binDir
@@ -152,7 +152,7 @@ enum class EntryKind { Extension, Convention, Task, ContainerElement }
 
 
 internal
-fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
+fun schemaFor(project: Project): TypedProjectSchema =
     projectSchemaProviderOf(project).schemaFor(project)
 
 
@@ -167,7 +167,7 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 internal
 fun buildAccessorsFor(
-    projectSchema: ProjectSchema<String>,
+    projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
     binDir: File
@@ -220,7 +220,7 @@ fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<Stri
     defaultPackageTypesIn(
         candidateTypesForImportIn(schemaSubset)
             .filterIsInstance<TypeAccessibility.Accessible>()
-            .map { it.type }
+            .map { it.type.kotlinString }
     )
 
 
@@ -241,15 +241,15 @@ fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
 
 
 internal
-fun availableProjectSchemaFor(projectSchema: ProjectSchema<String>, classPath: ClassPath) =
+fun availableProjectSchemaFor(projectSchema: TypedProjectSchema, classPath: ClassPath) =
     TypeAccessibilityProvider(classPath).use { accessibilityProvider ->
         projectSchema.map(accessibilityProvider::accessibilityForType)
     }
 
 
 sealed class TypeAccessibility {
-    data class Accessible(val type: String) : TypeAccessibility()
-    data class Inaccessible(val type: String, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
+    data class Accessible(val type: SchemaType) : TypeAccessibility()
+    data class Inaccessible(val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
 }
 
 
@@ -286,7 +286,8 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     private
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
-    fun accessibilityForType(type: String): TypeAccessibility =
+    fun accessibilityForType(type: SchemaType): TypeAccessibility =
+        // TODO: cache per SchemaType
         inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
             else accessible(type)
@@ -296,7 +297,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessibilityReasons
-            else classNames.leafs.filter { hasTypeParameter(it) }.map { typeErasure(it) }
+            else classNames.leaves.filter(::hasTypeParameter).map(::typeErasure)
         }
 
     private
@@ -358,8 +359,13 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 internal
 class ClassNamesFromTypeString(
     val all: List<String>,
-    val leafs: List<String>
+    val leaves: List<String>
 )
+
+
+internal
+fun classNamesFromTypeString(type: SchemaType): ClassNamesFromTypeString =
+    classNamesFromTypeString(type.kotlinString)
 
 
 internal
@@ -502,17 +508,17 @@ fun typeErasure(type: String): InaccessibilityReason =
 
 
 internal
-fun accessible(type: String): TypeAccessibility =
+fun accessible(type: SchemaType): TypeAccessibility =
     TypeAccessibility.Accessible(type)
 
 
 internal
-fun inaccessible(type: String, vararg reasons: InaccessibilityReason) =
+fun inaccessible(type: SchemaType, vararg reasons: InaccessibilityReason) =
     inaccessible(type, reasons.toList())
 
 
 internal
-fun inaccessible(type: String, reasons: List<InaccessibilityReason>): TypeAccessibility =
+fun inaccessible(type: SchemaType, reasons: List<InaccessibilityReason>): TypeAccessibility =
     TypeAccessibility.Inaccessible(type, reasons)
 
 

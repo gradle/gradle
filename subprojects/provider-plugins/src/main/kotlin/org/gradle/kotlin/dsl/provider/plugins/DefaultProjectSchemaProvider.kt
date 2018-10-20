@@ -31,11 +31,13 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.SchemaType
+import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 
-    override fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
+    override fun schemaFor(project: Project): TypedProjectSchema =
         targetSchemaFor(project, typeOfProject).let { targetSchema ->
             ProjectSchema(
                 targetSchema.extensions,
@@ -43,7 +45,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                 targetSchema.tasks,
                 targetSchema.containerElements,
                 accessibleConfigurationsOf(project)
-            )
+            ).map(::SchemaType)
         }
 }
 
