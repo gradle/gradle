@@ -16,12 +16,14 @@
 
 package org.gradle.internal.change
 
+import org.gradle.api.Describable
 import org.gradle.api.GradleException
-import org.gradle.api.Task
 import spock.lang.Specification
 
 class ErrorHandlingChangeContainerTest extends Specification {
-    def task = Mock(Task)
+    def task = Stub(Describable) {
+        getDisplayName() >> "task ':test'"
+    }
     def delegate = Mock(ChangeContainer)
     def changes = new ErrorHandlingChangeContainer(task, delegate)
 
@@ -30,7 +32,7 @@ class ErrorHandlingChangeContainerTest extends Specification {
         changes.accept(Mock(ChangeVisitor))
         then:
         def ex = thrown GradleException
-        ex.message == "Cannot determine changes for Mock for type 'Task' named 'task'"
+        ex.message == "Cannot determine changes for task ':test'"
         ex.cause.message == "Error!"
         1 * delegate.accept(_) >> { throw new RuntimeException("Error!") }
     }
@@ -46,7 +48,7 @@ class ErrorHandlingChangeContainerTest extends Specification {
 
         then:
         def ex = thrown GradleException
-        ex.message == "Cannot determine changes for Mock for type 'Task' named 'task'"
+        ex.message == "Cannot determine changes for task ':test'"
         ex.cause.message == "Error!"
     }
 }
