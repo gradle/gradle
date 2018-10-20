@@ -7,7 +7,9 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
                 id 'gradlebuild.int-test-image'
                 id 'gradlebuild.performance-test'
             }
-            
+            subprojects {
+                apply plugin: 'java'
+            }
             def distributedPerformanceTests = tasks.withType(org.gradle.testing.DistributedPerformanceTest)
             distributedPerformanceTests.all {
                 // resolve these tasks
@@ -21,9 +23,8 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
             }
         """
 
-        file("internalPerformanceTesting/build.gradle") << "apply plugin: 'java'"
         settingsFile << """
-            include 'internalPerformanceTesting'
+            include 'internalPerformanceTesting', 'docs', 'launcher', 'apiMetadata'
         """
         expect:
         build("assertChannel", "-Porg.gradle.performance.branchName=branch")
