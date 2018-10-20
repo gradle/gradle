@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -178,24 +177,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
-            final CurrentTaskExecution currentExecution = history.getCurrentExecution();
-            final HistoricalTaskExecution previousExecution = history.getPreviousExecution();
-            final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesAfter = Util.fingerprintTaskFiles(task, taskExecutionContext.getTaskProperties().getOutputFileProperties(), fingerprinterRegistry);
-
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints;
-            if (currentExecution.getDetectedOverlappingOutputs() == null) {
-                newOutputFingerprints = outputFilesAfter;
-            } else {
-                newOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(currentExecution.getOutputFileProperties(), new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
-                    @Override
-                    @SuppressWarnings("NullableProblems")
-                    public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
-                        CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
-                        FileCollectionFingerprint afterPreviousExecution = Util.getFingerprintAfterPreviousExecution(previousExecution, propertyName);
-                        return Util.filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
-                    }
-                }));
-            }
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            CurrentTaskExecution currentExecution = history.getCurrentExecution();
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints = Util.fingerprintAfterOutputsGenerated(
+                previousExecution == null ? null : previousExecution.getOutputFileProperties(),
+                currentExecution.getOutputFileProperties(),
+                taskExecutionContext.getTaskProperties().getOutputFileProperties(),
+                getOverlappingOutputs() != null,
+                task,
+                fingerprinterRegistry
+            );
 
             snapshotAfterOutputsWereGenerated(newOutputFingerprints, successful, new OriginMetadata(
                     buildInvocationId,

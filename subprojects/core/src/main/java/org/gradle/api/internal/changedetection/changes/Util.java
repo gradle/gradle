@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
@@ -48,6 +48,31 @@ import java.util.SortedSet;
 public class Util {
     private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
 
+    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAfterOutputsGenerated(
+        @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current,
+        SortedSet<? extends TaskFilePropertySpec> outputProperties,
+        boolean hasOverlappingOutputs,
+        TaskInternal task,
+        FileCollectionFingerprinterRegistry fingerprinterRegistry
+    ) {
+        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesAfter = fingerprintTaskFiles(task, outputProperties, fingerprinterRegistry);
+
+        if (!hasOverlappingOutputs) {
+            return outputFilesAfter;
+        } else {
+            return ImmutableSortedMap.copyOfSorted(Maps.transformEntries(current, new Maps.EntryTransformer<String, CurrentFileCollectionFingerprint, CurrentFileCollectionFingerprint>() {
+                @Override
+                @SuppressWarnings("NullableProblems")
+                public CurrentFileCollectionFingerprint transformEntry(String propertyName, CurrentFileCollectionFingerprint beforeExecution) {
+                    CurrentFileCollectionFingerprint afterExecution = outputFilesAfter.get(propertyName);
+                    FileCollectionFingerprint afterPreviousExecution = Util.getFingerprintAfterPreviousExecution(previous, propertyName);
+                    return Util.filterOutputFingerprint(afterPreviousExecution, beforeExecution, afterExecution);
+                }
+            }));
+        }
+    }
+
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintTaskFiles(TaskInternal task, SortedSet<? extends TaskFilePropertySpec> fileProperties, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
@@ -60,10 +85,9 @@ public class Util {
         return builder.build();
     }
 
-    public static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
-        if (previousExecution != null) {
-            Map<String, FileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
-            FileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
+    private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous, String propertyName) {
+        if (previous != null) {
+            FileCollectionFingerprint afterPreviousExecution = previous.get(propertyName);
             if (afterPreviousExecution != null) {
                 return afterPreviousExecution;
             }
