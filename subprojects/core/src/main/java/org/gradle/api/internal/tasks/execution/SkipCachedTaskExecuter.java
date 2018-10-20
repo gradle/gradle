@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.MutatingTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
@@ -40,14 +41,13 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Map;
 import java.util.SortedSet;
 
-public class SkipCachedTaskExecuter implements TaskExecuter {
+public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
     private final BuildCacheController buildCache;
-    private final TaskExecuter delegate;
+    private final MutatingTaskExecuter delegate;
     private final OutputChangeListener outputChangeListener;
     private final BuildCacheCommandFactory commandFactory;
 
@@ -55,7 +55,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         BuildCacheController buildCache,
         OutputChangeListener outputChangeListener,
         BuildCacheCommandFactory commandFactory,
-        TaskExecuter delegate
+        MutatingTaskExecuter delegate
     ) {
         this.outputChangeListener = outputChangeListener;
         this.commandFactory = commandFactory;
@@ -64,7 +64,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public Result execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskProperties taskProperties = context.getTaskProperties();
@@ -82,7 +82,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             outputProperties = resolveProperties(taskProperties.getOutputFileProperties());
             if (taskState.isAllowedToUseCachedResults()) {
                 try {
-                    BuildCacheCommandFactory.LoadMetadata result = buildCache.load(
+                    final BuildCacheCommandFactory.LoadMetadata result = buildCache.load(
                             commandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), new BuildCacheLoadListener() {
                                 @Override
                                 public void beforeLoad() {
@@ -96,11 +96,20 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             })
                     );
                     if (result != null) {
-                        OriginMetadata originMetadata = result.getOriginMetadata();
-                        taskState.snapshotAfterLoadedFromCache(result.getResultingSnapshots(), originMetadata);
+                        final OriginMetadata originMetadata = result.getOriginMetadata();
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
                         context.setOriginMetadata(originMetadata);
-                        return;
+                        return new Result() {
+                            @Override
+                            public OriginMetadata getOriginMetadata() {
+                                return originMetadata;
+                            }
+
+                            @Override
+                            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                                return result.getResultingSnapshots();
+                            }
+                        };
                     }
                 } catch (UnrecoverableUnpackingException e) {
                     // We didn't manage to recover from the unpacking error, there might be leftover
@@ -115,14 +124,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             }
         }
 
-        delegate.execute(task, state, context);
+        Result result = delegate.execute(task, state, context);
 
         if (taskOutputCachingEnabled) {
             if (state.getFailure() == null) {
                 try {
-                    TaskArtifactState taskState = context.getTaskArtifactState();
-                    Map<String, CurrentFileCollectionFingerprint> outputFingerprints = taskState.getOutputFingerprints();
-                    buildCache.store(commandFactory.createStore(cacheKey, outputProperties, outputFingerprints, task, context.getExecutionTime()));
+                    // TODO This could send in the whole origin metadata
+                    buildCache.store(commandFactory.createStore(cacheKey, outputProperties, result.getFinalOutputs(), task, result.getOriginMetadata().getExecutionTime()));
                 } catch (Exception e) {
                     LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
                 }
@@ -130,6 +138,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 LOGGER.debug("Not storing result of {} in cache because the task failed", task);
             }
         }
+
+        return result;
     }
 
     private static SortedSet<CacheableTree> resolveProperties(ImmutableSortedSet<? extends TaskOutputFilePropertySpec> properties) {

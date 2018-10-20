@@ -29,7 +29,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
@@ -132,15 +131,14 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             delegate.afterOutputsRemovedBeforeTask();
         }
 
-
         @Override
-        public void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
-            delegate.snapshotAfterTaskExecution(successful, buildInvocationId, taskExecutionContext);
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
+            return delegate.snapshotAfterTaskExecution(taskExecutionContext);
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata) {
-            delegate.snapshotAfterLoadedFromCache(newOutputFingerprints, originMetadata);
+        public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
+            delegate.persistNewOutputs(newOutputFingerprints, successful, originMetadata);
         }
     }
 }

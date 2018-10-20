@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -32,9 +34,11 @@ import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.ExecuteStep
+import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
@@ -47,16 +51,19 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def action2 = Mock(ContextAwareTaskAction)
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
+    def taskArtifactState = Mock(TaskArtifactState)
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
+    def buildId = UniqueId.generate()
+    def buildInvocationScopeId = new BuildInvocationScopeId(buildId)
 
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
     def workExecutor = new DefaultWorkExecutor(new ExecuteStep(cancellationToken, outputChangeListener))
-    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, actionListener, buildInvocationScopeId, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -64,6 +71,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getState() >> state
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
+        executionContext.getTaskArtifactState() >> taskArtifactState
+        taskArtifactState.snapshotAfterTaskExecution(executionContext) >> ImmutableSortedMap.of()
     }
 
     void noMoreInteractions() {

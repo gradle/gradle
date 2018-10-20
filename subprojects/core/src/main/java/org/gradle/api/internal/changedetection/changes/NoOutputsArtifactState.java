@@ -27,7 +27,6 @@ import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -138,11 +137,12 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
+        return ImmutableSortedMap.of();
     }
 
     @Override
-    public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata) {
+    public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
     }
 
     @Override

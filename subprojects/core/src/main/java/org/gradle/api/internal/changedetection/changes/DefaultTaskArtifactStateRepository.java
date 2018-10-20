@@ -45,7 +45,6 @@ import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
@@ -176,10 +175,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
             HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             CurrentTaskExecution currentExecution = history.getCurrentExecution();
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints = Util.fingerprintAfterOutputsGenerated(
+            return Util.fingerprintAfterOutputsGenerated(
                 previousExecution == null ? null : previousExecution.getOutputFileProperties(),
                 currentExecution.getOutputFileProperties(),
                 taskExecutionContext.getTaskProperties().getOutputFileProperties(),
@@ -187,19 +186,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 task,
                 fingerprinterRegistry
             );
-
-            snapshotAfterOutputsWereGenerated(newOutputFingerprints, successful, new OriginMetadata(
-                    buildInvocationId,
-                    taskExecutionContext.markExecutionTime()
-            ));
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata) {
-            snapshotAfterOutputsWereGenerated(newOutputFingerprints, true, originMetadata);
-        }
-
-        private void snapshotAfterOutputsWereGenerated(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
+        public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             history.updateCurrentExecutionWithOutputs(newOutputFingerprints, successful, originMetadata);
             // Only persist history if there was no failure, or some output files have been changed

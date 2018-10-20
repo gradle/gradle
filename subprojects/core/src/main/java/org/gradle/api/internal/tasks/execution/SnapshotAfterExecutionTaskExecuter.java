@@ -15,29 +15,34 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
+import org.gradle.api.internal.tasks.MutatingTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 /**
  * A {@link TaskExecuter} which snaphots the task's output after it has executed.
  */
 public class SnapshotAfterExecutionTaskExecuter implements TaskExecuter {
-    private final TaskExecuter delegate;
-    private final BuildInvocationScopeId buildInvocationScopeId;
+    private final TaskOutputFilesRepository outputFilesRepository;
+    private final MutatingTaskExecuter delegate;
 
-    public SnapshotAfterExecutionTaskExecuter(TaskExecuter delegate, BuildInvocationScopeId buildInvocationScopeId) {
+    public SnapshotAfterExecutionTaskExecuter(TaskOutputFilesRepository outputFilesRepository, MutatingTaskExecuter delegate) {
+        this.outputFilesRepository = outputFilesRepository;
         this.delegate = delegate;
-        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        try {
-            delegate.execute(task, state, context);
-        } finally {
-            context.getTaskArtifactState().snapshotAfterTaskExecution(state.getFailure() == null, buildInvocationScopeId.getId(), context);
-        }
+        MutatingTaskExecuter.Result result = delegate.execute(task, state, context);
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
+        context.getTaskArtifactState().persistNewOutputs(
+            finalOutputs,
+            state.getFailure() == null,
+            result.getOriginMetadata());
+        outputFilesRepository.recordOutputs(finalOutputs.values());
     }
 }

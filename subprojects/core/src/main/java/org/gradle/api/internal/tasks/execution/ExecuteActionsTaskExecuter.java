@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.MutatingTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
@@ -30,6 +32,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -39,11 +42,13 @@ import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputFileProperty;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.time.Duration;
@@ -54,22 +59,30 @@ import java.util.Optional;
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
-public class ExecuteActionsTaskExecuter implements TaskExecuter {
+public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
+    private final BuildInvocationScopeId buildInvocationScopeId;
     private final WorkExecutor workExecutor;
 
-    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, TaskActionListener actionListener, WorkExecutor workExecutor) {
+    public ExecuteActionsTaskExecuter(
+        BuildOperationExecutor buildOperationExecutor,
+        AsyncWorkTracker asyncWorkTracker,
+        TaskActionListener actionListener,
+        BuildInvocationScopeId buildInvocationScopeId,
+        WorkExecutor workExecutor
+    ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
+        this.buildInvocationScopeId = buildInvocationScopeId;
         this.workExecutor = workExecutor;
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public Result execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         ExecutionResult result = workExecutor.execute(new TaskExecution(task, context));
         switch (result.getOutcome()) {
             case FAILED:
@@ -95,6 +108,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             default:
                 throw new AssertionError();
         }
+        final OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.getId(), context.markExecutionTime());
+        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = context.getTaskArtifactState().snapshotAfterTaskExecution(context);
+        return new Result() {
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return originMetadata;
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                return finalOutputs;
+            }
+        };
     }
 
     private class TaskExecution implements UnitOfWork {

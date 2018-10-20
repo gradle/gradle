@@ -23,7 +23,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
 import java.util.Map;
@@ -72,12 +71,12 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void snapshotAfterTaskExecution(boolean successful, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext);
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext);
 
     /**
-     * Called on task being loaded from cache.
+     * Called when outputs were generated.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata);
+    void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
 
     /**
      * Returns the history for this task.

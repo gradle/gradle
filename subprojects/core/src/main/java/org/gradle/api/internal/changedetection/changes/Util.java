@@ -49,7 +49,7 @@ public class Util {
     private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
 
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAfterOutputsGenerated(
-        @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous,
+        final @Nullable ImmutableSortedMap<String, FileCollectionFingerprint> previous,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current,
         SortedSet<? extends TaskFilePropertySpec> outputProperties,
         boolean hasOverlappingOutputs,

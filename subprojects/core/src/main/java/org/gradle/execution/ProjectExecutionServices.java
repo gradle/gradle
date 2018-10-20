@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.MutatingTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
@@ -140,21 +141,22 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         boolean buildCacheEnabled = buildCacheController.isEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
 
-        TaskExecuter executer = new ExecuteActionsTaskExecuter(
+        MutatingTaskExecuter mutatingExecuter = new ExecuteActionsTaskExecuter(
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,
+            buildInvocationScopeId,
             workExecutor
         );
-        executer = new SnapshotAfterExecutionTaskExecuter(executer, buildInvocationScopeId);
         if (buildCacheEnabled) {
-            executer = new SkipCachedTaskExecuter(
+            mutatingExecuter = new SkipCachedTaskExecuter(
                 buildCacheController,
                 outputChangeListener,
                 commandFactory,
-                executer
+                mutatingExecuter
             );
         }
+        TaskExecuter executer = new SnapshotAfterExecutionTaskExecuter(taskOutputFilesRepository, mutatingExecuter);
         executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, executer);
         if (buildCacheEnabled || scanPluginApplied) {
