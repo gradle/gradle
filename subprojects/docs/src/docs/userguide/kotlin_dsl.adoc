@@ -462,7 +462,7 @@ If you want to use a plugin that can't be applied using the `plugins {}` block d
 === Cross-configuring projects
 
 You might want to cross-configure projects, for example configuring sub projects from the root project build script.
-In that case you won't have the help of the type-safe accessors for model elements contributed by the plugins and have to rely on string literals and the API.
+In that case, you won't have the help of the type-safe accessors for model elements contributed by the plugins and have to rely on string literals and the API.
 
 For the sake of the example, let's look at the same Java/Ratpack build as above but fully configured from the root build script:
 
