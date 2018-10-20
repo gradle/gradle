@@ -17,14 +17,24 @@
 package org.gradle.kotlin.dsl.accessors.runtime
 
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.HasConvention
 
 import org.gradle.api.plugins.ExtensionAware
 
 
 fun extensionOf(target: Any, extensionName: String): Any =
     (target as ExtensionAware).extensions.getByName(extensionName)
+
+
+fun conventionOf(target: Any, name: String) =
+    (when (target) {
+        is Project -> target.convention
+        is HasConvention -> target.convention
+        else -> null
+    })?.plugins?.get(name)
 
 
 fun addDependencyTo(

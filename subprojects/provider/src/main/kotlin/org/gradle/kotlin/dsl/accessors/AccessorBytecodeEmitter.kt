@@ -21,6 +21,7 @@ import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
@@ -82,7 +83,7 @@ object AccessorBytecodeEmitter {
                     is Accessor.ForExtension -> emitAccessorForExtension(accessor)
                     is Accessor.ForContainerElement -> emitAccessorForContainerElement(accessor)
                     is Accessor.ForTask -> emitAccessorForTask(accessor)
-//                    is Accessor.ForConvention -> TODO()
+                    is Accessor.ForConvention -> emitAccessorForConvention(accessor)
                 }
 
             writer.writeFile(
@@ -99,6 +100,75 @@ object AccessorBytecodeEmitter {
         )
 
         internalClassNames
+    }
+
+    private
+    fun emitAccessorForConvention(accessor: Accessor.ForConvention): Pair<InternalName, ByteArray> {
+
+        val accessorSpec = accessor.spec
+        val className = internalNameForAccessorClassOf(accessorSpec)
+        val (accessibleReceiverType, name, returnType) = accessorSpec
+        val propertyName = name.kotlinIdentifier
+        val receiverTypeName = accessibleReceiverType.internalName()
+        val (kotlinReturnType, jvmReturnType) = when (returnType) {
+            is TypeAccessibility.Accessible -> returnType.type.builder to returnType.internalName()
+            is TypeAccessibility.Inaccessible -> InternalNameOf.Any.builder to InternalNameOf.Object
+        }
+        val getterSignature = jvmGetterSignatureFor(
+            propertyName,
+            accessorDescriptorFor(receiverTypeName, jvmReturnType)
+        )
+        val configureSignature = JvmMethodSignature(
+            propertyName,
+            "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+        )
+
+        val header = writeFileFacadeClassHeader {
+            writePropertyOf(
+                receiverType = { visitClass(receiverTypeName) },
+                returnType = kotlinReturnType,
+                propertyName = propertyName,
+                getterSignature = getterSignature
+            )
+            writeFunctionOf(
+                receiverType = { visitClass(receiverTypeName) },
+                returnType = { visitClass(InternalNameOf.Unit) },
+                parameters = {
+                    visitParameter("configure", actionTypeOf(kotlinReturnType))
+                },
+                name = propertyName,
+                signature = configureSignature
+            )
+        }
+
+        val classBytes =
+            publicKotlinClass(className, header) {
+                publicStaticMethod(getterSignature.name, getterSignature.desc) {
+                    loadConventionOf(name, returnType, jvmReturnType)
+                    ARETURN()
+                }
+                publicStaticMethod(configureSignature.name, configureSignature.desc) {
+                    ALOAD(1)
+                    loadConventionOf(name, returnType, jvmReturnType)
+                    INVOKEINTERFACE(Action::class.internalName, "execute", "(Ljava/lang/Object;)V")
+                    RETURN()
+                }
+            }
+
+        return className to classBytes
+    }
+
+    private fun MethodVisitor.loadConventionOf(name: AccessorNameSpec, returnType: TypeAccessibility, jvmReturnType: InternalName) {
+        ALOAD(0)
+        LDC(name.original)
+        invokeRuntime(
+            "conventionOf",
+            "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
+        )
+        when (returnType) {
+            is TypeAccessibility.Accessible -> CHECKCAST(jvmReturnType)
+            else -> {}
+        }
     }
 
     private
@@ -384,16 +454,8 @@ object AccessorBytecodeEmitter {
         getterSignature: JvmMethodSignature
     ) {
         writePropertyOf(
-            receiverType = {
-                visitClass(containerType)
-            },
-            returnType = {
-                visitClass(providerType)
-                visitArgument(0, KmVariance.INVARIANT)!!.run {
-                    visitClass(elementType)
-                    visitEnd()
-                }
-            },
+            receiverType = containerType.builder,
+            returnType = genericTypeOf(providerType, elementType),
             propertyName = propertyName,
             getterSignature = getterSignature
         )
@@ -439,7 +501,7 @@ sealed class Accessor {
 
     data class ForExtension(val spec: TypedAccessorSpec) : Accessor()
 
-//    data class ForConvention(val spec: TypedAccessorSpec) : Accessor()
+    data class ForConvention(val spec: TypedAccessorSpec) : Accessor()
 
     data class ForContainerElement(val spec: TypedAccessorSpec) : Accessor()
 
@@ -452,7 +514,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
     schema.run {
         AccessorScope().run {
             yieldAll(uniqueAccessorsFor(extensions).map(Accessor::ForExtension))
-//            yieldAll(uniqueAccessorsFor(conventions).map(Accessor::ForConvention))
+            yieldAll(uniqueAccessorsFor(conventions).map(Accessor::ForConvention))
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
             yieldAll(accessorsForConfigurationsOf(schema))

@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
+import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -98,11 +99,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { create(any()) } doReturn dependency
         }
         val tasks = mock<TaskContainer>()
+        val applicationPluginConvention = mock<ApplicationPluginConvention>()
+        val convention = mock<Convention> {
+            on { plugins } doReturn mapOf("application" to applicationPluginConvention)
+        }
         val project = mock<Project> {
             on { getConfigurations() } doReturn configurations
             on { getExtensions() } doReturn extensions
             on { getDependencies() } doReturn dependencies
             on { getTasks() } doReturn tasks
+            on { getConvention() } doReturn convention
         }
         project.eval(
             script = """
@@ -126,6 +132,12 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val container: NamedDomainObjectContainer<BuildType> = this
                 }
 
+                val i: ApplicationPluginConvention = application
+
+                val j: Unit = application {
+                    val convention: ApplicationPluginConvention = this
+                }
+
                 fun Project.canUseAccessorsFromConfigurationsScope() {
                     configurations {
                         api {
@@ -139,7 +151,17 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
 //            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
         )
 
-        inOrder(project, configurations, apiConfiguration, extensions, sourceSets, dependencies, tasks) {
+        inOrder(
+            project,
+            configurations,
+            apiConfiguration,
+            extensions,
+            sourceSets,
+            dependencies,
+            tasks,
+            convention,
+            applicationPluginConvention
+        ) {
             // val a
             verify(project).configurations
             verify(configurations).named("api")
@@ -173,6 +195,14 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val h
             verify(project).extensions
             verify(extensions).configure(eq("buildTypes"), any<Action<*>>())
+
+            // val i
+            verify(project).convention
+            verify(convention).plugins
+
+            // val j
+            verify(project).convention
+            verify(convention).plugins
 
             verifyNoMoreInteractions()
         }
