@@ -32,11 +32,6 @@ public class NoHistoryTaskUpToDateState implements ExecutionStateChanges {
     }
 
     @Override
-    public boolean hasAnyOutputFileChanges() {
-        return true;
-    }
-
-    @Override
     public void visitAllChanges(ChangeVisitor visitor) {
         visitor.visitChange(noHistoryChange);
     }

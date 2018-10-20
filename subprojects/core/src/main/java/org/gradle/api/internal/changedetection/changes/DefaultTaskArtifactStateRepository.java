@@ -42,6 +42,7 @@ import org.gradle.internal.change.LimitingChangeVisitor;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.NoHistoryTaskUpToDateState;
+import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -209,12 +210,18 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private void snapshotAfterOutputsWereGenerated(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, @Nullable Throwable failure, OriginMetadata originMetadata) {
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             history.updateCurrentExecutionWithOutputs(newOutputFingerprints, failure == null, originMetadata);
             // Only persist history if there was no failure, or some output files have been changed
-            if (failure == null || getStates().hasAnyOutputFileChanges()) {
+            if (failure == null || previousExecution == null || hasAnyOutputFileChanges(previousExecution.getOutputFileProperties(), newOutputFingerprints)) {
                 history.persist();
                 taskOutputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }
+        }
+
+        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+            return !previous.keySet().equals(current.keySet())
+                || new OutputFileChanges(previous, current).hasAnyChanges();
         }
 
         private ExecutionStateChanges getStates() {

@@ -32,11 +32,6 @@ public interface ExecutionStateChanges {
     Iterable<Change> getInputFilesChanges();
 
     /**
-     * Returns if any output files have been changed, added or removed.
-     */
-    boolean hasAnyOutputFileChanges();
-
-    /**
      * Visits any change to inputs or outputs.
      */
     void visitAllChanges(ChangeVisitor visitor);

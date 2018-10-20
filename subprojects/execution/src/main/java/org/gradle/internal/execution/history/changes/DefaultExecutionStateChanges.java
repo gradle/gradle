@@ -31,8 +31,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 public class DefaultExecutionStateChanges implements ExecutionStateChanges {
 
     private final ChangeContainer inputFileChanges;
-    private final ChangeContainer outputFilePropertyChanges;
-    private final OutputFileChanges outputFileChanges;
     private final ChangeContainer allChanges;
     private final ChangeContainer rebuildTriggeringChanges;
 
@@ -71,7 +69,7 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
         this.inputFileChanges = errorHandling(executable, inputFileChanges);
 
         // Capture output files state
-        this.outputFilePropertyChanges = new PropertyChanges(
+        ChangeContainer outputFilePropertyChanges = new PropertyChanges(
             lastExecution.getOutputFileProperties(),
             thisExecution.getOutputFileProperties(),
             "Output",
@@ -80,7 +78,6 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
             lastExecution.getOutputFileProperties(),
             thisExecution.getOutputFileProperties());
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
-        this.outputFileChanges = uncachedOutputChanges;
 
         this.allChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
         this.rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
@@ -99,13 +96,6 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         inputFileChanges.accept(visitor);
         return visitor.getChanges();
-    }
-
-    @Override
-    public boolean hasAnyOutputFileChanges() {
-        ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
-        outputFilePropertyChanges.accept(visitor);
-        return visitor.hasAnyChanges() || outputFileChanges.hasAnyChanges();
     }
 
     @Override
