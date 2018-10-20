@@ -28,7 +28,9 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.Convention
@@ -94,9 +96,15 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val extensions = mock<ExtensionContainer> {
             on { getByName(any()) } doReturn sourceSets
         }
+        val constraint = mock<DependencyConstraint>()
+        val constraints = mock<DependencyConstraintHandler> {
+            on { add(any(), any()) } doReturn constraint
+            on { add(any(), any(), any()) } doReturn constraint
+        }
         val dependency = mock<ExternalModuleDependency>()
         val dependencies = mock<DependencyHandler> {
             on { create(any()) } doReturn dependency
+            on { getConstraints() } doReturn constraints
         }
         val tasks = mock<TaskContainer>()
         val applicationPluginConvention = mock<ApplicationPluginConvention>()
@@ -138,6 +146,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val convention: ApplicationPluginConvention = this
                 }
 
+                val k: DependencyConstraint? = dependencies.constraints.api("direct:accessor:1.0")
+                val l: DependencyConstraint? = dependencies.constraints.api("direct:accessor-with-action") {
+                    val constraint: DependencyConstraint = this
+                }
+
                 fun Project.canUseAccessorsFromConfigurationsScope() {
                     configurations {
                         api {
@@ -160,7 +173,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             dependencies,
             tasks,
             convention,
-            applicationPluginConvention
+            applicationPluginConvention,
+            constraints
         ) {
             // val a
             verify(project).configurations
@@ -203,6 +217,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // val j
             verify(project).convention
             verify(convention).plugins
+
+            // val k
+            verify(project).dependencies
+            verify(dependencies).constraints
+            verify(constraints).add(eq("api"), eq("direct:accessor:1.0"))
+
+            // val l
+            verify(project).dependencies
+            verify(dependencies).constraints
+            verify(constraints).add(eq("api"), eq("direct:accessor-with-action"), any())
 
             verifyNoMoreInteractions()
         }

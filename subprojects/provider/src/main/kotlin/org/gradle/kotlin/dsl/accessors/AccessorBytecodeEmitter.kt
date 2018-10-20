@@ -27,7 +27,9 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
@@ -338,6 +340,14 @@ object AccessorBytecodeEmitter {
             propertyName,
             "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
         )
+        val constraintHandlerOverload1 = JvmMethodSignature(
+            propertyName,
+            "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;"
+        )
+        val constraintHandlerOverload2 = JvmMethodSignature(
+            propertyName,
+            "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;"
+        )
 
         val header = writeFileFacadeClassHeader {
             writeConfigurationAccessorMetadataFor(propertyName, getterSignature)
@@ -363,6 +373,28 @@ object AccessorBytecodeEmitter {
                 },
                 signature = overload2
             )
+            writeFunctionOf(
+                receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
+                nullableReturnType = { visitClass(DependencyConstraint::class.internalName) },
+                name = propertyName,
+                parameterName = "constraintNotation",
+                parameterType = { visitClass(InternalNameOf.Any) },
+                signature = constraintHandlerOverload1
+            )
+            writeFunctionOf(
+                receiverType = { visitClass(DependencyConstraintHandler::class.internalName) },
+                returnType = { visitClass(DependencyConstraint::class.internalName) },
+                name = propertyName,
+                parameters = {
+                    visitParameter("constraintNotation") {
+                        visitClass(InternalNameOf.Any)
+                    }
+                    visitParameter("configurationAction", actionTypeOf {
+                        visitClass(DependencyConstraint::class.internalName)
+                    })
+                },
+                signature = constraintHandlerOverload2
+            )
         }
 
         val classBytes =
@@ -386,6 +418,23 @@ object AccessorBytecodeEmitter {
                     invokeRuntime("addDependencyTo",
                         "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                     )
+                    ARETURN()
+                }
+
+                publicStaticMethod(constraintHandlerOverload1.name, constraintHandlerOverload1.desc) {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    INVOKEINTERFACE(DependencyConstraintHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;")
+                    ARETURN()
+                }
+
+                publicStaticMethod(constraintHandlerOverload2.name, constraintHandlerOverload2.desc) {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    ALOAD(2)
+                    INVOKEINTERFACE(DependencyConstraintHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;")
                     ARETURN()
                 }
             }
