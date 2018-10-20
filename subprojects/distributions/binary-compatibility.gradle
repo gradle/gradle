@@ -109,6 +109,7 @@ configurations {
 }
 
 dependencies {
+    // TODO: Current classpath should be derived from the other "Gradle runtime" sources like api-metadata, runtime-api, distribution building, etc...
     currentClasspath ProjectGroups.INSTANCE.getPublicProjects(project)
 }
 

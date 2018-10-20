@@ -8,9 +8,9 @@ See also:
 
 We are excited to share some great new features and improvements with you in this release:
 
-First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0) with it's 1.0 release!
+First and foremost, Gradle [Kotlin DSL is now production-ready](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13) with it's 1.0 release!
 Authoring your build logic using Kotlin provides significant additional editing assistance in IDEs, including: improved completion, error highlighting, and refactoring tools.
-Please follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
+Please read our [Gradle Kotlin DSL Primer](userguide/kotlin_dsl.html) and follow our [migrating build logic from Groovy to Kotlin guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) if you're interested.
 If you prefer the flexibility and dynamic nature of Groovy, that's totally okay — the Groovy DSL will _never_ be deprecated.
 
 Java enthusiasts will be happy to read that this release **supports running Gradle builds with JDK 11**.
@@ -167,6 +167,10 @@ The only remaining reason to disable caching for the task is if the output conta
 
 You can now specify a timeout for a task, after which it will be interrupted.
 See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
+
+### Gradle Native ecosystem
+
+The [Gradle Native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-50) continues to improve and evolve the native ecosystem support for Gradle.
 
 ## Promoted features
 
@@ -604,6 +608,16 @@ Annotation processors should instead be added to the `annotationProcessor` confi
 Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
 All workers now use the same working directory to enable reuse.
 Please pass files and directories as arguments instead.
+
+### Changes to the Gradle Kotlin DSL
+
+Artifact configuration accessors are now typed `NamedDomainObjectProvider<Configuration>` instead of simply `Configuration`.
+
+`PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
+
+Both changes could cause script compilation errors.
+
+See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13#breaking-changes) for more information and how to fix builds broken by the changes described above.
 
 ## External contributions
 
