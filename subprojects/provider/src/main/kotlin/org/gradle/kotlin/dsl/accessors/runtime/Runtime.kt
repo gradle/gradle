@@ -19,10 +19,13 @@ package org.gradle.kotlin.dsl.accessors.runtime
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
+
+import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 
 
 fun extensionOf(target: Any, extensionName: String): Any =
@@ -55,3 +58,45 @@ fun addDependencyTo(
         add(configuration, dependency)
     }
 }
+
+
+fun addExternalModuleDependencyTo(
+    dependencyHandler: DependencyHandler,
+    targetConfiguration: String,
+    group: String,
+    name: String,
+    version: String?,
+    configuration: String?,
+    classifier: String?,
+    ext: String?
+): ExternalModuleDependency = externalModuleDependencyFor(
+    dependencyHandler,
+    group,
+    name,
+    version,
+    configuration,
+    classifier,
+    ext
+).also {
+    dependencyHandler.add(targetConfiguration, it)
+}
+
+
+fun externalModuleDependencyFor(
+    dependencyHandler: DependencyHandler,
+    group: String,
+    name: String,
+    version: String?,
+    configuration: String?,
+    classifier: String?,
+    ext: String?
+): ExternalModuleDependency = dependencyHandler.create(
+    mapOfNonNullValuesOf(
+        "group" to group,
+        "name" to name,
+        "version" to version,
+        "configuration" to configuration,
+        "classifier" to classifier,
+        "ext" to ext
+    )
+) as ExternalModuleDependency

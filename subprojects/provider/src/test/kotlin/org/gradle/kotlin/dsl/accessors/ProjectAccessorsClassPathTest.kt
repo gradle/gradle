@@ -163,6 +163,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val dependency: ProjectDependency = this
                 }
 
+                val n: ExternalModuleDependency = dependencies.api(group = "g", name = "n")/* {
+                    val dependency: ExternalModuleDependency = this
+                }*/
+
                 fun Project.canUseAccessorsFromConfigurationsScope() {
                     configurations {
                         api {
@@ -171,9 +175,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     }
                 }
             """,
-            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath
-// Runtime is not required because the accessores are inlined
-//            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
+            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath,
+            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
         )
 
         inOrder(
@@ -245,6 +248,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verify(dependencies).project(path = ":core")
             verify(project).dependencies
             verify(dependencies).add(eq("api"), same(projectDependency))
+
+            // val n
+            verify(project).dependencies
+            verify(dependencies).create(mapOf("group" to "g", "name" to "n"))
+            verify(dependencies).add("api", dependency)
 
             verifyNoMoreInteractions()
         }

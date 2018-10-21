@@ -247,3 +247,7 @@ val inlineFunctionFlags = flagsOf(
     Flag.IS_PUBLIC,
     Flag.Function.IS_INLINE
 )
+
+
+internal
+val nonInlineFunctionFlags = flagsOf(Flag.IS_PUBLIC)

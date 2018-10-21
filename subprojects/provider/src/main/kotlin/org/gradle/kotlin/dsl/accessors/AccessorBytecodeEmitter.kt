@@ -38,7 +38,6 @@ import org.gradle.internal.hash.HashUtil
 
 import org.gradle.kotlin.dsl.concurrent.WriterThread
 import org.gradle.kotlin.dsl.concurrent.unorderedParallelMap
-import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -56,6 +55,7 @@ import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.method
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
+import org.gradle.kotlin.dsl.support.bytecode.nonInlineFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
@@ -401,7 +401,9 @@ object AccessorBytecodeEmitter {
                 signature = overload2
             )
 
+            // TODO:accessors - inline function with optional parameters
             writeFunctionOf(
+                functionFlags = nonInlineFunctionFlags,
                 receiverType = GradleType.dependencyHandler,
                 returnType = GradleType.externalModuleDependency,
                 name = propertyName,
@@ -458,7 +460,7 @@ object AccessorBytecodeEmitter {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
-                    INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+                    invokeDependencyHandlerAdd()
                     ARETURN()
                 }
 
@@ -467,24 +469,35 @@ object AccessorBytecodeEmitter {
                     LDC(propertyName)
                     ALOAD(1)
                     ALOAD(2)
-                    invokeRuntime("addDependencyTo",
+                    invokeRuntime(
+                        "addDependencyTo",
                         "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/Dependency;"
                     )
                     CHECKCAST(ExternalModuleDependency::class.internalName)
                     ARETURN()
                 }
 
-                publicStaticMethod(overload3) {
-                    ACONST_NULL()
+                val overload3Body: MethodVisitor.() -> Unit = {
+                    ALOAD(0)
+                    LDC(propertyName)
+                    (1..6).forEach { ALOAD(it) }
+                    invokeRuntime(
+                        "addExternalModuleDependencyTo",
+                        "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                    )
                     ARETURN()
                 }
 
-                method(
-                    Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC,
-                    overload3Defaults.name,
-                    overload3Defaults.desc) {
-                    ACONST_NULL()
-                    ARETURN()
+                publicStaticMethod(overload3) {
+                    overload3Body()
+                }
+
+                // Usually, this method would compute the default argument values
+                // and delegate to the original implementation.
+                // Here we can simply delegate to the runtime method in both
+                // implementations (as long as it's not declared inline).
+                publicStaticSyntheticMethod(overload3Defaults) {
+                    overload3Body()
                 }
 
                 publicStaticMethod(genericOverload) {
@@ -517,6 +530,11 @@ object AccessorBytecodeEmitter {
             }
 
         return className to classBytes
+    }
+
+    private
+    fun MethodVisitor.invokeDependencyHandlerAdd() {
+        INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
     }
 
     private
@@ -683,6 +701,18 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
 private
 inline fun <reified T> accessibleType() =
     TypeAccessibility.Accessible(SchemaType.of<T>())
+
+
+private
+fun ClassVisitor.publicStaticSyntheticMethod(
+    signature: JvmMethodSignature,
+    methodBody: MethodVisitor.() -> Unit
+) = method(
+    Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC,
+    signature.name,
+    signature.desc,
+    methodBody = methodBody
+)
 
 
 private

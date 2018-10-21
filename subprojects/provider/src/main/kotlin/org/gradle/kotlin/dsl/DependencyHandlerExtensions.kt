@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
+import org.gradle.kotlin.dsl.accessors.runtime.externalModuleDependencyFor
+
 import org.gradle.kotlin.dsl.support.excludeMapFor
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
@@ -50,16 +52,15 @@ fun DependencyHandler.create(
     configuration: String? = null,
     classifier: String? = null,
     ext: String? = null
-): ExternalModuleDependency =
-
-    create(
-        mapOfNonNullValuesOf(
-            "group" to group,
-            "name" to name,
-            "version" to version,
-            "configuration" to configuration,
-            "classifier" to classifier,
-            "ext" to ext)) as ExternalModuleDependency
+): ExternalModuleDependency = externalModuleDependencyFor(
+    this,
+    group,
+    name,
+    version,
+    configuration,
+    classifier,
+    ext
+)
 
 
 /**
