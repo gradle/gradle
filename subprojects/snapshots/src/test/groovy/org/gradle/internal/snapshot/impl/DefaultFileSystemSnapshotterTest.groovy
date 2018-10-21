@@ -36,6 +36,8 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -335,12 +337,20 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         then:
         assertSingleFileSnapshot(snapshots)
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE) // we need native tools for creating single file archives
+    def "snapshots a archive trees as RegularFileSnapshot"() {
+        given:
+        def tempDir = tmpDir.createDir('tmpDir')
+        def file = tempDir.file('testFile')
+        file.text = "content"
 
         when:
         TestFile zip = tempDir.file('archive.zip');
         file.usingNativeTools().zipTo(zip)
         def zipTree = TestFiles.fileOperations(tempDir, testFileProvider()).zipTree(zip)
-        snapshots = snapshotter.snapshot(zipTree)
+        def snapshots = snapshotter.snapshot(zipTree)
 
         then:
         assertSingleFileSnapshot(snapshots)
