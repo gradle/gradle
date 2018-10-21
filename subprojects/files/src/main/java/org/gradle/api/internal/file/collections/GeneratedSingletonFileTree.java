@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.io.Files;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -31,7 +30,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,7 +45,7 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
     private final String fileName;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource,  String fileName, Action<OutputStream> contentWriter) {
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Action<OutputStream> contentWriter) {
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
         this.contentWriter = contentWriter;
@@ -71,22 +69,32 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
 
     @Override
     public File getFile() {
-        File file = createFileInstance(fileName);
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            try {
-                contentWriter.execute(fileOutputStream);
-            } finally {
-                fileOutputStream.close();
-            }
-            return file;
-        } catch (Exception e) {
-            throw new GradleException(String.format("Cannot create file %s", file), e);
-        }
+        FileExtractVisitor fileExtractVisitor = new FileExtractVisitor();
+        visit(fileExtractVisitor);
+        return fileExtractVisitor.getFile();
     }
 
     private File createFileInstance(String fileName) {
         return new File(getTmpDir(), fileName);
+    }
+
+    private class FileExtractVisitor implements FileVisitor {
+
+        private File file = null;
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+            throw new UnsupportedOperationException("Visiting directories is not supported");
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            this.file = fileDetails.getFile();
+        }
+
+        public File getFile() {
+            return file;
+        }
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
