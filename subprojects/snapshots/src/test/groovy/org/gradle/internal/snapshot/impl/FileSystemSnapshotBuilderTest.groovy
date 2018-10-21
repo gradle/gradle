@@ -111,8 +111,9 @@ class FileSystemSnapshotBuilderTest extends Specification {
         def builder = new FileSystemSnapshotBuilder(stringInterner)
         def snapshot = fileSnapshot("", "path")
 
+        def file = new File(basePath)
         when:
-        builder.addFile(new File(basePath), [] as String[], snapshot)
+        builder.addFile(file, [file.name] as String[], snapshot)
         def result = builder.build()
 
         then:

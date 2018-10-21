@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Action
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTree
@@ -33,9 +34,12 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.WellKnownFileLocations
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule
@@ -252,7 +256,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     def "snapshots a singletonFileTree as RegularFileSnapshot"() {
         given:
         def tempDir = tmpDir.createDir('tmpDir')
-        def file = tempDir.createFile('testFile')
+        def file = tempDir.file('testFile')
+        file.text = "content"
 
         when:
         def tree = new FileTreeAdapter(new DefaultSingletonFileTree(file), TestFiles.patternSetFactory)
@@ -331,6 +336,52 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         then:
         assertSingleFileSnapshot(snapshots)
 
+        when:
+        TestFile zip = tempDir.file('archive.zip');
+        file.usingNativeTools().zipTo(zip)
+        def zipTree = TestFiles.fileOperations(tempDir, testFileProvider()).zipTree(zip)
+        snapshots = snapshotter.snapshot(zipTree)
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+        when:
+        TestFile tar = tempDir.file('archive.tar');
+        file.usingNativeTools().tarTo(tar)
+        def tarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
+        snapshots = snapshotter.snapshot(tarTree)
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+        when:
+        def tarDir = tmpDir.createDir('tarDir')
+        TestFile emptyTar = tempDir.file('emptyArchive.tar');
+        tarDir.usingNativeTools().tarTo(emptyTar)
+        def emtpyTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
+        snapshots = snapshotter.snapshot(emtpyTarTree)
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+    }
+
+    private TemporaryFileProvider testFileProvider() {
+        new TemporaryFileProvider() {
+            @Override
+            File newTemporaryFile(String... path) {
+                return tmpDir.createFile(path)
+            }
+
+            @Override
+            File createTemporaryFile(String prefix, @Nullable String suffix, @Nullable String... path) {
+                return null
+            }
+
+            @Override
+            File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
+                return tmpDir.createDir(path)
+            }
+        }
     }
 
     def assertSingleFileSnapshot(def snapshots) {

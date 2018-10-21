@@ -183,7 +183,7 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
         }
 
         public RelativePath getRelativePath() {
-            return RelativePath.parse(true, fileName);
+            return new RelativePath(true, fileName);
         }
 
     }
