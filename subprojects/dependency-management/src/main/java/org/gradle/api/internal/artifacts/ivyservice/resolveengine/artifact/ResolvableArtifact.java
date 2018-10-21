@@ -38,4 +38,6 @@ public interface ResolvableArtifact {
     File getFile();
 
     ResolvedArtifact toPublicView();
+
+    void collectBuildDependencies(BuildDependenciesVisitor visitor);
 }

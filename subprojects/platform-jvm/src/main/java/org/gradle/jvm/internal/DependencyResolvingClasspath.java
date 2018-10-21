@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -149,6 +151,10 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             @Override
             public void visitDependency(Object dep) {
                 taskDependencies.add(dep);
+            }
+
+            @Override
+            public void attachFinalizerTo(Task task, Action<? super Task> action) {
             }
 
             @Override

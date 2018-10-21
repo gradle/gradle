@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal.tooling;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.RegularFile;
@@ -165,6 +166,11 @@ public class CppModelBuilder implements ToolingModelBuilder {
             } else {
                 task = (Task) dependency;
             }
+        }
+
+        @Override
+        public void attachFinalizerTo(Task task, Action<? super Task> action) {
+            // Ignore
         }
 
         @Override

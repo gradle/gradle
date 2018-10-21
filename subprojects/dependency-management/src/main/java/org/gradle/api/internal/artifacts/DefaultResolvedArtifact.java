@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Buildable;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -29,13 +34,16 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
-public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, ResolvableArtifact {
+public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependency buildDependencies;
     private volatile Factory<File> artifactSource;
+    private final ResolvableArtifact sourceArtifact;
     private volatile File file;
     private volatile Throwable failure;
 
@@ -44,20 +52,27 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = buildDependencies;
+        this.sourceArtifact = null;
         this.artifactSource = artifactSource;
     }
 
-    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependency buildDependencies, File artifactFile) {
+    public DefaultResolvedArtifact(ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, ResolvableArtifact sourceArtifact, File artifactFile) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
-        this.buildDependencies = buildDependencies;
+        this.buildDependencies = null;
+        this.sourceArtifact = sourceArtifact;
         this.file = artifactFile;
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return buildDependencies;
+    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        LoggingVisitor nested = new LoggingVisitor(visitor);
+        if (buildDependencies != null) {
+            nested.visitDependency(buildDependencies);
+        } else if (sourceArtifact != null) {
+            sourceArtifact.collectBuildDependencies(nested);
+        }
     }
 
     public ResolvedModuleVersion getModuleVersion() {
@@ -146,5 +161,64 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, Buildable, Res
             }
         }
         return f;
+    }
+
+    private class LoggingVisitor extends AbstractTaskDependencyResolveContext implements BuildDependenciesVisitor {
+        private final BuildDependenciesVisitor visitor;
+        private final Set<Object> seen = new HashSet<>();
+
+        public LoggingVisitor(BuildDependenciesVisitor visitor) {
+            this.visitor = visitor;
+        }
+
+        @Override
+        public void visitDependency(Object dep) {
+            // Ignore cycles. This should be an error instead
+            if (!seen.add(dep)) {
+                return;
+            }
+
+            if (dep instanceof TaskDependencyContainer) {
+                ((TaskDependencyContainer) dep).visitDependencies(this);
+            } else if (dep instanceof TaskInternal) {
+                visitor.attachFinalizerTo((Task) dep, new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        // Eagerly calculate the file if this will be used as a dependency of some task
+                        // This is to avoid having to lock the project when a consuming task in another project runs
+                        if (isResolveSynchronously()) {
+                            try {
+                                getFile();
+                            } catch (Exception e) {
+                                // Ignore, this will be reported later
+                            }
+                        }
+                    }
+                });
+                visitor.visitDependency(dep);
+            } else {
+                visitor.visitDependency(dep);
+            }
+        }
+
+        @Override
+        public void attachFinalizerTo(Task task, Action<? super Task> action) {
+            visitor.attachFinalizerTo(task, action);
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            visitor.visitFailure(failure);
+        }
+
+        @Override
+        public void add(Object dependency) {
+            visitDependency(dependency);
+        }
+
+        @Override
+        public Task getTask() {
+            return null;
+        }
     }
 }

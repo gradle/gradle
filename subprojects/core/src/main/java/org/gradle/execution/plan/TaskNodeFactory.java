@@ -26,6 +26,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
+import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
 
 import java.util.HashMap;
@@ -94,6 +95,18 @@ public class TaskNodeFactory {
         @Override
         public void rethrowNodeFailure() {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void appendPostAction(Action<? super Task> action) {
+            // Ignore. Currently the actions don't need to run, it's just better if they do
+            // By the time this node is notified that the task in the other build has completed, it's too late to run the action
+            // Instead, the action should be attached to the task in the other build rather than here
+        }
+
+        @Override
+        public Action<? super Task> getPostAction() {
+            return Actions.doNothing();
         }
 
         @Override
