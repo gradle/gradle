@@ -97,10 +97,10 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     collectSchemaOf(target, targetType)
 
     return TargetTypedSchema(
-        extensions.distinct(),
-        conventions.distinct(),
-        tasks.distinct(),
-        containerElements.distinct()
+        extensions,
+        conventions,
+        tasks,
+        containerElements
     )
 }
 
