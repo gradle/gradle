@@ -57,9 +57,6 @@ import org.mockito.ArgumentMatchers.anyMap
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
-    inline fun <reified ReceiverType, reified ReturnType> entry(name: String): ProjectSchemaEntry<SchemaType> =
-        ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<ReturnType>())
-
     @Test
     fun `#buildAccessorsFor`() {
 
@@ -257,4 +254,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             verifyNoMoreInteractions()
         }
     }
+
+    inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =
+        ProjectSchemaEntry(SchemaType.of<ReceiverType>(), name, SchemaType.of<EntryType>())
 }

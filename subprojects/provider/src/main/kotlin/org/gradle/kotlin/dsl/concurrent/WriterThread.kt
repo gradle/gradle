@@ -35,7 +35,7 @@ class WriterThread : AutoCloseable {
             when (val command = q.take()) {
                 is Command.WriteFile -> command.run {
                     file.parentFile.mkdirs()
-                    file.writeBytes(bytes)
+                    write(file)
                 }
                 is Command.Execute -> command.action()
                 Command.Quit -> break@loop
@@ -44,7 +44,11 @@ class WriterThread : AutoCloseable {
     }
 
     fun writeFile(file: File, bytes: ByteArray) {
-        q.put(Command.WriteFile(file, bytes))
+        q.put(Command.WriteFile(file) { writeBytes(bytes) })
+    }
+
+    fun writeFile(file: File, text: String) {
+        q.put(Command.WriteFile(file) { writeText(text) })
     }
 
     fun execute(action: () -> Unit) {
@@ -59,7 +63,7 @@ class WriterThread : AutoCloseable {
     private
     sealed class Command {
 
-        class WriteFile(val file: File, val bytes: ByteArray) : Command()
+        class WriteFile(val file: File, val write: File.() -> Unit) : Command()
 
         class Execute(val action: () -> Unit) : Command()
 

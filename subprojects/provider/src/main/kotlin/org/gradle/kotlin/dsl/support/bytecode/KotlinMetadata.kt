@@ -49,14 +49,24 @@ fun publicKotlinClass(
 
 internal
 fun writeFileFacadeClassHeader(fileFacadeWriter: KotlinClassMetadata.FileFacade.Writer.() -> Unit) =
-    KotlinClassMetadata.FileFacade.Writer().run {
+    beginFileFacadeClassHeader().run {
         fileFacadeWriter()
-        (visitExtensions(JvmPackageExtensionVisitor.TYPE) as KmPackageExtensionVisitor).run {
-            visitEnd()
-        }
-        visitEnd()
-        write().header
+        closeHeader()
     }
+
+
+internal
+fun beginFileFacadeClassHeader() = KotlinClassMetadata.FileFacade.Writer()
+
+
+internal
+fun KotlinClassMetadata.FileFacade.Writer.closeHeader(): KotlinClassHeader {
+    (visitExtensions(JvmPackageExtensionVisitor.TYPE) as KmPackageExtensionVisitor).run {
+        visitEnd()
+    }
+    visitEnd()
+    return write().header
+}
 
 
 internal

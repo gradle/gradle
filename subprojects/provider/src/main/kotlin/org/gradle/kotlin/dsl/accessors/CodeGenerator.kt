@@ -63,7 +63,7 @@ data class AccessorScope(
 
     private
     fun add(accessorSpec: TypedAccessorSpec) =
-        targetTypesOf(accessorSpec.name).add(accessorSpec.targetTypeAccess)
+        targetTypesOf(accessorSpec.name).add(accessorSpec.receiver)
 
     private
     fun targetTypesOf(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
@@ -74,9 +74,9 @@ data class AccessorScope(
 private
 fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
-        when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess.type.kotlinString)
-            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess)
+        when (type) {
+            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(receiver.type.kotlinString, name, type)
         }
     }
 }
@@ -127,9 +127,9 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 private
 fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
-        when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess.type.kotlinString)
-            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess)
+        when (type) {
+            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(receiver.type.kotlinString, name, type)
         }
     }
 }
@@ -180,9 +180,9 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
 private
 fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
-        when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, typeAccess.type.kotlinString)
-            is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, typeAccess)
+        when (type) {
+            is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, type.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, type)
         }
     }
 }
@@ -219,9 +219,9 @@ fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: Type
 private
 fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
-        when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess.type.kotlinString)
-            is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(targetTypeAccess.type.kotlinString, name, typeAccess)
+        when (type) {
+            is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type.type.kotlinString)
+            is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(receiver.type.kotlinString, name, type)
         }
     }
 }
@@ -241,14 +241,14 @@ fun accessibleExistingContainerElementAccessorFor(targetType: String, name: Acce
 
 
 private
-fun inaccessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name: AccessorNameSpec, elementType: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Provides the existing [$original][${typeAccess.type}] element.
+         * Provides the existing [$original][${elementType.type}] element.
          *
-         * ${documentInaccessibilityReasons(name, typeAccess)}
+         * ${documentInaccessibilityReasons(name, elementType)}
          */
-        val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<Any>
+        val $containerType.`$kotlinIdentifier`: NamedDomainObjectProvider<Any>
             get() = named("$stringLiteral")
 
     """
@@ -405,9 +405,9 @@ data class AccessorNameSpec(val original: String) {
 
 internal
 data class TypedAccessorSpec(
-    val targetTypeAccess: TypeAccessibility.Accessible,
+    val receiver: TypeAccessibility.Accessible,
     val name: AccessorNameSpec,
-    val typeAccess: TypeAccessibility
+    val type: TypeAccessibility
 )
 
 

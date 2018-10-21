@@ -33,11 +33,23 @@ fun publicClass(
     superName: InternalName = InternalNameOf.Object,
     interfaces: Array<String>? = null,
     classBody: ClassWriter.() -> Unit = {}
-) = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).run {
-    visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name.value, null, superName.value, interfaces)
+) = beginPublicClass(name, superName, interfaces).run {
     classBody()
+    endClass()
+}
+
+
+internal
+fun beginPublicClass(name: InternalName, superName: InternalName = InternalNameOf.Object, interfaces: Array<String>? = null) =
+    ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
+        visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name.value, null, superName.value, interfaces)
+    }
+
+
+internal
+fun ClassWriter.endClass(): ByteArray {
     visitEnd()
-    toByteArray()
+    return toByteArray()
 }
 
 

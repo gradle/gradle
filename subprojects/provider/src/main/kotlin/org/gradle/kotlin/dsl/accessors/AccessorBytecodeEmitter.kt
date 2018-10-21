@@ -49,6 +49,10 @@ import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
+import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
+import org.gradle.kotlin.dsl.support.bytecode.closeHeader
+import org.gradle.kotlin.dsl.support.bytecode.endClass
 import org.gradle.kotlin.dsl.support.bytecode.inlineFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
@@ -56,13 +60,12 @@ import org.gradle.kotlin.dsl.support.bytecode.method
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.nonInlineFunctionFlags
-import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
+import org.gradle.kotlin.dsl.support.bytecode.visitKotlinMetadataAnnotation
 import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
 import org.gradle.kotlin.dsl.support.bytecode.visitParameter
 import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
-import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
 
@@ -74,6 +77,41 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import java.io.File
 
 
+private
+data class AccessorFragment(
+    val source: String,
+    val bytecode: BytecodeWriter,
+    val metadata: MetadataWriter,
+    val signature: JvmMethodSignature
+)
+
+
+private
+typealias BytecodeWriter = BytecodeFragmentScope.() -> Unit
+
+
+private
+class BytecodeFragmentScope(
+    val signature: JvmMethodSignature,
+    writer: ClassWriter
+) : ClassVisitor(Opcodes.ASM6, writer)
+
+
+private
+typealias MetadataWriter = MetadataFragmentScope.() -> Unit
+
+
+private
+data class MetadataFragmentScope(
+    val signature: JvmMethodSignature,
+    val writer: KotlinClassMetadata.FileFacade.Writer
+)
+
+
+private
+typealias Fragments = Pair<InternalName, Sequence<AccessorFragment>>
+
+
 internal
 object AccessorBytecodeEmitter {
 
@@ -83,35 +121,467 @@ object AccessorBytecodeEmitter {
         binDir: File
     ): List<InternalName> = WriterThread().use { writer ->
 
-        val internalClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
+        val emittedClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
 
-            val (internalClassName, classBytes) =
+            val (className, fragments) =
                 when (accessor) {
-                    is Accessor.ForConfiguration -> emitAccessorsForConfiguration(accessor)
-                    is Accessor.ForExtension -> emitAccessorForExtension(accessor)
-                    is Accessor.ForContainerElement -> emitAccessorForContainerElement(accessor)
-                    is Accessor.ForTask -> emitAccessorForTask(accessor)
-                    is Accessor.ForConvention -> emitAccessorForConvention(accessor)
+                    is Accessor.ForConfiguration -> fragmentsForConfiguration(accessor)
+                    is Accessor.ForExtension -> fragmentsForExtension(accessor)
+                    is Accessor.ForConvention -> fragmentsForConvention(accessor)
+                    is Accessor.ForTask -> fragmentsForTask(accessor)
+                    is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
                 }
 
+            val sourceCode = StringBuffer()
+            val metadataWriter = beginFileFacadeClassHeader()
+            val classWriter = beginPublicClass(className)
+
+            for ((source, bytecode, metadata, signature) in fragments) {
+                sourceCode.append(source)
+                MetadataFragmentScope(signature, metadataWriter).run(metadata)
+                BytecodeFragmentScope(signature, classWriter).run(bytecode)
+            }
+
+            val classSource = sourceCode.toString()
             writer.writeFile(
-                binDir.resolve("$internalClassName.class"),
+                srcDir.resolve("${className.value.removeSuffix("Kt")}.kt"),
+                classSource
+            )
+
+            val classHeader = metadataWriter.closeHeader()
+            val classBytes = classWriter.run {
+                visitKotlinMetadataAnnotation(classHeader)
+                classWriter.endClass()
+            }
+            writer.writeFile(
+                binDir.resolve("$className.class"),
                 classBytes
             )
 
-            internalClassName
-        }.toList()
+            className
+        }.filterNotNull().toList()
 
         writer.writeFile(
             moduleFileFor(binDir),
-            moduleMetadataBytesFor(internalClassNames)
+            moduleMetadataBytesFor(emittedClassNames)
         )
 
-        internalClassNames
+        emittedClassNames
     }
 
     private
-    fun emitAccessorForConvention(accessor: Accessor.ForConvention): Pair<InternalName, ByteArray> {
+    fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
+
+        val propertyName = name.original
+        val className = InternalName("org/gradle/kotlin/dsl/${propertyName.capitalize()}ConfigurationAccessorsKt")
+
+        className to sequenceOf(
+            AccessorFragment(
+                source = name.run {
+                    """
+                        /**
+                         * Adds a dependency to the '$original' configuration.
+                         *
+                         * @param dependencyNotation notation for the dependency to be added.
+                         * @return The dependency.
+                         *
+                         * @see [DependencyHandler.add]
+                         */
+                        fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency? =
+                            add("$stringLiteral", dependencyNotation)
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        LDC(name.original)
+                        ALOAD(1)
+                        invokeDependencyHandlerAdd()
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeFunctionOf(
+                        receiverType = GradleType.dependencyHandler,
+                        nullableReturnType = GradleType.dependency,
+                        name = signature.name,
+                        parameterName = "dependencyNotation",
+                        parameterType = KotlinType.any,
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    name.original,
+                    "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;"
+                )
+            ),
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        LDC(propertyName)
+                        ALOAD(1)
+                        ALOAD(2)
+                        invokeRuntime(
+                            "addDependencyTo",
+                            "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/Dependency;"
+                        )
+                        CHECKCAST(ExternalModuleDependency::class.internalName)
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeFunctionOf(
+                        receiverType = GradleType.dependencyHandler,
+                        returnType = GradleType.externalModuleDependency,
+                        name = propertyName,
+                        parameters = {
+                            visitParameter("dependencyNotation", KotlinType.string)
+                            visitParameter("configurationAction", actionTypeOf(GradleType.externalModuleDependency))
+                        },
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                )
+            ),
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+
+                    val methodBody: MethodVisitor.() -> Unit = {
+                        ALOAD(0)
+                        LDC(propertyName)
+                        (1..6).forEach { ALOAD(it) }
+                        invokeRuntime(
+                            "addExternalModuleDependencyTo",
+                            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                        )
+                        ARETURN()
+                    }
+
+                    publicStaticMethod(signature) {
+                        methodBody()
+                    }
+
+                    // Usually, this method would compute the default argument values
+                    // and delegate to the original implementation.
+                    // Here we can simply inline the implementation in both
+                    // methods.
+                    val overload3Defaults = JvmMethodSignature(
+                        "$propertyName\$default",
+                        "(" +
+                            "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "ILjava/lang/Object;" +
+                            ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                    )
+                    publicStaticSyntheticMethod(overload3Defaults) {
+                        methodBody()
+                    }
+                },
+                metadata = {
+                    // TODO:accessors - inline function with optional parameters
+                    writer.writeFunctionOf(
+                        functionFlags = nonInlineFunctionFlags,
+                        receiverType = GradleType.dependencyHandler,
+                        returnType = GradleType.externalModuleDependency,
+                        name = propertyName,
+                        parameters = {
+                            visitParameter("group", KotlinType.string)
+                            visitParameter("name", KotlinType.string)
+                            visitOptionalParameter("version", KotlinType.string)
+                            visitOptionalParameter("configuration", KotlinType.string)
+                            visitOptionalParameter("classifier", KotlinType.string)
+                            visitOptionalParameter("ext", KotlinType.string)
+                        },
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                )
+            ),
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(2)
+                        ALOAD(1)
+                        invokeAction()
+                        ALOAD(0)
+                        LDC(propertyName)
+                        ALOAD(1)
+                        INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.visitFunction(inlineFunctionFlags, propertyName)!!.run {
+                        visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
+                            visitUpperBound(0).with(GradleType.dependency)
+                            visitEnd()
+                        }
+                        visitReceiverParameterType(0).with(GradleType.dependencyHandler)
+                        visitParameter("dependency", typeParameter)
+                        visitParameter("action", actionTypeOf(typeParameter))
+                        visitReturnType(0).with(typeParameter)
+                        visitSignature(signature)
+                        visitEnd()
+                    }
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(" +
+                        "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
+                        "Lorg/gradle/api/artifacts/Dependency;" +
+                        "Lorg/gradle/api/Action;" +
+                        ")Lorg/gradle/api/artifacts/Dependency;"
+                )
+            ),
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        LDC(propertyName)
+                        ALOAD(1)
+                        INVOKEINTERFACE(DependencyConstraintHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;")
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeFunctionOf(
+                        receiverType = GradleType.dependencyConstraintHandler,
+                        nullableReturnType = GradleType.dependencyConstraint,
+                        name = propertyName,
+                        parameterName = "constraintNotation",
+                        parameterType = KotlinType.any,
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;"
+                )
+            ),
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        LDC(propertyName)
+                        ALOAD(1)
+                        ALOAD(2)
+                        INVOKEINTERFACE(DependencyConstraintHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;")
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeFunctionOf(
+                        receiverType = GradleType.dependencyConstraintHandler,
+                        returnType = GradleType.dependencyConstraint,
+                        name = propertyName,
+                        parameters = {
+                            visitParameter("constraintNotation", KotlinType.any)
+                            visitParameter("configurationAction", actionTypeOf(GradleType.dependencyConstraint))
+                        },
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;"
+                )
+            ),
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                },
+                metadata = {
+                },
+                signature = JvmMethodSignature(
+                    name.original,
+                    ""
+                )
+            )
+        )
+    }
+
+    private
+    val typeParameter: KmTypeBuilder = { visitTypeParameter(0) }
+
+    private
+    fun fragmentsForContainerElement(accessor: Accessor.ForContainerElement) =
+        fragmentsForContainerElementOf(
+            namedDomainObjectProviderTypeName,
+            namedWithTypeMethodDescriptor,
+            accessor.spec
+        )
+
+    private
+    fun fragmentsForTask(accessor: Accessor.ForTask) =
+        fragmentsForContainerElementOf(
+            taskProviderTypeName,
+            namedTaskWithTypeMethodDescriptor,
+            accessor.spec
+        )
+
+    private
+    fun fragmentsForContainerElementOf(
+        providerType: InternalName,
+        namedMethodDescriptor: String,
+        accessorSpec: TypedAccessorSpec
+    ): Fragments {
+
+        val className = internalNameForAccessorClassOf(accessorSpec)
+        val (accessibleReceiverType, name, returnType) = accessorSpec
+        val propertyName = name.kotlinIdentifier
+        val receiverType = accessibleReceiverType.type.builder
+        val receiverTypeName = accessibleReceiverType.internalName()
+        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
+
+        return className to sequenceOf(
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        LDC(propertyName)
+                        LDC(jvmReturnType)
+                        INVOKEINTERFACE(receiverTypeName, "named", namedMethodDescriptor)
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeElementAccessorMetadataFor(
+                        receiverType,
+                        providerType,
+                        kotlinReturnType,
+                        propertyName,
+                        signature
+                    )
+                },
+                signature = jvmGetterSignatureFor(
+                    propertyName,
+                    accessorDescriptorFor(receiverTypeName, providerType)
+                )
+            )
+        )
+    }
+
+    private
+    fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
+
+        val accessorSpec = accessor.spec
+        val className = internalNameForAccessorClassOf(accessorSpec)
+        val (accessibleReceiverType, name, returnType) = accessorSpec
+        val propertyName = name.kotlinIdentifier
+        val receiverType = accessibleReceiverType.type.builder
+        val receiverTypeName = accessibleReceiverType.internalName()
+        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
+
+        return className to sequenceOf(
+
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        LDC(name.original)
+                        invokeRuntime(
+                            "extensionOf",
+                            "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
+                        )
+                        if (returnType is TypeAccessibility.Accessible)
+                            CHECKCAST(jvmReturnType)
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writePropertyOf(
+                        receiverType = receiverType,
+                        returnType = kotlinReturnType,
+                        propertyName = propertyName,
+                        getterSignature = signature
+                    )
+                },
+                signature = jvmGetterSignatureFor(
+                    propertyName,
+                    accessorDescriptorFor(receiverTypeName, jvmReturnType)
+                )
+            ),
+
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(0)
+                        CHECKCAST(extensionAwareTypeName)
+                        INVOKEINTERFACE(extensionAwareTypeName, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
+                        LDC(name.original)
+                        ALOAD(1)
+                        INVOKEINTERFACE(extensionContainerTypeName, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
+                        RETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeFunctionOf(
+                        receiverType = receiverType,
+                        returnType = KotlinType.unit,
+                        parameters = {
+                            visitParameter("configure", actionTypeOf(kotlinReturnType))
+                        },
+                        name = propertyName,
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+                )
+            )
+        )
+    }
+
+    private
+    fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
 
         val accessorSpec = accessor.spec
         val className = internalNameForAccessorClassOf(accessorSpec)
@@ -120,48 +590,64 @@ object AccessorBytecodeEmitter {
         val propertyName = name.kotlinIdentifier
         val receiverTypeName = accessibleReceiverType.internalName()
         val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
-        val getterSignature = jvmGetterSignatureFor(
-            propertyName,
-            accessorDescriptorFor(receiverTypeName, jvmReturnType)
-        )
-        val configureSignature = JvmMethodSignature(
-            propertyName,
-            "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
-        )
 
-        val header = writeFileFacadeClassHeader {
-            writePropertyOf(
-                receiverType = receiverType,
-                returnType = kotlinReturnType,
-                propertyName = propertyName,
-                getterSignature = getterSignature
-            )
-            writeFunctionOf(
-                receiverType = receiverType,
-                returnType = KotlinType.unit,
-                parameters = {
-                    visitParameter("configure", actionTypeOf(kotlinReturnType))
+        return className to sequenceOf(
+
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
                 },
-                name = propertyName,
-                signature = configureSignature
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        loadConventionOf(name, returnType, jvmReturnType)
+                        ARETURN()
+                    }
+                },
+                metadata = {
+                    writer.writePropertyOf(
+                        receiverType = receiverType,
+                        returnType = kotlinReturnType,
+                        propertyName = propertyName,
+                        getterSignature = signature
+                    )
+                },
+                signature = jvmGetterSignatureFor(
+                    propertyName,
+                    accessorDescriptorFor(receiverTypeName, jvmReturnType)
+                )
+            ),
+
+            AccessorFragment(
+                source = name.run {
+                    """
+                    """
+                },
+                bytecode = {
+                    publicStaticMethod(signature) {
+                        ALOAD(1)
+                        loadConventionOf(name, returnType, jvmReturnType)
+                        invokeAction()
+                        RETURN()
+                    }
+                },
+                metadata = {
+                    writer.writeFunctionOf(
+                        receiverType = receiverType,
+                        returnType = KotlinType.unit,
+                        parameters = {
+                            visitParameter("configure", actionTypeOf(kotlinReturnType))
+                        },
+                        name = propertyName,
+                        signature = signature
+                    )
+                },
+                signature = JvmMethodSignature(
+                    propertyName,
+                    "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+                )
             )
-        }
-
-        val classBytes =
-            publicKotlinClass(className, header) {
-                publicStaticMethod(getterSignature) {
-                    loadConventionOf(name, returnType, jvmReturnType)
-                    ARETURN()
-                }
-                publicStaticMethod(configureSignature) {
-                    ALOAD(1)
-                    loadConventionOf(name, returnType, jvmReturnType)
-                    invokeAction()
-                    RETURN()
-                }
-            }
-
-        return className to classBytes
+        )
     }
 
     private
@@ -179,131 +665,6 @@ object AccessorBytecodeEmitter {
         )
         if (returnType is TypeAccessibility.Accessible)
             CHECKCAST(jvmReturnType)
-    }
-
-    private
-    fun emitAccessorForTask(accessor: Accessor.ForTask): Pair<InternalName, ByteArray> =
-        emitContainerElementAccessorFor(
-            accessor.spec,
-            taskProviderTypeName,
-            namedTaskWithTypeMethodDescriptor
-        )
-
-    private
-    fun emitAccessorForContainerElement(accessor: Accessor.ForContainerElement): Pair<InternalName, ByteArray> =
-        emitContainerElementAccessorFor(
-            accessor.spec,
-            namedDomainObjectProviderTypeName,
-            namedWithTypeMethodDescriptor
-        )
-
-    private
-    fun emitContainerElementAccessorFor(
-        accessorSpec: TypedAccessorSpec,
-        providerType: InternalName,
-        namedMethodDescriptor: String
-    ): Pair<InternalName, ByteArray> {
-
-        // val $receiverType.$name: $providerType<$returnType>
-        //   get() = named("$name", $returnType::class.java)
-
-        val className = internalNameForAccessorClassOf(accessorSpec)
-        val (accessibleReceiverType, name, returnType) = accessorSpec
-        val propertyName = name.kotlinIdentifier
-        val receiverType = accessibleReceiverType.type.builder
-        val receiverTypeName = accessibleReceiverType.internalName()
-        val getterSignature = jvmGetterSignatureFor(
-            propertyName,
-            accessorDescriptorFor(receiverTypeName, providerType)
-        )
-        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
-
-        val header = writeFileFacadeClassHeader {
-            writeElementAccessorMetadataFor(
-                receiverType,
-                providerType,
-                kotlinReturnType,
-                propertyName,
-                getterSignature
-            )
-        }
-
-        val classBytes =
-            publicKotlinClass(className, header) {
-                publicStaticMethod(getterSignature) {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    LDC(jvmReturnType)
-                    INVOKEINTERFACE(receiverTypeName, "named", namedMethodDescriptor)
-                    ARETURN()
-                }
-            }
-
-        return className to classBytes
-    }
-
-    private
-    fun emitAccessorForExtension(accessor: Accessor.ForExtension): Pair<InternalName, ByteArray> {
-
-        val accessorSpec = accessor.spec
-        val className = internalNameForAccessorClassOf(accessorSpec)
-        val (accessibleReceiverType, name, returnType) = accessorSpec
-        val propertyName = name.kotlinIdentifier
-        val receiverType = accessibleReceiverType.type.builder
-        val receiverTypeName = accessibleReceiverType.internalName()
-        val (kotlinReturnType, jvmReturnType) = accessibleTypesFor(returnType)
-        val getterSignature = jvmGetterSignatureFor(
-            propertyName,
-            accessorDescriptorFor(receiverTypeName, jvmReturnType)
-        )
-        val configureSignature = JvmMethodSignature(
-            propertyName,
-            "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
-        )
-
-        val header = writeFileFacadeClassHeader {
-            writePropertyOf(
-                receiverType = receiverType,
-                returnType = kotlinReturnType,
-                propertyName = propertyName,
-                getterSignature = getterSignature
-            )
-            writeFunctionOf(
-                receiverType = receiverType,
-                returnType = KotlinType.unit,
-                parameters = {
-                    visitParameter("configure", actionTypeOf(kotlinReturnType))
-                },
-                name = propertyName,
-                signature = configureSignature
-            )
-        }
-
-        val classBytes =
-            publicKotlinClass(className, header) {
-                publicStaticMethod(getterSignature) {
-                    ALOAD(0)
-                    LDC(name.original)
-                    invokeRuntime(
-                        "extensionOf",
-                        "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;"
-                    )
-                    if (returnType is TypeAccessibility.Accessible)
-                        CHECKCAST(jvmReturnType)
-                    ARETURN()
-                }
-                publicStaticMethod(configureSignature) {
-                    ALOAD(0)
-                    CHECKCAST(ExtensionAware::class.internalName)
-                    INVOKEINTERFACE(ExtensionAware::class.internalName, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
-                    LDC(name.original)
-                    ALOAD(1)
-                    INVOKEINTERFACE(ExtensionContainer::class.internalName, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
-                    RETURN()
-                }
-            }
-
-        return className to classBytes
     }
 
     private
@@ -331,208 +692,6 @@ object AccessorBytecodeEmitter {
         InternalName("org/gradle/kotlin/dsl/Accessors${hashOf(accessorSpec)}Kt")
 
     private
-    fun emitAccessorsForConfiguration(accessor: Accessor.ForConfiguration): Pair<InternalName, ByteArray> {
-
-        val propertyName = accessor.name.original
-        val className = InternalName("org/gradle/kotlin/dsl/${propertyName.capitalize()}ConfigurationAccessorsKt")
-
-        val overload1 = JvmMethodSignature(
-            propertyName,
-            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;"
-        )
-        val overload2 = JvmMethodSignature(
-            propertyName,
-            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
-        )
-        val overload3 = JvmMethodSignature(
-            propertyName,
-            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
-        )
-        val overload3Defaults = JvmMethodSignature(
-            "$propertyName\$default",
-            "(" +
-                "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
-                "Ljava/lang/String;" +
-                "Ljava/lang/String;" +
-                "Ljava/lang/String;" +
-                "Ljava/lang/String;" +
-                "Ljava/lang/String;" +
-                "Ljava/lang/String;" +
-                "ILjava/lang/Object;" +
-                ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
-        )
-        val genericOverload = JvmMethodSignature(
-            propertyName,
-            "(" +
-                "Lorg/gradle/api/artifacts/dsl/DependencyHandler;" +
-                "Lorg/gradle/api/artifacts/Dependency;" +
-                "Lorg/gradle/api/Action;" +
-                ")Lorg/gradle/api/artifacts/Dependency;"
-        )
-
-        val constraintHandlerOverload1 = JvmMethodSignature(
-            propertyName,
-            "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;"
-        )
-        val constraintHandlerOverload2 = JvmMethodSignature(
-            propertyName,
-            "(Lorg/gradle/api/artifacts/dsl/DependencyConstraintHandler;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;"
-        )
-
-        val header = writeFileFacadeClassHeader {
-
-            writeFunctionOf(
-                receiverType = GradleType.dependencyHandler,
-                nullableReturnType = GradleType.dependency,
-                name = propertyName,
-                parameterName = "dependencyNotation",
-                parameterType = KotlinType.any,
-                signature = overload1
-            )
-
-            writeFunctionOf(
-                receiverType = GradleType.dependencyHandler,
-                returnType = GradleType.externalModuleDependency,
-                name = propertyName,
-                parameters = {
-                    visitParameter("dependencyNotation", KotlinType.string)
-                    visitParameter("configurationAction", actionTypeOf(GradleType.externalModuleDependency))
-                },
-                signature = overload2
-            )
-
-            // TODO:accessors - inline function with optional parameters
-            writeFunctionOf(
-                functionFlags = nonInlineFunctionFlags,
-                receiverType = GradleType.dependencyHandler,
-                returnType = GradleType.externalModuleDependency,
-                name = propertyName,
-                parameters = {
-                    visitParameter("group", KotlinType.string)
-                    visitParameter("name", KotlinType.string)
-                    visitOptionalParameter("version", KotlinType.string)
-                    visitOptionalParameter("configuration", KotlinType.string)
-                    visitOptionalParameter("classifier", KotlinType.string)
-                    visitOptionalParameter("ext", KotlinType.string)
-                },
-                signature = overload3
-            )
-
-            val typeParameter: KmTypeBuilder = { visitTypeParameter(0) }
-            visitFunction(inlineFunctionFlags, propertyName)!!.run {
-                visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
-                    visitUpperBound(0).with(GradleType.dependency)
-                    visitEnd()
-                }
-                visitReceiverParameterType(0).with(GradleType.dependencyHandler)
-                visitParameter("dependency", typeParameter)
-                visitParameter("action", actionTypeOf(typeParameter))
-                visitReturnType(0).with(typeParameter)
-                visitSignature(genericOverload)
-                visitEnd()
-            }
-
-            writeFunctionOf(
-                receiverType = GradleType.dependencyConstraintHandler,
-                nullableReturnType = GradleType.dependencyConstraint,
-                name = propertyName,
-                parameterName = "constraintNotation",
-                parameterType = KotlinType.any,
-                signature = constraintHandlerOverload1
-            )
-
-            writeFunctionOf(
-                receiverType = GradleType.dependencyConstraintHandler,
-                returnType = GradleType.dependencyConstraint,
-                name = propertyName,
-                parameters = {
-                    visitParameter("constraintNotation", KotlinType.any)
-                    visitParameter("configurationAction", actionTypeOf(GradleType.dependencyConstraint))
-                },
-                signature = constraintHandlerOverload2
-            )
-        }
-
-        val classBytes =
-            publicKotlinClass(className, header) {
-
-                publicStaticMethod(overload1) {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    ALOAD(1)
-                    invokeDependencyHandlerAdd()
-                    ARETURN()
-                }
-
-                publicStaticMethod(overload2) {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    ALOAD(1)
-                    ALOAD(2)
-                    invokeRuntime(
-                        "addDependencyTo",
-                        "(L${DependencyHandler::class.internalName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/Dependency;"
-                    )
-                    CHECKCAST(ExternalModuleDependency::class.internalName)
-                    ARETURN()
-                }
-
-                val overload3Body: MethodVisitor.() -> Unit = {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    (1..6).forEach { ALOAD(it) }
-                    invokeRuntime(
-                        "addExternalModuleDependencyTo",
-                        "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
-                    )
-                    ARETURN()
-                }
-
-                publicStaticMethod(overload3) {
-                    overload3Body()
-                }
-
-                // Usually, this method would compute the default argument values
-                // and delegate to the original implementation.
-                // Here we can simply delegate to the runtime method in both
-                // implementations (as long as it's not declared inline).
-                publicStaticSyntheticMethod(overload3Defaults) {
-                    overload3Body()
-                }
-
-                publicStaticMethod(genericOverload) {
-                    ALOAD(2)
-                    ALOAD(1)
-                    invokeAction()
-                    ALOAD(0)
-                    LDC(propertyName)
-                    ALOAD(1)
-                    INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
-                    ARETURN()
-                }
-
-                publicStaticMethod(constraintHandlerOverload1) {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    ALOAD(1)
-                    INVOKEINTERFACE(DependencyConstraintHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;")
-                    ARETURN()
-                }
-
-                publicStaticMethod(constraintHandlerOverload2) {
-                    ALOAD(0)
-                    LDC(propertyName)
-                    ALOAD(1)
-                    ALOAD(2)
-                    INVOKEINTERFACE(DependencyConstraintHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;")
-                    ARETURN()
-                }
-            }
-
-        return className to classBytes
-    }
-
-    private
     fun MethodVisitor.invokeDependencyHandlerAdd() {
         INVOKEINTERFACE(DependencyHandler::class.internalName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
     }
@@ -551,32 +710,6 @@ object AccessorBytecodeEmitter {
         type.value.concreteClass.internalName
 
     private
-    fun ClassWriter.emitContainerElementAccessorFor(
-        elementName: String,
-        signature: JvmMethodSignature
-    ) {
-        publicStaticMethod(signature) {
-            ALOAD(0)
-            LDC(elementName)
-            INVOKEINTERFACE(namedDomainObjectContainerTypeName, "named", namedMethodDescriptor)
-            ARETURN()
-        }
-    }
-
-    private
-    fun KotlinClassMetadata.FileFacade.Writer.writeConfigurationAccessorMetadataFor(
-        configurationName: String,
-        getterSignature: JvmMethodSignature
-    ) {
-        writePropertyOf(
-            receiverType = GradleType.containerOfConfiguration,
-            returnType = GradleType.providerOfConfiguration,
-            propertyName = configurationName,
-            getterSignature = getterSignature
-        )
-    }
-
-    private
     fun KotlinClassMetadata.FileFacade.Writer.writeElementAccessorMetadataFor(
         containerType: KmTypeBuilder,
         providerType: InternalName,
@@ -591,6 +724,12 @@ object AccessorBytecodeEmitter {
             getterSignature = getterSignature
         )
     }
+
+    private
+    val extensionAwareTypeName = ExtensionAware::class.internalName
+
+    private
+    val extensionContainerTypeName = ExtensionContainer::class.internalName
 
     private
     val namedDomainObjectProviderTypeName = NamedDomainObjectProvider::class.internalName
@@ -609,9 +748,6 @@ object AccessorBytecodeEmitter {
 
     private
     val namedDomainObjectContainerTypeName = NamedDomainObjectContainer::class.internalName
-
-    private
-    val configurationAccessorMethodSignature = accessorDescriptorFor(namedDomainObjectContainerTypeName, namedDomainObjectProviderTypeName)
 
     private
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
@@ -681,7 +817,9 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
 
             val configurationNames = configurations.map(::AccessorNameSpec).asSequence()
             yieldAll(
-                uniqueAccessorsFrom(configurationNames.map(::configurationAccessorSpec)).map(Accessor::ForContainerElement)
+                uniqueAccessorsFrom(
+                    configurationNames.map(::configurationAccessorSpec)
+                ).map(Accessor::ForContainerElement)
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
         }
