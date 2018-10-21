@@ -24,17 +24,21 @@ fun <T> deferred(value: () -> T): Any =
     Callable { value() }
 
 
-fun Project.execAndGetStdout(vararg args: String): String {
+fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
     val out = ByteArrayOutputStream()
     exec {
         isIgnoreExitValue = true
         commandLine(*args)
         standardOutput = out
+        this.workingDir = workingDir
     }
-    val result = String(out.toByteArray()).trim()
+    val result = out.toString().trim()
     println("${args.toList()} result: $result")
     return result
 }
+
+
+fun Project.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), *args)
 
 
 fun Project.stringPropertyOrNull(projectPropertyName: String): String? =

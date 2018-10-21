@@ -19,7 +19,6 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
-import org.gradle.testing.BuildForkPointDistribution
 import org.gradle.testing.ReportGenerationPerformanceTest
 import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
@@ -108,27 +107,18 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.registerForkPointDistributionTask() {
+        val determineForkPoint = tasks.register("determineForkPoint", DetermineForkPoint::class)
         val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
-            dependsOn("determineForkPoint")
+            forkPointDistributionVersion.set(determineForkPoint.flatMap { it.forkPointDistributionVersion })
+            dependsOn(determineForkPoint)
         }
-        tasks.register("determineForkPoint") {
-            doLast {
-                val masterForkPointCommit = execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
-                val releaseForkPointCommit = execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
-                val forkPointCommit =
-                    if (exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
-                        releaseForkPointCommit
-                    else
-                        masterForkPointCommit
-                buildForkPointDistribution.get().determineForkPoint(execAndGetStdout("git", "rev-parse", "--short", forkPointCommit), execAndGetStdout("git", "show", "$forkPointCommit:version.txt"))
-            }
-        }
+
         tasks.register("configurePerformanceTestBaseline") {
             dependsOn(buildForkPointDistribution)
             doLast {
-                val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).baselineVersion
+                val commitBaseline = determineForkPoint.get().forkPointDistributionVersion.get()
                 project.tasks.withType(DistributedPerformanceTest::class) {
-                    if (baselines?.isEmpty() == true || baselines == "defaults") {
+                    if (baselines.isNullOrEmpty() || baselines == "defaults") {
                         baselines = commitBaseline
                     }
                 }
