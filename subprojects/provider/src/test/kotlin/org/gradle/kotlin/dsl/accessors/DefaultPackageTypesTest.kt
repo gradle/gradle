@@ -21,10 +21,11 @@ import org.gradle.kotlin.dsl.accessors.TypeAccessibility.Accessible
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 
-class DefaultPackageTypesTest {
+class DefaultPackageTypesTest : TestWithClassPath() {
 
     @Test
     fun `#defaultPackageTypesIn generic type`() {
@@ -35,6 +36,7 @@ class DefaultPackageTypesTest {
         )
     }
 
+    @Ignore("WIP:accessors")
     @Test
     fun `#importsRequiredBy takes container elements into account`() {
 
