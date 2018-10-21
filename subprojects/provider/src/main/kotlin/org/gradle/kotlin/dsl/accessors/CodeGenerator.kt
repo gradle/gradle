@@ -56,7 +56,10 @@ data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
 ) {
     fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
-        entries.asSequence().mapNotNull(::typedAccessorSpec).filter(::add)
+        uniqueAccessorsFrom(entries.asSequence().mapNotNull(::typedAccessorSpec))
+
+    fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
+        accessorSpecs.filter(::add)
 
     private
     fun add(accessorSpec: TypedAccessorSpec) =

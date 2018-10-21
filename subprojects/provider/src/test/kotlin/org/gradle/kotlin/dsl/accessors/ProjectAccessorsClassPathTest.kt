@@ -95,7 +95,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         // then:
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()
         val configurations = mock<ConfigurationContainer> {
-            on { named(any<String>()) } doReturn apiConfiguration
+            on { named(any<String>(), any<Class<Configuration>>()) } doReturn apiConfiguration
         }
         val sourceSets = mock<SourceSetContainer>()
         val extensions = mock<ExtensionContainer> {
@@ -190,7 +190,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         ) {
             // val a
             verify(project).configurations
-            verify(configurations).named("api")
+            verify(configurations).named("api", Configuration::class.java)
 
             // val b
             verify(project).dependencies

@@ -333,10 +333,9 @@ object AccessorBytecodeEmitter {
     private
     fun emitAccessorsForConfiguration(accessor: Accessor.ForConfiguration): Pair<InternalName, ByteArray> {
 
-        val propertyName = accessor.name
+        val propertyName = accessor.name.original
         val className = InternalName("org/gradle/kotlin/dsl/${propertyName.capitalize()}ConfigurationAccessorsKt")
 
-        val getterSignature = jvmGetterSignatureFor(accessor.name, configurationAccessorMethodSignature)
         val overload1 = JvmMethodSignature(
             propertyName,
             "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;"
@@ -381,8 +380,6 @@ object AccessorBytecodeEmitter {
         )
 
         val header = writeFileFacadeClassHeader {
-
-            writeConfigurationAccessorMetadataFor(propertyName, getterSignature)
 
             writeFunctionOf(
                 receiverType = GradleType.dependencyHandler,
@@ -456,8 +453,6 @@ object AccessorBytecodeEmitter {
 
         val classBytes =
             publicKotlinClass(className, header) {
-
-                emitConfigurationAccessorFor(propertyName, getterSignature)
 
                 publicStaticMethod(overload1) {
                     ALOAD(0)
@@ -534,12 +529,8 @@ object AccessorBytecodeEmitter {
         HashUtil.createCompactMD5(accessorSpec.toString())
 
     private
-    fun TypeAccessibility.Accessible.internalName() = type.value.concreteClass.internalName
-
-    private
-    fun ClassWriter.emitConfigurationAccessorFor(name: String, signature: JvmMethodSignature) {
-        emitContainerElementAccessorFor(name, signature)
-    }
+    fun TypeAccessibility.Accessible.internalName() =
+        type.value.concreteClass.internalName
 
     private
     fun ClassWriter.emitContainerElementAccessorFor(
@@ -649,7 +640,7 @@ object KotlinType {
 internal
 sealed class Accessor {
 
-    data class ForConfiguration(val name: String) : Accessor()
+    data class ForConfiguration(val name: AccessorNameSpec) : Accessor()
 
     data class ForExtension(val spec: TypedAccessorSpec) : Accessor()
 
@@ -669,15 +660,29 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(conventions).map(Accessor::ForConvention))
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
-            yieldAll(accessorsForConfigurationsOf(schema))
+
+            val configurationNames = configurations.map(::AccessorNameSpec).asSequence()
+            yieldAll(
+                uniqueAccessorsFrom(configurationNames.map(::configurationAccessorSpec)).map(Accessor::ForContainerElement)
+            )
+            yieldAll(configurationNames.map(Accessor::ForConfiguration))
         }
     }
 }
 
 
-internal
-fun accessorsForConfigurationsOf(projectSchema: ProjectSchema<*>) =
-    projectSchema.configurations.asSequence().map { Accessor.ForConfiguration(it) }
+private
+fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
+    TypedAccessorSpec(
+        accessibleType<NamedDomainObjectContainer<Configuration>>(),
+        nameSpec,
+        accessibleType<Configuration>()
+    )
+
+
+private
+inline fun <reified T> accessibleType() =
+    TypeAccessibility.Accessible(SchemaType.of<T>())
 
 
 private
