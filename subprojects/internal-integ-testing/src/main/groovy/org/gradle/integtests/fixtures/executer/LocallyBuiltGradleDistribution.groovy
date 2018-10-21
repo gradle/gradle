@@ -26,19 +26,14 @@ class LocallyBuiltGradleDistribution extends DefaultGradleDistribution {
     }
 
     private static TestFile getGradleHome(String version) {
-        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-${getCommitFromVersion(version)}/gradle-${version}")
+        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-${version}")
     }
 
     static boolean isLocallyBuiltVersion(String version) {
         return version.contains("-commit-")
     }
 
-    private static String getCommitFromVersion(String version) {
-        // 5.1-commit-1a2b3c4d -> commit-1a2b3c4d
-        return version.substring(version.indexOf('-') + 1)
-    }
-
     static File getToolingApiJar(String version) {
-        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-${getCommitFromVersion(version)}/gradle-tooling-api-${version}.jar")
+        return IntegrationTestBuildContext.INSTANCE.getDistributionsDir().file("gradle-tooling-api-${version}.jar")
     }
 }

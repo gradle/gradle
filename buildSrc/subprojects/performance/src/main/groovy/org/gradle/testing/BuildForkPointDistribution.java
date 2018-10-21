@@ -18,6 +18,7 @@ package org.gradle.testing;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -25,65 +26,62 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.http.HttpBuildCache;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.stream.Stream;
 
-import static org.apache.commons.io.FileUtils.cleanDirectory;
 import static org.apache.commons.io.FileUtils.forceMkdir;
 
 @CacheableTask
 public class BuildForkPointDistribution extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(BuildForkPointDistribution.class);
 
-    private final DirectoryProperty forkPointDistributionDir = getProject().getObjects().directoryProperty();
+    private final DirectoryProperty forkPointDistributionHome = getProject().getObjects().directoryProperty();
 
-    private String forkPointCommitId;
+    private final RegularFileProperty forkPointToolingApiJar = getProject().getObjects().fileProperty();
 
-    private String baselineVersion;
+    private Property<String> forkPointCommitId = getProject().getObjects().property(String.class);
+
+    private Property<String> baselineVersion = getProject().getObjects().property(String.class);
 
     @Input
-    @Optional
-    public String getForkPointCommitId() {
+    public Property<String> getForkPointCommitId() {
         return forkPointCommitId;
     }
 
-    public void setForkPointCommitId(String forkPointCommitId) {
-        this.forkPointCommitId = forkPointCommitId;
-        this.forkPointDistributionDir.set(getProject().getRootProject().getLayout().getBuildDirectory().dir("distributions/gradle-commit-" + forkPointCommitId));
+    @OutputDirectory
+    public DirectoryProperty getForkPointDistributionHome() {
+        return forkPointDistributionHome;
     }
 
-    @OutputDirectory
-    public DirectoryProperty getForkPointDistributionDir() {
-        return forkPointDistributionDir;
+    @OutputFile
+    public RegularFileProperty getForkPointToolingApiJar() {
+        return forkPointToolingApiJar;
     }
 
     @Internal
     public String getBaselineVersion() {
-        if (baselineVersion == null) {
-            baselineVersion = Stream.of(getForkPointDistributionDir().getAsFile().get().listFiles())
-                .filter(file -> file.isDirectory() && file.getName().startsWith("gradle-"))
-                .map(file -> file.getName().substring("gradle-".length()))
-                .findFirst()
-                .orElse("defaults");
-        }
-        return baselineVersion;
+        return baselineVersion.get();
+    }
+
+    public void determineForkPoint(String forkPointCommitId, String baseVersionOnThatCommit) {
+        this.forkPointCommitId.set(forkPointCommitId);
+        this.baselineVersion.set(baseVersionOnThatCommit + "-commit-" + baseVersionOnThatCommit);
+        this.forkPointDistributionHome.set(getProject().getRootProject().getLayout().getBuildDirectory().dir("distributions/gradle-" + baselineVersion.get()));
+        this.forkPointToolingApiJar.set(getProject().getRootProject().getLayout().getBuildDirectory().file("distributions/gradle-tooling-api-" + baselineVersion.get()));
     }
 
     @TaskAction
     void buildDistribution() throws Exception {
         LOGGER.quiet("Building fork point distribution for: " + forkPointCommitId);
         prepareGradleRepository();
-        tryBuildDistribution(forkPointCommitId);
+        tryBuildDistribution(forkPointCommitId.get());
         LOGGER.quiet("Building commit " + forkPointCommitId + " succeeded, now the baseline is " + getBaselineVersion());
     }
 
@@ -112,33 +110,36 @@ public class BuildForkPointDistribution extends DefaultTask {
 
     private void tryBuildDistribution(String commit) throws Exception {
         exec(getGradleCloneTmpDir(), "git", "checkout", commit, "--force");
-        cleanDirectory(getForkPointDistributionDir().getAsFile().get());
-
-        String baseVersion = new String(Files.readAllBytes(getGradleCloneTmpDir().toPath().resolve("version.txt"))).trim();
-
-        exec(getGradleCloneTmpDir(), (Object[]) getBuildCommands(commit, baseVersion));
+        exec(getGradleCloneTmpDir(), (Object[]) getBuildCommands());
     }
 
-    private Object[] getBuildCommands(String commit, String baseVersion) {
-        BuildCacheConfiguration buildCacheConf = ((GradleInternal) getProject().getGradle()).getSettings().getBuildCache();
-        HttpBuildCache remoteCache = (HttpBuildCache) buildCacheConf.getRemote();
-        boolean remoteCacheEnabled = remoteCache == null ? false : remoteCache.isEnabled();
-
-        return new String[]{
+    private Object[] getBuildCommands() {
+        String[] buildCommands = new String[]{
             "./gradlew",
+            "--init-script",
+            new File(getGradleCloneTmpDir(), "gradle/init-scripts/build-scan.init.gradle.kts").getAbsolutePath(),
             "clean",
             ":install",
-            "-Pgradle_installPath=" + getDestinationFile("gradle-" + baseVersion + "-commit-" + commit),
+            "-Pgradle_installPath=" + forkPointDistributionHome.getAsFile().get().getAbsolutePath(),
             ":toolingApi:installToolingApiShadedJar",
-            "-PtoolingApiShadedJarInstallPath=" + getDestinationFile("gradle-tooling-api-" + baseVersion + "-commit-" + commit + ".jar"),
-            "-Dorg.gradle.caching=" + (remoteCache == null ? false : remoteCache.isEnabled()),
-            "-Dgradle.cache.remote.url=" + (remoteCache == null ? "" : remoteCache.getUrl()),
-            "-Dgradle.cache.remote.username=" + (remoteCache == null ? "" : remoteCache.getCredentials().getUsername()),
-            "-Dgradle.cache.remote.password=" + (remoteCache == null ? "" : remoteCache.getCredentials().getPassword())
+            "-PtoolingApiShadedJarInstallPath=" + forkPointToolingApiJar.getAsFile().get().getAbsolutePath()
         };
+
+        return Stream.of(buildCommands, getBuildCacheParams()).flatMap(Stream::of).toArray();
     }
 
-    private String getDestinationFile(String fileName) {
-        return new File(getForkPointDistributionDir().getAsFile().get(), fileName).getAbsolutePath();
+    private String[] getBuildCacheParams() {
+        if (getProject().getGradle().getStartParameter().isBuildCacheEnabled()) {
+            BuildCacheConfiguration buildCacheConf = ((GradleInternal) getProject().getGradle()).getSettings().getBuildCache();
+            HttpBuildCache remoteCache = (HttpBuildCache) buildCacheConf.getRemote();
+            return new String[]{
+                "--build-cache",
+                "-Dgradle.cache.remote.url=" + (remoteCache == null ? "" : remoteCache.getUrl()),
+                "-Dgradle.cache.remote.username=" + (remoteCache == null ? "" : remoteCache.getCredentials().getUsername()),
+                "-Dgradle.cache.remote.password=" + (remoteCache == null ? "" : remoteCache.getCredentials().getPassword())
+            };
+        } else {
+            return new String[0];
+        }
     }
 }

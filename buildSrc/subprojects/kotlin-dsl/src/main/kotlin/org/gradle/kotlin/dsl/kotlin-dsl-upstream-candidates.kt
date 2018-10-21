@@ -27,10 +27,13 @@ fun <T> deferred(value: () -> T): Any =
 fun Project.execAndGetStdout(vararg args: String): String {
     val out = ByteArrayOutputStream()
     exec {
+        isIgnoreExitValue = true
         commandLine(*args)
         standardOutput = out
     }
-    return String(out.toByteArray()).trim()
+    val result = String(out.toByteArray()).trim()
+    println("${args.toList()} result: $result")
+    return result
 }
 
 

@@ -120,7 +120,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                         releaseForkPointCommit
                     else
                         masterForkPointCommit
-                buildForkPointDistribution.get().forkPointCommitId = execAndGetStdout("git", "rev-parse", "--short", forkPointCommit)
+                buildForkPointDistribution.get().determineForkPoint(execAndGetStdout("git", "rev-parse", "--short", forkPointCommit), execAndGetStdout("git", "show", "$forkPointCommit:version.txt"))
             }
         }
         tasks.register("configurePerformanceTestBaseline") {
@@ -128,7 +128,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             doLast {
                 val commitBaseline = (project.tasks.findByName("buildForkPointDistribution") as BuildForkPointDistribution).baselineVersion
                 project.tasks.withType(DistributedPerformanceTest::class) {
-                    if (true == baselines?.isNullOrEmpty() || baselines == "defaults") {
+                    if (baselines?.isEmpty() == true || baselines == "defaults") {
                         baselines = commitBaseline
                     }
                 }
