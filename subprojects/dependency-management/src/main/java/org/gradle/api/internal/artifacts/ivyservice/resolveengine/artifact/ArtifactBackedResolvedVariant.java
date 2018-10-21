@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.AsyncArtifactListener;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -117,17 +115,12 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitDependency(getBuildDependencies());
+            artifact.collectBuildDependencies(visitor);
         }
 
         @Override
         public ComponentArtifactIdentifier getArtifactId() {
             return artifact.getId();
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return ((Buildable) artifact).getBuildDependencies();
         }
 
         @Override

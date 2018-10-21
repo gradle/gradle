@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -58,12 +56,11 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
         ResolvedArtifact sourceArtifact = artifact.toPublicView();
         List<File> transformedFiles = operation.getResult();
         assert transformedFiles != null;
-        TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
         for (File output : transformedFiles) {
             IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(output, sourceArtifact.getClassifier());
             ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), artifactName);
-            DefaultResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(sourceArtifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
+            DefaultResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(sourceArtifact.getModuleVersion().getId(), artifactName, newId, artifact, output);
             visitor.visitArtifact(variantName, target, resolvedArtifact);
         }
     }

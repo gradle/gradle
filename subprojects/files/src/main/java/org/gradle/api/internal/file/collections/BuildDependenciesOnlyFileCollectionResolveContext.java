@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
@@ -70,6 +71,11 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
                     } else {
                         BuildDependenciesOnlyFileCollectionResolveContext.this.add(dependency);
                     }
+                }
+
+                @Override
+                public void attachFinalizerTo(Task task, Action<? super Task> action) {
+                    taskContext.attachFinalizerTo(task, action);
                 }
 
                 @Override
