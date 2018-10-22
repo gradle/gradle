@@ -126,7 +126,7 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
     parameterName: String,
     parameterType: KmTypeBuilder,
     signature: JvmMethodSignature,
-    functionFlags: Flags = inlineFunctionFlags
+    functionFlags: Flags = publicFunctionFlags
 ) {
     writeFunctionOf(
         receiverType,
@@ -173,7 +173,7 @@ inline fun KotlinClassMetadata.FileFacade.Writer.writeFunctionOf(
     parameters: KmFunctionVisitor.() -> Unit,
     signature: JvmMethodSignature,
     returnTypeFlags: Flags = 0,
-    functionFlags: Flags = inlineFunctionFlags
+    functionFlags: Flags = publicFunctionFlags
 ) {
     visitFunction(functionFlags, name)!!.run {
         visitReceiverParameterType(0).with(receiverType)
@@ -266,11 +266,4 @@ val inlineGetterFlags = flagsOf(
 
 
 internal
-val inlineFunctionFlags = flagsOf(
-    Flag.IS_PUBLIC,
-    Flag.Function.IS_INLINE
-)
-
-
-internal
-val nonInlineFunctionFlags = flagsOf(Flag.IS_PUBLIC)
+val publicFunctionFlags = flagsOf(Flag.IS_PUBLIC)

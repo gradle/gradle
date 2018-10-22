@@ -53,13 +53,12 @@ import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
 import org.gradle.kotlin.dsl.support.bytecode.closeHeader
 import org.gradle.kotlin.dsl.support.bytecode.endClass
-import org.gradle.kotlin.dsl.support.bytecode.inlineFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.method
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
-import org.gradle.kotlin.dsl.support.bytecode.nonInlineFunctionFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.visitKotlinMetadataAnnotation
 import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
@@ -127,15 +126,7 @@ object AccessorBytecodeEmitter {
 
         val emittedClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
 
-            val (className, fragments) =
-                when (accessor) {
-                    is Accessor.ForConfiguration -> fragmentsForConfiguration(accessor)
-                    is Accessor.ForExtension -> fragmentsForExtension(accessor)
-                    is Accessor.ForConvention -> fragmentsForConvention(accessor)
-                    is Accessor.ForTask -> fragmentsForTask(accessor)
-                    is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
-                }
-
+            val (className, fragments) = fragmentsFor(accessor)
             val sourceCode = mutableListOf<String>()
             val metadataWriter = beginFileFacadeClassHeader()
             val classWriter = beginPublicClass(className)
@@ -168,6 +159,15 @@ object AccessorBytecodeEmitter {
         )
 
         emittedClassNames
+    }
+
+    private
+    fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
+        is Accessor.ForConfiguration -> fragmentsForConfiguration(accessor)
+        is Accessor.ForExtension -> fragmentsForExtension(accessor)
+        is Accessor.ForConvention -> fragmentsForConvention(accessor)
+        is Accessor.ForTask -> fragmentsForTask(accessor)
+        is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     }
 
     private
@@ -228,7 +228,7 @@ object AccessorBytecodeEmitter {
                          *
                          * @see [DependencyHandler.add]
                          */
-                        inline fun DependencyHandler.`$kotlinIdentifier`(
+                        fun DependencyHandler.`$kotlinIdentifier`(
                             dependencyNotation: String,
                             dependencyConfiguration: Action<ExternalModuleDependency>
                         ): ExternalModuleDependency = addDependencyTo(
@@ -338,9 +338,8 @@ object AccessorBytecodeEmitter {
                     }
                 },
                 metadata = {
-                    // TODO:accessors - inline function with optional parameters
                     writer.writeFunctionOf(
-                        functionFlags = nonInlineFunctionFlags,
+                        functionFlags = publicFunctionFlags,
                         receiverType = GradleType.dependencyHandler,
                         returnType = GradleType.externalModuleDependency,
                         name = propertyName,
@@ -373,7 +372,7 @@ object AccessorBytecodeEmitter {
                          *
                          * @see [DependencyHandler.add]
                          */
-                        inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
+                        fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
                             dependency: T,
                             dependencyConfiguration: T.() -> Unit
                         ): T = add("$stringLiteral", dependency, dependencyConfiguration)
@@ -392,7 +391,7 @@ object AccessorBytecodeEmitter {
                     }
                 },
                 metadata = {
-                    writer.visitFunction(inlineFunctionFlags, propertyName)!!.run {
+                    writer.visitFunction(publicFunctionFlags, propertyName)!!.run {
                         visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
                             visitUpperBound(0).with(GradleType.dependency)
                             visitEnd()
@@ -501,10 +500,7 @@ object AccessorBytecodeEmitter {
                 )
             ),
             AccessorFragment(
-                source = name.run {
-                    """
-                    """
-                },
+                source = "",
                 bytecode = {
                 },
                 metadata = {
@@ -625,10 +621,7 @@ object AccessorBytecodeEmitter {
             ),
 
             AccessorFragment(
-                source = name.run {
-                    """
-                    """
-                },
+                source = "",
                 bytecode = {
                     publicStaticMethod(signature) {
                         ALOAD(0)
@@ -695,10 +688,7 @@ object AccessorBytecodeEmitter {
             ),
 
             AccessorFragment(
-                source = name.run {
-                    """
-                    """
-                },
+                source = "",
                 bytecode = {
                     publicStaticMethod(signature) {
                         ALOAD(1)
