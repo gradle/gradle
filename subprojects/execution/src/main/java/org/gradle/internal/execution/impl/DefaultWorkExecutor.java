@@ -25,7 +25,7 @@ import org.gradle.internal.execution.impl.steps.Step;
 public class DefaultWorkExecutor implements WorkExecutor {
     private final Step<? super Context> executeStep;
 
-    public DefaultWorkExecutor(Step<Context> executeStep) {
+    public DefaultWorkExecutor(Step<? super Context> executeStep) {
         this.executeStep = executeStep;
     }
 

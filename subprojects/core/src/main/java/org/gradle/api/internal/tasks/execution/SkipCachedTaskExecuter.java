@@ -74,17 +74,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
 
         SortedSet<CacheableTree> outputProperties = null;
-        CacheableEntity taskEntity = new CacheableEntity() {
-            @Override
-            public String getPath() {
-                return task.getPath();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return task.toString();
-            }
-        };
+        CacheableEntity taskEntity = new CacheableTask(task);
         if (taskOutputCachingEnabled) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
@@ -197,6 +187,24 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
         @Override
         public int compareTo(@Nonnull CacheableTree o) {
             return getName().compareTo(o.getName());
+        }
+    }
+
+    private static class CacheableTask implements CacheableEntity {
+        private final TaskInternal task;
+
+        public CacheableTask(TaskInternal task) {
+            this.task = task;
+        }
+
+        @Override
+        public String getPath() {
+            return task.getPath();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return task.toString();
         }
     }
 }

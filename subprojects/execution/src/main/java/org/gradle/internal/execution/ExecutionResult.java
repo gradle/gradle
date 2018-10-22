@@ -17,22 +17,29 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 
 public abstract class ExecutionResult {
     public abstract ExecutionOutcome getOutcome();
+    public abstract OriginMetadata getOriginMetadata();
     public abstract ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 
     @Nullable
     public abstract Throwable getFailure();
 
-    public static ExecutionResult success(ExecutionOutcome outcome, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
+    public static ExecutionResult success(ExecutionOutcome outcome, OriginMetadata originMetadata, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
         return new ExecutionResult() {
             @Override
             public ExecutionOutcome getOutcome() {
                 return outcome;
+            }
+
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return originMetadata;
             }
 
             @Override
@@ -48,11 +55,16 @@ public abstract class ExecutionResult {
         };
     }
 
-    public static ExecutionResult failure(Throwable failure, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
+    public static ExecutionResult failure(Throwable failure, OriginMetadata originMetadata, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
         return new ExecutionResult() {
             @Override
             public ExecutionOutcome getOutcome() {
                 return ExecutionOutcome.EXECUTED;
+            }
+
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return originMetadata;
             }
 
             @Override

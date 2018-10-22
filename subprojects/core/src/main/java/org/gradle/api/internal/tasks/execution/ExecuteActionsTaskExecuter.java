@@ -47,7 +47,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.time.Duration;
@@ -63,20 +62,17 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final BuildInvocationScopeId buildInvocationScopeId;
     private final WorkExecutor workExecutor;
 
     public ExecuteActionsTaskExecuter(
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        BuildInvocationScopeId buildInvocationScopeId,
         WorkExecutor workExecutor
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
-        this.buildInvocationScopeId = buildInvocationScopeId;
         this.workExecutor = workExecutor;
     }
 
@@ -108,11 +104,10 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
                     throw new AssertionError();
             }
         }
-        final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId.getId(), context.markExecutionTime());
         return new MutatingTaskExecuterResult() {
             @Override
             public OriginMetadata getOriginMetadata() {
-                return originMetadata;
+                return result.getOriginMetadata();
             }
 
             @Override
@@ -129,6 +124,11 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         public TaskExecution(TaskInternal task, TaskExecutionContext context) {
             this.task = task;
             this.context = context;
+        }
+
+        @Override
+        public String getPath() {
+            return task.getPath();
         }
 
         @Override
@@ -171,6 +171,11 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             return context.getTaskArtifactState().snapshotAfterTaskExecution(context);
+        }
+
+        @Override
+        public long markExecutionTime() {
+            return context.markExecutionTime();
         }
 
         @Override

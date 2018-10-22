@@ -19,23 +19,30 @@ package org.gradle.internal.execution.impl.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.GradleException;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.ExecutionException;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.id.UniqueId;
+
+import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED;
+import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE;
 
 public class ExecuteStep implements Step<Context> {
 
     private final BuildCancellationToken cancellationToken;
     private final OutputChangeListener outputChangeListener;
+    private final UniqueId buildInvocationScopeId;
 
     public ExecuteStep(
+        UniqueId buildInvocationScopeId,
         BuildCancellationToken cancellationToken,
         OutputChangeListener outputChangeListener
     ) {
+        this.buildInvocationScopeId = buildInvocationScopeId;
         this.cancellationToken = cancellationToken;
         this.outputChangeListener = outputChangeListener;
     }
@@ -62,13 +69,12 @@ public class ExecuteStep implements Step<Context> {
         boolean interrupted = Thread.interrupted();
         try {
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
+            OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
 
             if (failure != null) {
-                return ExecutionResult.failure(failure, finalOutputs);
+                return ExecutionResult.failure(failure, originMetadata, finalOutputs);
             } else {
-                return didWork
-                    ? ExecutionResult.success(ExecutionOutcome.EXECUTED, finalOutputs)
-                    : ExecutionResult.success(ExecutionOutcome.UP_TO_DATE, finalOutputs);
+                return ExecutionResult.success(didWork ? EXECUTED : UP_TO_DATE, originMetadata, finalOutputs);
             }
         } finally {
             if (interrupted) {

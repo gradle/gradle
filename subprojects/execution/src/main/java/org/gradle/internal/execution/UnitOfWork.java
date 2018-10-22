@@ -17,20 +17,22 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.time.Duration;
 import java.util.Optional;
 
-public interface UnitOfWork extends Describable {
+public interface UnitOfWork extends CacheableEntity {
 
     boolean execute();
 
     Optional<Duration> getTimeout();
 
     void visitOutputs(OutputVisitor outputVisitor);
+
+    long markExecutionTime();
 
     interface OutputVisitor {
         void visitOutput(String name, OutputType type, FileCollection roots);

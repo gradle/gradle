@@ -62,8 +62,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def workExecutor = new DefaultWorkExecutor(new ExecuteStep(cancellationToken, outputChangeListener))
-    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, actionListener, buildInvocationScopeId, workExecutor)
+    def workExecutor = new DefaultWorkExecutor(new ExecuteStep(buildInvocationScopeId, cancellationToken, outputChangeListener))
+    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

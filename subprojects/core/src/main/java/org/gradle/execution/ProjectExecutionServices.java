@@ -37,8 +37,8 @@ import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.ResolvePreviousStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
+import org.gradle.api.internal.tasks.execution.ResolvePreviousStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
@@ -62,6 +62,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
@@ -107,14 +108,15 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     WorkExecutor createWorkExecutor(
+        BuildInvocationScopeId buildInvocationScopeId,
         BuildCancellationToken cancellationToken,
         OutputChangeListener outputChangeListener,
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor(
-            new CreateOutputsStep(
-                new TimeoutStep(timeoutHandler,
-                    new ExecuteStep(cancellationToken, outputChangeListener)
+            new CreateOutputsStep<Context>(
+                new TimeoutStep<Context>(timeoutHandler,
+                    new ExecuteStep(buildInvocationScopeId.getId(), cancellationToken, outputChangeListener)
                 )
             )
         );
@@ -147,7 +149,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,
-            buildInvocationScopeId,
             workExecutor
         );
         if (buildCacheEnabled) {
