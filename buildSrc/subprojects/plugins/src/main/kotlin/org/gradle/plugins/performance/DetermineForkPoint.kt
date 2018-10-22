@@ -28,6 +28,7 @@ open class DetermineForkPoint : DefaultTask() {
 
     @TaskAction
     fun determineForkPoint() {
+        project.execAndGetStdout("git", "fetch", "origin", "master", "release")
         val masterForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
         val releaseForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
         val forkPointCommit =

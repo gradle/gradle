@@ -32,9 +32,7 @@ fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
         standardOutput = out
         this.workingDir = workingDir
     }
-    val result = out.toString().trim()
-    println("${args.toList()} result: $result")
-    return result
+    return out.toString().trim()
 }
 
 
