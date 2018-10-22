@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -93,11 +92,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                     @Override
                     public void add(Object dependency) {
                         queue.addFirst(dependency);
-                    }
-
-                    @Override
-                    public void attachFinalizerTo(Task task, Action<? super Task> action) {
-                        context.attachFinalizerTo(task, action);
                     }
 
                     @Override
