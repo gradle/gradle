@@ -181,40 +181,6 @@ fun buildAccessorsFor(
 }
 
 
-private
-fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, srcDir: File): List<File> {
-
-    val schemaPerTarget =
-        projectSchema.groupedByTarget()
-
-    val sourceFiles =
-        ArrayList<File>(schemaPerTarget.size + 1)
-
-    val packageDir =
-        srcDir.resolve("org/gradle/kotlin/dsl")
-
-    fun sourceFile(name: String) =
-        packageDir.resolve(name).also { sourceFiles.add(it) }
-
-    packageDir.mkdirs()
-
-    for ((index, schemaSubset) in schemaPerTarget.values.withIndex()) {
-        writeAccessorsTo(
-            sourceFile("Accessors$index.kt"),
-            schemaSubset.extensionAccessors(),
-            importsRequiredBy(schemaSubset)
-        )
-    }
-
-    writeAccessorsTo(
-        sourceFile("ConfigurationAccessors.kt"),
-        projectSchema.configurationAccessors()
-    )
-
-    return sourceFiles
-}
-
-
 internal
 fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
@@ -578,7 +544,8 @@ fun writeAccessorsTo(writer: Writer, accessors: Sequence<String>, imports: List<
             appendln()
         }
         accessors.forEach {
-            appendln(it)
+            appendln(it.replaceIndent())
+            appendln()
         }
     }
 }
