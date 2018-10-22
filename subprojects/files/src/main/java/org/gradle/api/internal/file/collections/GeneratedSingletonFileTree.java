@@ -69,7 +69,7 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
 
     @Override
     public File getFile() {
-        FileExtractVisitor fileExtractVisitor = new FileExtractVisitor();
+        FileCollectingVisitor fileExtractVisitor = new FileCollectingVisitor();
         visit(fileExtractVisitor);
         return fileExtractVisitor.getFile();
     }
@@ -78,7 +78,7 @@ public class GeneratedSingletonFileTree implements SingletonFileTree {
         return new File(getTmpDir(), fileName);
     }
 
-    private class FileExtractVisitor implements FileVisitor {
+    private class FileCollectingVisitor implements FileVisitor {
 
         private File file = null;
 
