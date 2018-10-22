@@ -56,7 +56,7 @@ Gradle takes your dependency declarations and repository definitions and attempt
 
 * Given a required dependency, Gradle attempts to resolve the dependency by searching for the module the dependency points at. Each repository is inspected in order. Depending on the type of repository, Gradle looks for metadata files describing the module (`.module`, `.pom` or `ivy.xml` file) or directly for artifact files.
 
-** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+** If the dependency is declared as a dynamic version (like `1.+`, `[1.0,)`, `[1.0, 2.0)`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
 
 ** If the module metadata is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
 

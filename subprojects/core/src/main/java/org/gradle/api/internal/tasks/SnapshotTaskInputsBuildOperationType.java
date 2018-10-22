@@ -28,7 +28,7 @@ import java.util.Set;
  * Represents the computation of the task artifact state and the task output caching state.
  * <p>
  * This operation is executed only when the build cache is enabled or when the build scan plugin is applied.
- * Must occur as a child of {@link org.gradle.internal.execution.ExecuteTaskBuildOperationType}.
+ * Must occur as a child of {@link org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType}.
  *
  * @since 4.0
  */

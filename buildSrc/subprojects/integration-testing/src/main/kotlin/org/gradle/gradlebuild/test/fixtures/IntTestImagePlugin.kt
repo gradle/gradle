@@ -17,8 +17,8 @@ package org.gradle.gradlebuild.test.fixtures
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
-import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
@@ -58,6 +58,79 @@ open class IntTestImagePlugin : Plugin<Project> {
             isCanBeConsumed = false
         }
 
+        val gradleRuntimeSource by configurations.creating {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+            }
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        val coreGradleRuntimeExtensions by configurations.creating {
+            extendsFrom(gradleRuntimeSource)
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+                attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
+            }
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        val coreGradleRuntime by configurations.creating {
+            extendsFrom(gradleRuntimeSource)
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+                attribute(Attribute.of("org.gradle.api", String::class.java), "core")
+            }
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        val builtInGradlePlugins by configurations.creating {
+            extendsFrom(gradleRuntimeSource)
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+                attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
+            }
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        val gradleDocumentation by configurations.creating {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
+            }
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        val gradleSamples by configurations.creating {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
+                attribute(Attribute.of("type", String::class.java), "samples")
+            }
+            extendsFrom(gradleDocumentation)
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        val gradleScripts by configurations.creating {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "start-scripts"))
+            }
+            isVisible = false
+            isCanBeResolved = true
+            isCanBeConsumed = false
+        }
+        // TODO: Model these as publications of different types of distributions, collapse the number of variants exposed by the root project
+        // and eliminate duplication with distributions.gradle
+        dependencies {
+            gradleRuntimeSource(project(":"))
+            gradleRuntimeSource(project(":apiMetadata"))
+            gradleDocumentation(project(":docs"))
+            gradleScripts(project(":launcher"))
+        }
+
         if (useAllDistribution) {
             val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
 
@@ -77,47 +150,32 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
-            val selfRuntime by configurations.creating {
-                attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                }
-                isCanBeResolved = true
-                isCanBeConsumed = false
-            }
             afterEvaluate {
                 if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {
-                        selfRuntime(this@afterEvaluate)
+                        partialDistribution(this@afterEvaluate)
                     }
                 }
+
                 intTestImage.configure {
                     into("bin") {
-                        from(Callable { project(":launcher").tasks.getByName("startScripts").outputs.files })
-                        // TODO: This is probably supposed to be fileMode = ...
-                        Integer.parseInt("0755", 8)
+                        from(gradleScripts)
+                        fileMode = Integer.parseInt("0755", 8)
                     }
 
-                    // TODO: Model these as publications of different types of distributions
-                    val runtimeClasspathConfigurations = (rootProject.configurations["coreRuntime"]
-                        + rootProject.configurations["coreRuntimeExtensions"]
-                        + selfRuntime
-                        + partialDistribution)
+                    val runtimeClasspathConfigurations = (coreGradleRuntimeExtensions + partialDistribution)
 
-                    val libsThisProjectDoesNotUse = (rootProject.configurations["runtime"] + rootProject.configurations["gradlePlugins"]) - runtimeClasspathConfigurations
+                    val libsThisProjectDoesNotUse = (coreGradleRuntime + builtInGradlePlugins) - runtimeClasspathConfigurations
 
                     into("lib") {
-                        from(Callable { project(":apiMetadata").tasks.getByName("jar").outputs.files })
-                        from(rootProject.configurations["runtime"] - libsThisProjectDoesNotUse)
+                        from(coreGradleRuntime - libsThisProjectDoesNotUse)
                         into("plugins") {
-                            from(rootProject.configurations["gradlePlugins"] - rootProject.configurations["runtime"] - libsThisProjectDoesNotUse)
+                            from(builtInGradlePlugins - coreGradleRuntime - libsThisProjectDoesNotUse)
                         }
                     }
 
                     into("samples") {
-                        from(Callable {
-                            val outputs: Map<String, FileCollection> by project(":docs").extra
-                            outputs["samples"]
-                        })
+                        from(gradleSamples)
                     }
 
                     doLast {

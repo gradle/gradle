@@ -34,11 +34,13 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
     private MetadataRuleWrapper lastAdded;
     private boolean classBasedRulesOnly = true;
     private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
+    private int rulesHash = 0;
 
     void addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
-        lastAdded = new ActionBasedMetadataRuleWrapepr(ruleAction);
+        lastAdded = new ActionBasedMetadataRuleWrapper(ruleAction);
         rules.add(lastAdded);
         classBasedRulesOnly = false;
+        rulesHash = 31 * rulesHash + ruleAction.hashCode();
     }
 
     void addClassRule(SpecConfigurableRule ruleAction) {
@@ -48,6 +50,7 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
             lastAdded = new ClassBasedMetadataRuleWrapper(ruleAction);
             rules.add(lastAdded);
         }
+        rulesHash = 31 * rulesHash + ruleAction.getConfigurableRule().hashCode();
     }
 
     boolean isClassBasedRulesOnly() {
@@ -76,5 +79,9 @@ class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
 
     public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
         this.variantDerivationStrategy = variantDerivationStrategy;
+    }
+
+    public int getRulesHash() {
+        return rulesHash;
     }
 }

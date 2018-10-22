@@ -43,6 +43,7 @@ dependencies {
     api(project(":native"))
     api(project(":persistentCache"))
     api(project(":buildCache"))
+    api(project(":buildCachePackaging"))
     api(project(":coreApi"))
     api(project(":files"))
 
@@ -112,10 +113,8 @@ tasks.test {
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
-listOf("compileGroovy", "compileTestGroovy").forEach { taskName ->
-    tasks.named<GroovyCompile>(taskName) {
-        groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
-    }
+listOf(tasks.compileGroovy, tasks.compileTestGroovy).forEach {
+    it { groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G") }
 }
 
 val pluginsManifest by tasks.registering(WriteProperties::class) {

@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -30,10 +34,6 @@ import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 public class JUnitTestClassExecutor implements Action<String> {
     private final ClassLoader applicationClassLoader;
@@ -77,8 +77,12 @@ public class JUnitTestClassExecutor implements Action<String> {
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
 
-        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests(), options.getIncludedTestsCommandLine());
+        if (!options.getIncludedTests().isEmpty()
+            || !options.getIncludedTestsCommandLine().isEmpty()
+            || !options.getExcludedTests().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(
+                options.getIncludedTests(), options.getExcludedTests(),
+                options.getIncludedTestsCommandLine());
 
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.

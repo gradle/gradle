@@ -55,6 +55,36 @@ configurations {
         canBeResolved = false
         canBeConsumed = true
     }
+
+    gradleSamplesElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "samples")
+    }
+    gradleFullDocsElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "full-docs")
+    }
+    gradleGettingStartedElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "getting-started")
+    }
+
+    gradleApiRuntime {
+        visible = false
+        canBeResolved = true
+        canBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+        attributes.attribute(Attribute.of("org.gradle.api", String), "runtime")
+    }
 }
 
 dependencies {
@@ -77,6 +107,8 @@ dependencies {
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
+
+    gradleApiRuntime project(":")
 }
 
 gradlebuildJava {
@@ -98,15 +130,22 @@ ext {
     samplesSrcDir = file('src/samples')
 }
 
-ext.outputs = [:]
-outputs.samples = files(samplesDir) {
-    builtBy 'samples'
-}
-outputs.distDocs = files(distDocsDir) {
-    builtBy 'distDocs'
-}
-outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+configurations {
+    gradleSamplesElements {
+        outgoing.artifact(samplesDir) {
+            builtBy 'samples'
+        }
+    }
+    gradleFullDocsElements {
+        outgoing.artifact(docsDir) {
+            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+        }
+    }
+    gradleGettingStartedElements {
+        outgoing.artifact(distDocsDir) {
+            builtBy 'distDocs'
+        }
+    }
 }
 
 def configureCss = tasks.register("configureCss") {
@@ -271,7 +310,8 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = configurations.gradleApiRuntime
+
     PublicApi.includes.each {
         include it
     }
@@ -455,5 +495,7 @@ tasks.register("docs") {
 }
 
 tasks.register("docsZip", Zip) {
-    from project.outputs.docs
+    // TODO: Reduce duplication
+    from(docsDir)
+    dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }

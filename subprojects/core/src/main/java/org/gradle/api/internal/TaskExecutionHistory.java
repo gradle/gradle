@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.caching.internal.origin.OriginMetadata;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -42,6 +42,6 @@ public interface TaskExecutionHistory {
      * Null if outputs are not being reused.
      */
     @Nullable
-    OriginTaskExecutionMetadata getOriginExecutionMetadata();
+    OriginMetadata getOriginExecutionMetadata();
 
 }

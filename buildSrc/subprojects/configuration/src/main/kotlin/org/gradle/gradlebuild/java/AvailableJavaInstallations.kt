@@ -3,13 +3,11 @@ package org.gradle.gradlebuild.java
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.jvm.toolchain.internal.LocalJavaInstallation
-import org.slf4j.LoggerFactory
 import java.io.File
 
 
@@ -60,15 +58,11 @@ const val oracleJdk9 = "Oracle JDK 9"
 
 
 open class AvailableJavaInstallations(private val project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
-    private
-    val logger = LoggerFactory.getLogger(AvailableJavaInstallations::class.java)
-
-    val currentJavaInstallation: JavaInstallation
+    val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
     val javaInstallationForTest: JavaInstallation
     val javaInstallationForCompilation: JavaInstallation
 
     init {
-        currentJavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
         javaInstallationForTest = determineJavaInstallation(testJavaHomePropertyName)
         javaInstallationForCompilation = determineJavaInstallationForCompilation()
     }
@@ -79,34 +73,19 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     private
     fun determineJavaInstallation(propertyName: String): JavaInstallation {
         val resolvedJavaHome = resolveJavaHomePath(propertyName)
-        when (resolvedJavaHome) {
-            null -> return currentJavaInstallation
-            else -> return detectJavaInstallation(resolvedJavaHome)
+        return when (resolvedJavaHome) {
+            null -> currentJavaInstallation
+            else -> detectJavaInstallation(resolvedJavaHome)
         }
-    }
-
-    fun validateForAllBuilds() {
-        validate(validateBuildJdks())
     }
 
     fun validateForCompilation() {
-        if (remoteBuildCacheEnabled()) {
-            validate(validateForRemoteCache())
-        }
         validate(validateCompilationJdks())
     }
 
     fun validateForProductionEnvironment() {
         validate(validateProductionJdks())
     }
-
-    private
-    fun remoteBuildCacheEnabled() = (project.gradle as GradleInternal).settings.buildCache.remote?.isEnabled == true
-
-    private
-    fun validateForRemoteCache(): Map<String, Boolean> =
-        mapOf("Remote cache is enabled, which requires Oracle JDK 9 to perform this build. It's currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
-            (currentJavaInstallation.vendorAndMajorVersion != oracleJdk9))
 
     private
     fun validate(errorMessages: Map<String, Boolean>) {
@@ -123,12 +102,6 @@ open class AvailableJavaInstallations(private val project: Project, private val 
                 "You can either run the build on JDK 9+ or set a project, system property, or environment variable '$java9HomePropertyName' to a Java9-compatible JDK home path" to
                 !javaInstallationForCompilation.javaVersion.isJava9Compatible
         )
-
-    private
-    fun validateBuildJdks(): Map<String, Boolean> =
-        if (!JavaVersion.current().isJava8Compatible)
-            mapOf("Must use JDK 8+ to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to true)
-        else emptyMap()
 
     private
     fun validateProductionJdks(): Map<String, Boolean> =

@@ -1,3 +1,20 @@
 {
-   "acceptedApiChanges": []
+   "acceptedApiChanges": [
+       {
+           "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+           "member": "Class org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+           "acceptation": "Internal interface to create bridge methods for backwards compatibility",
+           "changes": [
+               "org.gradle.plugin.devel.tasks.internal.ValidateTaskPropertiesBackwardsCompatibleAdapter"
+           ]
+       },
+       {
+           "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+           "member": "Constructor ValidateTaskProperties",
+           "acceptation": "Task class is not meant for subclassing",
+           "changes": [
+               "Constructor has been removed"
+           ]
+       }
+   ]
 }

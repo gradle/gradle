@@ -85,6 +85,27 @@ Options
      --prop3     Configures command line option 'prop3'.""")
     }
 
+    def "can override option with configure task"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOption("String")
+        buildFile << sampleTask()
+        buildFile << """
+            task configureTask {
+                doLast {
+                    sample.myProp = "fromConfigureTask"
+                }
+            }
+            
+            sample.dependsOn(configureTask)
+        """
+
+        when:
+        succeeds('sample', "--myProp=fromCommandLine")
+
+        then:
+        outputContains("Value of myProp: fromConfigureTask")
+    }
+
     static String sampleTask() {
         """
             task sample(type: SampleTask)

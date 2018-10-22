@@ -45,19 +45,16 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
     }
 
     @Override
-    protected InvocationContext toInvocationContext(PlayCompileSpec spec) {
+    protected DaemonForkOptions toDaemonForkOptions(PlayCompileSpec spec) {
         BaseForkOptions forkOptions = spec.getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(forkOptions);
-        File invocationWorkingDir = javaForkOptions.getWorkingDir();
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
+        return new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .classpath(compilerClasspath)
             .sharedPackages(classLoaderPackages)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
-
-        return new InvocationContext(invocationWorkingDir, daemonForkOptions);
     }
 }

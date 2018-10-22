@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Task;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.Test;

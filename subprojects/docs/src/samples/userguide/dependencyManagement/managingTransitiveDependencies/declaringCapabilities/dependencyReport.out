@@ -1,0 +1,14 @@
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':dependencyInsight'.
+> Could not resolve all dependencies for configuration ':compileClasspath'.
+   > Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 because they provide the same capability: org.slf4j:slf4j-capability:1.0
+
+* Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 0s

@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
@@ -53,8 +54,9 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     public void registerProjects(BuildState owner) {
+        Set<DefaultProjectDescriptor> allProjects = owner.getLoadedSettings().getProjectRegistry().getAllProjects();
         synchronized (lock) {
-            for (DefaultProjectDescriptor descriptor : owner.getLoadedSettings().getProjectRegistry().getAllProjects()) {
+            for (DefaultProjectDescriptor descriptor : allProjects) {
                 Path identityPath = owner.getIdentityPathForProject(descriptor.path());
                 ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(descriptor.path());
                 ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, descriptor.getName(), projectIdentifier);

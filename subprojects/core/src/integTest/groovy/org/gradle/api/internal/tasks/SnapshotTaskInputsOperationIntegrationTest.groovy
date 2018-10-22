@@ -26,9 +26,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
@@ -55,7 +54,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    @Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         buildFile << customTaskCode('foo', 'bar')
@@ -71,8 +69,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             
             apply plugin: "com.gradle.build-scan"
             buildScan {
-                licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-                licenseAgree = 'yes'
+                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                termsOfServiceAgree = 'yes'
             }
         """.stripIndent()
 

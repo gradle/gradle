@@ -36,22 +36,28 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             return "Java home is different.\n" + description(context);
         } else if (!daemonOptsMatch(context)) {
             return "At least one daemon option is different.\n" + description(context);
+        } else if (!priorityMatches(context)) {
+            return "Process priority is different.\n" + description(context);
         }
         return null;
     }
 
     private String description(DaemonContext context) {
         return "Wanted: " + this + "\n"
-                + "Actual: " + context + "\n";
+            + "Actual: " + context + "\n";
     }
 
     private boolean daemonOptsMatch(DaemonContext potentialContext) {
         return potentialContext.getDaemonOpts().containsAll(desiredContext.getDaemonOpts())
-                && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
+            && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
     }
 
     private boolean javaHomeMatches(DaemonContext potentialContext) {
         return canonicalize(potentialContext.getJavaHome()).equals(canonicalize(desiredContext.getJavaHome()));
+    }
+
+    private boolean priorityMatches(DaemonContext context) {
+        return desiredContext.getPriority() == context.getPriority();
     }
 
     @Override

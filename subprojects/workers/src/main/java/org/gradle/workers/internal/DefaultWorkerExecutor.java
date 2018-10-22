@@ -76,13 +76,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     @Override
     public void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction) {
         WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver);
+        File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
+        configuration.getForkOptions().setWorkingDir(workingDirectory);
         configAction.execute(configuration);
         String description = configuration.getDisplayName() != null ? configuration.getDisplayName() : actionClass.getName();
+
+        if (!workingDirectory.equals(configuration.getForkOptions().getWorkingDir())) {
+            throw new WorkExecutionException(description + ": setting the working directory of a worker is not supported.");
+        }
 
         // Serialize parameters in this thread prior to starting work in a separate thread
         ActionExecutionSpec spec;
         try {
-            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getForkOptions().getWorkingDir(), configuration.getParams());
+            spec = new SerializingActionExecutionSpec(actionClass, description, configuration.getParams());
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
@@ -224,7 +230,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         JavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver);
         userForkOptions.copyTo(forkOptions);
-        forkOptions.setWorkingDir(workerDirectoryProvider.getIdleWorkingDirectory());
+        forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
         return new DaemonForkOptionsBuilder(fileResolver)
                         .javaForkOptions(forkOptions)
@@ -254,8 +260,15 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     @Contextual
     private static class WorkExecutionException extends RuntimeException {
+        WorkExecutionException(String description) {
+            super(toMessage(description));
+        }
         WorkExecutionException(String description, Throwable cause) {
-            super("A failure occurred while executing " + description, cause);
+            super(toMessage(description), cause);
+        }
+
+        private static String toMessage(String description) {
+            return "A failure occurred while executing " + description;
         }
     }
 

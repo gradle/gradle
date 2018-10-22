@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -33,7 +32,6 @@ import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.Stack
 
 @Issue("https://github.com/gradle/gradle/issues/3516")
 @Requires(TestPrecondition.ONLINE)
-@Ignore("until build scan plugin 2.0 is out and used in AutoAppliedBuildScanPlugin")
 class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrationTest {
 
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
@@ -238,8 +236,8 @@ class BuildScanFailureMessageHintIntegrationTest extends AbstractPluginIntegrati
     static String buildScanLicenseConfiguration() {
         """
             buildScan {
-                licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-                licenseAgree = 'yes'
+                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                termsOfServiceAgree = 'yes'
             }
         """
     }

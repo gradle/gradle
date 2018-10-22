@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -31,7 +31,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
     private TaskProperties taskProperties;
-    private OriginTaskExecutionMetadata originExecutionMetadata;
+    private OriginMetadata originMetadata;
     private Long executionTime;
 
     private final Timer executionTimer;
@@ -60,14 +60,15 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.buildCacheKey = buildCacheKey;
     }
 
+    @Nullable
     @Override
-    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
-        return originExecutionMetadata;
+    public OriginMetadata getOriginMetadata() {
+        return originMetadata;
     }
 
     @Override
-    public void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata) {
-        this.originExecutionMetadata = originExecutionMetadata;
+    public void setOriginMetadata(@Nullable OriginMetadata originMetadata) {
+        this.originMetadata = originMetadata;
     }
 
     public long markExecutionTime() {

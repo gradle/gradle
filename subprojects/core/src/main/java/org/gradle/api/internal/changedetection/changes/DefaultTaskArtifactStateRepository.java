@@ -32,10 +32,10 @@ import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.changes.TaskStateChange;
@@ -156,7 +156,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+        public OriginMetadata getOriginExecutionMetadata() {
             HistoricalTaskExecution previousExecution = history.getPreviousExecution();
             return previousExecution == null ? null : previousExecution.getOriginExecutionMetadata();
         }
@@ -174,19 +174,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
             history.updateCurrentExecution();
-            snapshotAfterOutputsWereGenerated(history, failure, new OriginTaskExecutionMetadata(
+            snapshotAfterOutputsWereGenerated(history, failure, new OriginMetadata(
                 buildInvocationId,
                 taskExecutionContext.markExecutionTime()
             ));
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginTaskExecutionMetadata originMetadata) {
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata) {
             history.updateCurrentExecutionWithOutputs(newOutputFingerprints);
             snapshotAfterOutputsWereGenerated(history, null, originMetadata);
         }
 
-        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, @Nullable Throwable failure, OriginTaskExecutionMetadata originMetadata) {
+        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, @Nullable Throwable failure, OriginMetadata originMetadata) {
             // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
                 history.getCurrentExecution().setOriginExecutionMetadata(originMetadata);

@@ -25,6 +25,8 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
@@ -102,6 +104,7 @@ public class Assemble extends DefaultTask {
         setDidWork(result.getDidWork());
     }
 
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
     public ConfigurableFileCollection getSource() {
@@ -164,6 +167,7 @@ public class Assemble extends DefaultTask {
      *
      * @since 4.4
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getIncludes() {
         return includes;

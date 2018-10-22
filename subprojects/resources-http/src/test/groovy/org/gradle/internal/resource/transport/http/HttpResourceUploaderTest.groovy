@@ -25,13 +25,14 @@ class HttpResourceUploaderTest extends AbstractHttpClientTest {
         HttpClientHelper client = Mock()
         ReadableContent resource = Mock()
         MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
+        def uri = new URI("http://somewhere.org/somehow")
 
         when:
-        new HttpResourceUploader(client).upload(resource, new URI("http://somewhere.org/somehow"))
+        new HttpResourceUploader(client).upload(resource, uri)
 
         then:
         interaction {
-            1 * client.performHttpRequest(_) >> mockedHttpResponse.response
+            1 * client.performHttpRequest(_) >> new HttpClientResponse("PUT", uri, mockedHttpResponse.response)
             assertIsClosedCorrectly(mockedHttpResponse)
         }
         IOException exception = thrown()

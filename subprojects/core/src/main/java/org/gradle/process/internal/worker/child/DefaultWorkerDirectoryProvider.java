@@ -29,7 +29,7 @@ public class DefaultWorkerDirectoryProvider implements WorkerDirectoryProvider {
     }
 
     @Override
-    public File getIdleWorkingDirectory() {
+    public File getWorkingDirectory() {
         File defaultWorkerDirectory = new File(gradleUserHomeDir, "workers");
         if (!defaultWorkerDirectory.exists()) {
             GFileUtils.mkdirs(defaultWorkerDirectory);

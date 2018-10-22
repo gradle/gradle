@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -38,14 +44,10 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
-import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.isVintageDynamicLeafTest;
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicClassName;
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicMethodName;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
@@ -140,7 +142,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
         if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(), spec.getIncludedTestsCommandLine());
+            TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(),
+                spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
             requestBuilder.filters(new ClassMethodNameFilter(matcher));
         }
     }

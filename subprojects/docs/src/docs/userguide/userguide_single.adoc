@@ -35,8 +35,7 @@ include::installation.adoc[leveloffset=+2]
 
 include::kotlin_dsl.adoc[leveloffset=+2]
 
-include::upgrading_from_gradle4.adoc[leveloffset=+2]
-
+include::upgrading_version_4.adoc[leveloffset=+2]
 
 == Using Gradle Builds
 
@@ -125,6 +124,8 @@ include::customizing_dependency_resolution_behavior.adoc[leveloffset=+2]
 include::dependency_cache.adoc[leveloffset=+2]
 
 include::working_with_dependencies.adoc[leveloffset=+2]
+
+include::dependency_management_attribute_based_matching.adoc[leveloffset=+2]
 
 
 == Publishing Artifacts

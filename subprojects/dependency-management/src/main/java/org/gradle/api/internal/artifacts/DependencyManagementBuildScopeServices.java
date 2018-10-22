@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.PersistentModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
@@ -188,11 +188,11 @@ class DependencyManagementBuildScopeServices {
                                                                       ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner,
                                                                       ArtifactIdentifierFileStore artifactIdentifierFileStore) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
-            new DefaultModuleVersionsCache(
+            new InMemoryModuleVersionsCache(timeProvider, new DefaultModuleVersionsCache(
                 timeProvider,
                 artifactCacheLockingManager,
-                moduleIdentifierFactory),
-            new DefaultModuleMetadataCache(
+                moduleIdentifierFactory)),
+            new InMemoryModuleMetadataCache(timeProvider, new PersistentModuleMetadataCache(
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactCacheMetadata,
@@ -200,17 +200,17 @@ class DependencyManagementBuildScopeServices {
                 attributeContainerSerializer,
                 mavenMetadataFactory,
                 ivyMetadataFactory,
-                stringInterner),
-            new DefaultModuleArtifactsCache(
+                stringInterner)),
+            new InMemoryModuleArtifactsCache(timeProvider, new DefaultModuleArtifactsCache(
                 timeProvider,
                 artifactCacheLockingManager
-            ),
-            new DefaultModuleArtifactCache(
+            )),
+            new InMemoryModuleArtifactCache(timeProvider, new DefaultModuleArtifactCache(
                 "module-artifact",
                 timeProvider,
                 artifactCacheLockingManager,
                 artifactIdentifierFileStore.getFileAccessTracker()
-            )
+            ))
         );
         ModuleRepositoryCaches inMemoryCaches = new ModuleRepositoryCaches(
             new InMemoryModuleVersionsCache(timeProvider),

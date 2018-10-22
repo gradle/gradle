@@ -51,10 +51,12 @@ import java.util.Set;
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;
+    private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
     private Task task;
 
     public CachingTaskDependencyResolveContext(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
         this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolvers));
+        this.workResolvers = workResolvers;
     }
 
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
@@ -81,6 +83,14 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         queue.add(dependency);
     }
 
+    @Override
+    public void attachFinalizerTo(Task task, Action<? super Task> action) {
+        for (WorkDependencyResolver<T> resolver : workResolvers) {
+            if (resolver.attachActionTo(task, action)) {
+                break;
+            }
+        }
+    }
 
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
         private final Collection<? extends WorkDependencyResolver<T>> workResolvers;

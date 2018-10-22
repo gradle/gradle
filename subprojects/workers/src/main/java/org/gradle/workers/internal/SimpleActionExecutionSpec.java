@@ -16,18 +16,14 @@
 
 package org.gradle.workers.internal;
 
-import java.io.File;
-
 public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     private final Class<?> implementationClass;
     private final String displayName;
-    private final File executionWorkingDir;
     private final Object[] params;
 
-    public SimpleActionExecutionSpec(Class<?> implementationClass, String displayName, File executionWorkingDir, Object[] params) {
+    public SimpleActionExecutionSpec(Class<?> implementationClass, String displayName, Object[] params) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
-        this.executionWorkingDir = executionWorkingDir;
         this.params = params;
     }
 
@@ -39,11 +35,6 @@ public class SimpleActionExecutionSpec implements ActionExecutionSpec {
     @Override
     public String getDisplayName() {
         return displayName;
-    }
-
-    @Override
-    public File getExecutionWorkingDir() {
-        return executionWorkingDir;
     }
 
     @Override

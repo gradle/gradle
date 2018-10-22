@@ -82,7 +82,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             transport.getResourceAccessor(),
             locallyAvailableResourceFinder,
             artifactFileStore,
-            moduleIdentifierFactory,
             metadataSources,
             metadataArtifactProvider,
             componentMetadataSupplierFactory,

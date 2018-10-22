@@ -7,10 +7,6 @@ plugins {
     gradlebuild.classycle
 }
 
-configurations {
-    register("startScriptGenerator")
-}
-
 dependencies {
     compile(project(":baseServices"))
     compile(project(":jvmServices"))
@@ -83,9 +79,22 @@ tasks.jar {
     manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
 }
 
-tasks.register<GradleStartScriptGenerator>("startScripts") {
-    startScriptsDir = File("$buildDir/startScripts")
+val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
+    startScriptsDir = file("$buildDir/startScripts")
     launcherJar = tasks.jar.get().outputs.files
+}
+
+configurations {
+    create("gradleScriptsElements") {
+        isVisible = false
+        isCanBeResolved = false
+        isCanBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "start-scripts"))
+        // TODO: Update GradleStartScriptGenerator to retain dependency information with Provider API
+        outgoing.artifact(startScripts.map { it.startScriptsDir }) {
+            builtBy(startScripts)
+        }
+    }
 }
 
 testFilesCleanup {
