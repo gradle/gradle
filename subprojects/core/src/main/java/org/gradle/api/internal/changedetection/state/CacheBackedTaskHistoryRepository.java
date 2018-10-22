@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.Util;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
@@ -33,7 +32,6 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -130,16 +128,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles = Util.fingerprintTaskFiles(task, taskProperties.getOutputFileProperties(), fingerprinterRegistry);
 
-        OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
-
         return new CurrentTaskExecution(
             taskImplementation,
             taskActionImplementations,
             inputProperties,
             outputPropertyNames,
             inputFiles,
-            outputFiles,
-            overlappingOutputs
+            outputFiles
         );
     }
 
@@ -174,31 +169,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         return builder.build();
-    }
-
-    @Nullable
-    private static OverlappingOutputs detectOverlappingOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> taskOutputs, @Nullable HistoricalTaskExecution previousExecution) {
-        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : taskOutputs.entrySet()) {
-            String propertyName = entry.getKey();
-            FileCollectionFingerprint beforeExecution = entry.getValue();
-            FileCollectionFingerprint afterPreviousExecution = getFingerprintAfterPreviousExecution(previousExecution, propertyName);
-            OverlappingOutputs overlappingOutputs = OverlappingOutputs.detect(propertyName, afterPreviousExecution, beforeExecution);
-            if (overlappingOutputs != null) {
-                return overlappingOutputs;
-            }
-        }
-        return null;
-    }
-
-    private static FileCollectionFingerprint getFingerprintAfterPreviousExecution(@Nullable HistoricalTaskExecution previousExecution, String propertyName) {
-        if (previousExecution != null) {
-            Map<String, FileCollectionFingerprint> previousFingerprints = previousExecution.getOutputFileProperties();
-            FileCollectionFingerprint afterPreviousExecution = previousFingerprints.get(propertyName);
-            if (afterPreviousExecution != null) {
-                return afterPreviousExecution;
-            }
-        }
-        return FileCollectionFingerprint.EMPTY;
     }
 
     @Nullable

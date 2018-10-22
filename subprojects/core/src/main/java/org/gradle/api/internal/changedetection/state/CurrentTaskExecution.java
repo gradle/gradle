@@ -20,20 +20,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-
-import javax.annotation.Nullable;
 
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution implements BeforeExecutionState {
 
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
-    private final OverlappingOutputs detectedOverlappingOutputs;
     private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
 
     public CurrentTaskExecution(
@@ -42,13 +38,11 @@ public class CurrentTaskExecution extends AbstractTaskExecution implements Befor
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprintsBeforeExecution,
-        @Nullable OverlappingOutputs detectedOverlappingOutputs
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprintsBeforeExecution
     ) {
         super(taskImplementation, taskActionImplementations, inputProperties);
         this.outputFingerprints = outputFingerprintsBeforeExecution;
         this.inputFingerprints = inputFingerprints;
-        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
     }
 
@@ -75,10 +69,5 @@ public class CurrentTaskExecution extends AbstractTaskExecution implements Befor
     @Override
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
         return inputFingerprints;
-    }
-
-    @Nullable
-    public OverlappingOutputs getDetectedOverlappingOutputs() {
-        return detectedOverlappingOutputs;
     }
 }

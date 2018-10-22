@@ -124,7 +124,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
-            return history.getCurrentExecution().getDetectedOverlappingOutputs();
+            CurrentTaskExecution currentExecution = history.getCurrentExecution();
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            return OverlappingOutputs.detect(
+                previousExecution == null
+                    ? null
+                    : previousExecution.getOutputFileProperties(),
+                currentExecution.getOutputFileProperties()
+            );
         }
 
         @Override
