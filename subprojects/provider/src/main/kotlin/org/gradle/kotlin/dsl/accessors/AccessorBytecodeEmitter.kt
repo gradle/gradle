@@ -67,6 +67,7 @@ import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+import org.gradle.kotlin.dsl.support.useToRun
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -118,47 +119,47 @@ object AccessorBytecodeEmitter {
         projectSchema: ProjectSchema<TypeAccessibility>,
         srcDir: File,
         binDir: File
-    ): List<InternalName> = WriterThread().use { writer ->
+    ): List<InternalName> = writerThreadFor(srcDir, binDir).useToRun {
 
-        writer.execute {
-            makeAccessorOutputDirs(srcDir, binDir)
-        }
+        val emittedClassNames =
+            accessorsFor(projectSchema).unorderedParallelMap { accessor ->
+                emitClassFor(accessor, srcDir, binDir)
+            }.toList()
 
-        val emittedClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
-
-            val (className, fragments) = fragmentsFor(accessor)
-            val sourceCode = mutableListOf<String>()
-            val metadataWriter = beginFileFacadeClassHeader()
-            val classWriter = beginPublicClass(className)
-
-            for ((source, bytecode, metadata, signature) in fragments) {
-                sourceCode.add(source)
-                MetadataFragmentScope(signature, metadataWriter).run(metadata)
-                BytecodeFragmentScope(signature, classWriter).run(bytecode)
-            }
-
-            val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-            writer.execute {
-                writeAccessorsTo(sourceFile, sourceCode.asSequence())
-            }
-
-            val classHeader = metadataWriter.closeHeader()
-            val classBytes = classWriter.run {
-                visitKotlinMetadataAnnotation(classHeader)
-                classWriter.endClass()
-            }
-            val classFile = binDir.resolve("$className.class")
-            writer.writeFile(classFile, classBytes)
-
-            className
-        }.toList()
-
-        writer.writeFile(
+        writeFile(
             moduleFileFor(binDir),
             moduleMetadataBytesFor(emittedClassNames)
         )
 
         emittedClassNames
+    }
+
+    private
+    fun WriterThread.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalName {
+
+        val (className, fragments) = fragmentsFor(accessor)
+        val sourceCode = mutableListOf<String>()
+        val metadataWriter = beginFileFacadeClassHeader()
+        val classWriter = beginPublicClass(className)
+
+        for ((source, bytecode, metadata, signature) in fragments) {
+            sourceCode.add(source)
+            MetadataFragmentScope(signature, metadataWriter).run(metadata)
+            BytecodeFragmentScope(signature, classWriter).run(bytecode)
+        }
+
+        val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
+        io { writeAccessorsTo(sourceFile, sourceCode.asSequence()) }
+
+        val classHeader = metadataWriter.closeHeader()
+        val classBytes = classWriter.run {
+            visitKotlinMetadataAnnotation(classHeader)
+            classWriter.endClass()
+        }
+        val classFile = binDir.resolve("$className.class")
+        writeFile(classFile, classBytes)
+
+        return className
     }
 
     private
@@ -819,6 +820,12 @@ object AccessorBytecodeEmitter {
     private
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
         "(L$receiverType;)L$returnType;"
+}
+
+
+internal
+fun writerThreadFor(srcDir: File, binDir: File): WriterThread = WriterThread().apply {
+    io { makeAccessorOutputDirs(srcDir, binDir) }
 }
 
 

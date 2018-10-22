@@ -47,11 +47,17 @@ class WriterThread : AutoCloseable {
         }
     }
 
+    /**
+     * Writes to the given [file] in the writer thread.
+     */
     fun writeFile(file: File, bytes: ByteArray) {
-        execute { file.writeBytes(bytes) }
+        io { file.writeBytes(bytes) }
     }
 
-    fun execute(action: () -> Unit) {
+    /**
+     * Executes the given [action] in the writer thread.
+     */
+    fun io(action: () -> Unit) {
         put(Command.Execute(action))
     }
 

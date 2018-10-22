@@ -104,17 +104,14 @@ fun buildPluginAccessorsFor(
     val baseFileName = "$packagePath/PluginAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
-    WriterThread().use { writer ->
+    writerThreadFor(srcDir, binDir).useToRun {
 
-        writer.execute {
-            makeAccessorOutputDirs(srcDir, binDir)
-            writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
-        }
+        io { writePluginAccessorsSourceCodeTo(sourceFile, accessorList) }
 
         val fileFacadeClassName = InternalName(baseFileName + "Kt")
         val moduleName = "kotlin-dsl-plugin-spec-accessors"
         val moduleMetadata = moduleMetadataBytesFor(listOf(fileFacadeClassName))
-        writer.writeFile(
+        writeFile(
             moduleFileFor(binDir, moduleName),
             moduleMetadata
         )
@@ -125,7 +122,7 @@ fun buildPluginAccessorsFor(
 
                 if (accessor is PluginAccessor.ForGroup) {
                     val (internalClassName, classBytes) = emitClassForGroup(accessor)
-                    writer.writeClassFileTo(binDir, internalClassName, classBytes)
+                    writeClassFileTo(binDir, internalClassName, classBytes)
                 }
 
                 val extensionSpec = accessor.extension
@@ -151,7 +148,7 @@ fun buildPluginAccessorsFor(
             }
         }
 
-        writer.writeClassFileTo(binDir, fileFacadeClassName, classBytes)
+        writeClassFileTo(binDir, fileFacadeClassName, classBytes)
     }
 }
 
