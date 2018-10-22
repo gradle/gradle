@@ -71,6 +71,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
                 task.getOutputs().getDoNotCacheIfSpecs(),
                 context.getTaskArtifactState().getOverlappingOutputs()
             );
+            context.setTaskCachingEnabled(taskOutputCachingState.isEnabled());
             state.setTaskOutputCaching(taskOutputCachingState);
             if (!taskOutputCachingState.isEnabled()) {
                 LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());

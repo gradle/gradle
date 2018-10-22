@@ -38,7 +38,6 @@ import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
@@ -57,13 +56,12 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def buildId = UniqueId.generate()
-    def buildInvocationScopeId = new BuildInvocationScopeId(buildId)
 
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def workExecutor = new DefaultWorkExecutor(new ExecuteStep(buildInvocationScopeId, cancellationToken, outputChangeListener))
-    def executer = new ExecuteActionsTaskExecuter(buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def workExecutor = new DefaultWorkExecutor(new ExecuteStep(buildId, cancellationToken, outputChangeListener))
+    def executer = new ExecuteActionsTaskExecuter(false, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":files"))
     implementation(project(":snapshots"))
+    implementation(project(":buildCachePackaging"))
 
     testImplementation(project(":internalTesting"))
 }

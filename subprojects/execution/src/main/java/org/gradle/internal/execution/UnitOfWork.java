@@ -21,6 +21,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -34,8 +36,17 @@ public interface UnitOfWork extends CacheableEntity {
 
     long markExecutionTime();
 
+    FileCollection getLocalState();
+
+    /**
+     * Loading from cache failed and all outputs were removed.
+     */
+    void afterOutputsRemovedBeforeTask();
+
+    CacheHandler createCacheHandler();
+
     interface OutputVisitor {
-        void visitOutput(String name, OutputType type, FileCollection roots);
+        void visitOutput(String name, OutputType type, FileCollection files, @Nullable File root);
     }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();

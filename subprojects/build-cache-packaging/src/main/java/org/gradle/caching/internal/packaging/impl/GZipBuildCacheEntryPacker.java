@@ -38,14 +38,14 @@ public class GZipBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
         try (GZIPOutputStream gzipOutput = new GZIPOutputStream(output)) {
             return delegate.pack(trees, fingerprints, gzipOutput, writeOrigin);
         }
     }
 
     @Override
-    public UnpackResult unpack(SortedSet<CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException {
+    public UnpackResult unpack(SortedSet<? extends CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException {
         try (GZIPInputStream gzipInput = new GZIPInputStream(input)) {
             return delegate.unpack(trees, gzipInput, readOrigin);
         }

@@ -93,7 +93,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
                                 }
 
                                 @Override
-                                public void afterLoad(Throwable error) {
+                                public void afterLoadFailedAndWasCleanedUp(Throwable error) {
                                     taskState.afterOutputsRemovedBeforeTask();
                                 }
                             })

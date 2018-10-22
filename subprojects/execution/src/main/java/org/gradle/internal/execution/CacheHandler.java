@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command;
+package org.gradle.internal.execution;
 
-public interface BuildCacheLoadListener {
-    void beforeLoad();
-    void afterLoadFailedAndWasCleanedUp(Throwable error);
+import org.gradle.caching.BuildCacheKey;
+
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+public interface CacheHandler {
+    <T> Optional<T> load(Function<BuildCacheKey, T> loader);
+    void store(Consumer<BuildCacheKey> storer);
 }

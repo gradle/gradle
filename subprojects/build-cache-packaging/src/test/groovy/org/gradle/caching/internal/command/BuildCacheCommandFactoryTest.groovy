@@ -53,7 +53,7 @@ class BuildCacheCommandFactoryTest extends Specification {
     def commandFactory = new BuildCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner)
 
     def key = Mock(BuildCacheKey)
-    def entry = Mock(CacheableEntity)
+    def entry = Stub(CacheableEntity)
     def loadListener = Mock(BuildCacheLoadListener)
     def timer = Stub(Timer)
 
@@ -138,7 +138,7 @@ class BuildCacheCommandFactoryTest extends Specification {
         }
 
         then:
-        1 * loadListener.afterLoad(_ as Throwable)
+        1 * loadListener.afterLoadFailedAndWasCleanedUp(_ as Throwable)
 
         then:
         def ex = thrown Exception

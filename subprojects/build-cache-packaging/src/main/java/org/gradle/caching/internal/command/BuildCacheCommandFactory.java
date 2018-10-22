@@ -68,11 +68,11 @@ public class BuildCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, SortedSet<CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
+    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
         return new LoadCommand(cacheKey, trees, entity, localState, loadListener);
     }
 
-    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, CacheableEntity entity, long executionTime) {
+    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, CacheableEntity entity, long executionTime) {
         return new StoreCommand(cacheKey, trees, fingerprints, entity, executionTime);
     }
 
@@ -84,12 +84,12 @@ public class BuildCacheCommandFactory {
     private class LoadCommand implements BuildCacheLoadCommand<LoadMetadata> {
 
         private final BuildCacheKey cacheKey;
-        private final SortedSet<CacheableTree> trees;
+        private final SortedSet<? extends CacheableTree> trees;
         private final CacheableEntity entity;
         private final Iterable<File> localState;
         private final BuildCacheLoadListener loadListener;
 
-        private LoadCommand(BuildCacheKey cacheKey, SortedSet<CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
+        private LoadCommand(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
             this.cacheKey = cacheKey;
             this.trees = trees;
             this.entity = entity;
@@ -108,7 +108,7 @@ public class BuildCacheCommandFactory {
             try {
                 BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(trees, input, originMetadataFactory.createReader(entity));
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-                LOGGER.info("Unpacked trees for {} from cache.", entity);
+                LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
                 return new Result<LoadMetadata>() {
                     @Override
                     public long getArtifactEntryCount() {
@@ -131,15 +131,15 @@ public class BuildCacheCommandFactory {
                     }
                 };
             } catch (Exception e) {
-                LOGGER.warn("Cleaning {} after failed load from cache.", entity);
+                LOGGER.warn("Cleaning {} after failed load from cache.", entity.getDisplayName());
                 try {
                     cleanupTreesAfterUnpackFailure();
-                    loadListener.afterLoad(e);
+                    loadListener.afterLoadFailedAndWasCleanedUp(e);
                 } catch (Exception eCleanup) {
                     LOGGER.warn("Unrecoverable error during cleaning up after unpack failure", eCleanup);
-                    throw new UnrecoverableUnpackingException(String.format("Failed to unpack trees for %s, and then failed to clean up; see log above for details", entity), e);
+                    throw new UnrecoverableUnpackingException(String.format("Failed to unpack trees for %s, and then failed to clean up; see log above for details", entity.getDisplayName()), e);
                 }
-                throw new GradleException(String.format("Failed to unpack trees for %s", entity), e);
+                throw new GradleException(String.format("Failed to unpack trees for %s", entity.getDisplayName()), e);
             } finally {
                 cleanLocalState();
             }
@@ -192,7 +192,7 @@ public class BuildCacheCommandFactory {
                 try {
                     remove(localStateFile);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", entity, localStateFile), ex);
+                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", entity.getDisplayName(), localStateFile), ex);
                 }
             }
         }
@@ -203,7 +203,7 @@ public class BuildCacheCommandFactory {
                 try {
                     remove(root);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", tree.getName(), entity, root), ex);
+                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", tree.getName(), entity.getDisplayName(), root), ex);
                 }
             }
         }
@@ -222,12 +222,12 @@ public class BuildCacheCommandFactory {
     private class StoreCommand implements BuildCacheStoreCommand {
 
         private final BuildCacheKey cacheKey;
-        private final SortedSet<CacheableTree> trees;
+        private final SortedSet<? extends CacheableTree> trees;
         private final Map<String, CurrentFileCollectionFingerprint> fingerprints;
         private final CacheableEntity entity;
         private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, CacheableEntity entity, long executionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, CacheableEntity entity, long executionTime) {
             this.cacheKey = cacheKey;
             this.trees = trees;
             this.fingerprints = fingerprints;
@@ -242,7 +242,7 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
-            LOGGER.info("Packing {}", entity);
+            LOGGER.info("Packing {}", entity.getDisplayName());
             final BuildCacheEntryPacker.PackResult packResult = packer.pack(trees, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override

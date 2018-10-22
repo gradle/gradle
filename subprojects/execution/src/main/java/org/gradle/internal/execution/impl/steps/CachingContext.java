@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.command;
+package org.gradle.internal.execution.impl.steps;
 
-public interface BuildCacheLoadListener {
-    void beforeLoad();
-    void afterLoadFailedAndWasCleanedUp(Throwable error);
+import org.gradle.internal.execution.CacheHandler;
+
+public interface CachingContext extends Context {
+    CacheHandler getCacheHandler();
 }

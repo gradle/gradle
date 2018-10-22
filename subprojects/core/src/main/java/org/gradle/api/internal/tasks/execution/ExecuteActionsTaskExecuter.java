@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.MutatingTaskExecuter;
 import org.gradle.api.internal.tasks.MutatingTaskExecuterResult;
@@ -32,11 +34,13 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
@@ -49,27 +53,33 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
 public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+    private final boolean buildCacheEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
     private final WorkExecutor workExecutor;
 
     public ExecuteActionsTaskExecuter(
+        boolean buildCacheEnabled,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
         WorkExecutor workExecutor
     ) {
+        this.buildCacheEnabled = buildCacheEnabled;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
@@ -159,8 +169,53 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
                     default:
                         throw new AssertionError();
                 }
-                outputVisitor.visitOutput(property.getPropertyName(), type, property.getPropertyFiles());
+                File cacheRoot = (property instanceof CacheableTaskOutputFilePropertySpec)
+                        ? ((CacheableTaskOutputFilePropertySpec) property).getOutputFile()
+                        : null;
+                outputVisitor.visitOutput(property.getPropertyName(), type, property.getPropertyFiles(), cacheRoot);
             }
+        }
+
+        @Override
+        public FileCollection getLocalState() {
+            return context.getTaskProperties().getLocalStateFiles();
+        }
+
+        @Override
+        public CacheHandler createCacheHandler() {
+            return new CacheHandler() {
+                @Override
+                public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
+                    // TODO Log this when creating the build cache key perhaps?
+                    if (task.isHasCustomActions()) {
+                        LOGGER.info("Custom actions are attached to {}.", task);
+                    }
+                    if (buildCacheEnabled
+                            && context.isTaskCachingEnabled()
+                            && context.getTaskArtifactState().isAllowedToUseCachedResults()
+                            && context.getBuildCacheKey().isValid()
+                    ) {
+                        return Optional.ofNullable(loader.apply(context.getBuildCacheKey()));
+                    } else {
+                        return Optional.empty();
+                    }
+                }
+
+                @Override
+                public void store(Consumer<BuildCacheKey> storer) {
+                    if (buildCacheEnabled
+                            && context.isTaskCachingEnabled()
+                            && context.getBuildCacheKey().isValid()
+                    ) {
+                        storer.accept(context.getBuildCacheKey());
+                    }
+                }
+            };
+        }
+
+        @Override
+        public void afterOutputsRemovedBeforeTask() {
+            context.getTaskArtifactState().afterOutputsRemovedBeforeTask();
         }
 
         @Override

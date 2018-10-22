@@ -103,7 +103,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
+    public PackResult pack(SortedSet<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -128,7 +128,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
+    private long pack(Collection<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
         long entries = 0;
         for (CacheableTree tree : trees) {
             String treeName = tree.getName();
@@ -160,14 +160,14 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public UnpackResult unpack(SortedSet<CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException {
+    public UnpackResult unpack(SortedSet<? extends CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException {
         try (TarArchiveInputStream tarInput = new TarArchiveInputStream(input)) {
             return unpack(trees, tarInput, readOrigin);
         }
     }
 
-    private UnpackResult unpack(SortedSet<CacheableTree> trees, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
-        Map<String, CacheableTree> treesByName = Maps.uniqueIndex(trees, new Function<CacheableTree, String>() {
+    private UnpackResult unpack(SortedSet<? extends CacheableTree> trees, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
+        Map<String, ? extends CacheableTree> treesByName = Maps.uniqueIndex(trees, new Function<CacheableTree, String>() {
             @Override
             public String apply(@Nullable CacheableTree tree) {
                 assert tree != null;

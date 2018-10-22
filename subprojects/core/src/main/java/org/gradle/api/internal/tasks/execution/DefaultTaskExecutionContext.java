@@ -32,6 +32,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
     private TaskProperties taskProperties;
+    private boolean taskCachingEnabled;
     private Long executionTime;
 
     private final Timer executionTimer;
@@ -109,4 +110,13 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         return taskProperties;
     }
 
+    @Override
+    public boolean isTaskCachingEnabled() {
+        return taskCachingEnabled;
+    }
+
+    @Override
+    public void setTaskCachingEnabled(boolean taskCachingEnabled) {
+        this.taskCachingEnabled = taskCachingEnabled;
+    }
 }

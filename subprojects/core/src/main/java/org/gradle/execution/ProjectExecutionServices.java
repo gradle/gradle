@@ -41,7 +41,6 @@ import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolvePreviousStateExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
-import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
@@ -62,9 +61,12 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.steps.CacheStep;
+import org.gradle.internal.execution.impl.steps.CachingContext;
 import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
+import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.PathToFileResolver;
@@ -108,15 +110,24 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     WorkExecutor createWorkExecutor(
+        BuildCacheController buildCacheController,
+        BuildCacheCommandFactory buildCacheCommandFactory,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildCancellationToken cancellationToken,
         OutputChangeListener outputChangeListener,
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor(
-            new CreateOutputsStep<Context>(
-                new TimeoutStep<Context>(timeoutHandler,
-                    new ExecuteStep(buildInvocationScopeId.getId(), cancellationToken, outputChangeListener)
+            new PrepareCachingStep<Context>(
+                new CacheStep<CachingContext>(
+                    buildCacheController,
+                    outputChangeListener,
+                    buildCacheCommandFactory,
+                    new CreateOutputsStep<Context>(
+                        new TimeoutStep<Context>(timeoutHandler,
+                            new ExecuteStep(buildInvocationScopeId.getId(), cancellationToken, outputChangeListener)
+                        )
+                    )
                 )
             )
         );
@@ -146,19 +157,12 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
 
         MutatingTaskExecuter mutatingExecuter = new ExecuteActionsTaskExecuter(
+            buildCacheEnabled,
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,
             workExecutor
         );
-        if (buildCacheEnabled) {
-            mutatingExecuter = new SkipCachedTaskExecuter(
-                buildCacheController,
-                outputChangeListener,
-                commandFactory,
-                mutatingExecuter
-            );
-        }
         TaskExecuter executer = new SnapshotAfterExecutionTaskExecuter(taskOutputFilesRepository, mutatingExecuter);
         executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, executer);

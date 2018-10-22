@@ -67,4 +67,11 @@ public interface TaskExecutionContext {
     void setTaskProperties(TaskProperties taskProperties);
 
     TaskProperties getTaskProperties();
+
+    /**
+     * Returns if caching for this task is enabled.
+     */
+    boolean isTaskCachingEnabled();
+
+    void setTaskCachingEnabled(boolean enabled);
 }
