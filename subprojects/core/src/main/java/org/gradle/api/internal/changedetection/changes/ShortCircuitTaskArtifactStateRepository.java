@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -31,6 +32,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -139,6 +141,12 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             delegate.persistNewOutputs(newOutputFingerprints, successful, originMetadata);
+        }
+
+        @Nullable
+        @Override
+        public OverlappingOutputs getOverlappingOutputs() {
+            return null;
         }
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -24,11 +23,4 @@ public interface TaskExecutionHistory {
      * Returns the set of output files and directories which the task produced.
      */
     Set<File> getOutputFiles();
-
-    /**
-     * Returns if overlapping outputs were detected
-     */
-    @Nullable
-    OverlappingOutputs getOverlappingOutputs();
-
 }
