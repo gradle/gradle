@@ -16,10 +16,10 @@
 
 package org.gradle.internal.execution.impl.steps;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.ExecutionResult;
-import org.gradle.internal.execution.OutputFileProperty;
-import org.gradle.internal.execution.OutputFileProperty.OutputType;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.OutputType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,28 +41,27 @@ public class CreateOutputsStep implements DirectExecutionStep {
     public ExecutionResult execute(UnitOfWork work) {
         work.visitOutputs(new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutput(OutputFileProperty output) {
-                OutputType type = output.getOutputType();
-                for (File outputRoot : output.getFiles()) {
-                    ensureOutput(output, outputRoot, type);
+            public void visitOutput(String name, OutputType type, FileCollection roots) {
+                for (File outputRoot : roots) {
+                    ensureOutput(name, outputRoot, type);
                 }
             }
         });
         return delegate.execute(work);
     }
 
-    private static void ensureOutput(OutputFileProperty output, @Nullable File outputRoot, OutputType type) {
+    private static void ensureOutput(String name, @Nullable File outputRoot, OutputType type) {
         if (outputRoot == null) {
-            LOGGER.debug("Not ensuring directory exists for property {}, because value is null", output.getName());
+            LOGGER.debug("Not ensuring directory exists for property {}, because value is null", name);
             return;
         }
         switch (type) {
             case DIRECTORY:
-                LOGGER.debug("Ensuring directory exists for property {} at {}", output.getName(), outputRoot);
+                LOGGER.debug("Ensuring directory exists for property {} at {}", name, outputRoot);
                 mkdirs(outputRoot);
                 break;
             case FILE:
-                LOGGER.debug("Ensuring parent directory exists for property {} at {}", output.getName(), outputRoot);
+                LOGGER.debug("Ensuring parent directory exists for property {} at {}", name, outputRoot);
                 mkdirs(outputRoot.getParentFile());
                 break;
             default:

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.MutatingTaskExecuter;
@@ -40,7 +39,6 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionResult;
-import org.gradle.internal.execution.OutputFileProperty;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -150,29 +148,18 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         @Override
         public void visitOutputs(OutputVisitor outputVisitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                outputVisitor.visitOutput(new OutputFileProperty() {
-                    @Override
-                    public String getName() {
-                        return property.getPropertyName();
-                    }
-
-                    @Override
-                    public FileCollection getFiles() {
-                        return property.getPropertyFiles();
-                    }
-
-                    @Override
-                    public OutputType getOutputType() {
-                        switch (property.getOutputType()) {
-                            case FILE:
-                                return OutputType.FILE;
-                            case DIRECTORY:
-                                return OutputType.DIRECTORY;
-                            default:
-                                throw new AssertionError();
-                        }
-                    }
-                });
+                OutputType type;
+                switch (property.getOutputType()) {
+                    case FILE:
+                        type = OutputType.FILE;
+                        break;
+                    case DIRECTORY:
+                        type = OutputType.DIRECTORY;
+                        break;
+                    default:
+                        throw new AssertionError();
+                }
+                outputVisitor.visitOutput(property.getPropertyName(), type, property.getPropertyFiles());
             }
         }
 

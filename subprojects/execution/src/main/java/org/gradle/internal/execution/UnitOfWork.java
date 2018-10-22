@@ -17,13 +17,12 @@
 package org.gradle.internal.execution;
 
 import org.gradle.api.Describable;
+import org.gradle.api.file.FileCollection;
 
 import java.time.Duration;
 import java.util.Optional;
 
 public interface UnitOfWork extends Describable {
-//    String getIdentifier();
-//    void visitInputs(InputVisitor inputVisitor);
 
     boolean execute();
 
@@ -31,15 +30,11 @@ public interface UnitOfWork extends Describable {
 
     void visitOutputs(OutputVisitor outputVisitor);
 
-//    interface InputVisitor {
-//        void visitType(Class<?> type);
-//
-//        void visitInput(InputProperty input);
-//
-//        void visitFileInput(InputFileProperty input);
-//    }
-
     interface OutputVisitor {
-        void visitOutput(OutputFileProperty output);
+        void visitOutput(String name, OutputType type, FileCollection roots);
+    }
+
+    enum OutputType {
+        FILE, DIRECTORY
     }
 }
