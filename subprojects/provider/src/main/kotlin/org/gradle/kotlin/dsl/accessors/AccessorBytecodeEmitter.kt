@@ -170,7 +170,6 @@ object AccessorBytecodeEmitter {
         emittedClassNames
     }
 
-
     private
     fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 

@@ -79,12 +79,11 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     fun `#buildAccessorsFor (source)`() {
 
         testAccessorsBuiltBy { schema, srcDir, binDir ->
-            val nul = newFolder("nul")
             buildAccessorsFor(
                 projectSchema = schema,
                 classPath = testCompilationClassPath,
                 srcDir = srcDir,
-                binDir = nul
+                binDir = newFolder("ignored")
             )
             require(
                 compileToDirectory(
