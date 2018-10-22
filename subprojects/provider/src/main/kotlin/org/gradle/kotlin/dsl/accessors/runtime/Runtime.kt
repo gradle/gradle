@@ -26,6 +26,7 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
 
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 
 fun extensionOf(target: Any, extensionName: String): Any =
@@ -47,13 +48,13 @@ fun conventionOf(target: Any): Convention = when (target) {
 }
 
 
-fun addDependencyTo(
+fun <T : Dependency> addDependencyTo(
     dependencies: DependencyHandler,
     configuration: String,
     dependencyNotation: Any,
-    configurationAction: Action<in Any>
-): Dependency = dependencies.run {
-    create(dependencyNotation).also { dependency ->
+    configurationAction: Action<T>
+): T = dependencies.run {
+    uncheckedCast<T>(create(dependencyNotation)).also { dependency ->
         configurationAction.execute(dependency)
         add(configuration, dependency)
     }
@@ -68,7 +69,8 @@ fun addExternalModuleDependencyTo(
     version: String?,
     configuration: String?,
     classifier: String?,
-    ext: String?
+    ext: String?,
+    action: Action<ExternalModuleDependency>?
 ): ExternalModuleDependency = externalModuleDependencyFor(
     dependencyHandler,
     group,
@@ -78,6 +80,7 @@ fun addExternalModuleDependencyTo(
     classifier,
     ext
 ).also {
+    action?.execute(it)
     dependencyHandler.add(targetConfiguration, it)
 }
 

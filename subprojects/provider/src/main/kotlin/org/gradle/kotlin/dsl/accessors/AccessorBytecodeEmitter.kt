@@ -226,8 +226,10 @@ object AccessorBytecodeEmitter {
                          */
                         inline fun DependencyHandler.`$kotlinIdentifier`(
                             dependencyNotation: String,
-                            dependencyConfiguration: ExternalModuleDependency.() -> Unit
-                        ): ExternalModuleDependency = add("$stringLiteral", dependencyNotation, dependencyConfiguration)
+                            dependencyConfiguration: Action<ExternalModuleDependency>
+                        ): ExternalModuleDependency = addDependencyTo(
+                            this, "$stringLiteral", dependencyNotation, dependencyConfiguration
+                        ) as ExternalModuleDependency
                     """
                 },
                 bytecode = {
@@ -251,7 +253,7 @@ object AccessorBytecodeEmitter {
                         name = propertyName,
                         parameters = {
                             visitParameter("dependencyNotation", KotlinType.string)
-                            visitParameter("configurationAction", actionTypeOf(GradleType.externalModuleDependency))
+                            visitParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                         },
                         signature = signature
                     )
@@ -273,8 +275,10 @@ object AccessorBytecodeEmitter {
                          * @param configuration the optional configuration of the module to be added as a dependency.
                          * @param classifier the optional classifier of the module artifact to be added as a dependency.
                          * @param ext the optional extension of the module artifact to be added as a dependency.
+                         * @param dependencyConfiguration expression to use to configure the dependency.
                          * @return The dependency.
                          *
+                         * @see [DependencyHandler.create]
                          * @see [DependencyHandler.add]
                          */
                         fun DependencyHandler.`$kotlinIdentifier`(
@@ -283,10 +287,11 @@ object AccessorBytecodeEmitter {
                             version: String? = null,
                             configuration: String? = null,
                             classifier: String? = null,
-                            ext: String? = null
-                        ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
-                            add("$stringLiteral", it)
-                        }
+                            ext: String? = null,
+                            dependencyConfiguration: Action<ExternalModuleDependency>? = null
+                        ): ExternalModuleDependency = addExternalModuleDependencyTo(
+                            this, "$stringLiteral", group, name, version, configuration, classifier, ext, dependencyConfiguration
+                        )
                     """
                 },
                 bytecode = {
@@ -294,10 +299,10 @@ object AccessorBytecodeEmitter {
                     val methodBody: MethodVisitor.() -> Unit = {
                         ALOAD(0)
                         LDC(propertyName)
-                        (1..6).forEach { ALOAD(it) }
+                        (1..7).forEach { ALOAD(it) }
                         invokeRuntime(
                             "addExternalModuleDependencyTo",
-                            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                            "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                         )
                         ARETURN()
                     }
@@ -320,6 +325,7 @@ object AccessorBytecodeEmitter {
                             "Ljava/lang/String;" +
                             "Ljava/lang/String;" +
                             "Ljava/lang/String;" +
+                            "Lorg/gradle/api/Action;" +
                             "ILjava/lang/Object;" +
                             ")Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                     )
@@ -341,13 +347,14 @@ object AccessorBytecodeEmitter {
                             visitOptionalParameter("configuration", KotlinType.string)
                             visitOptionalParameter("classifier", KotlinType.string)
                             visitOptionalParameter("ext", KotlinType.string)
+                            visitOptionalParameter("dependencyConfiguration", actionTypeOf(GradleType.externalModuleDependency))
                         },
                         signature = signature
                     )
                 },
                 signature = JvmMethodSignature(
                     propertyName,
-                    "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
+                    "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
                 )
             ),
             AccessorFragment(

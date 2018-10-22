@@ -605,6 +605,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.accessors.runtime.*
 
 """
 
