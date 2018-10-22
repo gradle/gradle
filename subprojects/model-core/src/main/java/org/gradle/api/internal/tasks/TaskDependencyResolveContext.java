@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
@@ -37,6 +36,8 @@ public interface TaskDependencyResolveContext {
      * <li>{@link org.gradle.api.Buildable}</li>
      *
      * <li>{@link TransformationDependency}</li>
+     *
+     * <li>{@link FinalizeAction}</li>
      */
     void add(Object dependency);
 
@@ -44,13 +45,6 @@ public interface TaskDependencyResolveContext {
      * Adds an object that <em>may</em> be able to contribute tasks to the result.
      */
     void maybeAdd(Object dependency);
-
-    /**
-     * Attach an action to run as soon as the given task completes, to perform some work before the outputs of the task are consumed by other tasks.
-     *
-     * <p>This should evolve into some mechanism to add a real node to the graph with similar behaviour, but as a first step this is simply bolted on.
-     */
-    void attachFinalizerTo(Task task, Action<? super Task> action);
 
     /**
      * Visits a failure to visit the dependencies of an object.

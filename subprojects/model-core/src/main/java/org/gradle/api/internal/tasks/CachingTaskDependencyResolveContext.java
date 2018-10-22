@@ -83,10 +83,9 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         queue.add(dependency);
     }
 
-    @Override
-    public void attachFinalizerTo(Task task, Action<? super Task> action) {
+    private void attachFinalizerTo(T value, Action<? super Task> action) {
         for (WorkDependencyResolver<T> resolver : workResolvers) {
-            if (resolver.attachActionTo(task, action)) {
+            if (resolver.attachActionTo(value, action)) {
                 break;
             }
         }
@@ -109,6 +108,14 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             } else if (node instanceof Buildable) {
                 Buildable buildable = (Buildable) node;
                 connectedNodes.add(buildable.getBuildDependencies());
+            } else if (node instanceof FinalizeAction) {
+                FinalizeAction finalizeAction = (FinalizeAction) node;
+                TaskDependencyContainer dependencies = finalizeAction.getDependencies();
+                Set<T> deps = new CachingTaskDependencyResolveContext<T>(workResolvers).getDependencies(task, dependencies);
+                for (T dep : deps) {
+                    attachFinalizerTo(dep, finalizeAction);
+                    values.add(dep);
+                }
             } else {
                 boolean handled = false;
                 for (WorkDependencyResolver<T> workResolver : workResolvers) {

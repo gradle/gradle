@@ -1610,11 +1610,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 }
 
                 @Override
-                public void attachFinalizerTo(Task task, Action<? super Task> action) {
-                    context.attachFinalizerTo(task, action);
-                }
-
-                @Override
                 public Task getTask() {
                     return context.getTask();
                 }
