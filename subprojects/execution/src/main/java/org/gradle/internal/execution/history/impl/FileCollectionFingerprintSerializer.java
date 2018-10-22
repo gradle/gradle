@@ -46,6 +46,9 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
     @Override
     public FileCollectionFingerprint read(Decoder decoder) throws IOException {
         Map<String, FileSystemLocationFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
+        if (fingerprints.isEmpty()) {
+            return FileCollectionFingerprint.EMPTY;
+        }
         ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
         return new SerializableFileCollectionFingerprint(fingerprints, rootHashes);
     }
@@ -67,7 +70,9 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
     @Override
     public void write(Encoder encoder, FileCollectionFingerprint value) throws Exception {
         fingerprintMapSerializer.write(encoder, value.getFingerprints());
-        writeRootHashes(encoder, value.getRootHashes());
+        if (!value.getFingerprints().isEmpty()) {
+            writeRootHashes(encoder, value.getRootHashes());
+        }
     }
 
     private void writeRootHashes(Encoder encoder, ImmutableMultimap<String, HashCode> rootHashes) throws IOException {
