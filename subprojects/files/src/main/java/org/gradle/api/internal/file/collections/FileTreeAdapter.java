@@ -129,6 +129,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         } else if (tree instanceof SingletonFileTree) {
             SingletonFileTree singletonFileTree = (SingletonFileTree) tree;
             visitor.visitCollection(ImmutableFileCollection.of(singletonFileTree.getFile()));
+        } else if (tree instanceof ArchiveFileTree) {
+            ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
+            visitor.visitCollection(ImmutableFileCollection.of(archiveFileTree.getBackingFile()));
         } else {
             visitor.visitGenericFileTree(this);
         }

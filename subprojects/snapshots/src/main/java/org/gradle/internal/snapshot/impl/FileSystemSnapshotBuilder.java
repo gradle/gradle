@@ -46,7 +46,7 @@ public class FileSystemSnapshotBuilder {
 
     public void addFile(File file, String[] segments, RegularFileSnapshot fileSnapshot) {
         checkNoRootFileSnapshot("another root file", file);
-        if (segments.length == 1) {
+        if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
         } else {
             DirectoryBuilder rootDir = getOrCreateRootDir(file, segments);

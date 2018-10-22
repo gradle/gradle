@@ -25,9 +25,9 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.collections.ArchiveFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.DefaultSingletonFileTree;
 import org.gradle.api.resources.ResourceException;
@@ -47,7 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
+public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
     private final File tarFile;
     private final ReadableResourceInternal resource;
     private final Chmod chmod;
@@ -113,7 +113,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
     }
 
-    private File getBackingFile() {
+    public File getBackingFile() {
         if (tarFile != null) {
             return tarFile;
         }

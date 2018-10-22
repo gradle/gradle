@@ -36,8 +36,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -339,16 +337,16 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         assertSingleFileSnapshot(snapshots)
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE) // we need native tools for creating single file archives
     def "snapshots a archive trees as RegularFileSnapshot"() {
         given:
         def tempDir = tmpDir.createDir('tmpDir')
-        def file = tempDir.file('testFile')
+        def archiveBaseDir = tempDir.createDir('archiveBase')
+        def file = archiveBaseDir.createFile('file.txt')
         file.text = "content"
 
         when:
         TestFile zip = tempDir.file('archive.zip');
-        file.usingNativeTools().zipTo(zip)
+        archiveBaseDir.zipTo(zip)
         def zipTree = TestFiles.fileOperations(tempDir, testFileProvider()).zipTree(zip)
         def snapshots = snapshotter.snapshot(zipTree)
 
@@ -357,7 +355,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         when:
         TestFile tar = tempDir.file('archive.tar');
-        file.usingNativeTools().tarTo(tar)
+        archiveBaseDir.tarTo(tar)
         def tarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
         snapshots = snapshotter.snapshot(tarTree)
 
@@ -367,7 +365,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         when:
         def tarDir = tmpDir.createDir('tarDir')
         TestFile emptyTar = tempDir.file('emptyArchive.tar');
-        tarDir.usingNativeTools().tarTo(emptyTar)
+        tarDir.tarTo(emptyTar)
         def emtpyTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(tar)
         snapshots = snapshotter.snapshot(emtpyTarTree)
 
