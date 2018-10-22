@@ -18,10 +18,8 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
@@ -30,7 +28,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.minimumVersion = '4.6'
-        runner.targetVersions = ["5.0-20181010183641+0000"]
+        runner.targetVersions = ["5.1-20181022112637+0000 "]
     }
 
     def "resolve large dependency graph from file repo"() {
