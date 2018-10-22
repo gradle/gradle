@@ -16,8 +16,10 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -33,6 +35,8 @@ public interface UnitOfWork extends Describable {
     interface OutputVisitor {
         void visitOutput(String name, OutputType type, FileCollection roots);
     }
+
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
 
     enum OutputType {
         FILE, DIRECTORY

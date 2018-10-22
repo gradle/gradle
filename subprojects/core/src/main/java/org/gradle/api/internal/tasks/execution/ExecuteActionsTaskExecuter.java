@@ -82,33 +82,33 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
 
     @Override
     public MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        ExecutionResult result = workExecutor.execute(new TaskExecution(task, context));
-        switch (result.getOutcome()) {
-            case FAILED:
-                Throwable failure = result.getFailure();
-                assert failure != null;
-                TaskExecutionException taskFailure = (failure instanceof ExecutionException)
+        final ExecutionResult result = workExecutor.execute(new TaskExecution(task, context));
+        if (result.getFailure() != null) {
+            Throwable failure = result.getFailure();
+            assert failure != null;
+            TaskExecutionException taskFailure = (failure instanceof ExecutionException)
                     ? new TaskExecutionException(task, failure.getCause())
                     : new TaskExecutionException(task, failure);
-                state.setOutcome(taskFailure);
-                break;
-            case EXECUTED:
-                state.setOutcome(TaskExecutionOutcome.EXECUTED);
-                break;
-            case UP_TO_DATE:
-                state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
-                break;
-            case FROM_CACHE:
-                state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                break;
-            case NO_SOURCE:
-                state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
-                break;
-            default:
-                throw new AssertionError();
+            state.setOutcome(taskFailure);
+        } else {
+            switch (result.getOutcome()) {
+                case EXECUTED:
+                    state.setOutcome(TaskExecutionOutcome.EXECUTED);
+                    break;
+                case UP_TO_DATE:
+                    state.setOutcome(TaskExecutionOutcome.UP_TO_DATE);
+                    break;
+                case FROM_CACHE:
+                    state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
+                    break;
+                case NO_SOURCE:
+                    state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
+                    break;
+                default:
+                    throw new AssertionError();
+            }
         }
         final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId.getId(), context.markExecutionTime());
-        final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = context.getTaskArtifactState().snapshotAfterTaskExecution(context);
         return new MutatingTaskExecuterResult() {
             @Override
             public OriginMetadata getOriginMetadata() {
@@ -117,7 +117,7 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
 
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                return finalOutputs;
+                return result.getFinalOutputs();
             }
         };
     }
@@ -166,6 +166,11 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         @Override
         public Optional<Duration> getTimeout() {
             return Optional.ofNullable(task.getTimeout().getOrNull());
+        }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+            return context.getTaskArtifactState().snapshotAfterTaskExecution(context);
         }
 
         @Override

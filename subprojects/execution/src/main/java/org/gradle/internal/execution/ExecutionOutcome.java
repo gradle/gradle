@@ -16,38 +16,9 @@
 
 package org.gradle.internal.execution;
 
-import javax.annotation.Nullable;
-
 public enum ExecutionOutcome {
     NO_SOURCE,
     UP_TO_DATE,
     FROM_CACHE,
-    EXECUTED,
-    FAILED {
-        @Override
-        ExecutionResult asResult() {
-            throw new UnsupportedOperationException();
-        }
-    };
-
-    private final ExecutionResult result;
-
-    ExecutionOutcome() {
-        this.result = new ExecutionResult() {
-            @Override
-            public ExecutionOutcome getOutcome() {
-                return ExecutionOutcome.this;
-            }
-
-            @Nullable
-            @Override
-            public Throwable getFailure() {
-                return null;
-            }
-        };
-    }
-
-    ExecutionResult asResult() {
-        return result;
-    }
+    EXECUTED
 }

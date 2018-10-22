@@ -59,7 +59,7 @@ public class TimeoutStep<C extends Context> implements Step<C> {
         if (taskTimeout.timedOut()) {
             //noinspection ResultOfMethodCallIgnored
             Thread.interrupted();
-            result = ExecutionResult.failure(new GradleException("Timeout has been exceeded"));
+            result = ExecutionResult.failure(new GradleException("Timeout has been exceeded"), result.getFinalOutputs());
         }
 
         return result;

@@ -16,22 +16,48 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+
 import javax.annotation.Nullable;
 
 public abstract class ExecutionResult {
     public abstract ExecutionOutcome getOutcome();
+    public abstract ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
+
     @Nullable
     public abstract Throwable getFailure();
 
-    public static ExecutionResult success(ExecutionOutcome outcome) {
-        return outcome.asResult();
-    }
-
-    public static ExecutionResult failure(Throwable failure) {
+    public static ExecutionResult success(ExecutionOutcome outcome, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
         return new ExecutionResult() {
             @Override
             public ExecutionOutcome getOutcome() {
-                return ExecutionOutcome.FAILED;
+                return outcome;
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                return finalOutputs;
+            }
+
+            @Nullable
+            @Override
+            public Throwable getFailure() {
+                return null;
+            }
+        };
+    }
+
+    public static ExecutionResult failure(Throwable failure, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
+        return new ExecutionResult() {
+            @Override
+            public ExecutionOutcome getOutcome() {
+                return ExecutionOutcome.EXECUTED;
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                return finalOutputs;
             }
 
             @Override
