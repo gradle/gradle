@@ -48,9 +48,8 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
@@ -143,37 +142,42 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        ensureResolved(false);
-
-        final List<Object> taskDependencies = new ArrayList<Object>();
-        final List<Throwable> failures = new ArrayList<Throwable>();
-        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new AbstractTaskDependencyResolveContext() {
+        return new AbstractTaskDependency() {
             @Override
-            public void add(Object dep) {
-                taskDependencies.add(dep);
-            }
+            public void visitDependencies(final TaskDependencyResolveContext context) {
+                ensureResolved(false);
+                final List<Throwable> failures = new ArrayList<Throwable>();
+                resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new TaskDependencyResolveContext() {
+                    @Override
+                    public void add(Object dep) {
+                        context.add(dep);
+                    }
 
-            @Override
-            public void attachFinalizerTo(Task task, Action<? super Task> action) {
-            }
+                    @Override
+                    public void maybeAdd(Object dependency) {
+                        context.maybeAdd(dependency);
+                    }
 
-            @Override
-            public Task getTask() {
-                return null;
-            }
+                    @Override
+                    public void attachFinalizerTo(Task task, Action<? super Task> action) {
+                        context.attachFinalizerTo(task, action);
+                    }
 
-            @Override
-            public void visitFailure(Throwable failure) {
-                failures.add(failure);
+                    @Override
+                    public Task getTask() {
+                        return context.getTask();
+                    }
+
+                    @Override
+                    public void visitFailure(Throwable failure) {
+                        failures.add(failure);
+                    }
+                });
+                if (!failures.isEmpty()) {
+                    throw new ResolveException(getDisplayName(), failures);
+                }
             }
-        });
-        if (!failures.isEmpty()) {
-            throw new ResolveException(getDisplayName(), failures);
-        }
-        if (taskDependencies.isEmpty()) {
-            return TaskDependencyInternal.EMPTY;
-        }
-        return new DefaultTaskDependency().add(taskDependencies);
+        };
     }
 
     private void ensureResolved(boolean failFast) {
