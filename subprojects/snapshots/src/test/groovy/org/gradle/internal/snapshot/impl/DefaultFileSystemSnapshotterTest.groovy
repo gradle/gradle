@@ -24,6 +24,10 @@ import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
+import org.gradle.api.resources.MissingResourceException
+import org.gradle.api.resources.ReadableResource
+import org.gradle.api.resources.ResourceException
+import org.gradle.api.resources.internal.LocalResourceAdapter
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.internal.Factory
 import org.gradle.internal.file.FileType
@@ -371,6 +375,45 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         then:
         assertSingleFileSnapshot(snapshots)
+
+        when:
+        def tgzDir = tmpDir.createDir('tgzFile')
+        TestFile tgz = tempDir.file('emptyArchive.tgz');
+        tgzDir.tgzTo(tgz)
+        def localResource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz));
+        def emtpyBzipTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
+        snapshots = snapshotter.snapshot(emtpyBzipTree)
+
+        then:
+        assertSingleFileSnapshot(snapshots)
+
+        when:
+        def readableResource = new ReadableResource() {
+            @Override
+            InputStream read() throws MissingResourceException, ResourceException {
+                return file.newInputStream()
+            }
+
+            @Override
+            String getDisplayName() {
+                return "Some file based resource"
+            }
+
+            @Override
+            URI getURI() {
+                return file.toURI()
+            }
+
+            @Override
+            String getBaseName() {
+                return file.getName()
+            }
+        };
+        def recourceTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(readableResource)
+        snapshots = snapshotter.snapshot(recourceTarTree)
+
+        then:
+        snapshots.size() == 0
     }
 
     private TemporaryFileProvider testFileProvider() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -23,5 +24,5 @@ import java.io.File;
  */
 public interface ArchiveFileTree extends FileSystemMirroringFileTree {
 
-    File getBackingFile();
+    @Nullable File getBackingFile();
 }
