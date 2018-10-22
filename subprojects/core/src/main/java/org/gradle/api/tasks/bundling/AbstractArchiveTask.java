@@ -40,9 +40,18 @@ import java.util.concurrent.Callable;
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
  */
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
-    private DirectoryProperty destinationDirectory = getProject().getObjects().directoryProperty();
+    private final DirectoryProperty destinationDirectory = getProject().getObjects().directoryProperty();
     private final RegularFileProperty archiveFile = getProject().getObjects().fileProperty();
-    {
+    private final Property<String> customName = createStringProperty();
+    private final Property<String> baseName = createStringProperty();
+    private final Property<String> appendix = createStringProperty();
+    private final Property<String> version = createStringProperty();
+    private final Property<String> extension = createStringProperty();
+    private final Property<String> classifier = createProperty(String.class, "");
+    private final Property<Boolean> preserveFileTimestamps = createProperty(Boolean.class, true);
+    private final Property<Boolean> reproducibleFileOrder = createProperty(Boolean.class, false);
+
+    protected AbstractArchiveTask() {
         archiveFile.set(destinationDirectory.file(getProject().provider(new Callable<CharSequence>() {
             @Override
             public CharSequence call() {
@@ -50,14 +59,16 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
             }
         })));
     }
-    private String customName;
-    private String baseName;
-    private String appendix;
-    private String version;
-    private Property<String> extension = getProject().getObjects().property(String.class);
-    private String classifier = "";
-    private boolean preserveFileTimestamps = true;
-    private boolean reproducibleFileOrder;
+
+    private Property<String> createStringProperty() {
+        return getProject().getObjects().property(String.class);
+    }
+
+    private <T> Property<T> createProperty(final Class<T> clazz, final T defaultValue) {
+        final Property<T> prop = getProject().getObjects().property(clazz);
+        prop.set(defaultValue);
+        return prop;
+    }
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -67,8 +78,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Internal("Represented as part of archiveFile")
     public String getArchiveName() {
-        if (customName != null) {
-            return customName;
+        if (customName.isPresent()) {
+            return customName.get();
         }
         String name = GUtil.elvis(getBaseName(), "") + maybe(getBaseName(), getAppendix());
         name += maybe(name, getVersion());
@@ -83,7 +94,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param name the archive name.
      */
     public void setArchiveName(String name) {
-        customName = name;
+        customName.set(name);
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
@@ -111,15 +122,20 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * The {@link RegularFile} where the archive is constructed.
      * The path is simply the {@code destinationDir} plus the {@code archiveName}.
      *
-     * @implNote This returns a provider of {@link RegularFile} instead of {@link RegularFileProperty} in order to
-     * prevent users calling {@link org.gradle.api.provider.Property#set} and causing a plugin or users using
-     * {@link AbstractArchiveTask#getArchivePath()} to break or have strange behaviour.
-     * An example can be found <a href="https://github.com/gradle/gradle-native/issues/893#issuecomment-430776251">here</a>.
-     *
      * @return a {@link RegularFile} object with the path to the archive
      */
     @OutputFile
+    @SuppressWarnings("DanglingJavadoc")
     public Provider<RegularFile> getArchiveFile() {
+        // TODO: Turn this into an `@implSpec` annotation on the comment above:
+        // https://github.com/gradle/gradle/issues/7486
+        /**
+         * This returns a provider of {@link RegularFile} instead of {@link RegularFileProperty} in order to
+         * prevent users calling {@link org.gradle.api.provider.Property#set} and causing a plugin or users using
+         * {@link AbstractArchiveTask#getArchivePath()} to break or have strange behaviour.
+         * An example can be found
+         * <a href="https://github.com/gradle/gradle-native/issues/893#issuecomment-430776251">here</a>.
+         */
         return archiveFile;
     }
 
@@ -148,16 +164,26 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Returns the base name of the archive.
      *
-     * @return the base name.
+     * @return the base name. May be null.
      */
     @Nullable
     @Internal("Represented as part of archiveFile")
     public String getBaseName() {
-        return baseName;
+        return baseName.getOrNull();
     }
 
     public void setBaseName(@Nullable String baseName) {
-        this.baseName = baseName;
+        this.baseName.set(baseName);
+    }
+
+    /**
+     * Returns the base name of the archive.
+     *
+     * @return the base name. Internal property may be null.
+     */
+    @Internal("Represented as part of archiveFile")
+    public Property<String> getArtifactBaseName() {
+        return baseName;
     }
 
     /**
@@ -168,11 +194,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Nullable
     @Internal("Represented as part of archiveFile")
     public String getAppendix() {
-        return appendix;
+        return appendix.getOrNull();
     }
 
     public void setAppendix(@Nullable String appendix) {
-        this.appendix = appendix;
+        this.appendix.set(appendix);
     }
 
     /**
@@ -183,11 +209,21 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Nullable
     @Internal("Represented as part of archiveFile")
     public String getVersion() {
-        return version;
+        return version.getOrNull();
     }
 
     public void setVersion(@Nullable String version) {
-        this.version = version;
+        this.version.set(version);
+    }
+
+    /**
+     * Returns the version part of the archive name.
+     *
+     * @return the version. Internal property may be null.
+     */
+    @Internal("Represented as part of archiveFile")
+    public Property<String> getArchiveVersion() {
+        return this.version;
     }
 
     /**
@@ -208,7 +244,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the extension part of the archive name.
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getExt() {
+    public Property<String> getArchiveExtension() {
         return extension;
     }
 
@@ -220,11 +256,22 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Nullable
     @Internal("Represented as part of archiveFile")
     public String getClassifier() {
-        return classifier;
+        return classifier.getOrNull();
     }
 
     public void setClassifier(@Nullable String classifier) {
-        this.classifier = classifier;
+        this.classifier.set(classifier);
+    }
+
+
+    /**
+     * Returns the classifier part of the archive name, if any.
+     *
+     * @return The classifier. Internal property may be null.
+     */
+    @Internal("Represented as part of archiveFile")
+    public Property<String> getArchiveClassifier() {
+        return classifier;
     }
 
     /**
@@ -283,7 +330,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Input
     public boolean isPreserveFileTimestamps() {
-        return preserveFileTimestamps;
+        return preserveFileTimestamps.get();
     }
 
     /**
@@ -296,7 +343,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
-        this.preserveFileTimestamps = preserveFileTimestamps;
+        this.preserveFileTimestamps.set(preserveFileTimestamps);
     }
 
     /**
@@ -312,7 +359,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Input
     public boolean isReproducibleFileOrder() {
-        return reproducibleFileOrder;
+        return reproducibleFileOrder.get();
     }
     /**
      * Specifies whether to enforce a reproducible file order when reading files from directories.
@@ -326,7 +373,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
-        this.reproducibleFileOrder = reproducibleFileOrder;
+        this.reproducibleFileOrder.set(reproducibleFileOrder);
     }
 
     @Override

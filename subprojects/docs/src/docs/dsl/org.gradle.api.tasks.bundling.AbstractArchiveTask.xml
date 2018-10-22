@@ -25,11 +25,23 @@
                 <td><literal>project.archivesBaseName</literal></td>
             </tr>
             <tr>
+                <td>archiveBaseName</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>version</td>
                 <td><literal>project.version</literal></td>
             </tr>
             <tr>
+                <td>archiveVersion</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>extension</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>archiveExtension</td>
                 <td/>
             </tr>
             <tr>
@@ -39,6 +51,10 @@
             <tr>
                 <td>destinationDir</td>
                 <td><literal>project.distsDir</literal></td>
+            </tr>
+            <tr>
+                <td>destinationDirectory</td>
+                <td/>
             </tr>
             <tr>
                 <td>preserveFileTimestamps</td>

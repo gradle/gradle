@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -54,7 +55,9 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     }
 
     @Override
+    @Deprecated
     public File getDistsDir() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("distsDir");
         File curProjectBuildDir = project.getBuildDir();
         if (distsDir != null && curProjectBuildDir.equals(buildDir)) {
             return distsDir;
@@ -66,7 +69,9 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
     }
 
     @Override
+    @Deprecated
     public File getLibsDir() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("libsDir");
         File curProjectBuildDir = project.getBuildDir();
         if (libsDir != null && curProjectBuildDir.equals(buildDir)) {
             return libsDir;

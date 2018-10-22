@@ -167,7 +167,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 incrementalOptions.getAnalysisFile().set(
                     project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
                 );
-                // TODO: Replace this with Providers in Jar/AbstractArchiveTask
+
                 final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
                 if (jarTask != null) {
                     incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());

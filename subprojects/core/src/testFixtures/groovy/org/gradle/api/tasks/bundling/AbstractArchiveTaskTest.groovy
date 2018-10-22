@@ -64,7 +64,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     def "archiveName with empty extension in provider"() {
         when:
-        archiveTask.ext.set(project.provider { null })
+        archiveTask.archiveExtension.set(project.provider { null })
 
         then:
         archiveTask.archiveName == 'testbasename-testappendix-1.0-src'
