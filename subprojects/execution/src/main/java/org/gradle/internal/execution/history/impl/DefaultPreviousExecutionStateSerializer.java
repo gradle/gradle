@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -33,7 +33,7 @@ import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
 import java.util.Map;
 
-public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<PreviousExecutionState> {
+public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<AfterPreviousExecutionState> {
     private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
     private final Serializer<ValueSnapshot> valueSnapshotSerializer = new SnapshotSerializer();
@@ -43,7 +43,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
     }
 
-    public PreviousExecutionState read(Decoder decoder) throws Exception {
+    public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = OriginMetadata.fromPreviousBuild(
             UniqueId.from(decoder.readString()),
             decoder.readLong()
@@ -66,7 +66,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
         boolean successful = decoder.readBoolean();
 
-        return new DefaultPreviousExecutionState(
+        return new DefaultAfterPreviousExecutionState(
             originMetadata,
             taskImplementation,
             taskActionImplementations,
@@ -77,7 +77,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         );
     }
 
-    public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
+    public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId().asString());
         encoder.writeLong(originMetadata.getExecutionTime());

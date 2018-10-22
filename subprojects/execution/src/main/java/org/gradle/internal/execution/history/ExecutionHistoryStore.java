@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 
 public interface ExecutionHistoryStore {
     @Nullable
-    PreviousExecutionState load(String key);
+    AfterPreviousExecutionState load(String key);
 
     void store(String key,
                OriginMetadata originMetadata,

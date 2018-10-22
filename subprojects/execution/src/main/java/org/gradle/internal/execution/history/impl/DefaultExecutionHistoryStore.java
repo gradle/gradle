@@ -22,9 +22,9 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -37,7 +37,7 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final PersistentIndexedCache<String, PreviousExecutionState> store;
+    private final PersistentIndexedCache<String, AfterPreviousExecutionState> store;
 
     public DefaultExecutionHistoryStore(ExecutionHistoryCacheAccess executionHistoryCacheAccess, StringInterner stringInterner) {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
@@ -52,7 +52,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Nullable
     @Override
-    public PreviousExecutionState load(String key) {
+    public AfterPreviousExecutionState load(String key) {
         return store.get(key);
     }
 
@@ -67,7 +67,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileProperties,
         boolean successful
     ) {
-        store.put(key, new DefaultPreviousExecutionState(
+        store.put(key, new DefaultAfterPreviousExecutionState(
             originMetadata,
             implementation,
             additionalImplementations,

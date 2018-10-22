@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -29,7 +29,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
  * State of a task when it was executed.
  */
 @NonNullApi
-public class HistoricalTaskExecution extends AbstractTaskExecution implements PreviousExecutionState {
+public class HistoricalTaskExecution extends AbstractTaskExecution implements AfterPreviousExecutionState {
 
     private final boolean successful;
     private final OriginMetadata originMetadata;

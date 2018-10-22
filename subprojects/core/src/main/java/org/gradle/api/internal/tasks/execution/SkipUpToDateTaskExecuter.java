@@ -44,7 +44,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is up-to-date", task);
         final TaskArtifactState taskArtifactState = context.getTaskArtifactState();
 

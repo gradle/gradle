@@ -57,7 +57,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
         FileCollection sourceFiles = taskProperties.getSourceFiles();
         if (taskProperties.hasSourceFiles() && sourceFiles.isEmpty()) {

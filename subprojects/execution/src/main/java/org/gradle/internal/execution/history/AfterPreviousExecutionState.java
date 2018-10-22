@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 /**
  * A execution state after the previous execution has finished.
  */
-public interface PreviousExecutionState extends ExecutionState {
+public interface AfterPreviousExecutionState extends ExecutionState {
 
     /**
      * The {@link OriginMetadata} of the execution that originally produced the outputs.

@@ -25,8 +25,8 @@ import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.change.ErrorHandlingChangeContainer;
 import org.gradle.internal.change.SummarizingChangeContainer;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 
 public class DefaultExecutionStateChanges implements ExecutionStateChanges {
 
@@ -34,7 +34,7 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
     private final ChangeContainer allChanges;
     private final ChangeContainer rebuildTriggeringChanges;
 
-    public DefaultExecutionStateChanges(PreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
+    public DefaultExecutionStateChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
