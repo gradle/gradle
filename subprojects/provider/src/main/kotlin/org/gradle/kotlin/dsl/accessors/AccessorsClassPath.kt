@@ -47,8 +47,6 @@ import java.io.Closeable
 import java.io.File
 import java.io.Writer
 
-import java.util.*
-
 
 fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
     project.getOrCreateProperty("gradleKotlinDsl.projectAccessorsClassPath") {
@@ -476,23 +474,17 @@ fun TypedProjectSchema.toCacheKeyString(): String =
     (cacheKeyPartsFor(extensions)
         + cacheKeyPartsFor(conventions)
         //+ cacheKeyPartsFor(tasks) // TODO:accessors - add missing test case
-        + mapEntry("configuration", configurations.sorted().joinToString(",")))
-        .map { "${it.key}=${it.value}" }
+        //+ cacheKeyPartsFor(containerElements) // TODO:accessors - add missing test case
+        + Pair("configuration", configurations.sorted().joinToString(",")))
+        .map { "${it.first}=${it.second}" }
         .sorted()
         .joinToString(separator = ":")
 
 
 private
-fun cacheKeyPartsFor(extensions: List<ProjectSchemaEntry<SchemaType>>) =
-    extensions
-        .associateBy { "${it.target.kotlinString}.${it.name}" }
-        .mapValues { it.value.type.kotlinString }
-        .asSequence()
-
-
-private
-fun <K, V> mapEntry(key: K, value: V) =
-    AbstractMap.SimpleEntry(key, value)
+fun cacheKeyPartsFor(schemaEntries: List<ProjectSchemaEntry<SchemaType>>) =
+    schemaEntries.asSequence()
+        .map { "${it.target.kotlinString}.${it.name}" to it.type.kotlinString }
 
 
 private
