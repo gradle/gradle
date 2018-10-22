@@ -159,12 +159,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public OriginMetadata getOriginExecutionMetadata() {
-            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
-            return previousExecution == null ? null : previousExecution.getOriginMetadata();
-        }
-
-        @Override
         public void ensureSnapshotBeforeTask() {
             history.getCurrentExecution();
         }

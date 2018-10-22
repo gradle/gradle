@@ -26,7 +26,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 public interface AfterPreviousExecutionState extends ExecutionState {
 
     /**
-     * The {@link OriginMetadata} of the execution that originally produced the outputs.
+     * The ID and execution time of origin of the execution's outputs.
      */
     OriginMetadata getOriginMetadata();
 

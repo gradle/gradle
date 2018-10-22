@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.caching.internal.origin.OriginMetadata;
-
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
@@ -32,16 +30,5 @@ public interface TaskExecutionHistory {
      */
     @Nullable
     OverlappingOutputs getOverlappingOutputs();
-
-    /**
-     * The ID and execution time of origin of the tasks outputs.
-     *
-     * If the outputs were loaded from cache, the ID/time from the build that stored to cache.
-     * If the outputs were previously built locally and now reused, the ID/time from the build that built them.
-     *
-     * Null if outputs are not being reused.
-     */
-    @Nullable
-    OriginMetadata getOriginExecutionMetadata();
 
 }

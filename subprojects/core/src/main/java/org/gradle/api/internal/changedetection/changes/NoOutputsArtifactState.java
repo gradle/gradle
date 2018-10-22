@@ -124,11 +124,6 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public OriginMetadata getOriginExecutionMetadata() {
-        return null;
-    }
-
-    @Override
     public void ensureSnapshotBeforeTask() {
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,10 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             return new TaskExecuterResult() {
                 @Override
                 public OriginMetadata getOriginMetadata() {
-                    return taskArtifactState.getExecutionHistory().getOriginExecutionMetadata();
+                    AfterPreviousExecutionState afterPreviousExecution = context.getAfterPreviousExecution();
+                    return afterPreviousExecution == null
+                        ? null
+                        : afterPreviousExecution.getOriginMetadata();
                 }
             };
         }
