@@ -16,8 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Action;
+import org.gradle.api.Task;
+
 public interface BuildDependenciesVisitor {
     void visitDependency(Object dep);
+
+    /**
+     * Attach an action to run as soon as the given task completes, to perform some work before the outputs of the task are consumed by other tasks.
+     *
+     * <p>This should evolve into some mechanism to add a real node to the graph with similar behaviour, but as a first step this is simply bolted on.
+     */
+    void attachFinalizerTo(Task task, Action<? super Task> action);
 
     void visitFailure(Throwable failure);
 }

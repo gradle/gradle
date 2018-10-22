@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
-public interface BuildableSingleResolvedArtifactSet extends ResolvedArtifactSet, Buildable {
+public interface BuildableSingleResolvedArtifactSet extends ResolvedArtifactSet {
     ComponentArtifactIdentifier getArtifactId();
 }

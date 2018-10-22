@@ -54,6 +54,9 @@
             <tr>
                 <td>flatDir</td>
             </tr>
+            <tr>
+                <td>gradlePluginPortal</td>
+            </tr>
         </table>
     </section>
 </section>

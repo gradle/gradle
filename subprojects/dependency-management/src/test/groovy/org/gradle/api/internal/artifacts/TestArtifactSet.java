@@ -80,6 +80,10 @@ public class TestArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
+        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        }
+
+        @Override
         public ComponentArtifactIdentifier getId() {
             return artifact.getId();
         }
