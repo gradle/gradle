@@ -106,7 +106,7 @@ fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
 /**
  * Writes the given [header] to the class file as a [kotlin.Metadata] annotation.
  **/
-internal
+private
 fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
     visitAnnotation("Lkotlin/Metadata;", true).run {
         visit("mv", header.metadataVersion)
@@ -256,7 +256,7 @@ fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignatur
     JvmMethodSignature("get${propertyName.capitalize()}", desc)
 
 
-internal
+private
 val readOnlyPropertyFlags = flagsOf(
     Flag.IS_PUBLIC,
     Flag.Property.HAS_GETTER,
@@ -264,7 +264,7 @@ val readOnlyPropertyFlags = flagsOf(
 )
 
 
-internal
+private
 val inlineGetterFlags = flagsOf(
     Flag.IS_PUBLIC,
     Flag.PropertyAccessor.IS_NOT_DEFAULT,
