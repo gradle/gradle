@@ -28,18 +28,18 @@ import java.io.File;
 
 import static org.gradle.util.GFileUtils.mkdirs;
 
-public class CreateOutputsStep implements DirectExecutionStep {
+public class CreateOutputsStep<C extends Context> implements Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateOutputsStep.class);
 
-    private final DirectExecutionStep delegate;
+    private final Step<? super C> delegate;
 
-    public CreateOutputsStep(DirectExecutionStep delegate) {
+    public CreateOutputsStep(Step<? super C> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public ExecutionResult execute(UnitOfWork work) {
-        work.visitOutputs(new UnitOfWork.OutputVisitor() {
+    public ExecutionResult execute(C context) {
+        context.getWork().visitOutputs(new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutput(String name, OutputType type, FileCollection roots) {
                 for (File outputRoot : roots) {
@@ -47,7 +47,7 @@ public class CreateOutputsStep implements DirectExecutionStep {
                 }
             }
         });
-        return delegate.execute(work);
+        return delegate.execute(context);
     }
 
     private static void ensureOutput(String name, @Nullable File outputRoot, OutputType type) {

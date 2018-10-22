@@ -17,8 +17,7 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.internal.execution.ExecutionResult;
-import org.gradle.internal.execution.UnitOfWork;
 
-public interface DirectExecutionStep {
-    ExecutionResult execute(UnitOfWork work);
+public interface Step<C extends Context> {
+    ExecutionResult execute(C context);
 }

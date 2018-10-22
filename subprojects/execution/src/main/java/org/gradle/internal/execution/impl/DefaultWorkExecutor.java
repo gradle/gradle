@@ -19,17 +19,23 @@ package org.gradle.internal.execution.impl;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.impl.steps.DirectExecutionStep;
+import org.gradle.internal.execution.impl.steps.Context;
+import org.gradle.internal.execution.impl.steps.Step;
 
 public class DefaultWorkExecutor implements WorkExecutor {
-    private final DirectExecutionStep executeStep;
+    private final Step<? super Context> executeStep;
 
-    public DefaultWorkExecutor(DirectExecutionStep executeStep) {
+    public DefaultWorkExecutor(Step<Context> executeStep) {
         this.executeStep = executeStep;
     }
 
     @Override
     public ExecutionResult execute(UnitOfWork work) {
-        return executeStep.execute(work);
+        return executeStep.execute(new Context() {
+            @Override
+            public UnitOfWork getWork() {
+                return work;
+            }
+        });
     }
 }

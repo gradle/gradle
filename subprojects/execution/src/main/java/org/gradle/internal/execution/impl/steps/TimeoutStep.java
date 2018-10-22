@@ -26,33 +26,34 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import java.time.Duration;
 import java.util.Optional;
 
-public class TimeoutStep implements DirectExecutionStep {
+public class TimeoutStep<C extends Context> implements Step<C> {
     private final TimeoutHandler timeoutHandler;
-    private final DirectExecutionStep delegate;
+    private final Step<? super C> delegate;
 
-    public TimeoutStep(TimeoutHandler timeoutHandler, DirectExecutionStep delegate) {
+    public TimeoutStep(TimeoutHandler timeoutHandler, Step<? super C> delegate) {
         this.timeoutHandler = timeoutHandler;
         this.delegate = delegate;
     }
 
     @Override
-    public ExecutionResult execute(UnitOfWork work) {
+    public ExecutionResult execute(C context) {
+        UnitOfWork work = context.getWork();
         Optional<Duration> timeoutProperty = work.getTimeout();
         if (timeoutProperty.isPresent()) {
             Duration timeout = timeoutProperty.get();
             if (timeout.isNegative()) {
                 throw new InvalidUserDataException("Timeout of " + work.getDisplayName() + " must be positive, but was " + timeout.toString().substring(2));
             } else {
-                return executeWithTimeout(work, timeout);
+                return executeWithTimeout(context, timeout);
             }
         } else {
-            return delegate.execute(work);
+            return executeWithoutTimeout(context);
         }
     }
 
-    private ExecutionResult executeWithTimeout(UnitOfWork work, Duration timeout) {
+    private ExecutionResult executeWithTimeout(C context, Duration timeout) {
         Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout);
-        ExecutionResult result = delegate.execute(work);
+        ExecutionResult result = executeWithoutTimeout(context);
 
         taskTimeout.stop();
         if (taskTimeout.timedOut()) {
@@ -62,5 +63,9 @@ public class TimeoutStep implements DirectExecutionStep {
         }
 
         return result;
+    }
+
+    private ExecutionResult executeWithoutTimeout(C context) {
+        return delegate.execute(context);
     }
 }
