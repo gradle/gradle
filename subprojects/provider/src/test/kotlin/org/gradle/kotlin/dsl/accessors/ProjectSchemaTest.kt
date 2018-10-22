@@ -14,6 +14,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+
+import java.net.URLClassLoader
+
 
 @Suppress("unused")
 class PublicGenericType<T>
@@ -79,7 +84,7 @@ class ProjectSchemaTest : TestWithClassPath() {
 
         val classPath = classPathWithPublicType(typeString)
         classLoaderFor(classPath).useToRun {
-            val type = SchemaType(TypeOf.typeOf(loadClass(typeString)))
+            val type = schemaTypeFor(typeString)
             val projectSchema = availableProjectSchemaFor(
                 schemaWithExtensions("buildScan" to type),
                 classPath
@@ -95,146 +100,110 @@ class ProjectSchemaTest : TestWithClassPath() {
     @Test
     fun `private type is represented as Inaccessible because NonPublic`() {
 
-//        val typeString = "non.visible.Type"
-//
-//        val classPath = classPathWithPrivateType(typeString)
-//        val projectSchema = availableProjectSchemaFor(
-//            schemaWithExtensions("buildScan" to typeString),
-//            classPath
-//        )
-//
-//        assertThat(
-//            projectSchema.extension("buildScan").type,
-//            equalTo(inaccessible(typeString, nonPublic(typeString)))
-//        )
+        val typeString = "non.visible.Type"
+
+        val classPath = classPathWithPrivateType(typeString)
+        classLoaderFor(classPath).useToRun {
+            val type = schemaTypeFor(typeString)
+            val projectSchema = availableProjectSchemaFor(
+                schemaWithExtensions("buildScan" to type),
+                classPath
+            )
+
+            assertThat(
+                projectSchema.extension("buildScan").type,
+                equalTo(inaccessible(type, nonPublic(typeString)))
+            )
+        }
     }
 
     @Test
     fun `public synthetic type is represented as Inaccessible because Synthetic`() {
 
-//        val typeString = "synthetic.Type"
-//
-//        val projectSchema = availableProjectSchemaFor(
-//            schemaWithExtensions("buildScan" to typeString),
-//            classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC))
-//
-//        assertThat(
-//            projectSchema.extension("buildScan").type,
-//            equalTo(inaccessible(typeString, synthetic(typeString))))
+        val typeString = "synthetic.Type"
+
+        val classPath = classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC)
+        classLoaderFor(classPath).useToRun {
+            val type = schemaTypeFor(typeString)
+            val projectSchema = availableProjectSchemaFor(
+                schemaWithExtensions("buildScan" to type),
+                classPath
+            )
+
+            assertThat(
+                projectSchema.extension("buildScan").type,
+                equalTo(inaccessible(type, synthetic(typeString)))
+            )
+        }
     }
 
     @Test
     fun `parameterized public type with public component type is represented as Accessible`() {
 
-//        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
-//
-//        val projectSchema = availableProjectSchemaFor(
-//            schemaWithExtensions("generic" to genericTypeString),
-//            classPathWith(PublicGenericType::class, PublicComponentType::class))
-//
-//        assertThat(
-//            projectSchema.extension("generic").type,
-//            equalTo(accessible(genericTypeString)))
+        val genericType = SchemaType.of<PublicGenericType<PublicComponentType>>()
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericType),
+            classPathWith(PublicGenericType::class, PublicComponentType::class)
+        )
+
+        assertThat(
+            projectSchema.extension("generic").type,
+            equalTo(accessible(genericType))
+        )
     }
 
     @Test
     fun `parameterized public type with non public component type is represented as Inaccessible because of NonPublic component type`() {
 
-//        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PrivateComponentType>>())
-//
-//        val projectSchema = availableProjectSchemaFor(
-//            schemaWithExtensions("generic" to genericTypeString),
-//            classPathWith(PublicGenericType::class, PrivateComponentType::class))
-//
-//        assertThat(
-//            projectSchema.extension("generic").type,
-//            equalTo(inaccessible(genericTypeString, nonPublic(PrivateComponentType::class.qualifiedName!!))))
+        val genericType = SchemaType.of<PublicGenericType<PrivateComponentType>>()
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericType),
+            classPathWith(PublicGenericType::class, PrivateComponentType::class)
+        )
+
+        assertThat(
+            projectSchema.extension("generic").type,
+            equalTo(inaccessible(genericType, nonPublic(PrivateComponentType::class.qualifiedName!!)))
+        )
     }
 
     @Test
     fun `parameterized public type with non existing component type is represented as Inaccessible because of NonAvailable component type`() {
 
-//        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
-//
-//        val projectSchema = availableProjectSchemaFor(
-//            schemaWithExtensions("generic" to genericTypeString),
-//            classPathWith(PublicGenericType::class))
-//
-//        assertThat(
-//            projectSchema.extension("generic").type,
-//            equalTo(inaccessible(genericTypeString, nonAvailable(PublicComponentType::class.qualifiedName!!))))
+        val genericType = SchemaType.of<PublicGenericType<PublicComponentType>>()
+
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericType),
+            classPathWith(PublicGenericType::class)
+        )
+
+        assertThat(
+            projectSchema.extension("generic").type,
+            equalTo(inaccessible(genericType, nonAvailable(PublicComponentType::class.qualifiedName!!)))
+        )
     }
 
     @Test
     fun `public type from jar is represented as Accessible`() {
-//
-//        val genericTypeString = kotlinTypeStringFor(typeOf<PublicGenericType<PublicComponentType>>())
-//
-//        val projectSchema = availableProjectSchemaFor(
-//            schemaWithExtensions("generic" to genericTypeString),
-//            jarClassPathWith(PublicGenericType::class, PublicComponentType::class))
-//
-//        assertThat(
-//            projectSchema.extension("generic").type,
-//            equalTo(accessible(genericTypeString)))
-    }
 
-    @Test
-    fun `#groupedByTarget`() {
+        val genericType = SchemaType.of<PublicGenericType<PublicComponentType>>()
 
-        val schema =
-            ProjectSchema(
-                extensions = listOf(
-                    ProjectSchemaEntry("Project", "ext", "Ext"),
-                    ProjectSchemaEntry("Project", "java", "Java"),
-                    ProjectSchemaEntry("Task", "ext", "Ext")
-                ),
-                conventions = listOf(
-                    ProjectSchemaEntry("Project", "base", "Base"),
-                    ProjectSchemaEntry("Task", "meta", "Meta")
-                ),
-                tasks = emptyList(),
-                containerElements = emptyList(),
-                configurations = listOf(
-                    "api",
-                    "implementation"
-                )
-            )
-
-        val groupedSchema =
-            schema.groupedByTarget()
+        val projectSchema = availableProjectSchemaFor(
+            schemaWithExtensions("generic" to genericType),
+            jarClassPathWith(PublicGenericType::class, PublicComponentType::class)
+        )
 
         assertThat(
-            groupedSchema,
-            equalTo(
-                mapOf(
-                    "Project" to ProjectSchema(
-                        extensions = listOf(
-                            ProjectSchemaEntry("Project", "ext", "Ext"),
-                            ProjectSchemaEntry("Project", "java", "Java")
-                        ),
-                        conventions = listOf(
-                            ProjectSchemaEntry("Project", "base", "Base")
-                        ),
-                        tasks = emptyList(),
-                        containerElements = emptyList(),
-                        configurations = emptyList()
-                    ),
-
-                    "Task" to ProjectSchema(
-                        extensions = listOf(
-                            ProjectSchemaEntry("Task", "ext", "Ext")
-                        ),
-                        conventions = listOf(
-                            ProjectSchemaEntry("Task", "meta", "Meta")
-                        ),
-                        tasks = emptyList(),
-                        containerElements = emptyList(),
-                        configurations = emptyList()
-                    )
-                )
-            )
+            projectSchema.extension("generic").type,
+            equalTo(accessible(genericType))
         )
+    }
+
+    private
+    fun URLClassLoader.schemaTypeFor(typeString: String): SchemaType {
+        return SchemaType(TypeOf.typeOf<Any?>(loadClass(typeString)))
     }
 
     private
