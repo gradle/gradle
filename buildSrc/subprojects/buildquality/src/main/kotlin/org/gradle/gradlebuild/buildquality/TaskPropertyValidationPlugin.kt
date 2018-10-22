@@ -82,6 +82,7 @@ fun Project.addValidateTask() =
                 // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
                 outputFile.set(reporting.baseDirectory.file(reportFileName))
                 failOnWarning = true
+                enableStricterValidation = true
             }
             tasks.named("codeQuality").configure {
                 dependsOn(validateTask)

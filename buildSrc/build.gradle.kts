@@ -74,6 +74,7 @@ subprojects {
 
     tasks.withType<ValidateTaskProperties> {
         failOnWarning = true
+        enableStricterValidation = true
     }
 }
 
