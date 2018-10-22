@@ -33,10 +33,6 @@ class WriterThread : AutoCloseable {
     val thread = thread(name = "kotlin-dsl-writer") {
         loop@ while (true) {
             when (val command = q.take()) {
-                is Command.WriteFile -> command.run {
-                    file.parentFile.mkdirs()
-                    write(file)
-                }
                 is Command.Execute -> command.action()
                 Command.Quit -> break@loop
             }
@@ -44,15 +40,7 @@ class WriterThread : AutoCloseable {
     }
 
     fun writeFile(file: File, bytes: ByteArray) {
-        writeFile(file) { writeBytes(bytes) }
-    }
-
-    fun writeFile(file: File, text: String) {
-        writeFile(file) { writeText(text) }
-    }
-
-    fun writeFile(file: File, write: File.() -> Unit) {
-        q.put(Command.WriteFile(file, write))
+        execute { file.writeBytes(bytes) }
     }
 
     fun execute(action: () -> Unit) {
@@ -66,8 +54,6 @@ class WriterThread : AutoCloseable {
 
     private
     sealed class Command {
-
-        class WriteFile(val file: File, val write: File.() -> Unit) : Command()
 
         class Execute(val action: () -> Unit) : Command()
 

@@ -31,7 +31,9 @@ import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
 
+import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 import java.io.File
 
@@ -81,6 +83,17 @@ fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray =
 internal
 fun moduleFileFor(baseDir: File, moduleName: String = baseDir.name) =
     baseDir.resolve("META-INF").resolve("$moduleName.kotlin_module")
+
+
+internal
+fun ClassVisitor.publicStaticMethod(
+    jvmMethodSignature: JvmMethodSignature,
+    signature: String? = null,
+    exceptions: Array<String>? = null,
+    methodBody: MethodVisitor.() -> Unit
+) = jvmMethodSignature.run {
+    publicStaticMethod(name, desc, signature, exceptions, methodBody)
+}
 
 
 /**

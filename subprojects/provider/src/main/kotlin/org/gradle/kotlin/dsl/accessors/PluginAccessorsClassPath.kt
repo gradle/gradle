@@ -101,12 +101,13 @@ fun buildPluginAccessorsFor(
     val pluginSpecs = pluginSpecsFrom(pluginDescriptorsClassPath)
     val pluginTrees = PluginTree.of(pluginSpecs)
     val accessorList = pluginAccessorsFor(pluginTrees).toList()
-    val baseFileName = "org/gradle/kotlin/dsl/PluginAccessors"
+    val baseFileName = "$packagePath/PluginAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
     WriterThread().use { writer ->
 
         writer.execute {
+            makeAccessorOutputDirs(srcDir, binDir)
             writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
         }
 
@@ -157,7 +158,7 @@ fun buildPluginAccessorsFor(
 
 private
 fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMethodSignature) {
-    publicStaticMethod(signature.name, signature.desc) {
+    publicStaticMethod(signature) {
         val extension = accessor.extension
         val receiverType = extension.receiverType
         when (accessor) {
@@ -182,7 +183,7 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
 
 private
 fun writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: Iterable<PluginAccessor>) {
-    sourceFile.apply { parentFile.mkdirs() }.bufferedWriter().useToRun {
+    sourceFile.bufferedWriter().useToRun {
         appendln(fileHeader)
         appendln("""
             import ${PluginDependenciesSpec::class.qualifiedName}
@@ -317,7 +318,7 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
 
 internal
 fun typeSpecForPluginGroupType(groupType: String) =
-    TypeSpec(groupType, InternalName("org/gradle/kotlin/dsl/$groupType"))
+    TypeSpec(groupType, InternalName("$packagePath/$groupType"))
 
 
 internal

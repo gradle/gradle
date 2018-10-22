@@ -121,6 +121,10 @@ object AccessorBytecodeEmitter {
         binDir: File
     ): List<InternalName> = WriterThread().use { writer ->
 
+        writer.execute {
+            makeAccessorOutputDirs(srcDir, binDir)
+        }
+
         val emittedClassNames = accessorsFor(projectSchema).unorderedParallelMap { accessor ->
 
             val (className, fragments) =
@@ -143,8 +147,8 @@ object AccessorBytecodeEmitter {
             }
 
             val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-            writer.writeFile(sourceFile) {
-                writeAccessorsTo(this, sourceCode.asSequence())
+            writer.execute {
+                writeAccessorsTo(sourceFile, sourceCode.asSequence())
             }
 
             val classHeader = metadataWriter.closeHeader()
@@ -166,11 +170,12 @@ object AccessorBytecodeEmitter {
         emittedClassNames
     }
 
+
     private
     fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
         val propertyName = name.original
-        val className = InternalName("org/gradle/kotlin/dsl/${propertyName.capitalize()}ConfigurationAccessorsKt")
+        val className = InternalName("$packagePath/${propertyName.capitalize()}ConfigurationAccessorsKt")
 
         className to sequenceOf(
             AccessorFragment(
@@ -761,7 +766,7 @@ object AccessorBytecodeEmitter {
 
     private
     fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
-        InternalName("org/gradle/kotlin/dsl/Accessors${hashOf(accessorSpec)}Kt")
+        InternalName("$packagePath/Accessors${hashOf(accessorSpec)}Kt")
 
     private
     fun MethodVisitor.invokeDependencyHandlerAdd() {
@@ -825,6 +830,18 @@ object AccessorBytecodeEmitter {
     fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =
         "(L$receiverType;)L$returnType;"
 }
+
+
+internal
+fun makeAccessorOutputDirs(srcDir: File, binDir: File) {
+    srcDir.resolve(packagePath).mkdirs()
+    binDir.resolve(packagePath).mkdirs()
+    binDir.resolve("META-INF").mkdir()
+}
+
+
+internal
+const val packagePath = "org/gradle/kotlin/dsl"
 
 
 private
@@ -923,17 +940,6 @@ fun ClassVisitor.publicStaticSyntheticMethod(
     signature.desc,
     methodBody = methodBody
 )
-
-
-private
-fun ClassVisitor.publicStaticMethod(
-    jvmMethodSignature: JvmMethodSignature,
-    signature: String? = null,
-    exceptions: Array<String>? = null,
-    methodBody: MethodVisitor.() -> Unit
-) = jvmMethodSignature.run {
-    publicStaticMethod(name, desc, signature, exceptions, methodBody)
-}
 
 
 private
