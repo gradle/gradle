@@ -84,7 +84,6 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 )
             )
 
-        // when:
         val function0 = mock<() -> Unit>()
         val function1 = mock<(String) -> Unit>()
         val function2 = mock<(Int, Double) -> Boolean>()
@@ -96,6 +95,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val project = mock<Project> {
             on { getExtensions() } doReturn extensions
         }
+
+        // when:
         evalWithAccessorsFor(
             schema = schema,
             target = project,
@@ -107,9 +108,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         )
 
         // then:
-        inOrder(project, extensions) {
+        inOrder(extensions) {
             verify(extensions).getByName("function0")
             verify(extensions).getByName("function1")
+            verify(extensions).getByName("function2")
         }
     }
 
