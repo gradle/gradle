@@ -377,12 +377,12 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         assertSingleFileSnapshot(snapshots)
 
         when:
-        def tgzDir = tmpDir.createDir('tgzFile')
+        def tgzDir = tmpDir.createDir('tgzDir')
         TestFile tgz = tempDir.file('emptyArchive.tgz');
         tgzDir.tgzTo(tgz)
         def localResource = new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz));
-        def emtpyBzipTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
-        snapshots = snapshotter.snapshot(emtpyBzipTree)
+        def emtpyTgzTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(localResource)
+        snapshots = snapshotter.snapshot(emtpyTgzTree)
 
         then:
         assertSingleFileSnapshot(snapshots)
@@ -391,29 +391,29 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def readableResource = new ReadableResource() {
             @Override
             InputStream read() throws MissingResourceException, ResourceException {
-                return file.newInputStream()
+                return tgz.newInputStream()
             }
 
             @Override
             String getDisplayName() {
-                return "Some file based resource"
+                return tgz.getName()
             }
 
             @Override
             URI getURI() {
-                return file.toURI()
+                return tgz.toURI()
             }
 
             @Override
             String getBaseName() {
-                return file.getName()
+                return tgz.getName()
             }
         };
         def recourceTarTree = TestFiles.fileOperations(tempDir, testFileProvider()).tarTree(readableResource)
         snapshots = snapshotter.snapshot(recourceTarTree)
 
         then:
-        snapshots.size() == 0
+        assertSingleFileSnapshot(snapshots)
     }
 
     private TemporaryFileProvider testFileProvider() {
