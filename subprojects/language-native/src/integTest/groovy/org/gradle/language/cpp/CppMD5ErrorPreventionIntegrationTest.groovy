@@ -16,24 +16,38 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.AppElement
+import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.test.fixtures.file.TestFile
 
-import groovy.ui.SystemOutputInterceptor
-
 class CppMD5ErrorPreventionIntegrationTest extends AbstractInstalledToolChainIntegrationSpec  implements CppTaskNames {
-	
+
 	private static final String APP = 'md5'
 
-    TestFile mainSourceFile
-    TestFile mainHeaderFile
+	TestFile mainSourceFile
+	TestFile mainHeaderFile
 	String sourceType = "cpp"
-	
+
 	def out = installation("build/install/main/debug")
 	def projectTasks = tasks(APP)
- 
-	def setup() {
+
+	def "compile source and header"() {
+		given:
+		settingsFile << "rootProject.name='md5'"
+		
+		and:
+        def app  = new CppSimpleMain()
+		app.writeToProject(testDirectory)
+
+		and:
+		mainHeaderFile = file("list/main.h") << """
+			#pragma once
+			#define SAY_SOMETHING "Hello World!!"
+        """
+
+		and:
 		buildFile << """
 			plugins {
 			    id 'cpp-application'
@@ -48,12 +62,16 @@ class CppMD5ErrorPreventionIntegrationTest extends AbstractInstalledToolChainInt
 			    macros.put('EXTERNAL_HEADER', '<list/main.h>')
 			}
 		"""
-		settingsFile << """
-            rootProject.name = 'test'
-            include 'library', 'app'
-        """
 
-		mainSourceFile = file("list/main.cpp") << """
+		expect:
+		succeeds "build"
+		//result.assertTasksExecuted(compileTasks(debug), ":build")
+	}
+}
+
+class CppSimpleMain extends SourceFileElement implements AppElement {
+
+	final SourceFile sourceFile = sourceFile("list", "main.cpp", """
 			#include EXTERNAL_HEADER
 			#include <iostream>
 			
@@ -61,35 +79,13 @@ class CppMD5ErrorPreventionIntegrationTest extends AbstractInstalledToolChainInt
 				std::cout << SAY_SOMETHING << std::endl;
 				return 0;
 			}
-			
-        """
-
-		mainHeaderFile = file("list/main.h") << """
-			#pragma once
-			#define SAY_SOMETHING "Hello World!!"
-        """
+    """
+	)
+	
+	@Override
+	String getExpectedOutput() {
+		return "Hello World!!"
 	}
 
-	
-    def "can prevent md5 error when snapshotshotting source dir includes root dir"() {
-	
-		for(String s: projectTasks) {
-			System.out.println ("########  TASKS  #################")
-			System.out.println (s)
-		}
-
-		given:
-		run 'build'
-
-		expect:
-		for(String s: result.getExecutedTasks()) {
-			System.out.println ("###########  EXECUTED TASKS  ##################")
-			System.out.println (s)
-		}
-		for (TestFile tf :out.getLibraryFiles() ) {
-			System.out.println ("###########  LIBRARY FILES  ##################")
-			System.out.println(tf.md5())
-		}
-
-    }
 }
+
