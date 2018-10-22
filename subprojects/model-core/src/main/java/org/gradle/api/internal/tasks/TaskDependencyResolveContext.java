@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
+import javax.annotation.Nullable;
+
 public interface TaskDependencyResolveContext {
     /**
      * Adds an object that can contribute tasks to the result. Supported types:
@@ -59,5 +61,6 @@ public interface TaskDependencyResolveContext {
     /**
      * Returns the task whose dependencies are being visited.
      */
+    @Nullable
     Task getTask();
 }
