@@ -42,7 +42,8 @@ class NamedDomainObjectCollectionExtensionsTest {
         }
         assertThat(
             container.withType<DomainObject>().named("domainObject").get(),
-            sameInstance(element))
+            sameInstance(element)
+        )
     }
 
     @Test
@@ -160,7 +161,8 @@ class NamedDomainObjectCollectionExtensionsTest {
         }
         assertThat(
             container["domainObject"],
-            sameInstance(element))
+            sameInstance(element)
+        )
     }
 
     @Test
@@ -174,15 +176,9 @@ class NamedDomainObjectCollectionExtensionsTest {
 
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
             on { named("foo", DomainObject::class.java) } doReturn fooProvider
-            on { named(eq("foo"), eq(DomainObject::class.java), any<Action<DomainObject>>()) } doAnswer {
-                fooProvider.configure(it.getArgument(2))
-                fooProvider
-            }
+            onNamedWithAction("foo", DomainObject::class, fooProvider)
             on { named("bar", DomainObject::class.java) } doReturn barProvider
-            on { named(eq("bar"), eq(DomainObject::class.java), any<Action<DomainObject>>()) } doAnswer {
-                barProvider.configure(it.getArgument(2))
-                barProvider
-            }
+            onNamedWithAction("bar", DomainObject::class, barProvider)
             on { getByName("foo") } doReturn fooObject
             on { getByName("bar") } doReturn barObject
         }
@@ -613,3 +609,12 @@ inline fun <reified T : Any> mockDomainObjectProviderFor(domainObject: T): Named
             it.getArgument<Action<T>>(0).execute(domainObject)
         }
     }
+
+
+internal
+fun <T : Any, U : T> KStubbing<NamedDomainObjectContainer<T>>.onNamedWithAction(name: String, type: KClass<U>, provider: NamedDomainObjectProvider<U>) {
+    on { named(eq(name), eq(type.java), any<Action<U>>()) } doAnswer {
+        provider.configure(it.getArgument(2))
+        provider
+    }
+}
