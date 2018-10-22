@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -48,7 +49,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         Timer clock = Time.startTimer();
         TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
         context.setTaskProperties(taskProperties);
@@ -59,7 +60,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         outputs.setHistory(taskArtifactState.getExecutionHistory());
         LOGGER.debug("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
         try {
-            executer.execute(task, state, context);
+            return executer.execute(task, state, context);
         } finally {
             outputs.setHistory(null);
             context.setTaskArtifactState(null);

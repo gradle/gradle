@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.MutatingTaskExecuter;
+import org.gradle.api.internal.tasks.MutatingTaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
@@ -64,7 +65,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
     }
 
     @Override
-    public Result execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public MutatingTaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskProperties taskProperties = context.getTaskProperties();
@@ -98,8 +99,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
                     if (result != null) {
                         final OriginMetadata originMetadata = result.getOriginMetadata();
                         state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
-                        context.setOriginMetadata(originMetadata);
-                        return new Result() {
+                        return new MutatingTaskExecuterResult() {
                             @Override
                             public OriginMetadata getOriginMetadata() {
                                 return originMetadata;
@@ -124,7 +124,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
             }
         }
 
-        Result result = delegate.execute(task, state, context);
+        MutatingTaskExecuterResult result = delegate.execute(task, state, context);
 
         if (taskOutputCachingEnabled) {
             if (state.getFailure() == null) {

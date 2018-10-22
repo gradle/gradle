@@ -29,6 +29,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
@@ -653,8 +654,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def serviceRegistry = project.services
         new ResolveTaskArtifactStateTaskExecuter(repository, serviceRegistry.get(PathToFileResolver), serviceRegistry.get(PropertyWalker), new TaskExecuter() {
             @Override
-            void execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
+            TaskExecuterResult execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
                 state = context.getTaskArtifactState()
+                return Mock(TaskExecuterResult)
             }
         }).execute(task, null, new DefaultTaskExecutionContext())
         return state

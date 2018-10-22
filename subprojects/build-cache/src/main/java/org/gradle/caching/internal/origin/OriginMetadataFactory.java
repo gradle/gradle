@@ -112,7 +112,7 @@ public class OriginMetadataFactory {
 
                 UniqueId originBuildInvocationId = UniqueId.from(properties.getProperty(BUILD_INVOCATION_ID_KEY));
                 long originalExecutionTime = Long.parseLong(properties.getProperty(EXECUTION_TIME_KEY));
-                return new OriginMetadata(originBuildInvocationId, originalExecutionTime);
+                return OriginMetadata.fromPreviousBuild(originBuildInvocationId, originalExecutionTime);
             }
         };
     }

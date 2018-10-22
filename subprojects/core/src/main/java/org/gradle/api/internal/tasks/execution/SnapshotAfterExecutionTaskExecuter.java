@@ -19,7 +19,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.tasks.MutatingTaskExecuter;
+import org.gradle.api.internal.tasks.MutatingTaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -36,13 +38,14 @@ public class SnapshotAfterExecutionTaskExecuter implements TaskExecuter {
         this.delegate = delegate;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        MutatingTaskExecuter.Result result = delegate.execute(task, state, context);
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        MutatingTaskExecuterResult result = delegate.execute(task, state, context);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getTaskArtifactState().persistNewOutputs(
             finalOutputs,
             state.getFailure() == null,
             result.getOriginMetadata());
         outputFilesRepository.recordOutputs(finalOutputs.values());
+        return result;
     }
 }

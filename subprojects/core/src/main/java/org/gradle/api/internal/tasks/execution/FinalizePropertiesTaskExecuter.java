@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -35,13 +36,13 @@ public class FinalizePropertiesTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (TaskPropertySpec property : taskProperties.getProperties()) {
             property.prepareValue();
         }
         try {
-            taskExecuter.execute(task, state, context);
+            return taskExecuter.execute(task, state, context);
         } finally {
             for (TaskPropertySpec property : taskProperties.getProperties()) {
                 property.cleanupValue();

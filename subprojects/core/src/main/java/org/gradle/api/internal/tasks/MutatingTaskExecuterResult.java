@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskInternal;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-public interface MutatingTaskExecuter {
-    /**
-     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
-     * state.
-     */
-    MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
+import javax.annotation.Nonnull;
 
+public interface MutatingTaskExecuterResult extends TaskExecuterResult {
+    @Nonnull
+    @Override
+    OriginMetadata getOriginMetadata();
+
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 }

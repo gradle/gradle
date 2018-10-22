@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (taskOutputCacheEnabled) {
             TaskOutputCachingState taskOutputCachingState = task.getOutputs().getCachingState(context.getTaskProperties(), context.getBuildCacheKey());
             state.setTaskOutputCaching(taskOutputCachingState);
@@ -46,6 +47,6 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
         } else {
             state.setTaskOutputCaching(DefaultTaskOutputs.DISABLED);
         }
-        delegate.execute(task, state, context);
+        return delegate.execute(task, state, context);
     }
 }

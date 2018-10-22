@@ -97,7 +97,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 CurrentTaskExecution execution = getCurrentExecution();
                 executionHistoryStore.store(
                     task.getPath(),
-                    originMetadata,
+                    OriginMetadata.fromPreviousBuild(originMetadata.getBuildInvocationId(), originMetadata.getExecutionTime()),
                     execution.getImplementation(),
                     execution.getAdditionalImplementations(),
                     execution.getInputProperties(),

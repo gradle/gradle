@@ -44,7 +44,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     }
 
     public PreviousExecutionState read(Decoder decoder) throws Exception {
-        OriginMetadata originMetadata = new OriginMetadata(
+        OriginMetadata originMetadata = OriginMetadata.fromPreviousBuild(
             UniqueId.from(decoder.readString()),
             decoder.readLong()
         );

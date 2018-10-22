@@ -19,13 +19,17 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.CallableBuildOperation;
+
+import javax.annotation.Nullable;
 
 public class EventFiringTaskExecuter implements TaskExecuter {
 
@@ -40,15 +44,17 @@ public class EventFiringTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
+        return buildOperationExecutor.call(new CallableBuildOperation<TaskExecuterResult>() {
+            @Nullable
             @Override
-            public void run(BuildOperationContext operationContext) {
+            public TaskExecuterResult call(BuildOperationContext operationContext) {
                 taskExecutionListener.beforeExecute(task);
 
-                delegate.execute(task, state, context);
+                TaskExecuterResult result = delegate.execute(task, state, context);
                 // Make sure we set the result even if listeners fail to execute
-                operationContext.setResult(new ExecuteTaskBuildOperationResult(state, context));
+                //
+                operationContext.setResult(new ExecuteTaskBuildOperationResult(state, context, findPreviousOriginMetadata(result)));
 
                 // If this fails, it masks the task failure.
                 // It should addSuppressed() the task failure if there was one.
@@ -56,6 +62,18 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
                 operationContext.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
                 operationContext.failed(state.getFailure());
+                return result;
+            }
+
+            @Nullable
+            private OriginMetadata findPreviousOriginMetadata(@Nullable TaskExecuterResult result) {
+                if (result != null) {
+                    OriginMetadata originMetadata = result.getOriginMetadata();
+                    if (originMetadata != null && !originMetadata.isProducedByCurrentBuild()) {
+                        return originMetadata;
+                    }
+                }
+                return null;
             }
 
             @Override

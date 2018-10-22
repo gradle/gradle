@@ -50,7 +50,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final outputChangeListener = Mock(OutputChangeListener)
     final buildInvocationId = UniqueId.generate()
     final taskExecutionTime = 1L
-    final originExecutionMetadata = new OriginMetadata(buildInvocationId, taskExecutionTime)
+    final originExecutionMetadata = OriginMetadata.fromCurrentBuild(buildInvocationId, taskExecutionTime)
     final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, outputChangeListener, target, new BuildInvocationScopeId(buildInvocationId))
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {

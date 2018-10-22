@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.caching.internal.origin.OriginMetadata;
 
-public interface MutatingTaskExecuter {
-    /**
-     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
-     * state.
-     */
-    MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
+import javax.annotation.Nullable;
 
+public interface TaskExecuterResult {
+    @Nullable
+    OriginMetadata getOriginMetadata();
 }

@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.MutatingTaskExecuter;
+import org.gradle.api.internal.tasks.MutatingTaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
@@ -82,7 +83,7 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     }
 
     @Override
-    public Result execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         ExecutionResult result = workExecutor.execute(new TaskExecution(task, context));
         switch (result.getOutcome()) {
             case FAILED:
@@ -108,9 +109,9 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
             default:
                 throw new AssertionError();
         }
-        final OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.getId(), context.markExecutionTime());
+        final OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId.getId(), context.markExecutionTime());
         final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = context.getTaskArtifactState().snapshotAfterTaskExecution(context);
-        return new Result() {
+        return new MutatingTaskExecuterResult() {
             @Override
             public OriginMetadata getOriginMetadata() {
                 return originMetadata;

@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -57,7 +58,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Set<File> filesToDelete = new HashSet<File>();
         TaskProperties taskProperties = context.getTaskProperties();
         for (TaskOutputFilePropertySpec outputFileSpec : taskProperties.getOutputFileProperties()) {
@@ -89,7 +90,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
                 }
             });
         }
-        executer.execute(task, state, context);
+        return executer.execute(task, state, context);
     }
 
 }

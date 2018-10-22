@@ -30,10 +30,12 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
 
     private final TaskStateInternal taskState;
     private final TaskExecutionContext ctx;
+    private final OriginMetadata originMetadata;
 
-    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, TaskExecutionContext ctx) {
+    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, TaskExecutionContext ctx, @Nullable OriginMetadata originMetadata) {
         this.taskState = taskState;
         this.ctx = ctx;
+        this.originMetadata = originMetadata;
     }
 
     @Nullable
@@ -50,16 +52,14 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getOriginBuildInvocationId() {
-        OriginMetadata originExecutionMetadata = ctx.getOriginMetadata();
-        UniqueId originBuildInvocationId = originExecutionMetadata == null ? null : originExecutionMetadata.getBuildInvocationId();
+        UniqueId originBuildInvocationId = originMetadata == null ? null : originMetadata.getBuildInvocationId();
         return originBuildInvocationId == null ? null : originBuildInvocationId.asString();
     }
 
     @Nullable
     @Override
     public Long getOriginExecutionTime() {
-        OriginMetadata originExecutionMetadata = ctx.getOriginMetadata();
-        return originExecutionMetadata == null ? null : originExecutionMetadata.getExecutionTime();
+        return originMetadata == null ? null : originMetadata.getExecutionTime();
     }
 
     @Nullable
