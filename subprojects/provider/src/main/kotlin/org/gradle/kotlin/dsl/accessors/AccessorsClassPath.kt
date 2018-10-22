@@ -61,8 +61,7 @@ private
 fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
         // TODO:accessors make cache key computation more efficient
-        val stringlyProjectSchema = projectSchema.withKotlinTypeStrings()
-        cachedAccessorsClassPathFor(project, cacheKeyFor(stringlyProjectSchema, classPath)) { srcDir, binDir ->
+        cachedAccessorsClassPathFor(project, cacheKeyFor(projectSchema, classPath)) { srcDir, binDir ->
             buildAccessorsFor(
                 projectSchema,
                 classPath,
@@ -117,38 +116,6 @@ fun configuredProjectSchemaOf(project: Project) =
         }
         schemaFor(project).takeIf { it.isNotEmpty() }
     }
-
-
-internal
-fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
-    entriesPairedWithEntryKind()
-        .groupBy { (entry, _) -> entry.target }
-        .mapValues { (_, entries) ->
-            ProjectSchema(
-                extensions = entries.projectSchemaEntriesOf(EntryKind.Extension),
-                conventions = entries.projectSchemaEntriesOf(EntryKind.Convention),
-                tasks = entries.projectSchemaEntriesOf(EntryKind.Task),
-                containerElements = entries.projectSchemaEntriesOf(EntryKind.ContainerElement),
-                configurations = emptyList()
-            )
-        }
-
-
-private
-fun <T> ProjectSchema<T>.entriesPairedWithEntryKind() =
-    (extensions.map { it to EntryKind.Extension }
-        + conventions.map { it to EntryKind.Convention }
-        + tasks.map { it to EntryKind.Task }
-        + containerElements.map { it to EntryKind.ContainerElement })
-
-
-private
-fun <T> List<Pair<ProjectSchemaEntry<T>, EntryKind>>.projectSchemaEntriesOf(entryKind: EntryKind) =
-    mapNotNull { (entry, kind) -> entry.takeIf { kind == entryKind } }
-
-
-private
-enum class EntryKind { Extension, Convention, Task, ContainerElement }
 
 
 internal
@@ -253,7 +220,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
     fun accessibilityForType(type: SchemaType): TypeAccessibility =
-        // TODO:accessors cache per SchemaType
+    // TODO:accessors cache per SchemaType
         inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
             else accessible(type)
@@ -498,20 +465,29 @@ val accessorsCacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl-accesso
 
 
 private
-fun cacheKeyFor(projectSchema: ProjectSchema<String>, classPath: ClassPath): CacheKeySpec =
+fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheKeySpec =
     (accessorsCacheKeyPrefix
         + projectSchema.toCacheKeyString()
         + classPath)
 
 
-private
-fun ProjectSchema<String>.toCacheKeyString(): String =
-    (extensions.associateBy { "${it.target}.${it.name}" }.mapValues { it.value.type }.asSequence()
-        + conventions.associateBy { "${it.target}.${it.name}" }.mapValues { it.value.type }.asSequence()
+internal
+fun TypedProjectSchema.toCacheKeyString(): String =
+    (cacheKeyPartsFor(extensions)
+        + cacheKeyPartsFor(conventions)
+        //+ cacheKeyPartsFor(tasks) // TODO:accessors - add missing test case
         + mapEntry("configuration", configurations.sorted().joinToString(",")))
         .map { "${it.key}=${it.value}" }
         .sorted()
         .joinToString(separator = ":")
+
+
+private
+fun cacheKeyPartsFor(extensions: List<ProjectSchemaEntry<SchemaType>>) =
+    extensions
+        .associateBy { "${it.target.kotlinString}.${it.name}" }
+        .mapValues { it.value.type.kotlinString }
+        .asSequence()
 
 
 private
