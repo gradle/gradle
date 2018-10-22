@@ -18,12 +18,7 @@ package org.gradle.language.cpp.internal.tooling;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
@@ -104,18 +99,18 @@ public class CppModelBuilder implements ToolingModelBuilder {
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                 ComponentWithExecutable componentWithExecutable = (ComponentWithExecutable) binary;
                 LinkExecutable linkTask = componentWithExecutable.getLinkTask().get();
-                LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, taskFor(componentWithExecutable.getExecutableFile()));
+                LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, componentWithExecutable.getExecutableFileProducer().get());
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(linkTaskModel, componentWithExecutable.getExecutableFile().get().getAsFile(), args(linkTask.getLinkerArgs().get()));
                 binaries.add(new DefaultCppExecutableModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppSharedLibrary) {
                 CppSharedLibrary sharedLibrary = (CppSharedLibrary) binary;
                 LinkSharedLibrary linkTask = sharedLibrary.getLinkTask().get();
-                LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, taskFor(sharedLibrary.getLinkFile()));
+                LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, sharedLibrary.getLinkFileProducer().get());
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(linkTaskModel, sharedLibrary.getLinkFile().get().getAsFile(), args(linkTask.getLinkerArgs().get()));
                 binaries.add(new DefaultCppSharedLibraryModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppStaticLibrary) {
                 CppStaticLibrary staticLibrary = (CppStaticLibrary) binary;
-                LaunchableGradleTask createTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, taskFor(staticLibrary.getLinkFile()));
+                LaunchableGradleTask createTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, staticLibrary.getLinkFileProducer().get());
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(createTaskModel, staticLibrary.getLinkFile().get().getAsFile(), Collections.<String>emptyList());
                 binaries.add(new DefaultCppStaticLibraryModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             }
@@ -132,13 +127,6 @@ public class CppModelBuilder implements ToolingModelBuilder {
         return result;
     }
 
-    private Task taskFor(Provider<RegularFile> buildableFile) {
-        TaskDependencyContainer container = (TaskDependencyContainer) buildableFile;
-        TaskDependencyResolveContextImpl context = new TaskDependencyResolveContextImpl();
-        container.visitDependencies(context);
-        return context.task;
-    }
-
     private List<String> args(List<String> compilerArgs) {
         return ImmutableList.copyOf(compilerArgs);
     }
@@ -152,24 +140,5 @@ public class CppModelBuilder implements ToolingModelBuilder {
             macros.add(new DefaultMacroDirective(entry.getKey(), entry.getValue()));
         }
         return macros;
-    }
-
-    private static class TaskDependencyResolveContextImpl extends AbstractTaskDependencyResolveContext {
-        private Task task;
-
-        @Override
-        public void add(Object dependency) {
-            if (dependency instanceof TaskDependencyContainer) {
-                TaskDependencyContainer container = (TaskDependencyContainer) dependency;
-                container.visitDependencies(this);
-            } else {
-                task = (Task) dependency;
-            }
-        }
-
-        @Override
-        public Task getTask() {
-            return null;
-        }
     }
 }
