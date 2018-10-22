@@ -64,12 +64,18 @@ class WriterThread : AutoCloseable {
     override fun close() {
         put(Command.Quit)
         thread.join()
+        checkForFailure()
     }
 
     private
     fun put(command: Command) {
-        failure.get()?.let { throw it }
+        checkForFailure()
         q.put(command)
+    }
+
+    private
+    fun checkForFailure() {
+        failure.get()?.let { throw it }
     }
 
     private
