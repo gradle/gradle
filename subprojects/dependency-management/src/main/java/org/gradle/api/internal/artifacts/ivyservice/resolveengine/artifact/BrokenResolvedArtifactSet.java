@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -27,7 +28,7 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
         visitor.visitFailure(failure);
     }
 

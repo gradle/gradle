@@ -23,10 +23,10 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -66,10 +66,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     }
 
     @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
         LoggingVisitor nested = new LoggingVisitor(visitor);
         if (buildDependencies != null) {
-            nested.visitDependency(buildDependencies);
+            nested.add(buildDependencies);
         } else if (sourceArtifact != null) {
             sourceArtifact.collectBuildDependencies(nested);
         }
@@ -163,16 +163,16 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         return f;
     }
 
-    private class LoggingVisitor extends AbstractTaskDependencyResolveContext implements BuildDependenciesVisitor {
-        private final BuildDependenciesVisitor visitor;
+    private class LoggingVisitor extends AbstractTaskDependencyResolveContext {
+        private final TaskDependencyResolveContext visitor;
         private final Set<Object> seen = new HashSet<>();
 
-        public LoggingVisitor(BuildDependenciesVisitor visitor) {
+        public LoggingVisitor(TaskDependencyResolveContext visitor) {
             this.visitor = visitor;
         }
 
         @Override
-        public void visitDependency(Object dep) {
+        public void add(Object dep) {
             // Ignore cycles. This should be an error instead
             if (!seen.add(dep)) {
                 return;
@@ -195,9 +195,9 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
                         }
                     }
                 });
-                visitor.visitDependency(dep);
+                visitor.add(dep);
             } else {
-                visitor.visitDependency(dep);
+                visitor.add(dep);
             }
         }
 
@@ -212,13 +212,8 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
         }
 
         @Override
-        public void add(Object dependency) {
-            visitDependency(dependency);
-        }
-
-        @Override
         public Task getTask() {
-            return null;
+            return visitor.getTask();
         }
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -93,8 +94,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
+    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        visitor.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
     private static class SingletonFileResolvedVariant implements ResolvedVariant, BuildableSingleResolvedArtifactSet, Completion, ResolvedVariantSet {
@@ -157,8 +158,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-            visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
+        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+            visitor.add(dependencyMetadata.getFiles().getBuildDependencies());
         }
 
         @Override

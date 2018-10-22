@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -50,7 +50,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        visitor.visitDependency(new DefaultTransformationDependency(transformation, delegate));
+    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        visitor.add(new DefaultTransformationDependency(transformation, delegate));
     }
 }

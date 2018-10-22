@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
 
@@ -39,5 +40,5 @@ public interface ResolvableArtifact {
 
     ResolvedArtifact toPublicView();
 
-    void collectBuildDependencies(BuildDependenciesVisitor visitor);
+    void collectBuildDependencies(TaskDependencyResolveContext visitor);
 }
