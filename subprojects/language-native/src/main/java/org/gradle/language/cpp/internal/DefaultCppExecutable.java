@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -49,6 +50,7 @@ import java.util.Set;
 
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     private final RegularFileProperty executableFile;
+    private final Property<Task> executableFileProducer;
     private final DirectoryProperty installationDirectory;
     private final Property<InstallExecutable> installTaskProperty;
     private final Property<LinkExecutable> linkTaskProperty;
@@ -60,6 +62,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     public DefaultCppExecutable(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = objectFactory.fileProperty();
+        this.executableFileProducer = objectFactory.property(Task.class);
         this.debuggerExecutableFile = objectFactory.fileProperty();
         this.installationDirectory = objectFactory.directoryProperty();
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
@@ -76,6 +79,11 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Override
     public RegularFileProperty getExecutableFile() {
         return executableFile;
+    }
+
+    @Override
+    public Property<Task> getExecutableFileProducer() {
+        return executableFileProducer;
     }
 
     @Override

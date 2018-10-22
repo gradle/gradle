@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
@@ -50,6 +51,7 @@ import java.util.Set;
 
 public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     private final RegularFileProperty executableFile;
+    private final Property<Task> executableFileProducer;
     private final DirectoryProperty installDirectory;
     private final Property<Configuration> runtimeElementsProperty;
     private final Property<LinkExecutable> linkTaskProperty;
@@ -61,6 +63,7 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     public DefaultSwiftExecutable(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = objectFactory.fileProperty();
+        this.executableFileProducer = objectFactory.property(Task.class);
         this.installDirectory = objectFactory.directoryProperty();
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
@@ -72,6 +75,11 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     @Override
     public ConfigurableFileCollection getOutputs() {
         return outputs;
+    }
+
+    @Override
+    public Property<Task> getExecutableFileProducer() {
+        return executableFileProducer;
     }
 
     @Override
