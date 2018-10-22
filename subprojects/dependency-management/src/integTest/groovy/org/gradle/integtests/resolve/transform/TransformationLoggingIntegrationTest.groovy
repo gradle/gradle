@@ -144,7 +144,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
 
     @Unroll
     def "does not show transformation headers when there is no output for #type console"() {
-        consoleType = ConsoleOutput.Plain
+        consoleType = type
 
         when:
         succeeds(":util:resolveGreen")
