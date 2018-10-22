@@ -46,6 +46,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
+import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 import org.gradle.kotlin.dsl.project
 import org.gradle.kotlin.dsl.support.compileToDirectory
@@ -63,15 +64,60 @@ import java.io.File
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
     @Test
+    fun `buildAccessorsFor (Kotlin types)`() {
+
+        // given:
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, () -> Unit>("function0"),
+                    entry<Project, (String) -> Unit>("function1"),
+                    entry<Project, (Int, Double) -> Boolean>("function2")
+                ),
+                containerElements = listOf(
+                ),
+                conventions = listOf(
+                ),
+                tasks = listOf(
+                ),
+                configurations = listOf(
+                )
+            )
+
+        // when:
+        val function0 = mock<() -> Unit>()
+        val function1 = mock<(String) -> Unit>()
+        val function2 = mock<(Int, Double) -> Boolean>()
+        val extensions = mock<ExtensionContainer> {
+            on { getByName("function0") } doReturn function0
+            on { getByName("function1") } doReturn function1
+            on { getByName("function2") } doReturn function2
+        }
+        val project = mock<Project> {
+            on { getExtensions() } doReturn extensions
+        }
+        evalWithAccessorsFor(
+            schema = schema,
+            target = project,
+            script = """
+                val a: () -> Unit = function0
+                val b: (String) -> Unit = function1
+                val c: (Int, Double) -> Boolean = function2
+            """
+        )
+
+        // then:
+        inOrder(project, extensions) {
+            verify(extensions).getByName("function0")
+            verify(extensions).getByName("function1")
+        }
+    }
+
+    @Test
     fun `#buildAccessorsFor (bytecode)`() {
 
         testAccessorsBuiltBy { schema, srcDir, binDir ->
-            buildAccessorsFor(
-                projectSchema = schema,
-                classPath = testCompilationClassPath,
-                srcDir = srcDir,
-                binDir = binDir
-            )
+            buildAccessorsFor(schema, srcDir, binDir)
         }
     }
 
@@ -80,10 +126,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
         testAccessorsBuiltBy { schema, srcDir, binDir ->
             buildAccessorsFor(
-                projectSchema = schema,
-                classPath = testCompilationClassPath,
-                srcDir = srcDir,
-                binDir = newFolder("ignored")
+                schema,
+                srcDir,
+                newFolder("ignored")
             )
             require(
                 compileToDirectory(
@@ -94,6 +139,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 )
             )
         }
+    }
+
+    private
+    fun buildAccessorsFor(schema: TypedProjectSchema, srcDir: File, binDir: File) {
+        buildAccessorsFor(
+            projectSchema = schema,
+            classPath = testCompilationClassPath,
+            srcDir = srcDir,
+            binDir = binDir
+        )
     }
 
     private
@@ -117,13 +172,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 ),
                 configurations = listOf("api")
             )
-        val srcDir = newFolder("src")
-        val binDir = newFolder("bin")
 
-        // when:
-        buildAccessorsFor(schema, srcDir, binDir)
-
-        // then:
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()
         val configurations = mock<ConfigurationContainer> {
             on { named(any<String>(), any<Class<Configuration>>()) } doReturn apiConfiguration
@@ -162,7 +211,12 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { getTasks() } doReturn tasks
             on { getConvention() } doReturn convention
         }
-        project.eval(
+
+        // when:
+        evalWithAccessorsFor(
+            schema = schema,
+            target = project,
+            buildAccessorsFor = buildAccessorsFor,
             script = """
                 val a: NamedDomainObjectProvider<Configuration> = configurations.api
 
@@ -213,11 +267,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                         }
                     }
                 }
-            """,
-            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath,
-            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
+            """
         )
 
+        // then:
         inOrder(
             project,
             configurations,
@@ -300,6 +353,28 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
             verifyNoMoreInteractions()
         }
+    }
+
+    private
+    fun evalWithAccessorsFor(
+        schema: TypedProjectSchema,
+        target: Project,
+        script: String,
+        buildAccessorsFor: (TypedProjectSchema, File, File) -> Unit = ::buildAccessorsFor
+    ) {
+
+        val srcDir = newFolder("src")
+        val binDir = newFolder("bin")
+
+        buildAccessorsFor(schema, srcDir, binDir)
+
+        eval(
+            script = script,
+            target = target,
+            baseCacheDir = kotlinDslEvalBaseCacheDir,
+            scriptCompilationClassPath = DefaultClassPath.of(binDir) + testCompilationClassPath,
+            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
+        )
     }
 
     inline fun <reified ReceiverType, reified EntryType> entry(name: String): ProjectSchemaEntry<SchemaType> =

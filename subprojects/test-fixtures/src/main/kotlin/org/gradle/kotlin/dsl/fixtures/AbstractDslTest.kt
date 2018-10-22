@@ -25,7 +25,7 @@ import java.io.File
 
 abstract class AbstractDslTest : TestWithTempFiles() {
 
-    private
+    protected
     val kotlinDslEvalBaseCacheDir by lazy {
         newFolder("kotlin-dsl-eval-cache")
     }

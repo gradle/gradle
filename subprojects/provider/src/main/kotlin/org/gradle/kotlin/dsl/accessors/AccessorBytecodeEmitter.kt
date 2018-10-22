@@ -758,8 +758,9 @@ object AccessorBytecodeEmitter {
         get() = when {
             isParameterized -> genericTypeOf(
                 classOf(parameterizedTypeDefinition.concreteClass),
-                actualTypeArguments[0].builder
+                actualTypeArguments.map { it.builder }
             )
+            isWildcard -> upperBound?.builder ?: KotlinType.any
             else -> classOf(concreteClass)
         }
 
@@ -953,9 +954,28 @@ fun classOf(`class`: Class<*>) =
 
 private
 fun classOf(className: InternalName): KmTypeBuilder =
-    className.value.replace('$', '.').let { kotlinName ->
+    kotlinNameOf(className).let { kotlinName ->
         { visitClass(kotlinName) }
     }
+
+
+private
+fun kotlinNameOf(className: InternalName) = className.run {
+    when {
+        value.startsWith("kotlin/jvm/functions/") -> {
+            "kotlin/" + value.substringAfter("kotlin/jvm/functions/")
+        }
+        else -> {
+            kotlinPrimitiveTypes[value] ?: value.replace('$', '.')
+        }
+    }
+}
+
+
+private
+val kotlinPrimitiveTypes = primitiveTypeStrings.asSequence().map { (jvmName, kotlinName) ->
+    jvmName.replace('.', '/') to "kotlin/$kotlinName"
+}.toMap()
 
 
 private
@@ -964,5 +984,17 @@ fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): K
     visitArgument(0, KmVariance.INVARIANT)!!.run {
         genericArgument()
         visitEnd()
+    }
+}
+
+
+private
+fun genericTypeOf(genericType: KmTypeBuilder, genericArguments: Iterable<KmTypeBuilder>): KmTypeBuilder = {
+    genericType()
+    genericArguments.forEach { argument ->
+        visitArgument(0, KmVariance.INVARIANT)!!.run {
+            argument()
+            visitEnd()
+        }
     }
 }
