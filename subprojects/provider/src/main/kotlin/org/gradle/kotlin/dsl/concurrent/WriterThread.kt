@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.concurrent
 import java.io.File
 
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.atomic.AtomicReference
 
 import kotlin.concurrent.thread
 
@@ -30,12 +31,19 @@ class WriterThread : AutoCloseable {
     val q = ArrayBlockingQueue<Command>(64)
 
     private
+    val failure = AtomicReference<Throwable?>(null)
+
+    private
     val thread = thread(name = "kotlin-dsl-writer") {
-        loop@ while (true) {
-            when (val command = q.take()) {
-                is Command.Execute -> command.action()
-                Command.Quit -> break@loop
+        try {
+            loop@ while (true) {
+                when (val command = q.take()) {
+                    is Command.Execute -> command.action()
+                    Command.Quit -> break@loop
+                }
             }
+        } catch (error: Throwable) {
+            failure.set(error)
         }
     }
 
@@ -44,12 +52,18 @@ class WriterThread : AutoCloseable {
     }
 
     fun execute(action: () -> Unit) {
-        q.put(Command.Execute(action))
+        put(Command.Execute(action))
     }
 
     override fun close() {
-        q.put(Command.Quit)
+        put(Command.Quit)
         thread.join()
+    }
+
+    private
+    fun put(command: Command) {
+        failure.get()?.let { throw it }
+        q.put(command)
     }
 
     private
