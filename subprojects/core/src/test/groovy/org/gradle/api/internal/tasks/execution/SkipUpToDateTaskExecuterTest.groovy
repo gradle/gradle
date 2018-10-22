@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.execution
 
+
 import org.gradle.api.Action
 import org.gradle.api.Task
-import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.origin.OriginMetadata
-import org.gradle.internal.id.UniqueId
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -40,27 +40,24 @@ class SkipUpToDateTaskExecuterTest extends Specification {
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
-    def taskExecutionHistory = Mock(TaskExecutionHistory)
     Action<Task> action = Mock(Action)
 
     def executer = new SkipUpToDateTaskExecuter(delegate)
 
     def "skips task when outputs are up to date"() {
-        given:
-        def originBuildInvocationId = UniqueId.generate()
-        def executionTime = 1
-        def originMetadata = new OriginMetadata(originBuildInvocationId, executionTime)
+        def afterPreviousExecution = Mock(AfterPreviousExecutionState)
+        def metadata = Mock(OriginMetadata)
 
         when:
-        executer.execute(task, taskState, taskContext)
+        def result = executer.execute(task, taskState, taskContext)
 
         then:
+        result.originMetadata == metadata
+
         1 * taskArtifactState.isUpToDate(_) >> true
-        1 * taskArtifactState.getExecutionHistory() >> taskExecutionHistory
-        1 * taskExecutionHistory.getOriginExecutionMetadata() >> originMetadata
-        1 * taskContext.taskArtifactState >> taskArtifactState
+        1 * taskContext.afterPreviousExecution >> afterPreviousExecution
+        1 * afterPreviousExecution.originMetadata >> metadata
         1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
-        1 * taskContext.setOriginMetadata(originMetadata)
         0 * _
     }
 

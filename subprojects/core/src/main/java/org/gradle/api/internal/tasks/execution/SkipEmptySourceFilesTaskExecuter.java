@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -32,11 +32,12 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
@@ -61,13 +62,16 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
         TaskProperties taskProperties = context.getTaskProperties();
         FileCollection sourceFiles = taskProperties.getSourceFiles();
         if (taskProperties.hasSourceFiles() && sourceFiles.isEmpty()) {
-            TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-            TaskExecutionHistory executionHistory = taskArtifactState.getExecutionHistory();
-            Set<File> outputFiles = executionHistory.getOutputFiles();
+            AfterPreviousExecutionState previousExecution = context.getAfterPreviousExecution();
+            @SuppressWarnings("RedundantTypeArguments")
+            ImmutableSortedMap<String, FileCollectionFingerprint> outputFiles = previousExecution == null
+                ? ImmutableSortedMap.<String, FileCollectionFingerprint>of()
+                : previousExecution.getOutputFileProperties();
             if (outputFiles.isEmpty()) {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
+                TaskArtifactState taskArtifactState = context.getTaskArtifactState();
                 boolean cleanupDirectories = taskArtifactState.getOverlappingOutputs() == null;
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
@@ -76,16 +80,19 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 boolean deletedFiles = false;
                 boolean debugEnabled = LOGGER.isDebugEnabled();
 
-                for (File file : outputFiles) {
-                    if (file.exists() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
-                        if (!cleanupDirectories && file.isDirectory()) {
-                            continue;
+                for (FileCollectionFingerprint outputFingerprints : outputFiles.values()) {
+                    for (String outputRootPath : outputFingerprints.getFingerprints().keySet()) {
+                        File file = new File(outputRootPath);
+                        if (file.exists() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
+                            if (!cleanupDirectories && file.isDirectory()) {
+                                continue;
+                            }
+                            if (debugEnabled) {
+                                LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
+                            }
+                            GFileUtils.forceDelete(file);
+                            deletedFiles = true;
                         }
-                        if (debugEnabled) {
-                            LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
-                        }
-                        GFileUtils.forceDelete(file);
-                        deletedFiles = true;
                     }
                 }
                 if (deletedFiles) {

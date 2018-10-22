@@ -23,7 +23,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -51,7 +50,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
-    private TaskExecutionHistory history;
+    private FileCollection previousOutputFiles;
     private final FilePropertyContainer<DeclaredTaskOutputFileProperty> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
@@ -208,16 +207,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public Set<File> getPreviousOutputFiles() {
-        if (history == null) {
-            throw new IllegalStateException("Task history is currently not available for this task.");
-        }
-        return history.getOutputFiles();
+    public void setPreviousOutputFiles(FileCollection previousOutputFiles) {
+        this.previousOutputFiles = previousOutputFiles;
     }
 
     @Override
-    public void setHistory(@Nullable TaskExecutionHistory history) {
-        this.history = history;
+    public Set<File> getPreviousOutputFiles() {
+        if (previousOutputFiles == null) {
+            throw new IllegalStateException("Task history is currently not available for this task.");
+        }
+        return previousOutputFiles.getFiles();
     }
 
     private static class HasDeclaredOutputsVisitor extends PropertyVisitor.Adapter {

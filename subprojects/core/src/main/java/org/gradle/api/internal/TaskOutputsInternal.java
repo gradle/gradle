@@ -17,12 +17,12 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -37,12 +37,12 @@ public interface TaskOutputsInternal extends TaskOutputs {
 
     AndSpec<? super TaskInternal> getUpToDateSpec();
 
+    void setPreviousOutputFiles(FileCollection previousOutputFiles);
+
     /**
      * Returns the output files and directories recorded during the previous execution of the task.
      */
     Set<File> getPreviousOutputFiles();
-
-    void setHistory(@Nullable TaskExecutionHistory history);
 
     List<SelfDescribingSpec<TaskInternal>> getCacheIfSpecs();
 

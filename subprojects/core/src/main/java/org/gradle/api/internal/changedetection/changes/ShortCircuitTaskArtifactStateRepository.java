@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.changes;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -111,11 +110,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
             return delegate.calculateCacheKey();
-        }
-
-        @Override
-        public TaskExecutionHistory getExecutionHistory() {
-            return delegate.getExecutionHistory();
         }
 
         @Override

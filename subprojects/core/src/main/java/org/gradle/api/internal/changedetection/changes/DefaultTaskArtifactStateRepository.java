@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -48,12 +46,8 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.MAX_OUT_OF_DATE_MESSAGES;
 
@@ -78,7 +72,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task, taskProperties));
     }
 
-    private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
+    private class TaskArtifactStateImpl implements TaskArtifactState {
         private final TaskInternal task;
         private final TaskHistoryRepository.History history;
         private boolean upToDate;
@@ -140,29 +134,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Set<File> getOutputFiles() {
-            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
-            if (previousExecution == null) {
-                return Collections.emptySet();
-            }
-            ImmutableCollection<FileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFileProperties().values();
-            Set<File> outputs = new HashSet<File>();
-            for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
-                for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
-                    outputs.add(new File(absolutePath));
-                }
-            }
-            return outputs;
-        }
-
-        @Override
         public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
             return history.getCurrentExecution().getOutputFileProperties();
-        }
-
-        @Override
-        public TaskExecutionHistory getExecutionHistory() {
-            return this;
         }
 
         @Override

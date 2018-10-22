@@ -17,7 +17,6 @@ package org.gradle.api.internal.changedetection;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -79,11 +78,6 @@ public interface TaskArtifactState {
      * Called when outputs were generated.
      */
     void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
-
-    /**
-     * Returns the history for this task.
-     */
-    TaskExecutionHistory getExecutionHistory();
 
     /**
      * Returns the current output file fingerprints indexed by property name.

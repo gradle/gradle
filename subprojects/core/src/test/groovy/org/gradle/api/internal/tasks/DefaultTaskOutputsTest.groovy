@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks
 
 import com.google.common.collect.ImmutableSortedSet
-import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
@@ -306,21 +305,6 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         outputs.upToDateSpec.isSatisfiedBy(task)
-    }
-
-    void getPreviousFilesDelegatesToTaskHistory() {
-        def history = Mock(TaskExecutionHistory)
-        Set<File> outputFiles = [new File("some-file")] as Set
-
-        setup:
-        outputs.history = history
-
-        when:
-        def f = outputs.previousOutputFiles
-
-        then:
-        f == outputFiles
-        1 * history.outputFiles >> outputFiles
     }
 
     void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
