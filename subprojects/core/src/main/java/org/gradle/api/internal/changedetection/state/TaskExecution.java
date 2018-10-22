@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.ExecutionState;
 
 /**
  * The state for a single task execution.
  */
 public interface TaskExecution extends ExecutionState {
-
-    OriginMetadata getOriginMetadata();
-
-    boolean isSuccessful();
 
 }

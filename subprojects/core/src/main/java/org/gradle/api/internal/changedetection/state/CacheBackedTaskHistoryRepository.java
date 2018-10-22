@@ -93,22 +93,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             @Override
-            public void updateCurrentExecutionWithOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputSnapshot, boolean successful, OriginMetadata originMetadata) {
-                updateExecution(getCurrentExecution(), successful, newOutputSnapshot, originMetadata);
-            }
-
-            @Override
-            public void persist() {
+            public void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
                 CurrentTaskExecution execution = getCurrentExecution();
                 executionHistoryStore.store(
                     task.getPath(),
-                    execution.getOriginMetadata(),
+                    originMetadata,
                     execution.getImplementation(),
                     execution.getAdditionalImplementations(),
                     execution.getInputProperties(),
                     execution.getInputFileProperties(),
-                    execution.getOutputFileProperties(),
-                    execution.isSuccessful()
+                    newOutputFingerprints,
+                    successful
                 );
             }
         };
@@ -125,6 +120,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             LOGGER.debug("Action implementations for {}: {}", task, taskActionImplementations);
         }
 
+        @SuppressWarnings("RedundantTypeArguments")
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
@@ -145,12 +141,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             outputFiles,
             overlappingOutputs
         );
-    }
-
-    private void updateExecution(CurrentTaskExecution currentExecution, boolean successful, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprint, OriginMetadata originMetadata) {
-        currentExecution.setSuccessful(successful);
-        currentExecution.setOutputFingerprintsAfterExecution(newOutputFingerprint);
-        currentExecution.setOriginExecutionMetadata(originMetadata);
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {

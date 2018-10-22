@@ -32,8 +32,6 @@ public interface TaskHistoryRepository {
 
         CurrentTaskExecution getCurrentExecution();
 
-        void updateCurrentExecutionWithOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputSnapshot, boolean successful, OriginMetadata originMetadata);
-
-        void persist();
+        void persist(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata);
     }
 }

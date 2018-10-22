@@ -191,10 +191,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         @Override
         public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
             HistoricalTaskExecution previousExecution = history.getPreviousExecution();
-            history.updateCurrentExecutionWithOutputs(newOutputFingerprints, successful, originMetadata);
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || previousExecution == null || hasAnyOutputFileChanges(previousExecution.getOutputFileProperties(), newOutputFingerprints)) {
-                history.persist();
+                history.persist(newOutputFingerprints, successful, originMetadata);
                 taskOutputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }
         }

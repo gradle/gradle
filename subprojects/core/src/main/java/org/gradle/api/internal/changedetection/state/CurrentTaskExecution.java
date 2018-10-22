@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -32,12 +31,10 @@ import javax.annotation.Nullable;
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution implements BeforeExecutionState {
 
-    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
+    private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private final ImmutableSortedSet<String> outputPropertyNamesForCacheKey;
-    private Boolean successful;
-    private OriginMetadata originExecutionMetadata;
 
     public CurrentTaskExecution(
         ImplementationSnapshot taskImplementation,
@@ -53,15 +50,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution implements Befor
         this.inputFingerprints = inputFingerprints;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
         this.outputPropertyNamesForCacheKey = outputPropertyNames;
-    }
-
-    @Override
-    public boolean isSuccessful() {
-        return successful;
-    }
-
-    public void setSuccessful(boolean successful) {
-        this.successful = successful;
     }
 
     /**
@@ -84,10 +72,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution implements Befor
         return outputFingerprints;
     }
 
-    public void setOutputFingerprintsAfterExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesSnapshot) {
-        this.outputFingerprints = outputFilesSnapshot;
-    }
-
     @Override
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
         return inputFingerprints;
@@ -96,14 +80,5 @@ public class CurrentTaskExecution extends AbstractTaskExecution implements Befor
     @Nullable
     public OverlappingOutputs getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
-    }
-
-    @Override
-    public OriginMetadata getOriginMetadata() {
-        return originExecutionMetadata;
-    }
-
-    public void setOriginExecutionMetadata(OriginMetadata originExecutionMetadata) {
-        this.originExecutionMetadata = originExecutionMetadata;
     }
 }
