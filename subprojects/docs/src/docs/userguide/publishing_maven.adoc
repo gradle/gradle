@@ -109,7 +109,7 @@ include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=
 [[publishing_maven:repositories]]
 == Repositories
 
-This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 
@@ -126,7 +126,7 @@ The two main things you will want to configure are the repository's:
 
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
 
-You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
+You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
 
 [[publishing_maven:snapshot_and_release_repositories]]
 === Snapshot and release repositories
