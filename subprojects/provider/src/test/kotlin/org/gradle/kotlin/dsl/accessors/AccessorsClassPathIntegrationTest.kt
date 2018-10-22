@@ -27,7 +27,6 @@ import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -35,7 +34,6 @@ import java.io.File
 
 class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
 
-    @Ignore("WIP:accessors")
     @Test
     fun `classpath model includes jit accessors by default`() {
 
@@ -57,13 +55,14 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             classPathFor(buildFile),
-            not(hasAccessorsClasses()))
+            not(hasAccessorsClasses())
+        )
     }
 
-    @Ignore("WIP:accessors")
     @Test
     fun `the set of jit accessors is a function of the set of applied plugins`() {
 
+        // TODO:accessors - rework this test to ensure it's providing enough coverage
         val s1 = setOfAutomaticAccessorsFor(setOf("application"))
         val s2 = setOfAutomaticAccessorsFor(setOf("java"))
         val s3 = setOfAutomaticAccessorsFor(setOf("application"))
@@ -118,14 +117,15 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun accessorsClassFor(buildFile: File) =
-        classPathFor(buildFile)
-            .find { it.isDirectory && it.resolve(accessorsClassFilePath).isFile }
+        classPathFor(buildFile).find {
+            it.isDirectory && it.resolve(accessorsClassFilePath).isFile
+        }
 
     private
-    val accessorsSourceFilePath = "org/gradle/kotlin/dsl/ConfigurationAccessors.kt"
+    val accessorsSourceFilePath = "org/gradle/kotlin/dsl/ArchivesConfigurationAccessors.kt"
 
     private
-    val accessorsClassFilePath = "org/gradle/kotlin/dsl/ConfigurationAccessorsKt.class"
+    val accessorsClassFilePath = "org/gradle/kotlin/dsl/ArchivesConfigurationAccessorsKt.class"
 
     private
     fun classPathFor(buildFile: File) =
