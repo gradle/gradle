@@ -41,12 +41,15 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 import org.gradle.kotlin.dsl.project
+import org.gradle.kotlin.dsl.support.compileToDirectory
+import org.gradle.kotlin.dsl.support.loggerFor
 
 import org.gradle.nativeplatform.BuildType
 
@@ -54,11 +57,48 @@ import org.junit.Test
 
 import org.mockito.ArgumentMatchers.anyMap
 
+import java.io.File
+
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
     @Test
-    fun `#buildAccessorsFor`() {
+    fun `#buildAccessorsFor (bytecode)`() {
+
+        testAccessorsBuiltBy { schema, srcDir, binDir ->
+            buildAccessorsFor(
+                projectSchema = schema,
+                classPath = testCompilationClassPath,
+                srcDir = srcDir,
+                binDir = binDir
+            )
+        }
+    }
+
+    @Test
+    fun `#buildAccessorsFor (source)`() {
+
+        testAccessorsBuiltBy { schema, srcDir, binDir ->
+            val nul = newFolder("nul")
+            buildAccessorsFor(
+                projectSchema = schema,
+                classPath = testCompilationClassPath,
+                srcDir = srcDir,
+                binDir = nul
+            )
+            require(
+                compileToDirectory(
+                    binDir,
+                    srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.asIterable(),
+                    loggerFor<ProjectAccessorsClassPathTest>(),
+                    testCompilationClassPath.asFiles
+                )
+            )
+        }
+    }
+
+    private
+    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, File, File) -> Unit) {
 
         // given:
         val schema =
@@ -82,19 +122,17 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val binDir = newFolder("bin")
 
         // when:
-        buildAccessorsFor(
-            projectSchema = schema,
-            classPath = testCompilationClassPath,
-            srcDir = srcDir,
-            binDir = binDir
-        )
+        buildAccessorsFor(schema, srcDir, binDir)
 
         // then:
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()
         val configurations = mock<ConfigurationContainer> {
             on { named(any<String>(), any<Class<Configuration>>()) } doReturn apiConfiguration
         }
-        val sourceSets = mock<SourceSetContainer>()
+        val sourceSet = mock<NamedDomainObjectProvider<SourceSet>>()
+        val sourceSets = mock<SourceSetContainer> {
+            on { named(any<String>(), eq(SourceSet::class.java)) } doReturn sourceSet
+        }
         val extensions = mock<ExtensionContainer> {
             on { getByName(any()) } doReturn sourceSets
         }
@@ -110,7 +148,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { getConstraints() } doReturn constraints
             on { project(anyMap<String, Any?>()) } doReturn projectDependency
         }
-        val tasks = mock<TaskContainer>()
+        val clean = mock<TaskProvider<Delete>>()
+        val tasks = mock<TaskContainer> {
+            on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
+        }
         val applicationPluginConvention = mock<ApplicationPluginConvention>()
         val convention = mock<Convention> {
             on { plugins } doReturn mapOf("application" to applicationPluginConvention)

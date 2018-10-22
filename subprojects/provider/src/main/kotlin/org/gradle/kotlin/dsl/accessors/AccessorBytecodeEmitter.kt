@@ -132,34 +132,31 @@ object AccessorBytecodeEmitter {
                     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
                 }
 
-            val sourceCode = StringBuffer()
+            val sourceCode = mutableListOf<String>()
             val metadataWriter = beginFileFacadeClassHeader()
             val classWriter = beginPublicClass(className)
 
             for ((source, bytecode, metadata, signature) in fragments) {
-                sourceCode.append(source)
+                sourceCode.add(source)
                 MetadataFragmentScope(signature, metadataWriter).run(metadata)
                 BytecodeFragmentScope(signature, classWriter).run(bytecode)
             }
 
-            val classSource = sourceCode.toString()
-            writer.writeFile(
-                srcDir.resolve("${className.value.removeSuffix("Kt")}.kt"),
-                classSource
-            )
+            val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
+            writer.writeFile(sourceFile) {
+                writeAccessorsTo(this, sourceCode.asSequence())
+            }
 
             val classHeader = metadataWriter.closeHeader()
             val classBytes = classWriter.run {
                 visitKotlinMetadataAnnotation(classHeader)
                 classWriter.endClass()
             }
-            writer.writeFile(
-                binDir.resolve("$className.class"),
-                classBytes
-            )
+            val classFile = binDir.resolve("$className.class")
+            writer.writeFile(classFile, classBytes)
 
             className
-        }.filterNotNull().toList()
+        }.toList()
 
         writer.writeFile(
             moduleFileFor(binDir),
@@ -218,6 +215,19 @@ object AccessorBytecodeEmitter {
             AccessorFragment(
                 source = name.run {
                     """
+                        /**
+                         * Adds a dependency to the '$original' configuration.
+                         *
+                         * @param dependencyNotation notation for the dependency to be added.
+                         * @param dependencyConfiguration expression to use to configure the dependency.
+                         * @return The dependency.
+                         *
+                         * @see [DependencyHandler.add]
+                         */
+                        inline fun DependencyHandler.`$kotlinIdentifier`(
+                            dependencyNotation: String,
+                            dependencyConfiguration: ExternalModuleDependency.() -> Unit
+                        ): ExternalModuleDependency = add("$stringLiteral", dependencyNotation, dependencyConfiguration)
                     """
                 },
                 bytecode = {
@@ -254,6 +264,29 @@ object AccessorBytecodeEmitter {
             AccessorFragment(
                 source = name.run {
                     """
+                        /**
+                         * Adds a dependency to the '$original' configuration.
+                         *
+                         * @param group the group of the module to be added as a dependency.
+                         * @param name the name of the module to be added as a dependency.
+                         * @param version the optional version of the module to be added as a dependency.
+                         * @param configuration the optional configuration of the module to be added as a dependency.
+                         * @param classifier the optional classifier of the module artifact to be added as a dependency.
+                         * @param ext the optional extension of the module artifact to be added as a dependency.
+                         * @return The dependency.
+                         *
+                         * @see [DependencyHandler.add]
+                         */
+                        fun DependencyHandler.`$kotlinIdentifier`(
+                            group: String,
+                            name: String,
+                            version: String? = null,
+                            configuration: String? = null,
+                            classifier: String? = null,
+                            ext: String? = null
+                        ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+                            add("$stringLiteral", it)
+                        }
                     """
                 },
                 bytecode = {
@@ -320,6 +353,19 @@ object AccessorBytecodeEmitter {
             AccessorFragment(
                 source = name.run {
                     """
+                        /**
+                         * Adds a dependency to the '$original' configuration.
+                         *
+                         * @param dependency dependency to be added.
+                         * @param dependencyConfiguration expression to use to configure the dependency.
+                         * @return The dependency.
+                         *
+                         * @see [DependencyHandler.add]
+                         */
+                        inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
+                            dependency: T,
+                            dependencyConfiguration: T.() -> Unit
+                        ): T = add("$stringLiteral", dependency, dependencyConfiguration)
                     """
                 },
                 bytecode = {
@@ -360,6 +406,18 @@ object AccessorBytecodeEmitter {
             AccessorFragment(
                 source = name.run {
                     """
+                        /**
+                         * Adds a dependency constraint to the '$original' configuration.
+                         *
+                         * @param constraintNotation the dependency constraint notation
+                         *
+                         * @return the added dependency constraint
+                         *
+                         * @see [DependencyConstraintHandler.add]
+                         */
+                        @Incubating
+                        fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint? =
+                            add("$stringLiteral", constraintNotation)
                     """
                 },
                 bytecode = {
@@ -389,6 +447,19 @@ object AccessorBytecodeEmitter {
             AccessorFragment(
                 source = name.run {
                     """
+                        /**
+                         * Adds a dependency constraint to the '$original' configuration.
+                         *
+                         * @param constraintNotation the dependency constraint notation
+                         * @param block the block to use to configure the dependency constraint
+                         *
+                         * @return the added dependency constraint
+                         *
+                         * @see [DependencyConstraintHandler.add]
+                         */
+                        @Incubating
+                        fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
+                            add("$stringLiteral", constraintNotation, block)
                     """
                 },
                 bytecode = {
@@ -408,7 +479,7 @@ object AccessorBytecodeEmitter {
                         name = propertyName,
                         parameters = {
                             visitParameter("constraintNotation", KotlinType.any)
-                            visitParameter("configurationAction", actionTypeOf(GradleType.dependencyConstraint))
+                            visitParameter("block", actionTypeOf(GradleType.dependencyConstraint))
                         },
                         signature = signature
                     )
@@ -443,7 +514,8 @@ object AccessorBytecodeEmitter {
         fragmentsForContainerElementOf(
             namedDomainObjectProviderTypeName,
             namedWithTypeMethodDescriptor,
-            accessor.spec
+            accessor.spec,
+            existingContainerElementAccessor(accessor.spec)
         )
 
     private
@@ -451,14 +523,16 @@ object AccessorBytecodeEmitter {
         fragmentsForContainerElementOf(
             taskProviderTypeName,
             namedTaskWithTypeMethodDescriptor,
-            accessor.spec
+            accessor.spec,
+            existingTaskAccessor(accessor.spec)
         )
 
     private
     fun fragmentsForContainerElementOf(
         providerType: InternalName,
         namedMethodDescriptor: String,
-        accessorSpec: TypedAccessorSpec
+        accessorSpec: TypedAccessorSpec,
+        source: String
     ): Fragments {
 
         val className = internalNameForAccessorClassOf(accessorSpec)
@@ -470,10 +544,7 @@ object AccessorBytecodeEmitter {
 
         return className to sequenceOf(
             AccessorFragment(
-                source = name.run {
-                    """
-                    """
-                },
+                source = source,
                 bytecode = {
                     publicStaticMethod(signature) {
                         ALOAD(0)
@@ -514,10 +585,7 @@ object AccessorBytecodeEmitter {
         return className to sequenceOf(
 
             AccessorFragment(
-                source = name.run {
-                    """
-                    """
-                },
+                source = extensionAccessor(accessorSpec),
                 bytecode = {
                     publicStaticMethod(signature) {
                         ALOAD(0)
@@ -594,10 +662,7 @@ object AccessorBytecodeEmitter {
         return className to sequenceOf(
 
             AccessorFragment(
-                source = name.run {
-                    """
-                    """
-                },
+                source = conventionAccessor(accessorSpec),
                 bytecode = {
                     publicStaticMethod(signature) {
                         loadConventionOf(name, returnType, jvmReturnType)

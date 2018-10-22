@@ -43,9 +43,9 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
-import java.io.BufferedWriter
 import java.io.Closeable
 import java.io.File
+import java.io.Writer
 
 import java.util.*
 
@@ -567,39 +567,46 @@ fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>, imports: Lis
     }
 
 
-private
-fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, imports: List<String>) {
+internal
+fun writeAccessorsTo(writer: Writer, accessors: Sequence<String>, imports: List<String>) {
     writer.apply {
-        write(fileHeader)
-        newLine()
-        appendln("import org.gradle.api.Incubating")
-        appendln("import org.gradle.api.NamedDomainObjectProvider")
-        appendln("import org.gradle.api.Project")
-        appendln("import org.gradle.api.Task")
-        appendln("import org.gradle.api.artifacts.Configuration")
-        appendln("import org.gradle.api.artifacts.ConfigurationContainer")
-        appendln("import org.gradle.api.artifacts.Dependency")
-        appendln("import org.gradle.api.artifacts.DependencyConstraint")
-        appendln("import org.gradle.api.artifacts.ExternalModuleDependency")
-        appendln("import org.gradle.api.artifacts.ModuleDependency")
-        appendln("import org.gradle.api.artifacts.dsl.DependencyConstraintHandler")
-        appendln("import org.gradle.api.artifacts.dsl.DependencyHandler")
-        appendln("import org.gradle.api.tasks.TaskContainer")
-        appendln("import org.gradle.api.tasks.TaskProvider")
-        newLine()
-        appendln("import org.gradle.kotlin.dsl.*")
-        newLine()
+        appendln(fileHeaderWithImports)
         if (imports.isNotEmpty()) {
             imports.forEach {
                 appendln("import $it")
             }
-            newLine()
+            appendln()
         }
         accessors.forEach {
             appendln(it)
         }
     }
 }
+
+
+internal
+val fileHeaderWithImports = """
+$fileHeader
+
+import org.gradle.api.Action
+import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+
+import org.gradle.kotlin.dsl.*
+
+"""
 
 
 /**

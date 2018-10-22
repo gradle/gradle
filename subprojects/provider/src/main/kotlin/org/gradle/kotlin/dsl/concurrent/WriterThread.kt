@@ -44,11 +44,15 @@ class WriterThread : AutoCloseable {
     }
 
     fun writeFile(file: File, bytes: ByteArray) {
-        q.put(Command.WriteFile(file) { writeBytes(bytes) })
+        writeFile(file) { writeBytes(bytes) }
     }
 
     fun writeFile(file: File, text: String) {
-        q.put(Command.WriteFile(file) { writeText(text) })
+        writeFile(file) { writeText(text) }
+    }
+
+    fun writeFile(file: File, write: File.() -> Unit) {
+        q.put(Command.WriteFile(file, write))
     }
 
     fun execute(action: () -> Unit) {

@@ -37,6 +37,8 @@ data class SchemaType(val value: TypeOf<*>) {
     }
 
     val kotlinString = kotlinTypeStringFor(value)
+
+    override fun toString(): String = kotlinString
 }
 
 

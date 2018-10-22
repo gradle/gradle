@@ -71,7 +71,7 @@ data class AccessorScope(
 }
 
 
-private
+internal
 fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (type) {
@@ -124,7 +124,7 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 }
 
 
-private
+internal
 fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (type) {
@@ -177,7 +177,7 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
 }
 
 
-private
+internal
 fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (type) {
@@ -216,7 +216,7 @@ fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: Type
 }
 
 
-private
+internal
 fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
     codeForAccessor {
         when (type) {
