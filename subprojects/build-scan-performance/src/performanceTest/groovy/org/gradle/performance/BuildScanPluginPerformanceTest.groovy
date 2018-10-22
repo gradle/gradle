@@ -107,12 +107,15 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         where:
-        scenario                                  | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                       | manageCacheState
-        "help"                                    | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                 | false
-        "clean build - 10 projects"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project10:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
-        "clean build - 50 projects"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
-        "clean build - 50 projects - no parallel" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache']                                  | true
-        "clean build - 100 projects"              | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache', '--parallel', '--max-workers=4'] | true
+        scenario                                                | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                                                                   | manageCacheState
+        "help"                                                  | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | []                                                                                             | false
+        "help - no console output"                              | MEDIAN_PERCENTAGES_SHIFT      | ['help']                           | false       | ['-DreducedOutput=true']                                                                       | false
+        "clean build - 20 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project10:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4']                                             | true
+        "clean build - 10 projects - slow tasks - less console" | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project20:buildNeeded'] | true        | ['-DreducedOutput=true', '-DslowTasks=true', '--build-cache', '--parallel', '--max-workers=4'] | true
+        "clean build - 50 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4']                                             | true
+        "clean build - 50 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache', '--parallel', '--max-workers=4']                                             | true
+        "clean build - 50 projects - no parallel"               | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'project50:buildNeeded'] | true        | ['--build-cache']                                                                              | true
+        "clean build - 100 projects"                            | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache', '--parallel', '--max-workers=4']                                             | true
     }
 
 
