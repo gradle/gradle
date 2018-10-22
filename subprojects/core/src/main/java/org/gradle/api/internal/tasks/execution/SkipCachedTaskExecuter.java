@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.command.BuildCacheLoadListener;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -73,6 +74,17 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
 
         SortedSet<CacheableTree> outputProperties = null;
+        CacheableEntity taskEntity = new CacheableEntity() {
+            @Override
+            public String getPath() {
+                return task.getPath();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return task.toString();
+            }
+        };
         if (taskOutputCachingEnabled) {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
@@ -84,7 +96,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
             if (taskState.isAllowedToUseCachedResults()) {
                 try {
                     final BuildCacheCommandFactory.LoadMetadata result = buildCache.load(
-                            commandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), new BuildCacheLoadListener() {
+                            commandFactory.createLoad(cacheKey, outputProperties, taskEntity, taskProperties.getLocalStateFiles(), new BuildCacheLoadListener() {
                                 @Override
                                 public void beforeLoad() {
                                     outputChangeListener.beforeOutputChange();
@@ -130,7 +142,7 @@ public class SkipCachedTaskExecuter implements MutatingTaskExecuter {
             if (state.getFailure() == null) {
                 try {
                     // TODO This could send in the whole origin metadata
-                    buildCache.store(commandFactory.createStore(cacheKey, outputProperties, result.getFinalOutputs(), task, result.getOriginMetadata().getExecutionTime()));
+                    buildCache.store(commandFactory.createStore(cacheKey, outputProperties, result.getFinalOutputs(), taskEntity, result.getOriginMetadata().getExecutionTime()));
                 } catch (Exception e) {
                     LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
                 }

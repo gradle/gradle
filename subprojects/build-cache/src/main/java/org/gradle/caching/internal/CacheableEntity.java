@@ -16,9 +16,11 @@
 
 package org.gradle.caching.internal;
 
+import org.gradle.api.Describable;
+
 /**
  * An entity that can potentially be stored in the build cache.
  */
-public interface CacheableEntity {
+public interface CacheableEntity extends Describable {
     String getPath();
 }
