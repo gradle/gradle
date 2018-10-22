@@ -40,6 +40,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public FileTreeAdapter(MinimalFileTree tree) {
         this.tree = tree;
     }
+
     public FileTreeAdapter(MinimalFileTree tree, Factory<PatternSet> patternSetFactory) {
         super(patternSetFactory);
         this.tree = tree;
@@ -132,7 +133,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         } else if (tree instanceof ArchiveFileTree) {
             ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
             File backingFile = archiveFileTree.getBackingFile();
-            if(backingFile != null) {
+            if (backingFile != null) {
                 visitor.visitCollection(ImmutableFileCollection.of(backingFile));
             } else {
                 visitor.visitGenericFileTree(this);
