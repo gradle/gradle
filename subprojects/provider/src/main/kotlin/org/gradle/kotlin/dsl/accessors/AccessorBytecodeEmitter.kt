@@ -52,7 +52,7 @@ import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
 import org.gradle.kotlin.dsl.support.bytecode.closeHeader
-import org.gradle.kotlin.dsl.support.bytecode.endClass
+import org.gradle.kotlin.dsl.support.bytecode.endKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.method
@@ -60,7 +60,6 @@ import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
-import org.gradle.kotlin.dsl.support.bytecode.visitKotlinMetadataAnnotation
 import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
 import org.gradle.kotlin.dsl.support.bytecode.visitParameter
 import org.gradle.kotlin.dsl.support.bytecode.visitSignature
@@ -152,10 +151,7 @@ object AccessorBytecodeEmitter {
         io { writeAccessorsTo(sourceFile, sourceCode.asSequence()) }
 
         val classHeader = metadataWriter.closeHeader()
-        val classBytes = classWriter.run {
-            visitKotlinMetadataAnnotation(classHeader)
-            classWriter.endClass()
-        }
+        val classBytes = classWriter.endKotlinClass(classHeader)
         val classFile = binDir.resolve("$className.class")
         writeFile(classFile, classBytes)
 

@@ -96,6 +96,13 @@ fun ClassVisitor.publicStaticMethod(
 }
 
 
+internal
+fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
+    visitKotlinMetadataAnnotation(classHeader)
+    return endClass()
+}
+
+
 /**
  * Writes the given [header] to the class file as a [kotlin.Metadata] annotation.
  **/
