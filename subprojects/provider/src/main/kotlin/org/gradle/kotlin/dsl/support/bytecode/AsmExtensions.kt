@@ -172,7 +172,7 @@ fun MethodVisitor.INVOKESTATIC(owner: InternalName, name: String, desc: String) 
 }
 
 
-internal
+private
 fun MethodVisitor.visitMethodInsn_(opcode: Int, owner: InternalName, name: String, desc: String, itf: Boolean) {
     visitMethodInsn(opcode, owner.value, name, desc, itf)
 }
