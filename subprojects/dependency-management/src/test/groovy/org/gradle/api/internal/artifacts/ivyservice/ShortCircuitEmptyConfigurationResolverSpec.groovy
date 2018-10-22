@@ -29,8 +29,8 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -48,7 +48,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentifier))
 
     def "returns empty build dependencies when no dependencies"() {
-        def depVisitor = Stub(BuildDependenciesVisitor)
+        def depVisitor = Stub(TaskDependencyResolveContext)
         def artifactVisitor = Stub(ArtifactVisitor)
 
         given:
@@ -76,7 +76,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     }
 
     def "returns empty graph when no dependencies"() {
-        def depVisitor = Stub(BuildDependenciesVisitor)
+        def depVisitor = Stub(TaskDependencyResolveContext)
         def artifactVisitor = Stub(ArtifactVisitor)
 
         given:

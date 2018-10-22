@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -35,7 +36,7 @@ public interface ResolvedArtifactSet {
     /**
      * Collects the build dependencies required to build the artifacts in this set.
      */
-    void collectBuildDependencies(BuildDependenciesVisitor visitor);
+    void collectBuildDependencies(TaskDependencyResolveContext visitor);
 
     Completion EMPTY_RESULT = new Completion() {
         @Override
@@ -50,7 +51,7 @@ public interface ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
         }
     };
 

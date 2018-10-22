@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
 public interface TaskDependencyResolveContext {
     /**
@@ -32,6 +33,8 @@ public interface TaskDependencyResolveContext {
      * <li>{@link org.gradle.api.internal.tasks.TaskDependencyContainer}</li>
      *
      * <li>{@link org.gradle.api.Buildable}</li>
+     *
+     * <li>{@link TransformationDependency}</li>
      */
     void add(Object dependency);
 
@@ -48,7 +51,13 @@ public interface TaskDependencyResolveContext {
     void attachFinalizerTo(Task task, Action<? super Task> action);
 
     /**
-     * Returns the task whose dependencies are being resolved.
+     * Visits a failure to visit the dependencies of an object.
+     * @param failure
+     */
+    void visitFailure(Throwable failure);
+
+    /**
+     * Returns the task whose dependencies are being visited.
      */
     Task getTask();
 }

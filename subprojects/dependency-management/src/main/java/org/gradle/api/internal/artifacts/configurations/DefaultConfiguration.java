@@ -71,7 +71,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -1594,7 +1593,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
             final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-            selected.collectBuildDependencies(new BuildDependenciesVisitor() {
+            selected.collectBuildDependencies(new TaskDependencyResolveContext() {
+                @Override
+                public void add(Object dep) {
+                    context.add(dep);
+                }
+
+                @Override
+                public void maybeAdd(Object dependency) {
+                    context.maybeAdd(dependency);
+                }
+
                 @Override
                 public void visitFailure(Throwable failure) {
                     failures.add(failure);
@@ -1606,8 +1615,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 }
 
                 @Override
-                public void visitDependency(Object dep) {
-                    context.add(dep);
+                public Task getTask() {
+                    return context.getTask();
                 }
             });
             if (!lenient) {

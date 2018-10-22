@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
@@ -49,6 +48,7 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.specs.Specs;
@@ -147,14 +147,19 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         final List<Object> taskDependencies = new ArrayList<Object>();
         final List<Throwable> failures = new ArrayList<Throwable>();
-        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new BuildDependenciesVisitor() {
+        resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new AbstractTaskDependencyResolveContext() {
             @Override
-            public void visitDependency(Object dep) {
+            public void add(Object dep) {
                 taskDependencies.add(dep);
             }
 
             @Override
             public void attachFinalizerTo(Task task, Action<? super Task> action) {
+            }
+
+            @Override
+            public Task getTask() {
+                return null;
             }
 
             @Override
