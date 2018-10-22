@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
@@ -25,42 +23,28 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
-import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
-
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
-    private static final TaskOutputCachingState ENABLED = DefaultTaskOutputCachingState.enabled();
-    public static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
-    private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
-    private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
-
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final PropertySpecFactory specFactory;
@@ -111,104 +95,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputCachingState getCachingState(TaskProperties taskProperties, TaskOutputCachingBuildCacheKey buildCacheKey) {
-        if (cacheIfSpecs.isEmpty()) {
-            return CACHING_NOT_ENABLED;
-        }
-
-        if (!taskProperties.hasDeclaredOutputs()) {
-            return NO_OUTPUTS_DECLARED;
-        }
-
-        OverlappingOutputs overlappingOutputs = getOverlappingOutputs();
-        if (overlappingOutputs != null) {
-            String relativePath = task.getProject().relativePath(overlappingOutputs.getOverlappedFilePath());
-            return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
-                String.format("Gradle does not know how file '%s' was created (output property '%s'). Task output caching requires exclusive access to output paths to guarantee correctness.",
-                    relativePath, overlappingOutputs.getPropertyName()));
-        }
-
-        for (TaskOutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
-            if (!(spec instanceof CacheableTaskOutputFilePropertySpec)) {
-                return DefaultTaskOutputCachingState.disabled(
-                    NON_CACHEABLE_TREE_OUTPUT,
-                    "Output property '"
-                        + spec.getPropertyName()
-                        + "' contains a file tree"
-                );
-            }
-        }
-
-        for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : cacheIfSpecs) {
-            if (!selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCachingState.disabled(
-                    CACHE_IF_SPEC_NOT_SATISFIED,
-                    "'" + selfDescribingSpec.getDisplayName() + "' not satisfied"
-                );
-            }
-        }
-
-        for (SelfDescribingSpec<TaskInternal> selfDescribingSpec : doNotCacheIfSpecs) {
-            if (selfDescribingSpec.isSatisfiedBy(task)) {
-                return DefaultTaskOutputCachingState.disabled(
-                    DO_NOT_CACHE_IF_SPEC_SATISFIED,
-                    "'" + selfDescribingSpec.getDisplayName() + "' satisfied"
-                );
-            }
-        }
-
-        if (!buildCacheKey.isValid()) {
-            return getCachingStateForInvalidCacheKey(buildCacheKey);
-        }
-        return ENABLED;
-    }
-
-    private TaskOutputCachingState getCachingStateForInvalidCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
-        BuildCacheKeyInputs buildCacheKeyInputs = buildCacheKey.getInputs();
-        ImplementationSnapshot taskImplementation = buildCacheKeyInputs.getTaskImplementation();
-        if (taskImplementation != null && taskImplementation.isUnknown()) {
-            return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_IMPLEMENTATION, "Task class " + taskImplementation.getUnknownReason());
-        }
-
-        List<ImplementationSnapshot> actionImplementations = buildCacheKeyInputs.getActionImplementations();
-        if (actionImplementations != null && !actionImplementations.isEmpty()) {
-            for (ImplementationSnapshot actionImplementation : actionImplementations) {
-                if (actionImplementation.isUnknown()) {
-                    return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_ACTION, "Task action " + actionImplementation.getUnknownReason());
-                }
-            }
-        }
-
-        ImmutableSortedMap<String, String> invalidInputProperties = buildCacheKeyInputs.getNonCacheableInputProperties();
-        if (invalidInputProperties != null && !invalidInputProperties.isEmpty()) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("Non-cacheable inputs: ");
-            boolean first = true;
-            for (Map.Entry<String, String> entry : Preconditions.checkNotNull(invalidInputProperties).entrySet()) {
-                if (!first) {
-                    builder.append(", ");
-                }
-                first = false;
-                builder
-                    .append("property '")
-                    .append(entry.getKey())
-                    .append("' ")
-                    .append(entry.getValue());
-            }
-            return DefaultTaskOutputCachingState.disabled(
-                NON_CACHEABLE_INPUTS,
-                builder.toString()
-            );
-        }
-        throw new IllegalStateException("Cache key is invalid without a known reason: " + buildCacheKey);
-    }
-
-    @Nullable
-    private OverlappingOutputs getOverlappingOutputs() {
-        return history != null ? history.getOverlappingOutputs() : null;
-    }
-
-    @Override
     public void cacheIf(final Spec<? super Task> spec) {
         cacheIf("Task outputs cacheable", spec);
     }
@@ -229,6 +115,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 doNotCacheIfSpecs.add(new SelfDescribingSpec<TaskInternal>(spec, cachingDisabledReason));
             }
         });
+    }
+
+    @Override
+    public List<SelfDescribingSpec<TaskInternal>> getCacheIfSpecs() {
+        return cacheIfSpecs;
+    }
+
+    @Override
+    public List<SelfDescribingSpec<TaskInternal>> getDoNotCacheIfSpecs() {
+        return doNotCacheIfSpecs;
     }
 
     @Override
