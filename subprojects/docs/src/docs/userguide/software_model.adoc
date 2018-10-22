@@ -327,7 +327,7 @@ A “by-path” reference identifies a particular model element by its path in 
 [[sec:binding_scope]]
 ==== Binding scope
 
-Rules are bound within a “scope”, which determines how references bind. Most rules are bound at the project scope (i.e. the root of the model graph for the project). However, rules can be scoped to a node within the graph. The link:{javadocPath}/org/gradle/model/ModelMap.html#named-java.lang.String,%20java.lang.Class-[ModelMap.named(java.lang.String, java.lang.Class)] method is an example of a mechanism for applying scoped rules. Rules declared in the build script using the `model {}` block, or via a `RuleSource` applied as a plugin use the root of the model space as the scope. This can be considered the default scope.
+Rules are bound within a “scope”, which determines how references bind. Most rules are bound at the project scope (i.e. the root of the model graph for the project). However, rules can be scoped to a node within the graph. The link:{javadocPath}/org/gradle/model/ModelMap.html#named-java.lang.String-java.lang.Class-[ModelMap.named(java.lang.String, java.lang.Class)] method is an example of a mechanism for applying scoped rules. Rules declared in the build script using the `model {}` block, or via a `RuleSource` applied as a plugin use the root of the model space as the scope. This can be considered the default scope.
 
 By-path references are always relative to the rule scope. When the scope is the root, this effectively allows binding to any element in the graph. When it is not, then only the children of the scope can be referenced using "by-path" notation.
 

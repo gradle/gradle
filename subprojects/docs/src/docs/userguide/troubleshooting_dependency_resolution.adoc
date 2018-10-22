@@ -121,4 +121,4 @@ If your build has an unsafe access deprecation warning, it needs to be fixed.  I
 
 More importantly, resolving a configuration from a user-managed thread is not supported.  To ensure that the configuration is resolved safely, it must be resolved in a Gradle-managed thread.  Afterwards, the resolution result can be used in user-managed threads.
 
-In most cases, the deprecation warning can be fixed by defining a configuration in the project where the resolution is occurring and setting it to link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom-org.gradle.api.artifacts.Configuration...-[extend from] the configuration in the other project.
+In most cases, the deprecation warning can be fixed by defining a configuration in the project where the resolution is occurring and setting it to link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom-org.gradle.api.artifacts.Configuration++...++-[extend from] the configuration in the other project.
