@@ -81,8 +81,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     @Override
     public void start(final RootGraphNode root) {
-        componentResultSerializer.reset();
-        dependencyResultSerializer.reset();
     }
 
     @Override
@@ -195,8 +193,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
                 Map<Long, ComponentSelector> selectors = new HashMap<Long, ComponentSelector>();
-                componentResultSerializer.reset();
-                dependencyResultSerializer.reset();
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;

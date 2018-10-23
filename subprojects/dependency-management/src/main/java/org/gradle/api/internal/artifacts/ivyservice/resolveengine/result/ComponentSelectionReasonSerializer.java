@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -33,8 +31,6 @@ import java.util.List;
 
 @NotThreadSafe
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
-
-    private final BiMap<String, Integer> descriptions = HashBiMap.create();
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
         List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder);
@@ -59,14 +55,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
     }
 
     private String readDescriptionText(Decoder decoder) throws IOException {
-        boolean alreadyKnown = decoder.readBoolean();
-        if (alreadyKnown) {
-            return descriptions.inverse().get(decoder.readSmallInt());
-        } else {
-            String description = decoder.readString();
-            descriptions.put(description, descriptions.size());
-            return description;
-        }
+        return decoder.readString();
     }
 
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
@@ -83,18 +72,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
     }
 
     private void writeDescriptionText(Encoder encoder, String description) throws IOException {
-        Integer index = descriptions.get(description);
-        encoder.writeBoolean(index != null); // already known custom reason
-        if (index == null) {
-            index = descriptions.size();
-            descriptions.put(description, index);
-            encoder.writeString(description);
-        } else {
-            encoder.writeSmallInt(index);
-        }
+        encoder.writeString(description);
     }
 
-    public void reset() {
-        descriptions.clear();
-    }
 }
