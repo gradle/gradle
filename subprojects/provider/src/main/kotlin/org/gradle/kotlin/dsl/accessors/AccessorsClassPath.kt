@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.reflect.TypeOf
 
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
@@ -28,8 +27,6 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.compileToDirectory
-import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.jetbrains.kotlin.metadata.ProtoBuf
@@ -46,11 +43,9 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
-import java.io.BufferedWriter
 import java.io.Closeable
 import java.io.File
-
-import java.util.*
+import java.io.Writer
 
 
 fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
@@ -63,6 +58,7 @@ fun projectAccessorsClassPath(project: Project, classPath: ClassPath): Accessors
 private
 fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
+        // TODO:accessors make cache key computation more efficient
         cachedAccessorsClassPathFor(project, cacheKeyFor(projectSchema, classPath)) { srcDir, binDir ->
             buildAccessorsFor(
                 projectSchema,
@@ -116,44 +112,12 @@ fun configuredProjectSchemaOf(project: Project) =
         require(classLoaderScopeOf(project).isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
         }
-        schemaFor(project).takeIf { it.isNotEmpty() }?.withKotlinTypeStrings()
+        schemaFor(project).takeIf { it.isNotEmpty() }
     }
 
 
 internal
-fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
-    entriesPairedWithEntryKind()
-        .groupBy { (entry, _) -> entry.target }
-        .mapValues { (_, entries) ->
-            ProjectSchema(
-                extensions = entries.projectSchemaEntriesOf(EntryKind.Extension),
-                conventions = entries.projectSchemaEntriesOf(EntryKind.Convention),
-                tasks = entries.projectSchemaEntriesOf(EntryKind.Task),
-                containerElements = entries.projectSchemaEntriesOf(EntryKind.ContainerElement),
-                configurations = emptyList()
-            )
-        }
-
-
-private
-fun <T> ProjectSchema<T>.entriesPairedWithEntryKind() =
-    (extensions.map { it to EntryKind.Extension }
-        + conventions.map { it to EntryKind.Convention }
-        + tasks.map { it to EntryKind.Task }
-        + containerElements.map { it to EntryKind.ContainerElement })
-
-
-private
-fun <T> List<Pair<ProjectSchemaEntry<T>, EntryKind>>.projectSchemaEntriesOf(entryKind: EntryKind) =
-    mapNotNull { (entry, kind) -> entry.takeIf { kind == entryKind } }
-
-
-private
-enum class EntryKind { Extension, Convention, Task, ContainerElement }
-
-
-internal
-fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
+fun schemaFor(project: Project): TypedProjectSchema =
     projectSchemaProviderOf(project).schemaFor(project)
 
 
@@ -166,70 +130,19 @@ private
 fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
-private
+internal
 fun buildAccessorsFor(
-    projectSchema: ProjectSchema<String>,
+    projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
     binDir: File
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-
-    val sourceFiles = sourceFilesWithAccessorsFor(availableSchema, srcDir)
-
-    require(
-        compileToDirectory(
-            binDir,
-            sourceFiles,
-            logger,
-            classPath.asFiles
-        )
-    ) {
-        """
-            Failed to compile accessors.
-
-                projectSchema: $projectSchema
-
-                classPath: $classPath
-
-                availableSchema: $availableSchema
-
-        """.replaceIndent()
-    }
-}
-
-
-private
-fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, srcDir: File): List<File> {
-
-    val schemaPerTarget =
-        projectSchema.groupedByTarget()
-
-    val sourceFiles =
-        ArrayList<File>(schemaPerTarget.size + 1)
-
-    val packageDir =
-        srcDir.resolve("org/gradle/kotlin/dsl")
-
-    fun sourceFile(name: String) =
-        packageDir.resolve(name).also { sourceFiles.add(it) }
-
-    packageDir.mkdirs()
-
-    for ((index, schemaSubset) in schemaPerTarget.values.withIndex()) {
-        writeAccessorsTo(
-            sourceFile("Accessors$index.kt"),
-            schemaSubset.extensionAccessors(),
-            importsRequiredBy(schemaSubset)
-        )
-    }
-
-    writeAccessorsTo(
-        sourceFile("ConfigurationAccessors.kt"),
-        projectSchema.configurationAccessors()
+    AccessorBytecodeEmitter.emitAccessorsFor(
+        availableSchema,
+        srcDir,
+        binDir
     )
-
-    return sourceFiles
 }
 
 
@@ -238,7 +151,7 @@ fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<Stri
     defaultPackageTypesIn(
         candidateTypesForImportIn(schemaSubset)
             .filterIsInstance<TypeAccessibility.Accessible>()
-            .map { it.type }
+            .map { it.type.kotlinString }
     )
 
 
@@ -259,15 +172,15 @@ fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
 
 
 internal
-fun availableProjectSchemaFor(projectSchema: ProjectSchema<String>, classPath: ClassPath) =
+fun availableProjectSchemaFor(projectSchema: TypedProjectSchema, classPath: ClassPath) =
     TypeAccessibilityProvider(classPath).use { accessibilityProvider ->
         projectSchema.map(accessibilityProvider::accessibilityForType)
     }
 
 
 sealed class TypeAccessibility {
-    data class Accessible(val type: String) : TypeAccessibility()
-    data class Inaccessible(val type: String, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
+    data class Accessible(val type: SchemaType) : TypeAccessibility()
+    data class Inaccessible(val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
 }
 
 
@@ -304,7 +217,8 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     private
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
-    fun accessibilityForType(type: String): TypeAccessibility =
+    fun accessibilityForType(type: SchemaType): TypeAccessibility =
+    // TODO:accessors cache per SchemaType
         inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
             else accessible(type)
@@ -314,7 +228,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessibilityReasons
-            else classNames.leafs.filter { hasTypeParameter(it) }.map { typeErasure(it) }
+            else classNames.leaves.filter(::hasTypeParameter).map(::typeErasure)
         }
 
     private
@@ -376,8 +290,13 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 internal
 class ClassNamesFromTypeString(
     val all: List<String>,
-    val leafs: List<String>
+    val leaves: List<String>
 )
+
+
+internal
+fun classNamesFromTypeString(type: SchemaType): ClassNamesFromTypeString =
+    classNamesFromTypeString(type.kotlinString)
 
 
 internal
@@ -520,22 +439,18 @@ fun typeErasure(type: String): InaccessibilityReason =
 
 
 internal
-fun accessible(type: String): TypeAccessibility =
+fun accessible(type: SchemaType): TypeAccessibility =
     TypeAccessibility.Accessible(type)
 
 
 internal
-fun inaccessible(type: String, vararg reasons: InaccessibilityReason) =
+fun inaccessible(type: SchemaType, vararg reasons: InaccessibilityReason) =
     inaccessible(type, reasons.toList())
 
 
 internal
-fun inaccessible(type: String, reasons: List<InaccessibilityReason>): TypeAccessibility =
+fun inaccessible(type: SchemaType, reasons: List<InaccessibilityReason>): TypeAccessibility =
     TypeAccessibility.Inaccessible(type, reasons)
-
-
-private
-val logger by lazy { loggerFor<AccessorsClassPath>() }
 
 
 private
@@ -548,25 +463,28 @@ val accessorsCacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl-accesso
 
 
 private
-fun cacheKeyFor(projectSchema: ProjectSchema<String>, classPath: ClassPath): CacheKeySpec =
+fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheKeySpec =
     (accessorsCacheKeyPrefix
         + projectSchema.toCacheKeyString()
         + classPath)
 
 
-private
-fun ProjectSchema<String>.toCacheKeyString(): String =
-    (extensions.associateBy { "${it.target}.${it.name}" }.mapValues { it.value.type }.asSequence()
-        + conventions.associateBy { "${it.target}.${it.name}" }.mapValues { it.value.type }.asSequence()
-        + mapEntry("configuration", configurations.sorted().joinToString(",")))
-        .map { "${it.key}=${it.value}" }
+internal
+fun TypedProjectSchema.toCacheKeyString(): String =
+    (cacheKeyPartsFor(extensions)
+        + cacheKeyPartsFor(conventions)
+        //+ cacheKeyPartsFor(tasks) // TODO:accessors - add missing test case
+        //+ cacheKeyPartsFor(containerElements) // TODO:accessors - add missing test case
+        + Pair("configuration", configurations.sorted().joinToString(",")))
+        .map { "${it.first}=${it.second}" }
         .sorted()
         .joinToString(separator = ":")
 
 
 private
-fun <K, V> mapEntry(key: K, value: V) =
-    AbstractMap.SimpleEntry(key, value)
+fun cacheKeyPartsFor(schemaEntries: List<ProjectSchemaEntry<SchemaType>>) =
+    schemaEntries.asSequence()
+        .map { "${it.target.kotlinString}.${it.name}" to it.type.kotlinString }
 
 
 private
@@ -576,46 +494,55 @@ fun enabledJitAccessors(project: Project) =
     } ?: true
 
 
-private
+internal
 fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>, imports: List<String> = emptyList()): Unit =
     outputFile.bufferedWriter().use { writer ->
         writeAccessorsTo(writer, accessors, imports)
     }
 
 
-private
-fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, imports: List<String>) {
+internal
+fun writeAccessorsTo(writer: Writer, accessors: Sequence<String>, imports: List<String>) {
     writer.apply {
-        write(fileHeader)
-        newLine()
-        appendln("import org.gradle.api.Incubating")
-        appendln("import org.gradle.api.NamedDomainObjectProvider")
-        appendln("import org.gradle.api.Project")
-        appendln("import org.gradle.api.Task")
-        appendln("import org.gradle.api.artifacts.Configuration")
-        appendln("import org.gradle.api.artifacts.ConfigurationContainer")
-        appendln("import org.gradle.api.artifacts.Dependency")
-        appendln("import org.gradle.api.artifacts.DependencyConstraint")
-        appendln("import org.gradle.api.artifacts.ExternalModuleDependency")
-        appendln("import org.gradle.api.artifacts.ModuleDependency")
-        appendln("import org.gradle.api.artifacts.dsl.DependencyConstraintHandler")
-        appendln("import org.gradle.api.artifacts.dsl.DependencyHandler")
-        appendln("import org.gradle.api.tasks.TaskContainer")
-        appendln("import org.gradle.api.tasks.TaskProvider")
-        newLine()
-        appendln("import org.gradle.kotlin.dsl.*")
-        newLine()
+        appendln(fileHeaderWithImports)
         if (imports.isNotEmpty()) {
             imports.forEach {
                 appendln("import $it")
             }
-            newLine()
+            appendln()
         }
         accessors.forEach {
-            appendln(it)
+            appendln(it.replaceIndent())
+            appendln()
         }
     }
 }
+
+
+internal
+val fileHeaderWithImports = """
+$fileHeader
+
+import org.gradle.api.Action
+import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.accessors.runtime.*
+
+"""
 
 
 /**

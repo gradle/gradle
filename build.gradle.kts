@@ -57,6 +57,12 @@ dependencies {
 allprojects {
     repositories {
         gradlePluginPortal()
+        repositories {
+            maven {
+                name = "kotlinx"
+                url = uri("https://kotlin.bintray.com/kotlinx/")
+            }
+        }
     }
 }
 

@@ -45,6 +45,16 @@ class PackageDependencyRulesTest {
         "..support.." shouldNotDependOn "..execution.."
     }
 
+    @Test
+    fun `support should not depend on codegen`() {
+        "..support.." shouldNotDependOn "..kotlin.dsl.codegen.."
+    }
+
+    @Test
+    fun `accessors should not depend on execution`() {
+        "..accessors.." shouldNotDependOn "..kotlin.dsl.execution.."
+    }
+
     private
     infix fun String.shouldNotDependOn(thatPackage: String) {
         noClasses()
@@ -59,5 +69,7 @@ class PackageDependencyRulesTest {
             .importPackagesOf(
                 org.gradle.kotlin.dsl.execution.Interpreter::class.java,
                 org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider::class.java,
-                org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider::class.java)
+                org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider::class.java,
+                org.gradle.kotlin.dsl.accessors.ProjectSchema::class.java
+            )
 }

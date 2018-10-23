@@ -64,9 +64,14 @@ fun eval(
     script: String,
     target: Any,
     baseCacheDir: File,
-    scriptCompilationClassPath: ClassPath = testCompilationClassPath
+    scriptCompilationClassPath: ClassPath = testCompilationClassPath,
+    scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) {
-    SimplifiedKotlinScriptEvaluator(baseCacheDir, scriptCompilationClassPath).use {
+    SimplifiedKotlinScriptEvaluator(
+        baseCacheDir,
+        scriptCompilationClassPath,
+        scriptRuntimeClassPath = scriptRuntimeClassPath
+    ).use {
         it.eval(script, target)
     }
 }
@@ -79,7 +84,8 @@ private
 class SimplifiedKotlinScriptEvaluator(
     private val baseCacheDir: File,
     private val scriptCompilationClassPath: ClassPath,
-    private val serviceRegistry: ServiceRegistry = DefaultServiceRegistry()
+    private val serviceRegistry: ServiceRegistry = DefaultServiceRegistry(),
+    private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
@@ -158,7 +164,7 @@ class SimplifiedKotlinScriptEvaluator(
             mock()
 
         override fun loadClassInChildScopeOf(classLoaderScope: ClassLoaderScope, childScopeId: String, location: File, className: String, accessorsClassPath: ClassPath?): Class<*> =
-            classLoaderFor(location)
+            classLoaderFor(scriptRuntimeClassPath + DefaultClassPath.of(location))
                 .also { classLoaders += it }
                 .loadClass(className)
 

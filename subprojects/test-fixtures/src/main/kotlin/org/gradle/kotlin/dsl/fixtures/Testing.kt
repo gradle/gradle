@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.TextUtil
 
 import org.hamcrest.CoreMatchers.instanceOf
@@ -42,6 +43,10 @@ inline fun <reified T> assertInstanceOf(o: Any): T {
 
 inline fun withClassLoaderFor(vararg classPath: File, action: ClassLoader.() -> Unit) =
     classLoaderFor(*classPath).use(action)
+
+
+fun classLoaderFor(classPath: ClassPath): URLClassLoader =
+    classLoaderFor(*classPath.asFiles.toTypedArray())
 
 
 fun classLoaderFor(vararg classPath: File): URLClassLoader =

@@ -25,7 +25,7 @@ import java.io.File
 
 abstract class AbstractDslTest : TestWithTempFiles() {
 
-    private
+    protected
     val kotlinDslEvalBaseCacheDir by lazy {
         newFolder("kotlin-dsl-eval-cache")
     }
@@ -37,7 +37,14 @@ abstract class AbstractDslTest : TestWithTempFiles() {
     fun Project.eval(
         script: String,
         baseCacheDir: File = kotlinDslEvalBaseCacheDir,
-        scriptCompilationClassPath: ClassPath = testCompilationClassPath
+        scriptCompilationClassPath: ClassPath = testCompilationClassPath,
+        scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
-        eval(script, this, baseCacheDir, scriptCompilationClassPath)
+        eval(
+            script,
+            this,
+            baseCacheDir,
+            scriptCompilationClassPath,
+            scriptRuntimeClassPath
+        )
 }

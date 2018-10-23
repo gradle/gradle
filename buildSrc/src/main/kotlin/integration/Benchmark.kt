@@ -85,7 +85,7 @@ open class Benchmark : DefaultTask() {
         }
 
         val result = QuotientResult(quotients)
-        report(result)
+        reportBenchmarkResult(result.median)
 
         if (result.median > maxQuotient) {
             throw IllegalStateException(
@@ -94,25 +94,6 @@ open class Benchmark : DefaultTask() {
         }
     }
 
-    private
-    fun report(result: QuotientResult) {
-        val median = result.median
-        println(
-            when {
-                median < 0.99 -> {
-                    "It seems the latest is %.2f%% faster than baseline!"
-                        .format(quotientToPercentage(median))
-                }
-                median > 1.01 -> {
-                    "Hm, apparently latest has become %.2f%% slower than baseline."
-                        .format(quotientToPercentage(median))
-                }
-                else -> {
-                    "Excelsior!"
-                }
-            }
-        )
-    }
 
     private
     fun reportExcludedSamples(excluded: List<File>) {
@@ -145,10 +126,6 @@ open class Benchmark : DefaultTask() {
         patterns.any { sampleName.contains(it, ignoreCase = true) }
 
     private
-    fun quotientToPercentage(quotient: Double) =
-        (if (quotient > 1) (quotient - 1) else (1 - quotient)) * 100
-
-    private
     fun benchmark(sampleDir: File, config: BenchmarkConfig): Double {
         val sampleName = sampleDir.name
         println("samples/$sampleName")
@@ -166,7 +143,7 @@ open class Benchmark : DefaultTask() {
         println("\tbaseline: ${format(baseline)}")
 
         val quotient = latest.median.ms / baseline.median.ms
-        println("\tlatest / baseline: %.2f".format(quotient))
+        println(prettyPrint(quotient))
 
         appendToSampleResultFile(latest, sampleName)
         return quotient
@@ -197,11 +174,6 @@ open class Benchmark : DefaultTask() {
     val effectiveResultDir by lazy {
         resultDir ?: File(project.buildDir, "benchmark")
     }
-
-    private
-    fun format(result: BenchmarkResult) =
-        "%.2f ms    %.2f ms (std dev %.2f ms)".format(
-            result.median.ms, result.mean.ms, result.stdDev.ms)
 
     private
     fun toJsonLine(result: BenchmarkResult) =
@@ -285,6 +257,41 @@ class QuotientResult(observations: List<Double>) : Result<Double>(observations) 
     override val Double.measure: Double
         get() = this
 }
+
+
+internal
+fun format(result: BenchmarkResult) =
+    "%.2f ms    %.2f ms (std dev %.2f ms)".format(
+        result.median.ms, result.mean.ms, result.stdDev.ms)
+
+
+internal
+fun reportBenchmarkResult(median: Double) {
+    println(
+        when {
+            median < 0.99 -> {
+                "It seems the latest is %.2f%% faster than baseline!"
+                    .format(quotientToPercentage(median))
+            }
+            median > 1.01 -> {
+                "Hm, apparently latest has become %.2f%% slower than baseline."
+                    .format(quotientToPercentage(median))
+            }
+            else -> {
+                "Excelsior!"
+            }
+        }
+    )
+}
+
+
+internal
+fun quotientToPercentage(quotient: Double) =
+    (if (quotient > 1) (quotient - 1) else (1 - quotient)) * 100
+
+
+internal
+fun prettyPrint(quotient: Double) = "\tlatest / baseline: %.2f".format(quotient)
 
 
 fun connectorFor(projectDir: File) =

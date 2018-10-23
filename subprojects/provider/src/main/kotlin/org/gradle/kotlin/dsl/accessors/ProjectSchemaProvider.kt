@@ -19,13 +19,30 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
 
+import org.gradle.kotlin.dsl.typeOf
+
 import java.io.Serializable
 
 
 interface ProjectSchemaProvider {
 
-    fun schemaFor(project: Project): ProjectSchema<TypeOf<*>>
+    fun schemaFor(project: Project): TypedProjectSchema
 }
+
+
+data class SchemaType(val value: TypeOf<*>) {
+
+    companion object {
+        inline fun <reified T> of() = SchemaType(typeOf<T>())
+    }
+
+    val kotlinString = kotlinTypeStringFor(value)
+
+    override fun toString(): String = kotlinString
+}
+
+
+typealias TypedProjectSchema = ProjectSchema<SchemaType>
 
 
 data class ProjectSchema<out T>(
@@ -64,5 +81,5 @@ data class ProjectSchemaEntry<out T>(
 }
 
 
-fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
-    map(::kotlinTypeStringFor)
+fun TypedProjectSchema.withKotlinTypeStrings() =
+    map { it.kotlinString }

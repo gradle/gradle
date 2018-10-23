@@ -31,11 +31,13 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.SchemaType
+import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 
-    override fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
+    override fun schemaFor(project: Project): TypedProjectSchema =
         targetSchemaFor(project, typeOfProject).let { targetSchema ->
             ProjectSchema(
                 targetSchema.extensions,
@@ -43,7 +45,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                 targetSchema.tasks,
                 targetSchema.containerElements,
                 accessibleConfigurationsOf(project)
-            )
+            ).map(::SchemaType)
         }
 }
 
@@ -77,9 +79,6 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
             }
-            accessibleContainerSchema(target.configurations.collectionSchema).forEach { schema ->
-                containerElements.add(ProjectSchemaEntry(typeOfConfigurationContainer, schema.name, schema.publicType))
-            }
             accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                 tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
             }
@@ -98,10 +97,10 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     collectSchemaOf(target, targetType)
 
     return TargetTypedSchema(
-        extensions.distinct(),
-        conventions.distinct(),
-        tasks.distinct(),
-        containerElements.distinct()
+        extensions,
+        conventions,
+        tasks,
+        containerElements
     )
 }
 

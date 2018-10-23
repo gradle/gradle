@@ -23,11 +23,9 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore("wip")
 class NamedDomainObjectContainerExtensionsTest {
 
     data class DomainObject(var foo: String? = null, var bar: Boolean? = null)
@@ -82,7 +80,7 @@ class NamedDomainObjectContainerExtensionsTest {
         val bob = DomainObjectBase.Bar()
         val default = DomainObjectBase.Default()
         val marty = DomainObjectBase.Foo()
-        val martyProvider = mockDomainObjectProviderFor<DomainObjectBase>(marty)
+        val martyProvider = mockDomainObjectProviderFor(marty)
         val doc = DomainObjectBase.Bar()
         val docProvider = mockDomainObjectProviderFor<DomainObjectBase>(doc)
         val docProviderAsBarProvider = uncheckedCast<NamedDomainObjectProvider<DomainObjectBase.Bar>>(docProvider)
@@ -91,7 +89,7 @@ class NamedDomainObjectContainerExtensionsTest {
             on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
             on { create(eq("bob"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase.Bar>>()) } doReturn bob
             on { create("john", DomainObjectBase.Default::class.java) } doReturn default
-            on { named("marty") } doReturn martyProvider
+            onNamedWithAction("marty", DomainObjectBase.Foo::class, martyProvider)
             on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java)) } doReturn docProviderAsBarProvider
             onRegisterWithAction("doc", DomainObjectBase.Bar::class, docProviderAsBarProvider)
         }
@@ -195,10 +193,10 @@ class NamedDomainObjectContainerExtensionsTest {
         val defaultProvider = mockDomainObjectProviderFor(default)
 
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { named("alice") } doReturn uncheckedCast<NamedDomainObjectProvider<DomainObjectBase>>(aliceProvider)
-            on { named("bob") } doReturn uncheckedCast<NamedDomainObjectProvider<DomainObjectBase>>(bobProvider)
-            on { named("jim") } doReturn defaultProvider
-            on { named("steve") } doReturn defaultProvider
+            onNamedWithAction("alice", DomainObjectBase.Foo::class, aliceProvider)
+            on { named(eq("bob"), eq(DomainObjectBase.Bar::class.java)) } doReturn bobProvider
+            on { named(eq("jim")) } doReturn defaultProvider
+            on { named(eq("steve")) } doReturn defaultProvider
         }
 
         container {
@@ -233,7 +231,7 @@ class NamedDomainObjectContainerExtensionsTest {
         val tasks = mock<TaskContainer> {
             on { create(eq("clean"), eq(Delete::class.java), any<Action<Delete>>()) } doReturn clean
             on { getByName("clean") } doReturn clean
-            on { named("clean") } doReturn uncheckedCast<TaskProvider<Task>>(cleanProvider)
+            onNamedWithAction("clean", Delete::class, cleanProvider)
         }
 
         tasks {
@@ -276,11 +274,11 @@ class NamedDomainObjectContainerExtensionsTest {
     @Test
     fun `can get element of specific type within configuration block via delegated property`() {
 
-        val taskProvider = mock<TaskProvider<Task>> {
+        val taskProvider = mock<TaskProvider<JavaExec>> {
             on { get() } doReturn mock<JavaExec>()
         }
         val tasks = mock<TaskContainer> {
-            on { named("hello") } doReturn taskProvider
+            on { named("hello", JavaExec::class.java) } doReturn taskProvider
         }
 
         @Suppress("unused_variable")
@@ -288,6 +286,6 @@ class NamedDomainObjectContainerExtensionsTest {
             val hello by getting(JavaExec::class)
             val ref = hello // forces the element to be accessed
         }
-        verify(tasks).named("hello")
+        verify(tasks).named("hello", JavaExec::class.java)
     }
 }

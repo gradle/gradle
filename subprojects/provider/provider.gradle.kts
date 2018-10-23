@@ -21,11 +21,13 @@ dependencies {
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
+    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.4") {
+        isTransitive = false
+    }
 
     testCompile(project(":test-fixtures"))
     testCompile("com.tngtech.archunit:archunit:0.8.3")
 }
-
 
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
