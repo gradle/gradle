@@ -70,7 +70,7 @@ class DependencyResultSerializerTest extends Specification {
             }
             getFailure() >> failure
             getSelected() >> null
-            getReason() >> ComponentSelectionReasons.of([ComponentSelectionReasons.CONFLICT_RESOLUTION])
+            getReason() >> ComponentSelectionReasons.of(ComponentSelectionReasons.CONFLICT_RESOLUTION)
         }
 
         when:

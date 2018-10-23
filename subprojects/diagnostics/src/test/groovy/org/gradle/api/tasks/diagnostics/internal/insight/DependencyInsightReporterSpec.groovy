@@ -214,11 +214,11 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private static ComponentSelectionReason forced() {
-        ComponentSelectionReasons.of([FORCED])
+        ComponentSelectionReasons.of(FORCED)
     }
 
     private static ComponentSelectionReason conflict() {
-        ComponentSelectionReasons.of([CONFLICT_RESOLUTION])
+        ComponentSelectionReasons.of(CONFLICT_RESOLUTION)
     }
 
     private static class RenderableDependencyResultFixture {

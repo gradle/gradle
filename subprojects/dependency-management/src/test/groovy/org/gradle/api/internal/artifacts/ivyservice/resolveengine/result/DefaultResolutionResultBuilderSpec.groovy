@@ -124,8 +124,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "includes selection reason"() {
         given:
         node("a")
-        node("b", ComponentSelectionReasons.of([ComponentSelectionReasons.FORCED]))
-        node("c", ComponentSelectionReasons.of([ComponentSelectionReasons.CONFLICT_RESOLUTION]))
+        node("b", ComponentSelectionReasons.of(ComponentSelectionReasons.FORCED))
+        node("c", ComponentSelectionReasons.of(ComponentSelectionReasons.CONFLICT_RESOLUTION))
         node("d")
         resolvedConf("a", [dep("b"), dep("c"), dep("d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])

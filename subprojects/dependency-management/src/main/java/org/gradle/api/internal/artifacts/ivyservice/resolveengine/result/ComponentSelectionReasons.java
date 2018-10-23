@@ -22,9 +22,9 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,24 +38,20 @@ public class ComponentSelectionReasons {
     public static final ComponentSelectionDescriptorInternal CONSTRAINT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
     public static final ComponentSelectionDescriptorInternal REJECTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REJECTION);
 
-    public static ComponentSelectionReasonInternal requested() {
+    public static ComponentSelectionReason requested() {
         return new DefaultComponentSelectionReason(REQUESTED);
     }
 
-    public static ComponentSelectionReasonInternal empty() {
-        return new DefaultComponentSelectionReason(Collections.<ComponentSelectionDescriptor>emptyList());
-    }
-
-    public static ComponentSelectionReasonInternal root() {
+    public static ComponentSelectionReason root() {
         return new DefaultComponentSelectionReason(ROOT);
     }
 
-    public static ComponentSelectionReasonInternal of(List<? extends ComponentSelectionDescriptor> descriptions) {
+    public static ComponentSelectionReason of(ComponentSelectionDescriptor... descriptions) {
         return new DefaultComponentSelectionReason(descriptions);
     }
 
-    public static ComponentSelectionReasonInternal of(ComponentSelectionDescriptor descriptions) {
-        return new DefaultComponentSelectionReason(descriptions);
+    public static ComponentSelectionReasonInternal empty() {
+        return new DefaultComponentSelectionReason();
     }
 
     public static boolean isCauseExpected(ComponentSelectionDescriptor descriptor) {
@@ -66,18 +62,12 @@ public class ComponentSelectionReasons {
 
         private final ArrayDeque<ComponentSelectionDescriptorInternal> descriptions;
 
-        private DefaultComponentSelectionReason(ComponentSelectionDescriptor description) {
+        private DefaultComponentSelectionReason(ComponentSelectionDescriptor... descriptors) {
             descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
-            descriptions.add((ComponentSelectionDescriptorInternal) description);
-        }
-
-        public DefaultComponentSelectionReason(List<? extends ComponentSelectionDescriptor> descriptions) {
-            this.descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
-            for (ComponentSelectionDescriptor description : descriptions) {
-                addCause(description);
+            for (ComponentSelectionDescriptor descriptor : descriptors) {
+                descriptions.add((ComponentSelectionDescriptorInternal) descriptor);
             }
         }
-
 
         public boolean isForced() {
             return hasCause(ComponentSelectionCause.FORCED);

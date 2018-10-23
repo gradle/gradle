@@ -97,6 +97,6 @@ class CachingDependencyResultFactoryTest extends Specification {
     }
 
     private static ComponentSelectionReason selectedByRule() {
-        ComponentSelectionReasons.of([ComponentSelectionReasons.SELECTED_BY_RULE])
+        ComponentSelectionReasons.of(ComponentSelectionReasons.SELECTED_BY_RULE)
     }
 }

@@ -81,7 +81,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     }
 
     void check(ComponentSelectionDescriptor... reasons) {
-        def reason = ComponentSelectionReasons.of(Arrays.asList(reasons))
+        def reason = ComponentSelectionReasons.of(reasons)
         def result = serialize(reason, serializer)
         assert result == reason
     }
@@ -94,7 +94,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
         int idx = -1
         ComponentSelectionReasons.of(reasons.collect {
             reason(++idx).withReason(Describables.of(it))
-        })
+        }.toArray(new ComponentSelectionDescriptorInternal[0]))
     }
 
     private static ComponentSelectionDescriptorInternal reason(int idx) {

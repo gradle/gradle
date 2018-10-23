@@ -25,6 +25,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
@@ -214,7 +215,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public ComponentSelectionReasonInternal getSelectionReason() {
+    public ComponentSelectionReason getSelectionReason() {
         if (root) {
             return ComponentSelectionReasons.root();
         }

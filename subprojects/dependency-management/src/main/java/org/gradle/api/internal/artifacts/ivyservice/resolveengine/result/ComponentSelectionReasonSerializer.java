@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -33,25 +32,25 @@ import java.util.List;
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
-        List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder);
+        ComponentSelectionDescriptor[] descriptions = readDescriptions(decoder);
         return ComponentSelectionReasons.of(descriptions);
     }
 
-    private List<ComponentSelectionDescriptor> readDescriptions(Decoder decoder) throws IOException {
+    private ComponentSelectionDescriptor[] readDescriptions(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
-        ImmutableList.Builder<ComponentSelectionDescriptor> builder = new ImmutableList.Builder<ComponentSelectionDescriptor>();
+        ComponentSelectionDescriptor[] descriptors = new ComponentSelectionDescriptor[size];
         for (int i = 0; i < size; i++) {
             ComponentSelectionCause cause = ComponentSelectionCause.values()[decoder.readByte()];
             String desc = readDescriptionText(decoder);
             String defaultReason = cause.getDefaultReason();
             if (desc.equals(defaultReason)) {
-                builder.add(new DefaultComponentSelectionDescriptor(cause));
+                descriptors[i] = new DefaultComponentSelectionDescriptor(cause);
             } else {
-                builder.add(new DefaultComponentSelectionDescriptor(cause, Describables.of(desc)));
+                descriptors[i] = new DefaultComponentSelectionDescriptor(cause, Describables.of(desc));
             }
 
         }
-        return builder.build();
+        return descriptors;
     }
 
     private String readDescriptionText(Decoder decoder) throws IOException {
