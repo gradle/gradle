@@ -33,7 +33,6 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.origin.OriginMetadata
-import org.gradle.caching.internal.packaging.CacheableTree
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.internal.execution.OutputChangeListener
@@ -63,7 +62,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
     def outputFingerprints = [:]
 
-    def executer = new SkipCachedTaskExecuter(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
+    // def executer = new SkipCachedTaskExecuter(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
 
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
@@ -97,7 +96,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet<CacheableTree>, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> loadResult
@@ -124,7 +123,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet<CacheableTree>, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, task, localStateFiles, _ as BuildCacheLoadListener) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> null
@@ -137,7 +136,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
-        1 * buildCacheCommandFactory.createStore(cacheKey, _ as SortedSet<CacheableTree>, outputFingerprints, task, 1) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -168,7 +167,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
-        1 * buildCacheCommandFactory.createStore(cacheKey, _ as SortedSet<CacheableTree>, outputFingerprints, task, 1) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -245,7 +244,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getOutputFingerprints() >> outputFingerprints
-        1 * buildCacheCommandFactory.createStore(cacheKey, _ as SortedSet<CacheableTree>, outputFingerprints, task, 1) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)

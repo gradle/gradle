@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.util.DeferredUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Issue
@@ -35,13 +34,11 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static OutputType.DIRECTORY
-import static OutputType.FILE
+import static org.gradle.internal.file.TreeType.DIRECTORY
+import static org.gradle.internal.file.TreeType.FILE
 
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
-
-    def validBuildCacheKey = new DefaultTaskOutputCachingBuildCacheKeyBuilder().build()
 
     def taskStatusNagger = Stub(TaskMutator) {
         mutate(_, _) >> { String method, def action ->

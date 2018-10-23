@@ -18,10 +18,11 @@ package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
-import org.gradle.caching.internal.packaging.CacheableTree
+import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
@@ -40,8 +41,8 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.caching.internal.packaging.CacheableTree.Type.DIRECTORY
-import static org.gradle.caching.internal.packaging.CacheableTree.Type.FILE
+import static org.gradle.internal.file.TreeType.DIRECTORY
+import static org.gradle.internal.file.TreeType.FILE
 
 @CleanupTestDirectory
 class TarBuildCacheEntryPackerTest extends Specification {
@@ -78,10 +79,9 @@ class TarBuildCacheEntryPackerTest extends Specification {
         unpack input, prop(FILE, targetOutputFile)
 
         then:
+        targetOutputFile.text == "output"
         1 * fileSystem.chmod(targetOutputFile, unixMode)
         _ * targetOutputFile._
-        then:
-        targetOutputFile.text == "output"
         0 * _
 
         where:
@@ -169,7 +169,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
         pack output, prop(FILE, sourceOutputFile)
 
         then:
-        noExceptionThrown()
         1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
         0 * _
 
@@ -178,9 +177,8 @@ class TarBuildCacheEntryPackerTest extends Specification {
         unpack input, prop(FILE, targetOutputFile)
 
         then:
-        1 * fileSystem.chmod(targetOutputFile, 0644)
-        then:
         targetOutputFile.text == "output"
+        1 * fileSystem.chmod(targetOutputFile, 0644)
         0 * _
 
         where:
@@ -201,7 +199,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
         pack output, prop(DIRECTORY, sourceOutputDir)
 
         then:
-        noExceptionThrown()
         1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
         0 * _
 
@@ -210,10 +207,9 @@ class TarBuildCacheEntryPackerTest extends Specification {
         unpack input, prop(DIRECTORY, targetOutputDir)
 
         then:
+        targetOutputFile.text == "output"
         1 * fileSystem.chmod(targetOutputDir, 0755)
         1 * fileSystem.chmod(targetOutputFile, 0644)
-        then:
-        targetOutputFile.text == "output"
         0 * _
 
         where:
@@ -237,7 +233,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
         pack output, prop(treeName, DIRECTORY, sourceOutputDir)
 
         then:
-        noExceptionThrown()
         1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
         0 * _
 
@@ -246,10 +241,9 @@ class TarBuildCacheEntryPackerTest extends Specification {
         unpack input, prop(treeName, DIRECTORY, targetOutputDir)
 
         then:
+        targetOutputFile.text == "output"
         1 * fileSystem.chmod(targetOutputDir, 0755)
         1 * fileSystem.chmod(targetOutputFile, 0644)
-        then:
-        targetOutputFile.text == "output"
         0 * _
 
         where:
@@ -280,7 +274,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
             prop("out2", DIRECTORY, null)
 
         then:
-        noExceptionThrown()
         0 * _
     }
 
@@ -299,7 +292,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
             prop("missingDir", DIRECTORY, missingSourceDir)
 
         then:
-        noExceptionThrown()
         0 * _
 
         when:
@@ -309,7 +301,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
             prop("missingDir", DIRECTORY, missingTargetDir)
 
         then:
-        noExceptionThrown()
         0 * _
     }
 
@@ -321,7 +312,6 @@ class TarBuildCacheEntryPackerTest extends Specification {
         pack output, prop("empty", DIRECTORY, sourceDir)
 
         then:
-        noExceptionThrown()
         0 * _
 
         when:
@@ -329,27 +319,31 @@ class TarBuildCacheEntryPackerTest extends Specification {
         unpack input, prop("empty", DIRECTORY, targetDir)
 
         then:
-        noExceptionThrown()
-        1 * fileSystem.chmod(targetDir, 0755)
-        then:
         targetDir.assertIsEmptyDir()
+        1 * fileSystem.chmod(targetDir, 0755)
         0 * _
     }
 
     def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {
-        def trees = treeDefs*.tree as SortedSet
         Map<String, CurrentFileCollectionFingerprint> fingerprints = treeDefs.collectEntries { treeDef ->
             return [(treeDef.tree.name): treeDef.fingerprint()]
         }
-        packer.pack(trees, fingerprints, output, writeOrigin)
+        packer.pack(entity(treeDefs), fingerprints, output, writeOrigin)
     }
 
     def unpack(InputStream input, OriginReader readOrigin = this.readOrigin, TreeDefinition... treeDefs) {
-        def trees = treeDefs*.tree as SortedSet
-        packer.unpack(trees, input, readOrigin)
+        packer.unpack(entity(treeDefs), input, readOrigin)
     }
 
-    def prop(String name = "test", CacheableTree.Type type, File output, FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING) {
+    def entity(TreeDefinition... treeDefs) {
+        Stub(CacheableEntity) {
+            visitTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+                treeDefs.each { visitor.visitTree(it.tree.name, it.tree.type, it.tree.root) }
+            }
+        }
+    }
+
+    def prop(String name = "test", TreeType type, File output, FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING) {
         switch (type) {
             case FILE:
                 return new TreeDefinition(new TestCacheableTree(name, FILE, output)) {
@@ -377,9 +371,9 @@ class TarBuildCacheEntryPackerTest extends Specification {
     }
 
     private abstract static class TreeDefinition {
-        final CacheableTree tree
+        final TestCacheableTree tree
 
-        TreeDefinition(CacheableTree tree) {
+        TreeDefinition(TestCacheableTree tree) {
             this.tree = tree
         }
 

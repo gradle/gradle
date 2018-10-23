@@ -17,13 +17,11 @@
 package org.gradle.internal.execution.impl.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.command.BuildCacheLoadListener;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.packaging.CacheableTree;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
@@ -33,9 +31,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 
 public class CacheStep<C extends CachingContext> implements Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
@@ -97,9 +93,8 @@ public class CacheStep<C extends CachingContext> implements Step<C> {
     @Nullable
     private BuildCacheCommandFactory.LoadMetadata load(UnitOfWork work, BuildCacheKey cacheKey) {
         try {
-            ImmutableSortedSet<OutputTree> outputProperties = resolveTrees(work);
             return buildCache.load(
-                    commandFactory.createLoad(cacheKey, outputProperties, work, work.getLocalState(), new BuildCacheLoadListener() {
+                    commandFactory.createLoad(cacheKey, work, work.getLocalState(), new BuildCacheLoadListener() {
                         @Override
                         public void beforeLoad() {
                             outputChangeListener.beforeOutputChange();
@@ -124,69 +119,14 @@ public class CacheStep<C extends CachingContext> implements Step<C> {
 
     private void store(UnitOfWork work, BuildCacheKey cacheKey, ExecutionResult result) {
         try {
-            ImmutableSortedSet<OutputTree> outputProperties = resolveTrees(work);
             // TODO This could send in the whole origin metadata
-            buildCache.store(commandFactory.createStore(cacheKey, outputProperties, result.getFinalOutputs(), work, result.getOriginMetadata().getExecutionTime()));
+            buildCache.store(commandFactory.createStore(cacheKey, work, result.getFinalOutputs(), result.getOriginMetadata().getExecutionTime()));
         } catch (Exception e) {
             LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
         }
     }
 
-    private static ImmutableSortedSet<OutputTree> resolveTrees(UnitOfWork work) {
-        ImmutableSortedSet.Builder<OutputTree> builder = ImmutableSortedSet.naturalOrder();
-        work.visitOutputs((name, type, files, root) -> {
-            CacheableTree.Type treeType;
-            switch (type) {
-                case FILE:
-                    treeType = CacheableTree.Type.FILE;
-                    break;
-                case DIRECTORY:
-                    treeType = CacheableTree.Type.DIRECTORY;
-                    break;
-                default:
-                    throw new AssertionError();
-            }
-            // TODO Probably should have some kind of visitable thing here, too
-            assert root != null;
-            builder.add(new OutputTree(name, treeType, root));
-        });
-        return builder.build();
-    }
-
     private ExecutionResult executeWithoutCache(C context) {
         return delegate.execute(context);
-    }
-
-    private static class OutputTree implements CacheableTree {
-        private final String name;
-        private final Type type;
-        private final File root;
-
-        public OutputTree(String name, Type type, File root) {
-            this.name = name;
-            this.type = type;
-            this.root = root;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public Type getType() {
-            return type;
-        }
-
-        @Nullable
-        @Override
-        public File getRoot() {
-            return root;
-        }
-
-        @Override
-        public int compareTo(@Nonnull CacheableTree o) {
-            return getName().compareTo(o.getName());
-        }
     }
 }

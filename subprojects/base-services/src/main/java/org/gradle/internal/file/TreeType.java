@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.file;
 
-public enum OutputType {
-    FILE, DIRECTORY
+/**
+ * Type of an existing file tree.
+ */
+public enum TreeType {
+    FILE,
+    DIRECTORY
 }

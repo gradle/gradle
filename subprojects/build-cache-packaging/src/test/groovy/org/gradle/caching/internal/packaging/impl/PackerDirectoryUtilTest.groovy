@@ -21,9 +21,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.caching.internal.packaging.CacheableTree.Type.DIRECTORY
-import static org.gradle.caching.internal.packaging.CacheableTree.Type.FILE
 import static org.gradle.caching.internal.packaging.impl.PackerDirectoryUtil.ensureDirectoryForTree
+import static org.gradle.internal.file.TreeType.DIRECTORY
+import static org.gradle.internal.file.TreeType.FILE
 
 @CleanupTestDirectory
 class PackerDirectoryUtilTest extends Specification {

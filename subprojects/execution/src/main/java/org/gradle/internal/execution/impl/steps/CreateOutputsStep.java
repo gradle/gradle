@@ -19,7 +19,7 @@ package org.gradle.internal.execution.impl.steps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.OutputType;
+import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class CreateOutputsStep<C extends Context> implements Step<C> {
     public ExecutionResult execute(C context) {
         context.getWork().visitOutputs(new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutput(String name, OutputType type, FileCollection files, @Nullable File root) {
+            public void visitOutput(String name, TreeType type, FileCollection files, @Nullable File root) {
                 for (File outputRoot : files) {
                     ensureOutput(name, outputRoot, type);
                 }
@@ -50,7 +50,7 @@ public class CreateOutputsStep<C extends Context> implements Step<C> {
         return delegate.execute(context);
     }
 
-    private static void ensureOutput(String name, @Nullable File outputRoot, OutputType type) {
+    private static void ensureOutput(String name, @Nullable File outputRoot, TreeType type) {
         if (outputRoot == null) {
             LOGGER.debug("Not ensuring directory exists for property {}, because value is null", name);
             return;

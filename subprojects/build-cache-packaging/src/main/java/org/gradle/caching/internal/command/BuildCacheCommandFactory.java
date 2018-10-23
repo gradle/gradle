@@ -30,7 +30,6 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.caching.internal.packaging.CacheableTree;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -50,7 +49,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 
 public class BuildCacheCommandFactory {
 
@@ -68,12 +66,12 @@ public class BuildCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
-        return new LoadCommand(cacheKey, trees, entity, localState, loadListener);
+    public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
+        return new LoadCommand(cacheKey, entity, localState, loadListener);
     }
 
-    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, CacheableEntity entity, long executionTime) {
-        return new StoreCommand(cacheKey, trees, fingerprints, entity, executionTime);
+    public BuildCacheStoreCommand createStore(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
+        return new StoreCommand(cacheKey, entity, fingerprints, executionTime);
     }
 
     public interface LoadMetadata {
@@ -84,14 +82,12 @@ public class BuildCacheCommandFactory {
     private class LoadCommand implements BuildCacheLoadCommand<LoadMetadata> {
 
         private final BuildCacheKey cacheKey;
-        private final SortedSet<? extends CacheableTree> trees;
         private final CacheableEntity entity;
         private final Iterable<File> localState;
         private final BuildCacheLoadListener loadListener;
 
-        private LoadCommand(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
+        private LoadCommand(BuildCacheKey cacheKey, CacheableEntity entity, Iterable<File> localState, BuildCacheLoadListener loadListener) {
             this.cacheKey = cacheKey;
-            this.trees = trees;
             this.entity = entity;
             this.localState = localState;
             this.loadListener = loadListener;
@@ -106,7 +102,7 @@ public class BuildCacheCommandFactory {
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) {
             loadListener.beforeLoad();
             try {
-                BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(trees, input, originMetadataFactory.createReader(entity));
+                BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
                 LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
                 return new Result<LoadMetadata>() {
@@ -148,12 +144,10 @@ public class BuildCacheCommandFactory {
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
             FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
-            for (CacheableTree tree : trees) {
-                String treeName = tree.getName();
-                File root = tree.getRoot();
+            entity.visitTrees((treeName, type, root) -> {
                 if (root == null) {
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
-                    continue;
+                    return;
                 }
                 FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
@@ -161,12 +155,12 @@ public class BuildCacheCommandFactory {
 
                 if (treeSnapshot == null) {
                     fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());
-                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(internedAbsolutePath, tree.getRoot().getName()));
+                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(internedAbsolutePath, root.getName()));
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
-                    continue;
+                    return;
                 }
 
-                switch (tree.getType()) {
+                switch (type) {
                     case FILE:
                         if (treeSnapshot.getType() != FileType.RegularFile) {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
@@ -183,7 +177,7 @@ public class BuildCacheCommandFactory {
                         throw new AssertionError();
                 }
                 builder.put(treeName, DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy));
-            }
+            });
             return builder.build();
         }
 
@@ -198,14 +192,13 @@ public class BuildCacheCommandFactory {
         }
 
         private void cleanupTreesAfterUnpackFailure() {
-            for (CacheableTree tree : trees) {
-                File root = tree.getRoot();
+            entity.visitTrees((name, type, root) -> {
                 try {
                     remove(root);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", tree.getName(), entity.getDisplayName(), root), ex);
+                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", name, entity.getDisplayName(), root), ex);
                 }
-            }
+            });
         }
 
         private void remove(File file) throws IOException {
@@ -222,16 +215,14 @@ public class BuildCacheCommandFactory {
     private class StoreCommand implements BuildCacheStoreCommand {
 
         private final BuildCacheKey cacheKey;
-        private final SortedSet<? extends CacheableTree> trees;
-        private final Map<String, CurrentFileCollectionFingerprint> fingerprints;
         private final CacheableEntity entity;
+        private final Map<String, CurrentFileCollectionFingerprint> fingerprints;
         private final long executionTime;
 
-        private StoreCommand(BuildCacheKey cacheKey, SortedSet<? extends CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, CacheableEntity entity, long executionTime) {
+        private StoreCommand(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, long executionTime) {
             this.cacheKey = cacheKey;
-            this.trees = trees;
-            this.fingerprints = fingerprints;
             this.entity = entity;
+            this.fingerprints = fingerprints;
             this.executionTime = executionTime;
         }
 
@@ -243,7 +234,7 @@ public class BuildCacheCommandFactory {
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             LOGGER.info("Packing {}", entity.getDisplayName());
-            final BuildCacheEntryPacker.PackResult packResult = packer.pack(trees, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
+            final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
             return new BuildCacheStoreCommand.Result() {
                 @Override
                 public long getArtifactEntryCount() {

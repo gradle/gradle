@@ -158,21 +158,25 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         @Override
         public void visitOutputs(OutputVisitor outputVisitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                OutputType type;
-                switch (property.getOutputType()) {
-                    case FILE:
-                        type = OutputType.FILE;
-                        break;
-                    case DIRECTORY:
-                        type = OutputType.DIRECTORY;
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
                 File cacheRoot = (property instanceof CacheableTaskOutputFilePropertySpec)
                         ? ((CacheableTaskOutputFilePropertySpec) property).getOutputFile()
                         : null;
-                outputVisitor.visitOutput(property.getPropertyName(), type, property.getPropertyFiles(), cacheRoot);
+                outputVisitor.visitOutput(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles(), cacheRoot);
+            }
+        }
+
+        @Override
+        public void visitTrees(CacheableTreeVisitor visitor) {
+            for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
+                if (!(property instanceof CacheableTaskOutputFilePropertySpec)) {
+                    throw new IllegalStateException("Non-cacheable property: " + property);
+                }
+                File cacheRoot = ((CacheableTaskOutputFilePropertySpec) property).getOutputFile();
+                if (cacheRoot == null) {
+                    continue;
+                }
+
+                visitor.visitTree(property.getPropertyName(), property.getOutputType(), cacheRoot);
             }
         }
 

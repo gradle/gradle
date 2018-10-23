@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
@@ -46,12 +47,8 @@ public interface UnitOfWork extends CacheableEntity {
     CacheHandler createCacheHandler();
 
     interface OutputVisitor {
-        void visitOutput(String name, OutputType type, FileCollection files, @Nullable File root);
+        void visitOutput(String name, TreeType type, FileCollection files, @Nullable File root);
     }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
-
-    enum OutputType {
-        FILE, DIRECTORY
-    }
 }
