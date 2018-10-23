@@ -622,7 +622,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private void warnAboutRemoveMethodDeprecation(String methodName) {
-        DeprecationLogger.nagUserOfDeprecated("Using TaskContainer." + methodName + " to remove tasks", "Prefer disabling the task instead, see Task.setEnabled(boolean).");
+        DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("TaskContainer." + methodName + " to remove tasks", "Prefer disabling tasks instead, see Task.setEnabled(boolean).");
     }
 
     // Cannot be private due to reflective instantiation

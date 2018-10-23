@@ -125,7 +125,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         succeeds ("dummy")
 
         then:
-        outputContains("Using ${description} to remove tasks has been deprecated. This is scheduled to be removed in Gradle 6.0. Prefer disabling the task instead, see Task.setEnabled(boolean).")
+        outputContains("Using method ${description} to remove tasks has been deprecated. This will fail with an error in Gradle 6.0. Prefer disabling tasks instead, see Task.setEnabled(boolean).")
         where:
         description                                | code
         "TaskContainer.remove(Object)"             | "tasks.remove(foo)"
