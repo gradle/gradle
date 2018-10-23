@@ -23,8 +23,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
-    protected final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previous;
-    protected final ImmutableSortedMap<String, ? extends CurrentFileCollectionFingerprint> current;
+    protected final ImmutableSortedMap<String, FileCollectionFingerprint> previous;
+    protected final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current;
     private final String title;
 
     protected AbstractFingerprintChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
