@@ -24,9 +24,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.kotlin.dsl.execAndGetStdout
-import org.parboiled.common.FileUtils
 import java.io.File
 import org.gradle.kotlin.dsl.*
+import org.gradle.util.GFileUtils
 
 
 open class BuildForkPointDistribution : DefaultTask() {
@@ -41,8 +41,8 @@ open class BuildForkPointDistribution : DefaultTask() {
     val forkPointToolingApiJar = project.objects.fileProperty()
 
     init {
-        forkPointDistributionHome.set(forkPointDistributionVersion.map { project.rootProject.layout.projectDirectory.dir("build/distributions/gradle-$it") })
-        forkPointToolingApiJar.set(forkPointDistributionVersion.map { project.rootProject.layout.projectDirectory.file("build/distributions/gradle-tooling-api-$it.jar") })
+        forkPointDistributionHome.set(project.rootProject.layout.buildDirectory.dir(forkPointDistributionVersion.map { "distributions/gradle-$it" }))
+        forkPointToolingApiJar.set(project.rootProject.layout.buildDirectory.file(forkPointDistributionVersion.map { "distributions/gradle-tooling-api-$it.jar" }))
     }
 
     @TaskAction
@@ -56,7 +56,7 @@ open class BuildForkPointDistribution : DefaultTask() {
     fun prepareGradleRepository() {
         val cloneDir = getGradleCloneTmpDir()
         if (!File(cloneDir, ".git").isDirectory) {
-            FileUtils.forceMkdir(cloneDir)
+            GFileUtils.mkdirs(cloneDir)
             project.execAndGetStdout(cloneDir.parentFile, "git", "clone", project.rootDir.absolutePath, getGradleCloneTmpDir().absolutePath, "--no-checkout")
         }
         project.execAndGetStdout(cloneDir, "git", "reset", "--hard")

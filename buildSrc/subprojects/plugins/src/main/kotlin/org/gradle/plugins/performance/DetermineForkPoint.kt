@@ -20,11 +20,12 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.execAndGetStdout
+import org.gradle.kotlin.dsl.property
 
 
 open class DetermineForkPoint : DefaultTask() {
     @Internal
-    val forkPointDistributionVersion = project.objects.property(String::class.java)
+    val forkPointDistributionVersion = project.objects.property<String>()
 
     @TaskAction
     fun determineForkPoint() {
