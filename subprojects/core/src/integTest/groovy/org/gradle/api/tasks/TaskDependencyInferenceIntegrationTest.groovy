@@ -293,19 +293,36 @@ The following types/formats are supported:
         result.assertTasksExecuted(":b")
     }
 
+    def "produces reasonable error message when task dependency closure throws exception"() {
+        buildFile << """
+    task a
+    a.dependsOn {
+        throw new RuntimeException('broken')
+    }
+"""
+        when:
+        fails "a"
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
+                .assertHasCause('broken')
+                .assertHasFileName("Build file '$buildFile'")
+                .assertHasLineNumber(4)
+    }
+
     def "dependency declared using provider with no value fails"() {
         buildFile << """
             def provider = objects.property(String)
-            tasks.register("b") {
+            tasks.register("a") {
                 dependsOn provider
             }
         """
 
         when:
-        fails("b")
+        fails("a")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
         failure.assertHasCause("No value has been specified for this provider.")
     }
 
