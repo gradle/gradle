@@ -21,7 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -303,7 +302,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     private static boolean isForced(DependencyState dependencyState) {
-        if (dependencyState.getRuleDescriptor() != null && dependencyState.getRuleDescriptor().getCause() == ComponentSelectionCause.FORCED) {
+        if (dependencyState.getRuleDescriptor() != null && dependencyState.getRuleDescriptor().isEquivalentToForce()) {
             return true;
         }
         DependencyMetadata dependencyMetadata = dependencyState.getDependency();
