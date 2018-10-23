@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -41,7 +42,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = Lists.newArrayList();
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
         final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
@@ -55,10 +56,10 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         if (!messages.isEmpty()) {
             List<String> firstMessages = messages.subList(0, Math.min(5, messages.size()));
             report(task, firstMessages, state);
-            return;
+            return null;
         }
 
-        executer.execute(task, state, context);
+        return executer.execute(task, state, context);
     }
 
     private static void report(Task task, List<String> messages, TaskStateInternal state) {

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.changes.TaskStateChangeVisitor;
+import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
@@ -29,9 +29,9 @@ import java.util.Map;
  */
 public interface FingerprintCompareStrategy {
     /**
-     * @see FileCollectionFingerprint#visitChangesSince(FileCollectionFingerprint, String, boolean, TaskStateChangeVisitor)
+     * @see FileCollectionFingerprint#visitChangesSince(FileCollectionFingerprint, String, boolean, ChangeVisitor)
      */
-    boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
+    boolean visitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded);
 
     void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints);
 }

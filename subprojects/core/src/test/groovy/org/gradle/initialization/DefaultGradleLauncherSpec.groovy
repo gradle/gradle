@@ -23,7 +23,6 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -36,6 +35,7 @@ import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
@@ -59,7 +59,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildExecuter = Mock(BuildExecuter)
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class)
     def buildScopeServices = Mock(ServiceRegistry)
-    def taskArtifactStateCacheAccess = Mock(TaskHistoryStore)
+    def cacheAccess = Mock(ExecutionHistoryCacheAccess)
 
     private ProjectInternal expectedRootProject
     private ProjectInternal expectedCurrentProject
@@ -119,7 +119,7 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.includedBuilds >> []
         _ * gradleMock.getBuildOperation() >> null
 
-        buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
+        buildScopeServices.get(ExecutionHistoryCacheAccess) >> cacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
         buildServices.get(WorkerLeaseService) >> workerLeaseService
     }

@@ -57,6 +57,8 @@ dependencies {
 
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
+
     implementation(library("asm"))
     implementation(library("asm_commons"))
     implementation(library("slf4j_api"))

@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -29,9 +29,9 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -113,11 +113,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public TaskExecutionHistory getExecutionHistory() {
-            return delegate.getExecutionHistory();
-        }
-
-        @Override
         public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
             return delegate.getOutputFingerprints();
         }
@@ -132,15 +127,20 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             delegate.afterOutputsRemovedBeforeTask();
         }
 
-
         @Override
-        public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
-            delegate.snapshotAfterTaskExecution(failure, buildInvocationId, taskExecutionContext);
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterTaskExecution(TaskExecutionContext taskExecutionContext) {
+            return delegate.snapshotAfterTaskExecution(taskExecutionContext);
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, OriginMetadata originMetadata) {
-            delegate.snapshotAfterLoadedFromCache(newOutputFingerprints, originMetadata);
+        public void persistNewOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputFingerprints, boolean successful, OriginMetadata originMetadata) {
+            delegate.persistNewOutputs(newOutputFingerprints, successful, originMetadata);
+        }
+
+        @Nullable
+        @Override
+        public OverlappingOutputs getOverlappingOutputs() {
+            return delegate.getOverlappingOutputs();
         }
     }
 }

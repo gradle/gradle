@@ -17,11 +17,11 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.internal.changes.ChangeType
-import org.gradle.internal.changes.FileChange
+import org.gradle.internal.change.ChangeType
+import org.gradle.internal.change.CollectingChangeVisitor
+import org.gradle.internal.change.FileChange
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
@@ -91,7 +91,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         def fingerprint = fingerprinter.fingerprint(files(file1))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file1, file2)), fingerprint, listener)
 
         then:
@@ -110,7 +110,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         def fingerprint = fingerprinter.fingerprint(files(file1, file2))
         file2.createFile()
         def target = fingerprinter.fingerprint(files(file1, file2, file3, file4))
-        def visitor = new CollectingTaskStateChangeVisitor()
+        def visitor = new CollectingChangeVisitor()
         target.visitChangesSince(fingerprint, "TYPE", false, visitor)
         visitor.changes.empty
 
@@ -125,7 +125,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file1, file2))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file1)), fingerprint, listener)
 
         then:
@@ -140,10 +140,10 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file)), fingerprint, listener)
         file.setLastModified(45600L)
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file)), fingerprint, listener)
 
         then:
@@ -160,7 +160,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection)
         file.delete()
         file.createDir()
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(fileCollection), fingerprint, listener)
 
         then:
@@ -174,7 +174,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file))
         file.write('new content')
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file)), fingerprint, listener)
 
         then:
@@ -187,7 +187,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(dir))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(dir)), fingerprint, listener)
 
         then:
@@ -203,7 +203,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection)
         dir.deleteDir()
         dir.createFile()
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(fileCollection), fingerprint, listener)
 
         then:
@@ -216,7 +216,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file)), fingerprint, listener)
 
         then:
@@ -231,7 +231,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection)
         file.createFile()
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(fileCollection), fingerprint, listener)
 
         then:
@@ -246,7 +246,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection)
         file.delete()
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(fileCollection), fingerprint, listener)
 
         then:
@@ -259,7 +259,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
 
         when:
         FileCollectionFingerprint fingerprint = fingerprinter.fingerprint(files(file1, file2))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(fingerprinter.fingerprint(files(file1)), fingerprint, listener)
 
         then:
@@ -270,9 +270,9 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint fingerprint = EmptyHistoricalFileCollectionFingerprint.INSTANCE
+        FileCollectionFingerprint fingerprint = FileCollectionFingerprint.EMPTY
         FileCollectionFingerprint newFingerprint = fingerprinter.fingerprint(files(file))
-        fileSystemMirror.beforeTaskOutputChanged()
+        fileSystemMirror.beforeOutputChange()
         changes(newFingerprint, fingerprint, listener)
 
         then:

@@ -59,7 +59,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "block"
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @IntegrationTestTimeout(60)
@@ -80,7 +81,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "block", "foo", "--continue"
         result.assertTaskExecuted(":foo")
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @IntegrationTestTimeout(60)
@@ -106,7 +108,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "block"
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @IntegrationTestTimeout(60)
@@ -138,7 +141,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "test"
-        failure.assertHasDescription("task ':test' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("Timeout has been exceeded")
     }
 
     @LeaksFileHandles // TODO https://github.com/gradle/gradle-private/issues/1532
@@ -184,7 +188,8 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "block"
-        failure.assertHasDescription("task ':block' exceeded its timeout")
+        failure.assertHasDescription("Execution failed for task ':block'.")
+        failure.assertHasCause("Timeout has been exceeded")
 
         where:
         isolationMode << IsolationMode.values()

@@ -17,13 +17,13 @@
 package org.gradle.caching.internal.packaging.impl;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.caching.internal.packaging.CacheableTree;
+import org.gradle.internal.file.TreeType;
 
 import java.io.File;
 import java.io.IOException;
 
 public class PackerDirectoryUtil {
-    public static void ensureDirectoryForTree(CacheableTree.Type type, File root) throws IOException {
+    public static void ensureDirectoryForTree(TreeType type, File root) throws IOException {
         switch (type) {
             case DIRECTORY:
                 if (!makeDirectory(root)) {
