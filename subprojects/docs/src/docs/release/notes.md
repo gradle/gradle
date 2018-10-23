@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle 5.0. 
 
-This release features [a production-ready Kotlin DSL](#kotlin-dsl-10), [dependency version alignment](#dependency-version-alignment) (similar to and usable with Maven BOMs), [task timeouts](#task-timeouts), [Java 11 support](#java-11-runtime-support), and more.
+This release features [a production-ready Kotlin DSL](#kotlin-dsl-1.0), [dependency version alignment](#dependency-version-alignment) (similar to and usable with Maven BOMs), [task timeouts](#task-timeouts), [Java 11 support](#java-11-runtime-support), and more.
 
 See the [Gradle 5.0 upgrade guide](userguide/upgrading_version_4.html) to learn about breaking changes and considerations for upgrading from Gradle 4.x.
 
