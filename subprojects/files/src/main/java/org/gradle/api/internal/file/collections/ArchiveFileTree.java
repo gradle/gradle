@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.file.collections;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
- * A file tree with a single file entry.
+ * A file tree which represents an archive fileTree.
  */
-public interface SingletonFileTree extends MinimalFileTree {
-    File getFile();
+public interface ArchiveFileTree extends FileSystemMirroringFileTree {
+
+    @Nullable File getBackingFile();
 }

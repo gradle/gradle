@@ -221,7 +221,7 @@ class TestFileHelper {
 
     public void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
         if (nativeTools && isUnix()) {
-            def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, zipFile.parentFile)
+            def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
@@ -250,7 +250,7 @@ class TestFileHelper {
 
     public void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
         if (nativeTools && isUnix()) {
-            def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, tarFile.parentFile)
+            def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {

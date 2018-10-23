@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.TestFiles;
+import org.gradle.internal.Factory;
 import org.gradle.internal.MutableReference;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
@@ -29,67 +29,31 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class MapFileTreeTest {
+public class GeneratedSingletonFileTreeTest {
+
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private TestFile rootDir = tmpDir.getTestDirectory();
-    private MapFileTree tree;
+
+    private Factory<File> fileFactory = new Factory<File>() {
+        public File create() {
+            return rootDir;
+        }
+    };
 
     @Before
     public void setup() {
         NativeServicesTestFixture.initialize();
-        tree = new MapFileTree(rootDir, TestFiles.fileSystem(), directoryFileTreeFactory());
-    }
-
-    @Test
-    public void isEmptyByDefault() {
-        List<String> emptyList = toList();
-        assertVisits(tree, emptyList, emptyList);
-        assertSetContainsForAllTypes(tree, emptyList);
-    }
-
-    @Test
-    public void canAddAnElementUsingAClosureToGeneratedContent() {
-        Action<OutputStream> action = getAction();
-        tree.add("path/file.txt", action);
-
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
-        assertSetContainsForAllTypes(tree, toList("path/file.txt"));
-
-        rootDir.file("path").assertIsDir();
-        rootDir.file("path/file.txt").assertContents(equalTo("content"));
-    }
-
-    @Test
-    public void canAddMultipleElementsInDifferentDirs() {
-        Action<OutputStream> action = getAction();
-        tree.add("path/file.txt", action);
-        tree.add("file.txt", action);
-        tree.add("path/subdir/file.txt", action);
-
-        assertVisits(tree, toList("path/file.txt", "file.txt", "path/subdir/file.txt"), toList("path", "path/subdir"));
-        assertSetContainsForAllTypes(tree, toList("path/file.txt", "file.txt", "path/subdir/file.txt"));
-    }
-
-    @Test
-    public void canStopVisitingElements() {
-        Action<OutputStream> closure = getAction();
-        tree.add("path/file.txt", closure);
-        tree.add("file.txt", closure);
-        assertCanStopVisiting(tree);
     }
 
     @Test
@@ -101,7 +65,7 @@ public class MapFileTreeTest {
                 callCounter.incrementAndGet();
             }
         };
-        tree.add("file.txt", fileAction);
+        GeneratedSingletonFileTree tree = tree("file.txt", fileAction);
 
         FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree);
         File file = rootDir.file("file.txt");
@@ -116,17 +80,17 @@ public class MapFileTreeTest {
     @Test
     public void doesNotOverwriteFileWhenGeneratedContentRemainsTheSame() throws InterruptedException {
         Action<OutputStream> action = getAction();
-        tree.add("path/file.txt", action);
+        MinimalFileTree tree = tree("file.txt", action);
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
 
-        TestFile file = rootDir.file("path/file.txt");
+        TestFile file = rootDir.file("file.txt");
 
         file.assertContents(equalTo("content"));
         file.makeOlder();
         TestFile.Snapshot snapshot = file.snapshot();
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
         file.assertContents(equalTo("content"));
         file.assertHasNotChangedSince(snapshot);
     }
@@ -134,8 +98,7 @@ public class MapFileTreeTest {
     @Test
     public void overwritesFileWhenGeneratedContentChanges() {
         final MutableReference<String> currentContentReference = MutableReference.of("content");
-
-        tree.add("path/file.txt", new Action<OutputStream>() {
+        GeneratedSingletonFileTree tree = tree("file.txt", new Action<OutputStream>() {
             @Override
             public void execute(OutputStream outputStream) {
                 try {
@@ -146,18 +109,22 @@ public class MapFileTreeTest {
             }
         });
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
 
-        TestFile file = rootDir.file("path/file.txt");
+        TestFile file = rootDir.file("file.txt");
 
         file.assertContents(equalTo("content"));
         TestFile.Snapshot snapshot = file.snapshot();
 
         currentContentReference.set("updated content");
 
-        assertVisits(tree, toList("path/file.txt"), toList("path"));
+        assertVisits(tree, toList("file.txt"), Collections.<String>emptyList());
         file.assertContents(equalTo("updated content"));
         file.assertHasChangedSince(snapshot);
+    }
+
+    private GeneratedSingletonFileTree tree(String fileName, Action<OutputStream> action) {
+        return new GeneratedSingletonFileTree(fileFactory, fileName, action);
     }
 
     private Action<OutputStream> getAction() {

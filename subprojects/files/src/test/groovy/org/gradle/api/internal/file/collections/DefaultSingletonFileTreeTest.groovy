@@ -21,10 +21,10 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.FileVisitDetails
 
 @UsesNativeServices
-class SingletonFileTreeTest extends Specification {
+class DefaultSingletonFileTreeTest extends Specification {
     def hasUsefulDisplayName() {
         File f = new File('test-file')
-        SingletonFileTree tree = new SingletonFileTree(f)
+        DefaultSingletonFileTree tree = new DefaultSingletonFileTree(f)
 
         expect:
         tree.displayName == "file '$f'"
@@ -33,7 +33,7 @@ class SingletonFileTreeTest extends Specification {
     def visitsFileAsChildOfRoot() {
         FileVisitor visitor = Mock()
         File f = new File('test-file')
-        SingletonFileTree tree = new SingletonFileTree(f)
+        DefaultSingletonFileTree tree = new DefaultSingletonFileTree(f)
 
         when:
         tree.visit(visitor)
