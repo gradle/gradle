@@ -413,7 +413,8 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshots = snapshotter.snapshot(recourceTarTree)
 
         then:
-        assertSingleFileSnapshot(snapshots)
+        assert snapshots.size() == 1
+        assert getSnapshotInfo(snapshots[0]) == [null, 0]
     }
 
     private TemporaryFileProvider testFileProvider() {
