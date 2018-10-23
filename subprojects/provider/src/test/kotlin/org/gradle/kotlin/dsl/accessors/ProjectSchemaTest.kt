@@ -202,11 +202,6 @@ class ProjectSchemaTest : TestWithClassPath() {
     }
 
     private
-    fun URLClassLoader.schemaTypeFor(typeString: String): SchemaType {
-        return SchemaType(TypeOf.typeOf<Any?>(loadClass(typeString)))
-    }
-
-    private
     fun schemaWithExtensions(vararg pairs: Pair<String, SchemaType>) =
         ProjectSchema(
             extensions = pairs.map { ProjectSchemaEntry(SchemaType.of<Project>(), it.first, it.second) },
@@ -219,3 +214,8 @@ class ProjectSchemaTest : TestWithClassPath() {
     fun <T> ProjectSchema<T>.extension(name: String) =
         extensions.single { it.name == name }
 }
+
+
+internal
+fun URLClassLoader.schemaTypeFor(typeString: String): SchemaType =
+    SchemaType(TypeOf.typeOf<Any?>(loadClass(typeString)))

@@ -17,11 +17,12 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.accessors.TypeAccessibility.Accessible
+import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -36,29 +37,34 @@ class DefaultPackageTypesTest : TestWithClassPath() {
         )
     }
 
-    @Ignore("WIP:accessors")
     @Test
     fun `#importsRequiredBy takes container elements into account`() {
 
-        assertThat(
-            importsRequiredBy(
-                ProjectSchema(
-                    containerElements = listOf(
-                        ProjectSchemaEntry(
-                            Accessible(TODO("Container")),
-                            "element",
-                            Accessible(TODO("DefaultPackageType"))
-                        )
-                    ),
-                    extensions = emptyList(),
-                    conventions = emptyList(),
-                    tasks = emptyList(),
-                    configurations = emptyList()
-                )
-            ),
-            equalTo(
-                listOf("DefaultPackageType")
-            )
+        val classPath = classPathWithPublicTypes(
+            "Container",
+            "DefaultPackageType"
         )
+        classLoaderFor(classPath).useToRun {
+            assertThat(
+                importsRequiredBy(
+                    ProjectSchema(
+                        containerElements = listOf(
+                            ProjectSchemaEntry(
+                                Accessible(schemaTypeFor("Container")),
+                                "element",
+                                Accessible(schemaTypeFor("DefaultPackageType"))
+                            )
+                        ),
+                        extensions = emptyList(),
+                        conventions = emptyList(),
+                        tasks = emptyList(),
+                        configurations = emptyList()
+                    )
+                ),
+                equalTo(
+                    listOf("DefaultPackageType")
+                )
+            )
+        }
     }
 }

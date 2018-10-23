@@ -53,6 +53,14 @@ open class TestWithClassPath : TestWithTempFiles() {
             classFileForType(name, rootDir, *modifiers)
         })
 
+    protected
+    fun classPathWithPublicTypes(vararg names: String): ClassPath =
+        classPathOf(file("cp").also { rootDir ->
+            for (name in names) {
+                classFileForType(name, rootDir, ACC_PUBLIC)
+            }
+        })
+
     private
     fun classFileForType(name: String, rootDir: File, vararg modifiers: Int) {
         val internalName = name.replace(".", "/")
