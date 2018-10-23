@@ -66,6 +66,8 @@ public class ExecuteStep implements Step<Context> {
             failure = new ExecutionException(work, t);
         }
 
+        // We make sure to take the snapshot of the output even if the execution was interrupted
+        // TODO Is this the best way to handle this?
         boolean interrupted = Thread.interrupted();
         try {
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();

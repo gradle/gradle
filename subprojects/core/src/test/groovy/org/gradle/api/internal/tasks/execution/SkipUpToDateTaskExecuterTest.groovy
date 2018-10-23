@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution
 
-
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal

@@ -140,7 +140,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         @Nullable
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
-            return null;
+            return delegate.getOverlappingOutputs();
         }
     }
 }

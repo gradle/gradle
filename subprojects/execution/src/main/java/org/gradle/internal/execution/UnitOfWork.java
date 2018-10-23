@@ -22,8 +22,6 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-import javax.annotation.Nullable;
-import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -47,7 +45,7 @@ public interface UnitOfWork extends CacheableEntity {
     CacheHandler createCacheHandler();
 
     interface OutputVisitor {
-        void visitOutput(String name, TreeType type, FileCollection files, @Nullable File root);
+        void visitOutput(String name, TreeType type, FileCollection roots);
     }
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();

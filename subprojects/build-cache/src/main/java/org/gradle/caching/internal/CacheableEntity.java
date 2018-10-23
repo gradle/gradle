@@ -26,7 +26,7 @@ import java.io.File;
  * An entity that can potentially be stored in the build cache.
  */
 public interface CacheableEntity extends Describable {
-    String getPath();
+    String getIdentity();
 
     void visitTrees(CacheableTreeVisitor visitor);
 

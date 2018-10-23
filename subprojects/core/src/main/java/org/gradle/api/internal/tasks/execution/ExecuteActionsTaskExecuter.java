@@ -137,7 +137,7 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         }
 
         @Override
-        public String getPath() {
+        public String getIdentity() {
             return task.getPath();
         }
 
@@ -158,10 +158,7 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         @Override
         public void visitOutputs(OutputVisitor outputVisitor) {
             for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                File cacheRoot = (property instanceof CacheableTaskOutputFilePropertySpec)
-                        ? ((CacheableTaskOutputFilePropertySpec) property).getOutputFile()
-                        : null;
-                outputVisitor.visitOutput(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles(), cacheRoot);
+                outputVisitor.visitOutput(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
             }
         }
 

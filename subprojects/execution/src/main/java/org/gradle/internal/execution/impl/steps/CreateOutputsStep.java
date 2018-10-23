@@ -41,9 +41,9 @@ public class CreateOutputsStep<C extends Context> implements Step<C> {
     public ExecutionResult execute(C context) {
         context.getWork().visitOutputs(new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutput(String name, TreeType type, FileCollection files, @Nullable File root) {
-                for (File outputRoot : files) {
-                    ensureOutput(name, outputRoot, type);
+            public void visitOutput(String name, TreeType type, FileCollection roots) {
+                for (File root : roots) {
+                    ensureOutput(name, root, type);
                 }
             }
         });

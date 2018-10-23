@@ -81,8 +81,8 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 boolean debugEnabled = LOGGER.isDebugEnabled();
 
                 for (FileCollectionFingerprint outputFingerprints : outputFiles.values()) {
-                    for (String outputRootPath : outputFingerprints.getFingerprints().keySet()) {
-                        File file = new File(outputRootPath);
+                    for (String outputPath : outputFingerprints.getFingerprints().keySet()) {
+                        File file = new File(outputPath);
                         if (file.exists() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
                             if (!cleanupDirectories && file.isDirectory()) {
                                 continue;
