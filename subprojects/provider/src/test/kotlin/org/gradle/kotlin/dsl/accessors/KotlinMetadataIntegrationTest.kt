@@ -32,13 +32,17 @@ import org.gradle.kotlin.dsl.support.loggerFor
 import org.junit.Test
 
 
-inline fun <T : Dependency> DependencyHandler.foo(
+/**
+ * This definition is here so its metadata can be inspected.
+ */
+@Suppress("unused_parameter")
+fun <T : Dependency> DependencyHandler.foo(
     dependency: T,
     action: Action<T>
-): T = dependency.also { action.execute(it) }
+): T = TODO()
 
 
-class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
+class KotlinMetadataIntegrationTest : TestWithTempFiles() {
 
     @Test
     fun `extract file metadata`() {
@@ -55,11 +59,11 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
     fun `extract module metadata`() {
 
         val outputDir = newFolder("main")
-        require(compileToDirectory(
-            outputDir,
-            listOf(
-                file("ConfigurationAccessors.kt").apply {
-                    writeText("""
+        require(
+            compileToDirectory(
+                outputDir,
+                listOf(
+                    newFile("ConfigurationAccessors.kt", """
                         package org.gradle.kotlin.dsl
 
                         import org.gradle.api.artifacts.*
@@ -67,11 +71,11 @@ class AccessorBytecodeEmitterSpike : TestWithTempFiles() {
                         val ConfigurationContainer.api: Configuration
                             inline get() = TODO()
                     """)
-                }
-            ),
-            loggerFor<AccessorBytecodeEmitterSpike>(),
-            testCompilationClassPath.asFiles
-        ))
+                ),
+                loggerFor<KotlinMetadataIntegrationTest>(),
+                testCompilationClassPath.asFiles
+            )
+        )
 
         val bytes = outputDir.resolve("META-INF/main.kotlin_module").readBytes()
         val metadata = KotlinModuleMetadata.read(bytes)!!
