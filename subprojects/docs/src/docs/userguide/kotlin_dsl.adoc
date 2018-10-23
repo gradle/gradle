@@ -159,7 +159,7 @@ For IDE issues out of the `.gradle.kts` script editor, please open issues in the
 Last but not least, if you face problems with Gradle itself or with the Gradle Kotlin DSL, please open issues on the corresponding issue tracker, respectively
 
 * link:{gradle-issues}[`gradle/gradle` issue tracker],
-* link{kotlin-dsl-issues}[`gradle/kotlin-dsl` issue tracker].
+* link:{kotlin-dsl-issues}[`gradle/kotlin-dsl` issue tracker].
 
 
 [[sec:scripts]]
