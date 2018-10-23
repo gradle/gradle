@@ -30,6 +30,8 @@ import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 import java.util.Collections;
@@ -41,9 +43,10 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final String name;
     private final Names names;
     private final Property<SwiftVersion> sourceCompatibility;
-    private final SetProperty<OperatingSystemFamily> operatingSystems;
+    private final SetProperty<TargetMachine> targetMachines;
+    private final TargetMachineFactory machines;
 
-    public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
+    public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, TargetMachineFactory targetMachineFactory) {
         super(fileOperations);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
@@ -52,8 +55,9 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
 
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
-        operatingSystems = objectFactory.setProperty(OperatingSystemFamily.class);
-        operatingSystems.set(Collections.singleton(objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName())));
+        this.machines = targetMachineFactory;
+        targetMachines = objectFactory.setProperty(TargetMachine.class);
+        targetMachines.set(Collections.singleton(machines.host()));
     }
 
     @Override
@@ -87,7 +91,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public SetProperty<OperatingSystemFamily> getOperatingSystems() {
-        return operatingSystems;
+    public SetProperty<TargetMachine> getTargetMachines() {
+        return targetMachines;
     }
 }

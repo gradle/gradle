@@ -45,6 +45,7 @@ import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
+import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -91,7 +92,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         importPathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         importPathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         importPathConfiguration.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        importPathConfiguration.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getOperatingSystemFamily());
+        importPathConfiguration.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+        importPathConfiguration.getAttributes().attribute(Architecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
         Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(getImplementationDependencies());
@@ -99,7 +101,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getOperatingSystemFamily());
+        nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+        nativeLink.getAttributes().attribute(Architecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
         Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.extendsFrom(getImplementationDependencies());
@@ -107,7 +110,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        nativeRuntime.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getOperatingSystemFamily());
+        nativeRuntime.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+        nativeRuntime.getAttributes().attribute(Architecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
         compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration));
         linkLibs = nativeLink;

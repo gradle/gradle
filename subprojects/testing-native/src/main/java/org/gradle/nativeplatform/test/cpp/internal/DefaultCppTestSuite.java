@@ -30,6 +30,7 @@ import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -44,8 +45,8 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
-        super(name, fileOperations, objectFactory);
+    public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations, TargetMachineFactory targetMachineFactory) {
+        super(name, fileOperations, objectFactory, targetMachineFactory);
         this.objectFactory = objectFactory;
         this.testedComponent = objectFactory.property(CppComponent.class);
         this.testBinary = objectFactory.property(CppTestExecutable.class);

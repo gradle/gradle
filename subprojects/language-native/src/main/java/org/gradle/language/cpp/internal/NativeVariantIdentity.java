@@ -24,6 +24,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.util.GUtil;
 
 import java.util.Set;
@@ -35,12 +36,12 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final Provider<String> version;
     private final boolean debuggable;
     private final boolean optimized;
-    private final OperatingSystemFamily operatingSystemFamily;
+    private final TargetMachine targetMachine;
     private final UsageContext linkUsage;
     private final UsageContext runtimeUsage;
     private final Set<UsageContext> usageContexts;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, OperatingSystemFamily operatingSystemFamily,
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine,
         UsageContext linkUsage, UsageContext runtimeUsage) {
         this.name = name;
         this.baseName = baseName;
@@ -48,7 +49,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         this.version = version;
         this.debuggable = debuggable;
         this.optimized = optimized;
-        this.operatingSystemFamily = operatingSystemFamily;
+        this.targetMachine = targetMachine;
         this.linkUsage = linkUsage;
         this.runtimeUsage = runtimeUsage;
         this.usageContexts = Sets.newLinkedHashSet();
@@ -68,8 +69,8 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         return optimized;
     }
 
-    public OperatingSystemFamily getOperatingSystemFamily() {
-        return operatingSystemFamily;
+    public TargetMachine getTargetMachine() {
+        return targetMachine;
     }
 
     @Override

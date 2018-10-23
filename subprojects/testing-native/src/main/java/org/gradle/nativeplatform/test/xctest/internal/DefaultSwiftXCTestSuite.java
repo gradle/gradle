@@ -30,6 +30,7 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestExecutable;
@@ -49,8 +50,8 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-        super(name, fileOperations, objectFactory);
+    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory, TargetMachineFactory targetMachineFactory) {
+        super(name, fileOperations, objectFactory, targetMachineFactory);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
         this.objectFactory = objectFactory;
         this.testBinary = objectFactory.property(SwiftXCTestBinary.class);

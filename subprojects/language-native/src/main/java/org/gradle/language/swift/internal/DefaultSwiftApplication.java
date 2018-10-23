@@ -29,6 +29,7 @@ import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -40,8 +41,8 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
-        super(name, fileOperations, objectFactory);
+    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, TargetMachineFactory targetMachineFactory) {
+        super(name, fileOperations, objectFactory, targetMachineFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(SwiftExecutable.class);
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));

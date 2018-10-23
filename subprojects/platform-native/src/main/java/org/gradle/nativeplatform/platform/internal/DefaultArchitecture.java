@@ -15,7 +15,9 @@
  */
 package org.gradle.nativeplatform.platform.internal;
 
-public class DefaultArchitecture implements ArchitectureInternal {
+import java.io.Serializable;
+
+public class DefaultArchitecture implements ArchitectureInternal, Serializable {
     private final String name;
 
     public DefaultArchitecture(String name) {

@@ -40,6 +40,8 @@ import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
@@ -95,9 +97,9 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                application.getOperatingSystems().finalizeValue();
-                Set<OperatingSystemFamily> operatingSystemFamilies = application.getOperatingSystems().get();
-                if (operatingSystemFamilies.isEmpty()) {
+                application.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = application.getTargetMachines().get();
+                if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the application.");
                 }
 
@@ -105,9 +107,10 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
                 for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
-                    for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
-                        String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
-                        String variantName = buildType.getName() + operatingSystemSuffix;
+                    for (TargetMachine targetMachine : targetMachines) {
+                        String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
+                        String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
+                        String variantName = buildType.getName() + operatingSystemSuffix + architectureSuffix;
 
                         Provider<String> group = project.provider(new Callable<String>() {
                             @Override
@@ -127,14 +130,15 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                         runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                         runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                         runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
-                        runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+                        runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
+                        runtimeAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
-                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                        NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                             null,
                             new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
 
-                        if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
-                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+                        if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, targetMachine);
 
                             SwiftExecutable executable = application.addExecutable(variantIdentity, buildType == BuildType.DEBUG, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
@@ -152,14 +156,14 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
             return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
         }
         return "";
     }
 
-    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
         return multivalueProperty.size() > 1;
     }
 }

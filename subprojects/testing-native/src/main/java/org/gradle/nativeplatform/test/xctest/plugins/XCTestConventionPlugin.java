@@ -55,6 +55,8 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -118,17 +120,18 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                testComponent.getOperatingSystems().finalizeValue();
-                Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
-                if (operatingSystemFamilies.isEmpty()) {
+                testComponent.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = testComponent.getTargetMachines().get();
+                if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the application.");
                 }
 
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                 BuildType buildType = BuildType.DEBUG;
-                for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
-                    String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
-                    String variantName = buildType.getName() + operatingSystemSuffix;
+                for (TargetMachine targetMachine : targetMachines) {
+                    String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
+                    String architecturePrefix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
+                    String variantName = buildType.getName() + operatingSystemSuffix + architecturePrefix;
 
                     Provider<String> group = project.provider(new Callable<String>() {
                         @Override
@@ -148,14 +151,15 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                     runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                     runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
-                    runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+                    runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
+                    runtimeAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
-                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, testComponent.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, testComponent.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                         null,
                         new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
 
-                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
-                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, targetMachine);
 
                         // Create test suite executable
                         DefaultSwiftXCTestBinary binary;
@@ -204,14 +208,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
             return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
         }
         return "";
     }
 
-    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
         return multivalueProperty.size() > 1;
     }
 

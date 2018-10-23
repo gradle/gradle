@@ -46,6 +46,8 @@ import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
@@ -99,9 +101,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                library.getOperatingSystems().finalizeValue();
-                Set<OperatingSystemFamily> operatingSystemFamilies = library.getOperatingSystems().get();
-                if (operatingSystemFamilies.isEmpty()) {
+                library.getTargetMachines().finalizeValue();
+                Set<TargetMachine> targetMachines = library.getTargetMachines().get();
+                if (targetMachines.isEmpty()) {
                     throw new IllegalArgumentException("An operating system needs to be specified for the library.");
                 }
 
@@ -115,12 +117,13 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
 
                 for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {
-                    for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
+                    for (TargetMachine targetMachine : targetMachines) {
                         for (Linkage linkage : linkages) {
 
-                            String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
+                            String operatingSystemSuffix = createDimensionSuffix(targetMachine.getOperatingSystemFamily(), targetMachines);
+                            String architectureSuffix = createDimensionSuffix(targetMachine.getArchitecture(), targetMachines);
                             String linkageSuffix = createDimensionSuffix(linkage, linkages);
-                            String variantName = buildType.getName() + linkageSuffix + operatingSystemSuffix;
+                            String variantName = buildType.getName() + linkageSuffix + operatingSystemSuffix + architectureSuffix;
 
                             Provider<String> group = project.provider(new Callable<String>() {
                                 @Override
@@ -141,23 +144,25 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                             runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
                             runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
-                            runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+                            runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
+                            runtimeAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
                             AttributeContainer linkAttributes = attributesFactory.mutable();
                             linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                             linkAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                             linkAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
                             linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
-                            linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+                            linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
+                            linkAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
-                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                            NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                                 new DefaultUsageContext(variantName + "Link", linkUsage, linkAttributes),
                                 new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes));
                             // TODO: publish Swift libraries
                             // library.getMainPublication().addVariant(variantIdentity);
 
-                            if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
-                                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+                            if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName())) {
+                                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, targetMachine);
 
                                 if (linkage == Linkage.SHARED) {
                                     SwiftSharedLibrary sharedLibrary = library.addSharedLibrary(variantName, buildType == BuildType.DEBUG, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), variantIdentity);
@@ -223,14 +228,14 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         });
     }
 
-    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
             return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
         }
         return "";
     }
 
-    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
         return multivalueProperty.size() > 1;
     }
 
