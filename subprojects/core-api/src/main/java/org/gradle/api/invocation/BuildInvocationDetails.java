@@ -34,5 +34,12 @@ package org.gradle.api.invocation;
  * @since 5.0
  */
 public interface BuildInvocationDetails {
+    
+    /**
+     * The wall-clock time in millis that the build was started.
+     *
+     * The build is considered to have started as soon as the user, or some tool, initiated the build.
+     * During continuous build, subsequent builds are timed from when changes are noticed.
+     */
     long getBuildStartedTime();
 }
