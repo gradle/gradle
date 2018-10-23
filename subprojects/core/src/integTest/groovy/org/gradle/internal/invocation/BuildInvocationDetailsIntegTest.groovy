@@ -18,7 +18,6 @@ package org.gradle.internal.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildevents.BuildStartedTime
-import org.gradle.internal.scan.time.BuildScanBuildStartedTime
 
 class BuildInvocationDetailsIntegTest extends AbstractIntegrationSpec {
 

@@ -34,7 +34,7 @@ package org.gradle.api.invocation;
  * @since 5.0
  */
 public interface BuildInvocationDetails {
-    
+
     /**
      * The wall-clock time in millis that the build was started.
      *
