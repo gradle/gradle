@@ -73,7 +73,7 @@ public class IntegrationTestBuildContext {
 
     /**
      * The timestamped version used in the docs and the bin and all zips. This should be different to {@link GradleVersion#getVersion()}.
-     * Note that the binary distribution used for testing (testBinZip and intTestImage) has {@link GradleVersion#getVersion()} as version.
+     * Note that the binary distribution used for testing (binZip and intTestImage) has {@link GradleVersion#getVersion()} as version.
      *
      * @return timestamped version
      */

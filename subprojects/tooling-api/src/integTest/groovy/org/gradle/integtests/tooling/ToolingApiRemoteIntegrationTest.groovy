@@ -48,7 +48,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     void setup() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the 'testBinZip' task"
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the 'binZip' task"
         server.start()
         toolingApi.requireIsolatedUserHome()
     }
