@@ -97,19 +97,6 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
     }
 
-    def canRunTestsUsingJUnit3() {
-        when:
-        ignoreWhenJupiter()
-        resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
-        executer.withTasks('check').run()
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test')
-        result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
-        result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
-    }
-
     def reportsAndBreaksBuildWhenTestFails() {
         when:
         executer.withTasks('build').runWithFailure().assertTestsFailed()

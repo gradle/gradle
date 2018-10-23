@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -33,9 +32,9 @@ public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> imple
     protected final T spec;
     protected final IdGenerator<?> idGenerator;
     protected final Clock clock;
-    private final ActorFactory actorFactory;
+    protected final ActorFactory actorFactory;
     private Action<String> executor;
-    private Actor resultProcessorActor;
+    protected Actor resultProcessorActor;
 
     public AbstractJUnitTestClassProcessor(T spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         this.idGenerator = idGenerator;
@@ -46,19 +45,10 @@ public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> imple
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
-        // Build a result processor chain
-        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(resultProcessor);
-        TestClassExecutionEventGenerator eventGenerator = new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, clock);
-
-        // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
-        resultProcessorActor = actorFactory.createBlockingActor(eventGenerator);
-        TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
-        TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
-
-        executor = createTestExecutor(threadSafeResultProcessor, threadSafeTestClassListener);
+        executor = createTestExecutor(resultProcessor);
     }
 
-    protected abstract Action<String> createTestExecutor(TestResultProcessor threadSafeResultProcessor, TestClassExecutionListener threadSafeTestClassListener);
+    protected abstract Action<String> createTestExecutor(TestResultProcessor resultProcessor);
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
@@ -70,7 +60,6 @@ public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> imple
     public void stop() {
         resultProcessorActor.stop();
     }
-
 
     @Override
     public void stopNow() {

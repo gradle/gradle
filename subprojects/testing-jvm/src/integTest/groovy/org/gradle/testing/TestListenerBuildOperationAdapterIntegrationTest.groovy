@@ -34,6 +34,8 @@ class TestListenerBuildOperationAdapterIntegrationTest extends JUnitMultiVersion
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "emits build operations for junit tests"() {
+        def offset = 0
+
         given:
         resources.maybeCopy('/org/gradle/testing/junit/JUnitIntegrationTest/suitesOutputIsVisible')
 
@@ -42,7 +44,7 @@ class TestListenerBuildOperationAdapterIntegrationTest extends JUnitMultiVersion
 
         then:
         def ops = operations.all(ExecuteTestBuildOperationType) { true }
-        ops.size() == 6
+        ops.size() == (isJUnitPlatform() ? 8 : 6)
 
         ops[0].details.testDescriptor.name == "Gradle Test Run :test"
         ops[0].details.testDescriptor.className == null
@@ -56,17 +58,31 @@ class TestListenerBuildOperationAdapterIntegrationTest extends JUnitMultiVersion
         ops[2].details.testDescriptor.className == "org.gradle.ASuite"
         ops[2].details.testDescriptor.composite == true
 
-        ops[3].details.testDescriptor.name == "anotherOk"
-        ops[3].details.testDescriptor.className == "org.gradle.OkTest"
-        ops[3].details.testDescriptor.composite == false
+        if (isVintage()) {
+            ops[3].details.testDescriptor.name == "org.gradle.OkTest"
+            ops[3].details.testDescriptor.className == "org.gradle.OkTest"
+            ops[3].details.testDescriptor.composite == true
+            offset++
+        }
 
-        ops[4].details.testDescriptor.name == "ok"
-        ops[4].details.testDescriptor.className == "org.gradle.OkTest"
-        ops[4].details.testDescriptor.composite == false
+        ops[3 + offset].details.testDescriptor.name == "anotherOk"
+        ops[3 + offset].details.testDescriptor.className == "org.gradle.OkTest"
+        ops[3 + offset].details.testDescriptor.composite == false
 
-        ops[5].details.testDescriptor.name == "ok"
-        ops[5].details.testDescriptor.className == "org.gradle.OtherTest"
-        ops[5].details.testDescriptor.composite == false
+        ops[4 + offset].details.testDescriptor.name == "ok"
+        ops[4 + offset].details.testDescriptor.className == "org.gradle.OkTest"
+        ops[4 + offset].details.testDescriptor.composite == false
+
+        if (isVintage()) {
+            ops[6].details.testDescriptor.name == "org.gradle.OtherTest"
+            ops[6].details.testDescriptor.className == "org.gradle.OtherTest"
+            ops[6].details.testDescriptor.composite == true
+            offset++
+        }
+
+        ops[5 + offset].details.testDescriptor.name == "ok"
+        ops[5 + offset].details.testDescriptor.className == "org.gradle.OtherTest"
+        ops[5 + offset].details.testDescriptor.composite == false
     }
 
 }

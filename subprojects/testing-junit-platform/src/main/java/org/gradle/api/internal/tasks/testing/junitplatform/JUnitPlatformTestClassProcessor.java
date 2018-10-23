@@ -16,17 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -44,6 +37,12 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.isVintageDynamicLeafTest;
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.vintageDynamicClassName;
@@ -54,8 +53,6 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
-    private TestResultProcessor resultProcessor;
-    private TestClassExecutionListener executionListener;
     private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -63,10 +60,10 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(TestResultProcessor threadSafeResultProcessor, TestClassExecutionListener threadSafeTestClassListener) {
-        resultProcessor = threadSafeResultProcessor;
-        executionListener = threadSafeTestClassListener;
-        testClassExecutor = new CollectAllTestClassesExecutor();
+    protected Action<String> createTestExecutor(TestResultProcessor resultProcessor) {
+        resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
+        TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
+        testClassExecutor = new CollectAllTestClassesExecutor(threadSafeResultProcessor);
         return testClassExecutor;
     }
 
@@ -78,6 +75,11 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private class CollectAllTestClassesExecutor implements Action<String> {
         private final List<Class<?>> testClasses = new ArrayList<>();
+        private final TestResultProcessor resultProcessor;
+
+        public CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
+            this.resultProcessor = resultProcessor;
+        }
 
         @Override
         public void execute(String testClassName) {
@@ -90,7 +92,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
         private void processAllTestClasses() {
             Launcher launcher = LauncherFactory.create();
-            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, executionListener));
+            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
         }
     }
