@@ -1283,7 +1283,7 @@ div.screenshot {
     text-decoration: none;
 }
 
-@media screen and (min-width: 75rem) and (min-height: 48rem) {
+@media screen and (min-width: 80rem) and (min-height: 48rem) {
     #header #toc {
         font-size: 1rem;
         background: #f7f7f8;
@@ -1855,7 +1855,7 @@ div.screenshot {
 }
 
 /* Fixed intra-chapter navigation for desktops */
-@media screen and (min-width: 75rem) and (min-height: 48rem) {
+@media screen and (min-width: 80rem) and (min-height: 48rem) {
     .appendix #header #toc,
     .book #header #toc,
     .chapter #header #toc {

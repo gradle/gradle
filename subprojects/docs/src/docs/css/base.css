@@ -969,7 +969,7 @@ h3.releaseinfo {
 }
 
 /* Fixed intra-chapter navigation for desktops */
-@media screen and (min-width: 75rem) and (min-height: 48rem) {
+@media screen and (min-width: 80rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
