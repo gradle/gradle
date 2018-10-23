@@ -666,9 +666,13 @@ org:leaf:latest.integration -> 1.0
                         eachDependency { it.useVersion('1.0') }
                         eachDependency { it.useVersion('2.0'); it.because("RULE 2") }
                         dependencySubstitution {
-                            substitute module('org:foo') with module('org:foo:3.0')
+                            substitute module('org:foo') because "SUBSTITUTION 1" with module('org:foo:3.0')
                             substitute module('org:foo') because "SUBSTITUTION 2" with module('org:bar:2.0')
+                            all {
+                                it.useTarget('org:bar:2.0', "SUBSTITUTION 3")
+                            }
                         }
+                        force('org:foo:1.1')
                     }
                 }
             }
@@ -693,7 +697,7 @@ org:bar:2.0
       org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
-      - Selected by rule : SUBSTITUTION 2
+      - Selected by rule : SUBSTITUTION 3
 
 org:foo:1.0 -> org:bar:2.0
 \\--- conf
