@@ -147,10 +147,8 @@ public abstract class TransformationNode extends Node {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform artifact " + artifactSet.getArtifactId().getDisplayName() + " with " + transformationStep.getDisplayName();
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .operationType(BuildOperationCategory.TRANSFORM);
+                String subject = "artifact " + artifactSet.getArtifactId().getDisplayName();
+                return buildOperationDescriptor(subject, transformationStep);
             }
 
             @Override
@@ -214,10 +212,7 @@ public abstract class TransformationNode extends Node {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform " + previousTransformationNode.getTransformedSubject().getDisplayName() + " with " + transformationStep.getDisplayName();
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .operationType(BuildOperationCategory.TRANSFORM);
+                return buildOperationDescriptor(previousTransformationNode.getTransformedSubject().getDisplayName(), transformationStep);
             }
 
             public TransformationSubject getTransformedSubject() {
@@ -262,5 +257,12 @@ public abstract class TransformationNode extends Node {
         @Override
         public void fileAvailable(File file) {
         }
+    }
+
+    private static BuildOperationDescriptor.Builder buildOperationDescriptor(String subject, TransformationStep step) {
+        String basicName = subject + " with " + step.getDisplayName();
+        return BuildOperationDescriptor.displayName("Transform " + basicName)
+            .progressDisplayName("Transforming " + basicName)
+            .operationType(BuildOperationCategory.TRANSFORM);
     }
 }
