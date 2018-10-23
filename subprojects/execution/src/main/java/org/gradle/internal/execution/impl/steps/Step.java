@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.impl.steps;
 
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.Result;
 
-public interface Step<C extends Context> {
-    ExecutionResult execute(C context);
+public interface Step<C extends Context, R extends Result> {
+    R execute(C context);
 }

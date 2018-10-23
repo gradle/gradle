@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.internal.execution;
+
+import org.gradle.caching.internal.origin.OriginMetadata;
 
 import javax.annotation.Nullable;
 
-/**
- * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
- */
-public class GradleException extends RuntimeException {
-    public GradleException() {
-        super();
-    }
-
-    public GradleException(String message) {
-        super(message);
-    }
-
-    public GradleException(String message, @Nullable Throwable cause) {
-        super(message, cause);
-    }
+public interface Result {
+    ExecutionOutcome getOutcome();
+    OriginMetadata getOriginMetadata();
+    @Nullable
+    Throwable getFailure();
 }

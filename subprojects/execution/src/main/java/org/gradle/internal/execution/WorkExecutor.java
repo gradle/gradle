@@ -16,6 +16,6 @@
 
 package org.gradle.internal.execution;
 
-public interface WorkExecutor {
-    ExecutionResult execute(UnitOfWork work);
+public interface WorkExecutor<R extends Result> {
+    R execute(UnitOfWork work);
 }

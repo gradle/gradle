@@ -17,18 +17,18 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 
-public class PrepareCachingStep<C extends Context> implements Step<C> {
-    private final Step<? super CachingContext> delegate;
+public class PrepareCachingStep<C extends Context, R extends Result> implements Step<C, R> {
+    private final Step<? super CachingContext, ? extends R> delegate;
 
-    public PrepareCachingStep(Step<? super CachingContext> delegate) {
+    public PrepareCachingStep(Step<? super CachingContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public ExecutionResult execute(C context) {
+    public R execute(C context) {
         CacheHandler cacheHandler = context.getWork().createCacheHandler();
         return delegate.execute(new CachingContext() {
             @Override

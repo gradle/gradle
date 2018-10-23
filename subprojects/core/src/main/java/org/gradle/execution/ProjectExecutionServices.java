@@ -58,6 +58,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
@@ -67,6 +68,8 @@ import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
+import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.impl.steps.SnapshotResult;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.PathToFileResolver;
@@ -117,15 +120,17 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         OutputChangeListener outputChangeListener,
         TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor(
-            new PrepareCachingStep<Context>(
+        return new DefaultWorkExecutor<SnapshotResult>(
+            new PrepareCachingStep<Context, SnapshotResult>(
                 new CacheStep<CachingContext>(
                     buildCacheController,
                     outputChangeListener,
                     buildCacheCommandFactory,
-                    new CreateOutputsStep<Context>(
-                        new TimeoutStep<Context>(timeoutHandler,
-                            new ExecuteStep(buildInvocationScopeId.getId(), cancellationToken, outputChangeListener)
+                    new SnapshotOutputStep<Context>(
+                        new CreateOutputsStep<Context, Result>(
+                            new TimeoutStep<Context>(timeoutHandler,
+                                new ExecuteStep(buildInvocationScopeId.getId(), cancellationToken, outputChangeListener)
+                            )
                         )
                     )
                 )

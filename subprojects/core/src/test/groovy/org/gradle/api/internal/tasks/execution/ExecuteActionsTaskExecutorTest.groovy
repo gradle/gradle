@@ -33,7 +33,10 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.ExecuteStep
+import org.gradle.internal.execution.impl.steps.SnapshotOutputStep
+import org.gradle.internal.execution.impl.steps.SnapshotResult
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -60,7 +63,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def workExecutor = new DefaultWorkExecutor(new ExecuteStep(buildId, cancellationToken, outputChangeListener))
+    def workExecutor = new DefaultWorkExecutor<SnapshotResult>(
+            new SnapshotOutputStep<Context>(
+                new ExecuteStep(buildId, cancellationToken, outputChangeListener)
+            )
+    )
     def executer = new ExecuteActionsTaskExecuter(false, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {

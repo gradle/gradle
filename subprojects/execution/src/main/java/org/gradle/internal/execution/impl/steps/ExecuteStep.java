@@ -16,22 +16,23 @@
 
 package org.gradle.internal.execution.impl.steps;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.GradleException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.ExecutionException;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
+
+import javax.annotation.Nullable;
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED;
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE;
 
-public class ExecuteStep implements Step<Context> {
+public class ExecuteStep implements Step<Context, Result> {
 
     private final BuildCancellationToken cancellationToken;
     private final OutputChangeListener outputChangeListener;
@@ -48,7 +49,7 @@ public class ExecuteStep implements Step<Context> {
     }
 
     @Override
-    public ExecutionResult execute(Context context) {
+    public Result execute(Context context) {
         UnitOfWork work = context.getWork();
         boolean didWork = true;
         GradleException failure;
@@ -66,22 +67,28 @@ public class ExecuteStep implements Step<Context> {
             failure = new ExecutionException(work, t);
         }
 
-        // We make sure to take the snapshot of the output even if the execution was interrupted
-        // TODO Is this the best way to handle this?
-        boolean interrupted = Thread.interrupted();
-        try {
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
-            OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
+        ExecutionOutcome outcome = (failure != null || didWork)
+            ? EXECUTED
+            : UP_TO_DATE;
+        OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
+        Throwable finalFailure = failure;
 
-            if (failure != null) {
-                return ExecutionResult.failure(failure, originMetadata, finalOutputs);
-            } else {
-                return ExecutionResult.success(didWork ? EXECUTED : UP_TO_DATE, originMetadata, finalOutputs);
+        return new Result() {
+            @Override
+            public ExecutionOutcome getOutcome() {
+                return outcome;
             }
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
+
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return originMetadata;
             }
-        }
+
+            @Nullable
+            @Override
+            public Throwable getFailure() {
+                return finalFailure;
+            }
+        };
     }
 }

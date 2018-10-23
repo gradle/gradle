@@ -42,9 +42,9 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
-import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.impl.steps.SnapshotResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -70,14 +70,14 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor workExecutor;
+    private final WorkExecutor<SnapshotResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor workExecutor
+        WorkExecutor<SnapshotResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -88,7 +88,7 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
 
     @Override
     public MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        final ExecutionResult result = workExecutor.execute(new TaskExecution(task, context));
+        final SnapshotResult result = workExecutor.execute(new TaskExecution(task, context));
         if (result.getFailure() != null) {
             Throwable failure = result.getFailure();
             assert failure != null;

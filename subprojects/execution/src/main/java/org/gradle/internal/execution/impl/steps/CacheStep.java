@@ -24,7 +24,6 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -33,19 +32,19 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-public class CacheStep<C extends CachingContext> implements Step<C> {
+public class CacheStep<C extends CachingContext> implements Step<C, SnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
 
     private final BuildCacheController buildCache;
     private final OutputChangeListener outputChangeListener;
     private final BuildCacheCommandFactory commandFactory;
-    private final Step<? super C> delegate;
+    private final Step<? super C, ? extends SnapshotResult> delegate;
 
     public CacheStep(
             BuildCacheController buildCache,
             OutputChangeListener outputChangeListener,
             BuildCacheCommandFactory commandFactory,
-            Step<? super C> delegate
+            Step<? super C, ? extends SnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
         this.outputChangeListener = outputChangeListener;
@@ -54,10 +53,10 @@ public class CacheStep<C extends CachingContext> implements Step<C> {
     }
 
     @Override
-    public org.gradle.internal.execution.ExecutionResult execute(C context) {
+    public SnapshotResult execute(C context) {
         return context.getCacheHandler()
             .load(cacheKey -> load(context.getWork(), cacheKey))
-            .map(loadResult -> (ExecutionResult) new ExecutionResult() {
+            .map(loadResult -> (SnapshotResult) new SnapshotResult() {
                 @Override
                 public ExecutionOutcome getOutcome() {
                     return ExecutionOutcome.FROM_CACHE;
@@ -80,7 +79,7 @@ public class CacheStep<C extends CachingContext> implements Step<C> {
                 }
             })
             .orElseGet(() -> {
-                ExecutionResult executionResult = executeWithoutCache(context);
+                SnapshotResult executionResult = executeWithoutCache(context);
                 if (executionResult.getFailure() == null) {
                     context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult));
                 } else {
@@ -117,7 +116,7 @@ public class CacheStep<C extends CachingContext> implements Step<C> {
         }
     }
 
-    private void store(UnitOfWork work, BuildCacheKey cacheKey, ExecutionResult result) {
+    private void store(UnitOfWork work, BuildCacheKey cacheKey, SnapshotResult result) {
         try {
             // TODO This could send in the whole origin metadata
             buildCache.store(commandFactory.createStore(cacheKey, work, result.getFinalOutputs(), result.getOriginMetadata().getExecutionTime()));
@@ -126,7 +125,7 @@ public class CacheStep<C extends CachingContext> implements Step<C> {
         }
     }
 
-    private ExecutionResult executeWithoutCache(C context) {
+    private SnapshotResult executeWithoutCache(C context) {
         return delegate.execute(context);
     }
 }
