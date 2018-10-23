@@ -39,10 +39,8 @@ public class MutableLong implements Serializable {
         this.value = value;
     }
 
-    public long incrementAndGet(long delta) {
-        long result = value + delta;
-        value = result;
-        return result;
+    public void increment(long delta) {
+        value += delta;
     }
 
     @Override
