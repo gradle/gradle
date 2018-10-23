@@ -22,13 +22,19 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 
 public class SnapshotOutputStep<C extends Context> implements Step<C, SnapshotResult> {
+    private final UniqueId buildInvocationScopeId;
     private final Step<? super C, ? extends Result> delegate;
 
-    public SnapshotOutputStep(Step<? super C, ? extends Result> delegate) {
+    public SnapshotOutputStep(
+            UniqueId buildInvocationScopeId,
+            Step<? super C, ? extends Result> delegate
+    ) {
+        this.buildInvocationScopeId = buildInvocationScopeId;
         this.delegate = delegate;
     }
 
@@ -38,7 +44,7 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, SnapshotRe
 
         UnitOfWork work = context.getWork();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
-
+        OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
         return new SnapshotResult() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
@@ -46,13 +52,13 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, SnapshotRe
             }
 
             @Override
-            public ExecutionOutcome getOutcome() {
-                return result.getOutcome();
+            public OriginMetadata getOriginMetadata() {
+                return originMetadata;
             }
 
             @Override
-            public OriginMetadata getOriginMetadata() {
-                return result.getOriginMetadata();
+            public ExecutionOutcome getOutcome() {
+                return result.getOutcome();
             }
 
             @Nullable

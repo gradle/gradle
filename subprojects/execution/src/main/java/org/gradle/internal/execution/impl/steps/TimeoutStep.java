@@ -18,8 +18,6 @@ package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.timeout.Timeout;
@@ -45,9 +43,8 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
             Duration timeout = timeoutProperty.get();
             if (timeout.isNegative()) {
                 throw new InvalidUserDataException("Timeout of " + work.getDisplayName() + " must be positive, but was " + timeout.toString().substring(2));
-            } else {
-                return executeWithTimeout(context, timeout);
             }
+            return executeWithTimeout(context, timeout);
         } else {
             return executeWithoutTimeout(context);
         }
@@ -55,30 +52,16 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
 
     private Result executeWithTimeout(C context, Duration timeout) {
         Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout);
-        Result result = executeWithoutTimeout(context);
-
-        taskTimeout.stop();
-        if (!taskTimeout.timedOut()) {
-            return result;
-        } else {
-            //noinspection ResultOfMethodCallIgnored
-            Thread.interrupted();
-            return new Result() {
-                @Override
-                public ExecutionOutcome getOutcome() {
-                    return result.getOutcome();
-                }
-
-                @Override
-                public OriginMetadata getOriginMetadata() {
-                    return result.getOriginMetadata();
-                }
-
-                @Override
-                public Throwable getFailure() {
-                    return new GradleException("Timeout has been exceeded", result.getFailure());
-                }
-            };
+        try {
+            return executeWithoutTimeout(context);
+        } finally {
+            taskTimeout.stop();
+            if (taskTimeout.timedOut()) {
+                //noinspection ResultOfMethodCallIgnored
+                Thread.interrupted();
+                //noinspection ThrowFromFinallyBlock
+                throw new GradleException("Timeout has been exceeded");
+            }
         }
     }
 

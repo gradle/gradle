@@ -17,15 +17,11 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.GradleException;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 
@@ -36,14 +32,11 @@ public class ExecuteStep implements Step<Context, Result> {
 
     private final BuildCancellationToken cancellationToken;
     private final OutputChangeListener outputChangeListener;
-    private final UniqueId buildInvocationScopeId;
 
     public ExecuteStep(
-        UniqueId buildInvocationScopeId,
         BuildCancellationToken cancellationToken,
         OutputChangeListener outputChangeListener
     ) {
-        this.buildInvocationScopeId = buildInvocationScopeId;
         this.cancellationToken = cancellationToken;
         this.outputChangeListener = outputChangeListener;
     }
@@ -51,43 +44,26 @@ public class ExecuteStep implements Step<Context, Result> {
     @Override
     public Result execute(Context context) {
         UnitOfWork work = context.getWork();
-        boolean didWork = true;
-        GradleException failure;
-        try {
-            outputChangeListener.beforeOutputChange();
 
-            didWork = work.execute();
-            if (cancellationToken.isCancellationRequested()) {
-                failure = new BuildCancelledException("Build cancelled during executing " + work.getDisplayName());
-            } else {
-                failure = null;
-            }
-        } catch (Throwable t) {
-            // TODO Should we catch Exception here?
-            failure = new ExecutionException(work, t);
+        outputChangeListener.beforeOutputChange();
+        boolean didWork = work.execute();
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException("Build cancelled during executing " + work.getDisplayName());
         }
 
-        ExecutionOutcome outcome = (failure != null || didWork)
+        ExecutionOutcome outcome = didWork
             ? EXECUTED
             : UP_TO_DATE;
-        OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
-        Throwable finalFailure = failure;
-
         return new Result() {
             @Override
             public ExecutionOutcome getOutcome() {
                 return outcome;
             }
 
-            @Override
-            public OriginMetadata getOriginMetadata() {
-                return originMetadata;
-            }
-
             @Nullable
             @Override
             public Throwable getFailure() {
-                return finalFailure;
+                return null;
             }
         };
     }

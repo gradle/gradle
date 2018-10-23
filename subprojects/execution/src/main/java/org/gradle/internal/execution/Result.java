@@ -16,13 +16,10 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.caching.internal.origin.OriginMetadata;
-
 import javax.annotation.Nullable;
 
 public interface Result {
     ExecutionOutcome getOutcome();
-    OriginMetadata getOriginMetadata();
     @Nullable
     Throwable getFailure();
 }

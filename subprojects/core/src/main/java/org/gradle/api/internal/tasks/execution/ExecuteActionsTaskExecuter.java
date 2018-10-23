@@ -89,9 +89,8 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     @Override
     public MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final SnapshotResult result = workExecutor.execute(new TaskExecution(task, context));
-        if (result.getFailure() != null) {
-            Throwable failure = result.getFailure();
-            assert failure != null;
+        Throwable failure = result.getFailure();
+        if (failure != null) {
             TaskExecutionException taskFailure = (failure instanceof ExecutionException)
                     ? new TaskExecutionException(task, failure.getCause())
                     : new TaskExecutionException(task, failure);

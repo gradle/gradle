@@ -64,6 +64,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.CacheStep;
 import org.gradle.internal.execution.impl.steps.CachingContext;
+import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
@@ -127,9 +128,12 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                     outputChangeListener,
                     buildCacheCommandFactory,
                     new SnapshotOutputStep<Context>(
+                        buildInvocationScopeId.getId(),
                         new CreateOutputsStep<Context, Result>(
-                            new TimeoutStep<Context>(timeoutHandler,
-                                new ExecuteStep(buildInvocationScopeId.getId(), cancellationToken, outputChangeListener)
+                            new CatchExceptionStep<Context>(
+                                new TimeoutStep<Context>(timeoutHandler,
+                                    new ExecuteStep(cancellationToken, outputChangeListener)
+                                )
                             )
                         )
                     )
