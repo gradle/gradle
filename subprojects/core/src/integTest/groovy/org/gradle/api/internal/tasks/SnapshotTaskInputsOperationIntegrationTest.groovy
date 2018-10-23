@@ -354,6 +354,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             with(roots[0]) {
                 hash != null
                 path == file("inputFile").absolutePath
+                !containsKey("children")
             }
             normalization == "RELATIVE_PATH"
         }
