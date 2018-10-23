@@ -611,18 +611,18 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public Action<? super Task> whenObjectRemoved(Action<? super Task> action) {
-        warnAboutRemoveMethodDeprecation("whenObjectRemoved(Action)");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer.whenObjectRemoved(Action)");
         return super.whenObjectRemoved(action);
     }
 
     @Override
     public void whenObjectRemoved(Closure action) {
-        warnAboutRemoveMethodDeprecation("whenObjectRemoved(Closure)");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer.whenObjectRemoved(Closure)");
         super.whenObjectRemoved(action);
     }
 
     private void warnAboutRemoveMethodDeprecation(String methodName) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer." + methodName, "Prefer disabling the task instead, see Task.setEnabled(boolean).");
+        DeprecationLogger.nagUserOfDeprecated("Using TaskContainer." + methodName + " to remove tasks", "Prefer disabling the task instead, see Task.setEnabled(boolean).");
     }
 
     // Cannot be private due to reflective instantiation
