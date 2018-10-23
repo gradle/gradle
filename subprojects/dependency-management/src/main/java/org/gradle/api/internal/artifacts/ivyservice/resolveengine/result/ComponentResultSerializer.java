@@ -63,8 +63,4 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         attributeContainerSerializer.write(encoder, value.getVariantAttributes());
         encoder.writeNullableString(value.getRepositoryName());
     }
-
-    void reset() {
-        reasonSerializer.reset();
-    }
 }

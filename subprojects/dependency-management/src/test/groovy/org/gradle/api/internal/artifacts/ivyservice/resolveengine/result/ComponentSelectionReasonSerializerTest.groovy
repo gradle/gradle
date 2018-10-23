@@ -18,12 +18,34 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
 import org.gradle.internal.Describables
+import org.gradle.internal.serialize.AbstractDecoder
+import org.gradle.internal.serialize.AbstractEncoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
+import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 
 class ComponentSelectionReasonSerializerTest extends SerializerSpec {
+    private final static ComponentSelectionDescriptorInternal[] REASONS_FOR_TEST = [
+            VersionSelectionReasons.SELECTED_BY_RULE,
+            VersionSelectionReasons.CONFLICT_RESOLUTION,
+            VersionSelectionReasons.CONSTRAINT,
+            VersionSelectionReasons.REJECTION,
+            VersionSelectionReasons.FORCED
+    ] as ComponentSelectionDescriptorInternal[]
+
 
     private serializer = new ComponentSelectionReasonSerializer()
+
+    @Override
+    Class<? extends AbstractEncoder> getEncoder() {
+        StringDeduplicatingKryoBackedEncoder
+    }
+
+    @Override
+    Class<? extends AbstractDecoder> getDecoder() {
+        StringDeduplicatingKryoBackedDecoder
+    }
 
     def "serializes"() {
         expect:
@@ -47,23 +69,14 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 
     def "multiple writes of the same custom reason"() {
         when:
-        def firstTime = toBytes(withReason("hello"), serializer)
-        def secondTime = toBytes(withReason("hello"), serializer)
-        def thirdTime = toBytes(withReason("hello"), serializer)
-        def fourthTime = toBytes(withReason("how are you?"), serializer)
-        def fifthTime = toBytes(withReason("hello"), serializer)
+        def single = toBytes(withReason("hello"), serializer)
+        def withDuplicate = toBytes(withReasons("hello", "hello"), serializer)
+        def withoutDuplicate = toBytes(withReasons("hello", "other"), serializer)
 
-        then: "first serialization is more expensive than the next one"
-        firstTime.length > secondTime.length
-
-        and: "subsequent serializations use the same amount of data"
-        secondTime.length == thirdTime.length
-
-        and: "adding a different reason will imply serializing the reason"
-        fourthTime.length > thirdTime.length
-
-        and: "remembers the selection reasons"
-        fifthTime.length == thirdTime.length
+        then:
+        single.length < withDuplicate.length
+        withDuplicate.length < 2*single.length
+        withoutDuplicate.length > withDuplicate.length
     }
 
     void check(ComponentSelectionDescriptor... reasons) {
@@ -76,10 +89,20 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
         VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(reason))])
     }
 
+    private static ComponentSelectionReasonInternal withReasons(String... reasons) {
+        int idx = -1
+        VersionSelectionReasons.of(reasons.collect {
+            reason(++idx).withReason(Describables.of(it))
+        })
+    }
+
+    private static ComponentSelectionDescriptorInternal reason(int idx) {
+        REASONS_FOR_TEST[idx%REASONS_FOR_TEST.length]
+    }
+
     @Override
     def <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
-        serializer.reset()
         return fromBytes(bytes, serializer)
     }
 }
