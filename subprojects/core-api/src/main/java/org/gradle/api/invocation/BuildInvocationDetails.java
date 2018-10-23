@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * An instance of the type can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
  *
  * <pre class='autoTested'>
- * public class MyPlugin implements Plugin<Project> {
+ * public class MyPlugin implements Plugin{@literal <}Project> {
  *     // injection into a constructor
  *     {@literal @}javax.inject.Inject
  *     public MyPlugin(BuildInvocationDetails invocationDetails) {}
