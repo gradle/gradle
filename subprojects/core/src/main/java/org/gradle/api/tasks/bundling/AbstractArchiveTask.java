@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.tasks.AbstractCopyTask;
@@ -116,12 +117,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the base name.
      */
+    @Nullable
     @Internal("Represented as part of archiveName")
     public String getBaseName() {
         return baseName;
     }
 
-    public void setBaseName(String baseName) {
+    public void setBaseName(@Nullable String baseName) {
         this.baseName = baseName;
     }
 
@@ -130,12 +132,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the appendix. May be null
      */
+    @Nullable
     @Internal("Represented as part of archiveName")
     public String getAppendix() {
         return appendix;
     }
 
-    public void setAppendix(String appendix) {
+    public void setAppendix(@Nullable String appendix) {
         this.appendix = appendix;
     }
 
@@ -144,24 +147,26 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the version. May be null.
      */
+    @Nullable
     @Internal("Represented as part of archiveName")
     public String getVersion() {
         return version;
     }
 
-    public void setVersion(String version) {
+    public void setVersion(@Nullable String version) {
         this.version = version;
     }
 
     /**
      * Returns the extension part of the archive name.
      */
+    @Nullable
     @Internal("Represented as part of archiveName")
     public String getExtension() {
         return extension;
     }
 
-    public void setExtension(String extension) {
+    public void setExtension(@Nullable String extension) {
         this.extension = extension;
     }
 
@@ -170,12 +175,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return The classifier. May be null.
      */
+    @Nullable
     @Internal("Represented as part of archiveName")
     public String getClassifier() {
         return classifier;
     }
 
-    public void setClassifier(String classifier) {
+    public void setClassifier(@Nullable String classifier) {
         this.classifier = classifier;
     }
 
