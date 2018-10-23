@@ -60,6 +60,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        assertCanAddElements();
         collectors.add(new SingleElement<T>(element));
     }
 
@@ -68,6 +69,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        assertCanAddElements();
         collectors.add(new ElementFromProvider<T>(Providers.internal(providerOfElement)));
     }
 
@@ -76,6 +78,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        assertCanAddElements();
         collectors.add(new ElementsFromArray<T>(elements));
     }
 
@@ -84,6 +87,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        assertCanAddElements();
         collectors.add(new ElementsFromCollection<T>(elements));
     }
 
@@ -92,7 +96,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (!assertMutable()) {
             return;
         }
+        assertCanAddElements();
         collectors.add(new ElementsFromCollectionProvider<T>(Providers.internal(provider)));
+    }
+
+    private void assertCanAddElements() {
+        if (value.equals(NO_VALUE_COLLECTOR)) {
+            throw new IllegalStateException("Cannot add elements to a collection property with no value");
+        }
     }
 
     @Nullable

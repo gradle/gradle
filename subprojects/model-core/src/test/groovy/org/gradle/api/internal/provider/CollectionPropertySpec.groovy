@@ -635,4 +635,36 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         then:
         property.get() == toImmutable(someValue())
     }
+
+    def "cannot add elements when property have no values"() {
+        when:
+        property.add("123")
+        then:
+        def e1 = thrown(IllegalStateException)
+        e1.message == "Cannot add elements to a collection property with no value"
+
+        when:
+        property.add(Stub(ProviderInternal))
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot add elements to a collection property with no value"
+
+        when:
+        property.addAll("123", "456")
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == "Cannot add elements to a collection property with no value"
+
+        when:
+        property.addAll(["123", "456"])
+        then:
+        def e4 = thrown(IllegalStateException)
+        e4.message == "Cannot add elements to a collection property with no value"
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+        then:
+        def e5 = thrown(IllegalStateException)
+        e5.message == "Cannot add elements to a collection property with no value"
+    }
 }
