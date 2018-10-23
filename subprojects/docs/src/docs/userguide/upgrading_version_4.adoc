@@ -51,8 +51,6 @@ Other notable changes to be aware of that may break your build include:
  * The <<#rel4.8:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
  * A <<#rel4.6:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
 
-Read the sections relevant to the version of Gradle you're upgrading from in order to get a comprehensive overview of the changes you might need to make to your build.
-
 [[changes_5.0]]
 == Upgrading from 4.10 and earlier
 
