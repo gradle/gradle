@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
-import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -36,6 +35,7 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.LimitingChangeVisitor;
+import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.NoHistoryTaskUpToDateState;
@@ -56,15 +56,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final TaskHistoryRepository taskHistoryRepository;
     private final Instantiator instantiator;
-    private final TaskOutputFilesRepository taskOutputFilesRepository;
+    private final OutputFilesRepository outputFilesRepository;
     private final TaskCacheKeyCalculator taskCacheKeyCalculator;
 
     public DefaultTaskArtifactStateRepository(FileCollectionFingerprinterRegistry fingerprinterRegistry, TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              TaskOutputFilesRepository taskOutputFilesRepository, TaskCacheKeyCalculator taskCacheKeyCalculator) {
+                                              OutputFilesRepository outputFilesRepository, TaskCacheKeyCalculator taskCacheKeyCalculator) {
         this.fingerprinterRegistry = fingerprinterRegistry;
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
-        this.taskOutputFilesRepository = taskOutputFilesRepository;
+        this.outputFilesRepository = outputFilesRepository;
         this.taskCacheKeyCalculator = taskCacheKeyCalculator;
     }
 
@@ -168,7 +168,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             // Only persist history if there was no failure, or some output files have been changed
             if (successful || previousExecution == null || hasAnyOutputFileChanges(previousExecution.getOutputFileProperties(), newOutputFingerprints)) {
                 history.persist(newOutputFingerprints, successful, originMetadata);
-                taskOutputFilesRepository.recordOutputs(newOutputFingerprints.values());
+                outputFilesRepository.recordOutputs(newOutputFingerprints.values());
             }
         }
 

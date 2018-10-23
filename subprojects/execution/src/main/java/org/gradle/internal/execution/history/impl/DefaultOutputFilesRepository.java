@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.execution.history.impl;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -31,13 +31,12 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
-@NonNullApi
-public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
+public class DefaultOutputFilesRepository implements OutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
     private final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
 
-    public DefaultTaskOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
         this.outputFiles = cacheAccess.createCache(cacheParameters(inMemoryCacheDecoratorFactory));
     }
