@@ -41,11 +41,11 @@ dependencyManagement {
 <% } %>
 
 if(Boolean.getBoolean("slowTasks")) {
-    Random rand = new Random();
     allprojects {
         tasks.withType(JavaCompile) {
-            int sleepMs = rand.nextInt(200) + 1;
-            Thread.sleep(sleepMs)
+            doLast {
+                Thread.sleep(100)
+            }
         }
     }
 }
@@ -71,7 +71,7 @@ test {
     jvmArgs '-Xmx1g', '-XX:+HeapDumpOnOutOfMemoryError'
     <% if (binding.hasVariable("fullTestLogging")) { %>
         testLogging {
-            if(Boolean.getBoolean("reducedOutput")) {
+            if (Boolean.getBoolean("reducedOutput")) {
                 events "failed"
             } else {
                 events "started", "skipped", "failed", "passed", "standard_out", "standard_error"

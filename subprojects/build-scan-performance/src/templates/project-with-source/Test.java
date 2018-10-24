@@ -17,7 +17,6 @@
 package ${packageName};
 
 import static org.junit.Assert.*;
-import java.util.Random;
 
 public class ${testClassName} {
 
@@ -26,9 +25,7 @@ public class ${testClassName} {
     @org.junit.Test
     public void testOne() throws Exception {
         if(Boolean.getBoolean("slowTasks")) {
-            Random rand = new Random();
-            int sleepMs = rand.nextInt(20) + 1;
-            Thread.sleep(sleepMs);
+            Thread.sleep(10);
         }
         for (int i = 0; i < 500; i++) {
             System.out.println("Some test output from ${testClassName}.testOne - " + i);
