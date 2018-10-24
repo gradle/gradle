@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -48,6 +47,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -62,7 +62,6 @@ import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -145,30 +144,10 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             @Override
             public void visitDependencies(final TaskDependencyResolveContext context) {
                 ensureResolved(false);
-                final List<Throwable> failures = new ArrayList<Throwable>();
-                resolveResult.artifactsResults.getArtifacts().visitDependencies(new TaskDependencyResolveContext() {
-                    @Override
-                    public void add(Object dep) {
-                        context.add(dep);
-                    }
-
-                    @Override
-                    public void maybeAdd(Object dependency) {
-                        context.maybeAdd(dependency);
-                    }
-
-                    @Override
-                    public Task getTask() {
-                        return context.getTask();
-                    }
-
-                    @Override
-                    public void visitFailure(Throwable failure) {
-                        failures.add(failure);
-                    }
-                });
-                if (!failures.isEmpty()) {
-                    throw new ResolveException(getDisplayName(), failures);
+                FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+                resolveResult.artifactsResults.getArtifacts().visitDependencies(collectingContext);
+                if (!collectingContext.getFailures().isEmpty()) {
+                    throw new ResolveException(getDisplayName(), collectingContext.getFailures());
                 }
             }
         };
