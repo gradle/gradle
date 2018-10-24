@@ -111,10 +111,15 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                link("TeamCity Build", System.getenv("BUILD_URL"))
-                value("Build ID", System.getenv("BUILD_ID"))
-                setCommitId(System.getenv("BUILD_VCS_NUMBER"))
-
+                if (!System.getenv("TRAVIS").isNullOrEmpty()) {
+                    link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
+                    value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
+                    setCommitId(System.getenv("TRAVIS_COMMIT"))
+                } else {
+                    link("TeamCity Build", System.getenv("BUILD_URL"))
+                    value("Build ID", System.getenv("BUILD_ID"))
+                    setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                }
                 whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                     value(ciBuildTypeName, buildType)
                     link("Build Type Scans", customValueSearchUrl(mapOf(ciBuildTypeName to buildType)))
