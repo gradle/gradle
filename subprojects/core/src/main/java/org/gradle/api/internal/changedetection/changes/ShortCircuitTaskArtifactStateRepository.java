@@ -27,13 +27,17 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
@@ -76,20 +80,42 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
     private class RerunTaskArtifactState implements TaskArtifactState {
         private final TaskArtifactState delegate;
         private final TaskInternal task;
-        private final String reason;
+        private final Change reason;
 
-        private RerunTaskArtifactState(TaskArtifactState delegate, TaskInternal task, String reason) {
+        private RerunTaskArtifactState(TaskArtifactState delegate, TaskInternal task, final String reason) {
             this.delegate = delegate;
             this.task = task;
-            this.reason = reason;
+            this.reason = new Change() {
+                @Override
+                public String getMessage() {
+                    return reason;
+                }
+            };
         }
 
         @Override
-        public boolean isUpToDate(Collection<String> messages) {
-            // Ensure that we snapshot the task's inputs
-            delegate.ensureSnapshotBeforeTask();
-            messages.add(reason);
-            return false;
+        public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+            return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
+                @Override
+                public void visitAllChanges(ChangeVisitor visitor) {
+                    visitor.visitChange(reason);
+                }
+
+                @Override
+                public boolean isRebuildRequired() {
+                    return true;
+                }
+
+                @Override
+                public Iterable<Change> getInputFilesChanges() {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public AfterPreviousExecutionState getPreviousExecution() {
+                    throw new UnsupportedOperationException();
+                }
+            });
         }
 
         @Override

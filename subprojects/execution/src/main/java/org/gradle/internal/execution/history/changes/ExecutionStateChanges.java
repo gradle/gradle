@@ -18,6 +18,7 @@ package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 /**
  * Represents the complete changes in execution state
@@ -40,4 +41,9 @@ public interface ExecutionStateChanges {
      * Whether there are changes that force an incremental task to fully rebuild.
      */
     boolean isRebuildRequired();
+
+    /**
+     * The base execution the changes are calculated against.
+     */
+    AfterPreviousExecutionState getPreviousExecution();
 }

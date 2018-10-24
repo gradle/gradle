@@ -22,9 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.MutatingTaskExecuter;
-import org.gradle.api.internal.tasks.MutatingTaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
@@ -44,7 +43,8 @@ import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.impl.steps.SnapshotResult;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -64,20 +64,20 @@ import java.util.function.Function;
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
-public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
+public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final boolean buildCacheEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor<SnapshotResult> workExecutor;
+    private final WorkExecutor<UpToDateResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor<SnapshotResult> workExecutor
+        WorkExecutor<UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -87,8 +87,8 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
     }
 
     @Override
-    public MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        final SnapshotResult result = workExecutor.execute(new TaskExecution(task, context));
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        final UpToDateResult result = workExecutor.execute(new TaskExecution(task, context));
         Throwable failure = result.getFailure();
         if (failure != null) {
             TaskExecutionException taskFailure = (failure instanceof ExecutionException)
@@ -113,15 +113,11 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
                     throw new AssertionError();
             }
         }
-        return new MutatingTaskExecuterResult() {
+        context.setUpToDateMessages(result.getOutOfDateReasons());
+        return new TaskExecuterResult() {
             @Override
             public OriginMetadata getOriginMetadata() {
                 return result.getOriginMetadata();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                return result.getFinalOutputs();
             }
         };
     }
@@ -182,6 +178,11 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         }
 
         @Override
+        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
+            return context.getTaskArtifactState().getExecutionStateChanges();
+        }
+
+        @Override
         public CacheHandler createCacheHandler() {
             return new CacheHandler() {
                 @Override
@@ -226,6 +227,11 @@ public class ExecuteActionsTaskExecuter implements MutatingTaskExecuter {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             return context.getTaskArtifactState().snapshotAfterTaskExecution(context);
+        }
+
+        @Override
+        public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
+            context.getTaskArtifactState().persistNewOutputs(finalOutputs, successful, originMetadata);
         }
 
         @Override

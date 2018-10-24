@@ -30,11 +30,14 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 
 public class DefaultExecutionStateChanges implements ExecutionStateChanges {
 
+    private final AfterPreviousExecutionState previousExecution;
     private final ChangeContainer inputFileChanges;
     private final ChangeContainer allChanges;
     private final ChangeContainer rebuildTriggeringChanges;
 
     public DefaultExecutionStateChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
+        this.previousExecution = lastExecution;
+
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
@@ -108,5 +111,10 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
         ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
         rebuildTriggeringChanges.accept(changeDetectorVisitor);
         return changeDetectorVisitor.hasAnyChanges();
+    }
+
+    @Override
+    public AfterPreviousExecutionState getPreviousExecution() {
+        return previousExecution;
     }
 }

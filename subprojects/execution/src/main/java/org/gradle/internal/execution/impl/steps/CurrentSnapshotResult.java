@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.execution.impl.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-import javax.annotation.Nonnull;
-
-public interface MutatingTaskExecuterResult extends TaskExecuterResult {
-    @Nonnull
+public interface CurrentSnapshotResult extends SnapshotResult {
     @Override
-    OriginMetadata getOriginMetadata();
-
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 }

@@ -36,8 +36,9 @@ import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep
 import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.ExecuteStep
+import org.gradle.internal.execution.impl.steps.SkipUpToDateStep
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep
-import org.gradle.internal.execution.impl.steps.SnapshotResult
+import org.gradle.internal.execution.impl.steps.UpToDateResult
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -64,13 +65,15 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def workExecutor = new DefaultWorkExecutor<SnapshotResult>(
+    def workExecutor = new DefaultWorkExecutor<UpToDateResult>(
+        new SkipUpToDateStep<Context>(
             new SnapshotOutputStep<Context>(
                 buildId,
                 new CatchExceptionStep<Context>(
                     new ExecuteStep(cancellationToken, outputChangeListener)
                 )
             )
+        )
     )
     def executer = new ExecuteActionsTaskExecuter(false, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
@@ -82,6 +85,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskArtifactState() >> taskArtifactState
         taskArtifactState.snapshotAfterTaskExecution(executionContext) >> ImmutableSortedMap.of()
+        taskArtifactState.getExecutionStateChanges() >> Optional.empty()
     }
 
     void noMoreInteractions() {

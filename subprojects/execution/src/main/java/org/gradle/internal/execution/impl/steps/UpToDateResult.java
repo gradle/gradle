@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskInternal;
+package org.gradle.internal.execution.impl.steps;
 
-public interface MutatingTaskExecuter {
+import com.google.common.collect.ImmutableList;
+
+public interface UpToDateResult extends SnapshotResult {
     /**
-     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
-     * state.
+     * A list of messages describing the first few reasons encountered that caused the work to be executed.
+     * An empty list means the work was up-to-date and hasn't been executed.
      */
-    MutatingTaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
-
+    ImmutableList<String> getOutOfDateReasons();
 }
