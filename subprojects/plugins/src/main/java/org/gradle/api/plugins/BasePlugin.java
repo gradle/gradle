@@ -86,21 +86,26 @@ public class BasePlugin implements Plugin<Project> {
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
-                Callable<String> destinationDir;
-                if (task instanceof Jar) {
-                    destinationDir = new Callable<String>() {
-                        public String call() {
-                            return pluginConvention.getLibsDirName();
-                        }
-                    };
-                } else {
-                    destinationDir = new Callable<String>() {
-                        public String call() {
-                            return pluginConvention.getDistsDirName();
-                        }
-                    };
+
+                // This is here because the JvmComponentPlugin Jar task configuration runs before this action.
+                // It has already set the destination directory for this task. The BasePlugin needs to respect that.
+                if (!task.getDestinationDirectory().isPresent()) {
+                    Callable<String> destinationDir;
+                    if (task instanceof Jar) {
+                        destinationDir = new Callable<String>() {
+                            public String call() {
+                                return pluginConvention.getLibsDirName();
+                            }
+                        };
+                    } else {
+                        destinationDir = new Callable<String>() {
+                            public String call() {
+                                return pluginConvention.getDistsDirName();
+                            }
+                        };
+                    }
+                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
                 }
-                task.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
 
                 task.getArchiveVersion().set(project.provider(new Callable<String>() {
                     @Nullable

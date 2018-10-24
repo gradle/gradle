@@ -674,7 +674,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         fails('jar')
 
         then:
-        failureCauseContains('The destinationDir property must be set')
+        failureCauseContains('No value has been specified for property \'archiveFile\'.')
     }
 
     private static String customJarManifestTask() {

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish
 
+import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
