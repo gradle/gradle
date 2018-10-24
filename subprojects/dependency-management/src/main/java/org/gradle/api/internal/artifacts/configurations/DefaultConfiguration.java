@@ -24,7 +24,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -85,7 +84,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -116,7 +115,6 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -1597,48 +1595,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 results = cachedResolverResults;
             }
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-            final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-            selected.visitDependencies(new TaskDependencyResolveContext() {
-                private final Set<Object> seen = new HashSet<>();
-
-                @Override
-                public void add(Object dep) {
-                    if (!seen.add(dep)) {
-                        return;
-                    }
-                    if (dep instanceof TaskDependencyContainer) {
-                        TaskDependencyContainer container = (TaskDependencyContainer) dep;
-                        container.visitDependencies(this);
-                    } else {
-                        context.add(dep);
-                    }
-                }
-
-                @Override
-                public void maybeAdd(Object dependency) {
-                    if (!seen.add(dependency)) {
-                        return;
-                    }
-                    if (dependency instanceof TaskDependencyContainer) {
-                        TaskDependencyContainer container = (TaskDependencyContainer) dependency;
-                        container.visitDependencies(this);
-                    } else {
-                        context.maybeAdd(dependency);
-                    }
-                }
-
-                @Override
-                public void visitFailure(Throwable failure) {
-                    failures.add(failure);
-                }
-
-                @Override
-                public Task getTask() {
-                    return context.getTask();
-                }
-            });
+            FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
+            selected.visitDependencies(collectingContext);
             if (!lenient) {
-                rethrowFailure("task dependencies", failures);
+                rethrowFailure("task dependencies", collectingContext.getFailures());
             }
         }
     }
