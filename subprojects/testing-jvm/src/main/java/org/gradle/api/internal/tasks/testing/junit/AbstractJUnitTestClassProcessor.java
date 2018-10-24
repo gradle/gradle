@@ -29,12 +29,13 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpec> implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
+
     protected final T spec;
     protected final IdGenerator<?> idGenerator;
     protected final Clock clock;
-    protected final ActorFactory actorFactory;
+    private final ActorFactory actorFactory;
+    private Actor resultProcessorActor;
     private Action<String> executor;
-    protected Actor resultProcessorActor;
 
     public AbstractJUnitTestClassProcessor(T spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         this.idGenerator = idGenerator;
@@ -45,10 +46,15 @@ public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpe
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
-        executor = createTestExecutor(resultProcessor);
+        TestResultProcessor resultProcessorChain = createResultProcessorChain(resultProcessor);
+        // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
+        resultProcessorActor = actorFactory.createBlockingActor(resultProcessorChain);
+        executor = createTestExecutor(resultProcessorActor);
     }
 
-    protected abstract Action<String> createTestExecutor(TestResultProcessor resultProcessor);
+    protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
+
+    protected abstract Action<String> createTestExecutor(Actor resultProcessorActor);
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {

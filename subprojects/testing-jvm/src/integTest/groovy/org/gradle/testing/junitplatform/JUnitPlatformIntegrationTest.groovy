@@ -405,7 +405,7 @@ public class StaticInnerTest {
 
         then:
         with(new DefaultTestExecutionResult(testDirectory)) {
-            (1..numTestClasses).each { classNumber ->
+            (1..numTestClasses).every { classNumber ->
                 testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
             }
         }

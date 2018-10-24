@@ -143,7 +143,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestCompleteEvent completeEvent() {
-        return new TestCompleteEvent(clock.getCurrentTime());
+        return completeEvent(null);
     }
 
     private TestCompleteEvent completeEvent(ResultType resultType) {
@@ -157,7 +157,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private TestDescriptorInternal getDescriptor(final TestIdentifier node) {
         return descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             if (isVintageDynamicLeafTest(node)) {
-                UniqueId parsedUniqueId = UniqueId.parse(node.getUniqueId());
+                UniqueId parsedUniqueId = UniqueId.parse(uniqueId);
                 return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(parsedUniqueId), vintageDynamicMethodName(parsedUniqueId));
             }
             if (node.getType() == CONTAINER || isClass(node)) {
