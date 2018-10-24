@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -30,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules;
+import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -124,12 +127,21 @@ public class ResolveIvyFactory {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
             }
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
-
+            moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
         }
 
         return moduleResolver;
+    }
+
+    private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository) {
+        Action<? super ArtifactRepository.ArtifactResolutionDetails> filter = null;
+        if (repository instanceof AbstractArtifactRepository) {
+            filter = ((AbstractArtifactRepository) repository).getContentFilter();
+        }
+        moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter);
+        return moduleComponentRepository;
     }
 
     /**

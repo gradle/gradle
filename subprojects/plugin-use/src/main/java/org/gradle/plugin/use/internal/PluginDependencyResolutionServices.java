@@ -15,6 +15,7 @@
  */
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -115,6 +116,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         @Override
         public void setName(String name) {
             delegate.setName(name);
+        }
+
+        @Override
+        public void contentFilter(Action<? super ArtifactResolutionDetails> spec) {
+            delegate.contentFilter(spec);
         }
 
         @Override

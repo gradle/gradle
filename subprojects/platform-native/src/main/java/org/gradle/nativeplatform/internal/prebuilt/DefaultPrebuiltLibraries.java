@@ -46,6 +46,11 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     }
 
     @Override
+    public void contentFilter(Action<? super ArtifactResolutionDetails> spec) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     protected PrebuiltLibrary doCreate(String name) {
         return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, objectFactory);
     }

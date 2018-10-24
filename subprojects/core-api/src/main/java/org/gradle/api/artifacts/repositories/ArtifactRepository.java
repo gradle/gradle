@@ -15,6 +15,9 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -43,4 +46,33 @@ public interface ArtifactRepository {
      * @throws IllegalStateException If the name is set after it has been added to the container.
      */
     void setName(String name);
+
+    void contentFilter(Action<? super ArtifactResolutionDetails> spec);
+
+    @HasInternalProtocol
+    interface ArtifactResolutionDetails {
+        /**
+         * The identifier of the module being looked for in this repository
+         * @return the module identifier
+         */
+        ModuleIdentifier getId();
+
+        /**
+         * The attributes of the consumer looking for this module
+         * @return the consumer attributes
+         */
+        AttributeContainer getConsumerAttributes();
+
+        /**
+         * The name of the consumer. Usually corresponds to the name of the configuration being
+         * resolved.
+         * @return the consumer name
+         */
+        String getConsumerName();
+
+        /**
+         * Declares that this artifact will not be found on this repository
+         */
+        void notFound();
+    }
 }
