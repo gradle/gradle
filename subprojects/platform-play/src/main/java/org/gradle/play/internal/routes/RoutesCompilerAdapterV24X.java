@@ -81,4 +81,9 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
     protected boolean isGenerateForwardsRouter() {
         return true;
     }
+
+    @Override
+    public Boolean interpretResult(ClassLoader cl, Object result) {
+        return super.interpretResult(cl, result);
+    }
 }
