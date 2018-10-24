@@ -105,7 +105,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
-        addProvider(new TaskExecutionServices());
+        addProvider(new ExecutionServices());
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {

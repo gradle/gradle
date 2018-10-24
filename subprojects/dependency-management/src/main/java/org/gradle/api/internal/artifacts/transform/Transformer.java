@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
 import java.util.List;
@@ -29,8 +28,10 @@ import java.util.List;
  *
  * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
  */
-public interface Transformer extends BiFunction<List<File>, File, File>, Describable {
+public interface Transformer extends Describable {
     Class<? extends ArtifactTransform> getImplementationClass();
+
+    List<File> transform(File file, File file2);
 
     /**
      * The hash of the secondary inputs of the transformer.
