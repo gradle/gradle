@@ -26,7 +26,6 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.BinaryCollection;
 import org.gradle.language.ComponentWithDependencies;
-import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 
 /**
@@ -82,9 +81,9 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
     Property<SwiftVersion> getSourceCompatibility();
 
     /**
-     * Specifies the operating systems for the target machine.
+     * Specifies the target machines this component should be built for.
      *
-     * @since 4.7
+     * @since 5.1
      */
     SetProperty<TargetMachine> getTargetMachines();
 }

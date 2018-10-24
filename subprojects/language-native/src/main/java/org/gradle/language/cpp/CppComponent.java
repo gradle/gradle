@@ -27,8 +27,8 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.language.BinaryCollection;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithDependencies;
-import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -100,7 +100,14 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
     /**
      * Specifies the target machines this component should be built for.
      *
-     * @since 4.7
+     * @since 5.1
      */
     SetProperty<TargetMachine> getTargetMachines();
+
+    /**
+     * Returns a factory for configuring target machines.
+     *
+     * @since 5.1
+     */
+    TargetMachineFactory getMachines();
 }

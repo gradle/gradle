@@ -45,9 +45,9 @@ import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
@@ -145,7 +145,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
                             runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
                             runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
-                            runtimeAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
+                            runtimeAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
                             AttributeContainer linkAttributes = attributesFactory.mutable();
                             linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
@@ -153,7 +153,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             linkAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
                             linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
                             linkAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
-                            linkAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
+                            linkAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
                             NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, library.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                                 new DefaultUsageContext(variantName + "Link", linkUsage, linkAttributes),

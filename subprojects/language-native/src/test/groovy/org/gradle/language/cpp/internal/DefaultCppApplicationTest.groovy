@@ -17,7 +17,10 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.TargetMachine
+import org.gradle.nativeplatform.TargetMachineFactory
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +32,7 @@ class DefaultCppApplicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def application = new DefaultCppApplication("main", project.objects, project.fileOperations)
+    def application = new DefaultCppApplication("main", project.objects, project.fileOperations, project.services.get(TargetMachineFactory.class))
 
     def "has display name"() {
         expect:
@@ -56,7 +59,15 @@ class DefaultCppApplicationTest extends Specification {
     private NativeVariantIdentity getIdentity() {
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
-            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+            getTargetMachine() >> targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X64)
+        }
+    }
+
+    private TargetMachine targetMachine(String os, String arch) {
+        def objectFactory = TestUtil.objectFactory()
+        return Stub(TargetMachine) {
+            getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
+            getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
         }
     }
 }

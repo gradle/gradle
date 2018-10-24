@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.platform.Architecture;
+import org.gradle.api.tasks.Nested;
 
 /**
  * Represents a combination of operating system and cpu architecture that a variant might be built for.
@@ -27,12 +27,14 @@ import org.gradle.nativeplatform.platform.Architecture;
 @Incubating
 public interface TargetMachine {
     /**
-     * @return The target operating system
+     * Returns the target operating system
      */
+    @Nested
     OperatingSystemFamily getOperatingSystemFamily();
 
     /**
-     * @return The target architecture
+     * Returns the target architecture
      */
-    Architecture getArchitecture();
+    @Nested
+    MachineArchitecture getArchitecture();
 }

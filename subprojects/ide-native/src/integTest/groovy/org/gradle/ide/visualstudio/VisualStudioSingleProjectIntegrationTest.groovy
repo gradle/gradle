@@ -60,7 +60,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             apply plugin: 'cpp-application'
             
             application {
-                operatingSystems = [objects.named(OperatingSystemFamily, 'foo')]
+                targetMachines = [machines.of('foo', 'x86')]
             }
         """
 

@@ -176,4 +176,8 @@ allprojects { p ->
     protected String getCurrentOsFamilyName() {
         DefaultNativePlatform.currentOperatingSystem.toFamilyName()
     }
+
+    protected String getCurrentArchitecture() {
+        DefaultNativePlatform.currentArchitecture.name
+    }
 }

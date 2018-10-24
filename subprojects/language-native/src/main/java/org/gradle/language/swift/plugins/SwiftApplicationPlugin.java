@@ -39,9 +39,9 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
+import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
@@ -131,7 +131,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                         runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
                         runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
                         runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, targetMachine.getOperatingSystemFamily());
-                        runtimeAttributes.attribute(Architecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
+                        runtimeAttributes.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, targetMachine.getArchitecture());
 
                         NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, application.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine,
                             null,

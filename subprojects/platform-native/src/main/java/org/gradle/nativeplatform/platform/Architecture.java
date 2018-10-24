@@ -17,7 +17,6 @@ package org.gradle.nativeplatform.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.HasInternalProtocol;
@@ -61,8 +60,6 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface Architecture extends Named {
-    public static final Attribute<Architecture> ARCHITECTURE_ATTRIBUTE = Attribute.of("org.gradle.native.architecture", Architecture.class);
-
     @Override
     @Input
     String getName();

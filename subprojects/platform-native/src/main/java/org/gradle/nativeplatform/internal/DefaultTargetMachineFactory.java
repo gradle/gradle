@@ -17,10 +17,11 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.OperatingSystemFamilyMachineFactory;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
-import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class DefaultTargetMachineFactory implements TargetMachineFactory {
@@ -33,14 +34,35 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     @Override public TargetMachine host() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
         OperatingSystemFamily operatingSystemFamily = objectFactory.named(OperatingSystemFamily.class, host.getOperatingSystem().toFamilyName());
-        return new TargetMachineImpl(operatingSystemFamily, host.getArchitecture());
+        MachineArchitecture machineArchitecture = objectFactory.named(MachineArchitecture.class, host.getArchitecture().getName());
+        return new TargetMachineImpl(operatingSystemFamily, machineArchitecture);
+    }
+
+    @Override
+    public OperatingSystemFamilyMachineFactory windows() {
+        return new OperatinSystemFamilyMachineFactoryImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.WINDOWS));
+    }
+
+    @Override
+    public OperatingSystemFamilyMachineFactory linux() {
+        return new OperatinSystemFamilyMachineFactoryImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.LINUX));
+    }
+
+    @Override
+    public OperatingSystemFamilyMachineFactory macos() {
+        return new OperatinSystemFamilyMachineFactoryImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.MACOS));
+    }
+
+    @Override
+    public TargetMachine of(String operatingSystemFamily, String architecture) {
+        return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, operatingSystemFamily), objectFactory.named(MachineArchitecture.class, architecture));
     }
 
     private static class TargetMachineImpl implements TargetMachine {
         private final OperatingSystemFamily operatingSystemFamily;
-        private final Architecture architecture;
+        private final MachineArchitecture architecture;
 
-        public TargetMachineImpl(OperatingSystemFamily operatingSystemFamily, Architecture architecture) {
+        public TargetMachineImpl(OperatingSystemFamily operatingSystemFamily, MachineArchitecture architecture) {
             this.operatingSystemFamily = operatingSystemFamily;
             this.architecture = architecture;
         }
@@ -51,8 +73,61 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         }
 
         @Override
-        public Architecture getArchitecture() {
+        public MachineArchitecture getArchitecture() {
             return architecture;
+        }
+    }
+
+    private class OperatinSystemFamilyMachineFactoryImpl implements OperatingSystemFamilyMachineFactory {
+        private final OperatingSystemFamily operatingSystemFamily;
+
+        public OperatinSystemFamilyMachineFactoryImpl(OperatingSystemFamily operatingSystemFamily) {
+            this.operatingSystemFamily = operatingSystemFamily;
+        }
+
+        @Override
+        public TargetMachine x86() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86));
+        }
+
+        @Override
+        public TargetMachine x64() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X64));
+        }
+
+        @Override
+        public TargetMachine ia64() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.IA64));
+        }
+
+        @Override
+        public TargetMachine arm() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.ARM));
+        }
+
+        @Override
+        public TargetMachine arm64() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.ARM64));
+        }
+
+        @Override
+        public TargetMachine ppc() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.PPC));
+        }
+
+        @Override
+        public TargetMachine ppc64() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.PPC64));
+        }
+
+        @Override
+        public TargetMachine sparc() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.SPARC));
+        }
+
+        @Override
+        public TargetMachine sparc64() {
+            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.SPARC64));
         }
     }
 }

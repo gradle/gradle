@@ -19,8 +19,11 @@ package org.gradle.language.nativeplatform.internal.toolchains
 import org.gradle.api.model.ObjectFactory
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
+import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage
@@ -43,96 +46,49 @@ class DefaultToolChainSelectorTest extends Specification {
         selector.host = host
     }
 
-    def "selects C++ toolchain for host machine"() {
+    def "selects C++ toolchain for the specified architecture"() {
         def registry = Mock(NativeToolChainRegistryInternal)
         def toolChain = Mock(NativeToolChainInternal)
         def toolProvider = Mock(PlatformToolProvider)
-
 
         given:
         objectFactory.named(_, _) >> Mock(OperatingSystemFamily)
         modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
 
         when:
-        def result = selector.select(CppPlatform)
+        def result = selector.select(CppPlatform, targetMachine(architecture))
 
         then:
         result.toolChain == toolChain
         result.targetPlatform instanceof CppPlatform
         result.targetPlatform.operatingSystem == os
-        result.targetPlatform.architecture == arch
+        result.targetPlatform.architecture == Architectures.forInput(architecture)
         result.platformToolProvider == toolProvider
 
         and:
-        registry.getForPlatform(NativeLanguage.CPP, host) >> toolChain
-        toolChain.select(NativeLanguage.CPP, host) >> toolProvider
+        registry.getForPlatform(NativeLanguage.CPP, _) >> { args ->
+            assert args[1].architecture == Architectures.forInput(architecture)
+            return toolChain
+        }
+        toolChain.select(NativeLanguage.CPP, _) >> { args ->
+            assert args[1].architecture == Architectures.forInput(architecture)
+            toolProvider
+        }
+
+        where:
+        architecture << [
+                MachineArchitecture.X86,
+                MachineArchitecture.X64,
+                MachineArchitecture.ARM
+        ]
     }
 
-    def "selects toolchain for x86 architecture when host is Windows x64 and x64 tools are not available"() {
-        def registry = Mock(NativeToolChainRegistryInternal)
-        def toolChain = Mock(NativeToolChainInternal)
-        def toolProvider = Mock(PlatformToolProvider)
-        def x86ToolChain = Mock(NativeToolChainInternal)
-        def x86ToolProvider = Mock(PlatformToolProvider)
-        def windows = Mock(OperatingSystemFamily)
-
-        given:
-        objectFactory.named(_, _) >> windows
-        modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
-        windows.isWindows() >> true
-        os.windows >> true
-        arch.amd64 >> true
-
-        when:
-        def result = selector.select(CppPlatform)
-
-        then:
-        result.toolChain == x86ToolChain
-        result.targetPlatform instanceof CppPlatform
-        result.targetPlatform.operatingSystem == os
-        result.targetPlatform.architecture.name == "x86"
-        result.platformToolProvider == x86ToolProvider
-
-        and:
-        1 * registry.getForPlatform(NativeLanguage.CPP, host) >> toolChain
-        1 * toolChain.select(NativeLanguage.CPP, host) >> toolProvider
-        toolProvider.available >> false
-        1 * registry.getForPlatform(NativeLanguage.CPP, { it.architecture.name == "x86" }) >> x86ToolChain
-        1 * x86ToolChain.select(NativeLanguage.CPP, { it.architecture.name == "x86" }) >> x86ToolProvider
-        x86ToolProvider.available >> true
-    }
-
-    def "selects (broken) x64 toolchain when host is Windows x64 and no tools are not available"() {
-        def registry = Mock(NativeToolChainRegistryInternal)
-        def toolChain = Mock(NativeToolChainInternal)
-        def toolProvider = Mock(PlatformToolProvider)
-        def x86ToolChain = Mock(NativeToolChainInternal)
-        def x86ToolProvider = Mock(PlatformToolProvider)
-        def windows = Mock(OperatingSystemFamily)
-
-        given:
-        objectFactory.named(_, _) >> windows
-        modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
-        windows.isWindows() >> true
-        os.windows >> true
-        arch.amd64 >> true
-
-        when:
-        def result = selector.select(CppPlatform)
-
-        then:
-        result.toolChain == toolChain
-        result.targetPlatform instanceof CppPlatform
-        result.targetPlatform.operatingSystem == os
-        result.targetPlatform.architecture == arch
-        result.platformToolProvider == toolProvider
-
-        and:
-        1 * registry.getForPlatform(NativeLanguage.CPP, host) >> toolChain
-        1 * toolChain.select(NativeLanguage.CPP, host) >> toolProvider
-        toolProvider.available >> false
-        1 * registry.getForPlatform(NativeLanguage.CPP, { it.architecture.name == "x86" }) >> x86ToolChain
-        1 * x86ToolChain.select(NativeLanguage.CPP, { it.architecture.name == "x86" }) >> x86ToolProvider
-        x86ToolProvider.available >> false
+    def targetMachine(String architecture) {
+        def machineArchitecture = Stub(MachineArchitecture) {
+            getName() >> architecture
+        }
+        return Stub(TargetMachine) {
+            getArchitecture() >> machineArchitecture
+        }
     }
 }

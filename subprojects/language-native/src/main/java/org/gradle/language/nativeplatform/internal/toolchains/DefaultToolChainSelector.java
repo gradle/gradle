@@ -22,10 +22,8 @@ import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
@@ -49,7 +47,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
 
     @Override
     public <T extends NativePlatform> Result<T> select(Class<T> platformType, TargetMachine targetMachine) {
-        DefaultNativePlatform targetNativePlatform = DefaultNativePlatform.host().withArchitecture((ArchitectureInternal)targetMachine.getArchitecture());
+        DefaultNativePlatform targetNativePlatform = host.withArchitecture(Architectures.forInput(targetMachine.getArchitecture().getName()));
 
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 

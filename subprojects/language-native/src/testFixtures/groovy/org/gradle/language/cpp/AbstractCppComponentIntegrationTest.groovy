@@ -31,7 +31,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = [objects.named(OperatingSystemFamily, '${currentOsFamilyName}')]
+                targetMachines = [machines.host()]
             }
         """
 
@@ -49,7 +49,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = [objects.named(OperatingSystemFamily, 'some-other-family')]
+                targetMachines = [machines.of('some-other-family', 'x86')]
             }
         """
 
@@ -67,7 +67,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                operatingSystems = []
+                targetMachines = []
             }
         """
 

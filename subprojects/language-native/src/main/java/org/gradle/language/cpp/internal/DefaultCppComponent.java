@@ -133,4 +133,9 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     public SetProperty<TargetMachine> getTargetMachines() {
         return targetMachines;
     }
+
+    @Override
+    public TargetMachineFactory getMachines() {
+        return machines;
+    }
 }
