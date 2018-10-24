@@ -269,8 +269,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     tr();
                         th().text("Date").end();
                         th().text("Commit").end();
-                        th().colspan("2").text(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getBaseVersion().getName()).end();
-                        th().colspan("2").text(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
+                        renderVersionHeader(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getBaseVersion().getName());
+                        renderVersionHeader(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getCurrentVersion().getName());
                         th().text("Difference").end();
                         th().text("Confidence").end();
                     end();
@@ -288,6 +288,15 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             td().classAttr(getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
                         end();
                 });
+                end();
+            }
+
+            private void renderVersionHeader(String version) {
+                th();
+                    colspan("2").text(version);
+                    if (version.contains("-commit-")) {
+                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The test is executed against the commit where your branch forks from master.").text(" ").end();
+                    }
                 end();
             }
             // @formatter:on

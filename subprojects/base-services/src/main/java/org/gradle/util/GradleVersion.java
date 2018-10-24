@@ -34,7 +34,7 @@ import static org.gradle.internal.IoActions.uncheckedClose;
 
 public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
 
     private final String version;
@@ -125,12 +125,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
                 stageNumber = 1;
             }
             String stageString = matcher.group(6);
-            stage = new Stage(stageNumber, stageString);
+            stage = Stage.from(stageNumber, stageString);
         } else {
             stage = null;
         }
 
-        if ("snapshot".equals(matcher.group(5))) {
+        if ("snapshot".equals(matcher.group(5)) || "commit".equals(matcher.group(5))) {
             snapshot = 0L;
         } else if (matcher.group(8) == null) {
             snapshot = null;
@@ -267,20 +267,25 @@ public class GradleVersion implements Comparable<GradleVersion> {
         final int number;
         final Character patchNo;
 
-        Stage(int stage, String number) {
+        private Stage(int stage, int number, Character patchNo) {
             this.stage = stage;
-            Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(number);
-            try {
-                m.matches();
-                this.number = Integer.parseInt(m.group(1));
-            } catch (Exception e) {
-                throw new RuntimeException("Invalid stage small number: " + number, e);
+            this.number = number;
+            this.patchNo = patchNo;
+        }
+
+        static Stage from(int stage, String stageString) {
+            Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(stageString);
+            int number;
+            if (m.matches()) {
+                number = Integer.parseInt(m.group(1));
+            } else {
+                return null;
             }
 
             if (m.groupCount() == 2 && m.group(2) != null) {
-                this.patchNo = m.group(2).charAt(0);
+                return new Stage(stage, number, m.group(2).charAt(0));
             } else {
-                this.patchNo = '_';
+                return new Stage(stage, number, '_');
             }
         }
 

@@ -80,6 +80,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         registerEmptyPerformanceReportTask()
 
+        registerForkPointDistributionTask()
+
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -101,6 +103,34 @@ class PerformanceTestPlugin : Plugin<Project> {
         // Some of CI builds have parameter `-x performanceReport` so simply removing `performanceReport` would result in an error
         // This task acts as a workaround for transition
         tasks.register("performanceReport")
+    }
+
+    private
+    fun Project.registerForkPointDistributionTask() {
+        val determineForkPoint = tasks.register("determineForkPoint", DetermineForkPoint::class)
+        val buildForkPointDistribution = tasks.register("buildForkPointDistribution", BuildForkPointDistribution::class) {
+            forkPointDistributionVersion.set(determineForkPoint.flatMap { it.forkPointDistributionVersion })
+            dependsOn(determineForkPoint)
+        }
+
+        tasks.register("configurePerformanceTestBaseline") {
+            dependsOn(buildForkPointDistribution)
+            doLast {
+                val commitBaseline = determineForkPoint.get().forkPointDistributionVersion.get()
+                project.tasks.withType(DistributedPerformanceTest::class) {
+                    if (baselines.isNullOrEmpty() || baselines == "defaults") {
+                        baselines = commitBaseline
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun Project.whenNotOnMasterOrReleaseBranch(action: (branchName: String) -> Unit) {
+        stringPropertyOrNull(PropertyNames.branchName)
+            ?.takeIf { it.isNotEmpty() && it != "master" && it != "release" }
+            ?.let(action)
     }
 
     private
@@ -423,6 +453,10 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             configureSampleGenerators {
                 this@apply.mustRunAfter(this)
+            }
+
+            whenNotOnMasterOrReleaseBranch {
+                this@apply.dependsOn("configurePerformanceTestBaseline")
             }
         }
 

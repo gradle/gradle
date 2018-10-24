@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.LocallyBuiltGradleDistribution
 import org.gradle.testfixtures.ProjectBuilder
 
 class ToolingApiDistributionResolver {
@@ -49,13 +50,21 @@ class ToolingApiDistributionResolver {
         if (!distributions[toolingApiVersion]) {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
                 distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
+            } else if (LocallyBuiltGradleDistribution.isLocallyBuiltVersion(toolingApiVersion)) {
+                File toolingApiJar = LocallyBuiltGradleDistribution.getToolingApiJar(toolingApiVersion)
+                List<File> slf4j = resolveDependency("org.slf4j:slf4j-api:1.7.25").toList()
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, slf4j + toolingApiJar)
             } else {
-                Dependency toolingApiDep = resolutionServices.dependencyHandler.create("org.gradle:gradle-tooling-api:$toolingApiVersion")
-                Configuration toolingApiConfig = resolutionServices.configurationContainer.detachedConfiguration(toolingApiDep)
-                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, toolingApiConfig.files)
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, resolveDependency("org.gradle:gradle-tooling-api:$toolingApiVersion"))
             }
         }
         distributions[toolingApiVersion]
+    }
+
+    private Collection<File> resolveDependency(String dependency) {
+        Dependency dep = resolutionServices.dependencyHandler.create(dependency)
+        Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
+        return config.files
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
