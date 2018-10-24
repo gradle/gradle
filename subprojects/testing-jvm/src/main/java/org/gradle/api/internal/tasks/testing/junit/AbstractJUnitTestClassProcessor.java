@@ -27,7 +27,7 @@ import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> implements TestClassProcessor {
+public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpec> implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
     protected final T spec;
     protected final IdGenerator<?> idGenerator;
