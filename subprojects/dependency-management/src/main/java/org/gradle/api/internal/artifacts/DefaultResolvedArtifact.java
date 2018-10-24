@@ -62,8 +62,8 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
     }
 
     @Override
-    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-        visitor.add(new FinalizeAction() {
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(new FinalizeAction() {
             @Override
             public TaskDependencyContainer getDependencies() {
                 return new TaskDependencyContainer() {
@@ -72,7 +72,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
                         if (buildDependencies != null) {
                             context.add(buildDependencies);
                         } else if (sourceArtifact != null) {
-                            sourceArtifact.collectBuildDependencies(context);
+                            context.add(sourceArtifact);
                         }
                     }
                 };

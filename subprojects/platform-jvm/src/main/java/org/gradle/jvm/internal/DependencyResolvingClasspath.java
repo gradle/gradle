@@ -146,7 +146,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             public void visitDependencies(final TaskDependencyResolveContext context) {
                 ensureResolved(false);
                 final List<Throwable> failures = new ArrayList<Throwable>();
-                resolveResult.artifactsResults.getArtifacts().collectBuildDependencies(new TaskDependencyResolveContext() {
+                resolveResult.artifactsResults.getArtifacts().visitDependencies(new TaskDependencyResolveContext() {
                     @Override
                     public void add(Object dep) {
                         context.add(dep);

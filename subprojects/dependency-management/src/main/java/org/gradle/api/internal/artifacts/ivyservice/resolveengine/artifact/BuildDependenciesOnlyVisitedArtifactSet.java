@@ -55,11 +55,11 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                visitor.visitFailure(unresolvedDependency.getProblem());
+                context.visitFailure(unresolvedDependency.getProblem());
             }
-            selectedArtifacts.collectBuildDependencies(visitor);
+            context.add(selectedArtifacts);
         }
 
         @Override

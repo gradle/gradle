@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -25,18 +26,13 @@ import java.io.File;
 /**
  * A container for a set of files or artifacts. May or may not be immutable, and may require building and further resolution.
  */
-public interface ResolvedArtifactSet {
+public interface ResolvedArtifactSet extends TaskDependencyContainer {
     /**
      * Starts preparing the result of this set for later visiting. To visit the final result, call {@link Completion#visit(ArtifactVisitor)} after all work added to the supplied queue has completed.
      *
      * The implementation should notify the provided listener as soon as individual artifacts become available.
      */
     Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener);
-
-    /**
-     * Collects the build dependencies required to build the artifacts in this set.
-     */
-    void collectBuildDependencies(TaskDependencyResolveContext visitor);
 
     Completion EMPTY_RESULT = new Completion() {
         @Override
@@ -51,7 +47,7 @@ public interface ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
     };
 

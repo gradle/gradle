@@ -124,7 +124,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
 
         @Override

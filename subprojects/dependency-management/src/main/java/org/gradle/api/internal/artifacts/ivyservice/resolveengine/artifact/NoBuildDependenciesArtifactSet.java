@@ -52,7 +52,7 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
     }
 }

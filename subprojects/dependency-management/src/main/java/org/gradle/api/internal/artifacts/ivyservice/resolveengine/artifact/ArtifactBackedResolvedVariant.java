@@ -115,8 +115,8 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-            artifact.collectBuildDependencies(visitor);
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(artifact);
         }
 
         @Override

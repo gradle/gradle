@@ -66,7 +66,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true)
-        artifactSet.collectBuildDependencies(depVisitor)
+        artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
         and:
@@ -99,7 +99,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true)
-        artifactSet.collectBuildDependencies(depVisitor)
+        artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
         and:

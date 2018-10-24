@@ -46,7 +46,7 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
 
         when:
         def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec,selector)
-        wrapper.collectBuildDependencies(visitor)
+        wrapper.visitDependencies(visitor)
 
         then:
         0 * visitor._

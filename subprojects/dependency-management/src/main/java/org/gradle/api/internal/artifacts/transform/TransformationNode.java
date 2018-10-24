@@ -27,8 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVi
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -128,12 +126,7 @@ public abstract class TransformationNode extends Node {
         }
 
         private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
-            return dependencyResolver.resolveDependenciesFor(null, new TaskDependencyContainer() {
-                @Override
-                public void visitDependencies(TaskDependencyResolveContext context) {
-                    artifactSet.collectBuildDependencies(context);
-                }
-            });
+            return dependencyResolver.resolveDependenciesFor(null, artifactSet);
         }
 
         private class InitialArtifactTransformationStepOperation implements RunnableBuildOperation {

@@ -28,8 +28,8 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-        visitor.visitFailure(failure);
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.visitFailure(failure);
     }
 
     @Override

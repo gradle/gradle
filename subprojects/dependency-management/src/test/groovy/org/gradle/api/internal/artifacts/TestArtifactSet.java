@@ -65,9 +65,9 @@ public class TestArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         for (ResolvedArtifact artifact : artifacts) {
-            visitor.add(artifact);
+            context.add(artifact);
         }
     }
 
@@ -79,7 +79,7 @@ public class TestArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
 
         @Override
