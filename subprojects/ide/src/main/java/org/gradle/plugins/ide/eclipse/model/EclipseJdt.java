@@ -34,9 +34,9 @@ import javax.inject.Inject;
  * eclipse {
  *   jdt {
  *     //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
- *     sourceCompatibility = 1.6
- *     targetCompatibility = 1.5
- *     javaRuntimeName = "J2SE-1.5"
+ *     sourceCompatibility = JavaVersion.VERSION_1_8
+ *     targetCompatibility = JavaVersion.VERSION_1_8
+ *     javaRuntimeName = "JavaSE-1.8"
  *
  *     file {
  *       //whenMerged closure is the highest voodoo
