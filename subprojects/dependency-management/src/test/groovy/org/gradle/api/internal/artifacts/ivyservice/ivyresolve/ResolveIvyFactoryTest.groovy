@@ -107,7 +107,7 @@ class ResolveIvyFactoryTest extends Specification {
         })
 
         when:
-        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
+        def resolver = resolveIvyFactory.create("test", resolutionStrategy, repositories, Stub(ComponentMetadataProcessorFactory), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), AttributeTestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
         then:
         assert resolver instanceof UserResolverChain

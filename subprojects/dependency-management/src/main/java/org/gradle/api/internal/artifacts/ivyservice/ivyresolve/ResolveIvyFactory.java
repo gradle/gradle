@@ -82,7 +82,8 @@ public class ResolveIvyFactory {
         this.instantiatorFactory = instantiatorFactory;
     }
 
-    public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
+    public ComponentResolvers create(String resolveContextName,
+                                     ResolutionStrategyInternal resolutionStrategy,
                                      Collection<? extends ResolutionAwareRepository> repositories,
                                      ComponentMetadataProcessorFactory metadataProcessor,
                                      AttributeContainer consumerAttributes,
@@ -127,7 +128,7 @@ public class ResolveIvyFactory {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
             }
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
-            moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
+            moduleComponentRepository = filterRepository(repository, moduleComponentRepository, resolveContextName, consumerAttributes);
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
         }
@@ -135,12 +136,12 @@ public class ResolveIvyFactory {
         return moduleResolver;
     }
 
-    private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository) {
+    private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
         Action<? super ArtifactRepository.ArtifactResolutionDetails> filter = null;
         if (repository instanceof AbstractArtifactRepository) {
             filter = ((AbstractArtifactRepository) repository).getContentFilter();
         }
-        moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter);
+        moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
         return moduleComponentRepository;
     }
 
