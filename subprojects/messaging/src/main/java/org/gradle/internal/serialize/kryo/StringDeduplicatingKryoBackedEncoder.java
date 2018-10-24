@@ -106,6 +106,21 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
         strings = null;
     }
 
+    /**
+     * A dedicated set of strings implementation which associates a unique
+     * integer to each new string. It works similarly to a hash map, by
+     * selecting a bucket based on the 8 lower bits of the hash code of
+     * the string. Then there are two bucket implementations: one in case
+     * there's a single string in the bucket, the other when multiple strings
+     * are in.
+     *
+     * Integers are not chosen arbitrarily: they must be consecutive integers
+     * starting from 0.
+     *
+     * This is done so that we can optimize the size of the stream written, by
+     * replacing strings with an id. Therefore this set takes care of doing it
+     * as we build the set.
+     */
     private class IndexedStringSet {
 
         private final StringSetBucket[] buckets = new StringSetBucket[256];
@@ -121,6 +136,10 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
             }
         }
 
+        /**
+         * A bucket that contains only a single entry. Optimized for memory
+         * usage.
+         */
         private class SingleEntryStringSet implements StringSetBucket {
             private final IndexedString indexed;
 
@@ -145,6 +164,9 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
             }
         }
 
+        /**
+         * A bucket implementation used when more than one string is found in a bucket.
+         */
         private class MultiStringSet implements StringSetBucket {
             private final List<IndexedString> store = Lists.newArrayList();
 
@@ -178,6 +200,9 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
         StringSetBucket register(String value);
     }
 
+    /**
+     * Associates a unique integer to a string.
+     */
     private static class IndexedString {
         private final String value;
         private final int index;
