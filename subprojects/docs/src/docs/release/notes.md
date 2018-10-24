@@ -248,13 +248,6 @@ When using a recent version of TestNG (6.9.13.3 or newer), classes were reported
 Now, `TestDescriptors` of classes are parents of their enclosing method `TestDescriptors`.
 
 
-## Potential breaking changes
-
-This is a new major version of Gradle, so many of the things that were deprecated in the Gradle 4.x versions have been removed.
-For examples, there have been fixes to dependency resolution that break corner cases, and running Gradle now requires Java 8 or higher (though tests can be run using Java 6 or 7).
-Breaking changes are listed with detailed explanations in [upgrading Gradle 4.x](userguide/upgrading_version_4.html).
-
-
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed in the next major Gradle version (Gradle 6.0).
@@ -350,6 +343,317 @@ managed by the user).   Threads managed by Gradle (such as the workers that exec
 but doing so from other threads will now produce a deprecation warning.
 
 
+## Potential breaking changes
+
+### Fixes to dependency resolution
+
+Dependency resolutions fixes have been included in this release.
+By definition this could impact the set of resolved dependencies of your build.
+However the fixed issues are mostly about corner cases and combination with recent features and thus should have a limited impact.
+
+When a dependency constraint matched a real dependency, it was made part of the graph.
+However if for some reason the dependency was later evicted from the graph, the constraint remained present.
+Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
+
+### Gradle 5.0 requires Java 8
+
+Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
+However, you can still use forked compilation and testing to build and test software for Java 6 and above.
+
+### Tooling API and TestKit require Gradle 2.6 or higher
+
+The Tooling API can no longer connect to builds using a Gradle version below Gradle 2.6. 
+The same applies to builds run through TestKit.
+
+### Tooling API clients before 3.0 are now longer supported
+
+Gradle 5.0 requires a minimum Tooling API client version of 3.0. 
+Older client libraries can no longer run builds with Gradle 5.0
+
+### Lower default memory settings
+
+The command line client now starts with 64m of heap instead of 1g. 
+This may affect builds running directly inside the client VM using --no-daemon mode. 
+We discourage the use of --no-daemon, but if you must use it, you can increase the available memory using the GRADLE_OPTS environment variable.
+
+The Gradle daemon now starts with 512m of heap instead of 1g.
+Large projects may have to increase this setting using the `org.gradle.jvmargs` property.
+
+All workers, including compilers and test executors, now start with 512m of heap. The previous default was 1/4th of physical memory.
+Large projects may have to increase this setting on the relevant tasks, e.g. `JavaCompile` or `Test`.
+
+### Configuration Avoidance API disallows common configuration errors
+
+The [configuration avoidance API](userguide/task_configuration_avoidance.html) introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+
+With the existing API, this example adds two tasks (`foo` and `bar`):
+```
+tasks.create("foo") {
+    tasks.create("bar")
+}
+```
+
+When converting this to use the new API, something surprising happens: `bar` doesn't exist.  The new API only executes configuration actions when necessary, 
+so the `register()` for task `bar` only executes when `foo` is configured. 
+
+```
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+```
+
+To avoid this, Gradle now detects this and prevents modification to the underlying container (through `create` or `register`) when using the new API. 
+
+### Java Library Distribution Plugin utilizes Java Library Plugin
+
+The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
+[Java Library Plugin](userguide/java_library_plugin.html) instead of the [Java Plugin](userguide/java_plugin.html).
+Additionally the created distribution will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
+
+### Removed support for Play Framework 2.2
+
+The previously deprecated support for Play Framework 2.2 has been removed.
+
+### JaCoCo plugin deletes execution data on task execution
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
+
+### Checkstyle plugin config directory in multi-project builds
+
+Gradle will now, by convention, only look for Checkstyle configuration files in the root project's _config/checkstyle_ directory.
+Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path
+via [`checkstyle.configDir`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:configDir)
+or [`checkstyle.config`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config).
+
+### `maven` plugin now publishes Maven 3 metadata
+
+The `maven` plugin used to publish the highly outdated Maven 2 metadata format. This has been changed and it will now publish Maven 3 metadata, just like the `maven-publish` plugin.
+
+### Updated default tool versions
+
+The default tool versions of the following code quality plugins have been updated:
+
+- The Checkstyle plugin now uses 8.12 instead of 6.19 by default.
+- The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
+- The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
+- The PMD plugin now uses 6.8.0 instead of 5.6.1 by default.
+  In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
+  We recommend configuring a ruleset explicitly, though.
+
+### Library upgrades
+
+Several libraries that are used by Gradle have been upgraded:
+
+- Groovy was upgraded from 2.4.15 to 2.5.2 (see http://groovy-lang.org/releasenotes/groovy-2.5.html about the changes in this release).
+- Ant has been upgraded from 1.9.11 to 1.9.13.
+- The AWS SDK used to access S3 backed Maven/Ivy repositories has been upgraded from 1.11.267 to 1.11.407.
+- The BND library used by the OSGi plugin has been upgraded from 3.4.0 to 4.0.0.
+- The Google Cloud Storage JSON API Client Library used to access Google Cloud Storage backed Maven/Ivy repositories has been upgraded from v1-rev116-1.23.0 to v1-rev136-1.25.0.
+- Ivy has been upgraded from 2.2.0 to 2.3.0.
+- The JUnit Platform libraries used by the `Test` task have been upgraded from 1.0.3 to 1.3.1.
+- The Maven Wagon libraries used to access Maven repositories have been upgraded from 2.4 to 3.0.0.
+- SLF4J has been upgraded from 1.7.16 to 1.7.25.
+
+### Gradle now bundles JAXB for Java 9 and above
+
+In order to use S3 backed artifact repositories, it was previously required to add `--add-modules java.xml.bind` to `org.gradle.jvmargs` when running on Java 9 and above.
+Since Java 11 no longer contains the `java.xml.bind` module, Gradle now bundles JAXB 2.3.1 (`com.sun.xml.bind:jaxb-impl`) and uses it on Java 9 and above.
+Please remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
+
+### `CopySpec.duplicatesStrategy` is no longer nullable
+
+For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
+to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
+
+### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
+
+For easier configurability from statically compiled languages such as Java or Kotlin.
+
+### Javadoc and Groovydoc delete destination dir
+
+The [`Javadoc`](dsl/org.gradle.api.tasks.javadoc.Javadoc.html) and [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) tasks now delete the destination dir for the documentation before executing.
+This has been added to remove stale output files from the last task execution.
+
+### Changes to property factory methods on `DefaultTask`
+
+#### Property factory methods on `DefaultTask` are final
+
+The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`. These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
+
+#### Inputs and outputs are not automatically registered
+
+The `Property` instances that are returned by these methods are no longer automatically registered as inputs or outputs of the task. The `Property` instances need to be declared as inputs or outputs in the usual ways, such as attaching annotations such as `@OutputFile` or using the runtime API to register the property.
+
+Previously:
+```
+class MyTask extends DefaultTask {
+    // note: no annotation here
+    final RegularFileProperty outputFile = newOutputFile()
+}
+
+task myOtherTask {
+    def outputFile = newOutputFile()
+    doLast { ... }
+}
+```
+
+Now:
+```
+class MyTask extends DefaultTask {
+    @OutputFile // property needs an annotation
+    final RegularFileProperty outputFile = project.objects.fileProperty()
+}
+
+task myOtherTask {
+    def outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+```
+
+### Source and test source dirs in `IdeaModule` no longer contain resources
+
+The `IdeaModule` Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of  `IdeaModule#getSourceDirs()` and `IdeaModule#getTestSourceDirs()`.
+
+### Source task `source` field access
+
+In previous Gradle versions the `source` filed in `SourceTask` was accessible from subclasses.
+This is not the case anymore as the `source` filed is now declared as `private`.
+
+### The left shift operator on the Task interface is no longer supported
+
+The left shift (`<<`) operator acted as an alias for adding a `doLast` action to an existing task. It was deprecated since Gradle 3.2 and has now been removed.
+
+### Invalid project and domain object names are no longer supported
+
+Previously, it was deprecated for project and domain object names to be empty, start or end with `.` or contain any of the following characters: `/\:<>"?*|`.
+The use of such names now causes the build to fail.
+
+### Evaluation of the `publishing {}` block is now eager
+
+In Gradle 4.8, the old behavior of the `publishing {}` block to defer its evaluation was deprecated.
+A new behavior that made its evaluation eager (like for any other block) was introduced and switched on using `enableFeaturePreview('STABLE_PUBLISHING')`.
+Now, the old behavior has been removed and switching on the new one is no longer necessary. 
+If you need to defer evaluation, please use `afterEvaluate {}`.
+
+### Annotation processors on the compile classpath are now ignored
+
+Annotation processors on the compile classpath are no longer detected and used when compiling Java projects.
+This might cause compilation errors when upgrading to Gradle 5.0.
+Please add annotation processors to the [annotation processor path](userguide/java_plugin.html#example_declaring_annotation_processors) instead.
+
+### MavenDeployer#uniqueSnapshot has been removed
+
+With the removal of Maven 2 support, the methods to configure unique snapshot behavior have been removed.
+Maven 3 only supports unique snapshots, so these methods would have had no more effect. We decided to remove them instead of leaving a deprecated no-op in place.
+
+### Changes to previously deprecated APIs
+
+- Removed the methods `getToSignArtifact` and `setFile` from `Signature`.
+- Removed the property `targetSizeInMB` from `DirectoryBuildCache`.
+- Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
+- Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
+- Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
+- Removed the ability to cast (Groovy `as`) `FileCollection` to `File[]` and `File`.
+- Removed the method `getBuildDependencies` from `AbstractFileCollection`.
+- Removed the methods `file` and `files` from `TaskDestroyables`.
+- Removed the property `styleSheet` from `ScalaDocOptions`.
+- Removed the methods `newFileVar` and `newDirectoryVar` from `ProjectLayout`.
+- Removed the method `property` from `ProviderFactory`.
+- Removed the method `property` from `Project`.
+- Removed the method `property` from `Script`.
+- Removed the method `leftShift` from `Task`.
+- Removed the type `RegularFileVar`.
+- Removed the type `DirectoryVar`.
+- Removed the type `PropertyState`.
+- Removed the method `configureForSourceSet` from `JavaBasePlugin`.
+- Removed the property `classesDir` from `JDepend`.
+- Removed the property `testClassesDir` from `Test`.
+- Removed the property `classesDir` from `SourceSetOutput`.
+- Removed the methods `performPostEvaluationActions` from `IdeaPlugin` and `EclipsePlugin`.
+- Removed the method `setDestination(Object)` from `ConfigurableReport`.
+- Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
+- Removed the `@DeferredConfigurable` annotation.
+- Removed the method `isDeferredConfigurable` from `ExtensionSchema`
+- Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
+- Removed the property `bootClasspath` from `CompileOptions`.
+- Validation problems for inputs or outputs registered via the runtime API now fail the build.
+- Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
+- Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
+- Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.
+- `JavaPluginConvention` is now abstract.
+- `ApplicationPluginConvention` is now abstract.
+- `WarPluginConvention` is now abstract.
+- `EarPluginConvention` is now abstract.
+- `BasePluginConvention` is now abstract.
+- `ProjectReportsPluginConvention` is now abstract.
+
+### Removal of deprecated CLI options
+
+- Removed `--no-search-upward` (`-u`) option.
+- Removed `--recompile-scripts` option.
+
+### Implicit imports for internal classes have been removed
+
+Classes in the internal `org.gradle.util` package are no longer implicitly imported by default.
+Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.
+
+### Removed system properties
+
+- The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+- The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed. You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+- The `org.gradle.readLoggingConfigFile` system property no longer does anything — please update affected tests to work with your `java.util.logging` settings.
+
+### Replacing built-in tasks
+
+In earlier versions of Gradle, builds were allowed to replace tasks that may be automatically created. This was deprecated in [Gradle 4.8](https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks) and has now been turned into an error.
+
+Attempting to replace a built-in task will produce an error similar to the following:
+
+> Cannot add task 'wrapper' as a task with that name already exists.
+
+The full list of built-in tasks that cannot be replaced:
+
+`wrapper`, `init`, `help`, `tasks`, `projects`, `buildEnvironment`, `components`, `dependencies`, `dependencyInsight`, `dependentComponents`, `model`, `properties`
+
+### Changes to internal APIs
+
+- Removed the internal class `SimpleFileCollection`.
+- Removed the internal class `SimpleWorkResult`.
+- Removed the internal method `getAddAction` from `BroadcastingCollectionEventRegister`.
+
+### Gradle TestKit will search upwards for `settings.gradle`
+
+When invoking a build, Gradle TestKit now behaves like a regular Gradle invocation, and will search upwards for a `settings.gradle` file that defines the build. 
+Please ensure that all builds being executed with Gradle TestKit define `settings.gradle`, even if this is an empty file.
+
+### Cannot specify `--source-path` directly as a Java compiler arg
+
+Adding `-sourcepath` or `--source-path` to the `CompileOptions.compilerArgs` list is now prohibited. 
+The source path for a `JavaCompile` task should be set via the `CompileOptions.sourcePath` property.
+
+### Cannot specify `--processor-path` directly as a Java compiler arg
+
+Adding `-processorpath` or `--processor-path` to the `CompileOptions.compilerArgs` list is now prohibited.
+Annotation processors should instead be added to the `annotationProcessor` configuration.
+
+### Worker API: working directory of a worker can no longer be set 
+
+Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
+All workers now use the same working directory to enable reuse.
+Please pass files and directories as arguments instead.
+
+### Changes to the Gradle Kotlin DSL
+
+Artifact configuration accessors are now typed `NamedDomainObjectProvider<Configuration>` instead of simply `Configuration`.
+
+`PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
+
+Both changes could cause script compilation errors.
+
+See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC13#breaking-changes) for more information and how to fix builds broken by the changes described above.
+
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -384,3 +688,18 @@ We would like to thank the following community members for making contributions 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
+
+## Upgrade Instructions
+
+Switch your build to use Gradle 5.0-rc-1 by updating your wrapper properties:
+
+`./gradlew wrapper --gradle-version=5.0-rc-1`
+
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+
+## Reporting Problems
+
+If you find a problem with Gradle 5.0-rc-1, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
+
+We hope you will build happiness with Gradle 5.0, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
