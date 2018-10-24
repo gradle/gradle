@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.artifacts.transform.TransformationDependency;
+
+import javax.annotation.Nullable;
 
 public interface TaskDependencyResolveContext {
     /**
@@ -32,6 +34,10 @@ public interface TaskDependencyResolveContext {
      * <li>{@link org.gradle.api.internal.tasks.TaskDependencyContainer}</li>
      *
      * <li>{@link org.gradle.api.Buildable}</li>
+     *
+     * <li>{@link TransformationDependency}</li>
+     *
+     * <li>{@link FinalizeAction}</li>
      */
     void add(Object dependency);
 
@@ -41,14 +47,14 @@ public interface TaskDependencyResolveContext {
     void maybeAdd(Object dependency);
 
     /**
-     * Attach an action to run as soon as the given task completes, to perform some work before the outputs of the task are consumed by other tasks.
-     *
-     * <p>This should evolve into some mechanism to add a real node to the graph with similar behaviour, but as a first step this is simply bolted on.
+     * Visits a failure to visit the dependencies of an object.
+     * @param failure
      */
-    void attachFinalizerTo(Task task, Action<? super Task> action);
+    void visitFailure(Throwable failure);
 
     /**
-     * Returns the task whose dependencies are being resolved.
+     * Returns the task whose dependencies are being visited.
      */
+    @Nullable
     Task getTask();
 }

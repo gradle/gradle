@@ -332,6 +332,34 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    def "single root file are represented as roots"() {
+        given:
+        withBuildCache()
+        file('inputFile').text = 'inputFile'
+        buildScript """
+            task copy(type:Copy) {
+               from 'inputFile'
+               into 'destDir'
+            }
+        """
+        when:
+        succeeds("copy")
+
+        then:
+        def copy = snapshotResults(":copy").inputFileProperties
+
+        with(copy['rootSpec$1']) {
+            hash != null
+            roots.size() == 1
+            with(roots[0]) {
+                hash != null
+                path == file("inputFile").absolutePath
+                !containsKey("children")
+            }
+            normalization == "RELATIVE_PATH"
+        }
+    }
+
     def "handles invalid nested bean classloader"() {
         given:
         buildScript """

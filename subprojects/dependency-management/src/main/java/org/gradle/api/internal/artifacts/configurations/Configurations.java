@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 
@@ -26,7 +27,8 @@ public class Configurations {
     public static ImmutableSet<String> getNames(Collection<Configuration> configurations) {
         if (configurations.isEmpty()) {
             return ImmutableSet.of();
-        } else if (configurations.size()==1) {
+        }
+        if (configurations.size() == 1) {
             return ImmutableSet.of(configurations.iterator().next().getName());
         }
         ImmutableSet.Builder<String> names = new ImmutableSet.Builder<String>();
@@ -47,10 +49,6 @@ public class Configurations {
     }
 
     public static String uploadTaskName(String configurationName) {
-        return "upload".concat(getCapitalName(configurationName));
-    }
-
-    private static String getCapitalName(String configurationName) {
-        return configurationName.substring(0, 1).toUpperCase() + configurationName.substring(1);
+        return "upload" + StringUtils.capitalize(configurationName);
     }
 }

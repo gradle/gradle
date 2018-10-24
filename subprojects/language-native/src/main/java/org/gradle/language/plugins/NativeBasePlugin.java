@@ -240,6 +240,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                             return extractSymbols.getSymbolFile();
                         }
                     }));
+                    executable.getExecutableFileProducer().set(stripSymbols);
                 } else {
                     executable.getExecutableFile().set(link.flatMap(new Transformer<Provider<? extends RegularFile>, LinkExecutable>() {
                         @Override
@@ -247,6 +248,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                             return linkExecutable.getLinkedFile();
                         }
                     }));
+                    executable.getExecutableFileProducer().set(link);
                 }
 
                 // Add an install task
@@ -325,6 +327,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                         return linkSharedLibrary.getLinkedFile();
                     }
                 });
+                Provider<? extends Task> linkFileTask = link;
 
                 if (toolProvider.producesImportLibrary()) {
                     link.configure(new Action<LinkSharedLibrary>() {
@@ -375,9 +378,11 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                             return extractSymbols.getSymbolFile();
                         }
                     }));
+                    linkFileTask = stripSymbols;
                 }
                 library.getLinkTask().set(link);
                 library.getLinkFile().set(linkFile);
+                library.getLinkFileProducer().set(linkFileTask);
                 library.getRuntimeFile().set(runtimeFile);
                 library.getOutputs().from(library.getLinkFile());
                 library.getOutputs().from(library.getRuntimeFile());
@@ -416,6 +421,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                         return createStaticLibrary.getBinaryFile();
                     }
                 }));
+                library.getLinkFileProducer().set(createTask);
                 library.getCreateTask().set(createTask);
                 library.getOutputs().from(library.getLinkFile());
             }

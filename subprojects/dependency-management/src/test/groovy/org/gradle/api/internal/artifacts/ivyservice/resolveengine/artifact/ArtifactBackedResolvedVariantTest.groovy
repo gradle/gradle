@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.Buildable
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
@@ -121,7 +122,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     def "collects build dependencies"() {
-        def visitor = Mock(BuildDependenciesVisitor)
+        def visitor = Mock(TaskDependencyResolveContext)
         def set1 = of([artifact1, artifact2])
         def set2 = of([artifact1])
 

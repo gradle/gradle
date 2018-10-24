@@ -116,11 +116,12 @@ In a multi project build, “`systemProp.`” properties set in any project exce
 The following environment variables are available for the `gradle` command. Note that command-line options and system properties take precedence over environment variables.
 
 `GRADLE_OPTS`::
-Specifies <<command_line_interface.adoc#command_line_interface, command-line arguments>> to use when starting the Gradle client. This can be useful for setting the properties to use when running Gradle.
+Specifies JVM arguments to use when starting the Gradle client VM. The client VM only handles command line input/output, so it is rare that one would need to change its VM options.
+The actual build is run by the Gradle daemon, which is not affected by this environment variable.
 `GRADLE_USER_HOME`::
 Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
 `JAVA_HOME`::
-Specifies the JDK installation directory to use.
+Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file.
 
 [[sec:project_properties]]
 == Project properties

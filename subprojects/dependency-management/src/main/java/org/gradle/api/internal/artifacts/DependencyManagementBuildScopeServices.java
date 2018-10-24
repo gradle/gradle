@@ -74,7 +74,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -92,6 +91,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.build.BuildState;

@@ -88,6 +88,16 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         public Set<File> getFiles() {
             return files;
         }
+
+
+        @Override
+        public String toString() {
+            if (files.size() == 1) {
+                return String.format("file '%s'", files.iterator().next().getAbsolutePath());
+            }
+
+            return super.toString();
+        }
     }
 
     private static class ResolvingImmutableFileCollection extends ImmutableFileCollection {

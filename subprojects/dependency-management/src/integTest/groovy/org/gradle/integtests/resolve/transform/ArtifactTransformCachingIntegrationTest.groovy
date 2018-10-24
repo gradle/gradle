@@ -70,7 +70,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    def "early-discovered transform is applied before consuming task is executed"() {
+    def "scheduled transformation is invoked before consuming task is executed"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
 
@@ -89,7 +89,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformationPosition2 < taskPosition
     }
 
-    def "early-discovered transform is only run once per transform"() {
+    def "scheduled transformation is only invoked once per subject"() {
         given:
         settingsFile << """
             include 'util2'
@@ -111,7 +111,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("> Transform artifact lib2.jar (project :lib) with FileSizer") == 1
     }
 
-    def "early discovered chained transform is only run once per transform"() {
+    def "scheduled chained transformation is only invoked once per subject"() {
         given:
         settingsFile << """
             include 'app1'
@@ -325,7 +325,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
-        buildFile << declareAttributes() <<withJarTasks() << """
+        buildFile << declareAttributes() << withJarTasks() << """
             class CustomType implements Serializable {
                 String value
             }

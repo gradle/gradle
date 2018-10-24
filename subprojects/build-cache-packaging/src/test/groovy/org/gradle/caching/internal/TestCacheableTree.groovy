@@ -16,23 +16,16 @@
 
 package org.gradle.caching.internal
 
-import org.gradle.caching.internal.packaging.CacheableTree
+import org.gradle.internal.file.TreeType
 
-import javax.annotation.Nonnull
-
-class TestCacheableTree implements CacheableTree {
+class TestCacheableTree {
     final String name
-    final Type type
+    final TreeType type
     final File root
 
-    TestCacheableTree(String name, Type type, File root) {
+    TestCacheableTree(String name, TreeType type, File root) {
         this.name = name
         this.type = type
         this.root = root
-    }
-
-    @Override
-    int compareTo(@Nonnull CacheableTree o) {
-        name <=> o.name
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.packaging;
 
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
@@ -26,10 +27,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.SortedSet;
 
 public interface BuildCacheEntryPacker {
-    PackResult pack(SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException;
+    PackResult pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;
@@ -43,7 +43,7 @@ public interface BuildCacheEntryPacker {
         }
     }
 
-    UnpackResult unpack(SortedSet<CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException;
+    UnpackResult unpack(CacheableEntity entity, InputStream input, OriginReader readOrigin) throws IOException;
 
     class UnpackResult {
         private final OriginMetadata originMetadata;

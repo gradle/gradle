@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.Action
 import org.gradle.api.Task
-import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -48,7 +47,6 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final taskContext = Mock(TaskExecutionContext)
     final repository = Mock(TaskArtifactStateRepository)
     final taskArtifactState = Mock(TaskArtifactState)
-    final taskExecutionhistory = Mock(TaskExecutionHistory)
     final resolver = Mock(FileResolver)
     final propertyWalker = Mock(PropertyWalker)
     final project = Mock(ProjectInternal)
@@ -65,12 +63,11 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * taskContext.setTaskProperties(_)
         1 * repository.getStateFor(task, _) >> taskArtifactState
         1 * taskContext.setTaskArtifactState(taskArtifactState)
-        1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
         2 * task.getOutputs() >> outputs
         1 * task.getInputs() >> inputs
         1 * task.getDestroyables() >> destroyables
         1 * task.getLocalState() >> localState
-        1 * outputs.setHistory(taskExecutionhistory)
+        1 * outputs.setPreviousOutputFiles(_)
         1 * task.getProject() >> project
         1 * project.getFileResolver() >> resolver
         1 * propertyWalker.visitProperties(_, _, task)
@@ -81,7 +78,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * delegate.execute(task, taskState, taskContext)
 
         then: 'task artifact state is removed from taskContext'
-        1 * outputs.setHistory(null)
+        1 * outputs.setPreviousOutputFiles(null)
         1 * taskContext.setTaskArtifactState(null)
         1 * taskContext.setTaskProperties(null)
 

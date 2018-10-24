@@ -47,7 +47,7 @@ public class TransformationNodeDependencyResolver implements DependencyResolver 
     }
 
     @Override
-    public boolean attachActionTo(Task task, Action<? super Task> action) {
+    public boolean attachActionTo(Node value, Action<? super Task> action) {
         return false;
     }
 }

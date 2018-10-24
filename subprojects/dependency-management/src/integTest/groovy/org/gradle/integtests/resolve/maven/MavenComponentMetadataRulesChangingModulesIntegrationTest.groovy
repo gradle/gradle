@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.resolve.ComponentMetadataRulesChangingModulesIntegrationTest
+import org.gradle.integtests.resolve.rules.ComponentMetadataRulesChangingModulesIntegrationTest
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class MavenComponentMetadataRulesChangingModulesIntegrationTest extends ComponentMetadataRulesChangingModulesIntegrationTest {

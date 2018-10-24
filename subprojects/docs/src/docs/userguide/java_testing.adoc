@@ -301,7 +301,7 @@ include::sample[dir="testing/junitplatform/jupiter/groovy",files="build.gradle[t
 include::sample[dir="testing/junitplatform/jupiter/kotlin",files="build.gradle.kts[tags=enabling-junit-platform]"]
 ====
 
-See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[Test.useJUnitPlatform()] for more details.
+See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[Test.useJUnitPlatform()] for more details.
 
 [NOTE]
 ====

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 public class StaticValue implements ValidatingValue {
     private final Object value;
 
-    public StaticValue(Object value) {
+    public StaticValue(@Nullable Object value) {
         this.value = value;
     }
 

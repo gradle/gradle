@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildableSingleResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskDependencyResolver;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -133,22 +131,7 @@ public abstract class TransformationNode extends Node {
             return dependencyResolver.resolveDependenciesFor(null, new TaskDependencyContainer() {
                 @Override
                 public void visitDependencies(TaskDependencyResolveContext context) {
-                    artifactSet.collectBuildDependencies(new BuildDependenciesVisitor() {
-                        @Override
-                        public void visitDependency(Object dep) {
-                            context.add(dep);
-                        }
-
-                        @Override
-                        public void attachFinalizerTo(Task task, Action<? super Task> action) {
-                            context.attachFinalizerTo(task, action);
-                        }
-
-                        @Override
-                        public void visitFailure(Throwable failure) {
-                            throw UncheckedException.throwAsUncheckedException(failure);
-                        }
-                    });
+                    artifactSet.collectBuildDependencies(context);
                 }
             });
         }
@@ -164,10 +147,8 @@ public abstract class TransformationNode extends Node {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform artifact " + artifactSet.getArtifactId().getDisplayName() + " with " + transformationStep.getDisplayName();
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .operationType(BuildOperationCategory.TRANSFORM);
+                String subject = "artifact " + artifactSet.getArtifactId().getDisplayName();
+                return buildOperationDescriptor(subject, transformationStep);
             }
 
             @Override
@@ -231,10 +212,7 @@ public abstract class TransformationNode extends Node {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Transform " + previousTransformationNode.getTransformedSubject().getDisplayName() + " with " + transformationStep.getDisplayName();
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .operationType(BuildOperationCategory.TRANSFORM);
+                return buildOperationDescriptor(previousTransformationNode.getTransformedSubject().getDisplayName(), transformationStep);
             }
 
             public TransformationSubject getTransformedSubject() {
@@ -279,5 +257,12 @@ public abstract class TransformationNode extends Node {
         @Override
         public void fileAvailable(File file) {
         }
+    }
+
+    private static BuildOperationDescriptor.Builder buildOperationDescriptor(String subject, TransformationStep step) {
+        String basicName = subject + " with " + step.getDisplayName();
+        return BuildOperationDescriptor.displayName("Transform " + basicName)
+            .progressDisplayName("Transforming " + basicName)
+            .operationType(BuildOperationCategory.TRANSFORM);
     }
 }

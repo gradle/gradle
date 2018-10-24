@@ -23,10 +23,26 @@ public class OriginMetadata {
 
     private final UniqueId buildInvocationId;
     private final long executionTime;
+    private final boolean producedByCurrentBuild;
 
-    public OriginMetadata(UniqueId buildInvocationId, long executionTime) {
+    public static OriginMetadata fromCurrentBuild(UniqueId buildInvocationId, long executionTime) {
+        return new OriginMetadata(buildInvocationId, executionTime, true);
+    }
+
+    public static OriginMetadata fromPreviousBuild(UniqueId buildInvocationId, long executionTime) {
+        return new OriginMetadata(buildInvocationId, executionTime, false);
+    }
+
+    // Remove once Kotlin DSL stopped using OriginExecutionMetadata
+    @Deprecated
+    protected OriginMetadata(UniqueId buildInvocationId, long executionTime) {
+        this(buildInvocationId, executionTime, true);
+    }
+
+    private OriginMetadata(UniqueId buildInvocationId, long executionTime, boolean producedByCurrentBuild) {
         this.buildInvocationId = Preconditions.checkNotNull(buildInvocationId, "buildInvocationId");
         this.executionTime = executionTime;
+        this.producedByCurrentBuild = producedByCurrentBuild;
     }
 
     public UniqueId getBuildInvocationId() {
@@ -35,6 +51,10 @@ public class OriginMetadata {
 
     public long getExecutionTime() {
         return executionTime;
+    }
+
+    public boolean isProducedByCurrentBuild() {
+        return producedByCurrentBuild;
     }
 
     @Override
@@ -48,13 +68,16 @@ public class OriginMetadata {
 
         OriginMetadata that = (OriginMetadata) o;
 
-        return executionTime == that.executionTime && buildInvocationId.equals(that.buildInvocationId);
+        return executionTime == that.executionTime
+            && buildInvocationId.equals(that.buildInvocationId)
+            && producedByCurrentBuild == that.producedByCurrentBuild;
     }
 
     @Override
     public int hashCode() {
         int result = buildInvocationId.hashCode();
         result = 31 * result + (int) (executionTime ^ (executionTime >>> 32));
+        result = 31 * result + (producedByCurrentBuild ? 1 : 0);
         return result;
     }
 
@@ -63,6 +86,7 @@ public class OriginMetadata {
         return "OriginMetadata{"
             + "buildInvocationId=" + buildInvocationId
             + ", executionTime=" + executionTime
+            + ", producedByCurrentBuild=" + producedByCurrentBuild
             + '}';
     }
 }

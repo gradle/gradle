@@ -22,16 +22,15 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
+public class CrossBuildFileHashCache implements Closeable {
     public static final String FILE_HASHES_CACHE_KEY = "fileHashes";
 
     private final PersistentCache cache;
@@ -46,22 +45,14 @@ public class CrossBuildFileHashCache implements Closeable, TaskHistoryStore {
             .open();
     }
 
-    @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
-        return cache.createCache(parameters);
+    public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
+        return cache.createCache(parameters
+                .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses))
+        );
     }
 
     @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-        PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer)
-                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses));
-        return cache.createCache(parameters);
-    }
-
-    @Override
-    public void close() throws IOException {
+    public void close() {
         cache.close();
     }
 }

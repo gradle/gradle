@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -28,6 +27,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -87,8 +87,10 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
-        indexedCache = cache.createCache(PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
-            .cacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
+        indexedCache = cache.createCache(
+            PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
+                .withCacheDecorator(cacheDecoratorFactory.decorator(1000, true))
+        );
         fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 

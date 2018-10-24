@@ -1,3 +1,6 @@
+// Need to have at least one configuration declared, otherwise the rules are never evaluated
+val conf by configurations.creating
+
 // tag::module_to_project_substitution[]
 configurations.all {
     resolutionStrategy.dependencySubstitution {
@@ -14,7 +17,7 @@ configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(project(":api")).apply {
             with(module("org.utils:api:1.3"))
-            because("we use a stable version of utils")
+            because("we use a stable version of org.utils:api")
         }
     }
 }

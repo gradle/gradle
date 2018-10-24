@@ -28,6 +28,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.LogLevel;
@@ -74,9 +75,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         resolve(task, context);
-        delegate.execute(task, state, context);
+        return delegate.execute(task, state, context);
     }
 
     private void resolve(final TaskInternal task, final TaskExecutionContext context) {

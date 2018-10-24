@@ -452,7 +452,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         when:
-        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
 
         then:
         cache instanceof MultiProcessSafePersistentIndexedCache
@@ -552,7 +552,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
-        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
         access.useCache { cache.get("key") }
 
         when:
@@ -571,7 +571,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
             File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
-        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
         access.useCache { cache.get("key") }
         contendedAction.execute({} as FileLockReleasedSignal)
         lock.close()
@@ -598,7 +598,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+        def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class).withCacheDecorator(decorator))
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
@@ -641,7 +641,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
-        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
         access.useCache { cache.get("key") }
 
         when:
@@ -659,8 +659,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         when:
-        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        def cache1 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
+        def cache2 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
 
         then:
         cache1 == cache2
@@ -673,8 +673,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         when:
-        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, String.class))
+        access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
+        access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, String.class))
 
         then:
         thrown(DefaultCacheAccess.InvalidCacheReuseException)
@@ -687,8 +687,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         when:
-        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.newCache(new PersistentIndexedCacheParameters('cache', Integer.class, Integer.class))
+        access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
+        access.newCache(PersistentIndexedCacheParameters.of('cache', Integer.class, Integer.class))
 
         then:
         thrown(DefaultCacheAccess.InvalidCacheReuseException)
@@ -706,8 +706,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         }
 
         when:
-        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+        access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
+        access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class).withCacheDecorator(decorator))
 
         then:
         thrown(DefaultCacheAccess.InvalidCacheReuseException)
@@ -725,8 +725,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         }
 
         when:
-        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
-        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class).cacheDecorator(decorator))
+        def cache1 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class).withCacheDecorator(decorator))
+        def cache2 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class).withCacheDecorator(decorator))
 
         then:
         noExceptionThrown()
@@ -740,8 +740,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         when:
-        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
+        def cache1 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
+        def cache2 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
 
         then:
         noExceptionThrown()
@@ -755,8 +755,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         when:
-        def cache1 = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
-        def cache2 = access.newCache(new PersistentIndexedCacheParameters('cache', SERIALIZER_FACTORY.getSerializerFor(String.class), SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
+        def cache1 = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
+        def cache2 = access.newCache(PersistentIndexedCacheParameters.of('cache', SERIALIZER_FACTORY.getSerializerFor(String.class), SERIALIZER_FACTORY.getSerializerFor(Integer.class)))
 
         then:
         noExceptionThrown()

@@ -17,8 +17,8 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -27,17 +27,29 @@ import java.util.List;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
+    private AfterPreviousExecutionState afterPreviousExecution;
     private TaskArtifactState taskArtifactState;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
     private TaskProperties taskProperties;
-    private OriginMetadata originMetadata;
+    private boolean taskCachingEnabled;
     private Long executionTime;
 
     private final Timer executionTimer;
 
     public DefaultTaskExecutionContext() {
         this.executionTimer = Time.startTimer();
+    }
+
+    @Nullable
+    @Override
+    public AfterPreviousExecutionState getAfterPreviousExecution() {
+        return afterPreviousExecution;
+    }
+
+    @Override
+    public void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState afterPreviousExecution) {
+        this.afterPreviousExecution = afterPreviousExecution;
     }
 
     @Override
@@ -58,17 +70,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setBuildCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
         this.buildCacheKey = buildCacheKey;
-    }
-
-    @Nullable
-    @Override
-    public OriginMetadata getOriginMetadata() {
-        return originMetadata;
-    }
-
-    @Override
-    public void setOriginMetadata(@Nullable OriginMetadata originMetadata) {
-        this.originMetadata = originMetadata;
     }
 
     public long markExecutionTime() {
@@ -109,4 +110,13 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         return taskProperties;
     }
 
+    @Override
+    public boolean isTaskCachingEnabled() {
+        return taskCachingEnabled;
+    }
+
+    @Override
+    public void setTaskCachingEnabled(boolean taskCachingEnabled) {
+        this.taskCachingEnabled = taskCachingEnabled;
+    }
 }

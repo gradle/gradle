@@ -234,6 +234,6 @@ include::java_gradle_plugin.adoc[leveloffset=+2]
 include::lazy_configuration.adoc[leveloffset=+2]
 
 
-== Licenses
+== License Information
 
 include::licenses.adoc[leveloffset=+1]

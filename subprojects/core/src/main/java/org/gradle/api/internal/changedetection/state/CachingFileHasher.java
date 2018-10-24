@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -39,10 +40,13 @@ public class CachingFileHasher implements FileHasher {
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
 
-    public CachingFileHasher(FileHasher delegate, TaskHistoryStore store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
+    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
-        this.cache = store.createCache(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer(), 400000, true);
+        this.cache = store.createCache(
+            PersistentIndexedCacheParameters.of(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer()),
+            400000,
+            true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
     }

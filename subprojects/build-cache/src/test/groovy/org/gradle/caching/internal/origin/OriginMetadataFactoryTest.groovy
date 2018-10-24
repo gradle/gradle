@@ -34,7 +34,7 @@ class OriginMetadataFactoryTest extends Specification {
     def "converts to origin metadata"() {
         timeProvider.currentTime >> 0
         inetAddressFactory.hostname >> "host"
-        entry.path >> "path"
+        entry.identity >> "identity"
         rootDir.absolutePath >> "root"
         def origin = new Properties()
         def writer = factory.createWriter(entry, 10)
@@ -47,7 +47,7 @@ class OriginMetadataFactoryTest extends Specification {
         and:
         origin.load(new ByteArrayInputStream(baos.toByteArray()))
         then:
-        origin.path == "path"
+        origin.identity == "identity"
         origin.type == entry.getClass().canonicalName
         origin.gradleVersion == "3.0"
         origin.creationTime == "0"

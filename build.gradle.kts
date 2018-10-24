@@ -154,6 +154,10 @@ allprojects {
             url = uri("https://repo.gradle.org/gradle/libs")
         }
         maven {
+            name = "kotlinx"
+            url = uri("https://kotlin.bintray.com/kotlinx/")
+        }
+        maven {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }

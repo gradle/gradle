@@ -54,7 +54,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
-        runner.targetVersions = ["5.1-20181016235832+0000"]
+        runner.targetVersions = ["5.1-20181023100041+0000"]
         runner.args = extraGradleBuildArguments()
 
         when:
@@ -74,7 +74,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["5.0-20181016235834+0000"]
+        runner.targetVersions = ["5.1-20181023100041+0000"]
         runner.runs = runs
         runner.args = extraGradleBuildArguments() + ["-Pgradlebuild.skipBuildSrcChecks=true"]
 

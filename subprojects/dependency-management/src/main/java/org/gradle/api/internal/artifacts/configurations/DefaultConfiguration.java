@@ -71,7 +71,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -750,6 +749,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
+    public Set<ExcludeRule> getAllExcludeRules() {
+        Set<ExcludeRule> result = Sets.newLinkedHashSet();
+        result.addAll(getExcludeRules());
+        for (Configuration config : extendsFrom) {
+            result.addAll(((ConfigurationInternal) config).getAllExcludeRules());
+        }
+        return result;
+    }
+
     /**
      * Synchronize read access to excludes. Mutation does not need to be thread-safe.
      */
@@ -865,16 +873,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
         // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule.
-        Set<Configuration> excludeRuleSources = new LinkedHashSet<Configuration>();
-        excludeRuleSources.add(this);
-        if (recursive) {
-            excludeRuleSources.addAll(getHierarchy());
-        }
-
-        for (Configuration excludeRuleSource : excludeRuleSources) {
-            for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
-                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
-            }
+        for (ExcludeRule excludeRule : getAllExcludeRules()) {
+            copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
         }
 
         DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
@@ -1594,20 +1594,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
             final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-            selected.collectBuildDependencies(new BuildDependenciesVisitor() {
+            selected.collectBuildDependencies(new TaskDependencyResolveContext() {
+                @Override
+                public void add(Object dep) {
+                    context.add(dep);
+                }
+
+                @Override
+                public void maybeAdd(Object dependency) {
+                    context.maybeAdd(dependency);
+                }
+
                 @Override
                 public void visitFailure(Throwable failure) {
                     failures.add(failure);
                 }
 
                 @Override
-                public void attachFinalizerTo(Task task, Action<? super Task> action) {
-                    context.attachFinalizerTo(task, action);
-                }
-
-                @Override
-                public void visitDependency(Object dep) {
-                    context.add(dep);
+                public Task getTask() {
+                    return context.getTask();
                 }
             });
             if (!lenient) {

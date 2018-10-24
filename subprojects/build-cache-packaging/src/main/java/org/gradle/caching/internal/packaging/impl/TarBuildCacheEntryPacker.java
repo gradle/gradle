@@ -16,9 +16,8 @@
 
 package org.gradle.caching.internal.packaging.impl;
 
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -28,13 +27,15 @@ import org.apache.commons.io.input.CloseShieldInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.caching.internal.packaging.CacheableTree;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.MutableLong;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
@@ -58,11 +59,8 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,7 +101,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public PackResult pack(SortedSet<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
+    public PackResult pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
         BufferedOutputStream bufferedOutput;
         if (output instanceof BufferedOutputStream) {
             bufferedOutput = (BufferedOutputStream) output;
@@ -115,7 +113,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             tarOutput.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
             tarOutput.setAddPaxHeadersForNonAsciiNames(true);
             packMetadata(writeOrigin, tarOutput);
-            long entryCount = pack(trees, fingerprints, tarOutput);
+            long entryCount = pack(entity, fingerprints, tarOutput);
             return new PackResult(entryCount + 1);
         }
     }
@@ -128,26 +126,24 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         tarOutput.closeArchiveEntry();
     }
 
-    private long pack(Collection<CacheableTree> trees, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
-        long entries = 0;
-        for (CacheableTree tree : trees) {
-            String treeName = tree.getName();
+    private long pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, TarArchiveOutputStream tarOutput) {
+        MutableLong entries = new MutableLong();
+        entity.visitTrees((treeName, type, root) -> {
+            if (root == null) {
+                return;
+            }
             CurrentFileCollectionFingerprint fingerprint = fingerprints.get(treeName);
             try {
-                entries += packTree(tree, fingerprint, tarOutput);
+                entries.increment(packTree(treeName, type, fingerprint, tarOutput));
             } catch (Exception ex) {
                 throw new GradleException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);
             }
-        }
-        return entries;
+        });
+        return entries.get();
     }
 
-    private long packTree(CacheableTree tree, CurrentFileCollectionFingerprint fingerprint, TarArchiveOutputStream tarOutput) {
-        File root = tree.getRoot();
-        if (root == null) {
-            return 0;
-        }
-        PackingVisitor packingVisitor = new PackingVisitor(tarOutput, tree.getName(), tree.getType(), fileSystem);
+    private long packTree(String name, TreeType type, CurrentFileCollectionFingerprint fingerprint, TarArchiveOutputStream tarOutput) {
+        PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type, fileSystem);
         fingerprint.accept(packingVisitor);
         return packingVisitor.finish();
     }
@@ -160,28 +156,29 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public UnpackResult unpack(SortedSet<CacheableTree> trees, InputStream input, OriginReader readOrigin) throws IOException {
+    public UnpackResult unpack(CacheableEntity entity, InputStream input, OriginReader readOrigin) throws IOException {
         try (TarArchiveInputStream tarInput = new TarArchiveInputStream(input)) {
-            return unpack(trees, tarInput, readOrigin);
+            return unpack(entity, tarInput, readOrigin);
         }
     }
 
-    private UnpackResult unpack(SortedSet<CacheableTree> trees, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
-        Map<String, CacheableTree> treesByName = Maps.uniqueIndex(trees, new Function<CacheableTree, String>() {
-            @Override
-            public String apply(@Nullable CacheableTree tree) {
-                assert tree != null;
-                return tree.getName();
+    private UnpackResult unpack(CacheableEntity entity, TarArchiveInputStream tarInput, OriginReader readOriginAction) throws IOException {
+        ImmutableMap.Builder<String, CacheableTree> treesBuilder = ImmutableMap.builder();
+        entity.visitTrees((name, type, root) -> {
+            if (root != null) {
+                treesBuilder.put(name, new CacheableTree(type, root));
             }
         });
+        ImmutableMap<String, CacheableTree> treesByName = treesBuilder.build();
+
         TarArchiveEntry tarEntry;
         OriginMetadata originMetadata = null;
         Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
 
         tarEntry = tarInput.getNextTarEntry();
-        AtomicInteger entries = new AtomicInteger(0);
+        MutableLong entries = new MutableLong();
         while (tarEntry != null) {
-            entries.incrementAndGet();
+            entries.increment(1);
             String path = tarEntry.getName();
 
             if (path.equals(METADATA_PATH)) {
@@ -203,7 +200,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
                 boolean missing = matcher.group(1) != null;
                 String childPath = matcher.group(3);
-                tarEntry = unpackTree(tree, tarInput, tarEntry, childPath, missing, snapshots, entries);
+                tarEntry = unpackTree(treeName, tree.getType(), tree.getRoot(), tarInput, tarEntry, childPath, missing, snapshots, entries);
             }
         }
         if (originMetadata == null) {
@@ -213,14 +210,26 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return new UnpackResult(originMetadata, entries.get(), snapshots);
     }
 
-    @Nullable
-    private TarArchiveEntry unpackTree(CacheableTree tree, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, FileSystemLocationSnapshot> snapshots, AtomicInteger entries) throws IOException {
-        File treeRoot = tree.getRoot();
-        String treeName = tree.getName();
-        if (treeRoot == null) {
-            throw new IllegalStateException("Optional tree should have a value: " + treeName);
+    private static class CacheableTree {
+        private final TreeType type;
+        private final File root;
+
+        public CacheableTree(TreeType type, File root) {
+            this.type = type;
+            this.root = root;
         }
 
+        public TreeType getType() {
+            return type;
+        }
+
+        public File getRoot() {
+            return root;
+        }
+    }
+
+    @Nullable
+    private TarArchiveEntry unpackTree(String treeName, TreeType treeType, File treeRoot, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, FileSystemLocationSnapshot> snapshots, MutableLong entries) throws IOException {
         boolean isDirEntry = rootEntry.isDirectory();
         boolean root = Strings.isNullOrEmpty(childPath);
         if (!root) {
@@ -232,10 +241,8 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             return input.getNextTarEntry();
         }
 
-        CacheableTree.Type type = tree.getType();
-
-        ensureDirectoryForTree(type, treeRoot);
-        if (type == CacheableTree.Type.FILE) {
+        ensureDirectoryForTree(treeType, treeRoot);
+        if (treeType == TreeType.FILE) {
             if (isDirEntry) {
                 throw new IllegalStateException("Should be a file: " + treeName);
             }
@@ -276,7 +283,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Nullable
-    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, AtomicInteger entries, File treeRoot, String treeName) throws IOException {
+    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, MutableLong entries, File treeRoot, String treeName) throws IOException {
         RelativePathParser parser = new RelativePathParser();
         parser.rootPath(rootEntry.getName());
 
@@ -288,7 +295,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         TarArchiveEntry entry;
 
         while ((entry = input.getNextTarEntry()) != null) {
-            entries.incrementAndGet();
+            entries.increment(1);
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
@@ -345,11 +352,11 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         private final String treePath;
         private final String treeRoot;
         private final FileSystem fileSystem;
-        private final CacheableTree.Type type;
+        private final TreeType type;
 
         private long entries;
 
-        public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, CacheableTree.Type type, FileSystem fileSystem) {
+        public PackingVisitor(TarArchiveOutputStream tarOutput, String treeName, TreeType type, FileSystem fileSystem) {
             this.tarOutput = tarOutput;
             this.treePath = "tree-" + escape(treeName);
             this.treeRoot = treePath + "/";

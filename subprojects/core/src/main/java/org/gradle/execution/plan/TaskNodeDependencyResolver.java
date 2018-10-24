@@ -42,9 +42,12 @@ public class TaskNodeDependencyResolver implements DependencyResolver {
     }
 
     @Override
-    public boolean attachActionTo(Task task, Action<? super Task> action) {
-        TaskNode node = taskNodeFactory.getOrCreateNode(task);
-        node.appendPostAction(action);
-        return true;
+    public boolean attachActionTo(Node value, Action<? super Task> action) {
+        if (value instanceof TaskNode) {
+            TaskNode taskNode = (TaskNode) value;
+            taskNode.appendPostAction(action);
+            return true;
+        }
+        return false;
     }
 }

@@ -286,9 +286,10 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
     outputDir = userguideSinglePageOutputDir
     backends = ['pdf', 'html5']
 
-    attributes \
-        toc                 : 'macro',
+    attributes toc          : 'macro',
         toclevels           : 2,
+        groovyDslPath       : "https://docs.gradle.org/${version}/dsl",
+        javadocPath         : "https://docs.gradle.org/${version}/javadoc",
         'source-highlighter': 'coderay'
 }
 
@@ -372,8 +373,6 @@ tasks.withType(AsciidoctorTask).configureEach {
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
-        groovyDslPath       : "../dsl",
-        javadocPath         : "../javadoc",
         samplesPath         : "../../samples",
         'samples-dir'       : "$projectDir/src/samples"
 }
@@ -390,8 +389,7 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
 
     backends = ['html5']
 
-    attributes \
-        icons               : null,
+    attributes icons        : null,
         'note-caption'      : '&#10024;',
         'tip-caption'       : '&#128161;',
         'important-caption' : '&#10071;️',
@@ -400,7 +398,9 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
         'source-highlighter': 'prettify',
         toc                 : 'auto',
         toclevels           : 1,
-        'toc-title'         : 'Contents'
+        'toc-title'         : 'Contents',
+        groovyDslPath       : "../dsl",
+        javadocPath         : "../javadoc"
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks

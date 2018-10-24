@@ -42,7 +42,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         cacheEntry.assertContainsFile("tree-outputDir/output")
         def metadata = cacheEntry.content("METADATA")
         metadata.contains("type=")
-        metadata.contains("path=")
+        metadata.contains("identity=")
         metadata.contains("gradleVersion=")
         metadata.contains("creationTime=")
         metadata.contains("executionTime=")

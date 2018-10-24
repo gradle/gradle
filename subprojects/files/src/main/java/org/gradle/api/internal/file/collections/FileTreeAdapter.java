@@ -40,6 +40,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     public FileTreeAdapter(MinimalFileTree tree) {
         this.tree = tree;
     }
+
     public FileTreeAdapter(MinimalFileTree tree, Factory<PatternSet> patternSetFactory) {
         super(patternSetFactory);
         this.tree = tree;
@@ -95,8 +96,8 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
             RandomAccessFileCollection randomAccess = (RandomAccessFileCollection) tree;
             return randomAccess.contains(file);
         }
-        if (tree instanceof MapFileTree) {
-            return ((MapFileTree) tree).getFilesWithoutCreating().contains(file);
+        if (tree instanceof GeneratedSingletonFileTree) {
+            return ((GeneratedSingletonFileTree) tree).getFileWithoutCreating().equals(file);
         }
         if (tree instanceof FileSystemMirroringFileTree) {
             return ((FileSystemMirroringFileTree) tree).getMirror().contains(file);
@@ -109,6 +110,9 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
             return new FileTreeAdapter(filterableTree.filter(patterns), patternSetFactory);
+        }
+        if (tree instanceof SingletonFileTree) {
+            return this;
         }
         return super.matching(patterns);
     }
@@ -123,6 +127,17 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
         if (tree instanceof DirectoryFileTree) {
             DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
             visitor.visitDirectoryTree(directoryFileTree);
+        } else if (tree instanceof SingletonFileTree) {
+            SingletonFileTree singletonFileTree = (SingletonFileTree) tree;
+            visitor.visitCollection(ImmutableFileCollection.of(singletonFileTree.getFile()));
+        } else if (tree instanceof ArchiveFileTree) {
+            ArchiveFileTree archiveFileTree = (ArchiveFileTree) tree;
+            File backingFile = archiveFileTree.getBackingFile();
+            if (backingFile != null) {
+                visitor.visitCollection(ImmutableFileCollection.of(backingFile));
+            } else {
+                visitor.visitGenericFileTree(this);
+            }
         } else {
             visitor.visitGenericFileTree(this);
         }

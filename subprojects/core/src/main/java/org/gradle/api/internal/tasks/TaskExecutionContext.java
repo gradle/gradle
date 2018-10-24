@@ -18,13 +18,18 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 public interface TaskExecutionContext {
+
+    @Nullable
+    AfterPreviousExecutionState getAfterPreviousExecution();
+
+    void setAfterPreviousExecution(@Nullable AfterPreviousExecutionState previousExecution);
 
     TaskArtifactState getTaskArtifactState();
 
@@ -33,14 +38,6 @@ public interface TaskExecutionContext {
     TaskOutputCachingBuildCacheKey getBuildCacheKey();
 
     void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
-
-    /**
-     * The information about the origin where the tasks outputs were first created, if reusing outputs.
-     */
-    @Nullable
-    OriginMetadata getOriginMetadata();
-
-    void setOriginMetadata(@Nullable OriginMetadata originMetadata);
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.
@@ -70,4 +67,11 @@ public interface TaskExecutionContext {
     void setTaskProperties(TaskProperties taskProperties);
 
     TaskProperties getTaskProperties();
+
+    /**
+     * Returns if caching for this task is enabled.
+     */
+    boolean isTaskCachingEnabled();
+
+    void setTaskCachingEnabled(boolean enabled);
 }

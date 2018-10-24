@@ -21,7 +21,6 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
@@ -29,6 +28,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.ConfigurableRule;
@@ -88,13 +88,13 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     private PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = new PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>>(
+        return PersistentIndexedCacheParameters.of(
             name,
             new HashCodeSerializer(),
             createEntrySerializer(resultSerializer)
+        ).withCacheDecorator(
+            cacheDecoratorFactory.decorator(2000, true)
         );
-        cacheParams.cacheDecorator(cacheDecoratorFactory.decorator(2000, true));
-        return cacheParams;
     }
 
     private Serializer<CachedEntry<RESULT>> createEntrySerializer(final Serializer<RESULT> resultSerializer) {

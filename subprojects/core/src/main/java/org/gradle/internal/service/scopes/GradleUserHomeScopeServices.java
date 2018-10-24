@@ -27,19 +27,17 @@ import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJourna
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -47,6 +45,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
@@ -64,6 +63,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -159,10 +159,10 @@ public class GradleUserHomeScopeServices {
 
     FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
         final DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
-        listenerManager.addListener(new TaskOutputChangesListener() {
+        listenerManager.addListener(new OutputChangeListener() {
             @Override
-            public void beforeTaskOutputChanged() {
-                fileSystemMirror.beforeTaskOutputChanged();
+            public void beforeOutputChange() {
+                fileSystemMirror.beforeOutputChange();
             }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
@@ -182,8 +182,11 @@ public class GradleUserHomeScopeServices {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(TaskHistoryStore store) {
-        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache("resourceHashesCache", HashCode.class, new HashCodeSerializer(), 400000, true);
+    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
+        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
+            PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
+            400000,
+            true);
         return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
     }
 

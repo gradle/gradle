@@ -28,12 +28,12 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.filter
 import kotlin.collections.forEach
+import org.gradle.kotlin.dsl.*
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -111,10 +111,15 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                link("TeamCity Build", System.getenv("BUILD_URL"))
-                value("Build ID", System.getenv("BUILD_ID"))
-                setCommitId(System.getenv("BUILD_VCS_NUMBER"))
-
+                if (!System.getenv("TRAVIS").isNullOrEmpty()) {
+                    link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
+                    value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
+                    setCommitId(System.getenv("TRAVIS_COMMIT"))
+                } else {
+                    link("TeamCity Build", System.getenv("BUILD_URL"))
+                    value("Build ID", System.getenv("BUILD_ID"))
+                    setCommitId(System.getenv("BUILD_VCS_NUMBER"))
+                }
                 whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                     value(ciBuildTypeName, buildType)
                     link("Build Type Scans", customValueSearchUrl(mapOf(ciBuildTypeName to buildType)))
@@ -139,27 +144,21 @@ open class BuildScanPlugin : Plugin<Project> {
 
             if (!isCiServer) {
                 background {
-                    system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
-                        setCommitId(commitId)
-                    }
+                    setCommitId(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
                 }
             }
 
             background {
-                system("git", "status", "--porcelain").let { status ->
-                    if (status.isNotEmpty()) {
-                        tag("dirty")
-                        value("Git Status", status)
-                    }
+                execAndGetStdout("git", "status", "--porcelain").takeIf { it.isNotEmpty() }?.let { status ->
+                    tag("dirty")
+                    value("Git Status", status)
                 }
             }
 
             background {
-                system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
-                    if (branchName.isNotEmpty() && branchName != "HEAD") {
-                        tag(branchName)
-                        value("Git Branch Name", branchName)
-                    }
+                execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD").takeIf { it.isNotEmpty() && it != "HEAD" }?.let { branchName ->
+                    tag(branchName)
+                    value("Git Branch Name", branchName)
                 }
             }
         }
@@ -219,17 +218,6 @@ open class BuildScanPlugin : Plugin<Project> {
     inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
         buildScan.apply(configure)
     }
-}
-
-
-private
-fun Project.system(vararg args: String): String {
-    val out = ByteArrayOutputStream()
-    exec {
-        commandLine(*args)
-        standardOutput = out
-    }
-    return String(out.toByteArray()).trim()
 }
 
 

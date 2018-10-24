@@ -16,12 +16,7 @@
 
 package org.gradle.caching.internal.command;
 
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-
 public interface BuildCacheLoadListener {
     void beforeLoad();
-    void afterLoad(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots, OriginMetadata originMetadata);
-    void afterLoad(Throwable error);
+    void afterLoadFailedAndWasCleanedUp(Throwable error);
 }

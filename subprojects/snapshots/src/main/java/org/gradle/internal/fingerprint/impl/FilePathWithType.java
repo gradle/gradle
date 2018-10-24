@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.changes.FileChange;
+import org.gradle.internal.change.FileChange;
 import org.gradle.internal.file.FileType;
 
 /**

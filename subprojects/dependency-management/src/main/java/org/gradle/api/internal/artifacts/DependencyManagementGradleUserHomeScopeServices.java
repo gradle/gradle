@@ -22,9 +22,9 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingM
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
 import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
-import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
