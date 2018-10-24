@@ -18,6 +18,7 @@ package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 
@@ -25,6 +26,7 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 
 public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
     private IndexedStringSet strings;
@@ -155,7 +157,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
                     output.writeInt(indexed.index, true);
                     return this;
                 }
-                return new MultiStringSet(indexed).register(value);
+                return new MultiListStringSet(indexed).register(value);
             }
 
             @Override
@@ -165,12 +167,13 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
         }
 
         /**
-         * A bucket implementation used when more than one string is found in a bucket.
+         * A bucket implementation used when more than one string is found in a bucket, with
+         * a reasonable number of strings.
          */
-        private class MultiStringSet implements StringSetBucket {
+        private class MultiListStringSet implements StringSetBucket {
             private final List<IndexedString> store = Lists.newArrayList();
 
-            public MultiStringSet(IndexedString initial) {
+            public MultiListStringSet(IndexedString initial) {
                 store.add(initial);
             }
 
@@ -186,6 +189,9 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
                 output.writeString(value);
                 store.add(new IndexedString(value, count));
                 count++;
+                if (store.size() > 4) {
+                    return new MultiMapStringSet(store);
+                }
                 return this;
             }
 
@@ -194,9 +200,52 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
                 return store.toString();
             }
         }
+
+        /**
+         * A bucket implementation which uses a map under the hood, for
+         * faster lookups whenever the number of items in a bucket grows
+         * too much.
+         */
+        private class MultiMapStringSet implements StringSetBucket {
+            private final Map<String, Integer> map;
+
+            private MultiMapStringSet(List<IndexedString> strings) {
+                map = Maps.newHashMapWithExpectedSize(strings.size() << 1);
+                for (IndexedString indexedString : strings) {
+                    map.put(indexedString.value, indexedString.index);
+                }
+            }
+
+            @Override
+            public StringSetBucket register(String value) {
+                Integer index = map.get(value);
+                if (index != null) {
+                    output.writeInt(index, true);
+                    return this;
+                }
+                output.writeInt(count, true);
+                output.writeString(value);
+                count++;
+                return this;
+            }
+
+            @Override
+            public String toString() {
+                return map.toString();
+            }
+        }
     }
 
+    /**
+     * Interface for all bucket types.
+     */
     private interface StringSetBucket {
+        /**
+         * Registers a string in the set. The returned value may either be
+         * the same string set, or a different implementation optimized for
+         * a different bucket size. This allows us to go from single string set
+         * to list set and eventually a map backed set.
+         */
         StringSetBucket register(String value);
     }
 
