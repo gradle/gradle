@@ -43,7 +43,8 @@ import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.impl.steps.SnapshotResult;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -69,14 +70,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor<SnapshotResult> workExecutor;
+    private final WorkExecutor<UpToDateResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor<SnapshotResult> workExecutor
+        WorkExecutor<UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -87,7 +88,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        final SnapshotResult result = workExecutor.execute(new TaskExecution(task, context));
+        final UpToDateResult result = workExecutor.execute(new TaskExecution(task, context));
         Throwable failure = result.getFailure();
         if (failure != null) {
             TaskExecutionException taskFailure = (failure instanceof ExecutionException)
@@ -112,6 +113,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     throw new AssertionError();
             }
         }
+        context.setUpToDateMessages(result.getOutOfDateReasons());
         return new TaskExecuterResult() {
             @Override
             public OriginMetadata getOriginMetadata() {
@@ -173,6 +175,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public FileCollection getLocalState() {
             return context.getTaskProperties().getLocalStateFiles();
+        }
+
+        @Override
+        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
+            return context.getTaskArtifactState().getExecutionStateChanges();
         }
 
         @Override

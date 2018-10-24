@@ -17,11 +17,9 @@
 package org.gradle.internal.execution.impl.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-public interface SnapshotResult extends Result {
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
-    OriginMetadata getOriginMetadata();
+public interface CurrentSnapshotResult extends SnapshotResult {
+    @Override
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 }

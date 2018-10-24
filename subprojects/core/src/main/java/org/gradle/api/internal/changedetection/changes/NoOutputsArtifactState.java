@@ -24,13 +24,17 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.Path;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 class NoOutputsArtifactState implements TaskArtifactState {
 
@@ -83,16 +87,40 @@ class NoOutputsArtifactState implements TaskArtifactState {
         }
     };
 
-    private String message;
+    private final Change change;
 
-    private NoOutputsArtifactState(String message) {
-        this.message = message;
+    private NoOutputsArtifactState(final String message) {
+        this.change = new Change() {
+            @Override
+            public String getMessage() {
+                return message;
+            }
+        };
     }
 
     @Override
-    public boolean isUpToDate(Collection<String> messages) {
-        messages.add(message);
-        return false;
+    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+        return Optional.<ExecutionStateChanges>of(new ExecutionStateChanges() {
+            @Override
+            public void visitAllChanges(ChangeVisitor visitor) {
+                visitor.visitChange(change);
+            }
+
+            @Override
+            public boolean isRebuildRequired() {
+                return true;
+            }
+
+            @Override
+            public Iterable<Change> getInputFilesChanges() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public AfterPreviousExecutionState getPreviousExecution() {
+                throw new UnsupportedOperationException();
+            }
+        });
     }
 
     @Override

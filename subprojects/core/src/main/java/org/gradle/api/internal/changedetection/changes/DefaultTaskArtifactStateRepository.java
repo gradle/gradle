@@ -33,12 +33,9 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.LimitingChangeVisitor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.NoHistoryTaskUpToDateState;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -46,10 +43,10 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Map;
-
-import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.MAX_OUT_OF_DATE_MESSAGES;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -75,8 +72,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private class TaskArtifactStateImpl implements TaskArtifactState {
         private final TaskInternal task;
         private final TaskHistoryRepository.History history;
-        private boolean upToDate;
         private boolean outputsRemoved;
+        private boolean statesCalculated;
         private ExecutionStateChanges states;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
@@ -85,24 +82,29 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public boolean isUpToDate(final Collection<String> messages) {
-            MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(messages);
-            getStates().visitAllChanges(new LimitingChangeVisitor(MAX_OUT_OF_DATE_MESSAGES, visitor));
-            this.upToDate = !visitor.hasAnyChanges();
-            return upToDate;
+        public IncrementalTaskInputs getInputChanges() {
+            return getExecutionStateChanges()
+                .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
+                     @Override
+                     public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
+                         return changes.isRebuildRequired()
+                             ? createRebuildInputs()
+                             : createIncrementalInputs(changes.getInputFilesChanges());
+                     }
+                }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
+                    @Override
+                    public StatefulIncrementalTaskInputs get() {
+                        return createRebuildInputs();
+                    }
+                });
         }
 
-        @Override
-        public IncrementalTaskInputs getInputChanges() {
-            assert !upToDate : "Should not be here if the task is up-to-date";
+        private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {
+            return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputFilesChanges);
+        }
 
-            IncrementalTaskInputs taskInputs;
-            if (outputsRemoved || getStates().isRebuildRequired()) {
-                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
-            } else {
-                taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
-            }
-            return taskInputs;
+        private RebuildIncrementalTaskInputs createRebuildInputs() {
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getCurrentInputFileFingerprints());
         }
 
         @Override
@@ -177,14 +179,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 || new OutputFileChanges(previous, current).hasAnyChanges();
         }
 
-        private ExecutionStateChanges getStates() {
-            if (states == null) {
+        @Override
+        public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+            if (!statesCalculated) {
+                statesCalculated = true;
                 HistoricalTaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
                 // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
                 CurrentTaskExecution currentExecution = history.getCurrentExecution();
-                if (previousExecution == null) {
-                    states = NoHistoryTaskUpToDateState.INSTANCE;
+                if (previousExecution == null || outputsRemoved) {
+                    states = null;
                 } else {
                     // TODO We need a nicer describable wrapper around task here
                     states = new DefaultExecutionStateChanges(previousExecution, currentExecution, new Describable() {
@@ -196,27 +200,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                     });
                 }
             }
-            return states;
-        }
-    }
-
-    private static class MessageCollectingChangeVisitor implements ChangeVisitor {
-        private final Collection<String> messages;
-        private boolean anyChanges;
-
-        public MessageCollectingChangeVisitor(Collection<String> messages) {
-            this.messages = messages;
-        }
-
-        @Override
-        public boolean visitChange(Change change) {
-            messages.add(change.getMessage());
-            anyChanges = true;
-            return true;
-        }
-
-        public boolean hasAnyChanges() {
-            return anyChanges;
+            return Optional.ofNullable(states);
         }
     }
 }

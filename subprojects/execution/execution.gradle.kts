@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":snapshots"))
     implementation(project(":buildCachePackaging"))
+    implementation(library("commons_lang"))
 
     testImplementation(project(":internalTesting"))
 }

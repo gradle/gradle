@@ -20,21 +20,22 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-public class StoreSnapshotsStep<C extends Context> implements Step<C, SnapshotResult> {
+public class StoreSnapshotsStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
     private final OutputFilesRepository outputFilesRepository;
-    private final Step<? super C, ? extends SnapshotResult> delegate;
+    private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreSnapshotsStep(
         OutputFilesRepository outputFilesRepository,
-        Step<? super C, ? extends SnapshotResult> delegate
+        Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.outputFilesRepository = outputFilesRepository;
         this.delegate = delegate;
     }
 
     @Override
-    public SnapshotResult execute(C context) {
-        SnapshotResult result = delegate.execute(context);
+    // TODO Return a simple Result (that includes the origin metadata) here
+    public CurrentSnapshotResult execute(C context) {
+        CurrentSnapshotResult result = delegate.execute(context);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getWork().persistResult(
             finalOutputs,

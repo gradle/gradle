@@ -19,6 +19,7 @@ package org.gradle.internal.execution.history.changes;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 public class NoHistoryTaskUpToDateState implements ExecutionStateChanges {
 
@@ -39,5 +40,10 @@ public class NoHistoryTaskUpToDateState implements ExecutionStateChanges {
     @Override
     public boolean isRebuildRequired() {
         return true;
+    }
+
+    @Override
+    public AfterPreviousExecutionState getPreviousExecution() {
+        throw new UnsupportedOperationException();
     }
 }

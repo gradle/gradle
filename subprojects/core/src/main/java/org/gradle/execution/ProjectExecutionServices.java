@@ -42,7 +42,6 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExec
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
-import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
@@ -65,12 +64,14 @@ import org.gradle.internal.execution.impl.steps.CachingContext;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
+import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
+import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
-import org.gradle.internal.execution.impl.steps.SnapshotResult;
 import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
+import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -112,7 +113,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return listenerManager.getBroadcaster(TaskActionListener.class);
     }
 
-    WorkExecutor<SnapshotResult> createWorkExecutor(
+    WorkExecutor<UpToDateResult> createWorkExecutor(
         BuildCacheController buildCacheController,
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildInvocationScopeId buildInvocationScopeId,
@@ -121,15 +122,17 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor<SnapshotResult>(
-            new StoreSnapshotsStep<Context>(outputFilesRepository,
-                new PrepareCachingStep<Context, SnapshotResult>(
-                    new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-                        new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
-                            new CreateOutputsStep<Context, Result>(
-                                new CatchExceptionStep<Context>(
-                                    new TimeoutStep<Context>(timeoutHandler,
-                                        new ExecuteStep(cancellationToken, outputChangeListener)
+        return new DefaultWorkExecutor<UpToDateResult>(
+            new SkipUpToDateStep<Context>(
+                new StoreSnapshotsStep<Context>(outputFilesRepository,
+                    new PrepareCachingStep<Context, CurrentSnapshotResult>(
+                        new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
+                            new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
+                                new CreateOutputsStep<Context, Result>(
+                                    new CatchExceptionStep<Context>(
+                                        new TimeoutStep<Context>(timeoutHandler,
+                                            new ExecuteStep(cancellationToken, outputChangeListener)
+                                        )
                                     )
                                 )
                             )
@@ -157,7 +160,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
                                     TaskExecutionListener taskExecutionListener,
-                                    WorkExecutor<SnapshotResult> workExecutor
+                                    WorkExecutor<UpToDateResult> workExecutor
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -170,7 +173,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             actionListener,
             workExecutor
         );
-        executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, executer);
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, buildCacheController.isEmitDebugLogging());

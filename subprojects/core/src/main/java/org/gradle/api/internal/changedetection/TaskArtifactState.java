@@ -21,23 +21,22 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Encapsulates the state of the task when its outputs were last generated.
  */
 public interface TaskArtifactState {
     /**
-     * Returns true if the task outputs were generated using the given task inputs.
-     *
-     * @param messages a collection to add messages which explain why the task is out-of-date.
+     * Returns changes since the previous execution, if any.
      */
-    boolean isUpToDate(Collection<String> messages);
+    Optional<ExecutionStateChanges> getExecutionStateChanges();
 
     /**
      * Returns the incremental task inputs for the current execution.

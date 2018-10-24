@@ -26,7 +26,7 @@ import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 
-public class SnapshotOutputStep<C extends Context> implements Step<C, SnapshotResult> {
+public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final Step<? super C, ? extends Result> delegate;
 
@@ -39,13 +39,13 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, SnapshotRe
     }
 
     @Override
-    public SnapshotResult execute(C context) {
+    public CurrentSnapshotResult execute(C context) {
         Result result = delegate.execute(context);
 
         UnitOfWork work = context.getWork();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
         OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
-        return new SnapshotResult() {
+        return new CurrentSnapshotResult() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
                 return finalOutputs;

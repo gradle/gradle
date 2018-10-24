@@ -32,19 +32,19 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-public class CacheStep<C extends CachingContext> implements Step<C, SnapshotResult> {
+public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
 
     private final BuildCacheController buildCache;
     private final OutputChangeListener outputChangeListener;
     private final BuildCacheCommandFactory commandFactory;
-    private final Step<? super C, ? extends SnapshotResult> delegate;
+    private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public CacheStep(
             BuildCacheController buildCache,
             OutputChangeListener outputChangeListener,
             BuildCacheCommandFactory commandFactory,
-            Step<? super C, ? extends SnapshotResult> delegate
+            Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
         this.outputChangeListener = outputChangeListener;
@@ -53,10 +53,10 @@ public class CacheStep<C extends CachingContext> implements Step<C, SnapshotResu
     }
 
     @Override
-    public SnapshotResult execute(C context) {
+    public CurrentSnapshotResult execute(C context) {
         return context.getCacheHandler()
             .load(cacheKey -> load(context.getWork(), cacheKey))
-            .map(loadResult -> (SnapshotResult) new SnapshotResult() {
+            .map(loadResult -> (CurrentSnapshotResult) new CurrentSnapshotResult() {
                 @Override
                 public ExecutionOutcome getOutcome() {
                     return ExecutionOutcome.FROM_CACHE;
@@ -79,7 +79,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, SnapshotResu
                 }
             })
             .orElseGet(() -> {
-                SnapshotResult executionResult = executeWithoutCache(context);
+                CurrentSnapshotResult executionResult = executeWithoutCache(context);
                 if (executionResult.getFailure() == null) {
                     context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult));
                 } else {
@@ -116,7 +116,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, SnapshotResu
         }
     }
 
-    private void store(UnitOfWork work, BuildCacheKey cacheKey, SnapshotResult result) {
+    private void store(UnitOfWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
         try {
             // TODO This could send in the whole origin metadata
             buildCache.store(commandFactory.createStore(cacheKey, work, result.getFinalOutputs(), result.getOriginMetadata().getExecutionTime()));
@@ -125,7 +125,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, SnapshotResu
         }
     }
 
-    private SnapshotResult executeWithoutCache(C context) {
+    private CurrentSnapshotResult executeWithoutCache(C context) {
         return delegate.execute(context);
     }
 }
