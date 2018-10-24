@@ -17,10 +17,8 @@
 package org.gradle.nativeplatform.test.xctest.plugins;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
@@ -79,13 +77,13 @@ import org.gradle.util.GUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -206,17 +204,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 testComponent.getBinaries().realizeNow();
             }
         });
-    }
-
-    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
-        if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
-        }
-        return "";
-    }
-
-    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
-        return multivalueProperty.size() > 1;
     }
 
     private void configureTestSuiteBuildingTasks(final ProjectInternal project, final DefaultSwiftXCTestBinary binary) {

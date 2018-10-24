@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -60,6 +59,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.*;
+import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -227,17 +227,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 library.getBinaries().realizeNow();
             }
         });
-    }
-
-    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
-        if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
-        }
-        return "";
-    }
-
-    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
-        return multivalueProperty.size() > 1;
     }
 
     private static final class BuildType implements Named {

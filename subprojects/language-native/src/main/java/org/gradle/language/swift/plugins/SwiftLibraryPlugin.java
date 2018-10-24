@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -60,6 +59,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 
 /**
  * <p>A plugin that produces a shared library from Swift source.</p>
@@ -226,17 +226,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 library.getBinaries().realizeNow();
             }
         });
-    }
-
-    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
-        if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
-        }
-        return "";
-    }
-
-    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
-        return multivalueProperty.size() > 1;
     }
 
     private static final class BuildType implements Named {

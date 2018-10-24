@@ -16,10 +16,8 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -46,12 +44,12 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix;
 
 /**
  * <p>A plugin that produces an executable from Swift source.</p>
@@ -154,16 +152,5 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 application.getBinaries().realizeNow();
             }
         });
-    }
-
-    private String createDimensionSuffix(Named dimensionValue, Collection<?> multivalueProperty) {
-        if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
-        }
-        return "";
-    }
-
-    private boolean isDimensionVisible(Collection<?> multivalueProperty) {
-        return multivalueProperty.size() > 1;
     }
 }
