@@ -17,20 +17,26 @@
 
 This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes since 4.4, 4.5, etc.
 
-First, a few pointers about upgrading:
+We recommend the following steps for all users:
 
- * Start by running `gradle --scan build` and viewing the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan, or by running `gradle --warn --warning-mode=all build` to see the deprecations in the console.
+ . If you are not already on version 4.10.2, follow the directions <<#changes_5.0,below>> to upgrade your project to 4.10.2.
+ . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
 +
-This is so that you can see any deprecation warnings that apply to your build. Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it. 
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
-If your build doesn't have a `build` task, run whichever task or set of tasks does a full build.
- * Update your plugins.
+This is so that you can see any deprecation warnings that apply to your build. Gradle 5.x will generate (potentially less obvious) errors if you try to upgrade directly to it.
++
+Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
 +
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
 In particular, you will need to use at least a 2.x version of the https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow[*Shadow Plugin*].
+. Run `gradle wrapper --gradle-version 5.0` to update the project to 5.0
+. Move to Java 8 or higher if you haven't already. Whereas Gradle 4.x requires Java 7, Gradle 5 requires Java 8 to run.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-Gradle has added several significant new and improved features that you should consider using in your builds:
+In addition, Gradle has added several significant new and improved features that you should consider using in your builds:
 
  * <<#rel4.8:switch_to_publishing_plugins,Maven Publish and Ivy Publish Plugins>> that now support digital signatures with the <<signing_plugin#signing_plugin,Signing Plugin>>.
  * <<#changes_4.6,New and improved POM support>> for your builds.
@@ -42,8 +48,6 @@ Other notable changes to be aware of that may break your build include:
  * A change that means you should <<#rel4.8:configure_internal_tasks,configure existing `wrapper` and `init` tasks>> rather than defining your own.
  * The <<#rel4.8:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
  * A <<#rel4.6:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
-
-Read the sections relevant to the version of Gradle you're upgrading from in order to get a comprehensive overview of the changes you might need to make to your build.
 
 [[changes_5.0]]
 == Upgrading from 4.10 and earlier
