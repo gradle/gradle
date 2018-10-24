@@ -37,4 +37,49 @@ public interface TargetMachine {
      */
     @Nested
     MachineArchitecture getArchitecture();
+
+    /**
+     * Returns a {@link TargetMachine} for the x86 32-bit architecture
+     */
+    TargetMachine x86();
+
+    /**
+     * Returns a {@link TargetMachine} for the x86 64-bit architecture
+     */
+    TargetMachine x64();
+
+    /**
+     * Returns a {@link TargetMachine} for the itanium architecture
+     */
+    TargetMachine ia64();
+
+    /**
+     * Returns a {@link TargetMachine} for the arm 32-bit architecture
+     */
+    TargetMachine arm();
+
+    /**
+     * Returns a {@link TargetMachine} for the arm 64-bit architecture
+     */
+    TargetMachine arm64();
+
+    /**
+     * Returns a {@link TargetMachine} for the PowerPC 32-bit architecture
+     */
+    TargetMachine ppc();
+
+    /**
+     * Returns a {@link TargetMachine} for the PowerPC 64-bit architecture
+     */
+    TargetMachine ppc64();
+
+    /**
+     * Returns a {@link TargetMachine} for the Sparc 32-bit architecture
+     */
+    TargetMachine sparc();
+
+    /**
+     * Returns a {@link TargetMachine} for the Sparc 64-bit architecture
+     */
+    TargetMachine sparc64();
 }

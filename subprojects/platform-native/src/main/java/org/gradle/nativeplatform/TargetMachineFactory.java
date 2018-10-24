@@ -31,19 +31,24 @@ public interface TargetMachineFactory {
     TargetMachine host();
 
     /**
-     * Returns a {@link OperatingSystemFamilyMachineFactory} for the windows operating system family.
+     * Returns a {@link TargetMachine} for the windows operating system family.
      */
-    OperatingSystemFamilyMachineFactory windows();
+    TargetMachine windows();
 
     /**
-     * Returns a {@link OperatingSystemFamilyMachineFactory} for the linux operating system family.
+     * Returns a {@link TargetMachine} for the linux operating system family.
      */
-    OperatingSystemFamilyMachineFactory linux();
+    TargetMachine linux();
 
     /**
-     * Returns a {@link OperatingSystemFamilyMachineFactory} for the macos operating system family.
+     * Returns a {@link TargetMachine} for the macos operating system family.
      */
-    OperatingSystemFamilyMachineFactory macos();
+    TargetMachine macos();
+
+    /**
+     * Returns a {@link TargetMachine} representing the operating system and default architecture.
+     */
+    TargetMachine of(String operatingSystemFamily);
 
     /**
      * Returns a {@link TargetMachine} representing the operating system and architecture specified.

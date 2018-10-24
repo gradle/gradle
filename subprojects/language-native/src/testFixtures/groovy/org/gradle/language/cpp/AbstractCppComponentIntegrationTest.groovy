@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -31,7 +30,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         and:
         buildFile << """
             ${componentUnderTestDsl} {
-                targetMachines = [machines.host()]
+                targetMachines = [machines.host()${currentHostArchitectureDsl}]
             }
         """
 
@@ -79,10 +78,11 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
     @Override
     protected String getDefaultArchitecture() {
-        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
-            return "x86"
-        }
-        return super.defaultArchitecture
+        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? "x86" : super.defaultArchitecture
+    }
+
+    protected String getCurrentHostArchitectureDsl() {
+        return toolChain.meets(ToolChainRequirement.WINDOWS_GCC) ? ".x86()" : ""
     }
 
     protected abstract SourceElement getComponentUnderTest()

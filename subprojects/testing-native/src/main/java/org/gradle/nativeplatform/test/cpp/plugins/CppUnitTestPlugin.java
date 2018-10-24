@@ -110,16 +110,16 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     throw new IllegalArgumentException("An operating system needs to be specified for the unit test.");
                 }
 
-                boolean hasHostOperatingSystem = CollectionUtils.any(targetMachines, new Spec<TargetMachine>() {
+                // TODO: should we not iterate over target machines?
+                TargetMachine targetMachine = CollectionUtils.findFirst(targetMachines, new Spec<TargetMachine>() {
                     @Override
                     public boolean isSatisfiedBy(TargetMachine targetMachine) {
                         return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(targetMachine.getOperatingSystemFamily().getName());
                     }
                 });
 
-                if (hasHostOperatingSystem) {
+                if (targetMachine != null) {
                     String operatingSystemSuffix = "";
-                    TargetMachine targetMachine = targetMachineFactory.host();
                     Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
                     Provider<String> group = project.provider(new Callable<String>() {
                         @Override
