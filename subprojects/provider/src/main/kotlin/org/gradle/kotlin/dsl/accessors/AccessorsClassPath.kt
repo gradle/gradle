@@ -138,7 +138,7 @@ fun buildAccessorsFor(
     binDir: File
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
-    AccessorBytecodeEmitter.emitAccessorsFor(
+    emitAccessorsFor(
         availableSchema,
         srcDir,
         binDir

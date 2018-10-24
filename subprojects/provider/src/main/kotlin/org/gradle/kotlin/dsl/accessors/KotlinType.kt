@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.concurrent
+package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.api.JavaVersion
-
-import kotlin.streams.asSequence
-import kotlin.streams.asStream
+import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 
 
-// TODO:accessors honor Gradle max workers?
 internal
-fun <T, U> Sequence<T>.unorderedParallelMap(f: (T) -> U): Sequence<U> =
-    if (JavaVersion.current().isJava8) map(f) // Java 8 stream API impl is too resource hungry
-    else asStream().unordered().parallel().map(f).asSequence()
+object KotlinType {
+
+    val string: KmTypeBuilder = { visitClass("kotlin/String") }
+
+    val unit: KmTypeBuilder = { visitClass("kotlin/Unit") }
+
+    val any: KmTypeBuilder = { visitClass("kotlin/Any") }
+
+    val typeParameter: KmTypeBuilder = { visitTypeParameter(0) }
+}

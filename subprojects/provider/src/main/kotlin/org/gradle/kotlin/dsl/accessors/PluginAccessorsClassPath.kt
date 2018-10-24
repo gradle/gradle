@@ -136,7 +136,6 @@ fun buildPluginAccessorsFor(
                     propertyName = propertyName,
                     getterSignature = getterSignature,
                     getterFlags = nonInlineGetterFlags
-
                 )
                 properties.add(accessor to getterSignature)
             }
@@ -387,7 +386,7 @@ fun emitClassForGroup(group: PluginAccessor.ForGroup): Pair<InternalName, ByteAr
         packagePrivateField(pluginsFieldName, pluginDependenciesSpecTypeDesc)
         publicMethod("<init>", groupTypeConstructorSignature) {
             ALOAD(0)
-            INVOKESPECIAL(InternalNameOf.Object, "<init>", "()V")
+            INVOKESPECIAL(InternalNameOf.javaLangObject, "<init>", "()V")
             ALOAD(0)
             ALOAD(1)
             PUTFIELD(className, pluginsFieldName, pluginDependenciesSpecTypeDesc)

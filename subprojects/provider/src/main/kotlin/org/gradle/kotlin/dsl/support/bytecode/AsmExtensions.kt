@@ -30,7 +30,7 @@ import kotlin.reflect.KClass
 internal
 fun publicClass(
     name: InternalName,
-    superName: InternalName = InternalNameOf.Object,
+    superName: InternalName = InternalNameOf.javaLangObject,
     interfaces: Array<String>? = null,
     classBody: ClassWriter.() -> Unit = {}
 ) = beginPublicClass(name, superName, interfaces).run {
@@ -40,7 +40,7 @@ fun publicClass(
 
 
 internal
-fun beginPublicClass(name: InternalName, superName: InternalName = InternalNameOf.Object, interfaces: Array<String>? = null) =
+fun beginPublicClass(name: InternalName, superName: InternalName = InternalNameOf.javaLangObject, interfaces: Array<String>? = null) =
     ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
         visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name.value, null, superName.value, interfaces)
     }
@@ -302,7 +302,7 @@ inline class InternalName(val value: String) {
 internal
 object InternalNameOf {
 
-    val Object = InternalName("java/lang/Object")
+    val javaLangObject = InternalName("java/lang/Object")
 }
 
 

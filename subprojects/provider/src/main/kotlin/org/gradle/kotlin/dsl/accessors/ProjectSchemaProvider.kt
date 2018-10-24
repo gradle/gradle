@@ -53,13 +53,13 @@ data class ProjectSchema<out T>(
     val configurations: List<String>
 ) : Serializable {
 
-    fun <U> map(f: (T) -> U) =
-        ProjectSchema(
-            extensions.map { it.map(f) },
-            conventions.map { it.map(f) },
-            tasks.map { it.map(f) },
-            containerElements.map { it.map(f) },
-            configurations.toList())
+    fun <U> map(f: (T) -> U) = ProjectSchema(
+        extensions.map { it.map(f) },
+        conventions.map { it.map(f) },
+        tasks.map { it.map(f) },
+        containerElements.map { it.map(f) },
+        configurations
+    )
 
     fun isNotEmpty(): Boolean =
         extensions.isNotEmpty()
@@ -79,7 +79,3 @@ data class ProjectSchemaEntry<out T>(
     fun <U> map(f: (T) -> U) =
         ProjectSchemaEntry(f(target), name, f(type))
 }
-
-
-fun TypedProjectSchema.withKotlinTypeStrings() =
-    map { it.kotlinString }

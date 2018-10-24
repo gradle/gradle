@@ -34,6 +34,7 @@ import kotlinx.metadata.jvm.KotlinModuleMetadata
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 import java.io.File
 
@@ -94,6 +95,18 @@ fun ClassVisitor.publicStaticMethod(
 ) = jvmMethodSignature.run {
     publicStaticMethod(name, desc, signature, exceptions, methodBody)
 }
+
+
+internal
+fun ClassVisitor.publicStaticSyntheticMethod(
+    signature: JvmMethodSignature,
+    methodBody: MethodVisitor.() -> Unit
+) = method(
+    Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC,
+    signature.name,
+    signature.desc,
+    methodBody = methodBody
+)
 
 
 internal
@@ -227,6 +240,28 @@ inline fun KmTypeVisitor?.with(builder: KmTypeBuilder) {
     this!!.run {
         builder()
         visitEnd()
+    }
+}
+
+
+internal
+fun genericTypeOf(genericType: KmTypeBuilder, genericArgument: KmTypeBuilder): KmTypeBuilder = {
+    genericType()
+    visitArgument(0, KmVariance.INVARIANT)!!.run {
+        genericArgument()
+        visitEnd()
+    }
+}
+
+
+internal
+fun genericTypeOf(genericType: KmTypeBuilder, genericArguments: Iterable<KmTypeBuilder>): KmTypeBuilder = {
+    genericType()
+    genericArguments.forEach { argument ->
+        visitArgument(0, KmVariance.INVARIANT)!!.run {
+            argument()
+            visitEnd()
+        }
     }
 }
 
