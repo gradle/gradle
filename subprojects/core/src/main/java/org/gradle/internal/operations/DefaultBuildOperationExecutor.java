@@ -58,6 +58,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationIdFactory buildOperationIdFactory;
 
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+    private final RunnableBuildOperationWorker runnableBuildOperationWorker = new RunnableBuildOperationWorker();
 
     public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfigurationManager parallelismConfigurationManager, BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
@@ -87,7 +88,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     @Override
     public void run(RunnableBuildOperation buildOperation) {
         try {
-            execute(buildOperation, new RunnableBuildOperationWorker(), getCurrentBuildOperation());
+            execute(buildOperation, runnableBuildOperationWorker, getCurrentBuildOperation());
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
@@ -107,7 +108,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         try {
-            executeInParallel(new ParentPreservingQueueWorker<O>(new RunnableBuildOperationWorker<O>()), schedulingAction);
+            executeInParallel(new ParentPreservingQueueWorker<O>(runnableBuildOperationWorker), schedulingAction);
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
@@ -289,14 +290,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    private static class RunnableBuildOperationWorker<O extends RunnableBuildOperation> implements BuildOperationWorker<O> {
+    private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
         @Override
         public String getDisplayName() {
             return "runnable build operation";
         }
 
         @Override
-        public void execute(O buildOperation, BuildOperationContext context) {
+        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) {
             buildOperation.run(context);
         }
     }
@@ -325,9 +326,9 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
      */
     private class ParentPreservingQueueWorker<O extends BuildOperation> implements BuildOperationQueue.QueueWorker<O> {
         private BuildOperationState parent;
-        private BuildOperationWorker<O> worker;
+        private BuildOperationWorker<? super O> worker;
 
-        private ParentPreservingQueueWorker(BuildOperationWorker<O> worker) {
+        private ParentPreservingQueueWorker(BuildOperationWorker<? super O> worker) {
             this.parent = maybeStartUnmanagedThreadOperation(getCurrentBuildOperation());
             this.worker = worker;
         }

@@ -25,19 +25,26 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
     private final Describable description;
     private final boolean hasCustomDescription;
     private final int hashCode;
+    private final boolean isEquivalentToForce;
 
     public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause) {
-        this.cause = cause;
-        this.description = Describables.of(cause.getDefaultReason());
-        this.hasCustomDescription = false;
-        this.hashCode = cause.hashCode();
+        this(cause, Describables.of(cause.getDefaultReason()), false, cause == ComponentSelectionCause.FORCED);
     }
 
     public DefaultComponentSelectionDescriptor(ComponentSelectionCause cause, Describable description) {
+        this(cause, description, true, cause == ComponentSelectionCause.FORCED);
+    }
+
+    private DefaultComponentSelectionDescriptor(ComponentSelectionCause cause, Describable description, boolean hasCustomDescription, boolean isEquivalentToForce) {
         this.cause = cause;
         this.description = description;
-        this.hasCustomDescription = true;
-        this.hashCode = Objects.hashCode(cause, description);
+        this.hasCustomDescription = hasCustomDescription;
+        this.isEquivalentToForce = isEquivalentToForce;
+        if (hasCustomDescription) {
+            this.hashCode = Objects.hashCode(cause, description, isEquivalentToForce);
+        } else {
+            this.hashCode = Objects.hashCode(cause, isEquivalentToForce);
+        }
     }
 
     @Override
@@ -70,6 +77,7 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
         }
         DefaultComponentSelectionDescriptor that = (DefaultComponentSelectionDescriptor) o;
         return cause == that.cause
+            && isEquivalentToForce == that.isEquivalentToForce
             && Objects.equal(description, that.description);
     }
 
@@ -88,6 +96,16 @@ public class DefaultComponentSelectionDescriptor implements ComponentSelectionDe
         if (description.equals(reason)) {
             return this;
         }
-        return new DefaultComponentSelectionDescriptor(cause, reason);
+        return new DefaultComponentSelectionDescriptor(cause, reason, true, isEquivalentToForce);
+    }
+
+    @Override
+    public ComponentSelectionDescriptorInternal markAsEquivalentToForce() {
+        return new DefaultComponentSelectionDescriptor(cause, description, hasCustomDescription, true);
+    }
+
+    @Override
+    public boolean isEquivalentToForce() {
+        return isEquivalentToForce;
     }
 }
