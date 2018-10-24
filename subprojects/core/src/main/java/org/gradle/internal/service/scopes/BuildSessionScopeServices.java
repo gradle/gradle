@@ -140,7 +140,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     ProjectCacheDir createCacheLayout(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory, ProgressLoggerFactory progressLoggerFactory) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
-        DirectoryScanner.addDefaultExclude(cacheDir.getPath());
+        String exludeCacheDirName = "**/"+ cacheDir.getName();
+        DirectoryScanner.addDefaultExclude(exludeCacheDirName);
         return new ProjectCacheDir(cacheDir, progressLoggerFactory);
     }
 
