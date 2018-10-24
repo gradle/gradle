@@ -665,12 +665,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         createBuildScripts("""
-            configurations.apiElements {
-                exclude group: "foo", module: "bar"
-            }
-
-            configurations.runtimeElements {
-                exclude group: "baz", module: "qux"
+            configurations {
+                api.exclude(group: "api-group", module: "api-module")
+                apiElements.exclude(group: "apiElements-group", module: "apiElements-module")
+                runtime.exclude(group: "runtime-group", module: "runtime-module")
+                runtimeElements.exclude(group: "runtimeElements-group", module: "runtimeElements-module")
+                implementation.exclude(group: "implementation-group", module: "implementation-module")
+                runtimeOnly.exclude(group: "runtimeOnly-group", module: "runtimeOnly-module")
             }
 
             dependencies {
@@ -702,26 +703,50 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
         javaLibrary.assertApiDependencies("org.test:a:1.0", "org.gradle.test:subproject:1.2")
-        javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("foo", "bar"))
-        javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("foo", "bar"))
         javaLibrary.assertRuntimeDependencies("org.test:b:2.0")
-        javaLibrary.parsedPom.scopes.runtime.hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("baz", "qux"))
-
-        and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.test:a:1.0') {
-                hasExclude('foo', 'bar')
-                noMoreExcludes()
+        with(javaLibrary.parsedPom) {
+            with (scopes.compile) {
+                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
+                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
+                hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("api-group", "api-module"))
+                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("apiElements-group", "apiElements-module"))
+                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("runtime-group", "runtime-module"))
+                hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("api-group", "api-module"))
             }
-            dependency('org.gradle.test:subproject:1.2') {
-                hasExclude('foo', 'bar')
-                noMoreExcludes()
+            with (scopes.runtime) {
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeElements-group", "runtimeElements-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("implementation-group", "implementation-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("api-group", "api-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtimeOnly-group", "runtimeOnly-module"))
+                hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("runtime-group", "runtime-module"))
             }
         }
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('org.test:a:1.0') {
-                hasExclude('baz', 'qux')
-                noMoreExcludes()
+
+        and:
+        with(javaLibrary.parsedModuleMetadata) {
+            variant('api') {
+                dependency('org.test:a:1.0') {
+                    hasExclude('apiElements-group', 'apiElements-module')
+                    hasExclude('runtime-group', 'runtime-module')
+                    hasExclude('api-group', 'api-module')
+                    noMoreExcludes()
+                }
+                dependency('org.gradle.test:subproject:1.2') {
+                    hasExclude('apiElements-group', 'apiElements-module')
+                    hasExclude('runtime-group', 'runtime-module')
+                    hasExclude('api-group', 'api-module')
+                    noMoreExcludes()
+                }
+            }
+            variant('runtime') {
+                dependency('org.test:a:1.0') {
+                    hasExclude('runtimeElements-group', 'runtimeElements-module')
+                    hasExclude('implementation-group', 'implementation-module')
+                    hasExclude('api-group', 'api-module')
+                    hasExclude('runtimeOnly-group', 'runtimeOnly-module')
+                    hasExclude('runtime-group', 'runtime-module')
+                    noMoreExcludes()
+                }
             }
         }
     }

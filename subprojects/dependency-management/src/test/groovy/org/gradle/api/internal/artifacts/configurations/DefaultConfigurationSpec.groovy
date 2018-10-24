@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
@@ -72,7 +73,9 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.artifacts.Configuration.State.*
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
+import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -1621,6 +1624,27 @@ All Dependencies:
    DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}
 All Artifacts:
    none"""
+    }
+
+    def "collects exclude rules from hierarchy"() {
+        given:
+        def firstRule = new DefaultExcludeRule("foo", "bar")
+        def secondRule = new DefaultExcludeRule("bar", "baz")
+        def thirdRule = new DefaultExcludeRule("baz", "qux")
+        def rootConfig = configurationWithExcludeRules(thirdRule)
+        def parentConfig = configurationWithExcludeRules(secondRule).extendsFrom(rootConfig)
+        def config = configurationWithExcludeRules(firstRule).extendsFrom(parentConfig)
+
+        expect:
+        config.getAllExcludeRules() == [firstRule, secondRule, thirdRule] as Set
+        parentConfig.getAllExcludeRules() == [secondRule, thirdRule] as Set
+        rootConfig.getAllExcludeRules() == [thirdRule] as Set
+    }
+
+    private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
+        def config = conf()
+        config.setExcludeRules(rules as LinkedHashSet)
+        config
     }
 
     // You need to wrap this in an interaction {} block when calling it

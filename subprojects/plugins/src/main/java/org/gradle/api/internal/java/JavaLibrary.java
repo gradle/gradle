@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -166,7 +167,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<ExcludeRule> getGlobalExcludes() {
             if (excludeRules == null) {
-                this.excludeRules = ImmutableSet.copyOf(getConfiguration().getExcludeRules());
+                this.excludeRules = ImmutableSet.copyOf(((ConfigurationInternal) getConfiguration()).getAllExcludeRules());
             }
             return excludeRules;
         }

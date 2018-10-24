@@ -749,6 +749,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
+    public Set<ExcludeRule> getAllExcludeRules() {
+        Set<ExcludeRule> result = Sets.newLinkedHashSet();
+        result.addAll(getExcludeRules());
+        for (Configuration config : extendsFrom) {
+            result.addAll(((ConfigurationInternal) config).getAllExcludeRules());
+        }
+        return result;
+    }
+
     /**
      * Synchronize read access to excludes. Mutation does not need to be thread-safe.
      */
@@ -864,16 +873,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
         // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule.
-        Set<Configuration> excludeRuleSources = new LinkedHashSet<Configuration>();
-        excludeRuleSources.add(this);
-        if (recursive) {
-            excludeRuleSources.addAll(getHierarchy());
-        }
-
-        for (Configuration excludeRuleSource : excludeRuleSources) {
-            for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
-                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
-            }
+        for (ExcludeRule excludeRule : getAllExcludeRules()) {
+            copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
         }
 
         DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
