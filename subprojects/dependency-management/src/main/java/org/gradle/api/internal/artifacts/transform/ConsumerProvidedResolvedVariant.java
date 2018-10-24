@@ -50,7 +50,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-        visitor.add(new DefaultTransformationDependency(transformation, delegate));
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(new DefaultTransformationDependency(transformation, delegate));
     }
 }

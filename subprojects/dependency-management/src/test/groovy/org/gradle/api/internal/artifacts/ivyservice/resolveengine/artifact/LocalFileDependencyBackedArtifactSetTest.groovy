@@ -49,7 +49,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         files.buildDependencies >> fileBuildDependencies
 
         when:
-        set.collectBuildDependencies(visitor)
+        set.visitDependencies(visitor)
 
         then:
         1 * visitor.add(fileBuildDependencies)

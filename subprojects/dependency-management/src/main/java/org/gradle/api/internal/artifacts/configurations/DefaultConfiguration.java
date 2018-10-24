@@ -85,6 +85,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -115,12 +116,15 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
@@ -344,8 +348,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
-                    "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
-                    configuration, configuration.getHierarchy()));
+                        "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
+                        configuration, configuration.getHierarchy()));
             }
             if (this.extendsFrom.add(configuration)) {
                 if (inheritedArtifacts != null) {
@@ -596,17 +600,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 Path projectPath = domainObjectContext.getProjectPath();
                 String projectPathString = domainObjectContext.isScript() ? null : (projectPath == null ? null : projectPath.getPath());
                 return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .details(new ResolveConfigurationResolutionBuildOperationDetails(
-                        getName(),
-                        domainObjectContext.isScript(),
-                        getDescription(),
-                        domainObjectContext.getBuildPath().getPath(),
-                        projectPathString,
-                        isVisible(),
-                        isTransitive(),
-                        resolver.getRepositories()
-                    ));
+                        .progressDisplayName(displayName)
+                        .details(new ResolveConfigurationResolutionBuildOperationDetails(
+                                getName(),
+                                domainObjectContext.isScript(),
+                                getDescription(),
+                                domainObjectContext.getBuildPath().getPath(),
+                                projectPathString,
+                                isVisible(),
+                                isTransitive(),
+                                resolver.getRepositories()
+                        ));
             }
         });
     }
@@ -729,7 +733,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         for (Configuration configuration : this.extendsFrom) {
             PublishArtifactSet allArtifacts = configuration.getAllArtifacts();
-            if (inheritedArtifacts!= null || !allArtifacts.isEmpty()) {
+            if (inheritedArtifacts != null || !allArtifacts.isEmpty()) {
                 if (inheritedArtifacts == null) {
                     // This configuration cannot be mutated, but some parent configurations provide artifacts
                     inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
@@ -845,8 +849,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         String newName = name + "Copy";
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry);
+                configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
+                rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1594,15 +1598,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
             final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-            selected.collectBuildDependencies(new TaskDependencyResolveContext() {
+            selected.visitDependencies(new TaskDependencyResolveContext() {
+                private final Set<Object> seen = new HashSet<>();
+
                 @Override
                 public void add(Object dep) {
-                    context.add(dep);
+                    if (!seen.add(dep)) {
+                        return;
+                    }
+                    if (dep instanceof TaskDependencyContainer) {
+                        TaskDependencyContainer container = (TaskDependencyContainer) dep;
+                        container.visitDependencies(this);
+                    } else {
+                        context.add(dep);
+                    }
                 }
 
                 @Override
                 public void maybeAdd(Object dependency) {
-                    context.maybeAdd(dependency);
+                    if (!seen.add(dependency)) {
+                        return;
+                    }
+                    if (dependency instanceof TaskDependencyContainer) {
+                        TaskDependencyContainer container = (TaskDependencyContainer) dependency;
+                        container.visitDependencies(this);
+                    } else {
+                        context.maybeAdd(dependency);
+                    }
                 }
 
                 @Override

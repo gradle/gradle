@@ -21,7 +21,7 @@ package org.gradle.api.internal.tasks;
  */
 public interface TaskDependencyContainer {
     /**
-     * Adds the dependencies from this container to the given context.
+     * Adds the dependencies from this container to the given context. Failures to calculate the build dependencies are supplied to the context.
      */
     void visitDependencies(TaskDependencyResolveContext context);
 }

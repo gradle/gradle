@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 import java.io.File;
 
 /**
  * Represents an artifact that can be resolved. Call {@link #getFile()} or {@link ResolvedArtifact#getFile()} to resolve.
  */
-public interface ResolvableArtifact {
+public interface ResolvableArtifact extends TaskDependencyContainer {
     ComponentArtifactIdentifier getId();
 
     /**
@@ -39,6 +39,4 @@ public interface ResolvableArtifact {
     File getFile();
 
     ResolvedArtifact toPublicView();
-
-    void collectBuildDependencies(TaskDependencyResolveContext visitor);
 }

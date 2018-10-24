@@ -362,8 +362,8 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-            visitor.visitFailure(e);
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.visitFailure(e);
         }
 
         @Override

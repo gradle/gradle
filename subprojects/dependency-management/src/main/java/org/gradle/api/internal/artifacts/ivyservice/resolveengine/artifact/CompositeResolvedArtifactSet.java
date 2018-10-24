@@ -77,9 +77,9 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     }
 
     @Override
-    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         for (ResolvedArtifactSet set : sets) {
-            set.collectBuildDependencies(visitor);
+            set.visitDependencies(context);
         }
     }
 

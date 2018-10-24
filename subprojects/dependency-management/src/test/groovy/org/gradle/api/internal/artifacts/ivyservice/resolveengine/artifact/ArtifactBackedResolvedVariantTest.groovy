@@ -127,18 +127,18 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         def set2 = of([artifact1])
 
         when:
-        set1.artifacts.collectBuildDependencies(visitor)
+        set1.artifacts.visitDependencies(visitor)
 
         then:
-        1 * artifact1.collectBuildDependencies(visitor)
-        1 * artifact2.collectBuildDependencies(visitor)
+        1 * visitor.add(artifact1)
+        1 * visitor.add(artifact2)
         0 * visitor._
 
         when:
-        set2.artifacts.collectBuildDependencies(visitor)
+        set2.artifacts.visitDependencies(visitor)
 
         then:
-        1 * artifact1.collectBuildDependencies(visitor)
+        1 * visitor.add(artifact1)
         0 * visitor._
     }
 

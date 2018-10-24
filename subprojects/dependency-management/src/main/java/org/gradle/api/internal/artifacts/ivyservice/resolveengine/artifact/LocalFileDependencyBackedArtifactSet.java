@@ -94,8 +94,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-        visitor.add(dependencyMetadata.getFiles().getBuildDependencies());
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
     private static class SingletonFileResolvedVariant implements ResolvedVariant, BuildableSingleResolvedArtifactSet, Completion, ResolvedVariantSet {
@@ -158,8 +158,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void collectBuildDependencies(TaskDependencyResolveContext visitor) {
-            visitor.add(dependencyMetadata.getFiles().getBuildDependencies());
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(dependencyMetadata.getFiles().getBuildDependencies());
         }
 
         @Override
