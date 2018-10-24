@@ -23,19 +23,40 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.caching.internal.command.BuildCacheCommandFactory;
+import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
+import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.impl.steps.CacheStep;
+import org.gradle.internal.execution.impl.steps.CachingContext;
+import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
+import org.gradle.internal.execution.impl.steps.Context;
+import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
+import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
+import org.gradle.internal.execution.impl.steps.ExecuteStep;
+import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
+import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
+import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
+import org.gradle.internal.execution.impl.steps.TimeoutStep;
+import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
@@ -43,9 +64,9 @@ import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class TaskExecutionServices {
-    TimeoutHandler createTaskTimeoutHandler(ExecutorFactory executorFactory) {
-        return new DefaultTimeoutHandler(executorFactory.createScheduled("task timeouts", 1));
+public class ExecutionServices {
+    TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory) {
+        return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1));
     }
 
     ExecutionHistoryCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -56,7 +77,7 @@ public class TaskExecutionServices {
         return new DefaultExecutionHistoryStore(executionHistoryCacheAccess, stringInterner);
     }
 
-    OutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    OutputFilesRepository createOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheRepository
             .cache(gradle, "buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -67,7 +88,7 @@ public class TaskExecutionServices {
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);
     }
 
-    PlanExecutor createTaskExecutorFactory(
+    PlanExecutor createPlanExecutor(
         ParallelismConfigurationManager parallelismConfigurationManager,
         ExecutorFactory executorFactory,
         WorkerLeaseService workerLeaseService,
@@ -78,13 +99,47 @@ public class TaskExecutionServices {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
 
-        // TODO: Make task plan executor respond to changes in parallelism configuration
+        // TODO: Make plan executor respond to changes in parallelism configuration
         return new DefaultPlanExecutor(
             parallelismConfigurationManager.getParallelismConfiguration(),
             executorFactory,
             workerLeaseService,
             cancellationToken,
             coordinationService
+        );
+    }
+
+    OutputChangeListener createOutputChangeListener(ListenerManager listenerManager) {
+        return listenerManager.getBroadcaster(OutputChangeListener.class);
+    }
+
+    WorkExecutor<UpToDateResult> createWorkExecutor(
+        BuildCacheController buildCacheController,
+        BuildCacheCommandFactory buildCacheCommandFactory,
+        BuildInvocationScopeId buildInvocationScopeId,
+        BuildCancellationToken cancellationToken,
+        OutputChangeListener outputChangeListener,
+        OutputFilesRepository outputFilesRepository,
+        TimeoutHandler timeoutHandler
+    ) {
+        return new DefaultWorkExecutor<UpToDateResult>(
+            new SkipUpToDateStep<Context>(
+                new StoreSnapshotsStep<Context>(outputFilesRepository,
+                    new PrepareCachingStep<Context, CurrentSnapshotResult>(
+                        new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
+                            new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
+                                new CreateOutputsStep<Context, Result>(
+                                    new CatchExceptionStep<Context>(
+                                        new TimeoutStep<Context>(timeoutHandler,
+                                            new ExecuteStep(cancellationToken, outputChangeListener)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
         );
     }
 }

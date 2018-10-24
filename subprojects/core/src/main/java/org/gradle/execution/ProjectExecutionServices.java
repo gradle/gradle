@@ -49,30 +49,14 @@ import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.execution.impl.DefaultWorkExecutor;
-import org.gradle.internal.execution.impl.steps.CacheStep;
-import org.gradle.internal.execution.impl.steps.CachingContext;
-import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
-import org.gradle.internal.execution.impl.steps.Context;
-import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
-import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
-import org.gradle.internal.execution.impl.steps.ExecuteStep;
-import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
-import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
-import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
-import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
-import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -105,42 +89,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
         AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
-    OutputChangeListener createOutputChangeListener(ListenerManager listenerManager) {
-        return listenerManager.getBroadcaster(OutputChangeListener.class);
-    }
-
     TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
         return listenerManager.getBroadcaster(TaskActionListener.class);
-    }
-
-    WorkExecutor<UpToDateResult> createWorkExecutor(
-        BuildCacheController buildCacheController,
-        BuildCacheCommandFactory buildCacheCommandFactory,
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildCancellationToken cancellationToken,
-        OutputChangeListener outputChangeListener,
-        OutputFilesRepository outputFilesRepository,
-        TimeoutHandler timeoutHandler
-    ) {
-        return new DefaultWorkExecutor<UpToDateResult>(
-            new SkipUpToDateStep<Context>(
-                new StoreSnapshotsStep<Context>(outputFilesRepository,
-                    new PrepareCachingStep<Context, CurrentSnapshotResult>(
-                        new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-                            new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
-                                new CreateOutputsStep<Context, Result>(
-                                    new CatchExceptionStep<Context>(
-                                        new TimeoutStep<Context>(timeoutHandler,
-                                            new ExecuteStep(cancellationToken, outputChangeListener)
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
     }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,

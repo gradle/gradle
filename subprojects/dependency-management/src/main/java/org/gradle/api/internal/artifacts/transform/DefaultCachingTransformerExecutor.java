@@ -17,8 +17,11 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Action;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -31,10 +34,19 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.impl.steps.UpToDateResult;
+import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -49,12 +61,15 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
@@ -73,9 +88,11 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
     private final FileSystemSnapshotter fileSystemSnapshotter;
     private final FileAccessTracker fileAccessTracker;
+    private final WorkExecutor<UpToDateResult> workExecutor;
 
-    public DefaultCachingTransformerExecutor(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+    public DefaultCachingTransformerExecutor(WorkExecutor<UpToDateResult> workExecutor, ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                              FileSystemSnapshotter fileSystemSnapshotter, FileAccessTimeJournal fileAccessTimeJournal) {
+        this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
@@ -135,7 +152,7 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
      * Loads the transformed files from the file system cache into memory. Creates them if they are not present yet.
      * This makes sure that only one thread tries to load a result for a given key.
      */
-    private List<File> loadIntoCache(final File inputFile, final CacheKey cacheKey, final BiFunction<List<File>, File, File> transformer) {
+    private List<File> loadIntoCache(final File inputFile, final CacheKey cacheKey, final Transformer transformer) {
         return producing.guardByKey(cacheKey, new Factory<List<File>>() {
             @Override
             public List<File> create() {
@@ -243,20 +260,111 @@ public class DefaultCachingTransformerExecutor implements CachingTransformerExec
         }
     }
 
-    private static class TransformAction implements Action<File> {
-        private final BiFunction<List<File>, File, File> transformer;
-        private final File inputFile;
+    private class TransformAction implements Action<File> {
+        private final Transformer transformer;
+        private final File primarInput;
         private ImmutableList<File> result;
 
-        TransformAction(BiFunction<List<File>, File, File> transformer, File inputFile) {
+        public TransformAction(Transformer transformer, File primarInput) {
             this.transformer = transformer;
-            this.inputFile = inputFile;
+            this.primarInput = primarInput;
         }
 
         @Override
-        public void execute(File outputDir) {
-            outputDir.mkdirs();
-            result = ImmutableList.copyOf(transformer.apply(inputFile, outputDir));
+        public void execute(final File outputDir) {
+            UpToDateResult result = workExecutor.execute(new TransformerExecution(primarInput, outputDir, transformer, (files) -> this.result = files));
+            if (result.getFailure() != null) {
+                throw UncheckedException.throwAsUncheckedException(result.getFailure());
+            }
+        }
+    }
+
+    private class TransformerExecution implements UnitOfWork {
+        private final File primaryInput;
+        private final File outputDir;
+        private final Transformer transformer;
+        private final Consumer<ImmutableList<File>> resultHandler;
+
+        public TransformerExecution(File primaryInput, File outputDir, Transformer transformer, Consumer<ImmutableList<File>> resultHandler) {
+            this.primaryInput = primaryInput;
+            this.outputDir = outputDir;
+            this.transformer = transformer;
+            this.resultHandler = resultHandler;
+        }
+
+        @Override
+        public boolean execute() {
+            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir));
+            resultHandler.accept(result);
+            return true;
+        }
+
+        @Override
+        public Optional<Duration> getTimeout() {
+            return Optional.empty();
+        }
+
+        @Override
+        public void visitOutputs(OutputVisitor outputVisitor) {
+            outputVisitor.visitOutput("output", TreeType.DIRECTORY, ImmutableFileCollection.of(outputDir));
+        }
+
+        @Override
+        public long markExecutionTime() {
+            // TODO Handle execution time
+            return 0;
+        }
+
+        @Override
+        public FileCollection getLocalState() {
+            return ImmutableFileCollection.of();
+        }
+
+        @Override
+        public void afterOutputsRemovedBeforeTask() {
+        }
+
+        @Override
+        public CacheHandler createCacheHandler() {
+            return new CacheHandler() {
+                @Override
+                public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
+                    return Optional.empty();
+                }
+
+                @Override
+                public void store(Consumer<BuildCacheKey> storer) {
+                }
+            };
+        }
+
+        @Override
+        public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
+        }
+
+        @Override
+        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
+            return Optional.empty();
+        }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
+            return ImmutableSortedMap.of();
+        }
+
+        @Override
+        public String getIdentity() {
+            return "fake";
+        }
+
+        @Override
+        public void visitTrees(CacheableTreeVisitor visitor) {
+            throw new UnsupportedOperationException("we don't cache yet");
+        }
+
+        @Override
+        public String getDisplayName() {
+            return transformer.getDisplayName() + ": " + primaryInput;
         }
     }
 }

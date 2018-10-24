@@ -20,15 +20,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.transform.CachingTransformerExecutor;
-import org.gradle.api.internal.artifacts.transform.DefaultCachingTransformerExecutor;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class DependencyManagementGradleUserHomeScopeServices {
     DefaultArtifactCacheMetadata createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
@@ -38,13 +33,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ArtifactCacheLockingManager createArtifactCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal,
                                                                   UsedGradleVersions usedGradleVersions) {
         return new DefaultArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions);
-    }
-
-    CachingTransformerExecutor createTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                          FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager, FileAccessTimeJournal fileAccessTimeJournal) {
-        DefaultCachingTransformerExecutor transformedFileCache = new DefaultCachingTransformerExecutor(artifactCacheMetadata, cacheRepository, cacheDecoratorFactory, fileSystemSnapshotter, fileAccessTimeJournal);
-        listenerManager.addListener(transformedFileCache);
-        return transformedFileCache;
     }
 
 }
