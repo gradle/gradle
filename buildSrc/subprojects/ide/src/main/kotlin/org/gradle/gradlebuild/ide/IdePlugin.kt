@@ -129,11 +129,18 @@ open class IdePlugin : Plugin<Project> {
                         // Remove references to other project's binaries
                         entries.removeAll { it is AbstractClasspathEntry && it.path.contains("/subprojects") && it.kind == "lib" }
                         // Add needed resources for running gradle as a non daemon java application
-                        entries.add(SourceFolder("build/generated-resources/main", null))
+                        if (file("build/generated-resources/main").exists()) {
+                            entries.add(SourceFolder("build/generated-resources/main", null))
+                        }
                         if (file("build/generated-resources/test").exists()) {
                             entries.add(SourceFolder("build/generated-resources/test", null))
                         }
                     })
+                }
+                jdt {
+                    sourceCompatibility = JavaVersion.VERSION_1_8
+                    targetCompatibility = JavaVersion.VERSION_1_8
+                    javaRuntimeName = "JavaSE-1.8"
                 }
             }
         }
