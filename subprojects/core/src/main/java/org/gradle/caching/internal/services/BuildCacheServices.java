@@ -71,7 +71,7 @@ public class BuildCacheServices {
         return new OriginMetadataFactory(clock, inetAddressFactory, rootDir, SystemProperties.getInstance().getUserName(), OperatingSystem.current().getName(), GradleVersion.current(), buildInvocationScopeId.getId());
     }
 
-    BuildCacheCommandFactory createTaskOutputCacheCommandFactory(
+    BuildCacheCommandFactory createBuildCacheCommandFactory(
         BuildCacheEntryPacker packer,
         OriginMetadataFactory originMetadataFactory,
         FileSystemMirror fileSystemMirror,

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
@@ -26,6 +27,11 @@ import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.impl.steps.Context
+import org.gradle.internal.execution.impl.steps.CreateOutputsStep
+import org.gradle.internal.execution.impl.steps.Step
+import org.gradle.internal.execution.impl.steps.UpToDateResult
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.snapshot.FileSystemSnapshotter
@@ -55,6 +61,15 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     }
     def snapshotter = Mock(FileSystemSnapshotter)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
+    def result = Mock(UpToDateResult)
+    def executeStep = new Step<Context, UpToDateResult>() {
+        @Override
+        UpToDateResult execute(Context context) {
+            context.work.execute()
+            return result
+        }
+    }
+    def workExecutor = new DefaultWorkExecutor(new CreateOutputsStep(executeStep))
     DefaultCachingTransformerExecutor cache
 
     def setup() {
@@ -65,7 +80,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     }
 
     private DefaultCachingTransformerExecutor createCache() {
-        new DefaultCachingTransformerExecutor(artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
+        new DefaultCachingTransformerExecutor(workExecutor, artifactCacheMetaData, cacheRepo, decorator, snapshotter, fileAccessTimeJournal)
     }
 
     def "reuses result for given inputs and transform"() {
@@ -81,7 +96,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         and:
         1 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * transformerRegistration.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * transformerRegistration.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * snapshotter._
         0 * transformerRegistration._
@@ -117,7 +132,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def hash = HashCode.fromInt(123)
         _ * transformerRegistration.secondaryInputHash >> hash
         _ * snapshotter.snapshot(_) >> snapshot(hash)
-        _ * transformerRegistration.apply(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
+        _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
 
         when:
         cache.getResult(inputFile, transformerRegistration)
@@ -134,7 +149,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def otherHash = HashCode.fromInt(456)
         _ * transformerRegistration.secondaryInputHash >> hash
         _ * snapshotter.snapshot(_) >> snapshot(hash)
-        _ * transformerRegistration.apply(_, _) >>  { File file, File dir -> [file] }
+        _ * transformerRegistration.transform(_, _) >>  { File file, File dir -> [file] }
 
         when:
         cache.getResult(inputFile, transformerRegistration)
@@ -156,7 +171,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         and:
         1 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * transformerRegistration.apply(inputFile, _) >>  { File file, File dir -> [file] }
+        1 * transformerRegistration.transform(inputFile, _) >>  { File file, File dir -> [file] }
         0 * snapshotter._
         0 * transformerRegistration._
 
@@ -207,7 +222,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         and:
         4 * transformerRegistration.secondaryInputHash >> HashCode.fromInt(123)
         4 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
-        1 * transformerRegistration.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * transformerRegistration.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transformerRegistration._
     }
@@ -215,7 +230,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
     def "multiple threads can transform files concurrently"() {
         def transformerRegistrationA = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(123), null) {
             @Override
-            List<File> apply(File primaryInput, File outputDir) {
+            List<File> transform(File primaryInput, File outputDir) {
                 instant.a
                 thread.blockUntil.b
                 instant.a_done
@@ -223,7 +238,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         }
         def transformerRegistrationB = new DefaultTransformer(ArtifactTransform.class, null, HashCode.fromInt(345), null) {
             @Override
-            List<File> apply(File primaryInput, File outputDir) {
+            List<File> transform(File primaryInput, File outputDir) {
                 instant.b
                 thread.blockUntil.a
                 instant.b_done
@@ -256,7 +271,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         given:
-        _ * transform1.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        _ * transform1.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
         cache.getResult(inputFile, transform1)
@@ -268,7 +283,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         result*.name == ["a.2"]
 
         and:
-        1 * transform2.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
+        1 * transform2.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
         _ * transform2.secondaryInputHash >> HashCode.fromInt(234)
         0 * transform1._
         0 * transform2._
@@ -296,7 +311,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         given:
-        _ * transform1.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        _ * transform1.transform(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         _ * transform1.secondaryInputHash >> HashCode.fromInt(123)
         _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
 
@@ -311,7 +326,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         and:
         1 * transform2.secondaryInputHash >> HashCode.fromInt(345)
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform2.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
+        1 * transform2.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
         0 * transform1._
         0 * transform2._
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
@@ -349,7 +364,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         1 * transform.secondaryInputHash >> HashCode.fromInt(123)
         _ * transform.implementationClass >> ArtifactTransform
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.apply(inputFile, _) >>  { File file, File dir ->
+        1 * transform.transform(inputFile, _) >>  { File file, File dir ->
             dir.mkdirs()
             new File(dir, "delete-me").text = "broken"
             throw failure
@@ -365,7 +380,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         and:
         1 * transform.secondaryInputHash >> HashCode.fromInt(123)
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.apply(inputFile, _) >>  { File file, File dir ->
+        1 * transform.transform(inputFile, _) >>  { File file, File dir ->
             assert dir.list().length == 0
             def r = new File(dir, "a.1")
             r.text = "result"
@@ -382,7 +397,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         given:
         1 * transform.secondaryInputHash >> HashCode.fromInt(123)
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * transform.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
 
         def result = cache.getResult(inputFile, transform)
 
@@ -397,7 +412,7 @@ class DefaultCachingTransformerExecutorTest extends ConcurrentSpec {
         and:
         1 * transform.secondaryInputHash >> HashCode.fromInt(123)
         1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
-        1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
+        1 * transform.transform(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform._
     }
