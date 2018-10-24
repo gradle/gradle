@@ -30,6 +30,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
@@ -41,6 +42,7 @@ import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
@@ -51,6 +53,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
+    private Action<? super ArtifactResolutionDetails> contentFilter;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
@@ -98,6 +101,20 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
         this.componentMetadataListerRuleClass = lister;
         this.componentMetadataListerRuleConfiguration = configureAction;
+    }
+
+    @Override
+    public void contentFilter(Action<? super ArtifactResolutionDetails> spec) {
+        if (contentFilter == null) {
+            contentFilter = spec;
+        } else {
+            contentFilter = Actions.composite(contentFilter, spec);
+        }
+    }
+
+    @Nullable
+    public Action<? super ArtifactResolutionDetails> getContentFilter() {
+        return contentFilter;
     }
 
     InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
