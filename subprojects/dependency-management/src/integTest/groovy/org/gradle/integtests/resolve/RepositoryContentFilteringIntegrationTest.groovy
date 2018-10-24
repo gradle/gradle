@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -134,7 +135,144 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    void repositories(@DelegatesTo(value=RepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> spec) {
+    /**
+     * Use case: allow different configurations to resolve the same dependencies but not necessarily from
+     * the same repositories. For example, for a distribution we would only allow fetching from blessed
+     * repositories while for tests, we would be more lenient. This can be achieved by checking the name
+     * of the configuration being resolved, in the rule.
+     */
+    def "can filter by configuration name"() {
+        def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""contentFilter { details ->
+                if (details.consumerName == 'conf') { 
+                   details.notFound() 
+                }
+            }""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:1.0"
+            }
+        """
+
+        when:
+        mod.ivy.expectGet()
+        mod.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+            }
+        }
+    }
+
+    @Unroll
+    def "two configurations can use the same repositories with filtering and do not interfere with each other"() {
+        def mod = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+
+        given:
+        repositories {
+            maven("""contentFilter { details ->
+                if (details.consumerName == 'conf') { 
+                   details.notFound() 
+                }
+            }""")
+        }
+        buildFile << """
+            configurations {
+                conf2
+            }
+            dependencies {
+                conf "org:foo:1.0"
+                conf2 "org:foo:1.0"
+            }
+            tasks.register("verify") {
+                doFirst {
+                    $check1               
+                    $check2
+                }
+            }
+        """
+
+        when:
+        mod.pom.expectGet()
+        mod.artifact.expectGet()
+
+        then:
+        succeeds 'verify'
+
+        where:
+        check1 << [checkConfIsUnresolved(), checkConf2IsResolved()]
+        check2 << [checkConf2IsResolved(), checkConfIsUnresolved()]
+    }
+
+    /**
+     * Use case: explain that a repository doesn't contain dependencies with specific attributes.
+     * This can be useful when a repository only contains dependencies of a certain type (for example, native binaries or JS libraries)
+     * so it wouldn't be necessary to look for POM files in them for example.
+     */
+    def "can filter by attributes"() {
+        def mod = ivyHttpRepo.module('org', 'foo', '1.0').publish()
+        buildFile << """
+            def colorAttribute = Attribute.of('colorAttribute', String)
+        """
+        given:
+        repositories {
+            maven("""contentFilter { details ->
+                println(details.consumerAttributes)
+                if (details.consumerAttributes.getAttribute(colorAttribute) == 'blue') { 
+                   details.notFound() 
+                }
+            }""")
+            ivy()
+        }
+        buildFile << """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(colorAttribute, 'blue')
+                    }
+                }
+            }
+            dependencies {
+                conf("org:foo:1.0")
+            }
+        """
+
+        when:
+        mod.ivy.expectGet()
+        mod.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org:foo:1.0')
+            }
+        }
+    }
+
+
+    static String checkConfIsUnresolved() {
+        """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies
+                    assert confIncoming.every { it instanceof UnresolvedDependencyResult }"""
+    }
+
+    static String checkConf2IsResolved() {
+        """def conf2Incoming = configurations.conf2.incoming.resolutionResult.allDependencies
+                    assert conf2Incoming.every { it instanceof ResolvedDependencyResult }
+                    assert configurations.conf2.files.name == ['foo-1.0.jar']"""
+    }
+
+    void repositories(@DelegatesTo(value = RepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> spec) {
         def delegate = new RepositorySpec()
         spec.delegate = delegate
         spec.resolveStrategy = Closure.DELEGATE_FIRST
