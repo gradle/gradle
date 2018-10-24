@@ -20,7 +20,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 
 import org.gradle.kotlin.dsl.concurrent.WriterThread
-import org.gradle.kotlin.dsl.concurrent.unorderedParallelMap
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.beginFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.beginPublicClass
@@ -41,7 +40,7 @@ fun emitAccessorsFor(
 ): List<InternalName> = writerThreadFor(srcDir, binDir).useToRun {
 
     val emittedClassNames =
-        accessorsFor(projectSchema).unorderedParallelMap { accessor ->
+        accessorsFor(projectSchema).map { accessor ->
             emitClassFor(accessor, srcDir, binDir)
         }.toList()
 
