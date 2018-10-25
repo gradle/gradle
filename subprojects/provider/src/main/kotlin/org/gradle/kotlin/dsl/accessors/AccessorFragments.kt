@@ -136,9 +136,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     ALOAD(2)
                     invokeRuntime(
                         "addDependencyTo",
-                        "(L${GradleTypeName.dependencyHandlerTypeName};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/Dependency;"
+                        "(L${GradleTypeName.dependencyHandler};Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/Dependency;"
                     )
-                    CHECKCAST(GradleTypeName.externalModuleDependencyTypeName)
+                    CHECKCAST(GradleTypeName.externalModuleDependency)
                     ARETURN()
                 }
             },
@@ -278,7 +278,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.dependencyHandlerTypeName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+                    INVOKEINTERFACE(GradleTypeName.dependencyHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
                     ARETURN()
                 }
             },
@@ -327,7 +327,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.dependencyConstraintHandlerTypeName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;")
+                    INVOKEINTERFACE(GradleTypeName.dependencyConstraintHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/DependencyConstraint;")
                     ARETURN()
                 }
             },
@@ -370,7 +370,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                     LDC(propertyName)
                     ALOAD(1)
                     ALOAD(2)
-                    INVOKEINTERFACE(GradleTypeName.dependencyConstraintHandlerTypeName, "add", "(Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;")
+                    INVOKEINTERFACE(GradleTypeName.dependencyConstraintHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/DependencyConstraint;")
                     ARETURN()
                 }
             },
@@ -409,7 +409,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
 private
 fun fragmentsForContainerElement(accessor: Accessor.ForContainerElement) =
     fragmentsForContainerElementOf(
-        GradleTypeName.namedDomainObjectProviderTypeName,
+        GradleTypeName.namedDomainObjectProvider,
         GradleTypeName.namedWithTypeMethodDescriptor,
         accessor.spec,
         existingContainerElementAccessor(accessor.spec)
@@ -419,7 +419,7 @@ fun fragmentsForContainerElement(accessor: Accessor.ForContainerElement) =
 private
 fun fragmentsForTask(accessor: Accessor.ForTask) =
     fragmentsForContainerElementOf(
-        GradleTypeName.taskProviderTypeName,
+        GradleTypeName.taskProvider,
         GradleTypeName.namedTaskWithTypeMethodDescriptor,
         accessor.spec,
         existingTaskAccessor(accessor.spec)
@@ -518,11 +518,11 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             bytecode = {
                 publicStaticMethod(signature) {
                     ALOAD(0)
-                    CHECKCAST(GradleTypeName.extensionAwareTypeName)
-                    INVOKEINTERFACE(GradleTypeName.extensionAwareTypeName, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
+                    CHECKCAST(GradleTypeName.extensionAware)
+                    INVOKEINTERFACE(GradleTypeName.extensionAware, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
                     LDC(name.original)
                     ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.extensionContainerTypeName, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
+                    INVOKEINTERFACE(GradleTypeName.extensionContainer, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
                     RETURN()
                 }
             },
@@ -613,7 +613,7 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
 
 private
 fun MethodVisitor.invokeDependencyHandlerAdd() {
-    INVOKEINTERFACE(GradleTypeName.dependencyHandlerTypeName, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
+    INVOKEINTERFACE(GradleTypeName.dependencyHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
 }
 
 
@@ -635,7 +635,7 @@ fun TypeAccessibility.Accessible.internalName() =
 
 private
 fun MethodVisitor.invokeAction() {
-    INVOKEINTERFACE(GradleTypeName.actionTypeName, "execute", "(Ljava/lang/Object;)V")
+    INVOKEINTERFACE(GradleTypeName.action, "execute", "(Ljava/lang/Object;)V")
 }
 
 

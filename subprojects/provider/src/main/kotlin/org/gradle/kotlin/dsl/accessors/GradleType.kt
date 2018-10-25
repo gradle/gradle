@@ -61,23 +61,23 @@ object GradleType {
 internal
 object GradleTypeName {
 
-    val actionTypeName = Action::class.internalName
+    val action = Action::class.internalName
 
-    val externalModuleDependencyTypeName = ExternalModuleDependency::class.internalName
+    val externalModuleDependency = ExternalModuleDependency::class.internalName
 
-    val dependencyHandlerTypeName = DependencyHandler::class.internalName
+    val dependencyHandler = DependencyHandler::class.internalName
 
-    val dependencyConstraintHandlerTypeName = DependencyConstraintHandler::class.internalName
+    val dependencyConstraintHandler = DependencyConstraintHandler::class.internalName
 
-    val extensionAwareTypeName = ExtensionAware::class.internalName
+    val extensionAware = ExtensionAware::class.internalName
 
-    val extensionContainerTypeName = ExtensionContainer::class.internalName
+    val extensionContainer = ExtensionContainer::class.internalName
 
-    val namedDomainObjectProviderTypeName = NamedDomainObjectProvider::class.internalName
+    val namedDomainObjectProvider = NamedDomainObjectProvider::class.internalName
 
-    val namedWithTypeMethodDescriptor = "(Ljava/lang/String;Ljava/lang/Class;)L$namedDomainObjectProviderTypeName;"
+    val taskProvider = TaskProvider::class.internalName
 
-    val taskProviderTypeName = TaskProvider::class.internalName
+    val namedWithTypeMethodDescriptor = "(Ljava/lang/String;Ljava/lang/Class;)L$namedDomainObjectProvider;"
 
-    val namedTaskWithTypeMethodDescriptor = "(Ljava/lang/String;Ljava/lang/Class;)L$taskProviderTypeName;"
+    val namedTaskWithTypeMethodDescriptor = "(Ljava/lang/String;Ljava/lang/Class;)L$taskProvider;"
 }
