@@ -255,6 +255,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @return the appendix. May be null
      * @since 5.1
      */
+    @Internal("Represented as part of archiveFile")
     public Property<String> getArchiveAppendix() {
         return archiveAppendix;
     }
