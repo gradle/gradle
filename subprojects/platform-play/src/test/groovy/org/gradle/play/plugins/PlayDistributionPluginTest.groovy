@@ -23,12 +23,14 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.java.archives.Manifest
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Tar
@@ -145,9 +147,9 @@ class PlayDistributionPluginTest extends Specification {
         }
         1 * tasks.create("createPlayBinaryDistributionJar", Jar, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Jar) {
-                1 * setArchiveName("playBinary.zip")
+                1 * getArchiveFileName() >> Mock(Property)
                 1 * dependsOn(jarTasks)
-                1 * setDestinationDir(_)
+                1 * getDestinationDirectory() >> Mock(DirectoryProperty)
                 1 * from(_ as FileTree)
                 1 * getProject() >> Stub(Project) {
                     fileTree(_) >> Stub(FileTree)
@@ -188,16 +190,16 @@ class PlayDistributionPluginTest extends Specification {
         1 * tasks.create("createPlayBinaryZipDist", Zip, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Zip) {
                 1 * setDescription(_)
-                1 * setDestinationDir(_)
-                1 * setBaseName("playBinary")
+                1 * getDestinationDirectory() >> Mock(DirectoryProperty)
+                1 * getArchiveBaseName() >> Mock(Property)
                 1 * from(_ as Sync)
             })
         }
         1 * tasks.create("createPlayBinaryTarDist", Tar, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Tar) {
                 1 * setDescription(_)
-                1 * setDestinationDir(_)
-                1 * setBaseName("playBinary")
+                1 * getDestinationDirectory() >> Mock(DirectoryProperty)
+                1 * getArchiveBaseName() >> Mock(Property)
                 1 * from(_ as Sync)
             })
         }
