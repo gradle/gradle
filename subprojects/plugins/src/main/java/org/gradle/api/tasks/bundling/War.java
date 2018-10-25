@@ -60,7 +60,7 @@ public class War extends Jar {
 
 
     public War() {
-        setExtension(WAR_EXTENSION);
+        getArchiveExtension().set(WAR_EXTENSION);
         setMetadataCharset("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
 

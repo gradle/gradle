@@ -211,8 +211,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                             public void execute(Zip headersZip) {
                                 headersZip.from(library.getPublicHeaderFiles());
                                 headersZip.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("headers"));
-                                headersZip.setClassifier("cpp-api-headers");
-                                headersZip.setArchiveName("cpp-api-headers.zip");
+                                headersZip.getArchiveClassifier().set("cpp-api-headers");
+                                headersZip.getArchiveFileName().set("cpp-api-headers.zip");
                             }
                         });
                         mainVariant.addArtifact(new LazyPublishArtifact(headersZip));
