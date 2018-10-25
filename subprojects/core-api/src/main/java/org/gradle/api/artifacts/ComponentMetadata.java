@@ -43,6 +43,13 @@ public interface ComponentMetadata extends HasAttributes {
      * Returns the status of the component. Must
      * match one of the values in {@link #getStatusScheme()}.
      *
+     * <p>
+     * For an external module component, the status is determined from the module descriptor:
+     * <ul>
+     *     <li>For modules in an Ivy repository, this value is taken from the published ivy descriptor.</li>
+     *     <li>For modules in a Maven repository, this value will be "integration" for a SNAPSHOT module, and "release" for all non-SNAPSHOT modules.</li>
+     * </ul>
+     *
      * @return the status of the component
      */
     String getStatus();
