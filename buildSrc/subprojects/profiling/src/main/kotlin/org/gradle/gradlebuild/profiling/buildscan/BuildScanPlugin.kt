@@ -22,6 +22,7 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import org.gradle.gradlebuild.BuildEnvironment.isTravis
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -60,7 +61,7 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        if (isCiServer) {
+        if (isCiServer && !isTravis) {
             extractAllReportsFromCI()
         }
 
@@ -111,7 +112,7 @@ open class BuildScanPlugin : Plugin<Project> {
         if (isCiServer) {
             buildScan {
                 tag("CI")
-                if (!System.getenv("TRAVIS").isNullOrEmpty()) {
+                if (isTravis) {
                     link("Travis Build", System.getenv("TRAVIS_BUILD_WEB_URL"))
                     value("Build ID", System.getenv("TRAVIS_BUILD_ID"))
                     setCommitId(System.getenv("TRAVIS_COMMIT"))
@@ -210,8 +211,10 @@ open class BuildScanPlugin : Plugin<Project> {
     fun BuildScanExtension.setCommitId(commitId: String) {
         value(gitCommitName, commitId)
         link("Source", "https://github.com/gradle/gradle/commit/$commitId")
-        link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
-        link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
+        if (!isTravis) {
+            link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
+            link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
+        }
     }
 
     private
