@@ -15,6 +15,54 @@
            "changes": [
                "Constructor has been removed"
            ]
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveAppendix()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveBaseName()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveClassifier()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveExtension()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFile()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFileName()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveVersion()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
+       },
+       {
+           "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+           "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()",
+           "acceptation": "Replacing existing properties with Provider API",
+           "changes": []
        }
    ]
 }

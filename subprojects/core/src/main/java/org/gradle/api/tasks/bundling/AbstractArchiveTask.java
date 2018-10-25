@@ -55,7 +55,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
-    protected AbstractArchiveTask() {
+    public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
 
         archiveDestinationDirectory = objectFactory.directoryProperty();
@@ -152,6 +152,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * The path is simply the {@code destinationDir} plus the {@code archiveName}.
      *
      * @return a {@link RegularFile} object with the path to the archive
+     * @since 5.1
      */
     @OutputFile
     @SuppressWarnings("DanglingJavadoc")
@@ -192,6 +193,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * The directory where the archive will be placed.
+     *
+     * @since 5.1
      */
     @Internal("Represented by the archiveFile")
     public DirectoryProperty getDestinationDirectory() {
@@ -345,7 +348,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Sets the classifier.
-     * 
+     *
      * @deprecated Use {@link #getArchiveClassifier()}
      */
     @Deprecated
