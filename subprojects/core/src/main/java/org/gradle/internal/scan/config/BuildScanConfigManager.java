@@ -36,6 +36,8 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
     private static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
 
+    private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
+
     private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
     private static final String SYSPROP_KEY = "scan";
     private static final List<String> ENABLED_SYS_PROP_VALUES = Arrays.asList(null, "", "yes", "true");
@@ -108,7 +110,20 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
 
         VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
         String unsupportedReason = compatibility.unsupportedReason(pluginVersion);
-        return requestedness.toConfig(unsupportedReason, configAttributes);
+
+        if (unsupportedReason != null) {
+            if (isPluginAwareOfUnsupported(pluginVersion)) {
+                return requestedness.toConfig(unsupportedReason, configAttributes);
+            } else {
+                throw new UnsupportedBuildScanPluginVersionException(unsupportedReason);
+            }
+        }
+
+        return requestedness.toConfig(null, configAttributes);
+    }
+
+    private boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
+        return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
     }
 
     @Override
