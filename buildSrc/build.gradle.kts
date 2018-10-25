@@ -64,8 +64,8 @@ subprojects {
                 outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
 
                 val mainSourceSet = project.sourceSets.main.get()
-                setClasses(mainSourceSet.output.classesDirs)
-                setClasspath(mainSourceSet.compileClasspath)
+                classes.setFrom(mainSourceSet.output.classesDirs)
+                classpath.setFrom(mainSourceSet.compileClasspath)
                 dependsOn(mainSourceSet.output)
             }
             tasks.check { dependsOn(validateTaskProperties) }
@@ -74,6 +74,7 @@ subprojects {
 
     tasks.withType<ValidateTaskProperties> {
         failOnWarning = true
+        enableStricterValidation = true
     }
 }
 

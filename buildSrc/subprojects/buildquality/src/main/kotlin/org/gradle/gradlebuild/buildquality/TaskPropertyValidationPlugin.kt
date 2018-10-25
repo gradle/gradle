@@ -77,11 +77,12 @@ fun Project.addValidateTask() =
             val validateTask = tasks.register(validateTaskName, ValidateTaskProperties::class) {
                 val main by java.sourceSets
                 dependsOn(main.output)
-                setClasses(main.output.classesDirs)
-                setClasspath(main.runtimeClasspath)
+                classes.setFrom(main.output.classesDirs)
+                classes.setFrom(main.runtimeClasspath)
                 // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
                 outputFile.set(reporting.baseDirectory.file(reportFileName))
                 failOnWarning = true
+                enableStricterValidation = true
             }
             tasks.named("codeQuality").configure {
                 dependsOn(validateTask)

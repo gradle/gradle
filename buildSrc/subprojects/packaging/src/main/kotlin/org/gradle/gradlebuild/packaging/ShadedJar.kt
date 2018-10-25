@@ -23,23 +23,30 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Path
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Queue
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
 
 open class ShadedJar : DefaultTask() {
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     val relocatedClassesConfiguration = project.files()
+    @PathSensitive(PathSensitivity.NONE)
     @InputFiles
     val classTreesConfiguration = project.files()
+    @PathSensitive(PathSensitivity.NONE)
     @InputFiles
     val entryPointsConfiguration = project.files()
+    @PathSensitive(PathSensitivity.NONE)
     @InputFiles
     val manifests = project.files()
 
@@ -48,6 +55,7 @@ open class ShadedJar : DefaultTask() {
      *
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     val buildReceiptFile: RegularFileProperty = project.objects.fileProperty()
 

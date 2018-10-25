@@ -60,12 +60,6 @@ public class PropertyValidationAccess {
         InputDirectory.class, new MissingPathSensitivityValidator()
     );
 
-    // TODO: Remove as soon as we updated the wrapper on `gradle/gradle` to include the method {@link #collectTaskValidationProblems(Class, Map, boolean)}.
-    @Deprecated
-    public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
-        collectTaskValidationProblems(topLevelBean, problems, false);
-    }
-
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
