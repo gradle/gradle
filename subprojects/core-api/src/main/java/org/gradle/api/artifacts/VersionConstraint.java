@@ -21,9 +21,58 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Represents a constrained version. By default, when a dependency has a version number, it is assumed
- * that the version can be upgraded during conflict resolution (typically, version 1.15 can be upgraded to 1.16). However
- * in some cases we don't want this behavior. This class represents the base spec of module constraints.
+ * Represents a constraint that is used to match module versions to a dependency.
+ * Each of {@link #getPreferredVersion()}, {@link #getRequiredVersion()} and {@link #getStrictVersion()} is represented by a version String,
+ * that can be compared against a module version to determine if the version matches.
+ *
+ * <h4>Version syntax</h4>
+ * <p>
+ * Gradle supports different ways of declaring a version String:
+ * <ul>
+ *     <li>An exact version: e.g. 1.3, 1.3.0-beta3, 1.0-20150201.131010-1</li>
+ *     <li>A Maven-style version range: e.g. [1.0,), [1.1, 2.0), (1.2, 1.5]
+ *          <ul>
+ *              <li>The '[' and ']' symbols indicate an inclusive bound; '(' and ')' indicate an exclusive bound.</li>
+ *              <li>When the upper or lower bound is missing, the range has no upper or lower bound.</li>
+ *              <li>The symbol ']' can be used instead of '(' for an exclusive lower bound, and '[' instead of ')' for exclusive upper bound. e.g "]1.0, 2.0["</li>
+ *          </ul>
+ *     </li>
+ *     <li>A prefix version range: e.g. 1.+, 1.3.+
+ *          <ul>
+ *              <li>Only versions exactly matching the portion before the '+' are included.</li>
+ *              <li>The range '+' on it's own will include any version.</li>
+ *          </ul>
+ *     </li>
+ *     <li>A latest-status version: e.g. latest.integration, latest.release
+ *         <ul>
+ *             <li>Will match the highest versioned module with the specified status. See {@link ComponentMetadata#getStatus()}.</li>
+ *         </ul>
+ *     </li>
+ *     <li>A Maven SNAPSHOT version identifier: e.g. 1.0-SNAPSHOT, 1.4.9-beta1-SNAPSHOT</li>
+ * </ul>
+ *
+ * <h4>Version ordering</h4>
+ *
+ * Versions have an implicit ordering. Version ordering is used to:
+ * <ul>
+ *     <li>Determine if a particular version is included in a range.</li>
+ *     <li>Determine which version is 'newest' when performing conflict resolution.</li>
+ * </ul>
+ *
+ * <p>
+ * In general, the versions are ordered based on the "parts" of a version.
+ * <ul>
+ *     <li>The characters [<code>. - _ +</code>] are used to separate the different "parts" of a version.</li>
+ *     <li>Any part that contains both digits and letters is split into separate parts for each.</li>
+ *     <li>Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1`</li>
+ *     <li>If both parts are numeric, the highest numeric value is <b>higher</b>: `1.1 {@literal <} 1.2`</li>
+ *     <li>If both are not numeric, the parts are compared alphabetically: `1.a {@literal <} 1.b`</li>
+ *     <li>If one part is numeric, it is considered <b>higher</b> than the non-numeric part: `1.a {@literal <} 1.1`</li>
+ *     <li>An version with an extra numeric part is considered <b>higher</b> than a version without: `1.1 {@literal <} 1.1.0`</li>
+ *     <li>An version with an extra non-numeric part is considered <b>lower</b> than a version without: `1.1 {@literal <} 1.1.a`</li>
+ *     <li>The parts "dev", "rc", "release" and "final" have special meanings, and are sorted in that order.</li>
+ * </ul>
+ *
  * @since 4.4
  */
 @Incubating
