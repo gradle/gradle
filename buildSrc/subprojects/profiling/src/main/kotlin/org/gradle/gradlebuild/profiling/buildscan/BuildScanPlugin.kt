@@ -134,7 +134,7 @@ open class BuildScanPlugin : Plugin<Project> {
     fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
         val envValue: String? = System.getenv(envName)
         if (!envValue.isNullOrEmpty()) {
-            action(envValue!!)
+            action(envValue)
         }
     }
 
