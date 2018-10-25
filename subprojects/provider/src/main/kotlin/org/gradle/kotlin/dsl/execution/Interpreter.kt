@@ -104,7 +104,7 @@ class Interpreter(val host: Host) {
          * `plugins` block.
          *
          * The [ClassPath] is assumed not to influence the cache key of the script by itself as it should
-         * already be implied by the [ProgramId.parentClassLoader].
+         * already be implied by [ProgramId.parentClassLoader].
          */
         fun pluginAccessorsFor(
             scriptHost: KotlinScriptHost<*>
