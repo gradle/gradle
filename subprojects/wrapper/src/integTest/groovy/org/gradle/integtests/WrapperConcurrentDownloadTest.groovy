@@ -15,13 +15,14 @@
  */
 package org.gradle.integtests
 import org.apache.commons.io.IOUtils
+import org.eclipse.jetty.server.Connector
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.handler.AbstractHandler
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.rules.ExternalResource
-import org.mortbay.jetty.Connector
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.bio.SocketConnector
-import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Issue
 
 import javax.servlet.ServletException
@@ -57,9 +58,10 @@ class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
 
         @Override
         protected void before() throws Throwable {
-            server.connectors = [new SocketConnector()] as Connector[]
-            server.addHandler(new AbstractHandler() {
-                void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
+            server.connectors = [new ServerConnector(server)] as Connector[]
+            server.setHandler(new AbstractHandler() {
+                @Override
+                void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                     binZip.withInputStream { instr ->
                         IOUtils.copy(instr, response.outputStream)
                     }

@@ -14,57 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.server.http;
+package org.gradle.test.fixtures.server.http
 
-import org.mortbay.jetty.Request;
-import org.mortbay.jetty.security.Password;
-import org.mortbay.jetty.security.UserRealm;
+import org.eclipse.jetty.security.AbstractLoginService
+import org.eclipse.jetty.util.security.Password
 
-import java.security.Principal;
-
-class TestUserRealm implements UserRealm {
+class TestUserRealm extends AbstractLoginService {
     String username
     String password
 
-    Principal authenticate(String username, Object credentials, Request request) {
-        Password passwordCred = new Password(password)
-        if (username == this.username && passwordCred.check(credentials)) {
-            return getPrincipal(username)
+    TestUserRealm() {
+        setName("test")
+    }
+
+    @Override
+    protected String[] loadRoleInfo(UserPrincipal user) {
+        return AuthScheme.AuthSchemeHandler.ROLES
+    }
+
+    @Override
+    protected UserPrincipal loadUserInfo(String username) {
+        if (username == this.username) {
+            return new UserPrincipal(username, new Password(password))
         }
         return null
-    }
-
-    String getName() {
-        return "test"
-    }
-
-    Principal getPrincipal(String username) {
-        return new Principal() {
-            String getName() {
-                return username
-            }
-        }
-    }
-
-    boolean reauthenticate(Principal user) {
-        return false
-    }
-
-    boolean isUserInRole(Principal user, String role) {
-        return false
-    }
-
-    void disassociate(Principal user) {
-    }
-
-    Principal pushRole(Principal user, String role) {
-        return user
-    }
-
-    Principal popRole(Principal user) {
-        return user
-    }
-
-    void logout(Principal user) {
     }
 }

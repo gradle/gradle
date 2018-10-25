@@ -17,13 +17,14 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.base.Preconditions
+import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.servlet.FilterHolder
+import org.eclipse.jetty.webapp.WebAppContext
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
-import org.mortbay.jetty.Handler
-import org.mortbay.jetty.servlet.FilterHolder
-import org.mortbay.jetty.webapp.WebAppContext
-import org.mortbay.servlet.RestFilter
+
+import javax.servlet.DispatcherType
 
 class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture {
     private final TestDirectoryProvider provider
@@ -48,12 +49,12 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
 
     private void addFilters() {
         if (dropConnectionForPutBytes > -1) {
-            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)), "/*", 1)
+            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)), "/*", EnumSet.of(DispatcherType.REQUEST))
         }
         if (blockIncomingConnectionsForSeconds > 0) {
-            this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", 1)
+            this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
         }
-        this.webapp.addFilter(RestFilter, "/*", 1)
+        this.webapp.addFilter(RestFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST))
     }
 
     void dropConnectionForPutAfterBytes(long numBytes) {

@@ -28,7 +28,9 @@ dependencies {
     compile(library("commons_httpclient"))
     compile(library("commons_lang"))
 
-    integTestCompile(testLibrary("jetty"))
+    testLibraries("jetty").forEach {
+        integTestCompile(it)
+    }
 }
 
 gradlebuildJava {

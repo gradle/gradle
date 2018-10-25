@@ -23,7 +23,7 @@ dependencies {
     compile(project(":cli"))
     compile(project(":launcher"))
     compile(project(":native"))
-    compile(testLibrary("jetty"))
+    testLibraries("jetty").forEach { compile(it) }
     compile("org.gradle.org.littleshoot:littleproxy:1.1.3") {
         because("latest officially released version is incompatible with Guava >= 20")
     }

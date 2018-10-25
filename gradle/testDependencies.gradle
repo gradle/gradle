@@ -22,7 +22,13 @@ testLibraries.spock =   'org.spockframework:spock-core:1.2-groovy-2.5'
 testLibraries.bytebuddy = 'net.bytebuddy:byte-buddy:1.8.21'
 testLibraries.jsoup =   'org.jsoup:jsoup:1.11.3'
 testLibraries.xmlunit = 'xmlunit:xmlunit:1.6'
-testLibraries.jetty =   'org.mortbay.jetty:jetty:6.1.26'
+testLibraries.jetty =   [
+    'org.eclipse.jetty:jetty-server:9.4.12.v20180830',
+    'org.eclipse.jetty:jetty-security:9.4.12.v20180830',
+    'org.eclipse.jetty:jetty-webapp:9.4.12.v20180830',
+    'org.eclipse.jetty:jetty-http:9.4.12.v20180830',
+    'org.eclipse.jetty:jetty-util:9.4.12.v20180830'
+]
 testLibraries.sshd = [
     'org.apache.sshd:sshd-core:2.0.0',
     'org.apache.sshd:sshd-scp:2.0.0',

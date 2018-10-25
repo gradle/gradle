@@ -16,15 +16,15 @@
 
 package org.gradle.performance.regression.corefeature
 
+import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.server.handler.ContextHandler
+import org.eclipse.jetty.webapp.WebAppContext
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
-import org.mortbay.jetty.Handler
-import org.mortbay.jetty.servlet.Context
-import org.mortbay.jetty.webapp.WebAppContext
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -103,7 +103,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
 
 
     @Override
-    Context createContext() {
+    ContextHandler createContext() {
         def context = new WebAppContext()
         context.addFilter(SimulatedDownloadLatencyFilter, '/*', Handler.DEFAULT)
         context

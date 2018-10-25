@@ -19,11 +19,11 @@ package org.gradle.performance
 import groovy.transform.CompileStatic
 import groovy.transform.SelfType
 import org.apache.mina.util.AvailablePortFinder
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.ContextHandler
+import org.eclipse.jetty.util.resource.Resource
+import org.eclipse.jetty.webapp.WebAppContext
 import org.gradle.performance.fixture.TestProjectLocator
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.servlet.Context
-import org.mortbay.jetty.webapp.WebAppContext
-import org.mortbay.resource.Resource
 
 @CompileStatic
 @SelfType(AbstractCrossVersionPerformanceTest)
@@ -35,7 +35,7 @@ trait WithExternalRepository {
         new File(new TestProjectLocator().findProjectDir(runner.testProject), 'repository')
     }
 
-    Context createContext() {
+    ContextHandler createContext() {
         def context = new WebAppContext()
         context.setContextPath("/")
         context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
@@ -46,10 +46,10 @@ trait WithExternalRepository {
         try {
             serverPort = AvailablePortFinder.getNextAvailable(5000)
             server = new Server(serverPort)
-            Context context = createContext()
+            ContextHandler context = createContext()
             context.setContextPath("/")
             context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
-            server.addHandler(context)
+            server.setHandler(context)
             server.start()
         } catch (IllegalArgumentException ex) {
             server = null // repository not found, probably running on coordinator. If not, error will be caught later

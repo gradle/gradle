@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling
 
+import org.eclipse.jetty.http.MimeTypes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -32,7 +33,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.mortbay.jetty.MimeTypes
 import spock.lang.Issue
 
 import javax.servlet.http.HttpServletRequest
@@ -165,7 +165,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
     def "can cancel distribution download"() {
         def userHomeDir = file("user-home-dir")
-        server.server.setGracefulShutdown(2 * 1000)
+        server.server.setStopTimeout(2 * 1000)
 
         given:
         settingsFile << "";

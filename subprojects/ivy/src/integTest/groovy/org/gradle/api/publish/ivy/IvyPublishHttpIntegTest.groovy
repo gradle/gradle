@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.eclipse.jetty.http.HttpStatus
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +28,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.hamcrest.Matchers
 import org.junit.Rule
-import org.mortbay.jetty.HttpStatus
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -80,8 +80,8 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
-        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.expectPut(HttpStatus.CREATED_201)
+        module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
 
