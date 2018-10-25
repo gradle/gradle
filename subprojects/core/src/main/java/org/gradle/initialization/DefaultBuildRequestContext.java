@@ -45,12 +45,6 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
         return metaData.getClient();
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public org.gradle.util.Clock getBuildTimeClock() {
-        return metaData.getBuildTimeClock();
-    }
-
     @Override
     public long getStartTime() {
         return metaData.getStartTime();
