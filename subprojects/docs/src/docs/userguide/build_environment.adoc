@@ -130,12 +130,12 @@ You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Proj
 
 Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
-.Setting a project property via gradle.properties
+.Setting a project property via a system property
 ----
 org.gradle.project.foo=bar
 ----
 
-.Setting a project property via environment variable
+.Setting a project property via an environment variable
 ----
 ORG_GRADLE_PROJECT_foo=bar
 ----
