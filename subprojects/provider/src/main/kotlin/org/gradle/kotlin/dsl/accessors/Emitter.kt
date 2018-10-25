@@ -85,7 +85,7 @@ fun writerThreadFor(srcDir: File, binDir: File): WriterThread = WriterThread().a
 }
 
 
-internal
+private
 fun makeAccessorOutputDirs(srcDir: File, binDir: File) {
     srcDir.resolve(packagePath).mkdirs()
     binDir.resolve(packagePath).mkdirs()
@@ -108,7 +108,7 @@ sealed class Accessor {
 }
 
 
-internal
+private
 fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> = sequence {
     schema.run {
         AccessorScope().run {
