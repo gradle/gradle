@@ -181,6 +181,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Sets the destination dir.
+     *
      * @deprecated Use {@link #getDestinationDirectory()}
      */
     @Deprecated
@@ -210,6 +212,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Sets the base name.
+     *
      * @deprecated Use {@link #getArchiveBaseName()}
      */
     @Deprecated
@@ -242,6 +246,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Sets the appendix.
+     *
      * @deprecated Use {@link #getArchiveAppendix()}
      */
     @Deprecated
@@ -274,6 +280,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Sets the version.
+     *
      * @deprecated Use {@link #getArchiveVersion()}
      */
     @Deprecated
@@ -304,6 +312,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Sets the extension.
+     *
      * @deprecated Use {@link #getArchiveExtension()}
      */
     @Deprecated
@@ -334,6 +344,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * Sets the classifier.
+     * 
      * @deprecated Use {@link #getArchiveClassifier()}
      */
     @Deprecated
